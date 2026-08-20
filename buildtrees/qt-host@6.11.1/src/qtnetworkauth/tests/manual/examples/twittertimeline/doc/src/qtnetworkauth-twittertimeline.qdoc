@@ -1,0 +1,22 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example twittertimeline
+    \title Twitter Timeline Example
+    \ingroup examples-qtnetworkauth
+    \brief Demonstrates authenticating with OAuth to access a Twitter timeline.
+    \excludefromcreator
+    \image twittertimeline-example.png Screenshot of the example
+
+    The \e {Twitter Timeline} example uses OAuth, as supported by
+    \l {Qt Network Authorization}, to sign in to Twitter and display a timeline
+    of tweets (in text format) associated with the authenticated user.
+
+    To use this example, a consumer key and secret from Twitter are needed.
+    To register the application visit https://apps.twitter.com.
+    You’ll need to add \e http://localhost:1337/callback as a callback URL
+    in your Twitter app settings.
+
+    \include examples-run.qdocinc
+*/

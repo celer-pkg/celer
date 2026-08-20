@@ -1,0 +1,24 @@
+# QTBUG-101006
+# QTBUG-135600 windows-11
+[nameBindingSourceSize]
+android
+windows-11
+[sourceBindingSourceSize]
+android
+windows-11
+[alignment]
+android
+windows-11
+[color]
+android
+windows-11
+[fileSelectors]
+android
+windows-11
+[imageProvider]
+android
+[translucentColors]
+android
+[svgSourceBindingSourceSize]
+android
+windows-11

@@ -1,0 +1,298 @@
+# Copyright 2024-2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "type_matchers",
+    testonly = 1,
+    srcs = ["type_matchers.cc"],
+    hdrs = ["type_matchers.h"],
+    deps = [
+        ":brush",
+        ":brush_behavior",
+        ":brush_coat",
+        ":brush_family",
+        ":brush_paint",
+        ":brush_tip",
+        ":easing_function",
+        "//:gtest_for_library_testonly",
+        "//ink/geometry:type_matchers",
+        "//ink/types:type_matchers",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_library(
+    name = "brush",
+    srcs = ["brush.cc"],
+    hdrs = ["brush.h"],
+    deps = [
+        ":brush_coat",
+        ":brush_family",
+        "//ink/color",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "brush_test",
+    srcs = ["brush_test.cc"],
+    deps = [
+        ":brush",
+        ":brush_behavior",
+        ":brush_family",
+        ":brush_paint",
+        ":brush_tip",
+        ":easing_function",
+        ":type_matchers",
+        "//ink/color",
+        "//ink/geometry:angle",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "brush_coat",
+    srcs = ["brush_coat.cc"],
+    hdrs = ["brush_coat.h"],
+    deps = [
+        ":brush_behavior",
+        ":brush_paint",
+        ":brush_tip",
+        "//ink/geometry:mesh_format",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/strings:str_format",
+    ],
+)
+
+cc_test(
+    name = "brush_coat_test",
+    srcs = ["brush_coat_test.cc"],
+    deps = [
+        ":brush_behavior",
+        ":brush_coat",
+        ":brush_paint",
+        ":brush_tip",
+        ":fuzz_domains",
+        "//ink/geometry:mesh_format",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
+        "@com_google_fuzztest//fuzztest",
+        "@com_google_fuzztest//fuzztest:fuzztest_gtest_main",
+    ],
+)
+
+cc_library(
+    name = "brush_family",
+    srcs = ["brush_family.cc"],
+    hdrs = ["brush_family.h"],
+    deps = [
+        ":brush_coat",
+        ":brush_paint",
+        ":brush_tip",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "brush_family_test",
+    srcs = ["brush_family_test.cc"],
+    deps = [
+        ":brush_behavior",
+        ":brush_coat",
+        ":brush_family",
+        ":brush_paint",
+        ":brush_tip",
+        ":easing_function",
+        ":fuzz_domains",
+        ":type_matchers",
+        "//ink/geometry:angle",
+        "//ink/geometry:point",
+        "//ink/geometry:vec",
+        "//ink/types:duration",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:span",
+        "@com_google_fuzztest//fuzztest",
+        "@com_google_fuzztest//fuzztest:fuzztest_gtest_main",
+    ],
+)
+
+cc_library(
+    name = "brush_tip",
+    srcs = ["brush_tip.cc"],
+    hdrs = ["brush_tip.h"],
+    deps = [
+        ":brush_behavior",
+        "//ink/geometry:angle",
+        "//ink/geometry:vec",
+        "//ink/types:duration",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/strings:str_format",
+    ],
+)
+
+cc_test(
+    name = "brush_tip_test",
+    srcs = ["brush_tip_test.cc"],
+    deps = [
+        ":brush_behavior",
+        ":brush_tip",
+        "//ink/geometry:angle",
+        "//ink/types:duration",
+        "@com_google_absl//absl/strings",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "easing_function",
+    srcs = ["easing_function.cc"],
+    hdrs = ["easing_function.h"],
+    deps = [
+        "//ink/geometry:point",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/strings:str_format",
+    ],
+)
+
+cc_test(
+    name = "easing_function_test",
+    srcs = ["easing_function_test.cc"],
+    deps = [
+        ":easing_function",
+        ":fuzz_domains",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
+        "@com_google_fuzztest//fuzztest",
+        "@com_google_fuzztest//fuzztest:fuzztest_gtest_main",
+    ],
+)
+
+cc_library(
+    name = "brush_behavior",
+    srcs = ["brush_behavior.cc"],
+    hdrs = ["brush_behavior.h"],
+    deps = [
+        ":easing_function",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/strings:str_format",
+    ],
+)
+
+cc_test(
+    name = "brush_behavior_test",
+    srcs = ["brush_behavior_test.cc"],
+    deps = [
+        ":brush_behavior",
+        ":easing_function",
+        ":fuzz_domains",
+        "//ink/types:duration",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:status_matchers",
+        "@com_google_absl//absl/strings",
+        "@com_google_fuzztest//fuzztest",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "brush_paint",
+    srcs = ["brush_paint.cc"],
+    hdrs = ["brush_paint.h"],
+    deps = [
+        "//ink/geometry:angle",
+        "//ink/geometry:vec",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/strings:str_format",
+    ],
+)
+
+cc_test(
+    name = "brush_paint_test",
+    srcs = ["brush_paint_test.cc"],
+    deps = [
+        ":brush_paint",
+        ":fuzz_domains",
+        "//ink/geometry:angle",
+        "//ink/geometry:vec",
+        "@com_google_absl//absl/hash:hash_testing",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:status_matchers",
+        "@com_google_absl//absl/strings",
+        "@com_google_fuzztest//fuzztest",
+        "@com_google_fuzztest//fuzztest:fuzztest_gtest_main",
+    ],
+)
+
+cc_library(
+    name = "fuzz_domains",
+    testonly = 1,
+    srcs = ["fuzz_domains.cc"],
+    hdrs = ["fuzz_domains.h"],
+    deps = [
+        ":brush",
+        ":brush_behavior",
+        ":brush_coat",
+        ":brush_family",
+        ":brush_paint",
+        ":brush_tip",
+        ":easing_function",
+        "//ink/color",
+        "//ink/color:fuzz_domains",
+        "//ink/geometry:angle",
+        "//ink/geometry:fuzz_domains",
+        "//ink/geometry:point",
+        "//ink/geometry:vec",
+        "//ink/types:fuzz_domains",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/types:span",
+        "@com_google_fuzztest//fuzztest",
+    ],
+)
+
+cc_test(
+    name = "fuzz_domains_test",
+    srcs = ["fuzz_domains_test.cc"],
+    deps = [
+        ":brush",
+        ":brush_family",
+        ":fuzz_domains",
+        "@com_google_fuzztest//fuzztest",
+        "@com_google_fuzztest//fuzztest:fuzztest_gtest_main",
+    ],
+)

@@ -1,0 +1,27 @@
+project = OverloadedSignalsSlots
+description = Test for overloaded signals and slots documentation
+version = 1.0
+
+headerdirs = ./src
+sourcedirs = ./src
+includepaths = -I./src
+
+outputformats       = WebXML HTML DocBook
+WebXML.nosubdirs    = true
+WebXML.outputsubdir = webxml
+
+HTML.nosubdirs = true
+HTML.outputsubdir = html
+
+DocBook.nosubdirs = true
+DocBook.outputsubdir = docbook
+
+locationinfo = false
+
+# Use example.org as dummy targets for testing the configuration feature
+# (these URLs exist for documentation purposes per RFC 2606)
+overloadedsignalstarget = https://example.org/connecting-overloaded-signals
+overloadedslotstarget = https://example.org/connecting-overloaded-slots
+
+warninglimit = 0
+warninglimit.enabled = true

@@ -1,0 +1,155 @@
+// Copyright 2018 The ChromiumOS Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+syntax = "proto2";
+
+option optimize_for = LITE_RUNTIME;
+
+package power_manager;
+option go_package = "go.chromium.org/chromiumos/system_api/power_manager_proto";
+
+// See
+// https://chromium.googlesource.com/chromiumos/platform2/+/HEAD/power_manager/docs/screen_brightness.md
+// for information about the mapping between brightness percents and backlight
+// hardware levels.
+
+// Request to change the backlight brightness sent from Chrome to powerd in a
+// SetScreenBrightness D-Bus method call.
+message SetBacklightBrightnessRequest {
+  // Desired backlight brightness as a percent in the range [0.0, 100.0].
+  optional double percent = 1;
+
+  // The speed at which the brightness should go to the requested percent.
+  enum Transition {
+    // The brightness will be instantaneously set to the new percent.
+    INSTANT = 1;
+    // The brightness will quickly animate to the new percent. This should
+    // typically be used in response to a user request.
+    FAST = 0;
+    // The brightness will slowly animate to the new percent. This should
+    // typically be used to perform an automated change that was not directly
+    // requested by the user.
+    SLOW = 2;
+  }
+  optional Transition transition = 2;
+
+  // The reason the request was sent.
+  enum Cause {
+    // Explicit user request (typically using the onscreen brightness slider).
+    USER_REQUEST = 0;
+    // Automated request based on a prediction of the desired brightness.
+    MODEL = 1;
+    // User request via the Settings app.
+    USER_REQUEST_FROM_SETTINGS_APP = 2;
+    // Brightness was restored to the previous user preference (typically on the
+    // login screen).
+    RESTORED_FROM_USER_PREFERENCE = 3;
+    // Brightness was changed due to a battery saver state change.
+    BATTERY_SAVER_STATE_CHANGED = 4;
+  }
+  optional Cause cause = 3;
+
+  // Next value to use: 4
+}
+
+// Request to change the ambient light sensor sent from Chrome to powerd in a
+// SetAmbientLightSensorEnabled D-Bus method call.
+message SetAmbientLightSensorEnabledRequest {
+  // Desired status of the ambient light sensor.
+  optional bool sensor_enabled = 1;
+
+  // The reason for sending the request.
+  enum Cause {
+    // User request via the Settings app.
+    USER_REQUEST_FROM_SETTINGS_APP = 0;
+    // Ambient light sensor was restored to the previous user
+    // preference (typically on the login screen).
+    RESTORED_FROM_USER_PREFERENCE = 1;
+  }
+  optional Cause cause = 2;
+
+  // Next value to use: 3
+}
+
+// Announcement of a backlight brightness change emitted by powerd via a
+// ScreenBrightnessChanged or KeyboardBrightnessChanged D-Bus signal.
+message BacklightBrightnessChange {
+  // Current backlight brightness as a percent in the range [0.0, 100.0].
+  optional double percent = 1;
+
+  // The reason the brightness was changed.
+  enum Cause {
+    // Explicit user request, e.g. brightness keys or brightness slider.
+    USER_REQUEST = 0;
+    // Automated change in response to user activity (input event, video
+    // activity, etc.).
+    USER_ACTIVITY = 1;
+    // Automated powerd change triggered by idle timeout due to user inactivity.
+    USER_INACTIVITY = 2;
+    // Automated powerd change due by a change to the ambient light level.
+    AMBIENT_LIGHT_CHANGED = 3;
+    // An external power source was connected.
+    EXTERNAL_POWER_CONNECTED = 4;
+    // An external power source was disconnected.
+    EXTERNAL_POWER_DISCONNECTED = 5;
+    // Backlights were forced off by Chrome (typically due to the user tapping
+    // the power button on a convertible device).
+    FORCED_OFF = 6;
+    // Backlights are no longer being forced off by Chrome.
+    NO_LONGER_FORCED_OFF = 7;
+    // Unspecified automated change (suspend/resume, shutdown, etc.).
+    OTHER = 8;
+    // Automated request based on a prediction of the desired brightness.
+    MODEL = 9;
+    // A notification that is allowed to wake the device was created or updated.
+    WAKE_NOTIFICATION = 10;
+    // Backlights were toggled off by the user (typically due to the
+    // user pressing the keyboard backlight toggle keyboard key).
+    USER_TOGGLED_OFF = 11;
+    // Backlights are toggled on by user.
+    USER_TOGGLED_ON = 12;
+    // Changed due to battery saver state change.
+    BATTERY_SAVER_STATE_CHANGED = 13;
+    // User request via the Settings app.
+    USER_REQUEST_FROM_SETTINGS_APP = 14;
+    // Brightness was restored to the previous user preference (typically on the
+    // login screen).
+    RESTORED_FROM_USER_PREFERENCE = 15;
+    // Next value to use: 16
+  }
+  optional Cause cause = 2;
+
+  // Next value to use: 3
+}
+
+// Announcement of a change to the ambient light sensor state emitted by powerd
+// via a AmbientLightSensorEnabledChanged D-Bus signal.
+message AmbientLightSensorChange {
+  // Current status of the ambient light sensor.
+  optional bool sensor_enabled = 1;
+
+  // The reason the ambient light sensor status was changed.
+  enum Cause {
+    // Ambient light sensor usage was disabled because no sensor is present.
+    NO_SENSOR_PRESENT = 0;
+    // Ambient light sensor was disabled because it was not supplying readings.
+    NO_READINGS_FROM_ALS = 1;
+    // User directly toggled the ambient light sensor via the Settings app.
+    USER_REQUEST_SETTINGS_APP = 2;
+    // Ambient light sensor was disabled as a result of a brightness change
+    // triggered by the user (e.g. brightness keys or quick settings slider).
+    BRIGHTNESS_USER_REQUEST = 3;
+    // Ambient light sensor was disabled as a result of a brightness change
+    // triggered by the user from the Settings app.
+    BRIGHTNESS_USER_REQUEST_SETTINGS_APP = 4;
+    // Ambient light sensor status was changed as a result of a brightness
+    // change not triggered by the user.
+    BRIGHTNESS_OTHER = 5;
+    // Ambient light sensor status was restored to the previous user preference
+    // (typically on the login screen).
+    RESTORED_FROM_USER_PREFERENCE = 6;
+    // Next value to use: 7
+  }
+  optional Cause cause = 2;
+}

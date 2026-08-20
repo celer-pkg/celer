@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>material.frag</file>
+        <file>material.vert</file>
+        <file>test.xml</file>
+    </qresource>
+</RCC>

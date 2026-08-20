@@ -1,0 +1,78 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example charactercontroller
+    \ingroup quick3dphysics-examples
+    \title Qt Quick 3D Physics - CharacterController Example
+    \examplecategory {3D}
+    \brief Demonstrates the CharacterController type.
+    \image charactercontroller-example.jpg {Screenshot of a test room}
+
+    This example shows how to use a CharacterController to move the camera in a scene, giving
+    a first-person view. The character controller represents the viewpoint of the user as an
+    entity that is constrained by the physical geometry of the scene, walks on the ground,
+    climbs up/down stairs, and interacts with triggers.
+
+    \section1 The scene
+
+    The scene consists of a simple building which is defined in Building.qml, and will not
+    be explained in detail. (The mesh \c building.mesh was made using Blender. It can be
+    recreated from building.gltf using the \e balsam tool.)
+
+    The building contains three triggers:
+    \list
+    \li A trigger that opens the door. Implemented internally in Building.qml
+    \li A "gravityField" trigger that sets a property \c inGravityField when something is inside it.
+    \li A "teleport" trigger that emits a signal \c teleporterTriggered when something enters it.
+    \endlist
+
+    \section1 The character controller
+
+    The complete character controller logic is as follows:
+
+    \snippet charactercontroller/main.qml charactercontroller
+
+    The character controller needs a shape. Only CapsuleShape is supported. Note that the \e height
+    property refers to the height of the cylinder part of the capsule: the total height of the
+    character is calculated by adding the height of the bottom and top hemispheres:
+    \snippet charactercontroller/main.qml capsuleshape
+
+    In order to trigger a TriggerBody, the character controller must have the
+    \l {PhysicsNode::}{sendTriggerReports} property set to \c true:
+    \snippet charactercontroller/main.qml triggerreports
+
+    CharacterController has its own \l{CharacterController::}{gravity} property, independent of
+    PhysicsWorld. The common use case is to switch between walking and flying.
+    In this example, we implement an antigravity field by changing the \c gravity property to point
+    upwards when the character is inside the "gravityField" trigger:
+    \snippet charactercontroller/main.qml gravity
+
+    \section2 Position and movement
+
+    When the \c teleporterTriggered signal is emitted, we change the position and orientation of
+    the character back to its initial position. Note that the \l {Node::}{position} property should
+    not be changed while the simulation is running. Use the \l {CharacterController::}{teleport}
+    function instead:
+    \snippet charactercontroller/main.qml position
+
+    The motion of the character is defined by setting the \l {CharacterController::}{movement}
+    property to a velocity. The character will then try to move with that velocity, relative to the
+    forward vector. The character may end up moving at a different speed, since it may be blocked
+    by a wall, or be in free fall. Mouse/keyboard input comes from the \c wasd object, which is a
+    stripped-down version of \l WasdController.
+    \snippet charactercontroller/main.qml movement
+
+    The two rotational axes are handled differently, in order to follow common practice for WASD movement
+    when walking on the ground:
+    \list
+    \li Vertical rotation changes the view direction, but does \e not make the character fly up
+    into the air or dig down into the ground.
+    \li Horizontal rotation changes the forward direction of the character. (This is an exeption to
+    the rule that transformations should not be changed when the physics simulation is running: It
+    is safe to change the rotation of the character controller, since that doesn't change the state
+    of the physics engine: it only changes the interpretation of the
+    \l {CharacterController::}{movement} vector.)
+    \endlist
+    \snippet charactercontroller/main.qml camera
+*/

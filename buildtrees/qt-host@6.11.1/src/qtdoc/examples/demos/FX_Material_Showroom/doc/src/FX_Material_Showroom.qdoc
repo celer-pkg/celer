@@ -1,0 +1,45 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example demos/FX_Material_Showroom
+    \ingroup qtquickdemos
+    \title FX & Material Showroom
+    \examplecategory {Application Examples}
+    \examplecategory {3D}
+    \meta {tag} {demo,quick}
+    \meta {docdependencies} {QtQuick3D}
+
+    \brief Demonstrates material and effects capabilities of Qt Quick 3D.
+    This example demonstrates how you can use particle effects and materials in
+    \l{Qt Quick 3D}.
+
+    \image FX_Material_Showroom.png
+
+    The example consists of an interactive 3D scene with a 3D model. You can
+    change the model's material and toggle between a couple of different
+    environments for the scene.
+
+    In addition to the material functionality, you can also add particle-based
+    effects such as snow, smoke, and fire to the scene.
+
+    \include examples-run.qdocinc
+
+    \section1 Platform notes
+
+    For this example, you can create target executables for the major platforms,
+    including iOS, \macos, Windows, and Linux. On Android, the example creates a
+    \c Module library.
+
+    For more information, see \l {qt_add_executable}.
+
+    \section1 Relevant classes
+
+    The example uses the \l {Qt Quick 3D} module, which is a separate item in
+    the Qt Online Installer. If the example fails to configure, please make sure
+    that you have Qt Quick 3D installed.
+
+    \section1 Source files
+
+    \sa {Qt Quick 3D Examples and Tutorials}
+*/

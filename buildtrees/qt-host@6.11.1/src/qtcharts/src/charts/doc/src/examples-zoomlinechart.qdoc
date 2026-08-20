@@ -1,0 +1,40 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example zoomlinechart
+    \title Zoom Line Example
+    \ingroup qtcharts_examples
+    \examplecategory {Data Visualization}
+    \brief The example shows how to create your own custom zooming effect.
+
+    The example shows how to create your own custom zooming effect with QRubberBand by using a mouse
+    and how to use touch gestures for paning and zooming.
+    \image examples_zoomlinechart1.png {Screenshot showing a wave chart example}
+    \image examples_zoomlinechart2.png {Screenshot of the wave chart being zoomed in}
+
+    \include examples-run.qdocinc
+
+    \section1 Customizing Zooming Effects
+
+    Let's first create a line series with some example data.
+    \snippet zoomlinechart/main.cpp 1
+
+    Then we create a custom chart view by deriving from QChartView:
+    \snippet zoomlinechart/chartview.h 1
+
+    We override mouse and key event handling
+    \snippet zoomlinechart/chartview.h 2
+
+    Then we implement a custom logic for mouse and key events. For example pressing the '+' key will zoom in and pressing
+    the '-' key will zoom out.
+    \snippet zoomlinechart/chartview.cpp 1
+
+    We also create our own QChart:
+    \snippet zoomlinechart/chart.h 1
+
+    Where we can handle the gestures:
+    \snippet zoomlinechart/chart.cpp 1
+
+    Note that you will need to call grabGesture() to both QMainWindow and QChart.
+*/

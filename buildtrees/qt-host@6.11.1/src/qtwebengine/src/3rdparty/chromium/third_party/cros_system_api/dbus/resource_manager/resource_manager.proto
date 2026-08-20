@@ -1,0 +1,46 @@
+// Copyright 2023 The ChromiumOS Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+syntax = "proto3";
+
+option optimize_for = LITE_RUNTIME;
+
+package resource_manager;
+
+option go_package = "go.chromium.org/chromiumos/system_api/resource_manager_proto";
+
+// The browser types.
+enum BrowserType {
+  ASH = 0;
+  LACROS = 1;
+}
+
+message ReportBrowserProcesses {
+  // The browser type reporting the process lists.
+  BrowserType browser_type = 1;
+
+  message Process {
+    int32 pid = 1;
+    bool protected = 2;
+    bool visible = 3;
+    bool focused = 4;
+
+    // The timestamp from CLOCK_MONOTONIC at which the corresponding tab was
+    // last visible.
+    int64 last_visible_ms = 5;
+  }
+  repeated Process processes = 2;
+}
+
+message MemoryMargins {
+  // 1 basis point (bps) is equivalent to 0.01 % of total memory.
+
+  // Moderate margin.
+  uint32 moderate_bps = 1;
+  // Critical margin. The non-protected pages can be discarded.
+  uint32 critical_bps = 2;
+  // Critical protected margin. Both the non-protected and protected pages can
+  // be discarded.
+  uint32 critical_protected_bps = 3;
+}

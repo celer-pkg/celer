@@ -1,0 +1,35 @@
+# Copyright 2025 The Chromium Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+metric_spec: {
+  id: "cuj.simultaneous-load.tab_load_duration"
+  dimensions: "id"
+  dimensions: "it_id"
+  dimensions: "url"
+  value: "page_load_time"
+  query {
+    table {
+      table_name: "tab_load_durations_output"
+      module_name: "sql_packages.cujs.simultaneous_load.tab_load_durations"
+      column_names: "id"
+      column_names: "it_id"
+      column_names: "page_load_time"
+      column_names: "url"
+    }
+  }
+}
+
+metric_spec: {
+  id: "cuj.simultaneous-load.total_load_duration"
+  dimensions: "it_id"
+  value: "iteration_load_duration"
+  query {
+    table {
+      table_name: "total_load_duration_output"
+      module_name: "sql_packages.cujs.simultaneous_load.total_load_duration"
+      column_names: "it_id"
+      column_names: "iteration_load_duration"
+    }
+  }
+}

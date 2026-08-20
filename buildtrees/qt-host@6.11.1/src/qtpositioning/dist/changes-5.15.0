@@ -1,0 +1,51 @@
+Qt 5.15 introduces many new features and improvements as well as bugfixes
+over the 5.14.x series. For more details, refer to the online documentation
+included in this distribution. The documentation is also available online:
+
+https://doc.qt.io/qt-5/index.html
+
+The Qt version 5.15 series is binary compatible with the 5.14.x series.
+Applications compiled for 5.14 will continue to run with 5.15.
+
+Some of the changes listed in this file include issue tracking numbers
+corresponding to tasks in the Qt Bug Tracker:
+
+https://bugreports.qt.io/
+
+Each of these identifiers can be entered in the bug tracker to obtain more
+information about a particular change.
+
+****************************************************************************
+*                              QtPositioning                               *
+****************************************************************************
+
+ - QGeoPolygon:
+   * Fixed contains method.
+
+ - serialnmea plugin:
+   * [QTBUG-82819] Fixed serialnmea plugin initialization when used with serial port.
+
+ - [QTBUG-81069] Fixed a dangling pointer issue in QML PositionSource API.
+
+ - Fixed QGeoCoordinate::CoordinateFormat missing Q_ENUM.
+
+ - Removed the usage of deprecated APIs from other Qt modules.
+
+
+****************************************************************************
+*                              QtLocation                                  *
+****************************************************************************
+
+ - Added optional Argument to Map.fitViewportToMapItems.
+
+ - Fixed a memory leak related to MapObjects.border.
+
+ - Updated the 3rdparty library earcut.
+
+ - Fixed Map*ObjectsQSG implementation triggering QSGBatchRenderer crashes.
+
+ - Ported Map*ObjectPrivateQSG to the shader-based projection geometries.
+
+ - Fixed segmentation fault due to null pointer usage in qdeclarativepolylinemapitem.cpp.
+
+ - Removed the usage of deprecated APIs from other Qt modules.

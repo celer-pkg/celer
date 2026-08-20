@@ -1,0 +1,323 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page sbom.html
+\title Software Bill of Materials
+\brief Qt package information in SPDX and CycloneDX formats
+\ingroup licensing
+
+A Software Bill of Materials (SBOM) document is a declaration of installed
+files, copyrights, licenses, versions, source repositories, and other relevant
+information about a Qt installation. The SBOM documents facilitate supply chain
+management by sharing component information to Qt users and other interested
+parties. Qt's SBOM documents are especially useful for license compliance and
+security vulnerability management.
+
+Starting from Qt 6.8, Qt's build system can generate SBOM documents tailored
+for different platforms and build configurations.
+The \l{Using Qt Online Installer}{Qt Online Installer} places the SBOM
+documents in an \c{sbom} directory located in the installation directory of the
+respective Qt version.
+For example, for the Qt \QtVersion Android arm64-v8a installation, the SBOM
+documents are at:
+\badcode \QtVersion
+<INSTALL_DIR>/\1/android_arm64_v8a/sbom/
+\endcode
+
+To generate SBOM documents from the Qt sources yourself, set \c -sbom as a
+\l{Qt Configure Options}{configure} option.
+
+For example, during the configure step:
+\badcode
+./configure  -sbom
+\endcode
+Generation of SBOM documents then becomes a part of the regular Qt installation:
+\badcode
+ninja install
+cmake --install .
+\endcode
+
+This build process creates SBOM documents in JSON and \c{tag:value}
+format as specified by the \l{SPDX Format}{SPDX} format.
+
+Starting from Qt 6.11, the build process optionally creates
+\l{CycloneDX Format}{CycloneDX} SBOM documents.
+
+See \l{Building Qt Sources} and \l{Qt Configure Options} for more information
+about the Qt build procedure.
+
+For Qt developers and maintainers, the \l{https://wiki.qt.io/SBOM}{SBOM Wiki}
+has specific information for creating SBOM documents.
+
+\section1 REUSE-compliant Qt modules
+
+\l{All Modules}{Qt modules} are \l REUSE compliant starting from Qt 6.9.
+Specifically, license documentation and license checks are part of Qt's
+development process. Various tools check Qt repositories for licenses in files
+or externally in REUSE.toml files.
+
+The \l{reuse-tool} checks for REUSE compliance and generates source SBOMs. An
+internal tool checks that the generated source SBOM files comply with the Qt
+license specification.
+
+For more information about licenses documentation in the Qt sources, visit the
+following:
+\list
+\li \l{QUIP 18: License specification in Qt's modules}
+\li \l{Licensing in Qt sources}
+\endlist
+
+\section1 SPDX Format
+
+The SBOM documents are in \l{https://spdx.github.io/spdx-spec/v2.3}{SPDX 2.3}
+format. A document begins with information about the Qt module. SPDX packages
+follow as separate entries.
+
+For a Qt installation, an SPDX package may be a:
+\list
+\li \l{All Modules}{Qt module}
+\li Qt plugin - for example, \l{Supported Platforms}{platform} plugins
+\li Qt tool - for example, \l{Using the Meta-Object Compiler (moc)}{moc}
+\li Qt application - for example, \l{Qt Widgets Designer}
+\li Third-party component - see \l{Third-Party Code Used in Qt}
+\li System library dependency - \l{Qt Configure Options}
+\endlist
+
+An SPDX package typically contains at least:
+
+\list
+\li Package name, version, supplier name, and build information
+\li Qt License Attribution - a Qt product may be under different commercial or
+    open source licenses. For example, a package may list several concluded
+    licenses:
+    \badcode
+    LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+    \endcode
+    The \l{Qt Licensing} has more information about licensing options.
+\li Copyright notices - SBOM documents include Qt source copyrights and
+    copyrights from third-party sources or authors.
+\li CPE (Common Platform Enumeration) - a naming scheme for package
+    identification. For Qt, the SBOM CPE format is typically:
+    \badcode
+    cpe:<cpe_version>:<part>:<vendor>:<product>:<version>:<update>:<edition>:<language>:<sw_edition>:<target_sw>:<target_hw>:<other>
+    \endcode
+
+    An example identifier for a \l{Qt Network Authorization} package is:
+    \badcode \QtVersion
+    cpe:2.3:a:qt:qtnetworkauth:\1:*:*:*:*:*:*:*
+    \endcode
+    For more information, see
+    \l{https://cpe.mitre.org/specification/}{CPE Specification} page.
+\li PURL (Package URL) - an alternative to CPE, PURL is an identifier scheme
+    that uses the following format:
+    \badcode
+    scheme:type/namespace/name@version?qualifiers#subpath
+    \endcode
+
+    An example PURL for a package is:
+    \badcode \QtVersion
+    pkg:generic/TheQtCompany/qtnetworkauth@\1
+    \endcode
+    For more information,
+    \l{https://github.com/package-url/purl-spec}{Package URL} page.
+\li Package relationships between packages such as dependencies.
+
+    For example, the \c DEPENDS_ON for listing a dependency relationship.
+    Refer to Clause 11 of the
+    \l{https://spdx.github.io/spdx-spec/v2.3/relationships-between-SPDX-elements/}{SPDX 2.3}
+     for a list of valid
+    relationship types.
+
+\endlist
+
+\section1 Third-party SPDX Packages
+
+An SPDX package for a third-party component typically contains at least:
+
+\list
+\li Name, version, and description
+\li Homepage and download location
+\li Usage in Qt
+\li License and copyright information
+\li Whether the component is security critical - the code may process untrusted
+code
+\endlist
+
+\section1 SPDX SBOM Example
+
+The following is an example of an SPDX SBOM document for the
+\l{Qt Network Authorization} module. The SBOM filename is
+\c qtnetworkauth-6.9.0.spdx and is in the installation's \c sbom directory.
+Note that the SBOM document contains several other packages not listed in the
+following example.
+
+\code
+SPDXVersion: SPDX-2.3
+DataLicense: CC0-1.0
+SPDXID: SPDXRef-DOCUMENT
+DocumentName: qtnetworkauth-6.9.0
+DocumentNamespace: https://qt.io/spdxdocs/qtnetworkauth-6.9.0
+Creator: Organization: TheQtCompany
+Creator: Tool: Qt Build System
+CreatorComment: <text>This SPDX document was created from CMake 3.27.7, using the qt
+build system from https://code.qt.io/cgit/qt/qtbase.git/tree/cmake/QtPublicSbomHelpers.cmake</text>
+Created: 2024-09-19T11:07:23Z
+ExternalDocumentRef: DocumentRef-qtbase https://qt.io/spdxdocs/qtbase-6.9.0 SHA1: 3dbc51259a07d458524a976da2e9607a76fab7e7
+
+PackageName: NetworkAuth
+SPDXID: SPDXRef-Package-qtnetworkauth-qt-module-NetworkAuth
+PackageDownloadLocation: git://code.qt.io/qt/qtnetworkauth.git
+PackageVersion: 6.9.0
+PackageSupplier: Organization: TheQtCompany
+PackageLicenseConcluded: LicenseRef-Qt-Commercial OR GPL-3.0-only
+PackageLicenseDeclared: LicenseRef-Qt-Commercial OR GPL-3.0-only
+ExternalRef: PACKAGE-MANAGER purl pkg:github/qt/qtnetworkauth?library_name=NetworkAuth#src/oauth
+ExternalRef: PACKAGE-MANAGER purl pkg:generic/TheQtCompany/qtnetworkauth-NetworkAuth?vcs_url=https://code.qt.io/qt/qtnetworkauth.git&library_name=NetworkAuth#src/oauth
+FilesAnalyzed: true
+PackageCopyrightText: <text>Copyright (C) 2024 The Qt Company Ltd.</text>
+PrimaryPackagePurpose: LIBRARY
+ExternalRef: SECURITY cpe23Type cpe:2.3:a:qt:qtnetworkauth:6.9.0:*:*:*:*:*:*:*
+ExternalRef: SECURITY cpe23Type cpe:2.3:a:qt:qt:6.9.0:*:*:*:*:*:*:*
+Relationship: SPDXRef-Package-qtnetworkauth-qt-module-NetworkAuth DEPENDS_ON DocumentRef-qtbase:SPDXRef-Package-qtbase-qt-module-Core
+Relationship: SPDXRef-Package-qtnetworkauth-qt-module-NetworkAuth DEPENDS_ON DocumentRef-qtbase:SPDXRef-Package-qtbase-qt-module-PlatformModuleInternal
+Relationship: SPDXRef-Package-qtnetworkauth-qt-module-NetworkAuth DEPENDS_ON DocumentRef-qtbase:SPDXRef-Package-qtbase-qt-module-Gui
+Relationship: SPDXRef-Package-qtnetworkauth-qt-module-NetworkAuth DEPENDS_ON DocumentRef-qtbase:SPDXRef-Package-qtbase-qt-module-Network
+Relationship: SPDXRef-Package-qtnetworkauth CONTAINS SPDXRef-Package-qtnetworkauth-qt-module-NetworkAuth
+\endcode
+
+\section1 CycloneDX Format
+
+Starting from Qt 6.11, the build process optionally creates SBOM
+documents in \l{https://cyclonedx.org/docs/1.6/json/}{CycloneDX v1.6} format.
+
+To require CycloneDX generation, configure Qt with:
+
+\badcode
+./configure -sbom -sbom-cyclonedx-v1_6 -sbom-cyclonedx-v1_6-required
+\endcode
+
+Generating CycloneDX documents requires the following dependencies:
+
+\list
+\li \l{https://www.python.org/downloads/}{Python} version 3.9 or newer
+\li Python packages:
+    \list
+    \li cyclonedx-python-lib[json-validation]
+    \li tomli
+    \endlist
+\endlist
+
+You can use Python's \c pip tool to install the required packages:
+\badcode
+pip install 'cyclonedx-python-lib[json-validation]' tomli
+\endcode
+
+CycloneDX documents provide similar information as SPDX documents,
+including components, licenses, dependencies, and security metadata.
+
+Compared to SPDX, the CycloneDX information contains less detail about
+some areas like licenses and relationship types.
+
+Installed CycloneDX SBOM documents have filenames in the format:
+\c <module>-<version>.cdx.json.
+
+\section1 CycloneDX SBOM Example
+
+The following is an example of a CycloneDX SBOM document for the
+\l{Qt Network Authorization} module. The SBOM filename is
+\c qtnetworkauth-6.11.0.cdx.json and is in the installation's \c sbom
+directory. Note that the SBOM document contains several other
+components not listed in the following example.
+
+\code
+{
+  "components": [
+    {
+      "bom-ref": "SPDXRef-Package-qtnetworkauth-qt-module-NetworkAuth",
+      "copyright": "Copyright (C) The Qt Company Ltd. and other contributors.",
+      "cpe": "cpe:2.3:a:qt:qt:6.11.0:*:*:*:*:*:*:*",
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "concluded",
+            "id": "GPL-3.0-only"
+          }
+        }
+      ],
+      "name": "NetworkAuth",
+      "properties": [
+        {
+          "name": "qt:sbom:entity_type",
+          "value": "QT_MODULE"
+        },
+        {
+          "name": "qt:sbom:is_qt_entity_type",
+          "value": "true"
+        },
+        {
+          "name": "spdx:external-reference:package-manager:purl",
+          "value": "pkg:github/qt/qtnetworkauth?library_name=NetworkAuth#src/oauth"
+        },
+        {
+          "name": "spdx:external-reference:security:cpe23",
+          "value": "cpe:2.3:a:qt:qtnetworkauth:6.11.0:*:*:*:*:*:*:*"
+        }
+      ],
+      "purl": "pkg:generic/TheQtCompany/qtnetworkauth-NetworkAuth?library_name=NetworkAuth&vcs_url=https://code.qt.io/qt/qtnetworkauth.git#src/oauth",
+      "supplier": {
+        "name": "TheQtCompany",
+        "url": [
+          "https://qt.io"
+        ]
+      },
+      "type": "library",
+      "version": "6.11.0"
+    }
+  ],
+  "dependencies": [
+    {
+      "dependsOn": [
+        "SPDXRef-Package-qtbase-qt-module-Core",
+        "SPDXRef-Package-qtbase-qt-module-Gui",
+        "SPDXRef-Package-qtbase-qt-module-Network",
+        "SPDXRef-Package-qtbase-qt-module-PlatformModuleInternal"
+      ],
+      "ref": "SPDXRef-Package-qtnetworkauth-qt-module-NetworkAuth"
+    }
+  ],
+  "serialNumber": "urn:uuid:ce0d41b5-0fe8-5383-bf31-ff353a05b8be",
+  "version": 1,
+  "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6"
+}
+\endcode
+
+\section1 Yocto builds with meta-qt6
+
+\l{Boot to Qt} uses the meta-qt6 layer to build all Qt modules and the
+generated SBOM documents are available as SPDX files when installing Boot to Qt
+through the \l{Using Qt Online Installer}{Qt Online Installer}.
+The install path depends on the Qt version and the target hardware.
+
+For example, for the Raspberry Pi target, the SBOM .spdx
+documents are at:
+\badcode \QtVersion
+<INSTALL_DIR>/\1/Boot2Qt/raspberrypi-armv8/toolchain/sysroots/cortexa53-poky-linux/usr/lib/sbom/
+\endcode
+
+For more information, visit the following pages:
+\list
+\li \l{Boot to Qt: Using meta-qt6}{Using meta-qt6}
+\li \l{meta-qt6 repository}
+\endlist
+
+\section1 Related Topics
+
+\list
+\li \l{https://spdx.github.io/spdx-spec/v2.3/}{SPDX 2.3}
+\li \l{https://wiki.qt.io/SBOM}{Qt Wiki - SBOM} - generating SBOM documents from Qt sources
+\li \l{Third-Party Code Used in Qt}
+\endlist
+*/

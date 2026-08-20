@@ -1,0 +1,94 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page rcc.html
+    \title Resource Compiler (rcc)
+    \ingroup qttools
+    \keyword rcc
+
+    The \c rcc tool is used to embed resources into a Qt application during
+    the build process. It works by generating a C++ source file containing
+    data specified in a Qt resource (.qrc) file.
+
+    Usage:
+    \snippet snippets/code/doc_src_rcc.qdoc 0
+
+    RCC accepts the following command line options:
+
+    \table
+    \header \li Option         \li Argument \li Description
+
+    \row \li \c{-o} \li \c{file} \li Write output to \c{file} rather than to stdout.
+
+    \row \li \c{-g, --generator} \li \c {<cpp|python|python2>} \li Select generator.
+
+    \row \li \c{-name} \li \c{name} \li Create an external initialization
+                                     function with \c{name}.
+
+    \row \li \c{-threshold} \li \c{level} \li Specifies a threshold \c{level} (as a
+                           percentage) to use when deciding whether to compress
+                           a file. If the reduction in the file size is greater than
+                           the threshold \c{level}, it is compressed; otherwise,
+                           the uncompressed data is stored instead. The default
+                           threshold level is 70%, meaning that compressed files
+                           which are 30% or less of their original size are
+                           stored as compressed data.
+
+    \row \li \c{-compress-algo} \li \c{algorithm} \li The algorithm to compress files with.
+                            Supported algorithms are \c{zstd}, \c{zlib}, and \c{none}, which
+                            respectively mean to compress the content using the
+                            \l{Zstandard Site}{Zstandard} library, \l{https://zlib.net}{zlib}
+                            library, and no compression. The default is \c{zstd} if that
+                            library was found at compile time, \c{zlib} if not.
+
+    \row \li \c{-compress} \li \c{level} \li Compress input files to the given compression
+                            \c{level}, which is algorithm-dependent. If the algorithm is
+                            \c{zstd}, the valid levels are 1 to 19, with the special values of
+                            0 and -1 meaning \c{libzstd}'s and \c {rcc}'s default compressions.
+                            If the algorithm is \c{zlib}, the level is an integer in the range
+                            1 to 9. For both algorithms, level 1 does the least compression
+                            but is fastest. Levels 9 or 19 do the most compression but are
+                            slowest. To turn off compression, use \c{-no-compress}. The default
+                            value for \c{level} is -1.
+
+    \row \li \c{-root} \li \c{path} \li Prefix the resource access path with \c{path}.
+                                     The default is no prefix.
+
+    \row \li \c{-no-compress} \li \li Disable compression.
+
+    \row \li \c{--no-zstd} \li \li Disable usage of \c{zstd} compression.
+
+    \row \li \c{--pass} \li \c{<number>} \li Pass number for big resources
+
+    \row \li \c{-binary} \li \li Output a binary file for use as a dynamic resource.
+
+    \row \li \c{-version} \li \li Display version information.
+
+    \row \li \c{-help} \li \li Display usage information.
+
+    \row \li \c{-t, --temp <file>} \li \li Use temporary <file> for big resources.
+
+    \row \li \c{--namespace} \li \li Turn off namespace macros.
+
+    \row \li \c{--verbose} \li \li Enable verbose mode.
+
+    \row \li \c{--list} \li \li Only list .qrc file entries, do not generate code.
+
+    \row \li \c{--list-mapping} \li \li Only output a mapping of resource paths
+                                        to file system paths defined in the .qrc
+                                        file, do not generate code.
+
+    \row \li \c{-d, --depfile} \li \c{<file>} \li Write a depfile with the .qrc
+                                                  dependencies to <file>.
+
+    \row \li \c{-project} \li \li Output a resource file containing all files from the
+                                  current directory.
+
+    \row \li \c{--format-version} \li \c{<number>} \li The RCC format version to write.
+
+    \endtable
+
+    See also \l{The Qt Resource System} for more information about embedding
+    resources in Qt applications.
+*/

@@ -1,0 +1,31 @@
+version: 2
+accept_configuration:
+  condition: property
+  property: features
+  not_contains_value: Disable
+
+instructions:
+  Build:
+    - type: Group
+      instructions:
+        - !include "{{qt/qt5}}/coin_qt_build_template.yaml"
+      enable_if:
+        condition: property
+        property: features
+        not_contains_value: "TopLevelRunCMakeTests"
+    - type: Group
+      instructions:
+        - !include "{{qt/qt5}}/coin_run_top_level_cmake_tests.yaml"
+      enable_if:
+        condition: property
+        property: features
+        contains_value: "TopLevelRunCMakeTests"
+
+  Test:
+    - type: Group
+      instructions:
+        - !include "{{qt/qt5}}/coin_bic_tests.yaml"
+      enable_if:
+        condition: property
+        property: features
+        not_contains_value: "TopLevelRunCMakeTests"

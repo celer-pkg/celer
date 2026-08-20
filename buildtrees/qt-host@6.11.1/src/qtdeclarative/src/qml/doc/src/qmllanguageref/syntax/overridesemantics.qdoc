@@ -1,0 +1,153 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtqml-syntax-overridesemantics.html
+\title Property Shadowing and Override Semantics
+
+\section1 Property Shadowing
+
+By default, properties can be \e shadowed: You re-declare a property in a
+derived QML type, possibly with a new type and new attributes. The result will
+be two properties of the same name, only one of which is accessible in any given
+context. This is rarely what you want. Often it's accidental, and most of the time
+the effects are quite confusing.
+
+Consider the following example, let's say we have a type Building used in some
+architectural visualization software written in QML:
+
+\qml
+// Building.qml
+import QtQuick
+
+Item {
+    property int floors
+    property string rotation // like CSS rotate, "-120deg"
+    property date constructionDate
+}
+\endqml
+
+Building is an Item as it inherits from it but, importantly, the
+\l {Item::rotation}{rotation property} of \l Item has been shadowed
+by the newly introduced rotation property on Building.
+When passing this object to a generic function handling Items, the function will try to
+read the object's rotation property and expect to get back the property of type real defined by
+\l Item. Instead, it gets back a string, leading to unexpected results.
+
+This is also an obstacle for the QML tooling.
+It can rarely determine the type of a property with certainty without executing the code that
+manipulates it. This is because the object holding the property can often be of a derived type.
+
+Therefore this not only confuses the user and leads to unexpected hard-to-spot bugs,
+but also prevents the tooling from generating more optimized code.
+
+To address this, the \c final, \c override, and \c virtual keywords — together with
+additional warnings and errors — were introduced. Their purpose is to help users
+avoid accidental shadowing and to provide explicit mechanisms for the rare cases
+when a property truly needs to replace a property from a base type. We refer to
+such explicit shadowing as \e overriding.
+
+\note As explained above, shadowing is often accidental and usually leads to ambiguous
+and hard-to-diagnose behavior. prefer uniquely named properties over both shadowing and overriding
+whenever possible.
+
+\section2 Virtual, Override, Final keywords
+
+\list
+\li The \c final keyword marks this declaration as final.
+It may override a property from a base type, but it cannot be overridden or shadowed by derived
+types. This helps prevent accidental shadowing and allows QML tooling to generate more optimized
+code.
+
+\li The \c override keyword indicates that the property intentionally overrides a virtual property
+from a base type. A property that overrides another does not need to be marked as \c virtual.
+It automatically inherits the virtuality of the property it overrides. If the original property is
+virtual, the override is virtual as well. If it isn’t, the override is invalid and will already
+produce an error.
+
+\li The \c virtual keyword explicitly indicates that the property is intended to be overriden.
+Adding \c virtual on the overriding property has no effect, see \c override.
+\endlist
+
+This is how they can be used in practice:
+
+\code
+// Base.qml
+QtObject {
+ virtual property int a
+ virtual property int b
+ virtual property var c
+ property var d
+}
+
+// DerivedMixed.qml
+Base {
+ override property var a // fine: overrides property "a" of a Base type
+ final readonly property int b // fine: overrides property "c" of a Base type; can't be overriden any more
+}
+
+// DerivedDerivedMixed.qml
+DerivedMixed {
+ virtual property int a // warning: overrides virtual property, but lacks "override" or "final"
+ override property int a // fine: overrides a property "a" of a DerivedMixed type;
+ final property int a // fine: overrides a property "a" of a DerivedMixed type; can't be overriden any more
+
+ virtual property int b // error: can't override a final property
+ override property int b // error: can't override a final property
+ final property int b // error: can't override a final property
+
+ final property int c // fine: overrides property "c" of a Base type; can't be overriden any more
+ override property int d // error: overrides a property that is not marked virtual
+}
+\endcode
+
+\note Prefer to use \c final over \c override
+
+Here is also an extensive list of combinations of `virtual`, `override`, and `final` for reference:
+\code
+// Base.qml
+QtObject {
+ property int a          // fine: declaring a property
+ virtual property int b  // fine: declaring a property that is intended to be overriden
+ final property int c    // fine: declaring a property that can't be overriden
+ override property int d // error: does not override anything
+ virtual override property int d // parser error: remove override
+ virtual final property int d // parser error: virtual and final are mutually exclusive
+}
+
+// Derived.qml
+Base {
+ property int a // warning: overrides a property that is not marked virtual
+ property int b // warning: overrides a virtual property, but lacks "override" or "final"
+ property int c // error: can't override a final property
+}
+
+// DerivedVirtual.qml
+Base {
+ virtual property int a // warning: overrides a property that is not marked virtual
+ virtual property int b // warning: overrides a virtual property, but lacks "override" or "final"
+ virtual property int c // error: can't override a final property
+}
+
+// DerivedFinal.qml
+Base {
+ final property int a // warning: overrides a property that is not marked virtual
+ final property int b // fine: overrides a property "b" from the Base type; can't be overriden any more
+ final property int c // error: can't override a final property
+}
+
+// DerivedOverride.qml
+Base {
+ override property int a // error: overrides a property that is not marked virtual
+ override property int b // fine: overrides a property "b" from the Base type
+ override property int c // error: can't override a final property
+ override final property int d // parser error: remove override
+}
+\endcode
+
+\note Most of the warnings will become errors in the future, we can't turn them into errors
+for now because of the backwards compatibility.
+
+\note These semantics are enforced by the QmlEngine.
+
+*/

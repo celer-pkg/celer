@@ -1,0 +1,109 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\ingroup qtopenapi-examples
+\example chatgptclient
+\examplecategory {Networking}
+\meta tags {quick, network, http, openapi}
+\title ChatGPT RESTful API Client
+\brief Example of how to use the OpenAPI generator to create a
+RESTful API client for communicating with OpenAI models.
+\image {entry_page.webp}
+{Model selector dropdown and four mode cards labeled Wizard, Scientist,
+Regular mode, and Your choice}
+
+This example uses the latest \l{https://github.com/openai/openai-openapi}
+{OpenAPI specification for the OpenAI API} for creating RESTful API client
+code. Since this is only an example, it does not implement the entire
+set of models and operations described in the official OpenAI specification.
+In particular, the example is limited to two operations described in the
+\c response_api.yaml file:
+\list
+    \li listModels - receives the list of available models.
+    \li createResponse - sends a user request to the chosen model, receives
+        a response message.
+\endlist
+
+\include examples-run.qdocinc
+\note The example requires a private OpenAI key in order to interact with the
+      models. Use the \c CHAT_OPENAI_KEY environment variable to specify
+      the key. If you run the example from \c {Qt Creator}, it can be done
+      under \c {Projects -> Run Settings -> Environment}.
+
+\section1 Application functionality
+
+The example allows you to choose an OpenAI model from the list of
+available models and then chat with it.
+The communication is provided in four configuration modes:
+\list
+    \li Wizard - The setup behaves like a wizard and prefers discussing
+        topics related to magic.
+    \li Scientist - The setup behaves like Albert Einstein and enjoys
+        discussing physics.
+    \li Regular Mode - Standard ChatGPT setup with no additional features.
+    \li Your choice - you can create a custom description for
+        the ChatGPT behavior.
+\endlist
+Once a mode is selected, the chat page appears.
+
+\image {chat_page.webp}
+{Chat conversation with text input field and Back and Send buttons}
+
+\section1 Generating client code from an OpenAPI specification
+
+The Qt 6 OpenAPI generator is invoked from the \c CMakeLists.txt file
+to generate client code from the \c response_api.yaml specification
+by calling the \c qt_add_openapi_client() function.
+
+\snippet chatgptclient/CMakeLists.txt 0
+
+The generated API classes \c ResponsesApi and \c ModelsApi handle all
+the low-level HTTP details:
+\list
+    \li Server configuration
+    \li HTTP request construction for all standard HTTP methods
+    \li Serialization of input parameters according to the specification
+    \li Deserialization of server responses into typed objects
+    \li Success and error reporting through Qt signals
+\endlist
+
+Now, all you need to do is send a request to the model by calling
+the \c createResponse() operation of the \c ResponsesApi class
+and parse its response, as shown below:
+
+\snippet chatgptclient/openaichatmanager.cpp 0
+
+\section1 Exposing generated APIs to QML
+
+The helper class \c OpenAIChatManager exposes the generated API classes
+\c ResponsesApi and \c ModelsApi to QML. It is defined in
+\c {openaichatmanager.h}.
+
+The helper class uses the \l QML_ELEMENT and \l QML_SINGLETON
+macros and registers the underlying C++ instance as a singleton, allowing QML
+to access the same object while ownership remains in C++:
+
+\snippet chatgptclient/openaichatmanager.h 0
+
+The \c createResponse() operation is exposed via the invocable function
+of the \c OpenAIChatManager singleton:
+
+\snippet chatgptclient/openaichatmanager.h 1
+
+For more details, see the Qt QML documentation on
+\l {Singletons in QML#Registering a class to provide singletons}
+{registering a class to provide singletons}.
+
+\section1 Using the APIs from QML
+
+Once registered, the singleton is available globally in QML.
+This allows QML components to access \c ResponsesApi and \c ModelsApi
+by using the singleton methods, as shown below:
+
+\snippet chatgptclient/ChatPage.qml 0
+
+\section1 Source files
+
+\sa {All Qt Examples}, {ColorPalette RESTful API client}
+*/

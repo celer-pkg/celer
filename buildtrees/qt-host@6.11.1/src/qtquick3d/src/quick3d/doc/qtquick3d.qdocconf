@@ -1,0 +1,92 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+
+project                 = QtQuick3D
+description             = Qt Quick 3D Reference Documentation
+version                 = $QT_VERSION
+buildversion            = Qt Quick 3D | Commercial or GPLv3
+
+examplesinstallpath     = quick3d
+url.examples            = "https://code.qt.io/cgit/qt/qtquick3d.git/tree/examples/\1?h=$QT_VER"
+url.sources             = "https://code.qt.io/cgit/qt/qtquick3d.git/tree/\1?h=$QT_VER#n\2"
+# Path to the root of qtquick3d (for automatic linking to source code)
+url.sources.rootdir     = ../../..
+
+qhp.projects            = QtQuick3D
+
+qhp.QtQuick3D.file                = qtquick3d.qhp
+qhp.QtQuick3D.namespace           = org.qt-project.qtquick3d.$QT_VERSION_TAG
+qhp.QtQuick3D.virtualFolder       = qtquick3d
+qhp.QtQuick3D.indexTitle          = Qt Quick 3D
+qhp.QtQuick3D.indexRoot           =
+
+qhp.QtQuick3D.subprojects = manual examples qmltypes classes
+qhp.QtQuick3D.subprojects.manual.title = Qt Quick 3D
+qhp.QtQuick3D.subprojects.manual.indexTitle = Qt Quick 3D module topics
+qhp.QtQuick3D.subprojects.manual.type = manual
+
+qhp.QtQuick3D.subprojects.examples.title = Examples
+qhp.QtQuick3D.subprojects.examples.indexTitle = Qt Quick 3D Examples and Tutorials
+qhp.QtQuick3D.subprojects.examples.selectors = doc:example
+qhp.QtQuick3D.subprojects.examples.sortPages  = true
+
+qhp.QtQuick3D.subprojects.qmltypes.title = QML Types
+qhp.QtQuick3D.subprojects.qmltypes.indexTitle = Qt Quick 3D QML Types
+qhp.QtQuick3D.subprojects.qmltypes.selectors = qmlclass
+qhp.QtQuick3D.subprojects.qmltypes.sortPages = true
+
+qhp.QtQuick3D.subprojects.classes.title      = C++ Classes
+qhp.QtQuick3D.subprojects.classes.indexTitle = Qt Quick 3D C++ Classes
+qhp.QtQuick3D.subprojects.classes.selectors  = class doc:headerfile
+qhp.QtQuick3D.subprojects.classes.sortPages  = true
+
+depends += qtcore qtgui qtdoc qtqml qtqmlmodels qtquick qtquickcontrols qtshadertools qtquicktimeline qtcmake
+
+headerdirs  += .. \
+               ../../quick3dparticles \
+               ../../runtimerender/extensionapi \
+               ../../helpers/
+
+headers += ../../assetutils/qquick3druntimeloader_p.h \
+           ../../runtimerender/qssgrendercontextcore.h \
+           ../../runtimerender/qssgrhicontext.h \
+           ../../runtimerender/qssgrenderpickresult.h
+
+sourcedirs  += .. \
+               src \
+               ../../quick3dparticles \
+               ../../runtimerender/extensionapi \
+               ../../xr \
+               ../../helpers/
+
+sources += ../../assetutils/qquick3druntimeloader.cpp \
+           ../../runtimerender/qssgrendercontextcore.cpp \
+           ../../runtimerender/qssgrhicontext.cpp
+
+exampledirs +=  ../../../examples/quick3d
+examples.fileextensions += "*.frag *.geom *.vert *.tesc *.tese *.comp"
+
+imagedirs   += images
+
+# Exclude private header files from the documentation build
+excludefiles += "*_p.h"
+
+manifestmeta.highlighted.names = \
+    "QtQuick3D/Qt Quick 3D - Particles 3D Testbed Example" \
+    "QtQuick3D/Qt Quick 3D - View 3D Example" \
+    "QtQuick3D/Virtual Assistant"
+
+navigation.landingpage = "Qt Quick 3D"
+navigation.qmltypespage = "Qt Quick 3D QML Types"
+navigation.cppclassespage = "Qt Quick 3D C++ Classes"
+# Auto-generate navigation linking based on "Qt Quick 3D module topics":
+navigation.toctitles = "Qt Quick 3D module topics"
+navigation.toctitles.inclusive = false
+
+tagfile                 = qtquick3d.tags
+macro.qxr = "Qt Quick 3D Xr"
+# Fail the documentation build if warnings exceed the limit
+#   src/quick3d/qquick3dtexture.cpp:653: (qdoc) warning: Can't link to 'RenderExtension'
+warninglimit = 1
+
+# Report warnings for images without alt text
+reportmissingalttextforimages = true

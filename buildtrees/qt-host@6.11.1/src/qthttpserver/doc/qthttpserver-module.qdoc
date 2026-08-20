@@ -1,0 +1,12 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+    \module QtHttpServer
+    \title Qt HTTP Server C++ Classes
+    \ingroup modules
+    \qtcmakepackage HttpServer
+    \qtvariable httpserver
+    \since 6.4
+    \brief List of C++ classes that provide HTTP server framework.
+
+*/

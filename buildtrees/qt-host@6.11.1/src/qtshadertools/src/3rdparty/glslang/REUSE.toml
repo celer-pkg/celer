@@ -1,0 +1,13 @@
+version = 1
+
+[[annotations]]
+path = ["**"]
+precedence = "closest"
+SPDX-FileCopyrightText = ["Copyright (c) 2017, 2019 ARM Limited",
+                          "Copyright (c) 2002-2005 3 Dlabs Inc. Ltd.",
+                          "Copyright (c) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.",
+                          "Copyright (c) 2014-2018 Google, Inc.",
+                          "Copyright (c) 2002 NVIDIA Corporation",
+                          "Copyright (c) 2002-2010 The ANGLE Project",
+                          "Copyright (c) 2014-2019 The Khronos Group Inc."]
+SPDX-License-Identifier = "BSD-3-Clause AND LicenseRef-MIT-Khronos-old AND Apache-2.0 AND GPL-3.0-or-later WITH Bison-exception-2.2 AND AML-glslang"

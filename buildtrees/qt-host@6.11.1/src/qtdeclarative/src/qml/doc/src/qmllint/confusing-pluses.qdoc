@@ -1,0 +1,55 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qmllint-warnings-and-errors-confusing-pluses.html
+\ingroup qmllint-warnings-and-errors
+
+\title Confusing pluses
+\brief [confusing-pluses] Confusing pluses.
+
+\qmllintwarningcategory confusing-pluses
+
+\section1 Confusing pluses
+
+\section2 What happened?
+JavaScript code uses a combination of operators written with '+' in a confusing
+way. The neighboring '+' operators may be difficult to distinguish. This can be
+made worse by unconventional spacing.
+
+\section2 Why is that bad?
+It makes the code more difficult to read and may cause confusion.
+
+\section2 Example
+\qml
+import QtQuick
+
+Item {
+    function f(a: int, b: int) {
+        let x = a++ + b
+        let y = a + +b
+        let z = a + ++b
+        return x + y + z
+    }
+}
+\endqml
+To fix this warning, rewrite the code so that it doesn't contain similar '+'
+operators next to each other. Simplify expressions where possible. Remove
+redundant unary operators and spacing, and use parentheses to isolate
+subexpressions.
+
+Be mindful that these operators may perform coercions. An expression like
+\c{a + +b} may not be equivalent to \c{a + b} depending on the type of b.
+\qml
+import QtQuick
+
+Item {
+    function f(a: int, b: int) {
+        let x = (a++) + b
+        let y = a + b
+        let z = a + b + 1
+        return x + y + z
+    }
+}
+\endqml
+*/

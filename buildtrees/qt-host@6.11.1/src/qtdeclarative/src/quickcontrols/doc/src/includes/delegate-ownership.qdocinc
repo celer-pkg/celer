@@ -1,0 +1,7 @@
+//! [no-ownership]
+\1 does not take ownership of the delegate.
+//! [no-ownership]
+
+//! [no-ownership-since-6.11]
+Since Qt 6.11, \1 does not take ownership of the delegate.
+//! [no-ownership-since-6.11]

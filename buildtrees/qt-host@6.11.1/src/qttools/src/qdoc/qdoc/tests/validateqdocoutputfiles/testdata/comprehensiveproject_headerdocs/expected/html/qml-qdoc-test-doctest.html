@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- DocTest.qml -->
+  <meta name="description" content="Represents a doc test case.">
+  <title>DocTest QML Type | Qt 6.2.11</title>
+</head>
+<body>
+<ul class="breadcrumb">
+<li><a href="qdoc-test-qmlmodule.html" translate="no">Types</a></li>
+<li>DocTest</li>
+</ul>
+<div class="sidebar">
+<div class="toc">
+<h3 id="toc">Contents</h3>
+<ul>
+<li class="level1"><a href="#properties">Properties</a></li>
+<li class="level1"><a href="#signals">Signals</a></li>
+<li class="level1"><a href="#methods">Methods</a></li>
+<li class="level1"><a href="#details">Detailed Description</a></li>
+<li class="level2"><a href="#introduction">Introduction</a></li>
+</ul>
+</div>
+<div class="sidebar-content" id="sidebar-content"></div></div>
+<h1 class="title" translate="no">DocTest QML Type</h1>
+<!-- $$$DocTest-brief -->
+<p>Represents a doc test case. <a href="#details">More...</a></p>
+<!-- @@@DocTest -->
+<div class="table"><table class="alignedsummary requisites" translate="no">
+<tr><td class="memItemLeft rightAlign topAlign"> Import Statement:</td><td class="memItemRight bottomAlign"> <code translate="no">import QDoc.Test 1.1</code></td></tr>
+<tr><td class="memItemLeft rightAlign topAlign"> Since:</td><td class="memItemRight bottomAlign"> QDoc.Test 0.9</td></tr>
+<tr><td class="memItemLeft rightAlign topAlign"> Inherits:</td><td class="memItemRight bottomAlign"> <p><a href="qml-qdoc-test-item.html" translate="no">Item</a></p>
+</td></tr>
+</table></div>
+<ul>
+<li><a href="qml-qdoc-test-doctest-members.html">List of all members, including inherited members</a></li>
+</ul>
+<h2 id="properties">Properties</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-qdoc-test-doctest.html#active-prop" translate="no">active</a></b> : bool</li>
+<li class="fn" translate="no"><b><a href="qml-qdoc-test-doctest.html#name-prop" translate="no">name</a></b> : string</li>
+</ul>
+<h2 id="signals">Signals</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-qdoc-test-doctest.html#completed-signal" translate="no">completed</a></b>()</li>
+<li class="fn" translate="no"><b><a href="qml-qdoc-test-doctest.html#foo-signal" translate="no">foo</a></b>(var <i>bar</i>)</li>
+<li class="fn" translate="no"><b><a href="qml-qdoc-test-doctest.html#itsHappening-signal" translate="no">itsHappening</a></b>(bool <i>really</i>)</li>
+</ul>
+<h2 id="methods">Methods</h2>
+<ul>
+<li class="fn" translate="no"><b><a href="qml-qdoc-test-doctest.html#fail-method" translate="no">fail</a></b>(<i>message</i>) <code class="summary extra" translate="no">(since QDoc.Test 1.0)</code></li>
+<li class="fn" translate="no"><b><a href="qml-qdoc-test-doctest.html#fail_hard-method" translate="no">fail_hard</a></b>(<i>msg</i>, <i>option</i>)</li>
+</ul>
+<!-- $$$DocTest-description -->
+<h2 id="details">Detailed Description</h2>
+<h2 id="introduction">Introduction</h2>
+<p>A documentation test case, itself documented inline in DocTest.qml.</p>
+<!-- @@@DocTest -->
+<h2>Property Documentation</h2>
+<!-- $$$active -->
+<h3 class="fn qml-member qml-property" translate="no" id="active-prop"><span class="name">active</span> : <span class="type">bool</span> <code class="details extra" translate="no">[default: true]</code></h3>
+<p>Whether the test is active.</p>
+<p><b>See also </b><a href="qml-qdoc-test-doctest.html#name-prop" translate="no">name</a>.</p>
+<!-- @@@active -->
+<!-- $$$name -->
+<h3 class="fn qml-member qml-property" translate="no" id="name-prop"><span class="name">name</span> : <span class="type">string</span> <code class="details extra" translate="no">[required]</code></h3>
+<p>Name of the test.</p>
+<pre class="qml" translate="no"><span class="type"><a href="qml-test-nover-doctest.html" translate="no">DocTest</a></span> {
+    <span class="name">name</span>: <span class="string">&quot;test&quot;</span>
+    <span class="comment">// ...</span>
+}</pre>
+<!-- @@@name -->
+<h2>Signal Documentation</h2>
+<!-- $$$completed[overload1]$$$completed -->
+<h3 class="fn qml-member qml-method" translate="no" id="completed-signal"><span class="name">completed</span>()</h3>
+<div class="admonition note"><p><b>Note: </b>The corresponding handler is <code translate="no">onCompleted</code>.</p>
+</div><!-- @@@completed -->
+<!-- $$$foo[overload1]$$$foovar -->
+<h3 class="fn qml-member qml-method" translate="no" id="foo-signal"><span class="name">foo</span>(<span class="type">var</span> <i>bar</i>)</h3>
+<p>Signal with parameter <i translate="no">bar</i>.</p>
+<div class="admonition note"><p><b>Note: </b>The corresponding handler is <code translate="no">onFoo</code>.</p>
+</div><!-- @@@foo -->
+<!-- $$$itsHappening[overload1]$$$itsHappeningbool -->
+<h3 class="fn qml-member qml-method" translate="no" id="itsHappening-signal"><span class="name">itsHappening</span>(<span class="type">bool</span> <i>really</i>)</h3>
+<p>Signals that something is <i translate="no">really</i> happening.</p>
+<div class="admonition note"><p><b>Note: </b>The corresponding handler is <code translate="no">onItsHappening</code>.</p>
+</div><!-- @@@itsHappening -->
+<h2>Method Documentation</h2>
+<!-- $$$fail[overload1]$$$fail -->
+<h3 class="fn qml-member qml-method" translate="no" id="fail-method"><code class="details extra" translate="no">[since QDoc.Test 1.0]</code> <span class="name">fail</span>(<i>message</i> = &quot;oops&quot;)</h3>
+<p>Fails the current test case, with the optional <i translate="no">message</i>.</p>
+<p>This method was introduced in QDoc.Test 1.0.</p>
+<!-- @@@fail -->
+<!-- $$$fail_hard[overload1]$$$fail_hard -->
+<h3 class="fn qml-member qml-method" translate="no" id="fail_hard-method"><span class="name">fail_hard</span>(<i>msg</i> = &quot;facepalm&quot;, <i>option</i> = 123)</h3>
+<p>Fails the current test case, hard.</p>
+<ul>
+<li>Prints out <i translate="no">msg</i>.</li>
+<li>Accepts a random <i translate="no">option</i>.</li>
+</ul>
+<!-- @@@fail_hard -->
+</body>
+</html>

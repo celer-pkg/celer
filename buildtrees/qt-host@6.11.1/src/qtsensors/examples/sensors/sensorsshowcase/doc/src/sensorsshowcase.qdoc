@@ -1,0 +1,78 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example sensorsshowcase
+    \title Sensors Showcase
+    \brief The Sensors Showcase example demonstrates sensor usage with visual examples.
+    \meta tag {sensors,quick,mobile}
+    \ingroup qtsensors-examples
+    \examplecategory {Mobile}
+
+    \image sensorsshowcase-mainview.webp
+
+    \section1 Overview
+
+    On startup, the application shows a menu with buttons for the subviews for each sensor.
+    The sensor views instantiate the given sensor, display the sensor's values as numbers,
+    and also visualize them with a simple graphical representation.
+
+    \section1 Main Menu
+
+    The main view shows the title with the name of the application and a button
+    for each subview laid out evenly by a \c ColumnLayout. A \c StackView
+    manages the navigation between the subviews and the main menu. The
+    application checks the availability of the sensors during startup and
+    disables the buttons for the sensors that are not available.
+
+    \note To simplify the example, the sensor availability is checked only once
+    during the startup.
+
+    \section1 Accelerometer View
+
+    The accelerometer view shows the current device acceleration values and moves around
+    an image with an amount that is opposite of the device acceleration giving the image
+    an inertia effect that is proportional with the movement of the device.
+
+    Moving around the image happens in the accelerometer \c onReadingChanged method.
+
+    \snippet sensorsshowcase/Accelerometer.qml 0
+
+    Whenever there is a new accelerometer value the image translation coordinates are
+    updated accordingly.
+
+    \section1 Proximity View
+
+    The proximity view shows an image that is enlarged whenever the proximity sensor of
+    the device is covered.
+
+    \section1 Compass View
+
+    The compass view shows a compass image that is rotated according to the Compass sensor
+    reading value making the compass turn towards north.
+
+    \section1 Magnetometer View
+
+    The magnetometer view displays a magnet image that is rotated around an amount that is
+    decided by the rotation angle of the vector given by the x and y magnetometer values.
+    This results in general in the same rotation as the compass gives, demonstrating one use
+    case of how the magnetometer readings can be used. Since the magnetometer provides
+    readings along all three axes, there is more freedom with how these readings can be used.
+
+    \snippet sensorsshowcase/Magnetometer.qml 0
+
+    \section1 Gyroscope View
+
+    \image sensorsshowcase-gyroscope.webp
+
+    The gyroscope view also shows an image that is rotated around three axes with an amount
+    that is calculated from the gyroscope readings. Since the gyroscope provides relative
+    rotational change around the three spatial axes and the time between reading updates
+    can vary, the time of the readings are stored and the rotational change is normalized
+    based on the time passed between reading updates.
+
+    \snippet sensorsshowcase/Gyroscope.qml 0
+
+    By pressing the reset button the image rotation is reset to 0.
+*/
+

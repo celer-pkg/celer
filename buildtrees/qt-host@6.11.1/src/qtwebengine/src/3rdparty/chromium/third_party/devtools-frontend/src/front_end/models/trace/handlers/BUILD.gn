@@ -1,0 +1,115 @@
+# Copyright 2022 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("../../../../scripts/build/ninja/devtools_entrypoint.gni")
+import("../../../../scripts/build/ninja/devtools_module.gni")
+import("../../../../scripts/build/typescript/typescript.gni")
+import("../../visibility.gni")
+
+devtools_module("handlers") {
+  sources = [
+    "AnimationFramesHandler.ts",
+    "AnimationHandler.ts",
+    "AsyncJSCallsHandler.ts",
+    "AuctionWorkletsHandler.ts",
+    "DOMStatsHandler.ts",
+    "ExtensionTraceDataHandler.ts",
+    "FlowsHandler.ts",
+    "FramesHandler.ts",
+    "GPUHandler.ts",
+    "ImagePaintingHandler.ts",
+    "InitiatorsHandler.ts",
+    "InvalidationsHandler.ts",
+    "LargestImagePaintHandler.ts",
+    "LargestTextPaintHandler.ts",
+    "LayerTreeHandler.ts",
+    "LayoutShiftsHandler.ts",
+    "MemoryHandler.ts",
+    "MetaHandler.ts",
+    "ModelHandlers.ts",
+    "NetworkRequestsHandler.ts",
+    "PageFramesHandler.ts",
+    "PageLoadMetricsHandler.ts",
+    "RendererHandler.ts",
+    "SamplesHandler.ts",
+    "ScreenshotsHandler.ts",
+    "ScriptsHandler.ts",
+    "SelectorStatsHandler.ts",
+    "Threads.ts",
+    "UserInteractionsHandler.ts",
+    "UserTimingsHandler.ts",
+    "WarningsHandler.ts",
+    "WorkersHandler.ts",
+    "helpers.ts",
+    "types.ts",
+  ]
+
+  deps = [
+    "../../../core/platform:bundle",
+    "../../../generated",
+    "../../../third_party/third-party-web:bundle",
+    "../../cpu_profile:bundle",
+    "../helpers:bundle",
+    "../types:bundle",
+  ]
+}
+
+devtools_entrypoint("bundle") {
+  entrypoint = "handlers.ts"
+  deps = [ ":handlers" ]
+  visibility = [
+    ":*",
+    "../*",
+  ]
+
+  visibility += devtools_models_visibility
+}
+
+ts_library("unittests") {
+  testonly = true
+
+  sources = [
+    "AnimationFramesHandler.test.ts",
+    "AnimationHandler.test.ts",
+    "AsyncJSCallsHandler.test.ts",
+    "AuctionWorkletsHandler.test.ts",
+    "DOMStatsHandler.test.ts",
+    "ExtensionTraceDataHandler.test.ts",
+    "FlowsHandler.test.ts",
+    "FramesHandler.test.ts",
+    "GPUHandler.test.ts",
+    "ImagePaintingHandler.test.ts",
+    "InitiatorsHandler.test.ts",
+    "InvalidationsHandler.test.ts",
+    "LargestImagePaintHandler.test.ts",
+    "LargestTextPaintHandler.test.ts",
+    "LayerTreeHandler.test.ts",
+    "LayoutShiftsHandler.test.ts",
+    "MemoryHandler.test.ts",
+    "MetaHandler.test.ts",
+    "NetworkRequestsHandler.test.ts",
+    "PageFramesHandler.test.ts",
+    "PageLoadMetricsHandler.test.ts",
+    "RendererHandler.test.ts",
+    "SamplesHandler.test.ts",
+    "ScreenshotsHandler.test.ts",
+    "ScriptsHandler.test.ts",
+    "SelectorStatsHandler.test.ts",
+    "Threads.test.ts",
+    "UserInteractionsHandler.test.ts",
+    "UserTimingsHandler.test.ts",
+    "WarningsHandler.test.ts",
+    "WorkersHandler.test.ts",
+    "helpers.test.ts",
+  ]
+
+  deps = [
+    "../../../core/platform:bundle",
+    "../../../generated",
+    "../../../models/trace:bundle",
+    "../../../panels/timeline:bundle",
+    "../../../panels/timeline/utils:bundle",
+    "../../../testing",
+  ]
+}

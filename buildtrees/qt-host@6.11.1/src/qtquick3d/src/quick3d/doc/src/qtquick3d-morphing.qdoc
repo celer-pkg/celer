@@ -1,0 +1,36 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+
+\title Morphing Animation
+\page quick3d-morphing
+
+\section1 Introduction
+
+Morphing animation (also known as \e{vertex animation}) is a way to simulate deformations of soft
+materials. It transforms one shape smoothly into another. This is done by creating a mesh that
+contains multiple positions for each vertex. Each additional set of positions defines a shape,
+called a \l{MorphTarget}{morph target}. When animating, a \l{MorphTarget::weight}{weight} is
+assigned to each target. The effective position of each vertex is calculated by linear interpolation
+between the positions for that target, according to the weights.
+
+Morphing differs from \l{Vertex Skinning}{skeletal animation} where we create an imagined skeleton,
+and rig the model by defining the relationship between each vertex of the model and the nodes of
+that skeleton.
+
+Note that the fundamental structure of each morph target must be the same: If three vertices form a
+triangle in the base model, they will form a triangle in all the morph targets. The triangle can
+have a completely different position, orientation, and size; or it can even be effectively removed
+by making it a degenerate triangle with size zero.
+
+In most cases, the mesh will be created by an external tool, and imported using the \l{Balsam Asset
+Import Tool}{Balsam} asset import tool. For example, in the Blender 3D editor, morph targets are
+called "shape keys", and in Autodesk Maya they are called "blend shapes".
+
+The \l{Qt Quick 3D - Morphing Example}{morphing example} shows how to control the weights of a model
+imported from Blender.
+
+The \l{Qt Quick 3D - Custom Morphing Animation}{custom morphing animation example} shows how to
+create a morph target in C++ by subclassing QQuick3DGeometry.
+*/

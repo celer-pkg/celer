@@ -1,0 +1,7 @@
+version = 1
+
+[[annotations]]
+path = ["ribbon.vert"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) 2011 Ashima Arts. All rights reserved."
+SPDX-License-Identifier = "MIT"

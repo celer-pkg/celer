@@ -1,0 +1,60 @@
+[
+    {
+        "Id": "openxr",
+        "Name": "OpenXR SDK",
+        "QDocModule": "qtquick3d",
+        "Description": "OpenXR SDK for developing XR applications",
+        "QtUsage": "Use by QtQuick3DXr module to interact with an OpenXR runtime.",
+
+        "Homepage": "https://www.khronos.org/openxr/",
+        "PURL": [
+            "pkg:github/KhronosGroup/OpenXR-SDK@release-$<VERSION>"
+        ],
+        "Comment": "No relevant CPE found",
+        "Version": "1.1.54",
+        "License": "Apache License 2.0",
+        "LicenseId": "Apache-2.0",
+        "LicenseFile": "LICENSE",
+        "Copyright": "Copyright (c) 2017-2025, The Khronos Group Inc.\nCopyright (c) 2017-2019, Valve Corporation\nCopyright (c) 2017-2019, LunarG, Inc."
+    },
+    {
+        "Id": "jsoncpp",
+        "Name": "JsonCpp",
+        "QDocModule": "qtquick3d",
+        "Description": "JsonCpp is a C++ library that allows manipulating JSON values, including serialization and deserialization to and from strings.",
+        "QtUsage": "Used by the bundled OpenXR Loader inside of QtQuick3DXr to read JSON configuration files.",
+
+        "Path": "src/external/jsoncpp",
+        "Homepage": "https://github.com/open-source-parsers/jsoncpp",
+        "PURL": [
+            "pkg:github/open-source-parsers/jsoncpp@$<VERSION>"
+        ],
+        "CPE": [
+            "cpe:2.3:a:jsoncpp_project:jsoncpp:$<VERSION>:*:*:*:*:*:*:*"
+        ],
+        "Version": "1.9.6",
+        "License": "MIT License",
+        "LicenseFile": "src/external/jsoncpp/LICENSE",
+        "LicenseId": "MIT",
+        "Copyright": "Copyright (c) 2007-2010 Baptiste Lepilleur and The JsonCpp Authors"
+    },
+    {
+        "Id": "jnipp",
+        "Name": "Java Native Interface for C++",
+        "QDocModule": "qtquick3d",
+        "Description": "JJNIPP is just a C++ wrapper for the standard Java Native Interface (JNI).",
+        "QtUsage": "Used the bundled OpenXR Loader inside of QtQuick3DXr on Android.",
+
+        "Path": "src/external/jnipp",
+        "Homepage": "https://github.com/mitchdowd/jnipp",
+        "PURL": [
+            "pkg:github/mitchdowd/jnipp@v$<VERSION>"
+        ],
+        "Comment": "No relevant CPE found",
+        "Version": "1.0.0",
+        "License": "MIT License",
+        "LicenseFile": "src/external/jnipp/LICENSE",
+        "LicenseId": "MIT",
+        "Copyright": "Copyright (c) 2016 Mitchell Dowd"
+    }
+]

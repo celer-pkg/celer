@@ -1,0 +1,127 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  pages: {
+    page-load-and-scroll-1: {
+      blocks: {
+        template: ./page-load-and-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_1]
+        }
+        unbound_args: [
+          PAGE_1
+          PER_PAGE_DURATION
+        ]
+      }
+    }
+    page-load-and-scroll-2: {
+      blocks: {
+        template: ./page-load-and-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_2]
+        }
+        unbound_args: [
+          PAGE_2
+          PER_PAGE_DURATION
+        ]
+      }
+    }
+    page-load-and-scroll-3: {
+      blocks: {
+        template: ./page-load-and-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_3]
+        }
+        unbound_args: [
+          PAGE_3
+          PER_PAGE_DURATION
+        ]
+      }
+    }
+    page-load-and-scroll-4: {
+      blocks: {
+        template: ./page-load-and-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_4]
+        }
+        unbound_args: [
+          PAGE_4
+          PER_PAGE_DURATION
+        ]
+      }
+    }
+    page-load-and-scroll-5: {
+      blocks: {
+        template: ./page-load-and-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_5]
+        }
+        unbound_args: [
+          PAGE_5
+          PER_PAGE_DURATION
+        ]
+      }
+    }
+    page-load-and-scroll-6: {
+      blocks: {
+        template: ./page-load-and-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_6]
+        }
+        unbound_args: [
+          PAGE_6
+          PER_PAGE_DURATION
+        ]
+      }
+    }
+    page-load-and-scroll-7: {
+      blocks: {
+        template: ./page-load-and-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_7]
+        }
+        unbound_args: [
+          PAGE_7
+          PER_PAGE_DURATION
+        ]
+      }
+    }
+    page-load-and-scroll-8: {
+      blocks: {
+        template: ./page-load-and-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_8]
+        }
+        unbound_args: [
+          PAGE_8
+          PER_PAGE_DURATION
+        ]
+      }
+    }
+    page-load-and-scroll-9: {
+      blocks: {
+        template: ./page-load-and-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_9]
+        }
+        unbound_args: [
+          PAGE_9
+          PER_PAGE_DURATION
+        ]
+      }
+    }
+    page-load-and-scroll-10: {
+      blocks: {
+        template: ./page-load-and-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_10]
+        }
+        unbound_args: [
+          PAGE_10
+          PER_PAGE_DURATION
+        ]
+      }
+    }
+  }
+}

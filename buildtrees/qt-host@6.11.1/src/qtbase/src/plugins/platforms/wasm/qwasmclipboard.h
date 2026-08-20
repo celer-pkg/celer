@@ -1,0 +1,61 @@
+// Copyright (C) 2018 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+// Qt-Security score:significant reason:default
+
+#ifndef QWasmClipboard_H
+#define QWasmClipboard_H
+
+#include <QObject>
+
+#include <qpa/qplatformclipboard.h>
+#include <private/qstdweb_p.h>
+#include <QMimeData>
+
+#include <emscripten/bind.h>
+#include <emscripten/val.h>
+
+QT_BEGIN_NAMESPACE
+
+struct KeyEvent;
+
+class QWasmClipboard : public QObject, public QPlatformClipboard
+{
+public:
+    enum class ProcessKeyboardResult {
+        Ignored,
+        NativeClipboardEventNeeded,
+        NativeClipboardEventAndCopiedDataNeeded,
+    };
+
+    QWasmClipboard();
+    virtual ~QWasmClipboard();
+
+    // QPlatformClipboard methods.
+    QMimeData* mimeData(QClipboard::Mode mode = QClipboard::Clipboard) override;
+    void setMimeData(QMimeData* data, QClipboard::Mode mode = QClipboard::Clipboard) override;
+    bool supportsMode(QClipboard::Mode mode) const override;
+    bool ownsMode(QClipboard::Mode mode) const override;
+
+    ProcessKeyboardResult processKeyboard(const KeyEvent &event);
+    bool hasClipboardApi();
+    static bool shouldInstallWindowEventHandlers();
+    void sendClipboardData(emscripten::val event);
+
+    static void cut(emscripten::val event);
+    static void copy(emscripten::val event);
+    static void paste(emscripten::val event);
+
+private:
+    void initClipboardPermissions();
+    void writeToClipboardApi();
+    void writeToClipboard();
+
+    bool m_hasClipboardApi = false;
+    QWasmEventHandler m_documentCut;
+    QWasmEventHandler m_documentCopy;
+    QWasmEventHandler m_documentPaste;
+};
+
+QT_END_NAMESPACE
+
+#endif // QWASMCLIPBOARD_H

@@ -1,0 +1,10 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  template: ../../common-action-blocks/video-playback/play-mse.hjson
+  args: {
+    FILE_NAME: bear-320x240_20250716.h264.mpd
+    UNMUTE_PLAYER: "false"
+  }
+}

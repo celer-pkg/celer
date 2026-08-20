@@ -1,0 +1,91 @@
+{
+    "QEN": {
+        "description": "This node creates a medium quality but fast drop shadow of the source item. It uses mipmap levels and does not require BlurHelper node.",
+        "fragmentCode": [
+            "@requires NoiseHelper",
+            "@main",
+            "{",
+            "    const vec2 uv = texCoord + (1.0 - mipmapDropShadowScale) * (texCoord - 1.0);",
+            "    const vec2 offset = vec2(mipmapDropShadowHorizontalOffset, mipmapDropShadowVerticalOffset);",
+            "    const float lod = sqrt(mipmapDropShadowBlurAmount);",
+            "    const vec3 r = mipmapDropShadowScatterAmount * lod * (hash23(fragCoord) - vec3(0.5));",
+            "    const vec2 cCoord = vec2((2.0 - mipmapDropShadowScale) * uv - 0.01 * offset) + vec2(r.xy * 0.01);",
+            "#if (MIPMAP_DROP_SHADOW_QUALITY_LOW == 1)",
+            "    float mipmapDropShadowAlpha = textureLod(iSource, cCoord, lod).a;",
+            "#else",
+            "    // Take textures from suitable mipmap level, with offsets",
+            "    const float m = (1.0 + r.z);",
+            "    const float o = m * mipmapDropShadowBlurAmount / iResolution.x * 0.5;",
+            "    vec2 lo1 = cCoord + vec2(o, o);",
+            "    vec2 lo2 = cCoord + vec2(o, -o);",
+            "    vec2 lo3 = cCoord + vec2(-o, o);",
+            "    vec2 lo4 = cCoord + vec2(-o, -o);",
+            "    float a = textureLod(iSource, cCoord, lod).a;",
+            "    float a1 = textureLod(iSource, lo1, lod).a;",
+            "    float a2 = textureLod(iSource, lo2, lod).a;",
+            "    float a3 = textureLod(iSource, lo3, lod).a;",
+            "    float a4 = textureLod(iSource, lo4, lod).a;",
+            "    float mipmapDropShadowAlpha = (0.28 * a + 0.18 * a1 + 0.18 * a2 + 0.18 * a3 + 0.18 * a4);",
+            "#endif",
+            "    float mipmapDropShadowAA = (1.0 - fragColor.a) * (1.0 - mipmapDropShadowAlpha);",
+            "    fragColor = mix(mipmapDropShadowColor * mipmapDropShadowAlpha, fragColor, fragColor.a + mipmapDropShadowAA);",
+            "}"
+        ],
+        "name": "MipmapDropShadow",
+        "properties": [
+            {
+                "defaultValue": "2",
+                "description": "This property defines how much blur is applied to the shadow. By default the value is set to 2.0.",
+                "maxValue": "30",
+                "minValue": "0",
+                "name": "mipmapDropShadowBlurAmount",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0",
+                "description": "This value defines the amount of scatter (randomness) in the shadow. This creates frosty looking shadow.",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "mipmapDropShadowScatterAmount",
+                "type": "float"
+            },
+            {
+                "defaultValue": "1",
+                "description": "This property defines scaling applied to the shadow. By default the value is set to 1.0 (no scaling).",
+                "maxValue": "1.1",
+                "minValue": "0.9",
+                "name": "mipmapDropShadowScale",
+                "type": "float"
+            },
+            {
+                "defaultValue": "2",
+                "description": "Defines shadow vertical offset in percentages relative to the source item.",
+                "maxValue": "10",
+                "minValue": "-10",
+                "name": "mipmapDropShadowVerticalOffset",
+                "type": "float"
+            },
+            {
+                "defaultValue": "2",
+                "description": "Defines shadow horizontal offset in percentages relative to the source item.",
+                "maxValue": "10",
+                "minValue": "-10",
+                "name": "mipmapDropShadowHorizontalOffset",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0, 0, 0, 1",
+                "description": "Defines shadow color.",
+                "name": "mipmapDropShadowColor",
+                "type": "color"
+            },
+            {
+                "defaultValue": "0",
+                "description": "When this is set to 1, only a single texture lookup is used for the shadow. With this shadow blur is very fast but also quite low quality.",
+                "name": "MIPMAP_DROP_SHADOW_QUALITY_LOW",
+                "type": "define"
+            }
+        ],
+        "version": 1
+    }
+}

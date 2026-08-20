@@ -1,0 +1,30 @@
+    \section1 Compiling the State Machine
+
+    We link against the Qt SCXML module by adding the following lines to the
+    example's build files.
+
+    \section2 \e .pro when using qmake:
+
+    \quotefromfile trafficlight-qml-static/trafficlight-qml-static.pro
+    \skipto QT
+    \printline scxml
+
+    We then specify the state machine to compile:
+    \skipto STATECHARTS
+    \printline scxml
+
+    \section2 \e CMakeLists.txt when using cmake:
+    \quotefromfile trafficlight-qml-static/CMakeLists.txt
+    \skipto find_package
+    \printline Scxml
+    \skipto target_link_libraries
+    \printuntil )
+
+    We then specify the state machine to compile:
+    \skipto qt6_add_statecharts
+    \printuntil )
+
+    The statechart directives \e STATECHARTS or \e qt6_add_statecharts invoke the Qt SCXML
+    Compiler, \c qscxmlc, which is run automatically to generate \e statemachine.h and
+    \e statemachine.cpp, which are then added appropriately as headers and sources for
+    compilation.

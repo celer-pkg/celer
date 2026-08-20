@@ -1,0 +1,22 @@
+<svg version="1.1" width="400" height="480" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(10,15)">
+    <polyline points="0,0 0,0" stroke-width="15" stroke="cyan" stroke-linecap="square"/>
+    <polyline points="30,0 30,0" stroke-width="15" stroke="cyan" stroke-linecap="round"/>
+    <polyline points="60,0 60,0" stroke-width="15" stroke="cyan" stroke-linecap="butt"/>
+  </g>
+  <g transform="translate(10, 45)">
+    <path d="M0,0 h0" stroke-width="15" stroke="yellow" stroke-linecap="square"/>
+    <path d="M30,0 h0" stroke-width="15" stroke="yellow" stroke-linecap="round"/>
+    <path d="M60,0 h0" stroke-width="15" stroke="yellow" stroke-linecap="butt"/>
+  </g>
+  <g transform="translate(10, 75)">
+    <line x1="0" y1="0" x2="0" y2="0" stroke-width="15" stroke="red" stroke-linecap="square"/>
+    <line x1="30" y1="0" x2="30" y2="0" stroke-width="15" stroke="red" stroke-linecap="round"/>
+    <line x1="60" y1="0" x2="60" y2="0" stroke-width="15" stroke="red" stroke-linecap="butt"/>
+  </g>
+  <g transform="translate(10, 105)">
+    <polygon points="0,0 0,0" stroke-width="15" stroke="green" stroke-linecap="square"/>
+    <polygon points="30,0, 30,0" stroke-width="15" stroke="green" stroke-linecap="round"/>
+    <polygon points="60,0, 60,0" stroke-width="15" stroke="green" stroke-linecap="butt"/>
+  </g>
+</svg>

@@ -1,0 +1,242 @@
+# I part: Creating image
+Follow image creation instructions in intra:
+"Create a Tier1 image without vSphere directly to OpenNebula"
+
+# II part: Installing Windows
+
+On Windows setup window:
+   shift+F10 to open CMD:
+      Drvload e:\viostor\w11\amd64\viostor.inf
+
+Language to install: English (United States)
+Time and currency format: English (United States)
+Keyboard or input method: United Kingdom
+Windows 11 Enterprise
+location: finnish
+
+Load driver - browse - virtio-win-0.1.262 - amd64 - w11
+Navigate to E:\guest-agent (directory on the attached drive)
+and double click qemu-ga-x86_64
+
+Region: Finland
+Keyboard layout: United Kingdom
+Keyboard layout: English (United State)
+
+* Sign-in options - Domain join instead
+   - Add user & pw
+* Location - no
+* Find my device - no
+* Diagnostic data - Required only
+* Inking and typing - no
+* Tailored expreriences - no
+* Advertising ID - no
+
+Reboot
+
+# III part: Windows configuration before moving it to datastore
+
+* Disable secure boot and TPM in the registry
+   Open 'regedit':
+      Go to: HKEY_LOCAL_MACHINE/SYSTEM/Setup/
+      Right click 'Setup' folder: New -> Key -> Name: LabConfig
+   add DWORD value BypassTPMCheck with value 1
+      Right click 'LabConfig' folder: New -> DWORD (32-bit) -> Name: BypassTPMCheck
+      Double-click on the BypassTPMCheck, change value to 1
+   add DWORD value BypassSecureBootCheck value 1
+      repeat
+
+* Go to 'This PC' -> virtio-win-0.1.262 and run: virtio-win-qt-x64, install all virtio drivers.
+   - In the same CD, install QEMU guest agent: \guest-agent\qemu-ga-x86_64.msi
+
+* Run Windows updates.
+
+* Allow running scripts by all users
+   - Open PowerShell, type: Set-ExecutionPolicy Bypass -Scope LocalMachine
+
+* Disable encryption
+   - Settings - Privacy & security - Device encryption
+
+* Check Windows still boots fine in the host.
+
+* Turn off the VM, shrink its disk & rename it:
+   qemu-img convert -O qcow2 /tmp/disk1.qcow2 qtci-windows-11_24H2-x86_64-70.qcow2
+
+* Copy and rename the nvram file:
+   cp /var/lib/qemu/nvram/c_VAR.fd /tmp/qtci-windows-11_24H2-x86_64-70_VARS.fd
+
+# IV part: Register, deploy and continue configuring the image in OpenNebula
+
+* Move the files to datastore
+* Register the image which creates an OpenNebula template for it
+* Set the registered image as persistent in OpenNebula
+* Launch the persistent image with the template
+
+# V part: System settings
+
+* Activate Windows
+
+* Turn windows features on or off -> Check the "SMB 1.0/CIFS File Sharing Support"
+   - Do this before disabling Windows update or defender
+
+* Run in PowerShell:
+   - Set-SmbClientConfiguration -RequireSecuritySignature $false
+
+* Rename the computer (to identify it better in CI network) with PowerShell:
+   - Rename-Computer -NewName "win11-24h2-x64" -Restart
+      - Max 15 character limit
+
+* Resolution set to 1280x800
+   - If 1280x800 is not listed in the settings, select a 1280 width (e.g. 1280x960) and:
+      - regedit -> HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Configuration
+      - Select a key/folder and its subkeys (00/00) that has the resolution you just selected
+      - Change every height value (e.g. 960) to 800
+      - Restart Windows
+
+* Disable feedback
+   - Settings - Privacy & security - Diagnostics & feedback
+      - Feedback frequency: Never
+
+* Background defrag disabled: 'Defragment And Optimize Drives' - 'change settings' - unchecked "run on a schedule"
+   - Run in terminal: 'schtasks /Delete /TN "Microsoft\Windows\Defrag\ScheduledDefrag"'
+
+* Time:
+   - Settings - Time & language - Date & time - Time zone: 'Coordinated Universal Time'
+   - Settings - System - Date & time - "Set the time automatically: Off"
+
+* Regional format:
+   - Settings - Time & language - Language and region - regional format - English (United States)
+
+* Power saver:
+   - Settings - System - Power - Screen and sleep: set 'When plugged in, turn off my screen after' to 'never'
+
+# VI part: Install software
+
+* Install Google Chrome for RTA
+
+* Install R3 GlobalSign Root Certificate (QTQAINFRA-6473)
+
+* Install Visual Studio
+   - Install msvc2022 (see the msvc2022.txt file)
+      - Open Task Scheduler: Task Scheduler Library > Microsoft > VisualStudio > Updates > right-click: BackgroundDownload > disable
+
+# VII part: Clear out extra processes and storage
+
+* Run .NET optimization
+   - Open PowerShell, run commands:
+      - Start-Process -NoNewWindow -FilePath "C:\WINDOWS\Microsoft.NET\Framework64\v4.0.30319\ngen.exe" -ArgumentList ExecuteQueuedItems -Wait
+      - Start-Process -NoNewWindow -FilePath "C:\WINDOWS\Microsoft.NET\Framework\v4.0.30319\ngen.exe" -ArgumentList ExecuteQueuedItems -Wait
+   - Repeat this if any modification is done with Visual Studio Installer, Windows SDK, or Windows update.
+      - This will shorten the compilation of items for exceutequeueditems.ps1 in provisioning.
+
+* Disable unused startup apps with Task manager
+   - OneDrive (or uninstall it)
+   - SecurityHealthSystray
+   - Microsoft Edge
+      - Open Edge and turn off all boosts and background tasks. Task manager should not show Edge processes when Edge is off.
+
+* Disable widgets
+   - Settings - Personalization - Taskbar - Widgets: off
+
+* Uninstall Copilot
+
+* Disable hibernation
+   - Run in PowerShell: powercfg -h off
+      - This should erase the storage reserved for hibernation
+
+* Disable reserved storage
+   - Run: dism /Online /Set—ReservedStorageState /State:Disabled
+
+* Disable clean manager
+   - Settings: System -> Storage -> Storage management -> Storage Sense: Off
+
+* Disable System Restore
+   - Run: SystemPropertiesProtection (or 'Create a restore point') - System Protection - Local Disk (C:) - Configure
+      - Disable system protection
+      - Delete all restore points for this drive
+
+* Remove temporary files
+   - Settings - System - Storage - Temporary files
+      - Remove the old Windows installation
+      - Remove already chosen items e.g. Delivery Optimization Files
+      - Repeat this after any installation or update
+
+* Disable clean manager
+   - Settings: System -> Storage -> Storage management -> Storage Sense: Off
+
+# VIII part: Last step disablements
+These steps are done last, as they may block changing other Windows configs
+
+* Run the .ps1 scripts of pre-provisioning
+
+* Disable background tasks with services.msc and Task Scheduler tool
+   - Run: services.msc
+      - MicrosoftEdgeElevationService - Right click: properties - General
+         - Startup type: Disabled
+         - Services status: stop
+   - Repeat steps for:
+      - Microsoft Edge Update Service (edgeupdate)
+      - Microsoft Edge Update Service (edgeupdatem)
+      - Windows Search
+         - this is to stop Microsoft Windows Search Indexer
+      - Windows Modules Installer (TiWorker)
+      - Windows updates
+      - Update Orchestrator Service
+      - Windows Modules Installer
+      - SysMain
+         - Used for application start optimization. Causes high disk usage when VM is idle.
+      - Google Chrome Elevation Service
+      - Google Updater Internal Service (there may be multiple of these)
+      - Google Updater Service
+      - Volume Shadow Copy
+   - Run: Task Scheduler
+      - Task Scheduler Library - GoogleSystem - GoogleUpdater
+         - GoogleUpdaterTaskSystem: disable
+      - Task Scheduler Library - Microsoft - VisualStudio - Updates
+         - BackgroundDownload: disable
+
+* Coin-setup
+   - Download the coin-setup from http://[COIN IP]/coin/binary/windows_amd64/coin-setup.exe
+   - Run the executable. It should do the following configurations to Windows but you should check them.
+      - Installing Bootstrap agent
+      - Disabling fast boot
+         - Make sure it's disabled: gpedit -> Computer Configuration\Administrative Templates\System\Shutdown\
+            - Require use of fast startup -> set to "Disabled".
+      - Disabling firewall
+      - Disabling UAC
+      - Enabling autologin
+         - regedit -> HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\PasswordLess\Device
+            - DevicePasswordLessBuildVersion: 2 -> 0
+         - netplwiz -> uncheck: "Users must enter a user name and password...", apply
+      - Disabling windows updates
+         - gpedit -> Computer Configuration\Administrative Templates\Windows Components\Windows Update\Manage end user experience
+            - "Configure Automatic Updates" -> "Disabled"
+   - Bootstrap agent CMD window should now pop-up at every Windows start up.
+
+* Turn off Windows defender (do this last as this definitely blocks firewall/network feature changes):
+   - Microsoft Defender Antivirus turned off: Open 'gpedit.msc':  'Computer Configuration' - 'Administrative Templates' - 'Windows Components' - 'Microsoft Defender Antivirus'
+      - Edit 'Turn off Microsoft Defender Antivirus' > 'Enabled' > 'Apply'
+   - Reboot on Safe mode:
+      - Open msconfig - Boot tab - enable “Safe boot“ - apply - restart
+      - In Safe mode:
+         - Take Ownership of Defender:
+            - Open properties - Right click "C:\Program Files\Windows Defender\Platform" and select 'Properties'
+            - Open Security tab - Advanced - Owner: Change - Advanced - Find now - Select Administrators - Ok - Ok
+            Close and reopen the "Advanced Security Settings for Platform" window
+               Remove all Permissions: Permissions tab
+               - Select 'Disable inheritance'
+                  - It removes all entries
+               - Select 'Replace all child object permi…' - Apply, yes, yes
+         - Disable Windows defender also from RegEdit:
+            - Open regedit - Navigate to 'HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services'
+            - Change the following folders the key Start to 4
+               - Sense (Windows defender advanced threat protection)
+               - WdBoot (Windows defender boot)
+               - WdFilter (Microsoft antimalware file system filter driver)
+               - WdNisDrv (Windows Defender Network Inspection Driver)
+               - WdNisSvc (Windows Defender Network Inspection Service)
+               - WinDefend (Windows Defender Antivirus Service)
+               - mpssvc (Windows Defender Firewall)
+   - NOTE! Without these step windows defender can't be disabled!
+   - Reboot back to normal mode
+
+* When everything seems ready: shut down Windows, Select 'Power off' in OpenNebula.

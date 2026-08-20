@@ -1,0 +1,38 @@
+<svg version="1.2" baseProfile="tiny" viewBox="0 0 200 200" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<marker
+  id="arrow2"
+  viewBox="0 0 10 10"
+  refX="5"
+  refY="5"
+  markerWidth="30"
+  markerHeight="30"
+  orient="90">
+  <path fill="red" d="M 0 0 L 10 5 L 0 10 z" />
+</marker>
+
+
+  <g transform="translate(0, 0)">
+    <path marker-mid="url(#arrow2)" style="fill:#808080" d="M 10 10 L 10 50 L 50 50 L 50 10 z" fill-opacity="0.5"/>
+    <path marker-mid="url(#arrow2)" style="fill:#808080" d="M 30 30 L 30 70 L 70 70 L 70 30 z" fill-opacity="0.5"/>
+  </g>
+  <g transform="translate(80, 0)"                fill-opacity="0.5">
+    <path marker-mid="url(#arrow2)" style="fill:#808080" d="M 10 10 L 10 50 L 50 50 L 50 10 z"/>
+    <path marker-mid="url(#arrow2)" style="fill:#808080" d="M 30 30 L 30 70 L 70 70 L 70 30 z"/>
+  </g>
+  <g transform="translate(0, 80)">
+    <path marker-mid="url(#arrow2)" style="fill:#808080" d="M 10 10 L 10 50 L 50 50 L 50 10 z" opacity="0.5"/>
+    <path marker-mid="url(#arrow2)" style="fill:#808080" d="M 30 30 L 30 70 L 70 70 L 70 30 z" opacity="0.5"/>
+  </g>
+  <g transform="translate(80, 80)"                    opacity="0.5">
+    <path marker-mid="url(#arrow2)" style="fill:#808080" d="M 10 10 L 10 50 L 50 50 L 50 10 z"/>
+    <path marker-mid="url(#arrow2)" style="fill:#808080" d="M 30 30 L 30 70 L 70 70 L 70 30 z"/>
+  </g>
+  <text transform="translate(170,45)">fill-opacity</text>
+  <text transform="translate(170,125)">opacity</text>
+  <text transform="translate(10,175)">applied to</text>
+  <text transform="translate(0,190)">each element</text>
+  <text transform="translate(90,175)">applied to</text>
+  <text transform="translate(103,190)">group</text>
+</svg>

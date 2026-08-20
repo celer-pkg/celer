@@ -1,0 +1,30 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [cmakebuild]
+    \code
+    find_package(Qt6 REQUIRED COMPONENTS Scxml)
+    target_link_libraries(mytarget PRIVATE Qt6::Scxml)
+    \endcode
+//! [cmakebuild]
+
+//! [qmakebuild]
+    \code
+    QT += scxml
+    \endcode
+//! [qmakebuild]
+
+//! [qmakestatecharts]
+    \code
+    STATECHARTS = MyStatemachine.scxml
+    \endcode
+//! [qmakestatecharts]
+
+//! [cmakestatecharts]
+    \code
+    qt_add_statecharts(mytarget
+        MyStatemachine.scxml
+    )
+    \endcode
+//! [cmakestatecharts]
+

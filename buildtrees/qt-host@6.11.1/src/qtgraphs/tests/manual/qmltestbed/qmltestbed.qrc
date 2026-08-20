@@ -1,0 +1,45 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/qmltestbed/main.qml</file>
+        <file>qml/qmltestbed/BarThemes.qml</file>
+        <file>qml/qmltestbed/StartupView.qml</file>
+        <file>qml/qmltestbed/images/arrow_icon.png</file>
+        <file>qml/qmltestbed/AxisGridSetup.qml</file>
+        <file>qml/qmltestbed/CustomCheckBox.qml</file>
+        <file>qml/qmltestbed/CustomLabel.qml</file>
+        <file>qml/qmltestbed/CustomSelectionBox.qml</file>
+        <file>qml/qmltestbed/CustomSlider.qml</file>
+        <file>qml/qmltestbed/LineProperties.qml</file>
+        <file>qml/qmltestbed/images/icon_settings.png</file>
+        <file>qml/qmltestbed/BarSelection.qml</file>
+        <file>qml/qmltestbed/SettingsView.qml</file>
+        <file>qml/qmltestbed/images/happy_box.png</file>
+        <file>qml/qmltestbed/ScatterProperties.qml</file>
+        <file>qml/qmltestbed/Callout.qml</file>
+        <file>qml/qmltestbed/Donut.qml</file>
+        <file>qml/qmltestbed/BarLabels.qml</file>
+        <file>qml/qmltestbed/LineSelection.qml</file>
+        <file>qml/qmltestbed/AddRemoveSeries.qml</file>
+        <file>qml/qmltestbed/images/bar_fg_c.png</file>
+        <file>qml/qmltestbed/images/bar_fg_l.png</file>
+        <file>qml/qmltestbed/images/bar_fg_r.png</file>
+        <file>qml/qmltestbed/images/bar_mask.png</file>
+        <file>qml/qmltestbed/images/bar_mask_c.png</file>
+        <file>qml/qmltestbed/images/bar_mask_l.png</file>
+        <file>qml/qmltestbed/images/bar_mask_r.png</file>
+        <file>qml/qmltestbed/images/Sevillana-Regular.ttf</file>
+        <file>qml/qmltestbed/AddRemovePie.qml</file>
+        <file>qml/qmltestbed/AreaSeries.qml</file>
+        <file>qml/qmltestbed/BarChangingSetCount.qml</file>
+        <file>qml/qmltestbed/BarModelMapping.qml</file>
+        <file>qml/qmltestbed/CppBarSeries.qml</file>
+        <file>qml/qmltestbed/CppLineSeries.qml</file>
+        <file>qml/qmltestbed/CustomBars.qml</file>
+        <file>qml/qmltestbed/DateTimeAxis.qml</file>
+        <file>qml/qmltestbed/DynamicSeries.qml</file>
+        <file>qml/qmltestbed/PieChart.qml</file>
+        <file>qml/qmltestbed/QmlUsageSeries.qml</file>
+        <file>qml/qmltestbed/SplineSeries.qml</file>
+        <file>qml/qmltestbed/PieModelMapping.qml</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,68 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtprotobuf-mutable-getters.html
+    \title Qt Protobuf Mutable Getters
+    \brief The use of mutable getters in \l {Qt Protobuf}
+
+    The generated \l {Qt Protobuf} messages allow access to the fields of a
+    message type using mutable getters. The getters have the \c{mut} prefix and
+    return a non-const reference to the field.
+
+    \badcode
+    message Point {
+        double x = 1;
+        double y = 2;
+    }
+
+    message Line {
+        Point start = 1;
+        Point end = 2;
+    }
+    \endcode
+
+    The above \c{.proto} scheme generates the following code for the \c{Line}
+    message:
+    \code
+    class Line : public QProtobufMessage
+    {
+        const Point &start() const &;
+        Point &mutStart() &;
+        ...
+
+        const Point &end() const &;
+        Point &mutEnd() &;
+        ...
+    }
+    \endcode
+
+    For the \c{start} and \c{end} fields, the
+    \l {The qtprotobufgen Tool} {qtprotobufgen} generator creates additional
+    mutable getters: \c{mutStart} and \c{mutEnd}.
+    Use these getters to modify fields directly, without creating intermediate
+    messages:
+    \code
+        Line line;
+
+        // Setting the line start point to (5.0, 5.0)
+        line.mutStart().setX(5.0);
+        line.mutStart().setY(5.0);
+
+        // Setting the line end point to (10.0, 20.0)
+        line.mutEnd().setX(10.0);
+        line.mutEnd().setY(20.0);
+
+        // Display the Line data
+        qDebug().nospace() << "start: (" << line.start().x() << "," << line.start().y() << ") "
+            "end: (" << line.end().x() << "," << line.end().y() << ")";
+
+    \endcode
+
+    Calling the mutable getters performs any necessary field allocation and
+    allows you to modify the underlying data directly.
+
+    \warning Mutable getters add a \c{mut} prefix to field names. If a message
+    contains fields named \c{field} and \c{mutField}, a naming conflict occurs.
+    This scenario is currently unsupported and will result in a generator error.
+*/

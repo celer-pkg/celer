@@ -1,0 +1,648 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page ios.html
+    \title Qt for iOS
+    \brief Provides insight into Qt's iOS port and how to use it.
+    \ingroup supportedplatform
+
+    Qt for iOS enables building applications for Apple's
+    \l{https://www.apple.com/iphone/}{iPhone} and
+    \l{https://www.apple.com/ipad/}{iPad} devices, as well as the
+    \l{https://www.apple.com/apple-vision-pro/}{Apple Vision Pro}.
+
+    To develop with Qt for iOS, follow the \l{Getting Started}
+    {getting started guide}; then explore \l{Examples for iOS}
+    {examples for iOS}, and \l{#related-topics}{related topics}.
+
+    \target ios-supported-configurations
+    \section1 Supported Configurations
+
+    The following versions of the \l{Build Environment}{build environment}
+    and runtime \l {Target Platforms}{target platform} are supported by Qt \qtver.
+
+    \include supported-platforms.qdocinc ios
+
+    \table 50%
+        \header \li {4,1} Target Devices used in Automated Testing
+        \header \li Device \li OS Version \li Architecture \li Form Factor
+         \row \li \l{iPhone 12}
+             \li iOS 17
+             \li armv8 (arm64)
+             \li Mobile
+         \row \li \l{iPhone 11}
+             \li iOS 17
+             \li armv8 (arm64)
+             \li Mobile
+         \row \li \l{iPad Pro, 3rd generation}
+             \li iOS 17
+             \li armv8 (arm64)
+             \li Tablet
+         \row \li \l{iPad, 6th generation}
+             \li iOS 17
+             \li armv8 (arm64)
+             \li Tablet
+         \row \li \l{iPad, 9th generation}
+             \li iOS 18
+             \li armv8 (arm64)
+             \li Tablet
+         \row \li \l{iPhone 16e}
+             \li iOS 18
+             \li armv8 (arm64)
+             \li Mobile
+         \row \li \l{iPad Air M3}
+             \li iOS 18
+             \li armv8 (arm64)
+             \li Tablet
+    \endtable
+
+    \include apple-common.qdocinc {build-environment} {iOS}
+    \include apple-common.qdocinc {target-platforms} {iOS}
+
+    \section1 Getting Started
+
+    \include apple-common.qdocinc {installing-xcode} {iOS}
+
+    The architecture of the Qt for iOS simulator libraries
+    is \c x86_64, which means the iOS Simulator must run under
+    Rosetta on Apple Silicon Macs. In Xcode 26 and later this
+    requires deleting the default installed iOS platform component
+    in the Xcode settings, and then manually installing the universal
+    iOS platform component:
+
+    \badcode
+        xcodebuild -downloadPlatform iOS -architectureVariant universal
+    \endcode
+
+    For testing Qt applications in the simulator that comes with Xcode,
+    this is all you need. However, for running applications on a physical
+    device and/or publishing your applications in the App Store, you must
+    join the \l{Apple Developer Program}, and set up developer certificates
+    and provisioning profiles.
+
+    Before building any Qt applications, you should test that Xcode
+    is set up correctly, for example by running one of the standard
+    Xcode application templates on your device.
+
+    \section2 Installing or building Qt
+
+    To install or build Qt, follow the general \l{Getting Started with Qt}
+    {getting started with Qt} guide.
+
+    \section2 Building Applications from the Command Line
+
+    Use CMake or qmake to define how to build your iOS application. Both CMake
+    and qmake can generate an \c xcodeproj file, which can then be loaded and
+    built from the command line.
+
+    \section3 Using CMake
+
+    The \c qt-cmake convenience script located in \c <Qt-dir>/<version>/ios/bin/
+    will take care of setting up the toolchain and correct architectures for you.
+
+    Using \c qt-cmake convenience script:
+
+    \badcode
+        <Qt-dir>/<version>/ios/bin/qt-cmake <source-dir>
+    \endcode
+
+    Using the generated \c xcodeproj file, you can either use Xcode to build
+    your application or run \c xcodebuild from the command line. For a list of
+    available targets and schemes for your application, run the following
+    command:
+
+    \badcode
+        xcodebuild -list -project <your-app>.xcodeproj
+    \endcode
+
+    Then, run \c {xcodebuild build}, passing in your application details:
+
+    \badcode
+        xcodebuild build -allowProvisioningUpdates -project <your-app>.xcodeproj -scheme <your-scheme> -configuration Debug -destination "generic/platform=iOS" -destination-timeout 1 ENABLE_ONLY_ACTIVE_RESOURCES=NO
+    \endcode
+
+    \section3 Using qmake
+
+    First, define how to build the application using qmake. Then, use the
+    generated \c xcodeproj file to build the application, either in Xcode or
+    from the command line.
+
+    \badcode
+        qmake <your-app>.pro
+    \endcode
+
+    qmake creates a wrapper Makefile that in turns calls \c xcodebuild, so you
+    can run \c make to build your application:
+
+    \badcode
+        make -j8
+    \endcode
+
+    Note that you must re-import the project if its setup changes, for
+    example, when adding or removing source files.
+
+    \section4 Customizing Xcode project settings
+
+    The \c QMAKE_MAC_XCODE_SETTINGS qmake variable can be used to customize
+    Xcode settings, for example:
+
+    \badcode
+        development_team.name = DEVELOPMENT_TEAM
+        development_team.value = <your-team-id>
+        QMAKE_MAC_XCODE_SETTINGS += development_team
+    \endcode
+
+    Other qmake variables are also useful:
+
+    \badcode
+        QMAKE_TARGET_BUNDLE_PREFIX = com.<your-company>
+        QMAKE_BUNDLE = <your-app>
+    \endcode
+
+    \section2 Running Applications in Xcode
+
+    The Xcode projects generated by qmake and CMake support running
+    the application on both iOS devices and in the iOS simulator.
+
+    \note As the default architecture of the Qt for iOS simulator libraries
+    is \c x86_64, the application must run under Rosetta on Apple
+    Silicon Macs. If the Rosetta-based run destinations are not
+    listed in Xcode's run destination menu they can be enabled
+    via the \c {Product > Destination > Destination Architectures}
+    menu.
+
+    \section2 Building and Running Applications with \QC
+
+    You can find information on how to set up and run Qt for iOS
+    applications in the \QC documentation:
+
+    \list
+        \li \l{\QC: Connect iOS devices}.
+    \endlist
+
+    Note that this still requires a working Xcode installation.
+
+    \section1 Examples for iOS
+
+    In \QC, tested examples on iOS can be looked up. Use the \c ios
+    keyword to search for examples in the \QC Welcome mode. Note that
+    some examples may have limited functionality.
+
+    For a list of examples known to work on iOS devices, visit
+    \l{Qt for iOS Examples}.
+
+    \section1 Related Topics
+
+    The following topics provide more details about Qt for iOS:
+    \list
+        \li \l {Platform Notes - iOS}{Platform Notes}
+        \li \l {Qt for iOS - Building from Source}
+    \endlist
+
+    \include objective-c.qdocinc
+*/
+
+/*!
+    \page ios-building-from-source.html
+    \title Qt for iOS - Building from Source
+    \brief Provides instructions to build Qt from source for iOS platform.
+
+    Building \l {Qt for iOS} from sources requires \l Xcode with
+    Command Line Tools installed. You can install Xcode Command Line Tools
+    directly using \c {xcode-select –install} from you terminal or as a package
+    using \l {https://docs.brew.sh/Installation}{Homebrew}.
+    Qt sources can be obtained either by cloning the repositories or
+    downloading the source package(s).
+
+    To cross-build Qt, you need a host build of Qt first. See \l{Cross-compiling
+    Qt} for details.
+
+    You can then configure and build Qt. This is done from the Qt top
+    directory:
+
+    \badcode
+        > ./configure -platform macx-ios-clang -release -qt-host-path <path_to_host_qt_installation>
+    \endcode
+
+    \include use-ninja-note.qdocinc ninja-note
+
+    For other configure options, see \l{Qt Configure Options}.
+
+    Then, simply run \c{cmake --build . --parallel}.
+
+    \note A default build will include both simulator and device
+    libraries. If you want to build for a single target, use the \c
+    -sdk argument with either \c iphoneos or \c iphonesimulator.
+*/
+
+/*!
+    \page ios-platform-notes.html
+    \title Platform Notes - iOS
+    \brief This page contains information about building Qt applications for and running them on the iOS platform.
+
+    \section1 Deployment
+
+    Developing, building, running, and debugging a Qt for iOS application can all be done
+    with \QC on \macos. The toolchain is provided by Apple's Xcode,
+    and running qmake or CMake on a project targeted for iOS will also generate an
+    Xcode project file (.xcodeproj), with initial application settings. As Qt
+    Creator does not provide an interface for managing all of the settings specific
+    to iOS platform, it is sometimes necessary to adjust them in Xcode directly.
+    Checking that the application is configured correctly is especially important
+    before submitting an application for publishing in Apple's App Store.
+
+    \section2 Application bundles
+
+    iOS applications are typically deployed as self-contained application
+    bundles. The application bundle contains the application's executable as well
+    as dependencies, such as the Qt libraries, plugins, translations, and other
+    resources the application may need.
+
+    \include {apple-app-bundle.qdocinc} {building an app bundle}
+
+    \target Info.plist
+    \section2 Information Property List Files
+
+    Information property list file (Info.plist) on iOS and \macos is used for
+    configuring an application bundle. These configuration settings include:
+
+    \list
+        \li Application display name and identifier
+        \li Required device capabilities
+        \li Supported user interface orientations
+        \li Icons and launch images
+    \endlist
+
+    See the documentation on
+    \l {https://developer.apple.com/documentation/bundleresources/information_property_list}
+    {Information Property List File} in iOS Developer Library for details.
+
+    \section3 Info.plist with CMake
+
+    CMake generates a default \c Info.plist file if a target has its \c{MACOSX_BUNDLE}
+    property set to \c TRUE. Unfortunately that file is not suitable for iOS projects.
+
+    Instead, projects can use \l qt_add_executable, which will automatically generate
+    an \c Info.plist file with default values suitable for iOS projects.
+
+    To specify a custom \c{Info.plist}, projects can set the \c{MACOSX_BUNDLE_INFO_PLIST}
+    target property as shown below. Doing that will disable the automatic file
+    generation provided by \l qt_add_executable and will instead use CMake's
+    native handling for the project-provided \c Info.plist file.
+
+    \badcode
+    qt_add_executable(app)
+    if(IOS)
+        set_target_properties(app
+            PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/ios/Info.plist")
+    endif()
+    \endcode
+
+    See the \l{CMake MACOSX_BUNDLE_INFO_PLIST documentation} for information
+    on which target properties and variables can be specified for the
+    template substitution performed by CMake.
+
+    \section3 Info.plist with QMake
+
+    When qmake is run, an \c Info.plist file is generated with appropriate default values.
+
+    It is advisable to replace the generated Info.plist with your own copy, to prevent
+    it from being overwritten the next time qmake is run. You can define a custom information
+    property list with \l QMAKE_INFO_PLIST variable in your .pro file.
+
+    \badcode
+    ios {
+        QMAKE_INFO_PLIST = ios/Info.plist
+    }
+    \endcode
+
+    \section2 Application Assets
+
+    For files that cannot be bundled into Qt resources, \l QMAKE_BUNDLE_DATA qmake variable
+    provides a way to specify a set of files to be copied into the application bundle. For
+    example:
+
+    \badcode
+    ios {
+        fontFiles.files = $$files(fonts/*.ttf)
+        fontFiles.path = fonts
+        QMAKE_BUNDLE_DATA += fontFiles
+    }
+    \endcode
+
+    With CMake, the same can be done in the following way:
+
+    \badcode
+    qt_add_executable(app)
+    file(GLOB_RECURSE font_files CONFIGURE_DEPENDS "fonts/*.ttf")
+    if(IOS AND font_files)
+        target_sources(app PRIVATE ${font_files})
+        set_source_files_properties(
+            ${font_files}
+            PROPERTIES MACOSX_PACKAGE_LOCATION Resources/fonts)
+    endif()
+    \endcode
+
+    For image resources, an alternative way is to make use of
+    \l {Managing Assets with Asset Catalogs}{asset catalogs} in Xcode, which can be
+    added in the following way with qmake:
+
+    \badcode
+    ios {
+        QMAKE_ASSET_CATALOGS += ios/Assets.xcassets
+    }
+    \endcode
+
+    With CMake:
+
+    \badcode
+    qt_add_executable(app)
+    set(asset_catalog_path "ios/Assets.xcassets")
+    target_sources(app PRIVATE "${asset_catalog_path}")
+    set_source_files_properties(
+        ${asset_catalog_path}
+        PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    \endcode
+
+    \section2 Icons
+
+    Starting with Xcode 13, icons need to be added to an asset catalog's icon set, which is
+    usually called \c AppIcon.
+    Xcode will then take care of updating the \c Info.plist file with the correct keys and values,
+    as well as copy any necessary icon files directly into the application bundle.
+
+    Starting with Xcode 14, only one 1024x1024 pixel-sized image is required. Xcode takes care
+    of generating all the necessary icons from it. It is also possible to specify the images
+    manually in the asset catalog.
+
+    A detailed list of the icons that can be specified is available at
+    \l {App Icons on iPhone, iPad and Apple Watch}{Icon files}.
+
+    The filename is not important, but the actual pixel size is.
+    To support a universal iOS application, the following images
+    are required:
+
+    \list
+        \li \c {AppIcon60x60@2x.png}: 120 x 120 (for iPhone)
+        \li \c {AppIcon76x76@2x~ipad.png}: 152 x 152 (for iPad)
+        \li \c {AppIcon167x167.png}: 167x167 (for iPad Pro)
+        \li \c {AppIcon1024x1024.png}: 1024 x 1024 (for App Store)
+    \endlist
+
+    Ad-hoc distributions should also include the following filenames in the application bundle
+    to visualize the application in iTunes:
+    \list
+        \li \c iTunesArtwork 512x512
+        \li \c iTunesArtwork@2x 1024x1024
+    \endlist
+
+    The easiest way to add the icons is to follow Xcode's documentation at
+    \l {Create asset catalogs and sets}{Create asset catalogs and sets}.
+
+    When building a project with CMake, it should also specify the
+    following Xcode attribute to ensure app icons are generated by Xcode.
+
+    \badcode
+    set_target_properties(app_target_name PROPERTIES
+        XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME AppIcon)
+    \endcode
+
+    Below is an example of how an \c Assets.xcassets/AppIcon.appiconset/Contents.json file for
+    Xcode 14 might look like:
+
+    \quotefile ios/asset_catalog_icons.json
+
+    \section2 Launch Screens and Launch Images
+
+    \section3 Launch Screens
+
+    Every iOS app must provide a launch screen to be displayed while the app launches.
+    A launch screen is an interface builder \c{.xib} file, also called a storyboard file.
+    For more information, see \l{Specifying Your App's Launch Screen}.
+
+    Support for launch screens has been introduced in iOS 9.0.
+
+    Both qmake and CMake generate a default launch screen called \c{LaunchScreen.storyboard}.
+
+    To specify a custom launch screen, it must be copied to the application bundle, and the
+    \c UILaunchStoryboardName key must be set to the name of the launch screen in the
+    \c Info.plist file.
+
+    Qt supports custom launch screens with CMake since Qt 6.4, and with qmake since Qt 6.0.
+
+    Assuming that the launch file is called \c Launch.storyboard, it can be added to
+    \c Info.plist as follows:
+
+    \badcode
+    <key>UILaunchStoryboardName</key>
+    <string>Launch</string>
+    \endcode
+
+    To copy the launch screen into the application bundle with qmake, use the following code
+    snippet in your project .pro file:
+
+    \badcode
+    ios {
+        QMAKE_IOS_LAUNCH_SCREEN = $$PWD/Launch.storyboard
+    }
+    \endcode
+
+    With CMake:
+
+    \badcode
+    qt_add_executable(app)
+    if(IOS)
+        set_target_properties(app PROPERTIES
+            QT_IOS_LAUNCH_SCREEN "${CMAKE_CURRENT_SOURCE_DIR}/Launch.storyboard")
+    endif()
+    \endcode
+
+    \section3 Launch Images
+
+    It's also possible to specify launch images (PNG files) instead of launch screen.
+
+    \note Using launch images is not recommended, because support for them has been
+    deprecated since iOS 13.0. Consider switching to launch screens instead.
+
+    Launch images must be copied to the application bundle and their names must
+    be set in the \c Info.plist file using the \c UILaunchImages key.
+
+    The following images must be prepared:
+    \list
+        \li LaunchImage-iOS7-568h@2x.png: 640 x 1136
+        \li LaunchImage-iOS7-Landscape.png: 1024 x 768
+        \li LaunchImage-iOS7-Landscape@2x.png: 2048 x 1536
+        \li LaunchImage-iOS7-Portrait.png: 768 x 1024
+        \li LaunchImage-iOS7-Portrait@2x.png: 1536 x 2048
+        \li LaunchImage-iOS7@2x.png: 640 x 960
+    \endlist
+
+    The images can be added to \c Info.plist as follows:
+    \badcode
+    <key>UILaunchImages</key>
+    <array>
+        <dict>
+            <key>UILaunchImageMinimumOSVersion</key>
+            <string>7.0</string>
+            <key>UILaunchImageName</key>
+            <string>LaunchImage-iOS7</string>
+            <key>UILaunchImageOrientation</key>
+            <string>Portrait</string>
+            <key>UILaunchImageSize</key>
+            <string>{320, 568}</string>
+        </dict>
+        <dict>
+            <key>UILaunchImageMinimumOSVersion</key>
+            <string>7.0</string>
+            <key>UILaunchImageName</key>
+            <string>LaunchImage-iOS7</string>
+            <key>UILaunchImageOrientation</key>
+            <string>Portrait</string>
+            <key>UILaunchImageSize</key>
+            <string>{320, 480}</string>
+        </dict>
+    </array>
+    <key>UILaunchImages~ipad</key>
+    <array>
+        <dict>
+            <key>UILaunchImageMinimumOSVersion</key>
+            <string>7.0</string>
+            <key>UILaunchImageName</key>
+            <string>LaunchImage-iOS7-Landscape</string>
+            <key>UILaunchImageOrientation</key>
+            <string>Landscape</string>
+            <key>UILaunchImageSize</key>
+            <string>{768, 1024}</string>
+        </dict>
+        <dict>
+            <key>UILaunchImageMinimumOSVersion</key>
+            <string>7.0</string>
+            <key>UILaunchImageName</key>
+            <string>LaunchImage-iOS7-Portrait</string>
+            <key>UILaunchImageOrientation</key>
+            <string>Portrait</string>
+            <key>UILaunchImageSize</key>
+            <string>{768, 1024}</string>
+        </dict>
+        <dict>
+            <key>UILaunchImageMinimumOSVersion</key>
+            <string>7.0</string>
+            <key>UILaunchImageName</key>
+            <string>LaunchImage-iOS7</string>
+            <key>UILaunchImageOrientation</key>
+            <string>Portrait</string>
+            <key>UILaunchImageSize</key>
+            <string>{320, 568}</string>
+        </dict>
+        <dict>
+            <key>UILaunchImageMinimumOSVersion</key>
+            <string>7.0</string>
+            <key>UILaunchImageName</key>
+            <string>LaunchImage-iOS7</string>
+            <key>UILaunchImageOrientation</key>
+            <string>Portrait</string>
+            <key>UILaunchImageSize</key>
+            <string>{320, 480}</string>
+        </dict>
+    </array>
+    \endcode
+
+    To copy the launch images into the application bundle with qmake, use the following code
+    snippet in your project .pro file:
+
+    \badcode
+    ios {
+        app_launch_images.files = $$files($$PWD/ios/LaunchImage*.png)
+        QMAKE_BUNDLE_DATA += app_launch_images
+    }
+    \endcode
+
+    With CMake:
+
+    \badcode
+    qt_add_executable(app)
+    file(GLOB_RECURSE launch_images CONFIGURE_DEPENDS "ios/LaunchImage*.png")
+    if(IOS AND launch_images)
+        target_sources(app PRIVATE ${launch_images})
+        set_source_files_properties(
+            ${launch_images}
+            PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    endif()
+    \endcode
+
+    \note Earlier iOS versions supported specifying a single launch image using the
+    \c UILaunchImageFile key in \c Info.plist, but support for it has been deprecated since
+    iOS 10.0.
+
+    \section2 Native Image Picker
+
+    If your \c Info.plist file contains an entry for
+    \c NSPhotoLibraryUsageDescription, qmake will automatically include an extra
+    plugin which enables access to the native image picker.
+
+    For CMake, manually link the native image picker with the
+    \l {qt_import_plugins}:
+
+    \badcode
+    qt_import_plugins(app INCLUDE Qt6::QIosOptionalPlugin_NSPhotoLibraryPlugin)
+    \endcode
+
+    If the directory in your \l QFileDialog is set to:
+
+    \badcode
+    QStandardPaths::standardLocations(QStandardPaths::PicturesLocation).last();
+    \endcode
+
+    or alternatively the \l [QtQuickDialogs] {FileDialog::} {currentFolder} in a
+    \l [QtQuickDialogs] {FileDialog} in QML to:
+
+    \badcode
+    shortcuts.pictures
+    \endcode
+
+    then the native image picker is shown to allow access to the user's photo album.
+
+    \section2 Expressing Supported iOS Versions
+
+    \include expressing-apple-os-versions.qdocinc expressing os versions
+
+    \section1 Publishing to Apple App Store
+
+    Verifying that your Qt for iOS application is ready for publishing to App Store can be done
+    as described in \l {https://developer.apple.com/Library/ios/documentation/LanguagesUtilities/Conceptual/iTunesConnect_Guide/Chapters/SubmittingTheApp.html} {Submitting the Application}.
+    To submit the application, you can use Xcode, or the Application Loader (installed with Xcode).
+    \QC does not provide an interface for managing all of the settings in an Xcode project configuration.
+
+    The application should be tested on the iOS versions and devices that it is
+    targeted to support. The minimum deployment target for Qt applications
+    varies by Qt version. For more information, see
+    \l{ios-supported-configurations}{supported configurations}.
+
+    The actual publishing process involves creating a distribution certificate and a provision profile,
+    creating a signed archive of your application, and running a set of validation tests on it.
+
+    See the \l {https://developer.apple.com/library/ios/documentation/IDEs/Conceptual/AppDistributionGuide/SubmittingYourApp/SubmittingYourApp.html}
+    {App Distribution Guide} in iOS Developer Library for more information.
+
+    \section1 Symbol visibility warnings
+
+    \include apple-hidden-symbols.qdocinc
+
+    \section1 Product archiving issue with CMake
+
+    Due to an issue in \l{CMake iOS archiving failure issue}{CMake}, trying to create a product
+    archive with an iOS application may fail.
+
+    This can happen both when trying to create the archive in Xcode using the
+    Product -> Archive menu item, or from the command line using \c {xcodebuild -archivePath}.
+
+    The error message might reference undefined symbols or non-existent file paths.
+
+    To work around the issue, make sure to build a \c Release version of the project before trying
+    to create an archive.
+
+    \section1 dSYM bundle missing in xcarchive created by a CMake Xcode project
+
+    \include apple-xcode-dsym-archiving.qdocinc
+*/

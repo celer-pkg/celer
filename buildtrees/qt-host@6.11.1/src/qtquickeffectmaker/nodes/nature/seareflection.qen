@@ -1,0 +1,80 @@
+{
+    "QEN": {
+        "description": "This effect creats a wavy sea with reflection of the source item. Requires texture lookup of the source, so should be used among first nodes.",
+        "fragmentCode": [
+            "@main",
+            "{",
+            "    vec2 tc = vec2(texCoord.s, 1. - texCoord.t);",
+            "",
+            "    const float p = seaReflectionPerspective + (1. - seaReflectionPerspective) *  texCoord.y;",
+            "    const float w = (1.0001 - seaReflectionWaveSize) * 5;",
+            "    const float wave1 = 0.5 * sin(30 * w * (0.5 - texCoord.y) / p + iTime * 5) * p;",
+            "",
+            "    float wave2 = sin((0.5 - texCoord.x) * 25 * w / p) * sin( iTime - texCoord.y * 40 * w / p) * p;",
+            "    wave2 += sin(2 * iTime + ((0.5 - texCoord.y) * 4 * w / p + sin(2 * iTime - texCoord.y * w * 3) * 0.1 / w * sin((0.5 - texCoord.x) * w * 10 / p)) * 10 * w) * p;",
+            "    wave2 *= 0.4;",
+            "",
+            "    const float combinedWaves = (wave1 + wave2) * 0.2;",
+            "",
+            "    tc.y += (wave1 + 0.2 * wave2) * seaReflectionDistortionFactor;",
+            "    tc.x += 0.2 * combinedWaves * seaReflectionDistortionFactor;",
+            "",
+            "    vec4 texColor = texture(iSource, tc);",
+            "",
+            "    texColor.rgb *= seaReflectionColor.rgb * 2;",
+            "",
+            "    fragColor = vec4(mix(seaReflectionColor.rgb,  texColor.rgb - combinedWaves * seaReflectionColorFactor, seaReflectionReflectiveness * texColor.a), 1.0);",
+            "}"
+        ],
+        "name": "SeaReflection",
+        "properties": [
+            {
+                "defaultValue": "0.15, 0.5, 0.9, 1",
+                "description": "This property defines the color of the reflective sea. The source texture colors are multiplied with this color to colorize the reflection.",
+                "name": "seaReflectionColor",
+                "type": "color"
+            },
+            {
+                "defaultValue": "0.7",
+                "description": "This property defines how large the waves are. 1 is the size of the source texture and 0 is very small.",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "seaReflectionWaveSize",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0.2",
+                "description": "This property defines the perspective that makes the horizon seem further away. 0 is infinitely far and 1 disables the perspective completely.",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "seaReflectionPerspective",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0.5",
+                "description": "This property defines how much the colors are intensified by the waves.",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "seaReflectionColorFactor",
+                "type": "float"
+            },
+            {
+                "defaultValue": "1",
+                "description": "This property defines how much the reflection is distorted by the waves.",
+                "maxValue": "3",
+                "minValue": "0",
+                "name": "seaReflectionDistortionFactor",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0.4",
+                "description": "This property defines how much the texture is reflected. When set to 0, only the seaReflectionColor is rendered with no reflection at all.",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "seaReflectionReflectiveness",
+                "type": "float"
+            }
+        ],
+        "version": 1
+    }
+}

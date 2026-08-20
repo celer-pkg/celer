@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>RealSlider.qml</file>
+        <file>main.qml</file>
+        <file>suzanne.mesh</file>
+    </qresource>
+</RCC>

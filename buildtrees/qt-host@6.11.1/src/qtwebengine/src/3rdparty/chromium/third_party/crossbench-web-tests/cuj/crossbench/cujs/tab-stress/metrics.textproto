@@ -1,0 +1,17 @@
+# Copyright 2025 The Chromium Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+metric_spec: {
+  id: "cuj.tab-stress.total_renderers"
+  dimensions: "it_id"
+  value: "total_renderers"
+  query {
+    table {
+      table_name: "total_renderers_output"
+      module_name: "sql_packages.cujs.tab_stress.total_renderers"
+      column_names: "it_id"
+      column_names: "total_renderers"
+    }
+  }
+}

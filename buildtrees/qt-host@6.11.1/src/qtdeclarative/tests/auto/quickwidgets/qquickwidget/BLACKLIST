@@ -1,0 +1,13 @@
+[tabKey]
+macos-12
+[enterLeave]
+macos
+wayland
+[focusOnClickInProxyWidget]
+macos-12
+[focusPreserved]
+macos-12
+[synthMouseFromTouch]
+macos-12
+[focusChain]
+wayland

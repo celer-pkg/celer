@@ -1,0 +1,41 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  page-load: {
+    template: ../../../common-action-blocks/basic/page-load.hjson
+    args: {
+      READY_STATE: complete
+      PAGE_LOAD_TIMEOUT: 3m
+    }
+    unbound_args: [
+      PAGE_URL
+      TARGET
+    ]
+  }
+  click-link: [
+    {
+      action: js
+      script: performance.mark("click-link-on-page")
+    }
+    {
+      action: click
+      position: {
+        selector: $[CLICK_SELECTOR]
+        scroll_into_view: true
+      }
+      verify: $[VERIFY_SELECTOR]
+      // Generate a mouse event for getting input events in the trace.
+      source: mouse
+    }
+    {
+      action: wait_for_ready_state
+      ready_state: complete
+      timeout: 3m
+    }
+    {
+      action: js
+      script: performance.mark("click-link-on-page-loaded")
+    }
+  ]
+}

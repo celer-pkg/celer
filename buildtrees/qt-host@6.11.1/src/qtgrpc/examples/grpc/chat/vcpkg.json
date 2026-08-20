@@ -1,0 +1,23 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+    "description": "Simple chat based on the Qt GRPC client API.",
+    "dependencies": [
+        "protobuf",
+        "grpc"
+    ],
+    "features": {
+        "vcpkg-qt": {
+            "description": "Use Qt libraries from vcpkg",
+            "dependencies": [
+                {
+                    "name": "qtgrpc",
+                    "version>=": "6.9"
+                },
+                {
+                    "name": "qtdeclarative",
+                    "version>=": "6.9"
+                }
+            ]
+        }
+    }
+}

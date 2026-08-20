@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<!--
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+-->
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="eventnames2">
+    <state id="a">
+        <onentry>
+            <send event="valid"/>
+            <send event="still.valid"/>
+            <send event="-valid-"/>
+        </onentry>
+
+        <transition event="valid"/>
+        <transition event="still.valid"/>
+        <transition event="also valid"/>
+    </state>
+</scxml>

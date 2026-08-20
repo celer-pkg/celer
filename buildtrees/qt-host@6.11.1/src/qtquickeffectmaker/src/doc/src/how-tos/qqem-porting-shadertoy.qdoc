@@ -1,0 +1,67 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+    \page qqem-porting-shadertoy.html
+    \title Porting Shadertoy effects to \QQEM
+
+    You can use effects created in Shadertoy in \QQEM. When you use Shadertoy effects, consider
+    the following:
+
+    \list
+      \li \QQEM doesn't support the following Shadertoy features:
+        \list
+          \li Multipass effects (Buffer tabs)
+          \li Audio
+          \li Cube maps
+          \li 3D textures
+        \endlist
+      \li Shadertoy supports only fragment shaders and built-in textures. To improve the
+          effect performance in \QQEM, move some calculations to the vertex shader and use
+          custom images to simplify the shader code.
+      \li The coordinate system differs between Shadertoy and \QQEM. In Shadertoy, the origin (0,0)
+          is located in the lower-left corner while \QQEM has the origin in the upper-left corner.
+    \endlist
+
+    \section1 Using a Shadertoy effect in \QQEM
+
+    To use a Shadertoy effect in \QQEM:
+    \list 1
+      \li In \QQEM, create a new effect.
+      \li In the node editor, select \uicontrol {Add node} and then, under \uicontrol Common,
+      select \uicontrol Custom. This creates an empty node.
+      \image add-custom-node.webp
+             {Add Effect Node dialog with Custom selected under Common category}
+      \li In Shadertoy, copy all the code from the \uicontrol Image tab.
+      \li In \QQEM, double-click the \uicontrol Custom node in the node editor. This opens the
+      code editor.
+      \li Paste the Shadertoy code to the \uicontrol Frag tab.
+      \li Find the \c Main function in the code, it looks something like:
+        \badcode
+          void mainImage( out vec4 fragColor, in vec2 fragCoord )
+        \endcode
+      \li Replace this line with:
+        \badcode
+          @main
+        \endcode
+        \note You can't have \c @main and the following \unicode 0x7B on the same line.
+      \li Optional. If the effect depends on the coordinate system, it appears flipped
+        upside down. To solve this, you need to flip the y-coordinate:
+        \list 1
+          \li Go to the \uicontrol Vert tab.
+            \image vert-tab.png
+                   {Code editor with VERT tab selected showing vertex shader}
+          \li In the drop-down menu, select \uicontrol Main.
+          \li Find the \c fragCoord line, it should look something like:
+            \badcode
+              fragCoord = qt_Vertex.xy;
+            \endcode
+          \li Replace this line with:
+            \badcode
+              fragCoord = vec2(qt_Vertex.x, iResolution.y - qt_Vertex.y);
+            \endcode
+          \li Similarly, you might need to adjust \c texCoord and \c iMouse.
+      \endlist
+    \endlist
+
+    Now, the effect runs and looks the same as the Shadertoy effect.
+*/

@@ -1,0 +1,284 @@
+// Copyright (C) 2018 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtquicktest-index.html
+    \title Qt Quick Test
+    \brief Unit testing framework for QML.
+
+    \target Introduction to Qt Quick Test
+    \section1 Introduction
+
+    \l {Qt Quick Test QML Types}{Qt Quick Test} is a unit test framework for QML applications.
+    Test cases are written as JavaScript functions within a \l [QML] TestCase
+    type:
+
+    \qml
+    import QtQuick 2.3
+    import QtTest 1.0
+
+    TestCase {
+        name: "MathTests"
+
+        function test_math() {
+            compare(2 + 2, 4, "2 + 2 = 4")
+        }
+
+        function test_fail() {
+            compare(2 + 2, 5, "2 + 2 = 5")
+        }
+    }
+    \endqml
+
+    Functions whose names start with \c{test_} are treated as test cases
+    to be executed. See the documentation for the \l [QML] TestCase and
+    \l [QML] SignalSpy types for more information on writing test cases.
+
+    \note There is no binary compatibility guarantee for the Qt Quick Test
+          module. This means that an application that uses Qt Quick Test is
+          only guaranteed to work with the Qt version it was developed against.
+          However, source compatibility is guaranteed.
+
+    \section1 Using the Module
+
+    \section2 QML API
+
+    The QML types in Qt Quick Test are available through the \c QtTest import.
+    To use the types, add the following import statement to your .qml file:
+
+    \qml
+    import QtTest
+    \endqml
+
+    \section2 C++ API
+
+    Using the \l{Qt Quick Test C++ API}{C++ API} requires linking against the
+    module library, either directly or through other dependencies. Several
+    build tools have dedicated support for this, including
+    \l{CMake Documentation}{CMake} and \l{qmake}.
+
+    \section3 Building with CMake
+
+    Use the \c find_package() command to locate the needed module components in
+    the Qt6 package:
+
+    \snippet overview.cmake cmake_use
+
+    See also the \l{Build with CMake} overview.
+
+    \section3 Building with qmake
+
+    There are two ways to link against the corresponding C++ library. If your
+    test project uses a QML \l TestCase, you should already have the following
+    line in your project file:
+
+    \badcode
+    CONFIG += qmltestcase
+    \endcode
+
+    This will cause the test to link to the C++ \QtQuickTest library.
+
+    If you have a C++-only test project, you can add the following line
+    to your project file:
+
+    \badcode
+    QT += qmltest
+    \endcode
+
+    \target Running Qt Quick Tests
+    \section1 Running Tests
+
+    Test cases are launched by a C++ harness that consists of
+    the following code:
+
+    \snippet src_qmltest_qquicktest_snippet.cpp 1
+
+    Where "example" is the identifier to use to uniquely identify
+    this set of tests.
+
+    \if defined(onlinedocs)
+        \tab {run-qtquicktest}{tab-cmake}{CMake}{checked}
+        \tab {run-qtquicktest}{tab-qmake}{qmake}{}
+        \tabcontent {tab-cmake}
+    \else
+        \section1 Using CMake
+    \endif
+    Configure your CMakeLists.txt file and build your project using your
+    favorite generator.
+    \badcode
+        cmake_minimum_required(VERSION 3.2)
+
+        project(tst_example LANGUAGES CXX)
+
+        enable_testing()
+
+        find_package(Qt6 REQUIRED COMPONENTS QuickTest Qml)
+
+        #[[The test harness scans the specified source directory recursively
+        for "tst_*.qml" files. By default, it looks in the current directory,
+        which is usually where the executable is. This command makes it look
+        in the project's source directory instead.]]
+        add_definitions(-DQUICK_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+
+        qt_standard_project_setup(REQUIRES 6.6)
+
+        add_executable(tst_example tst_example.cpp)
+
+        add_test(NAME tst_example COMMAND tst_example)
+
+        target_link_libraries(tst_example
+            PRIVATE
+            Qt6::QuickTest
+            Qt6::Qml
+        )
+    \endcode
+    \if defined(onlinedocs)
+        \endtabcontent
+        \tabcontent {tab-qmake}
+    \else
+        \section1 Using qmake
+    \endif
+    Add \c{CONFIG += qmltestcase} to your project file:
+    \badcode
+        TEMPLATE = app
+        TARGET = tst_example
+        CONFIG += warn_on qmltestcase
+        SOURCES += tst_example.cpp
+    \endcode
+
+    If \c IMPORTPATH is specified in your .pro file, each import path added to \c IMPORTPATH
+    will be passed as a command-line argument when the test is run using "make check":
+
+    \badcode
+    IMPORTPATH += $$PWD/../imports/my_module1 $$PWD/../imports/my_module2
+    \endcode
+    \if defined(onlinedocs)
+        \endtabcontent
+    \endif
+
+    The test harness scans the specified source directory recursively
+    for "tst_*.qml" files. If \c{QUICK_TEST_SOURCE_DIR} is not defined,
+    then the current directory will be scanned when the harness is run.
+    Other *.qml files may appear for auxillary QML components that are
+    used by the test.
+
+    The \c{-input} command-line option can be set at runtime to run
+    test cases from a different directory. This may be needed to run
+    tests on a target device where the compiled-in directory name refers
+    to a host. For example:
+
+    \badcode
+    tst_example -input /mnt/SDCard/qmltests
+    \endcode
+
+    It is also possible to run a single file using the \c{-input} option.
+    For example:
+
+    \badcode
+    tst_example -input data/test.qml
+    \endcode
+
+    \badcode
+    tst_example -input <full_path>/test.qml
+    \endcode
+
+    \note Specifying the full path to the qml test file is for example
+    needed for shadow builds.
+
+    If your test case needs QML imports, then you can add them as
+    \c{-import} options to the test program command-line.
+
+
+    The \c{-functions} command-line option will return a list of the current
+    tests functions. It is possible to run a single test function using the name
+    of the test function as an argument. For example:
+
+    \badcode
+    tst_example Test_Name::function1
+    \endcode
+
+    The \c{-help} command-line option will return all the options available.
+
+    \badcode
+    tst_example -help
+    \endcode
+
+    \note Running a Qt Quick test case will always show a window on the screen,
+    even if the test code doesn't involve any Quick UI. To avoid that, run the
+    test executable with \c {-platform offscreen}.
+
+    \section1 Executing C++ Before QML Tests
+
+    To execute C++ code before any of the QML tests are run, the
+    \l QUICK_TEST_MAIN_WITH_SETUP macro can be used. This can be useful for
+    setting context properties on the QML engine, amongst other things.
+
+    The macro is identical to \c QUICK_TEST_MAIN, except that it takes an
+    additional type argument. The test framework will call slots and
+    invokable functions with the following names:
+
+    \table
+        \header
+            \li Name
+            \li Purpose
+            \li Since
+        \row
+            \li \c {void applicationAvailable()}
+            \li Called right after the QApplication object was instantiated.
+                Use this function to perform setup that does not require a
+                \l QQmlEngine instance.
+            \li Qt 5.12
+        \row
+            \li \c {void qmlEngineAvailable(QQmlEngine *)}
+            \li Called when the QML engine is available.
+                Any \l {QQmlEngine::addImportPath}{import paths},
+                \l {QQmlEngine::addPluginPath}{plugin paths},
+                and \l {QQmlFileSelector::setExtraSelectors}{extra file selectors}
+                will have been set on the engine by this point.
+
+                This function is called once for each QML test file,
+                so any arguments are unique to that test. For example, this
+                means that each QML test file will have its own QML engine.
+
+                This function can be used to \l {Choosing the Correct Integration
+                Method Between C++ and QML}{register QML types} and
+                \l {QQmlEngine::addImportPath()}{add import paths},
+                amongst other things.
+            \li Qt 5.11
+        \row
+            \li \c {void cleanupTestCase()}
+            \li Called right after the test execution has finished.
+                Use this function to clean up before everything will start to be destructed.
+            \li Qt 5.12
+    \endtable
+
+    The following example demonstrates how the macro can be used to set context
+    properties on the QML engine:
+
+    \snippet src_qmltest_qquicktest.cpp 2
+
+    The \c .moc include is based on the file name of the \c .cpp file.
+    For example, in the example above, the \c .cpp file is named
+    \c src_qmltest_qquicktest.cpp. If the file was named \c MyTest.cpp, the include would
+    be:
+
+    \code
+    #include "MyTest.moc"
+    \endcode
+
+    \section1 Reference
+
+    \list
+      \li \l{Qt Quick Test QML Types}{QML Types}
+      \li \l{Qt Quick Test C++ API}{C++ API}
+    \endlist
+
+    \section1 Licenses
+
+    Qt Quick Tests is available under commercial licenses from \l{The Qt Company}.
+    In addition, it is available under free software licenses. Since Qt 5.4,
+    these free software licenses are
+    \l{GNU Lesser General Public License, version 3}, or
+    the \l{GNU General Public License, version 2}.
+    See \l{Qt Licensing} for further details.
+*/

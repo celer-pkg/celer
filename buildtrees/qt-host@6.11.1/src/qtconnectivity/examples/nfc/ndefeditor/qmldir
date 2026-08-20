@@ -1,0 +1,5 @@
+module NdefEditorModule
+prefer :/qt/qml/NdefEditorModule/
+Main 1.0 Main.qml
+MainWindow 1.0 MainWindow.qml
+NdefRecordDelegate 1.0 NdefRecordDelegate.qml

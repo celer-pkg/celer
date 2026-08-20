@@ -1,0 +1,45 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    //! [content]
+    \section1 Screen Capture Limitations
+    On Qt 6.5.2 and above, the following limitations apply to using \1ScreenCapture:
+    \list
+        \li It is only supported with the FFmpeg backend.
+        \li On Linux systems using the Wayland compositor, the screen capture implementation
+            is experimental and comes with the following limitations.
+            Due to restrictions of the Wayland protocol, it's impossible to set and get
+            the target screen via the API of the \c QScreenCapture class. Instead, the OS will
+            show a screen selection wizard upon invoking \c QScreenCapture::setActive(true).
+            The screen capture feature requires the installation of
+            the \l {https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.ScreenCast.html}{ScreenCast}
+            service supported via \l {https://flatpak.github.io/xdg-desktop-portal/docs/}{XDG Desktop Portal}
+            and {https://pipewire.org/}{PipeWire} (0.3).
+            These limitations might change in the future.
+        \li It is not supported on mobile operating systems, except on Android.
+            Screen Capture on Android needs additional \l{Android foreground service
+            permission} to be added to the \c AndroidManifest.xml file:
+            \badcode
+            <manifest ...>
+            <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+            <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+            <application ...>
+                <service android:name="org.qtproject.qt.android.multimedia.QtScreenCaptureService"
+                    android:foregroundServiceType="mediaProjection"
+                    android:exported="false"/>
+                </service>
+            </application>
+            </manifest>
+            \endcode
+        \li On embedded with EGLFS, it has limited functionality. For Qt Quick
+            applications, the class is currently implemented via
+            QQuickWindow::grabWindow, which can cause performance issues.
+        \li In most cases, we set a screen capture frame rate that equals the screen
+            refresh rate, except on Windows, where the rate might be flexible.
+            Such a frame rate (75/120 FPS) might cause performance issues on weak
+            CPUs if the captured screen is of 4K resolution. On EGLFS, the capture
+            frame rate is currently locked to 30 FPS.
+    \endlist
+    //! [content]
+*/

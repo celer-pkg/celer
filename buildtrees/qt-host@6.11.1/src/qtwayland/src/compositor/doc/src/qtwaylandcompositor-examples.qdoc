@@ -1,0 +1,12 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \group qtwaylandcompositor-examples
+    \title Qt Wayland Compositor Examples
+    \brief Examples for the Qt Wayland Compositor module
+
+    These are the Qt Wayland Compositor examples.
+
+*/
+

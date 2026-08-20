@@ -1,0 +1,303 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Supporting Google Emoji Font Policy
+    \brief Guide for Supporting Google Emoji Font Policy using QML or C++.
+    \page android-emojis.html
+    \ingroup android-platform-extra-topics
+    \previouspage Publishing to Google Play
+    \nextpage Android Platform Notes
+
+    Google has introduced an \l{Android: Android Emoji Policy} which compels app
+    developers to support the latest version of Unicode Emoji. The policy states:
+    \quotation
+      Apps with custom emoji implementations, including those provided by
+      third-party libraries, must fully support the latest Unicode version when
+      running on Android 12+ within 4 months after new Unicode Emoji are released.
+    \endquotation
+
+    This guide shows how to support this policy by either bundling an emoji font
+    or using \l{Android: Google Downloadable Fonts}.
+
+    \section1  Bundling an Emoji Font VS Google Downloadable Fonts
+
+    There are some advantages and disadvantages of both methods for supporting the latest emojis
+    The best option depends on each app.
+    Here are some advantages and disadvantages of the two methods:
+
+    Bundling font advantages:
+
+    \list
+        \li Faster loading of the font
+        \li Works when the user does not have internet
+        \li Works in all operating systems
+        \li Independent (no other dependencies other from Qt)
+        \li Simpler solution
+    \endlist
+
+    Bundling font disadvantages:
+
+    \list
+        \li Increases the application size (NotoColorEmoji is ~10 MB)
+        \li Requires updating the font on newer releases
+        \li Older apps will not update emojis automatically
+    \endlist
+
+    Google Downloadable Fonts advantages:
+
+    \list
+        \li Does not change the application size
+        \li Updated automatically
+        \li Multiple apps without any relationship share the same font
+    \endlist
+
+    Google Downloadable Fonts disadvantages:
+
+    \list
+        \li Depends on Google Mobile Services
+        \li Android only
+        \li Will download the font if not previously cached
+        \li Does not work without internet when not previously cached
+        \li More complex than bundling the font
+    \endlist
+
+    \section1 How to bundle a font
+
+    It is necessary to obtain and bundle the font and later to load it
+    either using QML or C++.
+
+    \section2 Obtaining a Font
+
+    For this guide, we will be using the Google \l{NotoColorEmoji font}.
+    NotoColorEmoji is a font licensed by \l{SIL OPEN FONT LICENSE}.
+
+    \note
+    If downloading from the repository, download the
+    NotoColorEmoji_WindowsCompatible.ttf font instead of NotoColorEmoji.ttf.
+    NotoColorEmoji.ttf is built internally with a different format and it is
+    well supported only by Android/Chrome/Chromium OS. Since Qt runs on other
+    platforms, Qt font loader requires a standard formed TrueType/OpenType font.
+
+    \section2 Adding the Font
+
+    The proper way to bundle the font is to add it to \l{The Qt Resource System}
+    files. For example, you can make a separated resources file for the font -
+    "font.qrc" with the NotoColorEmoji_WindowsCompatible.ttf.
+    To embed the new resources file use the following code in CMakeLists.txt:
+    \code
+      qt_add_big_resources(PROJECT_SOURCES font.qrc)
+    \endcode
+
+    \section2 Loading the bundled font in C++
+
+    To load the font using C++, use \l{QFontDatabase}.
+
+    \code
+      // Loading NotoColorEmoji bundled using C++ QFontDatabase
+      QFontDatabase::addApplicationFont(QStringLiteral(":/NotoColorEmoji_WindowsCompatible.ttf"));
+    \endcode
+
+    \note The above code should be used before QQmlApplicationEngine loads the QML, so
+    when the QML is loaded the font is already present and ready to use.
+
+    \section2 Loading the bundled font in QML
+
+    To load the font in QML, use \l FontLoader:
+
+    \qml
+      // Loading NotoColorEmoji using QML FontLoader
+      FontLoader {
+         source:"NotoColorEmoji_WindowsCompatible.ttf"
+      }
+    \endqml
+
+    \section1 Using Google downloadable fonts:
+
+    Using Google downloadable fonts for the emoji font provides an automatically
+    updated emoji font without increasing application size.
+    The process for downloading a font using the Downloadable Fonts feature can
+    be seen in more detail in \l{Android: Downloadable Fonts Process}
+
+    For this guide, the process will be:
+    \list 1
+        \li C++ code starts
+        \li C++ calls Java function
+        \li Java calls GDF to fetch the font
+        \li Java opens the font URI
+        \li Java returns file descriptor to C++
+        \li C++ loads the font using QFontDatabase
+    \endlist
+
+    \section2 Configuration
+
+    Google Downloadable Fonts is available for API level 26 (Android 8.0).
+    But it is possible to support earlier APIs down to API 14 if the app uses
+    AndroidX.
+
+    \note The Android documentation refers to the \l{Android: Support Library}
+    instead of AndroidX. But since the support library is no longer maintained
+    and is superseded by AndroidX, we followed Google's recommendation to use
+    AndroidX instead.
+
+    \section3 Customizing the Android packages template
+
+    First, it is necessary to customize the Android package templates.
+    For that, in \QC, go to the Projects tab, and then search in the
+    Build Settings for "Build Android APK". It should be inside "Build Steps",
+    expand the details and a button called "Create Templates" will appear.
+
+    \image qtcreator-create-templates.png "Create Templates"
+
+    Click on "Create templates", follow the wizard, and in the end, a folder
+    with several configuration files for Android will be created. By default,
+    it will be a folder called \c{android} inside the project directory.
+
+    See \l{Android Package Templates} for information to how to customize
+    the android templates using qmake.
+
+    In case that you are using CMake and Qt 6, like in this guide, you need to
+    set the \l{QT_ANDROID_PACKAGE_SOURCE_DIR} property. Ex:
+    \code
+       set_property(TARGET emojiremotefont PROPERTY
+                QT_ANDROID_PACKAGE_SOURCE_DIR
+                ${CMAKE_CURRENT_SOURCE_DIR}/android)
+    \endcode
+
+    \section3 Adding AndroidX
+
+    To add AndroidX open the \c{build.gradle} file inside
+    \l{QT_ANDROID_PACKAGE_SOURCE_DIR} folder added above and add the dependency
+    there:
+    \code
+        dependencies {
+            implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+            implementation 'androidx.appcompat:appcompat:1.4.1'
+        }
+    \endcode
+
+    To use Androidx we need to set the according flag. For that create a file
+    named \c{gradle.properties} inside \l{QT_ANDROID_PACKAGE_SOURCE_DIR} and add
+    this line:
+    \code
+        android.useAndroidX=true
+    \endcode
+
+    \section3 Adding Font Provider Certificates
+
+    Since we are using AndroidX, there is another configuration required -
+    adding \l{Android: Font Provider Certificates}.
+    To use the GMS font provider, download the \l{Android: GMS Font Provider Certificates}.
+    If using other font providers, you need to obtain the certificates from
+    the Provider itself.
+
+    After downloading the file, add it to Android Resources (not the Qt Resource
+    system) by copying it to the \c{values} folder in the android templates
+    folder. The following image shows the correct folder on (1):
+
+    \image  android-source-folder.png "Android Templates Folder"
+
+    \section2 Java Code
+
+    Okay, let's dig into code now!
+
+    We need to add \l{Deploying an Application on Android}{Java/Kotlin Code} to
+    our Android templates. Place it under the \c{src} folder in the android
+    templates folder. You may need to create the \c{src} folder and the folder
+    structure for your java files. You can see this folder structure in the Android
+    Templates Folder image in the previous section in (2).
+
+    To obtain the font in C++, it is necessary for the Java code to:
+    \list
+        \li Create a Font Request
+        \li Fetch the fonts from FontsContractCompat using the font request
+        \li Get font Info and the font URI (content scheme file)
+        \li Open the URI and obtain a File descriptor
+        \li Return the file descriptor to C++ code
+    \endlist
+
+    To create a font request, you need the font provider information (authority,
+    package, and certificates) and search query for the font.
+    For the certificates use the GMS Font Provider Certificates file
+    \c{fonts_cert.xml} added previously to the Android resources.
+
+    \code
+        // GMS fonts provider data
+        private static final String PROVIDER_AUTHORITY = "com.google.android.gms.fonts";
+        private static final String PROVIDER_PACKAGE = "com.google.android.gms";
+
+        // Emoji font search query (copied from EmojiCompat source)
+        private static final String EMOJI_QUERY = "emojicompat-emoji-font";
+
+        // Font Certificates resources strings (from fonts_certs.xml)
+        private static final String FONT_CERTIFICATE_ID = "com_google_android_gms_fonts_certs";
+        private static final String FONT_CERTIFICATE_TYPE = "array";
+
+        (...)
+
+        // obtain id for the font_certs.xml
+        int certificateId = context.getResources().getIdentifier(
+                                      FONT_CERTIFICATE_ID,
+                                      FONT_CERTIFICATE_TYPE,
+                                      context.getPackageName());
+
+        // creating the request
+        FontRequest request = new FontRequest(
+                                      PROVIDER_AUTHORITY,
+                                      PROVIDER_PACKAGE,
+                                      EMOJI_QUERY,
+                                      certificateId);
+    \endcode
+
+    Now, use the request just made to fetch the font:
+    \code
+        // fetch the font
+        FontsContractCompat.FontFamilyResult result =
+             FontsContractCompat.fetchFonts(context, null, request);
+    \endcode
+
+    Obtain the FontInfo and URI:
+    \code
+        final FontsContractCompat.FontInfo[] fontInfos = result.getFonts();
+        final Uri emojiFontUri = fontInfos[0].getUri();
+    \endcode
+
+    Open a new native File Descriptor from the URI:
+    \code
+        final ContentResolver resolver = context.getContentResolver();
+        // in this case the Font URI is always a content scheme file, made
+        // so the app requesting it has permissions to open
+        final ParcelFileDescriptor fileDescriptor =
+                    resolver.openFileDescriptor(fontInfos[0].getUri(), "r");
+
+        // the detachFd will return a native file descriptor that we must close
+        // later in C++ code
+        int fd = fileDescriptor.detachFd();
+
+        // return fd to C++
+    \endcode
+
+    \note Everything coded in Java could be done in C++ using JNI.
+    The code presented in the guide is simplified. Production-ready code must be
+    checked, with exception catches, etc...
+
+    \section2 C++ Code
+
+    Ok all done on the java side. Let's go to the C++ side.
+
+    C++ is responsible for calling the Java code and using the file descriptor
+    to load the font into Qt.
+
+    To get a deeper understanding of how communication between C++ and Java
+    works in Qt 6 check the \l{Qt for Android Notifier} example.
+
+    After obtaining the file descriptor from Java code, wrap the file descriptor
+    into a QFile class and load the font file using QFontDatabase:
+    \code
+        QFile file;
+        file.open(fd, QFile::OpenModeFlag::ReadOnly, QFile::FileHandleFlag::AutoCloseHandle);
+
+        QFontDatabase::addApplicationFontFromData(file->readAll());
+    \endcode
+
+*/

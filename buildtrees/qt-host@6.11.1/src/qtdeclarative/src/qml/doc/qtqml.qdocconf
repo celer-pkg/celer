@@ -1,0 +1,87 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/config/exampleurl-qtdeclarative.qdocconf)
+
+project                 = QtQml
+description             = Qt Qml Reference Documentation
+version                 = $QT_VERSION
+
+examplesinstallpath     = qml
+
+qhp.projects            = QtQml
+
+qhp.QtQml.file                = qtqml.qhp
+qhp.QtQml.namespace           = org.qt-project.qtqml.$QT_VERSION_TAG
+qhp.QtQml.virtualFolder       = qtqml
+qhp.QtQml.indexTitle          = Qt Qml
+qhp.QtQml.indexRoot           =
+
+qhp.QtQml.subprojects = manual qmltypes classes
+qhp.QtQml.subprojects.manual.title = Qt Qml
+qhp.QtQml.subprojects.manual.indexTitle = Qt Qml module topics
+qhp.QtQml.subprojects.manual.type = manual
+
+qhp.QtQml.subprojects.qmltypes.title = QML Types
+qhp.QtQml.subprojects.qmltypes.indexTitle = Qt Qml QML Types
+qhp.QtQml.subprojects.qmltypes.selectors = qmlclass
+qhp.QtQml.subprojects.qmltypes.sortPages = true
+
+qhp.QtQml.subprojects.classes.title = C++ Classes
+qhp.QtQml.subprojects.classes.indexTitle = Qt Qml C++ Classes
+qhp.QtQml.subprojects.classes.selectors = class headerfile
+qhp.QtQml.subprojects.classes.sortPages = true
+
+tagfile                 = ../../../doc/qtqml/qtqml.tags
+
+depends += \
+    qtcore \
+    qtnetwork \
+    qtqmlmodels \
+    qtqmlworkerscript \
+    qtgui \
+    qtquick \
+    qtdoc \
+    qtwidgets \
+    qtquickcontrols \
+    qmake \
+    qtsvg \
+    qtcmake \
+    qtlinguist
+
+headerdirs  += ..
+
+sourcedirs  += .. \
+               ../../qmlmeta
+
+exampledirs += ../../../examples/qml \
+               ../ \
+               snippets
+
+imagedirs   += images
+
+# Allow these languages to be used in code blocks without warnings:
+codelanguages += cmake
+
+# Exclude documentation for the compiler category: these are not mature enough to be documented
+excludefiles += src/qmllint/compiler.qdoc \
+                src/qmllint/deferred-property-id.qdoc \
+                src/qmllint/prefixed-import-type.qdoc
+
+# Add a thumbnail for examples that do not have images
+manifestmeta.thumbnail.names += "QtQml/Chapter 4*" \
+                                "QtQml/Chapter 6*" \
+                                "QtQml/C++ Extensions: *"
+
+navigation.landingpage = "Qt Qml"
+navigation.cppclassespage = "Qt Qml C++ Classes"
+navigation.qmltypespage = "Qt Qml QML Types"
+# Autogenerate navigation linking based on the \list structures on the following:
+navigation.toctitles = "Qt Qml module topics"
+navigation.toctitles.inclusive = false
+
+# suppress qdoc warnings for \instantiates entries
+spurious += "C\\+\\+ class .*\\\\instantiates .*"
+
+# Enforce zero documentation warnings
+warninglimit = 0
+
+macro.qmllintwarningcategory = "This warning category is spelled \\c{[\1]} by qmllint."

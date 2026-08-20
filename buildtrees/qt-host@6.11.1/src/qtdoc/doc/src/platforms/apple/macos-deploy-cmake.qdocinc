@@ -1,0 +1,43 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [building with cmake]
+    To build for Apple platforms you need to set \c cmake_minimum_required() to
+    3.21.1 or newer:
+
+    \code
+        cmake_minimum_required(VERSION 3.21.1)
+    \endcode
+
+    Go into the directory that contains the application:
+
+    \snippet snippets/code/doc_src_deployment.qdoc 28
+
+    Next, set the \c CMAKE_PREFIX_PATH variable to point to your
+    installation prefix. If you have a Cmake build already, delete the
+    \c CMakeCache.txt file. Then, rerun CMake:
+
+    \badcode \QtVersion
+    cmake -DCMAKE_PREFIX_PATH=path/to/Qt/\1/your_platform -S <source-dir> -B <build-dir> -G Ninja
+    \endcode
+
+    Alternatively, use the convenience script \c qt-cmake, which sets the
+    \c CMAKE_PREFIX_PATH variable for you.
+
+    \badcode \QtVersion
+    path/to/Qt/\1/your_platform/bin/qt-cmake -S <source-dir> -B <build-dir> -G Ninja
+    \endcode
+
+    Finally, go into your build directory and run your preferred build system.
+    In this example, we're using \c Ninja.
+
+    \badcode
+    cd path/to/build/dir
+    ninja
+    \endcode
+
+    Now, provided that everything compiled and linked without any errors, you
+    should have a \c plugandpaint.app bundle ready for deployment. Try
+    installing the bundle on a machine running \macos that does not have Qt or
+    any Qt applications installed.
+//! [building with cmake]

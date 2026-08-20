@@ -1,0 +1,83 @@
+version = 1
+
+[[annotations]]
+path = ["tests/**.scxml*",
+        "tests/3rdparty/scion-tests/node-test-server.js",
+        "tests/auto/qml/scxmlqmlcpp/data/*.qml",
+        "tests/auto/qml/qqmlstatemachinemetatype/data/unregisterAttachedProperties.qml"]
+precedence = "closest"
+comment = "test"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GPL-3.0-only"
+
+[[annotations]]
+path = "tools/**"
+precedence = "closest"
+comment = "tools"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0"
+
+[[annotations]]
+path = "src/**"
+precedence = "closest"
+comment = "module and plugin"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only"
+
+[[annotations]]
+path = ["tests/3rdparty/scion-tests/run-tests-node.sh"]
+precedence = "closest"
+comment = "tools"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0"
+
+[[annotations]]
+path = [".cmake.conf", "**.yaml", "**ci_config_linux.json",
+        "**.prf", "qt_cmdline.cmake", ".tag"]
+precedence = "closest"
+comment = "build system"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
+path = ["**/.gitattributes", "**.gitignore", "**.gitreview"]
+precedence = "closest"
+comment = "version control system. Infrastructure"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
+
+[[annotations]]
+path = ["examples/**"]
+comment = "this must be after the build system table because example and snippets take precedence over build system"
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
+
+[[annotations]]
+path = ["**/README*", "**.qdocconf", "tools/qscxmlc/moc_patches/*.patch", "**.qdocinc",
+        "**/doc/images/**", "**/doc/src/images/**"]
+comment = "documentation"
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only"
+
+[[annotations]]
+path = ["**.toml", "licenseRule.json"]
+comment = "infrastructure"
+precedence = "override"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
+
+[[annotations]]
+path = ["**/qt_attribution.json"]
+comment = "documentation"
+precedence = "override"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only"
+
+[[annotations]]
+path = ["tools/qscxmlc/moc_patches/generator.cpp.patch"]
+precedence = "override"
+comment = "documentation"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only"

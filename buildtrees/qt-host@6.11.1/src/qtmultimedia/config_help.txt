@@ -1,0 +1,8 @@
+Multimedia options:
+
+  -pulseaudio .......... Enable PulseAudio support [auto] (Unix only)
+  -alsa ................ Enable ALSA support [auto] (Unix only)
+  -no-gstreamer ........ Disable support for GStreamer
+  -gstreamer............ Enable GStreamer support [auto]
+  -ffmpeg-dir <dir> .... Set FFmpeg library path
+  -ffmpeg-deploy ....... Enable deployment of FFmpeg libraries

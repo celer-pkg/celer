@@ -1,0 +1,22 @@
+[Icon Theme]
+Name=btchat
+Directories=24x24,24x24@2,24x24@3,24x24@4
+
+[24x24]
+Size=24
+Type=Fixed
+
+[24x24@2]
+Size=24
+Scale=2
+Type=Fixed
+
+[24x24@3]
+Size=24
+Scale=3
+Type=Fixed
+
+[24x24@4]
+Size=24
+Scale=4
+Type=Fixed

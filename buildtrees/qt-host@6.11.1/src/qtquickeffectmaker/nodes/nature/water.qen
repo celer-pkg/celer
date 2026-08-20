@@ -1,0 +1,49 @@
+{
+    "QEN": {
+        "description": "This node generates a water waves effect.",
+        "fragmentCode": [
+            "#define TAU 6.28318530718",
+            "",
+            "@main",
+            "{",
+            "    const float time = 1.0 + iTime * 0.6;",
+            "    const vec2 uv = texCoord;",
+            "    const vec2 p = mod(uv * TAU, TAU) + 10.0;",
+            "    const float inten = 0.05;",
+            "    vec2 ip = p;",
+            "    float c = 0.0;",
+            "    for (int n = 0; n < WATER_ITERATIONS; n++) {",
+            "        float t = time * (1.0 / float(n + 0.4));",
+            "        ip = p + vec2(cos(t - ip.x) + sin(t + ip.y), sin(t - ip.y) + cos(t + ip.x));",
+            "        c += 1.0 / length(vec2(p.x / (sin(ip.x + t) / inten), p.y / (cos(ip.y + t) / inten)));",
+            "    }",
+            "    c /= float(WATER_ITERATIONS);",
+            "    c = max(0.0, 1.2 - (c * c));",
+            "    vec3 water = waterColor.rgb + vec3(pow(c, 4.0)) * (2.0 * waterWavesColor.rgb - 1.0);",
+            "    fragColor = mix(fragColor, vec4(water, 1.0) * fragColor.a, waterColor.a);",
+            "}"
+        ],
+        "name": "Water",
+        "properties": [
+            {
+                "defaultValue": "4",
+                "description": "How many water wave levels there are. More iterations means more resource usage. Meaningfull range is between 2 and 8.",
+                "name": "WATER_ITERATIONS",
+                "type": "define"
+            },
+            {
+                "defaultValue": "0, 0.2, 0.4, 0.5",
+                "description": "Color used for the water. Alpha channel defines the opacity of the effect.",
+                "name": "waterColor",
+                "type": "color"
+            },
+            {
+                "defaultValue": "0.2, 0.8, 0.8, 1",
+                "description": "Color used for the water waves.",
+                "name": "waterWavesColor",
+                "type": "color"
+            }
+        ],
+        "version": 1
+    }
+}

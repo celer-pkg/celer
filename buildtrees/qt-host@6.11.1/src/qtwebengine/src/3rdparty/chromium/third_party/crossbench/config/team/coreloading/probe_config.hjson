@@ -1,0 +1,64 @@
+{
+  probes: {
+    trace_processor: {
+      queries: ["search_latency"]
+    },
+    perfetto: {
+      textproto: '''
+        buffers {
+          size_kb: 300000
+          fill_policy: DISCARD
+        }
+        data_sources {
+          config {
+            name: "org.chromium.trace_metadata"
+          }
+        }
+        data_sources {
+          config {
+            name: "track_event"
+            track_event_config {
+              enabled_categories: "*"
+              enabled_categories: "benchmark"
+              enabled_categories: "__metadata"
+              enabled_categories: "disabled-by-default-loading"
+              enabled_categories: "disabled-by-default-network"
+              enabled_categories: "disabled-by-default-net"
+              enabled_categories: "disabled-by-default-toplevel.flow"
+              enabled_categories: "disabled-by-default-ipc.flow"
+            }
+          }
+        }
+        data_sources: {
+          config {
+            name: "linux.ftrace"
+            ftrace_config {
+              ftrace_events: "sched/sched_switch"
+              ftrace_events: "power/suspend_resume"
+              ftrace_events: "sched/sched_wakeup"
+              ftrace_events: "sched/sched_wakeup_new"
+              ftrace_events: "sched/sched_waking"
+              ftrace_events: "sched/sched_process_exit"
+              ftrace_events: "sched/sched_process_free"
+              ftrace_events: "task/task_newtask"
+              ftrace_events: "task/task_rename"
+            }
+          }
+        }
+        data_sources: {
+          config {
+            name: "linux.perf"
+            perf_event_config {
+              timebase {
+                frequency: 100
+                timestamp_clock: PERF_CLOCK_BOOTTIME
+              }
+              callstack_sampling {
+              }
+            }
+          }
+        }
+      '''
+    }
+  }
+}

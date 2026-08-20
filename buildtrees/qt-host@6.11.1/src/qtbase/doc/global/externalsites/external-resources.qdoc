@@ -1,0 +1,266 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+    \externalpage https://source.android.com/docs/setup/reference/build-numbers
+    \title Android: Build Numbers
+*/
+/*!
+    \externalpage https://developer.android.com/guide/topics/manifest/uses-feature-element
+    \title Android: <uses-feature>
+*/
+/*!
+    \externalpage https://developer.android.com/guide/topics/manifest/uses-permission-element
+    \title Android: <uses-permission>
+*/
+/*!
+    \externalpage https://developer.android.com/studio/publish/versioning#appversioning
+    \title Android: App Versioning
+*/
+/*!
+    \externalpage https://developer.android.com/tools/adb#devicestatus
+    \title Android: Query for devices
+*/
+/*!
+    \externalpage https://developer.android.com/training/app-links/deep-linking
+    \title Android: Create Deep Links to App Content
+*/
+/*!
+    \externalpage https://developer.android.com/training/app-links/verify-android-applinks
+    \title Android: Verify Android App Links
+*/
+/*!
+    \externalpage https://source.android.com/docs/security/test/tagged-pointers
+    \title Android: Tagged Pointers
+*/
+/*!
+    \externalpage https://developer.android.com/build/configure-app-module
+    \title Android: Configure the app module
+*/
+/*!
+    \externalpage https://developer.android.com/ndk/guides/ndk-stack
+    \title Android: ndk-stack
+*/
+/*!
+    \externalpage https://developer.apple.com/documentation/uikit/uiapplication/1622952-canopenurl
+    \title iOS: canOpenURL:
+*/
+/*!
+    \externalpage https://developer.apple.com/documentation/xcode/defining-a-custom-url-scheme-for-your-app
+    \title iOS: Defining a Custom URL Scheme for Your App
+*/
+/*!
+    \externalpage https://developer.apple.com/documentation/xcode/supporting-associated-domains
+    \title iOS: Supporting Associated Domains
+*/
+/*!
+    \externalpage https://www.freedesktop.org/wiki/
+    \title freedesktop.org
+*/
+
+/*!
+    \externalpage https://www.cups.org/
+    \title Common Unix Printing System (CUPS)
+    \keyword CUPS
+*/
+
+/*!
+    \externalpage https://cmake.org/cmake/help/latest/
+    \title CMake Documentation
+*/
+
+/*!
+    \externalpage https://cmake.org/cmake/help/latest/manual/cmake-qt.7.html#automoc
+    \title CMake AUTOMOC Documentation
+*/
+
+/*!
+    \externalpage https://cmake.org/cmake/help/latest/manual/cmake-qt.7.html#autouic
+    \title CMake AUTOUIC Documentation
+*/
+
+/*!
+    \externalpage https://cmake.org/cmake/help/latest/command/target_link_libraries.html
+    \title CMake target_link_libraries Documentation
+*/
+
+/*!
+    \externalpage https://cmake.org/cmake/help/latest/variable/BUILD_SHARED_LIBS.html
+    \title CMake BUILD_SHARED_LIBS Documentation
+*/
+
+/*!
+    \externalpage https://www.gnome.org/
+    \title GNOME
+*/
+
+/*!
+    \externalpage https://www.w3.org/TR/SVGMobile12/
+    \title SVG 1.2 Tiny
+*/
+
+/*!
+    \externalpage https://www.w3.org/Graphics/SVG/feature/1.2/#SVG-static
+    \title SVG 1.2 Tiny Static Features
+*/
+
+
+
+/*!
+    \externalpage https://www.dependencywalker.com/
+    \title Dependency Walker
+*/
+
+/*!
+    \externalpage https://www.openssl.org/
+    \title OpenSSL Toolkit
+*/
+
+/*!
+    \externalpage https://chromium.googlesource.com/angle/angle/+/master/README.md
+    \title ANGLE
+*/
+
+/*!
+    \externalpage https://learn.microsoft.com/en-us/windows/win32/winsock/socket-handles-2
+    \title Winsock 2 Socket Handle
+*/
+
+/*!
+    \externalpage https://icu.unicode.org/
+    \title ICU
+*/
+
+/*!
+    \externalpage https://www.mingw-w64.org/
+    \title MinGW
+*/
+
+/*!
+    \externalpage https://www.python.org/
+    \title Python
+*/
+
+/*!
+    \externalpage https://xaos-project.github.io/
+    \title XaoS
+*/
+
+/*!
+    \externalpage https://www.postgresql.org
+    \title https://www.postgresql.org
+*/
+
+/*!
+    \externalpage https://www.sqlite.org
+    \title https://www.sqlite.org
+*/
+
+/*!
+    \externalpage https://web.archive.org/web/20020803110822/https://wp.netscape.com/newsref/std/cookie_spec.html
+    \title Netscape Cookie Specification
+*/
+
+/*!
+    \externalpage https://learn.microsoft.com/en-us/previous-versions/ms533046(v=vs.85)
+    \title Mitigating Cross-site Scripting With HTTP-only Cookies
+*/
+
+/*!
+    \externalpage https://www.w3.org/TR/scxml/
+    \title State Chart XML: State Machine Notation for Control Abstraction
+*/
+
+/*!
+    \externalpage https://www.weizmann.ac.il/math/harel/sites/math.harel/files/users/user56/Statecharts.pdf
+    \title Statecharts: A visual formalism for complex systems
+*/
+
+/*!
+    \externalpage https://www.gnu.org/licenses/gpl-3.0.html
+    \title GNU General Public License
+*/
+
+/*!
+    \externalpage https://kde.org
+    \title KDE
+*/
+
+/*!
+    \externalpage https://en.cppreference.com/w/cpp/symbol_index/chrono_literals.html
+    \title chrono_literals Symbol Index
+*/
+
+/*!
+    \externalpage https://developer.mozilla.org/en-US/docs/Web/JavaScript
+    \title JavaScript Resources
+*/
+
+/*!
+    \externalpage https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#keywords
+    \title JavaScript Reserved Words
+*/
+
+/*!
+    \externalpage https://publicsuffix.org/
+    \title publicsuffix.org
+*/
+
+/*!
+    \externalpage https://accessibility.linuxfoundation.org/a11yspecs/ia2/docs/html/_accessible_event_i_d_8idl.html
+    \title AccessibleEventID.idl File Reference
+*/
+
+/*!
+    \externalpage https://learn.microsoft.com/en-us/windows/win32/winauto/event-constants
+    \title Microsoft Active Accessibility Event Constants
+*/
+
+/*!
+    \externalpage https://www.khronos.org/opengl/wiki/Array_Texture
+    \title Array Texture
+*/
+
+/*!
+    \externalpage https://www.w3.org/TR/2009/WD-webdatabase-20091029/
+    \title HTML5 Web Database API
+*/
+
+/*!
+   \externalpage https://facebook.github.io/zstd/
+   \title Zstandard Site
+*/
+
+/*!
+    \externalpage https://www.unicode.org/
+    \title Unicode standard
+*/
+
+/*!
+    \externalpage https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw
+    \title CreateProcess
+*/
+
+/*!
+    \externalpage https://testanything.org
+    \title Test Anything Protocol
+*/
+
+/*!
+    \externalpage https://www.jetbrains.com/teamcity/
+    \title TeamCity
+*/
+
+/*!
+    \externalpage https://junit.org/
+    \title JUnit XML
+*/
+
+/*!
+    \externalpage https://www.qt.io/product/quality-assurance/test-center
+    \title Test Center
+*/
+
+/*!
+    \externalpage https://specifications.freedesktop.org/trash/1.0/
+    \title FreeDesktop.org Trash specification version 1.0
+*/

@@ -1,0 +1,86 @@
+// Copyright (C) 2014 NVIDIA Corporation.
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#include "bsdf.glsllib"
+
+#ifndef SAMPLE_REFLECTION_PROBE_GLSLLIB
+#define SAMPLE_REFLECTION_PROBE_GLSLLIB 1
+
+#ifdef QQ3D_SHADER_META
+/*{
+    "uniforms": [
+        { "type": "samplerCube", "name": "qt_reflectionMap" },
+        { "type": "vec3", "name": "qt_reflectionProbeCubeMapCenter" },
+        { "type": "vec3", "name": "qt_reflectionProbeBoxMin" },
+        { "type": "vec3", "name": "qt_reflectionProbeBoxMax" },
+        { "type": "int", "name": "qt_reflectionProbeCorrection" }
+    ]
+}*/
+#endif // QQ3D_SHADER_META
+
+vec3 qt_textureReflectionProbe(samplerCube reflectionProbe, vec3 dir, float lod)
+{
+    return textureLod(reflectionProbe, dir, lod).rgb;
+}
+
+vec3 qt_reflectionParallaxCorrection(vec3 reflectionVector)
+{
+    if (qt_reflectionProbeCorrection > 0) {
+        vec3 intersectionFirst = (qt_reflectionProbeBoxMax - qt_varWorldPos) / reflectionVector;
+        vec3 intersectionSecond = (qt_reflectionProbeBoxMin - qt_varWorldPos) / reflectionVector;
+        vec3 furthest = max(intersectionFirst, intersectionSecond);
+        float distance = min(min(furthest.x, furthest.y), furthest.z);
+        vec3 intersectionPosition = qt_varWorldPos + reflectionVector * distance;
+        reflectionVector = intersectionPosition - qt_reflectionProbeCubeMapCenter;
+    }
+
+    return reflectionVector;
+}
+
+vec3 qt_sampleDiffuseReflection(samplerCube reflectionProbe, vec3 normal)
+{
+
+    vec3 smpDir = normal;
+    float baseLevel = 5;
+    smpDir = qt_reflectionParallaxCorrection(smpDir);
+    // Irradiance map is contained in mip at baseLevel
+    vec3 val = qt_textureReflectionProbe(reflectionProbe, smpDir, baseLevel);
+    return val;
+}
+
+// This method is used by DefaultMaterial for the specular term
+vec4 qt_sampleGlossyReflection(samplerCube reflectionProbe, vec3 normal, vec3 viewDir, float rough)
+{
+    float sigma = smoothstep(0.0, 1.0, clamp(rough, 0.0001, 1.0));
+    vec3 ret = vec3(0, 0, 0);
+    vec3 smpDir = reflect(-viewDir, normal);
+
+    // Compute the Geometric occlusion/self-shadowing term
+    float NdotL = clamp(dot(smpDir, normal), 0.0, 0.999995);
+    float k = sigma * 0.31830988618;    // roughness / pi
+    float Gl = clamp((NdotL / (NdotL*(1.0-k) + k) + (1.0 - k*k)) * 0.5, 0.0, 1.0 );
+    float levels = 4;
+
+    smpDir = qt_reflectionParallaxCorrection(smpDir);
+    vec3 outColor = qt_textureReflectionProbe(reflectionProbe, smpDir, sigma * levels);
+
+    return vec4(Gl * outColor, 1.0);
+}
+
+// This method is used by the PrincipledMaterial for the IBL specular term.
+vec4 qt_sampleGlossyReflectionPrincipled(samplerCube reflectionProbe, vec3 normal, vec3 viewDir, vec3 F, float roughness)
+{
+    float levels = 4;
+
+    float lod = clamp((roughness * 5), 0.0, levels);
+    vec3 smpDir = normalize(reflect(-viewDir, normal));
+
+    smpDir = qt_reflectionParallaxCorrection(smpDir);
+    vec3 specularSample = qt_textureReflectionProbe(reflectionProbe, smpDir, lod);
+    vec2 brdf = qt_brdfApproximation(normal, viewDir, roughness);
+
+    return vec4(specularSample * (F * brdf.x + brdf.y), 1.0);
+}
+
+#endif

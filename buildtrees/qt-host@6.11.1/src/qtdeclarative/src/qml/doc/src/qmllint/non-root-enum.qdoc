@@ -1,0 +1,47 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qmllint-warnings-and-errors-non-root-enum.html
+\ingroup qmllint-warnings-and-errors
+
+\title Enum declared outside the root element
+\brief [non-root-enum] An enum was declared outside the root element.
+
+\qmllintwarningcategory non-root-enum
+
+\section1 Enum declared outside the root element
+
+\section2 What happened?
+An enum was declared outside of the root element of the component.
+
+\section2 Why is that bad?
+It won't be accessible. Enums are accessed as
+<component name>.<optional enum name>.<enum entry>. If the enum is not at the
+root of the component, this lookup won't work.
+
+\section2 Example
+\qml
+// Main.qml
+import QtQuick
+
+Item {
+    Item {
+        id: item
+        enum Color { Red, Green, Blue }
+    }
+}
+\endqml
+To fix this warning, move the enum to the root of the component:
+\qml
+// Main.qml
+import QtQuick
+
+Item {
+    enum Color { Red, Green, Blue } // Accessible in Main.qml but also from other files
+    Item {
+        id: item
+    }
+}
+\endqml
+*/

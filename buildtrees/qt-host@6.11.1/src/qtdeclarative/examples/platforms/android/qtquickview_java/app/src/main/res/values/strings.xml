@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">QtQuickView Android Java Example</string>
+    <string name="button">Change \n color</string>
+    <string name="java">Java</string>
+    <string name="change_qml_background">Change QML color</string>
+    <string name="connect_qml_button_signal_listener">QML Button signal connected:</string>
+    <string name="on">On</string>
+    <string name="off">Off</string>
+    <string name="qml_view_status">QML view status: %s</string>
+    <string name="qml_view_background_color">QML view background color: %s</string>
+    <string name="rotate_qml_grid">Rotate Qml grid</string>
+    <string name="qml_view_color_label">QML View color:</string>
+</resources>
+

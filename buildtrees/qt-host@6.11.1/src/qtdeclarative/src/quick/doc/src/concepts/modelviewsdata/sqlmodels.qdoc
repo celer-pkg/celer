@@ -1,0 +1,91 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtquick-modelviewsdata-sqlmodels.html
+\title Using SQL databases with Qt Quick Views
+\brief using Qt Quick views with SQL databases
+
+\section1 SQL Models
+
+Qt provides C++ classes that support SQL data models. These classes work
+transparently on the underlying SQL data, reducing the need to run SQL
+queries for basic SQL operations such as create, insert, or update.
+For more details about these classes, see \l{Using the SQL Model Classes}.
+
+Although the C++ classes provide complete feature sets to operate on SQL
+data, they do not provide data access to QML. So you must implement a
+C++ custom data model as a subclass of one of these classes, and expose it
+to QML either as a type or context property.
+
+\section2 Read-only Data Model
+
+The custom model must reimplement the following methods to enable read-only
+access to the data from QML:
+
+\list
+\li \l{QAbstractItemModel::}{roleNames}() to expose the role names to the
+    QML frontend. For example, the following version returns the selected
+    table's field names as role names:
+    \code
+     QHash<int, QByteArray> SqlQueryModel::roleNames() const
+     {
+        QHash<int, QByteArray> roles;
+        // record() returns an empty QSqlRecord
+        for (int i = 0; i < this->record().count(); i ++) {
+            roles.insert(Qt::UserRole + i + 1, record().fieldName(i).toUtf8());
+        }
+        return roles;
+    }
+    \endcode
+\li \l{QSqlQueryModel::}{data}() to expose SQL data to the QML frontend.
+    For example, the following implementation returns data for the given
+    model index:
+    \code
+    QVariant SqlQueryModel::data(const QModelIndex &index, int role) const
+    {
+        QVariant value;
+
+        if (index.isValid()) {
+            if (role < Qt::UserRole) {
+                value = QSqlQueryModel::data(index, role);
+            } else {
+                int columnIdx = role - Qt::UserRole - 1;
+                QModelIndex modelIndex = this->index(index.row(), columnIdx);
+                value = QSqlQueryModel::data(modelIndex, Qt::DisplayRole);
+            }
+        }
+        return value;
+    }
+    \endcode
+\endlist
+
+The QSqlQueryModel class is good enough to implement a custom read-only
+model that represents data in an SQL database. The
+\l{Qt Quick Controls - Chat Tutorial}{chat tutorial} example
+demonstrates this very well by implementing a custom model to fetch the
+contact details from an SQLite database.
+
+\section2 Editable Data Model
+
+QSqlTableModel provides an editable data model for a single data base table,
+and implements setData() as described in the \l{Model/View Programming#An editable model}
+{Model/View Programming} overview documentation.
+
+Depending on the \l{QSqlTableModel::}{EditStrategy} used by the model, the
+changes are either queued for submission later or submitted immediately.
+
+You can also insert new data into the model by calling
+\l {QSqlTableModel::insertRecord}(). In the following example snippet,
+a QSqlRecord is populated with book details and appended to the
+model:
+
+\code
+    ...
+    QSqlRecord newRecord = record();
+    newRecord.setValue("author", "John Grisham");
+    newRecord.setValue("booktitle", "The Litigators");
+    insertRecord(rowCount(), newRecord);
+    ...
+\endcode
+*/

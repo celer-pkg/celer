@@ -1,0 +1,10 @@
+{
+  probes: {
+    chromium_pgo: {
+       // (Optional) Root path for the PGO profile directories on the target device.
+       // The browser package name and pgo directory path will be appended to this path.
+       // Example: org.chromium.chrome/cache/pgo_profiles
+      remote_pgo_root_path: /data_mirror/data_ce/null/0/
+    }
+  }
+}

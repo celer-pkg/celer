@@ -1,0 +1,25 @@
+project = TestGlobals
+productname = Qt
+
+sources.fileextensions = "*.qml *.cpp *.qdoc"
+headers.fileextensions = "*.h"
+
+# images
+imagedirs = ./src/images
+
+# zero warning policy
+warninglimit = 0
+warninglimit.enabled = true
+
+# don't write host system-specific paths to index files
+locationinfo = false
+
+# By default, use -outputdir directly, no subdir.
+# outputsubdir '.' matches the root of expected_output/
+HTML.nosubdirs = true
+HTML.outputsubdir = html
+
+includepaths += -I./src/globalfunc
+
+headers = ./src/global.h
+sources = ./src/global.qdoc

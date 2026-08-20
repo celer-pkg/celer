@@ -1,0 +1,22 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [0]
+undefined reference to '_vt.11QPushButton'
+//! [0]
+
+
+//! [1]
+ANSI C++ forbids declaration ... with no type
+//! [1]
+
+
+//! [2]
+c:\program.obj not found
+//! [2]
+
+//! [6]
+ld: common symbols not allowed with MH_DYLIB output format with the -multi_module option
+/usr/local/mysql/lib/libmysqlclient.a(my_error.o) definition of common _errbuff (size 512)
+/usr/bin/libtool: internal link edit command failed
+//! [6]

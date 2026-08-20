@@ -1,0 +1,26 @@
+#version 440
+
+layout (local_size_x = 256) in;
+
+struct Stuff {
+    vec2 a;
+    vec2 b;
+};
+
+layout(std140, binding = 0) buffer StuffSsbo
+{
+    vec4 whatever;
+    Stuff stuff[];
+} buf;
+
+void main()
+{
+    uint index = gl_GlobalInvocationID.x;
+    vec2 a = buf.stuff[index].a;
+    vec2 b = buf.stuff[index].b;
+
+    a.x += 1.0;
+    buf.stuff[index].a = a;
+    b.y += 1.0;
+    buf.stuff[index].b = b;
+}

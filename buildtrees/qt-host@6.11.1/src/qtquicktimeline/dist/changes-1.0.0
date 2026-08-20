@@ -1,0 +1,18 @@
+Qt Quick Timeline 1.0
+
+Qt Quick Timeline 1.0 is supported from Qt 5.12 onwards.
+
+General Improvements
+--------------------
+Introducing new component for Qt
+
+API changes (source break)
+--------------------------
+
+
+New features
+------------
+- Introducing new component for Qt
+
+Fixed issues
+------------

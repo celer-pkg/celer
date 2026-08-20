@@ -1,0 +1,54 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example volumeraycaster
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - Volumetric Rendering Example
+    \examplecategory {3D}
+    \brief Demonstrates how to do volumetric rendering in Qt Quick 3D.
+    \image volumeraycaster.webp
+           {3D head volume rendering with colormap and slice controls}
+
+    \section1 Introduction
+
+    This example demonstrates how to do volumetric rendering using a custom shader and a 3D volume texture with a technique called \l {https://en.wikipedia.org/wiki/Volume_ray_casting} {Volume ray casting}. This example is an application that can read raw volume files and render them while being able to interactively modify various rendering settings such as the colormap, alpha and slice planes used. It is designed to work well with the volumes hosted at \l{https://klacansky.com/open-scivis-datasets/} and automatically set the correct dimensions and scaling.
+
+    \section1 Implementation
+
+    The application is using QML and is a ApplicationWindow with a View3D containing the volume and a ScrollView containing the settings. To render our volume we create a scene in our View3D object with just a cube model in the middle.
+
+    \snippet volumeraycaster/Main.qml cube
+
+    This cube is using a custom shader with a 3D texture for the volume and an image texture for the colormap. There are also various properties for the transfer function, slice planes etc. The volume texture's textureData is a custom QML type called \c VolumeTextureData and is defined in \c volumetexturedata.cpp and \c volumetexturedata.h.
+
+    \snippet volumeraycaster/Main.qml volume-texture
+
+    It contains the options \c{source}, \c{dataType}, \c{width}, \c{height} and \c{depth} that define how the raw volume file should be interpreted. \c{VolumeTextureData} also contains the function \c{loadAsync} for asynchronously loading a volume. It will send either a \c{loadSucceeded} or a \c{loadFailed} signal.
+
+    This cube model also contains two models containing a \c{LineBoxGeometry}. These are boxes showing the bounding box of the volume and the slice planes.
+
+    \snippet volumeraycaster/Main.qml bounding-boxes
+
+    Let's have a look at the shaders. The vertex shader is very simple and will, aside from the MVP projection of the position, calculate the direction of the ray from the camera to the model in model space:
+
+    \snippet volumeraycaster/alpha_blending.vert main
+
+    The fragment shader will start with calculating where our ray-marching ray will start in model space taking into account the slice planes. The \c{while} loop will step along the ray, sampling the voxels at equal distance adding the color and opactiy for the voxel's value in the colormap.
+
+    \snippet volumeraycaster/alpha_blending.frag main
+
+    To control the volume model we add a custom Item called ArcballController that implements an arcball controller so we can freely rotate the model. The DragHandler will send commands to the ArcballController when we click and move the mouse. The WheelHandler adds zooming to the camera.
+
+    \snippet volumeraycaster/Main.qml arcball
+
+    We have another custom Item called OriginGizmo that is a small gizmo to show the orientation of the rotated model.
+
+    \snippet volumeraycaster/Main.qml origingizmo
+
+    To control all the settings we have ScrollView to the left with a bunch of ui elements:
+
+    \snippet volumeraycaster/Main.qml settings
+
+    With all these parts working together the application is able to render and interactively control our volumes. Note that the size of the volumes that this example can render as well as the performance will be limited by your specific GPU.
+*/

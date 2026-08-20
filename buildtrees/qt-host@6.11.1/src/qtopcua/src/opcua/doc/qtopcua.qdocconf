@@ -1,0 +1,76 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+
+project = QtOpcUa
+description = An OPC UA module for Qt
+version = $QT_VERSION
+
+sourcedirs += .. \
+              ../../declarative_opcua
+headerdirs += .. \
+              ../../declarative_opcua
+exampledirs += ../../../examples/opcua
+imagedirs += images
+
+tagfile = ../../doc/qtopcua/qtopcua.tags
+
+outputdir = doc
+outputformats = HTML
+
+qhp.projects = QtOpcUa
+
+qhp.QtOpcUa.file = qtopcua.qhp
+qhp.QtOpcUa.namespace = org.qt-project.qtopcua.$QT_VERSION_TAG
+qhp.QtOpcUa.virtualFolder = qtopcua
+qhp.QtOpcUa.indexTitle = Qt OPC UA
+qhp.QtOpcUa.indexRoot =
+
+qhp.QtOpcUa.subprojects = manual examples classes qmltypes
+
+qhp.QtOpcUa.subprojects.classes.title = C++ Classes
+qhp.QtOpcUa.subprojects.classes.indexTitle = Qt OPC UA C++ Classes
+qhp.QtOpcUa.subprojects.classes.selectors = class function namespace fake:headerfile
+qhp.QtOpcUa.subprojects.classes.sortPages = true
+
+qhp.QtOpcUa.subprojects.qmltypes.title = QML Types
+qhp.QtOpcUa.subprojects.qmltypes.indexTitle = Qt OPC UA QML Types
+qhp.QtOpcUa.subprojects.qmltypes.selectors = qmltype
+qhp.QtOpcUa.subprojects.qmltypes.sortPages = true
+
+qhp.QtOpcUa.subprojects.examples.title = Examples
+qhp.QtOpcUa.subprojects.examples.indexTitle = Qt OPC UA Examples
+qhp.QtOpcUa.subprojects.examples.selectors = example
+
+qhp.QtOpcUa.subprojects.manual.title = Qt OPC UA
+qhp.QtOpcUa.subprojects.manual.indexTitle = Qt OPC UA module topics
+qhp.QtOpcUa.subprojects.manual.type = manual
+
+navigation.landingpage = "Qt OPC UA"
+navigation.cppclassespage = "Qt OPC UA C++ Classes"
+navigation.qmltypespage = "Qt OPC UA QML Types"
+# Auto-generate navigation linking based on "Qt OPC UA module topics":
+navigation.toctitles = "Qt OPC UA module topics"
+navigation.toctitles.inclusive = false
+
+examplesinstallpath = opcua
+
+# Add a generic thumbnail to an example that has none
+manifestmeta.thumbnail.names += "QtOpcUa/Qt OPC UA X509 Support" \
+                                "QtOpcUa/Water Pump Simulation Server"
+
+# Highlighted examples in Data Processing & IO category
+manifestmeta.highlighted.names = "QtOpcUa/Water Pump"
+
+depends += \
+   qtcore \
+   qtqml \
+   qtquick \
+   qtdoc \
+   qtcmake \
+   qmake \
+   qtwidgets
+
+# Enforce zero documentation warnings
+warninglimit = 0
+
+# Report warnings for images without alt text
+reportmissingalttextforimages = true

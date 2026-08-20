@@ -1,0 +1,7 @@
+version = 1
+
+[[annotations]]
+path = ["clip2tri.cpp", "clip2tri.h"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (c) 2014 Bitfighter developers"
+SPDX-License-Identifier = "MIT"

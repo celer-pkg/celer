@@ -1,0 +1,10 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#define QSSG_OIT_NONE 0
+#define QSSG_OIT_WEIGHTED_BLENDED 1
+#define QSSG_OIT_LINKED_LIST 2
+
+#ifndef QSSG_OIT_METHOD
+#define QSSG_OIT_METHOD QSSG_OIT_NONE
+#endif

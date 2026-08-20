@@ -1,0 +1,2 @@
+:/tst_parser/data/scxml1.scxml:7:36: error: Unsupported data model 'foo' in scxml
+:/tst_parser/data/scxml1.scxml:9:30: error: Unexpected element scxml

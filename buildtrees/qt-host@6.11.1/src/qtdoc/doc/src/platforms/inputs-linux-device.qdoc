@@ -1,0 +1,267 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+  \page inputs-linux-device.html
+  \title Inputs on an Embedded Linux Device
+  \brief Provides information about working with inputs on an Embedded Linux device in Qt.
+
+  On your Embedded Linux device, when there's no windowing system present, the mouse, keyboard,
+  and touch input are read directly via \c evdev or using helper libraries such as \c libinput or
+  \c tslib. However, this behavior requires that device nodes \c {/dev/input/event*} are readable
+  by the user. \c eglfs and \c linuxfb have all the input handling code compiled-in.
+
+  \section2 Use libinput
+
+  \l{libinput} is a library to handle input devices that offers an alternative to the Qt's own
+  \c evdev input support. To enable using \c libinput, when you configure and build Qt, make sure
+  that the development files for \c libudev and \c libinput are available. If you require keyboard
+  support, then \c xkbcommon is also necessary. With \c eglfs and \c linuxfb, no further actions
+  are necessary as these plugins use \c libinput by default. If \c libinput support is not
+  available or the \c QT_QPA_EGLFS_NO_LIBINPUT environment variable is set, then Qt's own \c evdev
+  handlers are used instead.
+
+  The following environment variables are available when input events are received via \c{libinput}:
+
+  \table
+    \header
+      \li Variable
+      \li Description
+    \row
+      \li \c QT_QPA_LIBINPUT_TOUCH_MATRIX
+      \li Specifies the first two rows of the 3x3 transformation matrix to apply. The
+          values are expected to be separated by spaces. See
+          \l{https://wayland.freedesktop.org/libinput/doc/1.11.2/absolute_axes.html}{the libinput documentation}
+          for details.
+  \endtable
+
+  \section2 Input on eglfs and linuxfb without libinput
+
+  Parameters like the device node name can be set in the \c QT_QPA_EVDEV_MOUSE_PARAMETERS,
+  \c QT_QPA_EVDEV_KEYBOARD_PARAMETERS and \c QT_QPA_EVDEV_TOUCHSCREEN_PARAMETERS environment
+  variables; separate your entries with colons. These parameters are an alternative to passing
+  the settings in the \c{-plugin} command-line argument, and with some backends they are essential.
+  But \c eglfs and \c linuxfb use built-in input handlers so there's no separate \c {-plugin}
+  argument in use.
+
+  Additionally, the built-in input handlers can be disabled by setting
+  \c QT_QPA_EGLFS_DISABLE_INPUT (for \c eglfs) or \c QT_QPA_FB_DISABLE_INPUT (for \c linuxfb) to
+  \c 1.
+
+  \section2 Mouse
+
+  The mouse cursor shows up whenever \c QT_QPA_EGLFS_HIDECURSOR (for \c eglfs) or
+  \c QT_QPA_FB_HIDECURSOR (for \c linuxfb) isn't set and Qt's libudev-based device discovery
+  reports that at least one mouse is available. When \c libudev support is not present, the mouse
+  cursor is always displayed; unless it's explicitly disabled via the environment variable.
+
+  If Qt was configured with \c libudev support, connecting or disconnecting an input device while
+  the application is running (hot plugging) is supported. Then \c libudev development headers
+  are present in the sysroot at configure time.
+
+  The \c evdev mouse handler supports the following extra parameters:
+
+  \table
+    \header
+      \li Parameter
+      \li Description
+    \row
+      \li \c {/dev/input/...}
+      \li Specifies the name of the input device. If unspecified, Qt looks for a suitable device
+          either via \c libudev or by traversing the available nodes.
+    \row
+      \li \c nocompress
+      \li By default, input events that don't lead to changing the position compared to the last
+          Qt mouse event are compressed. A new Qt mouse event is sent only after a change in the
+          position or button state. To disable this behavior, set the \c nocompress parameter.
+    \row
+      \li \c dejitter
+      \li Specifies a jitter limit; disabled by default.
+    \row
+      \li \c grab
+      \li When set to \c 1, Qt grabs the device for exclusive use.
+    \row
+      \li \c abs
+      \li Some touchscreens report absolute coordinates and can't be differentiated from touch pads.
+          In this case, pass \c abs to indicate that the device is using absolute events.
+  \endtable
+
+  \section2 Keyboard
+
+  The \c evdev keyboard handler supports the following extra parameters:
+
+  \table
+    \header
+      \li Parameter
+      \li Description
+    \row
+      \li \c {/dev/input/...}
+      \li Specifies the name of the input device. If unspecified, Qt looks for a suitable device
+          either via \c libudev or by traversing the available nodes.
+    \row
+      \li \c {grab}
+      \li Enables grabbing the input device.
+    \row
+      \li \c {keymap}
+      \li Specifies the name of a custom keyboard map file.
+    \row
+      \li \c {enable-compose}
+      \li Enables compositing.
+    \row
+      \li \c {repeat-delay}
+      \li Sets a custom key repeat delay.
+    \row
+      \li \c {repeat-rate}
+      \li Sets a custom key repeat rate.
+  \endtable
+
+  On Embedded Linux systems that don't have their terminal sessions disabled, the behavior on a
+  key press can be confusing, as the input event is processed by the Qt application and the tty.
+  To overcome this, the following options are available:
+
+  \list
+    \li On application startup, \c EGLFS and \c LinuxFB attempt to disable the terminal keyboard
+        by setting the tty's keyboard mode to \c K_OFF. This prevents keystrokes from being sent to
+        the terminal. If the standard behavior is required, set the \c QT_QPA_ENABLE_TERMINAL_KEYBOARD
+        environment variable to \c 1. Note that this works only when the application is launched
+        from a remote console, via \c ssh for example, and the terminal keyboard input remains
+        enabled.
+    \li An alternative approach is to use the \c evdev keyboard handler's \c grab parameter by
+        passing \c{grab=1} in \c QT_QPA_EVDEV_KEYBOARD_PARAMETERS. This results in trying to get a
+        grab on the input device. If the \c grab is successful, no other components in the system
+        receive events from it, as long as the Qt application is running. This approach is more
+        suitable for applications that start remotely as it doesn't need access to the tty device.
+    \li Finally, for many specialized Embedded Linux images it doesn't make sense to have the
+        standard terminal sessions enabled in the first place. For more details on how to disable
+        these terminal sessions, refer to your build environment's Documentation. For example, when
+        generating images using the \l{Yocto Project}, unsetting \c SYSVINIT_ENABLED_GETTYS results
+        in having no \c getty process running. This means, there's no input on any of the virtual
+        terminals.
+  \endlist
+
+  If the default built-in keymap is not sufficient, you can specify a different
+  one via the \c keymap parameter.
+
+  \note As with other configuration files for \c eglfs, these legacy keymap
+  files are considered trusted content that is fully controlled and managed by
+  the device or platform creator. They are not expected to be exposed to the
+  end-users of the device, and are not meant to allow the loading of
+  user-provided keymap files.
+
+  \note Special system key combinations, such as console switching (\uicontrol{Ctrl+Alt+Fx}) or
+  zap (\uicontrol{Ctrl+Alt+Backspace}) are not currently supported and are ignored.
+
+  To generate a custom keymap, use the \c kmap2qmap utility, that can be found in the \c qttools
+  module. The source files have to be in standard Linux \c kmap format, which is understood by the
+  kernel's \c loadkeys command. \c qmap files can be generated in one of the following ways:
+
+  \list
+    \li The \l{Linux Console Tools (LCT)} project.
+    \li \l{X.org} X11 keymaps can be converted to the \c kmap format with the \c ckbcomp utility.
+    \li As \c kmap files are plain-text files, they can also be hand crafted.
+  \endlist
+
+  \c kmap2qmap is a command line program, that needs at least 2 files as parameters. The last
+  parameter is the generated \c .qmap file, while all the others are parsed as input \c .kmap
+  files. For example:
+
+  \badcode
+  kmap2qmap i386/qwertz/de-latin1-nodeadkeys.kmap include/compose.latin1.inc de-latin1-nodeadkeys.qmap
+  \endcode
+
+  \note \c kmap2qmap doesn't support all the (pseudo) symbols that the Linux kernel supports.
+  Consequently, when you convert a standard keymap, there'll be a number of warnings regarding
+  \c Show_Registers, \c Hex_A, and so on; these messages can be ignored.
+
+  \section2 Touch
+
+  While it's not necessary for modern touchscreens, some older resistance touchscreens that only
+  support single-touch may require that you fall back to using \c tslib, instead of relying on the
+  Linux multi-touch protocol and the event devices.
+
+  To enable \c tslib support, set the \c QT_QPA_EGLFS_TSLIB (for \c eglfs) or \c QT_QPA_FB_TSLIB
+  (for \c linuxfb) environment variable to 1. To change the device, set the \c TSLIB_TSDEVICE
+  environment variable or pass the device name on the command-line. Note that the \c tslib input
+  handler generates mouse events and supports single touch only, as opposed to \c evdevtouch which
+  generates true multi-touch QTouchEvent events too.
+
+  The \c evdev touch handler supports the following extra parameters:
+
+  \table
+    \header
+      \li Parameter
+      \li Description
+    \row
+      \li \c {/dev/input/...}
+      \li Specifies the name of the input device. If unspecified, Qt looks for a suitable device
+          either via \c libudev or by traversing the available nodes.
+    \row
+      \li \c rotate
+      \li On some touch screens the coordinates must be rotated by setting \c rotate to 90, 180,
+          or 270.
+    \row
+      \li \c invertx and \c inverty
+      \li Specifies the parameters to invert the X or Y coordinates in the input events.
+  \endtable
+
+  For example, if you pass the following values to \c QT_QPA_EVDEV_TOUCHSCREEN_PARAMETERS before
+  launching applications, you'd have an explicitly specified touch device with the coordinates
+  flipped. This is useful when the orientation of the actual screen and the touch screen don't
+  match.
+
+  \badcode
+    export QT_QPA_EVDEV_TOUCHSCREEN_PARAMETERS=/dev/input/event5:rotate=180
+  \endcode
+
+  \section2 Pen-based Tablets
+
+  The \c evdevtablet plugin provides basic support for Wacom and similar pen-based tablets. It
+  generates QTabletEvent events only. To enable it, pass \c {QT_QPA_GENERIC_PLUGINS=evdevtablet}
+  in the environment or, alternatively, pass the \c {-plugin evdevtablet} argument on the
+  command-line.
+
+  The plugin can take a device node parameter, such as \c{QT_QPA_GENERIC_PLUGINS=evdevtablet:/dev/event1},
+  if Qt's automatic device discovery (based either on \c libudev or traversing \c{/dev/input/event*})
+  isn't functional or is misbehaving.
+
+  \section2 Debug Input Devices
+
+  It's possible to print some information to the debug output by enabling the \c qt.qpa.input
+  logging rule, for example by setting the \c QT_LOGGING_RULES environment variable to
+  \c{qt.qpa.input=true}. This is useful for detecting which device is being used, or for
+  troubleshooting device discovery issues.
+
+  For more detailed logging of input subsystems (mouse, keyboard, touch),
+  enable all input-related logging categories with:
+
+  \code
+  export QT_LOGGING_RULES="qt.qpa.input.*=true;qt.qpa.events=true"
+  \endcode
+
+  \section2 Use Custom Mouse Cursor Images
+
+  \c eglfs comes with its own set of 32x32-sized mouse cursor images. If these are insufficient,
+  you can provide a custom cursor atlas by setting the \c QT_QPA_EGLFS_CURSOR environment variable
+  to the name of a JSON file. This file can also be embedded into the application via
+  \l{The Qt Resource System}.
+
+  For example, an embedded cursor atlas with 8 cursor images per row can be specified as follows:
+
+  \badcode
+    {
+      "image": ":/cursor-atlas.png",
+      "cursorsPerRow": 8,
+      "hotSpots": [
+          [7, 2],
+          [12, 3],
+          [12, 12],
+          ...
+      ]
+    }
+  \endcode
+
+  Note that the images are expected to be tightly packed in the atlas; the width and height of the
+  cursors are determined based on the total image size and the \c cursorsPerRow setting. Atlases
+  must also provide an image for all of the supported cursors.
+
+*/

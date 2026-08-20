@@ -1,0 +1,24 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example cascadedshadowmaps
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - Cascaded Shadow Maps Example
+    \examplecategory {3D}
+    \brief Demonstrates cascaded shadow maps.
+    \image cascadedshadowmaps.webp
+           {Row of black cones and cylinders casting long shadows with
+           cascaded shadow map settings panel}
+
+    This example demonstrates how to use a DirectionalLight with cascaded shadow maps.
+
+    Let's have a look at the scene's QML code:
+
+    \snippet cascadedshadowmaps/main.qml scene
+
+    The scene consists of a DirectionalLight, a PerspectiveCamera, a floor \l{Model}, and a long array of cones and cylinder \l{Model}s. This long array is laid out like this to show how cascades can help increase the graphical fidelity of the scene. With just one shadow map it will cause artifacts but with cascades these can be remedied. The DirectionalLight contains a lot of properties that are tweakable through a settings pane in the UI.
+
+    The reader is encouraged to see the \l{quick3d-shadow-mapping}{Shadow Mapping} article for more information on the different properties and to try out the example to see how they interact.
+
+*/

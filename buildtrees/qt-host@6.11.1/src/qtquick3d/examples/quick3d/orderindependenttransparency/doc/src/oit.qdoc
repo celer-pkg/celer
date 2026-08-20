@@ -1,0 +1,32 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example orderindependenttransparency
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - Order Independent Transparency Example
+    \examplecategory {3D}
+    \brief Demonstrates the order independent transparency in Qt Quick 3D.
+    \image oit-example.jpg
+           {Transparent cubes with example selection menu}
+
+    The \e {OIT} example demonstrates how to enable order-independent transparency
+    in Qt Quick 3D. It has multiple examples using the feature in different ways.
+
+    \section1 The examples
+
+    \e {Particles} example shows the use of OIT with transparent particles.
+    \e {Instancing} example shows the use of OIT with models rendered using instancing.
+    \e {Blend Value Correctness} example demonstrates the sorting problem with transparent objects
+    and lets one enable OIT to fix the issue.
+
+    \section1 Controlling OIT
+
+    OIT is controlled by the \l [QML] {SceneEnvironment} object. The
+    values are set based on the selection made in the user interface.
+
+    The \l [QML] {SceneEnvironment::oitMethod}{oit method} is by default set to \c OITNone
+    to disable the feature, or one can set it to \c OITWeightedBlended to enable OIT.
+
+    \snippet orderindependenttransparency/StartupView.qml scene environment
+*/

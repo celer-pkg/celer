@@ -1,0 +1,269 @@
+// Copyright (C) 2026 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+
+#include <QtQuick/private/qquickitem_p.h>
+
+#include "qqstylekitdelegatecontainer_p.h"
+#include "../qqstylekitcontrolproperties_p.h"
+
+QT_BEGIN_NAMESPACE
+
+QQmlComponent* QQStyleKitDelegateContainer::s_defaultDelegateComponent = nullptr;
+QQmlComponent* QQStyleKitDelegateContainer::s_defaultShadowComponent = nullptr;
+
+QQStyleKitDelegateContainer::QQStyleKitDelegateContainer(QQuickItem *parent)
+    : QQuickItem(parent)
+{
+}
+
+QQStyleKitDelegateContainer::~QQStyleKitDelegateContainer()
+{
+    // Disconnect before QQuickItem::~QQuickItem() reparents children, which emits
+    // signals. At that point our vtable would already be replaced with QQuickItem's,
+    // causing assertObjectType to fail.
+    if (m_delegateInstance)
+        disconnect(m_delegateInstance, nullptr, this, nullptr);
+}
+
+QQStyleKitDelegateProperties *QQStyleKitDelegateContainer::delegateStyle() const
+{
+    return m_delegateProperties;
+}
+
+void QQStyleKitDelegateContainer::setDelegateStyle(QQStyleKitDelegateProperties *delegateProperties)
+{
+    if (m_delegateProperties == delegateProperties)
+        return;
+
+    if (m_delegateProperties) {
+        /* We don't expect m_delegateProperties to change after componentCompleted(), since it's bound
+         * to a controls StyleKitReader, which is not supposed to change. So, considering that there
+         * might be hundreds of delegate instances in an application, we try to save some connections
+         * this way. But note, this is only an optimization, not a technical limitation. */
+        qmlWarning(this) << "Changing delegateStyle on StyleKitContainer is not supported.";
+        return;
+    }
+
+    m_delegateProperties = delegateProperties;
+    emit delegateStyleChanged();
+}
+
+QObject *QQStyleKitDelegateContainer::quickControl() const
+{
+    return m_control;
+}
+
+void QQStyleKitDelegateContainer::setQuickControl(QObject *control)
+{
+    if (m_control == control)
+        return;
+    m_control = control;
+    emit quickControlChanged();
+}
+
+QQuickItem *QQStyleKitDelegateContainer::delegateInstance() const
+{
+    return m_delegateInstance;
+}
+
+bool QQStyleKitDelegateContainer::usingDefaultDelegate() const
+{
+    return m_delegateComponent == s_defaultDelegateComponent;
+}
+
+void QQStyleKitDelegateContainer::updateImplicitSize()
+{
+    qreal implicitWidth = 0;
+    qreal implicitHeight = 0;
+
+    if (m_delegateInstance) {
+        /* The delegate instance is expected to bind its implicit size to the
+         * value from the style, but may override it if needed. */
+        implicitWidth = m_delegateInstance->implicitWidth();
+        implicitHeight = m_delegateInstance->implicitHeight();
+    } else if (m_delegateProperties) {
+        /* The delegate instance may not exist yet (e.g. because it is hidden),
+         * but the container should still report the style's implicit size so
+         * that it reserves the correct space in a layout. */
+        implicitWidth = qMax(m_delegateProperties->minimumWidth(), m_delegateProperties->implicitWidth());
+        implicitHeight = m_delegateProperties->implicitHeight();
+    }
+
+    setImplicitWidth(implicitWidth);
+    setImplicitHeight(implicitHeight);
+}
+
+void QQStyleKitDelegateContainer::maybeCreateDelegate()
+{
+    if (m_delegateInstance)
+        return;
+    if (!m_delegateProperties)
+        return;
+
+    if (!m_delegateProperties->visible()) {
+        connect(m_delegateProperties, &QQStyleKitDelegateProperties::visibleChanged,
+                this, &QQStyleKitDelegateContainer::maybeCreateDelegate, Qt::UniqueConnection);
+        return;
+    }
+
+    disconnect(m_delegateProperties, &QQStyleKitDelegateProperties::visibleChanged,
+               this, &QQStyleKitDelegateContainer::maybeCreateDelegate);
+
+    const bool wasUsingDefaultDelegate = usingDefaultDelegate();
+
+    if (QQmlComponent *delegateComponent = m_delegateProperties->delegate()) {
+        m_delegateComponent = delegateComponent;
+    } else {
+        if (!s_defaultDelegateComponent || s_defaultDelegateComponent->engine() != qmlEngine(this)) {
+            delete s_defaultDelegateComponent;
+            QQmlEngine *engine = qmlEngine(this);
+            s_defaultDelegateComponent = new QQmlComponent(engine);
+            const QString qmlCode = QString::fromUtf8(R"(
+                import QtQuick
+                import Qt.labs.StyleKit
+                StyledItem {
+                    width: parent.width
+                    height: parent.height
+                }
+            )");
+            s_defaultDelegateComponent->setData(qmlCode.toUtf8(), QUrl());
+            Q_ASSERT_X(!s_defaultDelegateComponent->isError(), __FUNCTION__,
+                       s_defaultDelegateComponent->errorString().toUtf8().constData());
+        }
+        m_delegateComponent = s_defaultDelegateComponent;
+    }
+
+    QQmlContext *ctx = QQmlEngine::contextForObject(this);
+    m_delegateInstance = qobject_cast<QQuickItem*>(m_delegateComponent->beginCreate(ctx));
+    Q_ASSERT(m_delegateInstance);
+    m_delegateInstance->setParent(this);
+    m_delegateInstance->setParentItem(this);
+    m_delegateInstance->setProperty("control", QVariant::fromValue(m_control.get()));
+    m_delegateInstance->setProperty("delegateStyle", QVariant::fromValue(m_delegateProperties.get()));
+    m_delegateComponent->completeCreate();
+
+    updateImplicitSize();
+    connect(m_delegateInstance, &QQuickItem::implicitWidthChanged, this, &QQStyleKitDelegateContainer::updateImplicitSize);
+    connect(m_delegateInstance, &QQuickItem::implicitHeightChanged, this, &QQStyleKitDelegateContainer::updateImplicitSize);
+
+    if (usingDefaultDelegate() != wasUsingDefaultDelegate)
+        emit usingDefaultDelegateChanged();
+}
+
+void QQStyleKitDelegateContainer::maybeCreateShadow()
+{
+    if (m_shadowInstance)
+        return;
+    if (!m_delegateProperties)
+        return;
+
+    if (!m_delegateProperties->visible()) {
+        connect(m_delegateProperties, &QQStyleKitDelegateProperties::visibleChanged,
+                this, &QQStyleKitDelegateContainer::maybeCreateShadow, Qt::UniqueConnection);
+        return;
+    }
+    if (!m_delegateProperties->shadow()->visible()) {
+        connect(m_delegateProperties->shadow(), &QQStyleKitShadowProperties::visibleChanged,
+                this, &QQStyleKitDelegateContainer::maybeCreateShadow, Qt::UniqueConnection);
+        return;
+    }
+    if (m_delegateProperties->shadow()->color().alpha() == 0) {
+        connect(m_delegateProperties->shadow(), &QQStyleKitShadowProperties::colorChanged,
+                this, &QQStyleKitDelegateContainer::maybeCreateShadow, Qt::UniqueConnection);
+        return;
+    }
+    if (m_delegateProperties->shadow()->opacity() == 0) {
+        connect(m_delegateProperties->shadow(), &QQStyleKitShadowProperties::opacityChanged,
+                this, &QQStyleKitDelegateContainer::maybeCreateShadow, Qt::UniqueConnection);
+        return;
+    }
+
+    disconnect(m_delegateProperties, &QQStyleKitDelegateProperties::visibleChanged,
+            this, &QQStyleKitDelegateContainer::maybeCreateShadow);
+    disconnect(m_delegateProperties->shadow(), &QQStyleKitShadowProperties::visibleChanged,
+            this, &QQStyleKitDelegateContainer::maybeCreateShadow);
+    disconnect(m_delegateProperties->shadow(), &QQStyleKitShadowProperties::colorChanged,
+            this, &QQStyleKitDelegateContainer::maybeCreateShadow);
+    disconnect(m_delegateProperties->shadow(), &QQStyleKitShadowProperties::opacityChanged,
+            this, &QQStyleKitDelegateContainer::maybeCreateShadow);
+
+    if (QQmlComponent *shadowComponent = m_delegateProperties->shadow()->delegate()) {
+        m_shadowComponent = shadowComponent;
+    } else {
+        if (!s_defaultShadowComponent || s_defaultShadowComponent->engine() != qmlEngine(this)) {
+            delete s_defaultShadowComponent;
+            QQmlEngine *engine = qmlEngine(this);
+            s_defaultShadowComponent = new QQmlComponent(engine);
+            const QString qmlCode = QString::fromUtf8(R"(
+                import Qt.labs.StyleKit.impl
+                Shadow {}
+            )");
+            s_defaultShadowComponent->setData(qmlCode.toUtf8(), QUrl());
+            Q_ASSERT_X(!s_defaultShadowComponent->isError(), __FUNCTION__,
+                       s_defaultShadowComponent->errorString().toUtf8().constData());
+        }
+        m_shadowComponent = s_defaultShadowComponent;
+    }
+
+    QQmlContext *ctx = QQmlEngine::contextForObject(this);
+    m_shadowInstance = qobject_cast<QQuickItem*>(m_shadowComponent->beginCreate(ctx));
+    Q_ASSERT(m_shadowInstance);
+    m_shadowInstance->setParent(this);
+    m_shadowInstance->setParentItem(this);
+    m_shadowInstance->setZ(-1);
+    m_shadowInstance->setProperty("control", QVariant::fromValue(m_control.get()));
+    m_shadowInstance->setProperty("delegateStyle", QVariant::fromValue(m_delegateProperties.get()));
+    m_shadowComponent->completeCreate();
+}
+
+void QQStyleKitDelegateContainer::componentComplete()
+{
+    QQuickItem::componentComplete();
+    Q_ASSERT(m_delegateProperties);
+    Q_ASSERT(m_control);
+
+    maybeCreateDelegate();
+    connect(m_delegateProperties, &QQStyleKitDelegateProperties::delegateChanged, this, [this]{
+        if (!m_delegateInstance) {
+            maybeCreateDelegate();
+        } else {
+            const QQmlComponent *newDelegateComp = m_delegateProperties->delegate();
+            if (m_delegateComponent == newDelegateComp)
+                return;
+            if (!newDelegateComp && m_delegateComponent == s_defaultDelegateComponent) {
+                /* If newDelegateComp is nullptr, it means that we should use the default
+                 * delegate instead, which we already do. */
+                return;
+            }
+
+            delete m_delegateInstance;
+            maybeCreateDelegate();
+            emit delegateInstanceChanged();
+        }
+    });
+
+    maybeCreateShadow();
+    connect(m_delegateProperties->shadow(), &QQStyleKitShadowProperties::delegateChanged, this, [this]{
+        if (!m_shadowInstance) {
+            maybeCreateShadow();
+        } else {
+            const QQmlComponent *newShadowComp = m_delegateProperties->shadow()->delegate();
+            if (m_shadowComponent == newShadowComp)
+                return;
+            if (!newShadowComp && m_shadowComponent == s_defaultShadowComponent) {
+                /* If newShadowComp is nullptr, it means that we should use the default
+                 * delegate instead, which we already do. */
+                return;
+            }
+
+            delete m_shadowInstance;
+            maybeCreateShadow();
+        }
+    });
+
+    updateImplicitSize();
+}
+
+QT_END_NAMESPACE
+
+#include "moc_qqstylekitdelegatecontainer_p.cpp"

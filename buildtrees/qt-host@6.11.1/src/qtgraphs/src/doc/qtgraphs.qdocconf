@@ -1,0 +1,66 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+url.examples = "https://code.qt.io/cgit/qt/qtgraphs.git/tree/examples/\1?h=$QT_VER"
+url.sources  = "https://code.qt.io/cgit/qt/qtgraphs.git/tree/\1?h=$QT_VER#n\2"
+# Path to the root of qtgraphs (for automatic linking to source code)
+url.sources.rootdir     = ../..
+
+project             = QtGraphs
+description         = Qt Graphs Reference Documentation
+version             = $QT_VERSION
+buildversion        = Qt Graphs | Commercial or GPLv3
+moduleheader        = QtGraphs
+
+examplesinstallpath = graphs
+exampledirs += \
+                ../../examples/graphs \
+                snippets \
+                ../graphs3d/widget/doc/snippets
+
+{headerdirs,sourcedirs} += ..
+
+imagedirs  += images \
+                ../graphs3d/widget/doc/images
+
+depends = qtcore qtgui qtqml qtquick qtquickcontrols qtdoc qtcmake qtwidgets qtquick3d qtqmlmodels qtprintsupport
+
+qhp.projects                 = QtGraphs
+
+qhp.QtGraphs.file            = qtgraphs.qhp
+qhp.QtGraphs.namespace       = org.qt-project.qtgraphs.$QT_VERSION_TAG
+qhp.QtGraphs.virtualFolder   = qtgraphs
+qhp.QtGraphs.indexTitle      = Qt Graphs
+qhp.QtGraphs.indexRoot       =
+
+qhp.QtGraphs.subprojects                             = manual examples classes types
+
+qhp.QtGraphs.subprojects.manual.title                = Qt Graphs
+qhp.QtGraphs.subprojects.manual.indexTitle           = Qt Graphs module topics
+qhp.QtGraphs.subprojects.manual.type                 = manual
+
+qhp.QtGraphs.subprojects.examples.title              = Examples
+qhp.QtGraphs.subprojects.examples.indexTitle         = Qt Graphs Examples
+qhp.QtGraphs.subprojects.examples.selectors          = example
+qhp.QtGraphs.subprojects.examples.sortPages          = true
+
+qhp.QtGraphs.subprojects.classes.title               = C++ Classes
+qhp.QtGraphs.subprojects.classes.indexTitle          = Qt Graphs C++ Classes
+qhp.QtGraphs.subprojects.classes.selectors           = class
+qhp.QtGraphs.subprojects.classes.sortPages           = true
+
+qhp.QtGraphs.subprojects.types.title                 = QML Types
+qhp.QtGraphs.subprojects.types.indexTitle            = Qt Graphs QML Types
+qhp.QtGraphs.subprojects.types.selectors             = qmltype
+qhp.QtGraphs.subprojects.types.sortPages             = true
+
+navigation.landingpage = Qt Graphs
+navigation.cppclassespage = Qt Graphs C++ Classes
+navigation.qmltypespage = Qt Graphs QML Types
+
+# Autogenerate navigation linking based on "Qt Graphs module topics":
+navigation.toctitles = "Qt Graphs module topics"
+navigation.toctitles.inclusive = false
+
+manifestmeta.highlighted.names = "QtGraphs/Surface Graph Gallery" "QtGraphs/Wind Turbine Dashboard"
+
+# Enforce zero documentation warnings
+warninglimit = 0

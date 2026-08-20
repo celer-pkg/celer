@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>SceneNode.qml</file>
+        <file>anaglyph.frag.qsb</file>
+    </qresource>
+</RCC>

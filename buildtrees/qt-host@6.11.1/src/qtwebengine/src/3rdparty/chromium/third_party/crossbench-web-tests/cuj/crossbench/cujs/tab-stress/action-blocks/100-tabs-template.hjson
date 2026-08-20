@@ -1,0 +1,82 @@
+// Opens tabs, waits for ready-state complete, and then cycles through all the opened tabs.
+// To change the number of tabs that are opened, add additional open and cycle blocks.
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  pages: {
+    tab-stress: {
+      setup: {
+        args: {
+          OPEN10: ./open-10-tabs.hjson
+        }
+        unbound_args: [
+          READY_STATE
+          TAB_TARGET
+        ]
+        template: [
+          {
+            action: meminfo
+            title: before_open
+            timeout: 60s
+          }
+          $[...OPEN10]
+          $[...OPEN10]
+          $[...OPEN10]
+          $[...OPEN10]
+          $[...OPEN10]
+          $[...OPEN10]
+          $[...OPEN10]
+          $[...OPEN10]
+          $[...OPEN10]
+          $[...OPEN10]
+          {
+            action: meminfo
+            title: after_open
+            timeout: 60s
+          }
+        ]
+      }
+      actions: {
+        args: {
+          CYCLE10: ./cycle-10-tabs.hjson
+        }
+        template: [
+          {
+            action: switch_tab
+            url: data:text
+          }
+          $[...CYCLE10]
+          $[...CYCLE10]
+          $[...CYCLE10]
+          $[...CYCLE10]
+          $[...CYCLE10]
+          $[...CYCLE10]
+          $[...CYCLE10]
+          $[...CYCLE10]
+          $[...CYCLE10]
+          $[...CYCLE10]
+          {
+            action: meminfo
+            title: after_switch
+            timeout: 60s
+          }
+        ]
+      }
+      teardown: [
+        // Also capture memory after waiting for things to settle. Let reclaim
+        // catch up, extension processes should exit after 30s of inactivity,
+        // etc.
+        {
+          action: wait
+          duration: 60s
+        }
+        {
+          action: meminfo
+          title: after_cooldown
+          timeout: 60s
+        }
+      ]
+    }
+  }
+}

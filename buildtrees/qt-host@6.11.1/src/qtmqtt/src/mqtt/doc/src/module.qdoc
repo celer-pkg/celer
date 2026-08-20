@@ -1,0 +1,14 @@
+// Copyright (C) 2018 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+
+/*!
+    \module QtMqtt
+    \title Qt MQTT C++ Classes
+    \ingroup modules
+    \qtcmakepackage Mqtt
+    \qtvariable mqtt
+    \brief Provides classes that enable sending messages via the MQTT protocol.
+
+    The \l{Qt MQTT} page contains information about how to use the module.
+*/

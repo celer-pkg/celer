@@ -1,0 +1,46 @@
+#!/usr/bin/bash
+
+# Copyright 2025 The Chromium Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+set -e
+set -u
+set -o pipefail
+
+cd $(dirname $0)
+
+usage() {
+  echo "Usage: $0 target [tests] [variants]"
+  echo "  target    ADB device serial or CrOS ssh host"
+  echo "  tests     Optional regexp to match test name"
+  echo "  variants  Optional regexp to match test variant name"
+  exit 1
+}
+
+TARGET=$1
+TESTS=$2
+VARIANTS=$3
+
+if [ -z "$TARGET" ]; then
+  echo "No target specified"
+  usage
+fi
+
+CMD=("poetry" "run" "python" "./run.py" "--device" "$TARGET")
+
+if adb -s "$TARGET" shell true 2> /dev/null; then
+  CMD+=("--platform" "adb")
+else
+  CMD+=("--platform" "cros")
+fi
+
+if [ ! -z "$TESTS" ]; then
+  CMD+=("--tests" "$TESTS")
+fi
+
+if [ ! -z "$VARIANTS" ]; then
+  CMD+=("--variants" "$VARIANTS")
+fi
+
+"${CMD[@]}"

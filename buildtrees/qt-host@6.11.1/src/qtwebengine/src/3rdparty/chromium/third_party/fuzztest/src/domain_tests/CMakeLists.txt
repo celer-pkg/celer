@@ -1,0 +1,262 @@
+fuzztest_cc_test(
+  NAME
+    aggregate_combinators_test
+  SRCS
+    "aggregate_combinators_test.cc"
+  DEPS
+    fuzztest::domain_testing
+    absl::flat_hash_set
+    absl::random_bit_gen_ref
+    absl::random_random
+    absl::optional
+    absl::span
+    absl::status
+    absl::variant
+    fuzztest::domain_core
+    fuzztest::serialization
+    fuzztest::type_support
+    GTest::gmock_main
+)
+
+if (FUZZTEST_BUILD_FLATBUFFERS)
+  fuzztest_cc_test(
+    NAME
+      arbitrary_domains_flatbuffers_test
+    SRCS
+      "arbitrary_domains_flatbuffers_test.cc"
+    DEPS
+      absl::flat_hash_set
+      absl::random_bit_gen_ref
+      absl::random_random
+      absl::strings
+      flatbuffers
+      fuzztest::domain
+      fuzztest::domain_testing
+      fuzztest::flatbuffers
+      fuzztest::fuzztest_macros
+      GTest::gmock_main
+      fuzztest_test_flatbuffers_headers
+  )
+  add_dependencies(fuzztest_arbitrary_domains_flatbuffers_test
+    fuzztest_GENERATE_test_flatbuffers_headers
+  )
+endif()
+
+fuzztest_cc_test(
+  NAME
+    arbitrary_domains_protobuf_test
+  SRCS
+    "arbitrary_domains_protobuf_test.cc"
+  DEPS
+    fuzztest::domain_testing
+    absl::flat_hash_set
+    absl::random_random
+    absl::random_bit_gen_ref
+    absl::strings
+    fuzztest::domain
+    fuzztest::test_protobuf_cc_proto
+    GTest::gmock_main
+    protobuf::libprotobuf
+)
+
+fuzztest_cc_test(
+  NAME
+    arbitrary_domains_test
+  SRCS
+    "arbitrary_domains_test.cc"
+  DEPS
+    fuzztest::domain_testing
+    absl::flat_hash_set
+    absl::random_random
+    absl::random_bit_gen_ref
+    absl::status
+    absl::time
+    fuzztest::domain_core
+    fuzztest::serialization
+    fuzztest::test_protobuf_cc_proto
+    fuzztest::type_support
+    GTest::gmock_main
+)
+
+fuzztest_cc_test(
+  NAME
+    container_combinators_test
+  SRCS
+    "container_combinators_test.cc"
+  DEPS
+    fuzztest::domain_testing
+    absl::flat_hash_map
+    absl::flat_hash_set
+    absl::random_random
+    absl::strings
+    fuzztest::domain_core
+    fuzztest::meta
+    GTest::gmock_main
+)
+
+fuzztest_cc_test(
+  NAME
+    container_test
+  SRCS
+    "container_test.cc"
+  DEPS
+    fuzztest::domain_testing
+    absl::flat_hash_map
+    absl::flat_hash_set
+    absl::random_random
+    fuzztest::domain_core
+    fuzztest::table_of_recent_compares
+    GTest::gmock_main
+)
+
+fuzztest_cc_library(
+  NAME
+    domain_testing
+  HDRS
+    "domain_testing.h"
+  DEPS
+    absl::flat_hash_set
+    absl::hash
+    absl::random_random
+    absl::random_bit_gen_ref
+    absl::status
+    absl::strings
+    fuzztest::domain_core
+    fuzztest::logging
+    fuzztest::meta
+    fuzztest::serialization
+    fuzztest::test_protobuf_cc_proto
+    fuzztest::type_support
+    GTest::gtest
+    protobuf::libprotobuf
+)
+
+fuzztest_cc_test(
+  NAME
+    in_grammar_domain_test
+  SRCS
+    "in_grammar_domain_test.cc"
+  DEPS
+    fuzztest::domain_testing
+    absl::flat_hash_set
+    absl::random_random
+    fuzztest::domain
+    fuzztest::serialization
+    json_grammar
+    GTest::gmock_main
+    nlohmann_json
+)
+
+fuzztest_cc_test(
+  NAME
+    in_regexp_domain_test
+  SRCS
+    "in_regexp_domain_test.cc"
+  DEPS
+    fuzztest::domain_testing
+    absl::flat_hash_set
+    absl::random_random
+    fuzztest::domain
+    GTest::gmock_main
+    re2::re2
+)
+
+fuzztest_cc_test(
+  NAME
+    map_filter_combinator_test
+  SRCS
+    "map_filter_combinator_test.cc"
+  DEPS
+    fuzztest::domain_testing
+    absl::algorithm_container
+    absl::random_random
+    fuzztest::domain_core
+    GTest::gmock_main
+)
+
+fuzztest_cc_test(
+  NAME
+    misc_domains_test
+  SRCS
+    "misc_domains_test.cc"
+  DEPS
+    fuzztest::domain_testing
+    absl::flat_hash_set
+    absl::int128
+    absl::random_random
+    absl::span
+    fuzztest::domain_core
+    fuzztest::meta
+    fuzztest::type_support
+    GTest::gmock_main
+)
+
+fuzztest_cc_test(
+  NAME
+    numeric_domains_test
+  SRCS
+    "numeric_domains_test.cc"
+  DEPS
+    fuzztest::domain_testing
+    absl::flat_hash_set
+    absl::int128
+    absl::random_random
+    absl::status
+    absl::strings
+    fuzztest::domain_core
+    fuzztest::serialization
+    GTest::gmock_main
+)
+
+fuzztest_cc_test(
+  NAME
+    pointer_domains_test
+  SRCS
+    "pointer_domains_test.cc"
+  DEPS
+    fuzztest::domain_testing
+    absl::random_random
+    fuzztest::domain_core
+    GTest::gmock_main
+)
+
+fuzztest_cc_test(
+  NAME
+    recursive_domains_test
+  SRCS
+    "recursive_domains_test.cc"
+  DEPS
+    fuzztest::domain_testing
+    absl::random_random
+    fuzztest::domain_core
+    GTest::gmock_main
+)
+
+fuzztest_cc_test(
+  NAME
+    specific_value_domains_test
+  SRCS
+    "specific_value_domains_test.cc"
+  DEPS
+    fuzztest::domain_testing
+    absl::flat_hash_set
+    absl::random_random
+    absl::time
+    absl::span
+    fuzztest::domain_core
+    GTest::gmock_main
+)
+
+fuzztest_cc_test(
+  NAME
+    string_domains_test
+  SRCS
+    "string_domains_test.cc"
+  DEPS
+    fuzztest::domain_testing
+    absl::flat_hash_set
+    absl::random_random
+    fuzztest::domain_core
+    fuzztest::table_of_recent_compares
+    GTest::gmock_main
+)

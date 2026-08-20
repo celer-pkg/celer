@@ -1,0 +1,45 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtscxml-changes-qt6.html
+    \title Changes to Qt SCXML
+    \ingroup changes-qt-5-to-6
+    \brief Migrate Qt SCXML to Qt 6.
+
+    Qt 6 is a result of the conscious effort to make the framework more
+    efficient and easy to use.
+
+    We try to maintain binary and source compatibility for all the public
+    APIs in each release. But some changes were inevitable in an effort to
+    make Qt a better framework.
+
+    In this topic we summarize those changes in Qt SCXML module, and provide
+    guidance to handle them.
+
+    \section1 Changes overview
+
+    The Qt SCXML module is largely source compatible with the Qt5
+    version and users of the library should be able to continue with no or
+    minor changes to their project.
+
+    \section1 API changes
+
+    \section2 QScxmlEcmaScriptDataModel API removal
+
+    The ecmascript datamodel, when enabled, introduces a dependency to the Qt QML library.
+    In Qt5 this depedendency is created at build time, whereas in Qt6 the dependency
+    is moved to runtime (internally a plugin). As a consequence the
+    QScxmlEcmaScriptDataModel class is no longer part of the public API.
+
+    \section1 Build system
+
+    As with Qt6 in general, the Qt SCXML module has cmake support in addition
+    to qmake.
+
+    \section1 QML imports
+
+    The QML import versioning is optional unless one has a specific
+    reason for not using the latest. Generally speaking the versioned imports
+    work from version 5.8 to 6.x, where 'x' is the current minor release.
+*/

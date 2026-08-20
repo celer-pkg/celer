@@ -1,0 +1,929 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+
+pragma ComponentBehavior: Bound
+
+import QtCore
+import QtQml
+import QtQuick
+import QtQuick.Controls.Fusion
+import QtQuick.Dialogs
+import QtQuick.Layouts
+import QtQuick.Window
+import QtWebEngine
+import BrowserUtils
+
+ApplicationWindow {
+    id: win
+    property WebEngineView currentWebView: tabBar.currentIndex < tabBar.count ? tabLayout.children[tabBar.currentIndex] : null
+    property int previousVisibility: Window.Windowed
+    property bool lastTabClosing: false
+
+    width: 1300
+    height: 900
+    visible: true
+    title: win.currentWebView?.title ?? ""
+
+    // Make sure the Qt.WindowFullscreenButtonHint is set on OS X.
+    Component.onCompleted: flags = flags | Qt.WindowFullscreenButtonHint
+
+    onCurrentWebViewChanged: {
+        findBar.reset();
+    }
+
+    // When using style "mac", ToolButtons are not supposed to accept focus.
+    property bool platformIsMac: Qt.platform.os === "osx"
+
+    Settings {
+        id : appSettings
+        property alias autoLoadImages: loadImages.checked
+        property alias javaScriptEnabled: javaScriptEnabledMenuItem.checked
+        property alias errorPageEnabled: errorPageEnabledMenuItem.checked
+        property alias pluginsEnabled: pluginsEnabledMenuItem.checked
+        property alias fullScreenSupportEnabled: fullScreenSupportEnabledMenuItem.checked
+        property alias autoLoadIconsForPage: autoLoadIconsForPageMenuItem.checked
+        property alias touchIconsEnabled: touchIconsEnabledMenuItem.checked
+        property alias webRTCPublicInterfacesOnly : webRTCPublicInterfacesOnlyMenuItem.checked
+        property alias devToolsEnabled: devToolsEnabledMenuItem.checked
+        property alias pdfViewerEnabled: pdfViewerEnabledMenuItem.checked
+        property int imageAnimationPolicy: WebEngineSettings.ImageAnimationPolicy.Allow
+        property alias javascriptCanAccessClipboard: javascriptCanAccessClipboardMenuItem.checked
+        property alias javascriptCanPaste: javascriptCanPasteMenuItem.checked
+    }
+
+    Action {
+        shortcut: "Ctrl+D"
+        onTriggered: {
+            downloadView.visible = !downloadView.visible;
+        }
+    }
+    Action {
+        id: focusAction
+        shortcut: "Ctrl+L"
+        onTriggered: {
+            addressBar.forceActiveFocus();
+            addressBar.selectAll();
+        }
+    }
+    Action {
+        shortcut: StandardKey.Refresh
+        onTriggered: {
+            if (win.currentWebView)
+                win.currentWebView.reload();
+        }
+    }
+    Action {
+        shortcut: StandardKey.AddTab
+        onTriggered: {
+            tabBar.createTab(tabBar.count !== 0
+                             ? win.currentWebView.profile
+                             : BrowserManager.defaultProfilePrototype.instance());
+            addressBar.forceActiveFocus();
+            addressBar.selectAll();
+        }
+    }
+    Action {
+        shortcut: StandardKey.Close
+        onTriggered: {
+            win.currentWebView.triggerWebAction(WebEngineView.RequestClose);
+        }
+    }
+    Action {
+        shortcut: StandardKey.Quit
+        onTriggered: win.close()
+    }
+    Action {
+        shortcut: "Escape"
+        onTriggered: {
+            if (win.currentWebView.state === "FullScreen") {
+                win.visibility = win.previousVisibility;
+                fullScreenNotification.hide();
+                win.currentWebView.triggerWebAction(WebEngineView.ExitFullScreen);
+            }
+
+            if (findBar.visible)
+                findBar.visible = false;
+        }
+    }
+    Action {
+        shortcut: "Ctrl+0"
+        onTriggered: win.currentWebView.zoomFactor = 1.0
+    }
+    Action {
+        shortcut: StandardKey.ZoomOut
+        onTriggered: win.currentWebView.zoomFactor -= 0.1
+    }
+    Action {
+        shortcut: StandardKey.ZoomIn
+        onTriggered: win.currentWebView.zoomFactor += 0.1
+    }
+
+    Action {
+        shortcut: StandardKey.Copy
+        onTriggered: win.currentWebView.triggerWebAction(WebEngineView.Copy)
+    }
+    Action {
+        shortcut: StandardKey.Cut
+        onTriggered: win.currentWebView.triggerWebAction(WebEngineView.Cut)
+    }
+    Action {
+        shortcut: StandardKey.Paste
+        onTriggered: win.currentWebView.triggerWebAction(WebEngineView.Paste)
+    }
+    Action {
+        shortcut: "Shift+"+StandardKey.Paste
+        onTriggered: win.currentWebView.triggerWebAction(WebEngineView.PasteAndMatchStyle)
+    }
+    Action {
+        shortcut: StandardKey.SelectAll
+        onTriggered: win.currentWebView.triggerWebAction(WebEngineView.SelectAll)
+    }
+    Action {
+        shortcut: StandardKey.Undo
+        onTriggered: win.currentWebView.triggerWebAction(WebEngineView.Undo)
+    }
+    Action {
+        shortcut: StandardKey.Redo
+        onTriggered: win.currentWebView.triggerWebAction(WebEngineView.Redo)
+    }
+    Action {
+        shortcut: StandardKey.Back
+        onTriggered: win.currentWebView.triggerWebAction(WebEngineView.Back)
+    }
+    Action {
+        shortcut: StandardKey.Forward
+        onTriggered: win.currentWebView.triggerWebAction(WebEngineView.Forward)
+    }
+    Action {
+        shortcut: StandardKey.Find
+        onTriggered: {
+            if (!findBar.visible)
+                findBar.visible = true;
+        }
+    }
+    Action {
+        shortcut: StandardKey.FindNext
+        onTriggered: findBar.findNext()
+    }
+    Action {
+        shortcut: StandardKey.FindPrevious
+        onTriggered: findBar.findPrevious()
+    }
+
+    menuBar: ToolBar {
+        id: navigationBar
+        RowLayout {
+            anchors.fill: parent
+            ToolButton {
+                enabled: win.currentWebView?.canGoBack || win.currentWebView?.canGoForward
+                onClicked: historyMenu.open()
+                text: qsTr("▼")
+                Menu {
+                    id: historyMenu
+                    Instantiator {
+                        model: win.currentWebView?.history?.items
+                        MenuItem {
+                            required property var model
+                            text: model.title
+                            onTriggered: win.currentWebView.goBackOrForward(model.offset)
+                            checkable: !enabled
+                            checked: !enabled
+                            enabled: model.offset
+                        }
+
+                        onObjectAdded: function(index, object) {
+                            historyMenu.insertItem(index, object)
+                        }
+                        onObjectRemoved: function(index, object) {
+                            historyMenu.removeItem(object)
+                        }
+                    }
+                }
+            }
+
+            ToolButton {
+                id: backButton
+                icon.source: "icons/3rdparty/go-previous.png"
+                onClicked: win.currentWebView.goBack()
+                enabled: win.currentWebView?.canGoBack ?? false
+                activeFocusOnTab: !win.platformIsMac
+            }
+            ToolButton {
+                id: forwardButton
+                icon.source: "icons/3rdparty/go-next.png"
+                onClicked: win.currentWebView.goForward()
+                enabled: win.currentWebView?.canGoForward ?? false
+                activeFocusOnTab: !win.platformIsMac
+            }
+            ToolButton {
+                id: reloadButton
+                icon.source: win.currentWebView?.loading
+                             ? "icons/3rdparty/process-stop.png"
+                             : "icons/3rdparty/view-refresh.png"
+                onClicked: win.currentWebView?.loading ? win.currentWebView.stop() : win.currentWebView.reload()
+                activeFocusOnTab: !win.platformIsMac
+            }
+            TextField {
+                id: addressBar
+                Image {
+                    anchors.verticalCenter: addressBar.verticalCenter;
+                    x: 5
+                    z: 2
+                    id: faviconImage
+                    width: 16; height: 16
+                    sourceSize: Qt.size(width, height)
+                    source: win.currentWebView?.icon ? win.currentWebView.icon : ''
+                }
+                MouseArea {
+                    id: textFieldMouseArea
+                    acceptedButtons: Qt.RightButton
+                    anchors.fill: parent
+                    onClicked: {
+                        var textSelectionStartPos = addressBar.selectionStart;
+                        var textSelectionEndPos = addressBar.selectionEnd;
+                        textFieldContextMenu.open();
+                        addressBar.select(textSelectionStartPos, textSelectionEndPos);
+                    }
+                    Menu {
+                        id: textFieldContextMenu
+                        x: textFieldMouseArea.mouseX
+                        y: textFieldMouseArea.mouseY
+                        MenuItem {
+                            text: qsTr("Cut")
+                            onTriggered: addressBar.cut()
+                            enabled: addressBar.selectedText.length > 0
+                        }
+                        MenuItem {
+                            text: qsTr("Copy")
+                            onTriggered: addressBar.copy()
+                            enabled: addressBar.selectedText.length > 0
+                        }
+                        MenuItem {
+                            text: qsTr("Paste")
+                            onTriggered: addressBar.paste()
+                            enabled: addressBar.canPaste
+                        }
+                        MenuItem {
+                            text: qsTr("Delete")
+                            onTriggered: addressBar.text = qsTr("")
+                            enabled: addressBar.selectedText.length > 0
+                        }
+                        MenuSeparator {}
+                        MenuItem {
+                            text: qsTr("Select All")
+                            onTriggered: addressBar.selectAll()
+                            enabled: addressBar.text.length > 0
+                        }
+                    }
+                }
+                leftPadding: 26
+                focus: true
+                Layout.fillWidth: true
+                Binding on text {
+                    when: win.currentWebView
+                    value: win.currentWebView.url
+                }
+                onAccepted: win.currentWebView.url = Utils.fromUserInput(text)
+                selectByMouse: true
+            }
+            ToolButton {
+                id: settingsMenuButton
+                text: qsTr("⋮")
+                onClicked: settingsMenu.open()
+                Menu {
+                    id: settingsMenu
+                    y: settingsMenuButton.height
+                    MenuItem {
+                        id: loadImages
+                        text: "Autoload images"
+                        checkable: true
+                        checked: WebEngine.settings.autoLoadImages
+                    }
+                    MenuItem {
+                        id: javaScriptEnabledMenuItem
+                        text: "JavaScript On"
+                        checkable: true
+                        checked: WebEngine.settings.javascriptEnabled
+                    }
+                    MenuItem {
+                        id: errorPageEnabledMenuItem
+                        text: "ErrorPage On"
+                        checkable: true
+                        checked: WebEngine.settings.errorPageEnabled
+                    }
+                    MenuItem {
+                        id: pluginsEnabledMenuItem
+                        text: "Plugins On"
+                        checkable: true
+                        checked: true
+                    }
+                    MenuItem {
+                        id: fullScreenSupportEnabledMenuItem
+                        text: "FullScreen On"
+                        checkable: true
+                        checked: WebEngine.settings.fullScreenSupportEnabled
+                    }
+                    MenuItem {
+                        id: offTheRecordEnabled
+                        text: "Off The Record"
+                        checkable: true
+                        checked: win.currentWebView?.profile === BrowserManager.otrPrototype.instance()
+                        onToggled: function() {
+                            if (win.currentWebView) {
+                                win.currentWebView.profile = offTheRecordEnabled.checked
+                                        ? BrowserManager.otrPrototype.instance()
+                                        : BrowserManager.defaultProfilePrototype.instance();
+                            }
+                        }
+                    }
+                    MenuItem {
+                        id: httpDiskCacheEnabled
+                        text: "HTTP Disk Cache"
+                        checkable: !win.currentWebView?.profile?.offTheRecord ?? false
+                        checked: win.currentWebView?.profile.httpCacheType === WebEngineProfile.DiskHttpCache
+                        onToggled: function() {
+                            if (win.currentWebView) {
+                                win.currentWebView.profile.httpCacheType = httpDiskCacheEnabled.checked
+                                        ? WebEngineProfile.DiskHttpCache
+                                        : WebEngineProfile.MemoryHttpCache;
+                            }
+                        }
+                    }
+                    MenuItem {
+                        id: autoLoadIconsForPageMenuItem
+                        text: "Icons On"
+                        checkable: true
+                        checked: WebEngine.settings.autoLoadIconsForPage
+                    }
+                    MenuItem {
+                        id: touchIconsEnabledMenuItem
+                        text: "Touch Icons On"
+                        checkable: true
+                        checked: WebEngine.settings.touchIconsEnabled
+                        enabled: autoLoadIconsForPageMenuItem.checked
+                    }
+                    MenuItem {
+                        id: webRTCPublicInterfacesOnlyMenuItem
+                        text: "WebRTC Public Interfaces Only"
+                        checkable: true
+                        checked: WebEngine.settings.webRTCPublicInterfacesOnly
+                    }
+                    MenuItem {
+                        id: devToolsEnabledMenuItem
+                        text: "Open DevTools"
+                        checkable: true
+                        checked: false
+                    }
+                    MenuItem {
+                        id: pdfViewerEnabledMenuItem
+                        text: "PDF Viewer Enabled"
+                        checkable: true
+                        checked: WebEngine.settings.pdfViewerEnabled
+                    }
+                    Menu {
+                        id: imageAnimationPolicyMenu
+                        title: "Image Animation Policy"
+
+                        MenuItem {
+                            id: disableImageAnimation
+                            text: "Disable All Image Animation"
+                            checkable: true
+                            autoExclusive: true
+                            checked: WebEngine.settings.imageAnimationPolicy === WebEngineSettings.ImageAnimationPolicy.Disallow
+                            onTriggered: {
+                                appSettings.imageAnimationPolicy = WebEngineSettings.ImageAnimationPolicy.Disallow
+                            }
+                        }
+
+                        MenuItem {
+                            id: allowImageAnimation
+                            text: "Allow All Animated Images"
+                            checkable: true
+                            autoExclusive: true
+                            checked: WebEngine.settings.imageAnimationPolicy === WebEngineSettings.ImageAnimationPolicy.Allow
+                            onTriggered : {
+                                appSettings.imageAnimationPolicy = WebEngineSettings.ImageAnimationPolicy.Allow
+                            }
+                        }
+
+                        MenuItem {
+                            id: animateImageOnce
+                            text: "Animate Image Once"
+                            checkable: true
+                            autoExclusive: true
+                            checked: WebEngine.settings.imageAnimationPolicy === WebEngineSettings.ImageAnimationPolicy.AnimateOnce
+                            onTriggered : {
+                                appSettings.imageAnimationPolicy = WebEngineSettings.ImageAnimationPolicy.AnimateOnce
+                            }
+                        }
+                    }
+
+                    MenuItem {
+                        id: javascriptCanAccessClipboardMenuItem
+                        text: "JavaScript can access clipboard"
+                        checkable: true
+                        checked: WebEngine.settings.javascriptCanAccessClipboard
+                    }
+                    MenuItem {
+                        id: javascriptCanPasteMenuItem
+                        text: "JavaScript can paste"
+                        checkable: true
+                        checked: WebEngine.settings.javascriptCanPaste
+                    }
+                }
+            }
+        }
+        ProgressBar {
+            id: progressBar
+            height: 3
+            anchors {
+                left: parent.left
+                top: parent.bottom
+                right: parent.right
+                leftMargin: parent.anchors.leftMargin
+                rightMargin: parent.anchors.rightMargin
+            }
+            background: Item {}
+            z: -2
+            from: 0
+            to: 100
+            value: (win.currentWebView?.loadProgress < 100) ? win.currentWebView.loadProgress : 0
+        }
+    }
+
+    StackLayout {
+        id: tabLayout
+        currentIndex: tabBar.currentIndex
+
+        anchors.top: tabBar.bottom
+        anchors.bottom: devToolsWebEngineView.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+    }
+
+    Component {
+        id: tabButtonComponent
+
+        TabButton {
+            id: tabButton
+            property color frameColor: "#999999"
+            property color fillColor: "#eeeeee"
+            property color nonSelectedColor: "#dddddd"
+            property string tabTitle: "New Tab"
+
+            contentItem: Rectangle {
+                id: tabRectangle
+                color: tabButton.down ? tabButton.fillColor : tabButton.nonSelectedColor
+                border.width: 1
+                border.color: tabButton.frameColor
+                implicitWidth: Math.max(tabText.width + 30, 80)
+                implicitHeight: Math.max(tabText.height + 10, 20)
+                Rectangle { height: 1 ; width: parent.width ; color: tabButton.frameColor}
+                Rectangle { height: parent.height ; width: 1; color: tabButton.frameColor}
+                Rectangle { x: parent.width - 2; height: parent.height ; width: 1; color: tabButton.frameColor}
+                Text {
+                    id: tabText
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.leftMargin: 6
+                    text: tabButton.tabTitle
+                    elide: Text.ElideRight
+                    color: tabButton.down ? "black" : tabButton.frameColor
+                    width: parent.width - button.background.width
+                }
+                Button {
+                    id: button
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.rightMargin: 4
+                    height: 12
+                    background: Rectangle {
+                        implicitWidth: 12
+                        implicitHeight: 12
+                        color: button.hovered ? "#cccccc" : tabRectangle.color
+                        Text {text: "x"; anchors.centerIn: parent; color: "gray"}
+                    }
+                    onClicked: tabButton.closeTab()
+                }
+            }
+
+            onClicked: addressBar.text = (tabLayout.itemAt(TabBar.index) as WebEngineView).url;
+            function closeTab() {
+                tabBar.tryCloseView(TabBar.index);
+            }
+        }
+    }
+
+    TabBar {
+        id: tabBar
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        Component.onCompleted: createTab(BrowserManager.defaultProfilePrototype.instance())
+
+        function createTab(profile, focusOnNewTab = true, url = undefined) {
+            var webview = tabComponent.createObject(tabLayout, {profile: profile});
+            var newTabButton = tabButtonComponent.createObject(tabBar, {tabTitle: Qt.binding(function () { return webview.title; })});
+            webview.index = Qt.binding(function () { return newTabButton.TabBar.index; })
+            tabBar.addItem(newTabButton);
+            if (focusOnNewTab) {
+                tabBar.setCurrentIndex(tabBar.count - 1);
+            }
+            if (url !== undefined) {
+                webview.url = url;
+            }
+            return webview;
+        }
+
+        function tryCloseView(index) {
+            tabLayout.children[index].triggerWebAction(WebEngineView.RequestClose);
+        }
+
+        function removeView(index) {
+            if (tabBar.count > 1) {
+                tabBar.removeItem(tabBar.itemAt(index));
+                tabLayout.children[index].destroy();
+            } else {
+                win.lastTabClosing = true;
+                win.close();
+            }
+        }
+
+        Component {
+            id: tabComponent
+            WebEngineView {
+                id: webEngineView
+                property int index: 0
+                focus: true
+
+                onLinkHovered: function(hoveredUrl) {
+                    if (hoveredUrl === "")
+                        hideStatusText.start();
+                    else {
+                        statusText.text = hoveredUrl;
+                        statusBubble.visible = true;
+                        hideStatusText.stop();
+                    }
+                }
+
+                states: [
+                    State {
+                        name: "FullScreen"
+                        PropertyChanges {
+                            tabBar.visible: false
+                            tabBar.height: 0
+                            navigationBar.visible: false
+                        }
+                    }
+                ]
+                settings.localContentCanAccessRemoteUrls: true
+                settings.localContentCanAccessFileUrls: false
+                settings.autoLoadImages: appSettings.autoLoadImages
+                settings.javascriptEnabled: appSettings.javaScriptEnabled
+                settings.errorPageEnabled: appSettings.errorPageEnabled
+                settings.pluginsEnabled: appSettings.pluginsEnabled
+                settings.fullScreenSupportEnabled: appSettings.fullScreenSupportEnabled
+                settings.autoLoadIconsForPage: appSettings.autoLoadIconsForPage
+                settings.touchIconsEnabled: appSettings.touchIconsEnabled
+                settings.webRTCPublicInterfacesOnly: appSettings.webRTCPublicInterfacesOnly
+                settings.pdfViewerEnabled: appSettings.pdfViewerEnabled
+                settings.imageAnimationPolicy: appSettings.imageAnimationPolicy
+                settings.screenCaptureEnabled: true
+                settings.javascriptCanAccessClipboard: appSettings.javascriptCanAccessClipboard
+                settings.javascriptCanPaste: appSettings.javascriptCanPaste
+
+                onWindowCloseRequested: function() {
+                    tabBar.removeView(webEngineView.index);
+                }
+
+                onCertificateError: function(error) {
+                    if (!error.isMainFrame) {
+                        error.rejectCertificate();
+                        return;
+                    }
+
+                    error.defer();
+                    sslDialog.enqueue(error);
+                }
+
+                onNewWindowRequested: function(request) {
+                    if (!request.userInitiated)
+                        console.warn("Blocked a popup window.");
+                    else if (request.destination === WebEngineNewWindowRequest.InNewTab) {
+                        let tab = tabBar.createTab(win.currentWebView.profile, true, request.requestedUrl);
+                        tab.acceptAsNewWindow(request);
+                    } else if (request.destination === WebEngineNewWindowRequest.InNewBackgroundTab) {
+                        let backgroundTab = tabBar.createTab(win.currentWebView.profile, false);
+                        backgroundTab.acceptAsNewWindow(request);
+                    } else if (request.destination === WebEngineNewWindowRequest.InNewDialog) {
+                        let dialog = BrowserManager.createDialog(win.currentWebView.profile);
+                        dialog.currentWebView.acceptAsNewWindow(request);
+                    } else {
+                        let window = BrowserManager.createWindow(win.currentWebView.profile);
+                        window.currentWebView.acceptAsNewWindow(request);
+                    }
+                }
+
+                onFullScreenRequested: function(request) {
+                    if (request.toggleOn) {
+                        webEngineView.state = "FullScreen";
+                        win.previousVisibility = win.visibility;
+                        win.showFullScreen();
+                        fullScreenNotification.show();
+                    } else {
+                        webEngineView.state = "";
+                        win.visibility = win.previousVisibility;
+                        fullScreenNotification.hide();
+                    }
+                    request.accept();
+                }
+
+                onRegisterProtocolHandlerRequested: function(request) {
+                    console.log("accepting registerProtocolHandler request for "
+                                + request.scheme + " from " + request.origin);
+                    request.accept();
+                }
+
+                onDesktopMediaRequested: function(request) {
+                    // select the primary screen
+                    request.selectScreen(request.screensModel.index(0, 0));
+                }
+
+                onRenderProcessTerminated: function(terminationStatus, exitCode) {
+                    var status = "";
+                    switch (terminationStatus) {
+                    case WebEngineView.NormalTerminationStatus:
+                        status = "(normal exit)";
+                        break;
+                    case WebEngineView.AbnormalTerminationStatus:
+                        status = "(abnormal exit)";
+                        break;
+                    case WebEngineView.CrashedTerminationStatus:
+                        status = "(crashed)";
+                        break;
+                    case WebEngineView.KilledTerminationStatus:
+                        status = "(killed)";
+                        break;
+                    }
+
+                    print("Render process exited with code " + exitCode + " " + status);
+                    Qt.callLater(function() { win.currentWebView.reload() })
+                }
+
+                onSelectClientCertificate: function(selection) {
+                    selection.certificates[0].select();
+                }
+
+                onFindTextFinished: function(result) {
+                    if (!findBar.visible)
+                        findBar.visible = true;
+
+                    findBar.numberOfMatches = result.numberOfMatches;
+                    findBar.activeMatch = result.activeMatch;
+                }
+
+                onLoadingChanged: function(loadRequest) {
+                    if (loadRequest.status === WebEngineView.LoadStartedStatus)
+                        findBar.reset();
+                }
+
+                onPermissionRequested: function(permission) {
+                    permissionDialog.permission = permission;
+                    permissionDialog.visible = true;
+                }
+                onWebAuthUxRequested: function(request) {
+                    webAuthDialog.init(request);
+                }
+            }
+        }
+    }
+    WebEngineView {
+        id: devToolsWebEngineView
+        visible: devToolsEnabledMenuItem.checked
+        height: visible ? 400 : 0
+        inspectedView: visible && tabBar.currentIndex < tabBar.count ? tabLayout.children[tabBar.currentIndex] : null
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        onNewWindowRequested: function(request) {
+            var tab = tabBar.createTab(win.currentWebView.profile);
+            request.openIn(tab);
+        }
+
+        onWindowCloseRequested: function() {
+            // Delay hiding for keep the inspectedView set to receive the ACK message of close.
+            Qt.callLater(function() { devToolsEnabledMenuItem.checked = false })
+        }
+    }
+    Dialog {
+        id: sslDialog
+        anchors.centerIn: parent
+        contentWidth: Math.max(mainTextForSSLDialog.width, detailedTextForSSLDialog.width)
+        contentHeight: mainTextForSSLDialog.height + detailedTextForSSLDialog.height
+        property var certErrors: []
+        // fixme: icon!
+        // icon: StandardIcon.Warning
+        standardButtons: Dialog.No | Dialog.Yes
+        title: "Server's certificate not trusted"
+        contentItem: Item {
+            Label {
+                id: mainTextForSSLDialog
+                text: "Do you wish to continue?"
+            }
+            Text {
+                id: detailedTextForSSLDialog
+                anchors.top: mainTextForSSLDialog.bottom
+                text: "If you wish so, you may continue with an unverified certificate.\n" +
+                      "Accepting an unverified certificate means\n" +
+                      "you may not be connected with the host you tried to connect to.\n" +
+                      "Do you wish to override the security check and continue?"
+            }
+        }
+
+        onAccepted: {
+            certErrors.shift().acceptCertificate();
+            presentError();
+        }
+        onRejected: reject()
+
+        function reject(){
+            certErrors.shift().rejectCertificate();
+            presentError();
+        }
+        function enqueue(error){
+            certErrors.push(error);
+            presentError();
+        }
+        function presentError(){
+            visible = certErrors.length > 0
+        }
+    }
+    Dialog {
+        id: permissionDialog
+        anchors.centerIn: parent
+        width: Math.min(win.width, win.height) / 3 * 2
+        contentWidth: mainTextForPermissionDialog.width
+        contentHeight: mainTextForPermissionDialog.height
+        standardButtons: Dialog.No | Dialog.Yes
+        title: "Permission Request"
+
+        property var permission;
+
+        contentItem: Item {
+            Label {
+                id: mainTextForPermissionDialog
+            }
+        }
+
+        onAccepted: permission.grant()
+        onRejected: permission.deny()
+        onVisibleChanged: {
+            if (visible) {
+                mainTextForPermissionDialog.text = questionForPermissionType();
+                width = contentWidth + 20;
+            }
+        }
+
+        function questionForPermissionType() {
+            var question = "Allow " + permission.origin + " to "
+
+            switch (permission.permissionType) {
+            case WebEnginePermission.PermissionType.Geolocation:
+                question += "access your location information?";
+                break;
+            case WebEnginePermission.PermissionType.MediaAudioCapture:
+                question += "access your microphone?";
+                break;
+            case WebEnginePermission.PermissionType.MediaVideoCapture:
+                question += "access your webcam?";
+                break;
+            case WebEnginePermission.PermissionType.MediaAudioVideoCapture:
+                question += "access your microphone and webcam?";
+                break;
+            case WebEnginePermission.PermissionType.MouseLock:
+                question += "lock your mouse cursor?";
+                break;
+            case WebEnginePermission.PermissionType.DesktopVideoCapture:
+                question += "capture video of your desktop?";
+                break;
+            case WebEnginePermission.PermissionType.DesktopAudioVideoCapture:
+                question += "capture audio and video of your desktop?";
+                break;
+            case WebEnginePermission.PermissionType.Notifications:
+                question += "show notification on your desktop?";
+                break;
+            case WebEnginePermission.PermissionType.ClipboardReadWrite:
+                question += "read from and write to your clipboard?";
+                break;
+            case WebEnginePermission.PermissionType.LocalFontsAccess:
+                question += "access the fonts stored on your machine?";
+                break;
+            default:
+                question += "access unknown or unsupported permission type [" + permission.permissionType + "] ?";
+                break;
+            }
+
+            return question;
+        }
+    }
+
+    FullScreenNotification {
+        id: fullScreenNotification
+    }
+
+    DownloadView {
+        id: downloadView
+        visible: false
+        anchors.fill: parent
+    }
+
+    WebAuthDialog {
+        id: webAuthDialog
+        visible: false
+        width: Math.min(win.width, win.height) / 3 * 2
+    }
+
+    MessageDialog {
+        id: downloadAcceptDialog
+        property var downloadRequest: downloadView.pendingDownloadRequest
+        title: "Download requested"
+        text: downloadRequest ? downloadRequest.suggestedFileName : ""
+        buttons: Dialog.No | Dialog.Yes
+        onAccepted: {
+            downloadView.visible = true;
+            downloadView.append(downloadRequest);
+            downloadRequest.accept();
+        }
+        onRejected: {
+            downloadRequest.cancel();
+        }
+        onButtonClicked: {
+            visible = false;
+        }
+        visible: false
+    }
+
+    function onDownloadRequested(download) {
+        downloadView.pendingDownloadRequest = download;
+        downloadAcceptDialog.visible = true;
+    }
+
+    FindBar {
+        id: findBar
+        visible: false
+        anchors.right: parent.right
+        anchors.rightMargin: 10
+        anchors.top: parent.top
+
+        onFindNext: {
+            if (text)
+                win.currentWebView?.findText(text);
+            else if (!visible)
+                visible = true;
+        }
+        onFindPrevious: {
+            if (text)
+                win.currentWebView?.findText(text, WebEngineView.FindBackward);
+            else if (!visible)
+                visible = true;
+        }
+    }
+
+
+    Rectangle {
+        id: statusBubble
+        color: "oldlace"
+        property int padding: 8
+        visible: false
+
+        anchors.left: parent.left
+        anchors.bottom: parent.bottom
+        width: statusText.paintedWidth + padding
+        height: statusText.paintedHeight + padding
+
+        Text {
+            id: statusText
+            anchors.centerIn: statusBubble
+            elide: Qt.ElideMiddle
+
+            Timer {
+                id: hideStatusText
+                interval: 750
+                onTriggered: {
+                    statusText.text = "";
+                    statusBubble.visible = false;
+                }
+            }
+        }
+    }
+
+    onClosing: function(closeEvent) {
+       if (lastTabClosing) {
+           return;
+       }
+       closeEvent.accepted = false
+       for (let i = 0; i < tabBar.count; i++)  {
+           tabBar.tryCloseView(i);
+       }
+    }
+}

@@ -1,0 +1,13 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  // Counts one value from one histogram logged with
+  // UMA_HISTOGRAM_ENUMERATION macro.
+  name: $[NAME]
+  sql:
+    '''
+      INCLUDE PERFETTO MODULE sql_packages.queries.uma_histogram_summaries;
+      SELECT * FROM uma_histogram_enum_macro!('$[NAME]');
+    '''
+}

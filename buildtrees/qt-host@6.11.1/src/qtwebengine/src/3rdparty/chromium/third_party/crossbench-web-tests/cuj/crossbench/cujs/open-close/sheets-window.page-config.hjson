@@ -1,0 +1,14 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  pages: {
+    open-close: {
+      template: ./action-blocks/open-close.hjson
+      args: {
+        URL: https://docs.google.com/spreadsheets/d/1Acn9EMcQVTA5RFAFgSk9FXEGkHzcKO8-jSrym9XAEk0/edit?usp=sharing
+        TARGET: _new_window
+      }
+    }
+  }
+}

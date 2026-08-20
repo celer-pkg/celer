@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+-->
+<scxml
+    xmlns="http://www.w3.org/2005/07/scxml"
+    version="1.0"
+    name="Directions"
+    initial="anyplace"
+>
+    <state id="anyplace">
+        <invoke type="http://www.w3.org/TR/scxml/">
+            <content>
+                <scxml name="anywhere" version="1.0">
+                    <state id="here">
+                        <transition event="goThere" target="there"/>
+                    </state>
+                    <state id="there">
+                        <transition event="goHere" target="here"/>
+                    </state>
+                </scxml>
+            </content>
+        </invoke>
+    </state>
+</scxml>

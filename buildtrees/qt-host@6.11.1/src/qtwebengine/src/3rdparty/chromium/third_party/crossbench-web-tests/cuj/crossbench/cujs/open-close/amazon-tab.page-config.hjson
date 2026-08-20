@@ -1,0 +1,14 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  pages: {
+    open-close: {
+      template: ./action-blocks/open-close.hjson
+      args: {
+        URL: https://www.amazon.com/Pampers-Sensitive-Water-Based-Diaper-Pop-Top/dp/B01C3H4ZTY/
+        TARGET: _new_tab
+      }
+    }
+  }
+}

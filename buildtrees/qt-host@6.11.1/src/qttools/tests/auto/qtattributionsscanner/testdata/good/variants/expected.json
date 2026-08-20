@@ -1,0 +1,29 @@
+[
+    {
+        "CPE": [],
+        "Copyright": "",
+        "CopyrightFile": "%{PWD}/COPYRIGHT.txt",
+        "Description": "",
+        "DownloadLocation": "",
+        "Files": "",
+        "Homepage": "",
+        "Id": "variants",
+        "License": "License",
+        "LicenseFiles": [
+            "%{PWD}/LICENSE.1.txt",
+            "%{PWD}/LICENSE.2.txt"
+        ],
+        "LicenseId": "",
+        "Name": "Variants Test",
+        "PURL": [],
+        "PackageComment": "",
+        "Path": "%{PWD}",
+        "QDocModule": "qtest",
+        "QtParts": [
+            "libs"
+        ],
+        "QtUsage": "Usage",
+        "SecurityCritical": false,
+        "Version": ""
+    }
+]

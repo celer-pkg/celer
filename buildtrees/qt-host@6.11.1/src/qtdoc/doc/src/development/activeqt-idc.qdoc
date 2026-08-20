@@ -1,0 +1,44 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page activeqt-idc.html
+    \title IDC - The Interface Description Compiler (ActiveQt)
+
+    \ingroup activeqt-tools
+
+    \keyword idc
+
+    The IDC tool is part of the ActiveQt build system and makes
+    it possible to turn any Qt binary into a full COM object server
+    with only a few lines of code.
+
+    IDC understands the following command line parameters:
+
+    \table
+    \header
+    \li Option
+    \li Result
+    \row
+    \li dll -idl idl -version x.y
+    \li Writes the IDL of the server \e dll to the file \e idl. The
+       type library will have version x.y.
+    \row
+    \li dll -tlb tlb
+    \li Replaces the type library in \e dll with \e tlb
+    \row
+    \li -v
+    \li Print version information
+    \row
+    \li -regserver dll
+    \li Register the COM server \e dll
+    \row
+    \li -unregserver
+    \li Unregister the COM server \e dll
+    \endtable
+
+    It is usually never necessary to invoke IDC manually, as the \c
+    qmake build system takes care of adding the required post
+    processing steps to the build process.
+    See the \l[QtActiveQt]{ActiveQt} documentation for details.
+*/

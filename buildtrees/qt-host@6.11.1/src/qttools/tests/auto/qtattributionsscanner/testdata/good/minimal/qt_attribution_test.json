@@ -1,0 +1,11 @@
+{
+  "Id": "minimal",
+  "Name": "Minimal",
+
+  "QDocModule": "qtest",
+  "QtUsage": "Usage",
+  "License": "License",
+  "Copyright": "Copyright",
+  "CPE": "cpe:2.3:a:qt:qtbase:test-version:*:*:*:*:*:*:*",
+  "PURL": "pkg:github/qt/qtbase@test-version"
+}

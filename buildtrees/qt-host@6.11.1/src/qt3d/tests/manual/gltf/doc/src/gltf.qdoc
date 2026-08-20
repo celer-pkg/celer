@@ -1,0 +1,8 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example gltf
+    \title Qt 3D: glTF Assets Example
+    \ingroup qt3d-examples-qml
+*/

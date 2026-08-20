@@ -1,0 +1,7 @@
+
+1. Build featcheck
+2. Add build directory to path
+3. Switch to the directory containing json files (in subdirectories)
+4. Enter command
+    find * -name *.json -printf '\n\n%p:\n\n' -exec featcheck {} \; &>log
+5. The results are now found in the log file

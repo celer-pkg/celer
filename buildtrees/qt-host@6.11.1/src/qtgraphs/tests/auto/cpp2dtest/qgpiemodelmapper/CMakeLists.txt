@@ -1,0 +1,10 @@
+qt_internal_add_test(tst_qgpiemodelmapper2d
+    SOURCES
+        tst_piemodelmapper.cpp
+    INCLUDE_DIRECTORIES
+        ../common
+    LIBRARIES
+        Qt::Gui
+        Qt::GuiPrivate
+        Qt::Graphs
+)

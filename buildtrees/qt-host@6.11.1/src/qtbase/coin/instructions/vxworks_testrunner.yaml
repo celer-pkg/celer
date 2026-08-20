@@ -1,0 +1,157 @@
+type: Group
+instructions:
+  - type: WriteFile
+    filename: "{{.AgentWorkingDir}}/coin_vxworks_qemu_runner.sh"
+    fileMode: 493
+    fileContents: |
+      #!/bin/bash
+
+      # Seconds of serial silence before triggering an SSH probe; also the cadence for repeated probes
+      EMPTY_READ_GRACE=60
+
+      # Maximum time (s) with no output while waiting; exceeding this triggers a timeout failure
+      MAX_WAIT_TIME=700
+
+      quoted_args=`python3 -c 'import sys, shlex; print(shlex.join(sys.argv[2:]))' "$@"`
+
+      ssh_cmd() {
+      LD_LIBRARY_PATH=/usr/lib ssh -n -q -T \
+          -o BatchMode=yes -o ConnectTimeout=1 -o HostKeyAlgorithms=+ssh-rsa \
+          -o PreferredAuthentications=publickey \
+          -o NumberOfPasswordPrompts=0 \
+          ${VXWORKS_SSH} "$@" </dev/null
+      }
+
+      ssh_probe_status() {
+          # Returns one of: FINISHED | RUNNING | UNRESPONSIVE
+          local out
+          out="$(ssh_cmd 'cmd rtp list; exit' 2>&1 || true)"
+          # If we don't see the normal SSH epilogue ("Au revoir!"), treat as UNRESPONSIVE
+          # (system is probably under a heavy load)
+          if ! printf '%s\n' "$out" | /usr/bin/grep -q 'Au revoir!'; then
+              echo "UNRESPONSIVE"
+              return 0
+          fi
+          # Determine if our RTP is present; currently we match by 'tests' substring in 'rtp list' output
+          if printf '%s\n' "$out" | /usr/bin/grep -Fq "tests"; then
+              echo "RUNNING"
+          else
+              echo "FINISHED"
+          fi
+      }
+
+      testdir="$(dirname $1)"
+      testexecutable="$1"
+      echo RUNNING via serial: "$quoted_args"
+      echo "cmd rtp exec -p 200 -t 0x01000000 -u 0x1000000 $testexecutable -- $quoted_args" > /home/qt/work/vx.sh
+      echo "cmd echo \"qtest_in_vxworks_complete: $?\"" >> /home/qt/work/vx.sh
+      #rtp exec            Execute a process.
+      #               -p : specify the initial task priority
+      #                     200 is high, 255 max
+      #               -t : task options for the RTPs initial task
+      #                    0x01000000 turn on coprocessor
+      #               -u : specify the size of the process task stack
+      #               -- : mark the end of "rtp exec" options.
+
+      # qtest_in_vxworks_complete echo is used to detect test process completion as it will
+      # be echoed after test process ends normally or crashes when normal log lines are not present.
+
+      # Check that emulator is functioning
+      ( echo "cmd echo \"health check\"" > /tmp/guest.in ) & pid=$!
+      ( sleep 5 && kill -HUP $pid ) 2>/dev/null & watcher=$!
+      wait $pid 2>/dev/null && pkill -HUP -P $watcher
+
+      if [[ "$?" -eq "0" ]]; then
+          read -t 5 echoline</tmp/guest.out
+          read -t 1 testline</tmp/guest.out
+      fi
+
+      probe0="$(ssh_probe_status)"
+
+      if [[ -z "$testline" || "$probe0" != "FINISHED" ]]; then
+          if [[ "$probe0" == "UNRESPONSIVE" ]]; then
+              echo "Restarting stuck emulator (SSH down)"
+          elif [[ "$probe0" == "RUNNING" ]]; then
+              echo "Restarting stuck emulator (RTP still running)"
+          else
+              echo "Restarting stuck emulator (serial down)"
+          fi
+          pkill qemu-system
+          rm /tmp/guest.in /tmp/guest.out
+          mkfifo /tmp/guest.in /tmp/guest.out
+          /bin/bash /home/qt/vxworks_qemu_launcher.sh $VXWORKS_EMULATOR_TYPE
+          sleep 1
+          /bin/bash /home/qt/work/coin_vxworks_vars.sh
+          sleep 1
+      else
+          echo "VxWorks is functional"
+      fi
+
+      # Empty out any pending serial output to start clean
+      while read -t 1 line; do
+          echo $line
+      done < /tmp/guest.out
+
+      echo "cmd cd $testdir; echo done" > /tmp/guest.in
+
+      # Empty line before result of cd
+      read -t 1 line_cmd </tmp/guest.out
+
+      if read -t 1 cdline </tmp/guest.out; then
+          cdline_clean=$(printf '%s' "$cdline" | tr -d '\r')
+          if printf '%s' "$cdline_clean" | /usr/bin/grep -Eq 'error\s*='; then
+              printf 'entering %s: %s\n' "$testdir" "$cdline_clean"
+              exit 1
+          fi
+      fi
+
+      echo "</home/qt/work/vx.sh" > /tmp/guest.in
+
+      silent_seconds=0
+      last_probe_result="NONE"
+
+      while true; do
+          if ! read -t $EMPTY_READ_GRACE line; then
+              silent_seconds=$((silent_seconds + EMPTY_READ_GRACE))
+
+              probe="$(ssh_probe_status)"
+              last_probe_result="$probe"
+              if [[ "$probe" == "UNRESPONSIVE" ]]; then
+                  echo "system is under heavy load after ${silent_seconds}s of silence (SSH unresponsive)"
+              elif [[ "$probe" == "FINISHED" ]]; then
+                  echo "RTP finished after ${silent_seconds}s of silence, ending"
+                  exit 0
+              fi
+              # RUNNING or UNRESPONSIVE - keep waiting
+              if (( silent_seconds >= MAX_WAIT_TIME )); then
+                  echo "Timeout: no output for ${MAX_WAIT_TIME}s (last SSH probe: ${last_probe_result})"
+                  exit 1
+              fi
+              continue
+          fi
+
+          # We received serial output
+          silent_seconds=0
+
+          echo "$line"
+
+          if echo "$line" | /usr/bin/grep -q "qtest_in_vxworks_complete"
+          then
+              read -t 1 line</tmp/guest.out
+              echo "$line"
+              exitcode=$(echo "$line" | sed -nr 's/qtest_in_vxworks_complete: (-?[0-9]+)/\1/gp' | tr -d '\r')
+              exit $exitcode
+          fi
+
+          # Handle crashes
+          if echo "$line" | /usr/bin/grep -qE "(SIGSEGV)|(SIGABRT)|(S_rtpLib_[A-Z_]+)"
+          then
+              # Drain the pipe for context, mark as crashed, and restart emulator next run.
+              while read -t 1 line; do
+                  echo $line
+              done < /tmp/guest.out
+              echo "Test crashed"
+              pkill qemu-system
+              exit 1
+          fi
+      done < /tmp/guest.out

@@ -1,0 +1,81 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+
+syntax = "proto3";
+
+package QtCore;
+
+message QUrl {
+    string url = 1;
+}
+
+message QChar {
+    uint32 utf16_code_point = 1;
+}
+
+message QUuid {
+    bytes rfc4122_uuid = 1;
+}
+
+message QTimeZone {
+    enum TimeSpec {
+        LocalTime = 0;
+        UTC = 1;
+    }
+    oneof timeZone {
+        int32 offsetSeconds = 1;
+        bytes ianaId = 2;
+        TimeSpec timeSpec = 3;
+    }
+}
+
+message QTime {
+    int32 milliseconds_since_midnight = 1;
+}
+
+message QDate {
+    int64 julian_day = 1;
+}
+
+message QDateTime {
+    int64 utc_msecs_since_unix_epoch = 1;
+    QTimeZone timeZone = 2;
+}
+
+message QSize {
+    int32 width = 1;
+    int32 height = 2;
+}
+
+message QSizeF {
+    double width = 1;
+    double height = 2;
+}
+
+message QPoint {
+    sint32 x = 1;
+    sint32 y = 2;
+}
+
+message QPointF {
+    double x = 1;
+    double y = 2;
+}
+
+message QRect {
+    sint32 x = 1;
+    sint32 y = 2;
+    int32 width = 3;
+    int32 height = 4;
+}
+
+message QRectF {
+    double x = 1;
+    double y = 2;
+    double width = 3;
+    double height = 4;
+}
+
+message QVersionNumber {
+    repeated int32 segments = 1;
+}

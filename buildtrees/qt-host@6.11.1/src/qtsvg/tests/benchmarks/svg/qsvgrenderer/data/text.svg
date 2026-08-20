@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="500">
+  <defs>
+    <g id="loremIpsum" font-family="sans-serif" font-size="20px">
+      <text x="20" y="20">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed eiusmod
+        tempor incidunt ut labore</text>
+      <text x="20" y="50">et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+        exercitation ullamco laboris</text>
+      <text x="20" y="80">nisi ut aliquid ex ea commodi consequat. Quis aute iure reprehenderit in
+        voluptate velit esse</text>
+    </g>
+  </defs>
+  <use href="#loremIpsum" y="20"/>
+  <use href="#loremIpsum" y="140" fill="green" stroke="blue" font-weight="bold"/>
+  <use href="#loremIpsum" y="260" fill="green" stroke="blue" font-weight="bold" fill-opacity="0.3"/>
+  <use href="#loremIpsum" y="380" fill="green" stroke="blue" font-weight="bold" stroke-opacity="0.3"/>
+</svg>

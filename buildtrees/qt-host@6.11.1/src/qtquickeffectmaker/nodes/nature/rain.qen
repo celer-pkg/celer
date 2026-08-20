@@ -1,0 +1,63 @@
+{
+    "QEN": {
+        "description": "Generates rain effect.",
+        "fragmentCode": [
+            "@main",
+            "{",
+            "    float rain = 0.0;",
+            "    float time = iTime * 0.4;",
+            "    for (int i = 0; i < rainLayers; i++) {",
+            "        float rainMovement = time * (1.0 + (float(i) / (rainLayers- i)) * 0.5);",
+            "        float coordY = fract(0.35 * i + texCoord.y * (rainTextureScale.y + i * rainTextureScale.w) - rainMovement);",
+            "        float coordX = fract(0.65 * i + (texCoord.x + rainWind * texCoord.y ) * (rainTextureScale.x + i * rainTextureScale.z));",
+            "        vec2 rainCoord = vec2(coordX, coordY);",
+            "        float rainTex = texture(rainTexture, rainCoord).a;",
+            "        float rainAlpha = float(i + 1.0) / rainLayers;",
+            "        rain += rainTex * rainAlpha;",
+            "    }",
+            "    vec3 rColor = rainColor.rgb * (1.0 / (0.01 + rainColor.a));",
+            "    fragColor.rgb = mix(fragColor.rgb, rColor * fragColor.a, rain * rainColor.a);",
+            "}"
+        ],
+        "name": "Rain",
+        "properties": [
+            {
+                "defaultValue": "../images/rain.png",
+                "description": "Texture for the rain effect. This should support seamless tiling.",
+                "name": "rainTexture",
+                "type": "image"
+            },
+            {
+                "defaultValue": "4",
+                "description": "The amount of rain layers. Increasing the layers adds variation to the rain effect but also requires more processing power. The default value is 4 and practical range is between 1 and 10.",
+                "maxValue": "10",
+                "minValue": "1",
+                "name": "rainLayers",
+                "type": "int"
+            },
+            {
+                "defaultValue": "1, 0.5, 0.2, 0.1",
+                "description": "Scaling of the rain texture. Values of x and y define scaling of the first rain layer and values z and w define the scaling step size of each following rain layer. So if values of z and w are 0.0, all rain layers have the same size.",
+                "maxValue": "2, 2, 1, 1",
+                "minValue": "0.1, 0.1, 0, 0",
+                "name": "rainTextureScale",
+                "type": "vec4"
+            },
+            {
+                "defaultValue": "0",
+                "description": "Defines wind direction for the rain. The default value is 0.0 and practical range is between -1.0 and 1.0.",
+                "maxValue": "1",
+                "minValue": "-1",
+                "name": "rainWind",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0.8, 0.8, 1, 1",
+                "description": "Defines the color of the rain. The default value is light blue (0.8, 0.8, 1.0, 1.0).",
+                "name": "rainColor",
+                "type": "color"
+            }
+        ],
+        "version": 1
+    }
+}

@@ -1,0 +1,37 @@
+<html>
+<head>
+  <title>Page with iframes</title>
+</head>
+<body>
+  <h1>Page with iframes</h1>
+
+  <div id="iframe-container">
+  </div>
+
+</body>
+
+<script>
+  function frameURL(num) {
+    return `https://chromium-workloads-${num}.web.app/web-tests/main/cuj/crossbench/cujs/tab-stress/multiprocess/frame-contents/`;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  
+  var count = params.get('count') || 0;
+
+  let frame_container = document.getElementById("iframe-container")
+
+  for (let i = 0; i < count; ++i) {
+    let element = document.createElement("span");
+
+    frame = document.createElement("iframe");
+    frame.width = 500;
+    frame.height = 500;
+    element.appendChild(frame);
+    frame.src = frameURL(i)
+
+    frame_container.appendChild(element);
+  }
+</script>
+
+</html>

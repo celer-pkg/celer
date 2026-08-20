@@ -1,0 +1,14 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example qmlmodelviewclient
+    \title QML Model-View Client
+    \brief Making a QAbstractItemModelReplica available to QML and using it from QML.
+    \ingroup qtremoteobjects-examples
+
+    This is an alternate client application you can use along with the \l {Model-View Server}.
+
+    See the \l {Model-View Client} example for a
+    more detailed explanation on how the model is acquired and used.
+*/

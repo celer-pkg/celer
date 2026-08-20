@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>AddressBar.qml</file>
+        <file alias="touchpoint.png">../../touchmocking/touchpoint.png</file>
+    </qresource>
+</RCC>

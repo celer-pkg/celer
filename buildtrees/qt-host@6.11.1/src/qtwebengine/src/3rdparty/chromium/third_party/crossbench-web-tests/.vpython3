@@ -1,0 +1,381 @@
+# Copyright 2022 The Chromium Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+python_version: "3.11"
+
+# Mirrors .vpython3 in third_party/crossbench
+
+wheel: <
+  name: "infra/python/wheels/pytype/${vpython_platform}"
+  version: "version:2024.9.13"
+  not_match_tag: <
+    platform: "win_amd64"
+  >
+>
+
+wheel: <
+  name: "infra/python/wheels/pytest-py3"
+  version: "version:8.3.4"
+>
+
+wheel: <
+  name: "infra/python/wheels/mypy-py3"
+  version: "version:1.13.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/selenium-py3"
+  version: "version:4.28.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/psutil/${vpython_platform}"
+  version: "version:5.8.0.chromium.3"
+>
+
+wheel: <
+  name: "infra/python/wheels/websockets-py3"
+  version: "version:13.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/pyfakefs-py3"
+  version: "version:5.7.3"
+>
+
+wheel: <
+  name: "infra/python/wheels/attrs-py3"
+  version: "version:24.2.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/py-py2_py3"
+  version: "version:1.11.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/pysocks-py3"
+  version: "version:1.7.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/execnet-py3"
+  version: "version:2.0.2"
+>
+
+wheel: <
+  name: "infra/python/wheels/pluggy-py3"
+  version: "version:1.5.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/colorama-py2_py3"
+  version: "version:0.4.6"
+>
+
+wheel: <
+  name: "infra/python/wheels/iniconfig-py3"
+  version: "version:1.1.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/pytest-xdist-py3"
+  version: "version:3.3.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/immutabledict-py3"
+  version: "version:4.1.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/pyyaml-py3"
+  version: "version:6.0.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/typing-inspect-py3"
+  version: "version:0.7.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/mypy-extensions-py3"
+  version: "version:1.0.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/importlab-py3"
+  version: "version:0.8.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/networkx-py3"
+  version: "version:3.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/ninja/${vpython_platform}"
+  version: "version:1.10.2.4.chromium.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/libcst/${vpython_platform}"
+  version: "version:1.1.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/typing-extensions-py3"
+  version: "version:4.12.2"
+>
+
+wheel: <
+  name: "infra/python/wheels/jinja2-py3"
+  version: "version:3.1.4"
+>
+
+wheel: <
+  name: "infra/python/wheels/toml-py3"
+  version: "version:0.10.2"
+>
+
+wheel: <
+  name: "infra/python/wheels/packaging-py3"
+  version: "version:24.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/pyparsing-py3"
+  version: "version:3.2.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/six-py2_py3"
+  version: "version:1.16.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/trio-py3"
+  version: "version:0.22.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/trio-websocket-py3"
+  version: "version:0.10.3"
+>
+
+wheel: <
+  name: "infra/python/wheels/exceptiongroup-py3"
+  version: "version:1.1.2"
+>
+
+wheel: <
+  name: "infra/python/wheels/urllib3-py3"
+  version: "version:2.1.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/sortedcontainers-py3"
+  version: "version:2.4.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/outcome-py3"
+  version: "version:1.2.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/sniffio-py3"
+  version: "version:1.3.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/idna-py3"
+  version: "version:3.4"
+>
+
+wheel: <
+  name: "infra/python/wheels/wsproto-py3"
+  version: "version:1.2.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/h11-py3"
+  version: "version:0.14.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/certifi-py3"
+  version: "version:2024.7.4"
+>
+
+wheel: <
+  name: "infra/python/wheels/cffi/${vpython_platform}"
+  version: "version:1.15.1.chromium.2"
+>
+
+wheel: <
+  name: "infra/python/wheels/pycparser-py2_py3"
+  version: "version:2.21"
+>
+
+wheel: <
+  name: "infra/python/wheels/ordered-set-py3"
+  version: "version:4.1.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/tabulate-py3"
+  version: "version:0.9.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/hjson-py2_py3"
+  version: "version:3.1.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/pycnite-py3"
+  version: "version:2024.07.31"
+>
+
+wheel: <
+  name: "infra/python/wheels/requests-py3"
+  version: "version:2.31.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/charset_normalizer-py3"
+  version: "version:3.3.2"
+>
+
+wheel: <
+  name: "infra/python/wheels/debugpy/${vpython_platform}"
+  version: "version:1.8.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/markupsafe/${vpython_platform}"
+  version: "version:2.1.5"
+>
+
+wheel: <
+  name: "infra/python/wheels/pydot-py2_py3"
+  version: "version:1.4.2"
+>
+
+wheel: <
+  name: "infra/python/wheels/pandas/${vpython_platform}"
+  version: "version:2.2.3.chromium.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/python-dateutil-py2_py3"
+  version: "version:2.9.0"
+>
+
+
+wheel: <
+  name: "infra/python/wheels/numpy/${vpython_platform}"
+  version: "version:1.23.5.chromium.4"
+>
+
+wheel: <
+  name: "infra/python/wheels/pytz-py2_py3"
+  version: "version:2024.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/perfetto-py3"
+  version: "version:0.13.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/protobuf-py3"
+  version: "version:4.25.3"
+>
+
+wheel: <
+  name: "infra/python/wheels/pygments-py3"
+  version: "version:2.14.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/google-auth-py2_py3"
+  version: "version:2.32.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/rsa-py3"
+  version: "version:4.9.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/pyasn1_modules-py2_py3"
+  version: "version:0.3.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/cachetools-py3"
+  version: "version:5.3.3"
+>
+
+wheel: <
+  name: "infra/python/wheels/pyasn1-py2_py3"
+  version: "version:0.5.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/tzdata-py2_py3"
+  version: "version:2023.4"
+>
+
+wheel: <
+  name: "infra/python/wheels/msgspec/${vpython_platform}"
+  version: "version:0.18.6"
+>
+
+wheel: <
+  name: "infra/python/wheels/websocket_client-py2_py3"
+  version: "version:1.8.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/sqlalchemy/${vpython_platform}"
+  version: "version:2.0.4"
+>
+
+wheel: <
+  name: "infra/python/wheels/greenlet/${vpython_platform}"
+  version: "version:3.0.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/xlsxwriter-py3"
+  version: "version:3.2.2"
+>
+
+wheel: <
+  name: "infra/python/wheels/pywin32/${vpython_platform}"
+  version: "version:308"
+  match_tag: <
+    platform: "win32"
+  >
+  match_tag: <
+    platform: "win_amd64"
+  >
+>
+
+wheel: <
+  name: "infra/python/wheels/mobly-py3"
+  version: "version:1.12.4"
+>
+
+wheel: <
+  name: "infra/python/wheels/snippet-uiautomator-py3"
+  version: "version:1.1.2"
+>
+
+wheel: <
+  name: "infra/python/wheels/portpicker-py3"
+  version: "version:1.6.0"
+>

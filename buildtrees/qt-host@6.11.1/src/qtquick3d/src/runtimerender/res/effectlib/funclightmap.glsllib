@@ -1,0 +1,93 @@
+// Copyright (C) 2014 NVIDIA Corporation.
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#ifndef LIGHTMAP_GLSLLIB
+#define LIGHTMAP_GLSLLIB
+
+#ifdef QQ3D_SHADER_META
+/*{
+    "uniforms": [
+        { "type": "sampler2D", "name": "qt_lightmap" , "condition": "QSSG_ENABLE_LIGHTMAP" }
+    ]
+}*/
+#endif // QQ3D_SHADER_META
+
+#if QSSG_ENABLE_LIGHTMAP
+
+float qt_lightmap_w0(float a)
+{
+    return (1.0 / 6.0) * (a * (a * (-a + 3.0) - 3.0) + 1.0);
+}
+
+float qt_lightmap_w1(float a)
+{
+    return (1.0 / 6.0) * (a * a * (3.0 * a - 6.0) + 4.0);
+}
+
+float qt_lightmap_w2(float a)
+{
+    return (1.0 / 6.0) * (a * (a * (-3.0 * a + 3.0) + 3.0) + 1.0);
+}
+
+float qt_lightmap_w3(float a)
+{
+    return (1.0 / 6.0) * (a * a * a);
+}
+
+float qt_lightmap_g0(float a)
+{
+    return qt_lightmap_w0(a) + qt_lightmap_w1(a);
+}
+
+float qt_lightmap_g1(float a)
+{
+    return qt_lightmap_w2(a) + qt_lightmap_w3(a);
+}
+
+float qt_lightmap_h0(float a)
+{
+    return -1.0 + qt_lightmap_w1(a) / (qt_lightmap_w0(a) + qt_lightmap_w1(a));
+}
+
+float qt_lightmap_h1(float a)
+{
+    return 1.0 + qt_lightmap_w3(a) / (qt_lightmap_w2(a) + qt_lightmap_w3(a));
+}
+
+vec4 qt_lightmap_texture_bicubic(sampler2D tex, vec2 uv)
+{
+    vec2 sz = vec2(textureSize(tex, 0));
+    uv = uv * sz + vec2(0.5);
+    vec2 iuv = floor(uv);
+    vec2 fuv = fract(uv);
+
+    float g0x = qt_lightmap_g0(fuv.x);
+    float g1x = qt_lightmap_g1(fuv.x);
+    float h0x = qt_lightmap_h0(fuv.x);
+    float h1x = qt_lightmap_h1(fuv.x);
+    float h0y = qt_lightmap_h0(fuv.y);
+    float h1y = qt_lightmap_h1(fuv.y);
+
+    vec2 texel_size = vec2(1.0) / sz;
+    vec2 p0 = (vec2(iuv.x + h0x, iuv.y + h0y) - vec2(0.5)) * texel_size;
+    vec2 p1 = (vec2(iuv.x + h1x, iuv.y + h0y) - vec2(0.5)) * texel_size;
+    vec2 p2 = (vec2(iuv.x + h0x, iuv.y + h1y) - vec2(0.5)) * texel_size;
+    vec2 p3 = (vec2(iuv.x + h1x, iuv.y + h1y) - vec2(0.5)) * texel_size;
+
+    return (qt_lightmap_g0(fuv.y) * (g0x * texture(tex, p0) + g1x * texture(tex, p1))) + (qt_lightmap_g1(fuv.y) * (g0x * texture(tex, p2) + g1x * texture(tex, p3)));
+}
+
+vec3 qt_lightmap_color(vec2 uv)
+{
+    // The lightmap is a floating point texture and so linear.
+
+    // Use bicubic interpolation to avoid blocky shadows.
+    // (the sampler for qt_lightmap must use (bi)linear filtering)
+
+    return qt_lightmap_texture_bicubic(qt_lightmap, uv).rgb;
+}
+
+#endif
+
+#endif

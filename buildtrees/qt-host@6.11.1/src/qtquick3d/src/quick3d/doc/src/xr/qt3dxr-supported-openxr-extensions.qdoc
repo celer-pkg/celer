@@ -1,0 +1,101 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qt3dxr-supported-openxr-extensions
+    \title Supported OpenXR Extensions
+
+    This page lists all the OpenXR extensions which are implemented in QtQuick3D.Xr.
+
+    \note These extensions might not be supported on all OpenXR-based systems and, therefore,
+    functionality that depends on the extensions will not be available on these systems.
+
+    Khronos extension used in QtQuick3D.Xr
+    \list
+     \li
+        \l XR_KHR_D3D11_enable
+     \li
+        \l XR_KHR_D3D12_enable
+     \li
+        \l XR_KHR_android_create_instance
+     \li
+        \l XR_KHR_android_thread_settings
+     \li
+        \l XR_KHR_composition_layer_depth
+     \li
+        \l XR_KHR_opengl_enable
+     \li
+        \l XR_KHR_opengl_es_enable
+     \li
+        \l XR_KHR_vulkan_enable
+    \endlist
+
+    \table
+    \header
+     \li Vendor extensions used in QtQuick3D.Xr
+     \li QML type using the extension
+    \row
+     \li \l XR_EXT_debug_utils
+     \li
+    \row
+     \li \l XR_EXT_hand_tracking
+     \li XrController for hand tracking input data.
+    \row
+     \li \l XR_EXT_performance_settings
+     \li
+    \row
+     \li \l XR_FB_color_space
+     \li
+    \row
+     \li \l XR_FB_display_refresh_rate
+     \li
+    \row
+     \li \l XR_FB_foveation
+     \li
+    \row
+     \li \l XR_FB_foveation_configuration
+     \li
+    \row
+     \li \l XR_FB_hand_tracking_aim
+     \li XrController for hand tracking aim position.
+    \row
+     \li \l XR_FB_hand_tracking_mesh
+     \li XrHandModel for hand meshes.
+    \row
+     \li \l XR_FB_passthrough
+     \li XrView for setting XR_FB_passthrough
+    \row
+     \li \l XR_FB_scene
+     \li XrSpatialAnchor
+    \row
+     \li \l XR_FB_scene_capture
+     \li XrSpatialAnchor
+    \row
+     \li \l XR_FB_spatial_entity
+     \li XrSpatialAnchor
+    \row
+     \li \l XR_FB_spatial_entity_container
+     \li XrSpatialAnchor
+    \row
+     \li \l XR_FB_spatial_entity_query
+     \li XrSpatialAnchor
+    \row
+     \li \l XR_FB_spatial_entity_storage
+     \li XrSpatialAnchor
+    \row
+     \li \l XR_FB_swapchain_update_state
+     \li
+    \row
+     \li \l XR_FB_swapchain_update_state_opengl_es
+     \li
+    \row
+     \li \l XR_FB_swapchain_update_state_vulkan
+     \li
+    \row
+     \li \l XR_FB_triangle_mesh
+     \li
+    \row
+     \li \l XR_MSFT_hand_interaction
+     \li XrInputAction for pinch gestures
+    \endtable
+*/

@@ -1,0 +1,7 @@
+# Copyright (C) 2023 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+
+module ToDoList
+singleton Constants 1.0 Constants.qml
+singleton Database 1.0 Database.qml
+singleton AppSettings 1.0 AppSettings.qml

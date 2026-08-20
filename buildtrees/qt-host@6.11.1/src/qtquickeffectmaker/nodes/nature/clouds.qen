@@ -1,0 +1,164 @@
+{
+    "QEN": {
+        "description": "Draws animated sky by rendering tiled clouds texture with a perspective",
+        "fragmentCode": [
+            "@main",
+            "{",
+            "    vec4 texclouds = texture(cloudsTexture, fract(tc));",
+            "    texclouds.r = smoothstep(thresholds.s,  thresholds.t, texclouds.r) * cloudsBrightness;",
+            "    texclouds = mix(cloudsSkyColor, cloudsColor, texclouds.r);",
+            "    texclouds = mix(cloudsHorizonColor, texclouds, glowFactor);",
+            "",
+            "    fragColor = texclouds;",
+            "}"
+        ],
+        "name": "Clouds",
+        "properties": [
+            {
+                "defaultValue": "../images/clouds.png",
+                "description": "Repeating couds texture. The default image is 512x512 pixels and created using the GIMP tool by the following steps:\n1. Filters -> Render -> Noise -> Difference Clouds\n2. Filters -> Map -> Tile Seamless\n\nThe effect only uses the r channel of the texture.",
+                "name": "cloudsTexture",
+                "type": "image"
+            },
+            {
+                "defaultValue": "0.8",
+                "description": "This property defines the perspective for the clouds which makes the horizon appear further away. ",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "cloudsPerspective",
+                "type": "float"
+            },
+            {
+                "defaultValue": "1",
+                "description": "Amount of texture scale horizontally.",
+                "maxValue": "3",
+                "minValue": "0",
+                "name": "cloudsXScale",
+                "type": "float"
+            },
+            {
+                "defaultValue": "1",
+                "description": "Amount of texture scale vertically.",
+                "maxValue": "3",
+                "minValue": "0",
+                "name": "cloudsYScale",
+                "type": "float"
+            },
+            {
+                "defaultValue": "1, 0.4, 0.2, 1",
+                "description": "Color fading used in clouds horizon.",
+                "name": "cloudsHorizonColor",
+                "type": "color"
+            },
+            {
+                "defaultValue": "0.5",
+                "description": "The size of cloud horizon glow.",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "cloudsHorizonGlowSize",
+                "type": "float"
+            },
+            {
+                "defaultValue": "1, 1, 1, 1",
+                "description": "The color for clouds.",
+                "name": "cloudsColor",
+                "type": "color"
+            },
+            {
+                "defaultValue": "0.2, 0.4, 0.8, 1",
+                "description": "The base color of sky behind the clouds.",
+                "name": "cloudsSkyColor",
+                "type": "color"
+            },
+            {
+                "defaultValue": "0.5",
+                "description": "This property adjusts the thickness/amount of the clouds",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "cloudsThickness",
+                "type": "float"
+            },
+            {
+                "defaultValue": "1",
+                "description": "This property adjusts the brightness of the clouds",
+                "maxValue": "3",
+                "minValue": "0",
+                "name": "cloudsBrightness",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0.2",
+                "description": "This property defines how sharp or smooth the edges of the clouds are.",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "cloudsSharpness",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0",
+                "description": "This property affects the angle of the movement of the clouds if iTime is animated. This is a helper property that results in correctly calculated cloudsXSpeed and cloudsYSpeed values. The angle is in degrees and 0 is vertically aligned movement from bottom to top.",
+                "maxValue": "360",
+                "minValue": "0",
+                "name": "cloudsMovementAngle",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0.2",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "cloudsSpeed",
+                "type": "float"
+            },
+            {
+                "customValue": "Math.sin(cloudsMovementAngle / 180 * Math.PI) * cloudsSpeed",
+                "defaultValue": "0",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "cloudsXSpeed",
+                "type": "float",
+                "useCustomValue": true
+            },
+            {
+                "customValue": "Math.cos(cloudsMovementAngle / 180 * Math.PI) * cloudsSpeed",
+                "defaultValue": "0",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "cloudsYSpeed",
+                "type": "float",
+                "useCustomValue": true
+            }
+        ],
+        "version": 1,
+        "vertexCode": [
+            "@mesh 20,20",
+            "",
+            "out float glowFactor;",
+            "out float z;",
+            "out vec2 tc;",
+            "out vec2 thresholds;",
+            "",
+            "@main",
+            "{",
+            "    const float invY = 1. - texCoord.y;",
+            "    z = 1. / (1. - cloudsPerspective + cloudsPerspective * invY);",
+            "",
+            "    tc = texCoord;",
+            "",
+            "    tc.x -= 0.5;",
+            "    tc.x *= z * cloudsXScale;",
+            "    tc.y -= 0.5;",
+            "    tc.y *= z * cloudsYScale;",
+            "",
+            "    tc.x += iTime * cloudsXSpeed;",
+            "    tc.y += iTime * cloudsYSpeed;",
+            "",
+            "    thresholds.s = 1. - cloudsThickness;",
+            "    const float d = (1. - thresholds.s) * (5. - 5 * cloudsSharpness);",
+            "    thresholds.s -= cloudsThickness * d;",
+            "    thresholds.t = thresholds.s + d;",
+            "",
+            "    glowFactor = min(1., invY+ 1. - cloudsHorizonGlowSize);",
+            "}"
+        ]
+    }
+}

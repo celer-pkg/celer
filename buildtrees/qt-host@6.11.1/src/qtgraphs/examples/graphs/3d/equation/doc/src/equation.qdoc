@@ -1,0 +1,176 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example 3d/equation
+    \meta tags {Graphs, Bars3D, Scatter3D, Surface3D}
+    \examplecategory {Data Visualization}
+    \title Mathematical Equations
+    \ingroup qtgraphs_qmlexamples_3D
+    \brief Visualizing mathematical equations.
+
+    \e {Mathematical Equations} shows how to visualize mathematical equations in QML with
+    all the available graph types. It also shows how to integrate QtQuick3D scene into a graph
+    and how to adjust the outlook of the graph using \l{ExtendedSceneEnvironment}.
+
+    \image equation-example.png
+
+    For more information about basic QML application functionality, see \l{Simple Scatter Graph}.
+
+    \include examples-run.qdocinc
+
+    \section1 Setting up
+
+    The data for all the graph types can be stored in a common \l{ListModel}:
+
+    \snippet 3d/equation/qml/equation/Main.qml data model
+
+    The model is set for each graph type in the graph series:
+
+    \snippet 3d/equation/qml/equation/Main.qml surface series
+    \dots 0
+    \snippet 3d/equation/qml/equation/Main.qml bar series
+    \dots 0
+    \snippet 3d/equation/qml/equation/Main.qml scatter series
+
+    Setting the roles allows the data in the model to be mapped to the corresponding axes
+    automatically.
+
+    \section1 Parsing the equation
+
+    The equation can be typed into the text field using the following operators and mathematical
+    functions, and the required characters for using those functions:
+    \table
+    \header
+    \li Operators
+    \li Functions
+    \li Characters
+    \row
+    \li + - * / % ^
+    \li sin cos tan log exp sqrt
+    \li ( ) ,
+    \endtable
+
+    There is support for \c x and \c y as the parameters, as the data handled has two axes and the
+    value. The equation may have spaces around the operators, so both of the following styles are
+    fine:
+    \list
+    \li x^2+y^2
+    \li x ^ 2 + y ^ 2
+    \endlist
+
+    The equation is parsed using a JavaScript equation parser and calculator, which is imported
+    to QML:
+
+    \snippet 3d/equation/qml/equation/Main.qml equation parser
+
+    The calculator was posted to \l{https://stackoverflow.com/questions/2276021/evaluating-a-string-as-a-mathematical-expression-in-javascript}{Stack Overflow}
+    by \c tanguy_k in \l{https://gist.github.com/tkrotoff/b0b1d39da340f5fc6c5e2a79a8b6cec0}{TypeScript},
+    and has been converted to JavaScript to be usable from QML.
+
+    The equation parameters are filled in every time the equation changes or the column or row
+    counts are updated.
+
+    Looping the rows and columns:
+
+    \snippet 3d/equation/qml/equation/Main.qml loop through rows and columns
+
+    Filling in the values for \c x and \c{y}:
+
+    \snippet 3d/equation/qml/equation/Main.qml replace x and y
+    \dots 4
+
+    The equation is then passed to the JavaScript calculator to get the result, which is then added
+    to the data model by inserting them into the defined roles:
+
+    \snippet 3d/equation/qml/equation/Main.qml  calculate and add data
+
+    In case there is a mistake or an unknown operator or mathematical function in the equation,
+    the error thrown by the calculator is caught, and an error dialog is shown:
+
+    \snippet 3d/equation/qml/equation/Main.qml error dialog
+    \dots 4
+
+    Displaying the error message from the calculator:
+
+    \snippet 3d/equation/qml/equation/Main.qml in case of error
+
+    \section1 Graphs
+
+    The same data model is used for all three graph types. There are some differences between
+    setting the graphs up, though.
+
+    \section2 Surface
+
+    Surface graph is used to show the data without any specific modifications. It renders
+    the equation at each row and column with the calculation result.
+
+    The only changes done are setting the axis segment counts:
+
+    \snippet 3d/equation/qml/equation/Main.qml surface segment count
+
+    A range gradient is set for the theme to highlight the high and low values:
+
+    \snippet 3d/equation/qml/equation/Main.qml surface theme
+
+    The gradient itself is defined elsewhere to be usable by other themes.
+
+    \section2 Bars
+
+    For bars, range gradient is also used. The gradient utilizes slight transparency to make
+    seeing the values easier without rotating the graph that much. A slider has been added
+    to control the level of transparency.
+
+    \section2 Scatter
+
+    For scatter, the theme is adjusted a bit more in preparation for the
+    \l{Integrating a QtQuick3D scene}{QtQuick3D integrations}.
+
+    First, it will use a different gradient from the other two. Then, a dark color scheme is forced
+    on, unlike the other two, which use system preference. Finally, plot area background, labels,
+    and grid are hidden by setting their visibility to false.
+
+    Scatter graph is good at showing a large number of data points, which is why 3 data points
+    are added for each "row" and "column". Scatter does not have the concept of rows and columns,
+    which is why this can be done:
+
+    \snippet 3d/equation/qml/equation/Main.qml scatter data points
+
+    Because the scatter graph has a lot more data points than the other two graphs, it is better
+    to use the lightest available \l {Abstract3DSeries::mesh}{mesh type} for the points:
+
+    \snippet 3d/equation/qml/equation/Main.qml mesh type
+
+    \section1 Integrating a QtQuick3D scene
+
+    For the QtQuick3D types to be found, it has to be imported into the QML:
+
+    \snippet 3d/equation/qml/equation/Main.qml scene import
+
+    A QtQuick3D scene can be imported into the graph using the \l [QML] {View3D::}{importScene}
+    property. The scene can be a combination of \l{Model}s, \l{Light}s,
+    \l{ReflectionProbe}{reflection probes}, and other \l{Node}s contained in a root \l{Node}.
+    In this example, only a rectangle with an opacity map is added:
+
+    \snippet 3d/equation/qml/equation/Main.qml imported scene
+
+    \section1 Changing the outlook using QtQuick3D
+
+    For the \l ExtendedSceneEnvironment to be found, the following import is needed:
+
+    \snippet 3d/equation/qml/equation/Main.qml extendedsceneenvironment import
+
+    To override the default scene environment of the graph, the
+    \l {View3D::}{environment} property is added with an \l{ExtendedSceneEnvironment}.
+    In this case, \l{SceneEnvironment::}{backgroundMode},
+    \l{SceneEnvironment::}{clearColor}, and
+    \l{ExtendedSceneEnvironment::}{tonemapMode} are set. In addition,
+    \l{ExtendedSceneEnvironment::glowEnabled}{glow} is enabled. Adding post-processing effects
+    like glow requires setting the tone map mode to
+    \l{ExtendedSceneEnvironment::tonemapMode}{TonemapModeNone}.
+
+    \snippet 3d/equation/qml/equation/Main.qml scene environment
+    \dots 4
+
+    To make the glow strong, several other related properties are set.
+*/

@@ -1,0 +1,27 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  probes: {
+    screenshot: {}
+    dump_html: {}
+    trace_processor: {
+      queries: $[TRACE_PROCESSOR_QUERIES]
+      module_paths: [
+        ./sql_packages
+      ]
+      metric_definitions: [
+        ./common-metrics/v2/cpu_usage_stat.textproto
+        ./common-metrics/v2/lmk_kill_list.textproto
+        ./common-metrics/v2/lmk_kill_count.textproto
+        ./common-metrics/v2/uma_histogram_summaries.textproto
+        $[...METRIC_DEFINITIONS]
+      ]
+    }
+    perfetto: {
+      textproto: $[TRACE_CONFIG]
+    }
+    downloads: {}
+    meminfo: {}
+  }
+}

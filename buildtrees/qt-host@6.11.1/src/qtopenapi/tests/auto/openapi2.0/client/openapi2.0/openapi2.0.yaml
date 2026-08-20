@@ -1,0 +1,118 @@
+# Copyright (C) 2025 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+swagger: '2.0'
+info:
+  description: "This spec is mainly for testing Openapi 2.0"
+  version: 1.0.0
+  title: OpenAPI 2.0 test
+  license:
+    name: Apache-2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0.html'
+host: 127.0.0.1:10300
+basePath: /v2
+schemes:
+  - http
+paths:
+  /fake/test-query-parameters:
+    post:
+      tags:
+        - fake
+      description: 'To test the collection format in query parameters'
+      operationId: testQueryParameterCollectionFormat
+      parameters:
+        - name: pipe
+          in: query
+          required: true
+          type: array
+          items:
+            type: string
+          collectionFormat: pipes
+        - name: ioutil
+          in: query
+          required: true
+          type: array
+          items:
+            type: string
+          collectionFormat: tsv
+        - name: http
+          in: query
+          required: true
+          type: array
+          items:
+            type: string
+          collectionFormat: ssv
+        - name: url
+          in: query
+          required: true
+          type: array
+          items:
+            type: string
+          collectionFormat: csv
+        - name: multiContext
+          in: query
+          required: true
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+      consumes:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: string
+        '400':
+          description: Not success
+  /fake/test-path-parameters/{pipeId}/{ioutilId}/{httpId}/{urlId}/{multiContextId}:
+    post:
+      tags:
+        - fake
+      description: 'To test the collection format in path parameters'
+      operationId: testPathParameterCollectionFormat
+      parameters:
+        - name: pipeId
+          in: path
+          required: true
+          type: array
+          items:
+            type: string
+          collectionFormat: pipes
+        - name: ioutilId
+          in: path
+          required: true
+          type: array
+          items:
+            type: string
+          collectionFormat: tsv
+        - name: httpId
+          in: path
+          required: true
+          type: array
+          items:
+            type: string
+          collectionFormat: ssv
+        - name: urlId
+          in: path
+          required: true
+          type: array
+          items:
+            type: string
+          collectionFormat: csv
+        - name: multiContextId
+          in: path
+          required: true
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+      consumes:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: string
+        '400':
+          description: Not success

@@ -1,0 +1,37 @@
+project = CodeLanguages
+productname = Qt
+
+locationinfo = false
+
+outputformats             = WebXML HTML DocBook
+WebXML.quotinginformation = false
+WebXML.nosubdirs          = true
+WebXML.outputsubdir = webxml
+
+HTML.nosubdirs = true
+HTML.outputsubdir = html
+HTML.stylesheets = style.css
+HTML.headerstyles = \
+    "<link rel=\"stylesheet\" type=\"text/css\" href=\"style/style.css\" />\n"
+
+DocBook.nosubdirs = true
+DocBook.outputsubdir = docbook
+
+moduleheader =
+
+headers.fileextensions  = "*.h *.hpp"
+sources.fileextensions  = "*.cpp *.qml *.qdoc"
+
+headerdirs  = ./src
+sourcedirs  = ./src
+exampledirs = ./src
+
+codelanguages = Python
+
+# Accept a single warning about the BASIC language:
+projectroot = .
+logwarnings = true
+logwarnings.disablecliargs = true
+warninglimit = 1
+warninglimit.enabled = true
+locationinfo = false

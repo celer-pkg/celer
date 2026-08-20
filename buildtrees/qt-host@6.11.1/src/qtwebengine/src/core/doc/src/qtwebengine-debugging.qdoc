@@ -1,0 +1,120 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtwebengine-debugging.html
+    \title Qt WebEngine Debugging and Profiling
+
+    \section1 Console Logging
+
+    JavaScript executed inside \QWE can use the
+    \l{Chrome console API} to log information to a console. The logging messages
+    are forwarded to Qt's logging facilities inside a \c js
+    \l{QLoggingCategory}{logging category}. However, only warning and fatal
+    messages are printed by default. To change this, you either have to set custom
+    rules for the \c js category, or provide custom message handlers
+    by reimplementing \l{QWebEnginePage::javaScriptConsoleMessage()}, or
+    connecting to \l{WebEngineView::javaScriptConsoleMessage()}.
+
+    All messages can also be accessed through the \QWE developer
+    tools.
+
+    \section1 Qt WebEngine Developer Tools
+
+    The \QWE module provides web developer tools that make it easy
+    to inspect and debug layout and performance issues of any web content.
+
+    The developer tools are accessed as a local web page using a Chromium or
+    \QWE based browser, such as the Chrome browser.
+
+    To activate the developer tools, start an application that uses \QWE
+    with the command-line argument \c {--remote-debugging-port=<portnumber>}.
+
+    \note Any WebEngine command line options should be specified after the
+    \c {--webEngineArgs} option, which is used to separate the user's application
+    specific options from the WebEngine's ones.
+
+    \badcode
+    --webEngineArgs --remote-debugging-port=<portnumber>
+    \endcode
+
+    Where \c <port_number> refers to a local network port. The web developer
+    tools can then be accessed by launching a browser at the address
+    \c http://localhost:<port_number>.
+
+    Alternatively, the environment variable QTWEBENGINE_REMOTE_DEBUGGING
+    can be set. It can be set as either just a port working similarly to
+    \c --remote-debugging-port or given both a host address and a port. The
+    latter can be used to control which network interface to export the
+    interface on, so that you can access the developer tools from a remote
+    device.
+
+    To avoid WebSocket errors during remote debugging, add an additional command-line
+    argument \c {--remote-allow-origins=<origin>[,<origin>, ...]}, where \c <origin> refers to the request origin.
+    Use \c {--remote-allow-origins=*} to allow connections from all origins. If nothing is specified,
+    \QWE will add \c {--remote-allow-origins=*} to command-line arguments when remote-debugging is enabled,
+    thereby allowing requests from all origins.
+
+    For a detailed explanation of the capabilities of developer tools, see the
+    \l {Chrome DevTools} page.
+
+    \section1 Using Command-Line Arguments
+
+    You can use the following command-line arguments while debugging to provide
+    input for bug reports:
+
+    \list
+        \li \c {--disable-gpu} disables GPU hardware acceleration. This is
+            useful when diagnosing OpenGL problems.
+        \li \c {--disable-logging} disables console logging, which might be
+            useful for debug builds.
+        \li \c {--enable-logging --log-level=0} enables console logging and sets
+            the logging level to 0, which means that messages of the severity
+            \c info and above are recorded in the log. This is the default for
+            debug builds. Other possible log levels are \c 1 for warnings, \c 2
+            for errors, and \c 3 for fatal errors.
+        \li \c {--v=1} Increases the logging level beyond what \c {--log-level}
+            can, and enables logging debug messages up to verbosity level \c 1.
+            A higher number further increases verbosity, but may result in a
+            large number of logged messages. Default is \c 0 (no debug messages).
+        \li \c {--no-sandbox} disables the sandbox for the renderer and plugin
+            processes. Keep in mind that disabling the sandbox might present a
+            security risk.
+        \li \c {--single-process} runs the renderer and plugins in the same
+            process as the browser. This is useful for getting stack traces for
+            renderer crashes.
+        \li \c {--enable-features=NetworkServiceInProcess} runs networking in
+            the main process. This may help firewall management, since only the
+            application executable will need to be whitelisted and
+            not QtWebEngineProcess. It means losing the security of
+            sandboxing of the network service though.
+    \endlist
+
+    Any WebEngine command line options should be specified after the
+    \c {--webEngineArgs} option, which is used to separate the user's application
+    specific options from the WebEngine's ones.
+
+    \badcode
+    --webEngineArgs [WebEngine specific options]
+    \endcode
+
+    Alternatively, the environment variable QTWEBENGINE_CHROMIUM_FLAGS can be
+    set. For example, the following value could be set to disable logging while
+    debugging an application called \e mybrowser:
+
+    \code
+    QTWEBENGINE_CHROMIUM_FLAGS="--disable-logging" mybrowser
+    \endcode
+
+    QTWEBENGINE_CHROMIUM_FLAGS can also be set using \c qputenv from within the
+    application if called before QtWebEngineQuick::initialize().
+
+    \section1 Dump WebEngineContext Information
+
+    For dumping the WebEngineContext information, you can set the \c QT_LOGGING_RULES
+    environment variable to \c "qt.webenginecontext.debug=true".
+
+    The output contains information about the graphical backend, and the way how \QWE
+    is initialized for the application. This is particularly useful for reproducing
+    issues.
+*/

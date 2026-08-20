@@ -1,0 +1,22 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+<rect fill="blue" />
+<mask id="myMask" x="0.2" y="0.2" width="0.6" height="0.6">
+  <!-- Everything under a white pixel will be visible -->
+  <rect x="0" y="0" width="100" height="100" fill="black" />
+  <!-- Everything under a black pixel will be invisible -->
+  <path
+    d="M10,35 A20,20,0,0,1,50,35 A20,20,0,0,1,90,35 Q90,65,50,95 Q10,65,10,35 Z"
+    fill="white" />
+</mask>
+<mask id="myMask" x="0.2" y="0.2" width="0.6" height="0.6">
+  <!-- Everything under a white pixel will be visible -->
+  <rect x="0" y="0" width="100" height="100" fill="white" />
+  <!-- Everything under a black pixel will be invisible -->
+  <path
+    d="M10,35 A20,20,0,0,1,50,35 A20,20,0,0,1,90,35 Q90,65,50,95 Q10,65,10,35 Z"
+    fill="black" />
+</mask>
+<polygon points="-10,110 110,110 110,-10" fill="orange" />
+<!-- with this mask applied, we "punch" a heart shape hole into the circle -->
+<circle cx="50" cy="50" r="50" fill="purple" mask="url(#myMask)" />
+</svg>

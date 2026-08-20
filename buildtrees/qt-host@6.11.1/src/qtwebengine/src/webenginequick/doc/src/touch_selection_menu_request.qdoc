@@ -1,0 +1,78 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \qmltype TouchSelectionMenuRequest
+    //! \nativetype QQuickWebEngineTouchSelectionMenuRequest
+    \inqmlmodule QtWebEngine
+    \since QtWebEngine 6.3
+
+    \brief A request for showing a touch selection menu.
+
+    A TouchSelectionMenuRequest is passed as an argument of the
+    WebEngineView::touchSelectionMenuRequest signal. It provides further
+    information about the context of the request. The \l selectionBounds
+    property provides the origin of the request.
+
+    The \l accepted property of the request indicates whether the request
+    is handled by the user code or the default touch selection menu should
+    be displayed.
+
+    The following code uses a custom menu to handle the request:
+
+    \code
+    WebEngineView {
+        id: view
+        // ...
+        onTouchSelectionMenuRequested: function(request) {
+            request.accepted = true;
+            myMenu.x = request.selectionBounds.x;
+            myMenu.y = request.selectionBounds.y;
+            myMenu.trigger.connect(view.triggerWebAction);
+            myMenu.popup();
+        }
+        // ...
+    }
+    \endcode
+*/
+
+/*!
+    \qmlproperty rect TouchSelectionMenuRequest::selectionBounds
+    \readonly
+
+    The position of the bound rectangle from the touch text
+    selection.
+*/
+
+/*!
+    \qmlproperty bool TouchSelectionMenuRequest::accepted
+
+    Indicates whether the touch selection menu request has
+    been handled by the signal handler.
+
+    If the property is \c false after any signal handlers
+    for WebEngineView::touchSelectionMenuRequested have been executed,
+    a default touch selection menu will be shown.
+    To prevent this, set \c{request.accepted} to \c true.
+
+    The default is \c false.
+
+    \note The default content of the touch selection menu depends
+    on the web element for which the request was actually generated.
+*/
+
+/*!
+    \qmlproperty TouchSelectionCommandFlags TouchSelectionMenuRequest::touchSelectionCommandFlags
+    \readonly
+    \since QtWebEngine 6.3
+    \brief The available operations in the current touch selection menu request.
+*/
+
+/*!
+    \qmlenum TouchSelectionMenuRequest::TouchSelectionCommandFlags
+    \qmlenumeratorsfrom QQuickWebEngineTouchSelectionMenuRequest::TouchSelectionCommandFlag
+    \since QtWebEngine 6.3
+
+    \note In the default touch selection menu, showing the context menu
+    is always available as a separate action.
+*/

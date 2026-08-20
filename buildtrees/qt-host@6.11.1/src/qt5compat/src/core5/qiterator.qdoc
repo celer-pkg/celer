@@ -1,0 +1,348 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+// Qt-Security score:insignificant reason:docs
+
+/*!
+    \class QLinkedListIterator
+    \inmodule QtCore5Compat
+
+    \brief The QLinkedListIterator class provides a Java-style const iterator for QLinkedList.
+
+    QLinkedList has both \l{Java-style iterators} and
+    \l{STL-style iterators}. The Java-style iterators are more
+    high-level and easier to use than the STL-style iterators; on the
+    other hand, they are slightly less efficient.
+
+    QLinkedListIterator\<T\> allows you to iterate over a
+    QLinkedList\<T\>. If you want to modify the list as you iterate
+    over it, use QMutableLinkedListIterator\<T\> instead.
+
+    The QLinkedListIterator constructor takes a QLinkedList as
+    argument. After construction, the iterator is located at the very
+    beginning of the list (before the first item). Here's how to
+    iterate over all the elements sequentially:
+
+    \snippet code/doc_src_qiterator.cpp 2
+
+    The next() function returns the next item in the list and
+    advances the iterator. Unlike STL-style iterators, Java-style
+    iterators point \e between items rather than directly \e at
+    items. The first call to next() advances the iterator to the
+    position between the first and second item, and returns the first
+    item; the second call to next() advances the iterator to the
+    position between the second and third item, and returns the second
+    item; and so on.
+
+    \image {javaiterators1.png} {Illustraction of Java-style iterator usage in Qt}
+
+    Here's how to iterate over the elements in reverse order:
+
+    \snippet code/doc_src_qiterator.cpp 3
+
+    If you want to find all occurrences of a particular value, use
+    findNext() or findPrevious() in a loop.
+
+    Multiple iterators can be used on the same list. If the list is
+    modified while a QLinkedListIterator is active, the
+    QLinkedListIterator will continue iterating over the original
+    list, ignoring the modified copy.
+
+    \sa QMutableLinkedListIterator, QLinkedList::const_iterator
+*/
+
+/*!
+    \class QMutableLinkedListIterator
+    \inmodule QtCore5Compat
+
+    \brief The QMutableLinkedListIterator class provides a Java-style non-const iterator for QLinkedList.
+
+    QLinkedList has both \l{Java-style iterators} and
+    \l{STL-style iterators}. The Java-style iterators are more
+    high-level and easier to use than the STL-style iterators; on the
+    other hand, they are slightly less efficient.
+
+    QMutableLinkedListIterator\<T\> allows you to iterate over a
+    QLinkedList\<T\> and modify the list. If you don't want to modify
+    the list (or have a const QLinkedList), use the slightly faster
+    QLinkedListIterator\<T\> instead.
+
+    The QMutableLinkedListIterator constructor takes a QLinkedList as
+    argument. After construction, the iterator is located at the very
+    beginning of the list (before the first item). Here's how to
+    iterate over all the elements sequentially:
+
+    \snippet code/doc_src_qiterator.cpp 11
+
+    The next() function returns the next item in the list and
+    advances the iterator. Unlike STL-style iterators, Java-style
+    iterators point \e between items rather than directly \e at
+    items. The first call to next() advances the iterator to the
+    position between the first and second item, and returns the first
+    item; the second call to next() advances the iterator to the
+    position between the second and third item, returning the second
+    item; and so on.
+
+    \image {javaiterators1.png} {Illustraction of Java-style iterator usage in Qt}
+
+    Here's how to iterate over the elements in reverse order:
+
+    \snippet code/doc_src_qiterator.cpp 12
+
+    If you want to find all occurrences of a particular value, use
+    findNext() or findPrevious() in a loop.
+
+    If you want to remove items as you iterate over the list, use
+    remove(). If you want to modify the value of an item, use
+    setValue(). If you want to insert a new item in the list, use
+    insert().
+
+    Example:
+    \snippet code/doc_src_qiterator.cpp 13
+
+    The example traverses a list, replacing negative numbers with
+    their absolute values, and eliminating zeroes.
+
+    Only one mutable iterator can be active on a given list at any
+    time. Furthermore, no changes should be done directly to the list
+    while the iterator is active (as opposed to through the
+    iterator), since this could invalidate the iterator and lead to
+    undefined behavior.
+
+    \sa QLinkedListIterator, QLinkedList::iterator
+*/
+
+/*!
+    \fn template <class T> QLinkedListIterator<T>::QLinkedListIterator(const QLinkedList<T> &list)
+    \fn template <class T> QMutableLinkedListIterator<T>::QMutableLinkedListIterator(QLinkedList<T> &list)
+
+    Constructs an iterator for traversing \a list. The iterator is
+    set to be at the front of the list (before the first item).
+
+    \sa operator=()
+*/
+
+/*!
+    \fn template <class T> QMutableLinkedListIterator &QMutableLinkedListIterator<T>::operator=(QLinkedList<T> &list)
+    \fn template <class T> QLinkedListIterator &QLinkedListIterator<T>::operator=(const QLinkedList<T> &list)
+
+    Makes the iterator operate on \a list. The iterator is set to be
+    at the front of the list (before the first item).
+
+    \sa toFront(), toBack()
+*/
+
+/*!
+    \fn template <class T> void QLinkedListIterator<T>::toFront()
+    \fn template <class T> void QMutableLinkedListIterator<T>::toFront()
+
+    Moves the iterator to the front of the container (before the
+    first item).
+
+    \sa toBack(), next()
+*/
+
+/*!
+    \fn template <class T> void QLinkedListIterator<T>::toBack()
+    \fn template <class T> void QMutableLinkedListIterator<T>::toBack()
+
+    Moves the iterator to the back of the container (after the last
+    item).
+
+    \sa toFront(), previous()
+*/
+
+/*!
+    \fn template <class T> bool QLinkedListIterator<T>::hasNext() const
+    \fn template <class T> bool QMutableLinkedListIterator<T>::hasNext() const
+
+    Returns \c true if there is at least one item ahead of the iterator,
+    i.e. the iterator is \e not at the back of the container;
+    otherwise returns \c false.
+
+    \sa hasPrevious(), next()
+*/
+
+/*!
+    \fn template <class T> const T &QLinkedListIterator<T>::next()
+
+    Returns the next item and advances the iterator by one position.
+
+    Calling this function on an iterator located at the back of the
+    container leads to undefined results.
+
+    \sa hasNext(), peekNext(), previous()
+*/
+
+/*!
+    \fn template <class T> T &QMutableLinkedListIterator<T>::next()
+
+    Returns a reference to the next item, and advances the iterator
+    by one position.
+
+    Calling this function on an iterator located at the back of the
+    container leads to undefined results.
+
+    \sa hasNext(), peekNext(), previous()
+*/
+
+/*!
+    \fn template <class T> const T &QLinkedListIterator<T>::peekNext() const
+
+    Returns the next item without moving the iterator.
+
+    Calling this function on an iterator located at the back of the
+    container leads to undefined results.
+
+    \sa hasNext(), next(), peekPrevious()
+*/
+
+/*!
+    \fn template <class T> T &QMutableLinkedListIterator<T>::peekNext() const
+
+    Returns a reference to the next item, without moving the iterator.
+
+    Calling this function on an iterator located at the back of the
+    container leads to undefined results.
+
+    \sa hasNext(), next(), peekPrevious()
+*/
+
+/*!
+    \fn template <class T> bool QLinkedListIterator<T>::hasPrevious() const
+    \fn template <class T> bool QMutableLinkedListIterator<T>::hasPrevious() const
+
+    Returns \c true if there is at least one item behind the iterator,
+    i.e. the iterator is \e not at the front of the container;
+    otherwise returns \c false.
+
+    \sa hasNext(), previous()
+*/
+
+/*!
+    \fn template <class T> const T &QLinkedListIterator<T>::previous()
+
+    Returns the previous item and moves the iterator back by one
+    position.
+
+    Calling this function on an iterator located at the front of the
+    container leads to undefined results.
+
+    \sa hasPrevious(), peekPrevious(), next()
+*/
+
+/*!
+    \fn template <class T> T &QMutableLinkedListIterator<T>::previous()
+
+    Returns a reference to the previous item and moves the iterator
+    back by one position.
+
+    Calling this function on an iterator located at the front of the
+    container leads to undefined results.
+
+    \sa hasPrevious(), peekPrevious(), next()
+*/
+
+/*!
+    \fn template <class T> const T &QLinkedListIterator<T>::peekPrevious() const
+
+    Returns the previous item without moving the iterator.
+
+    Calling this function on an iterator located at the front of the
+    container leads to undefined results.
+
+    \sa hasPrevious(), previous(), peekNext()
+*/
+
+/*!
+    \fn template <class T> T &QMutableLinkedListIterator<T>::peekPrevious() const
+
+    Returns a reference to the previous item, without moving the iterator.
+
+    Calling this function on an iterator located at the front of the
+    container leads to undefined results.
+
+    \sa hasPrevious(), previous(), peekNext()
+*/
+
+/*!
+    \fn template <class T> bool QLinkedListIterator<T>::findNext(const T &value)
+    \fn template <class T> bool QMutableLinkedListIterator<T>::findNext(const T &value)
+
+    Searches for \a value starting from the current iterator position
+    forward. Returns \c true if \a value is found; otherwise returns \c false.
+
+    After the call, if \a value was found, the iterator is positioned
+    just after the matching item; otherwise, the iterator is
+    positioned at the back of the container.
+
+    \sa findPrevious()
+*/
+
+/*!
+    \fn template <class T> bool QLinkedListIterator<T>::findPrevious(const T &value)
+    \fn template <class T> bool QMutableLinkedListIterator<T>::findPrevious(const T &value)
+
+    Searches for \a value starting from the current iterator position
+    backward. Returns \c true if \a value is found; otherwise returns
+    false.
+
+    After the call, if \a value was found, the iterator is positioned
+    just before the matching item; otherwise, the iterator is
+    positioned at the front of the container.
+
+    \sa findNext()
+*/
+
+/*! \fn template <class T> void QMutableLinkedListIterator<T>::remove()
+
+    Removes the last item that was jumped over using one of the
+    traversal functions (next(), previous(), findNext(), findPrevious()).
+
+    Example:
+    \snippet code/doc_src_qiterator.cpp 20
+
+    \sa insert(), setValue()
+*/
+
+/*! \fn template <class T> void QMutableLinkedListIterator<T>::setValue(const T &value) const
+
+    Replaces the value of the last item that was jumped over using
+    one of the traversal functions with \a value.
+
+    The traversal functions are next(), previous(), findNext(), and
+    findPrevious().
+
+    Example:
+    \snippet code/doc_src_qiterator.cpp 24
+
+    \sa value(), remove(), insert()
+*/
+
+/*!
+    \fn template <class T> const T &QMutableLinkedListIterator<T>::value() const
+
+    Returns the value of the last item that was jumped over using one
+    of the traversal functions (next(), previous(), findNext(),
+    findPrevious()).
+
+    After a call to next() or findNext(), value() is equivalent to
+    peekPrevious(). After a call to previous() or findPrevious(), value() is
+    equivalent to peekNext().
+*/
+
+/*!
+    \fn template <class T> T &QMutableLinkedListIterator<T>::value()
+    \overload
+
+    Returns a non-const reference to the value of the last item that
+    was jumped over using one of the traversal functions.
+*/
+
+/*!
+    \fn template <class T> void QMutableLinkedListIterator<T>::insert(const T &value)
+
+    Inserts \a value at the current iterator position. After the
+    call, the iterator is located just after the inserted item.
+
+    \sa remove(), setValue()
+*/

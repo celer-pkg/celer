@@ -1,0 +1,30 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+    \page qqem-installing.html
+
+    \title Installing \QQEM
+
+    You can install \QQEM with Qt Online Installer or Qt Maintenance Tool. Download
+    Qt Online Installer from \l{https://account.qt.io/s/downloads}{Qt Account Downloads}.
+
+    To install \QQEM with Qt Online Installer.
+
+    \list 1
+        \li Open Qt Online Installer, continue to \uicontrol {Installation Folder}, and select
+        \uicontrol {Custom installation}.
+        \li Select \uicontrol {Next}.
+        \li Go to \uicontrol Qt > \uicontrol {Qt 6.5} (or newer version) >
+        \uicontrol {Additional Libraries} and select \uicontrol {\QQEM}.
+        \li Complete the installation and close Qt Online installer.
+    \endlist
+
+    \image qqem-online-installer.webp
+           {Qt Online Installer Select Components page with Qt Quick Effect Maker selected}
+
+    \section1 Opening \QQEM
+
+    To open \QQEM, run \c qqem.exe located in
+    the \c bin folder of your Qt installation, for example,
+    \e {C:\\Qt\\\QtVersion\\msvc2019_64\\bin}.
+*/

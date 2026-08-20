@@ -1,0 +1,11 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+syntax = "proto3";
+
+import "google/protobuf/duration.proto";
+
+package qtproto.tests;
+
+message DurationMessage {
+    google.protobuf.Duration field = 1;
+}

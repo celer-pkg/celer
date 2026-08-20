@@ -1,0 +1,176 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qpa.html
+\title Qt Platform Abstraction
+
+The Qt Platform Abstraction (QPA) is the main platform abstraction layer in Qt.
+
+The API can be identified by the \c QPlatform* class prefix, and is used
+for implementing higher level classes typically found in \l{Qt GUI}, e.g.
+\c QPlatformWindow for window system integration exposed through QWindow,
+or \c QPlatformTheme for deeper platform theming and integration, exposed
+through QStyleHint and QStyle.
+
+There are no source or binary compatibility guarantees for the QPA classes,
+meaning that the API is only guaranteed to work with the Qt version
+it was developed against. API changes will however only be made in minor
+releases. (5.1, 5.2, and so on.)
+
+\section1 API Overview
+
+\list
+\li Window system integration
+    \list
+    \li QPlatformIntegration
+    \li QPlatformAccessibility
+    \li QPlatformBackingStore
+    \li QPlatformClipboard
+    \li QPlatformCursor
+    \li QPlatformDrag
+    \li QPlatformFontDatabase
+    \li QPlatformGraphicsBuffer
+    \li QPlatformInputContext
+    \li QPlatformOffscreenSurface
+    \li QPlatformOpenGLContext
+    \li QPlatformScreen
+    \li QPlatformServices
+    \li QPlatformSharedGraphicsCache
+    \li QPlatformSurface
+    \li QPlatformWindow
+    \endlist
+
+\li Style/theming
+    \list
+    \li QPlatformTheme
+    \li platform palettes
+    \li platform fonts
+    \li theme hints
+    \endlist
+
+\li Native dialogs and menus
+    \list
+    \li QPlatformDialogHelper
+    \li QPlatformMenu
+    \li QPlatformMenuBar
+    \li QPlatformMenuItem
+    \endlist
+\endlist
+
+\note In addition to the QPA APIs, there are many other platform abstractions
+in Qt, for example the event dispatcher abstractions in \l{Qt Core} and the
+rendering hardware abstractions in RHI.
+The QPA APIs are mostly focused on window system integration and related support.
+
+\section1 QPA Plugins
+
+Concrete implementations of the interfaces listed above live in QPA plugins,
+or platform plugins, adding support for the various platforms Qt runs on.
+QPA plugins are implemented by subclassing the \c QPlatform* classes.
+
+The following table summarizes the platform plugins available:
+
+\table
+\header
+    \li Plugin Name
+    \li Plugin Class Name
+    \li Description
+\row
+    \li \c qandroid
+    \li QAndroidPlatformIntegration
+    \li \l{Qt for Android}{Android support}
+\row
+    \li \c qbsdfb
+    \li QBsdFbIntegration
+    \li BsdFb support
+\row
+    \li \c qcocoa
+    \li QCocoaIntegrationPlugin
+    \li \l{Qt for macOS}{macOS support}
+\row
+    \li \c qdirect2d
+    \li QWindowsDirect2DIntegrationPlugin
+    \li Similar to the \c qwindows plugin, but replaces the raster paint engine
+        with a Direct2D-based paint engine for QPixmap and QBackingStore.
+\row
+    \li \c qdirectfb
+    \li QDirectFbIntegrationPlugin
+    \li DirectFB is centered around \e surfaces, which are the equivalent of a
+        QPaintDevice.
+\row
+    \li \c qeglfs
+    \li QEglFSIntegrationPlugin
+    \li \l{embedded eglfs}{EGLFS} support for embedded Linux devices.
+\row
+    \li \c qhaiku
+    \li QHaikuIntegration
+    \li Haiku support
+\row
+    \li \c qios
+    \li QIOSIntegrationPlugin
+    \li \l{Qt for iOS}{iOS support}
+\row
+    \li \c qlinuxfb
+    \li QLinuxFbIntegrationPlugin
+    \li \l LinuxFB support for embedded Linux devices.
+\row
+    \li \c qvnc
+    \li QVncIntegration
+    \li VNC support
+\row
+    \li \c qwayland
+    \li \list
+            \li QWaylandIntegrationPlugin
+            \li QWaylandBrcmEglPlatformIntegrationPlugin
+            \li QWaylandEglPlatformIntegrationPlugin
+            \li QWaylandXCompositeEglPlatformIntegrationPlugin
+            \li QWaylandXCompositeGlxPlatformIntegrationPlugin
+        \endlist
+    \li \l{Wayland and Qt}{Wayland support}
+\row
+    \li \c qwindows
+    \li QWindowsIntegrationPlugin
+    \li \l{Qt for Windows}{Windows support}
+\row
+    \li \c qxcb
+    \li QXcbIntegrationPlugin
+    \li \l{Qt for Linux}{X Window System (X11) support}
+\endtable
+
+\section2 Selecting a QPA plugin
+
+Qt will select a default QPA plugin, depending on the platform.
+The \c{QT_QPA_PLATFORM} environment variable and the \c{-platform}
+command line argument allow you to override this default.
+See \l QGuiApplication for more details.
+
+You can pass a semicolon-separated list to install a plugin. In this case,
+the installer will go through the items in the list and install the first
+available plugin.
+
+Example:
+\badcode
+-qpa xcb;wayland
+\endcode
+
+The above line checks whether the \c xcb plugin is available, if it isn't,
+it then checks for the wayland plugin.
+
+\section2 Writing a QPA plugin
+
+There is no detailed tutorial documentation for writing QPA plugins at this
+time. However, there are two minimal plugins shipped with Qt for testing and
+other special purposes that you can use as examples:
+
+\list
+\li \c{qtbase/src/plugins/platforms/minimal/}
+\li \c{qtbase/src/plugins/platforms/minimalegl/}
+\endlist
+
+The \c qminimal plugin is used for tools that link against \l{Qt GUI}, but do
+not require window system integration (for example, \c qmlplugindump).
+It also has diagnostic support for dumping window contents to image files
+as determined by environment variables.
+
+*/

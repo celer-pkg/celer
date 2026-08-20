@@ -1,0 +1,50 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  actions: [
+    // Perfetto sometimes drops performance marks that execute very
+    // early in a process's lifetime. Because of that limitation,
+    // switch to the crossbench splash screen tab that is guaranteed,
+    // to have been alive for awhile at this point.
+    {
+      action: switch_tab
+      url: data:text
+    }
+    {
+      action: js
+      script:
+        '''
+        performance.mark("page-load", {
+        detail: {
+            url: "$[PAGE_URL]",
+            index: $[TAB_INDEX]
+        }
+        });
+        '''
+    }
+    {
+      action: get
+      url: $[PAGE_URL]
+      ready_state: any
+      timeout: 3m
+      target: $[TARGET]
+    }
+    {
+      action: js
+      script:
+        '''
+        document.onreadystatechange = function () {
+        if (document.readyState == "complete") {
+            performance.mark("page-loaded", {
+                detail: {
+                    url: "$[PAGE_URL]",
+                    index: $[TAB_INDEX]
+                }
+            });
+        }
+        }
+        '''
+    }
+  ]
+}

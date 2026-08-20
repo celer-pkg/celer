@@ -1,0 +1,14 @@
+version = 1
+
+[[annotations]]
+path = ["xatlas.cpp", "xatlas.h"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (c) 2018-2020 Jonathan Young"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ["patches/0001-Fix-vxworks-FLT_EPSLION-is-not-constexpr.patch"]
+precedence = "closest"
+comment = "documentation. Not sure it's from us"
+SPDX-FileCopyrightText = "None"
+SPDX-License-Identifier = "CC0-1.0"

@@ -1,0 +1,15 @@
+// This is an example config to be used with the --probe-config switch.
+{
+  probes: {
+    js: {
+      # You can use "setup" to run some code before any story and set up
+      # some tracking or patch existing JS functions.
+      # setup: "globalThis.customMetrics = { };"
+
+      # This js code should return a simple JS object where the keys are the
+      # metric names and the values are numbers. The data is then automatially
+      # merged over multiple iterations by the probe.
+      js: 'return { "elements":  document.getElementsByTagName("*").length };'
+    },
+  }
+}

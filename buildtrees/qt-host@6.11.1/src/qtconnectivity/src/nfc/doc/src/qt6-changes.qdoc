@@ -1,0 +1,149 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtnfc-changes-qt6.html
+    \title Changes to Qt NFC
+    \ingroup changes-qt-5-to-6
+    \brief Migrate Qt NFC to Qt 6.
+
+    Qt 6 is a result of the conscious effort to make the framework more
+    efficient and easy to use.
+
+    We try to maintain binary and source compatibility for all the public
+    APIs in each release. But some changes were inevitable in an effort to
+    make Qt a better framework.
+
+    In this topic we summarize those changes in Qt NFC, and provide guidance
+    to handle them.
+
+    \section1 New Features and Methods
+
+    \section2 Added \l QNdefRecord::clear()
+
+    Use this method to clear an NDEF record.
+
+    \section2 Added \l QNdefFilter::match()
+
+    Use this method to check if a \l QNdefMessage matches the given filter.
+    The method returns \c true in case of successful match and \c false
+    otherwise.
+
+    \section2 Extended \l QNearFieldTarget::Type
+
+    The enum was extended with two more types:
+    \list
+    \li \l QNearFieldTarget::NfcTagType4A
+    \li \l QNearFieldTarget::NfcTagType4B
+    \endlist
+
+    \section1 Changes in the Features and Methods
+
+    \section2 Renamed QNearFieldManager::isAvailable()
+
+    The \c QNearFieldManager::isAvailable() was renamed to
+    \l QNearFieldManager::isEnabled().
+
+    \section2 Added access method argument to \l QNearFieldManager::isSupported
+
+    The \c accessMethod argument allows to check if a specific feature is
+    supported. This is relevant because different platforms or versions of
+    operating systems can support different options.
+
+    \section2 Added access method argument to \l QNearFieldManager::startTargetDetection
+
+    The \c accessMethod argument allows to scan for NFC tags with the given
+    access method.
+
+    \section2 Changed \l QNdefNfcSmartPosterRecord::typeInfo from \l QByteArray to \l QString
+
+    According to NDEF Smart Poster specification, the type is a UTF-8 formatted
+    string.
+    This affects the \l QNdefNfcSmartPosterRecord::typeInfo() and
+    \l QNdefNfcSmartPosterRecord::setTypeInfo() methods.
+
+    \section2 Updated return type of \l QNdefFilter::appendRecord
+
+    \l QNdefFilter::appendRecord now performs a basic validation of input
+    parameters and returns a boolean value indicating if the record is appended
+    to the filter or not.
+
+    \section1 Removed Features and Methods
+
+    \section2 Removed QNearFieldTarget::url
+
+    The method was never implemented in the existing subclasses of
+    \l QNearFieldTarget.
+
+    \section2 Removed QNearFieldTarget::sendCommands
+
+    In Qt 5, the method was not very helpful because it didn't provide a way to
+    track the results of intermediate commands. Normally, an additional command
+    needs to be sent only when the previous command is successfully executed.
+
+    The correct approach would be to manually create a queue of commands,
+    use \l QNearFieldTarget::sendCommand to send a command and
+    \l QNearFieldTarget::requestCompleted or \l QNearFieldTarget::error to
+    handle the results of each command individually.
+
+    \section2 Removed QNearFieldTarget::keepConnection
+
+    The methods \c QNearFieldTarget::keepConnection() and
+    \c QNearFieldTarget::setKeepConnection() were removed. Keeping the
+    connection is the default behavior for now.
+
+    \section2 Removed QNearFieldTarget::isProcessingCommand
+
+    The method was never implemented and always returned \c false.
+
+    \section2 Made QNearFieldTarget::setResponseForRequest private API
+
+    The method should not be exposed as a public API. Use
+    \l QNearFieldTarget::ndefMessageRead or \l QNearFieldTarget::requestResponse
+    to read the data from an NFC tag.
+
+    \section2 Removed QNearFieldTarget::handleResponse
+
+    The method was removed as it just forwarded the call to
+    \c QNearFieldManager::setResponseForRequest, which became private API.
+
+    \section2 Made QNearFieldTarget::reportError private API
+
+    A \l QNearFieldTarget::error signal can be used instead.
+
+    \section2 Removed QNearFieldTarget::ndefMessagesWritten signal
+
+    The \l QNearFieldTarget::requestCompleted signal is used for both NDEF
+    messages and custom commands. The \c id parameter can be used to check which
+    request is actually completed.
+
+    \section2 Removed QNearFieldManager::(un)registerNdefMessageHandler
+
+    The methods \c QNearFieldTarget::registerNdefMessageHandler and
+    \c QNearFieldTarget::unregisterNdefMessageHandler were removed.
+
+    Use \l QNearFieldTarget::ndefMessageRead() and \l QNdefFilter::match() to
+    detect the NDEF messages and filter the required ones.
+
+    \note The application can still be automatically started once the NDEF Tag
+    is touched. The \l {annotatedurl}{Annotated URL} example shows how to
+    achieve it on Android.
+
+    \section2 Removed QNearFieldManager::TargetAccessModes
+
+    The \c TargetAccessModes enum was removed together with the getter and
+    setter methods (\c QNearFieldManager::setTargetAccessModes() and
+    \c {QNearFieldManager::targetAccessModes()}).
+
+    The feature is not supported on Android and iOS platforms.
+
+    \section2 Removed QNearFieldShareManager and QNearFieldShareTarget
+
+    File sharing via NFC is deprecated on Android in API 29. Other technologies
+    should be used instead.
+
+    \section2 Removed QML API
+
+    The support for QML API is discontinued.
+
+*/

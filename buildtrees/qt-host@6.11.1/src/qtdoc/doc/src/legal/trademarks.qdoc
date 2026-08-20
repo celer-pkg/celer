@@ -1,0 +1,28 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page trademarks.html
+
+    \title Trademarks
+    \ingroup licensing
+    \brief Information about trademarks owned by The Qt Company.
+
+    The Qt Company Ltd and/or its subsidiaries are the owner of Qt trademarks worldwide.
+
+    \list
+    \li The Qt logo, axivion stopping software erosion logo, Qt Group logo,
+        as well as Qt\reg, Qt Group\reg, Qt Quick\reg, Built with Qt\reg, Boot to Qt\reg,
+        Qt Quick Compiler\reg, Qt Enterprise\reg, Qt Mobile\reg, Qt Embedded\reg,
+        Qt Cloud Services\reg, Qt Developer Days\reg,
+        Axivion\reg, axivion stopping software erosion\reg, Coco\reg, froglogic\reg,
+        Squish\reg
+        are registered trademarks of The Qt Company Ltd or its subsidiaries.
+    \li All other company, product, or service names may be trademarks or
+       service marks of others and are the property of their respective owners.
+       The use of the word \e partner does not imply a partnership relationship
+       between The Qt Company and any other company.
+    \endlist
+
+    For more information, see \l{https://www.qt.io/trademark/}{Qt Trademark}
+*/

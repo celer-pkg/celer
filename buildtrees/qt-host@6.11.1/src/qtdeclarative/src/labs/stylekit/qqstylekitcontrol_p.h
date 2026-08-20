@@ -1,0 +1,60 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
+
+#ifndef QQSTYLEKITCONTROL_P_H
+#define QQSTYLEKITCONTROL_P_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <QtQml/QtQml>
+#include "qqstylekitglobal_p.h"
+#include "qqstylekitcontrolstate_p.h"
+#include "qqstylekitreader_p.h"
+
+QT_BEGIN_NAMESPACE
+
+class QQStyleKitVariation;
+
+class QQStyleKitControl : public QQStyleKitControlState
+{
+    Q_OBJECT
+    Q_PROPERTY(QQmlListProperty<QQStyleKitVariation> variations READ variations FINAL)
+    QML_NAMED_ELEMENT(ControlStyle)
+
+public:
+    QQStyleKitControl(QObject *parent = nullptr);
+
+    QQmlListProperty<QQStyleKitVariation> variations();
+
+private:
+    QVariant readStyleProperty(PropertyStorageId key) const;
+    void writeStyleProperty(PropertyStorageId key, const QVariant &value);
+
+    QQStyleKitControls *controls() const;
+    QQStyleKitExtendableControlType controlType() const;
+
+private:
+    Q_DISABLE_COPY(QQStyleKitControl)
+
+    QList<QQStyleKitVariation *> m_variations;
+    mutable QQStyleKitPropertyStorage m_storage;
+    QQSK::State m_writtenStates = QQSK::StateFlag::Unspecified;
+
+    friend class QQStyleKitPropertyResolver;
+    friend class QQStyleKitPropertyGroup;
+    friend class QQStyleKitControls;
+};
+
+QT_END_NAMESPACE
+
+#endif // QQSTYLEKITCONTROL_P_H

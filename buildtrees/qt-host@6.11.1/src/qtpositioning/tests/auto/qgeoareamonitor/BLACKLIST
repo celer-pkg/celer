@@ -1,0 +1,2 @@
+# QTBUG-116920 - fails to deploy a needed plugin
+android ci

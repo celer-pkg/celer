@@ -1,0 +1,19 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\group examples-qtscxml
+\title Qt SCXML Examples
+\brief Examples for the Qt SCXML module.
+
+The Qt SCXML example applications demonstrate the functionality provided by the
+\l{Qt SCXML} module.
+
+There are multiple versions of the \e {Traffic Light} example application.
+The application has shared common files, and in addition specific files for
+each version of the application, under their respective folders. They demonstrate
+the different options for creating user interfaces (using \l {Qt Widgets}
+or \l {Qt Quick}) and for loading the SCXML dynamically versus first compiling
+it to a C++ class (the \e static versions).
+
+*/

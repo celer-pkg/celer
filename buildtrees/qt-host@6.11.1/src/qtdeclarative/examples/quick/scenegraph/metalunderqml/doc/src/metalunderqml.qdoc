@@ -1,0 +1,46 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example scenegraph/metalunderqml
+    \title Scene Graph - Metal Under QML
+    \examplecategory {Graphics}
+    \ingroup qtquickexamples
+    \brief Shows how to render directly with Metal under a Qt Quick scene.
+
+    \image metalunderqml-example.jpg
+
+    The Metal Under QML example shows how an application can make use
+    of the \l QQuickWindow::beforeRendering() and \l
+    QQuickWindow::beforeRenderPassRecording() signals to draw custom
+    Metal content under a Qt Quick scene. This signal is emitted at
+    the start of every frame, before the scene graph starts its
+    rendering, thus any Metal draw calls that are made as a response
+    to this signal, will stack under the Qt Quick items. There are two
+    signals, because the custom Metal commands are recorded onto the
+    same command buffer with the same render command encoder that the
+    scene graph uses. beforeRendering() on its own is not sufficient
+    for this because it gets emitted at the start of the frame, before
+    having an
+    \l{https://developer.apple.com/documentation/metal/mtlrendercommandencoder}{MTLRenderCommandEncoder}
+    available. By also connecting to beforeRenderPassRecording(), the
+    application can gain access to the necessary native objects.
+
+    As an alternative, applications that wish to render Metal content
+    on top of the Qt Quick scene, can do so by connecting to the \l
+    QQuickWindow::afterRendering() and \l
+    QQuickWindow::afterRenderPassRecording() signals.
+
+    In this example, we will also see how it is possible to have
+    values that are exposed to QML which affect the Metal
+    rendering. We animate the threshold value using a NumberAnimation
+    in the QML file and this value is used by the Metal shader
+    program that draws the squircles.
+
+    The example is equivalent in most ways to the \l{Scene Graph - OpenGL Under
+    QML}{OpenGL Under QML}, \l{Scene Graph - Direct3D 11 Under QML}{Direct3D 11
+    Under QML}, and \l{Scene Graph - Vulkan Under QML}{Vulkan Under QML}
+    examples, they all render the same custom content, just via different
+    native APIs.
+
+  */

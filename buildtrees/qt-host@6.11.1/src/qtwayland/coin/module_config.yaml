@@ -1,0 +1,27 @@
+version: 2
+accept_configuration:
+  condition: property
+  property: features
+  not_contains_value: Disable
+
+instructions:
+  Build:
+    - type: EnvironmentVariable
+      variableName: VERIFY_SOURCE_SBOM
+      variableValue: "ON"
+    - !include "{{qt/qtbase}}/coin_module_build_template_v2.yaml"
+
+  Test:
+    - type: Group
+      instructions:
+        - !include "{{qt/qtbase}}/coin_module_test_template_v3.yaml"
+        - !include "{{qt/qtbase}}/coin_module_test_docs.yaml"
+      disable_if:
+        condition: or
+        conditions:
+          - condition: property
+            property: host.os
+            in_values: ["Windows", "MacOS"]
+          - condition: property
+            property: target.os
+            in_values: ["QNX", "IOS", "Android", "WebAssembly"]

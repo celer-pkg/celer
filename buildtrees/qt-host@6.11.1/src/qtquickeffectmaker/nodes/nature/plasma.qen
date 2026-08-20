@@ -1,0 +1,49 @@
+{
+    "QEN": {
+        "fragmentCode": [
+            "@main",
+            "{",
+            "    float time = iTime * 0.2;",
+            "    vec2 a = vec2(iResolution.x / iResolution.y, 1.0);",
+            "    vec2 c = texCoord.xy * a * 2.0 + time * 0.45;",
+            "    float k = 0.25 + cos(c.y + sin(.148 - time)) + 3.2 * time;",
+            "    float w = 0.9 + sin(c.x + cos(.628 + time)) - 1.2 * time;",
+            "    float d = length(c);",
+            "    float s = (2.0 / (plasmaScale + 0.02)) * cos(d+w) * sin(k+w);",
+            "    vec4 plasma = vec4(0.5 + 0.5 * cos(s + plasmaColors.rgb), 1.0);",
+            "#if PLASMA_ENABLE_SPECULAR == 1",
+            "    vec4 plasmaSpecularColor = vec4(0.8, 0.6, 0.4, 1.0);",
+            "    float plasmaSpecularDamper = 2.0;",
+            "    plasma *= (plasmaSpecularColor",
+            "        *  pow(max(normalize(vec3(length(dFdx(plasma)), length(dFdy(plasma)), 0.5/iResolution.y)).z, 0.0), plasmaSpecularDamper)",
+            "            + 1.0);",
+            "#endif",
+            "    fragColor = mix(fragColor, plasma * fragColor.a, plasmaColors.a);",
+            "}"
+        ],
+        "name": "Plasma",
+        "properties": [
+            {
+                "defaultValue": "1",
+                "description": "When this is set to 1, some specular reflection is added into the effect.",
+                "name": "PLASMA_ENABLE_SPECULAR",
+                "type": "define"
+            },
+            {
+                "defaultValue": "0.1, 0.4, 0.5, 0.5",
+                "description": "Color used as a basis for the plasma effect.",
+                "name": "plasmaColors",
+                "type": "color"
+            },
+            {
+                "defaultValue": "0.2",
+                "description": "The scale of the plasma waves. Practical range is between 0.0 and 1.0. The default value is 0.2.",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "plasmaScale",
+                "type": "float"
+            }
+        ],
+        "version": 1
+    }
+}

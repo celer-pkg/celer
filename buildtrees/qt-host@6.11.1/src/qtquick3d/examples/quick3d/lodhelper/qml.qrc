@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>meshes/marble_bust_01_LOD_0.mesh</file>
+        <file>meshes/marble_bust_01_LOD_1.mesh</file>
+        <file>meshes/marble_bust_01_LOD_2.mesh</file>
+        <file>meshes/marble_bust_01_LOD_3.mesh</file>
+        <file>maps/baseColor.png</file>
+        <file>maps/normal.png</file>
+        <file>maps/occlusionRoughnessMetallic.png</file>
+    </qresource>
+</RCC>

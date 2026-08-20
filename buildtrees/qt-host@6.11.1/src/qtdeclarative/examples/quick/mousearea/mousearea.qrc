@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/qt/qml/mousearea">
+        <file>mousearea.qml</file>
+        <file>mousearea-wheel-example.qml</file>
+    </qresource>
+</RCC>

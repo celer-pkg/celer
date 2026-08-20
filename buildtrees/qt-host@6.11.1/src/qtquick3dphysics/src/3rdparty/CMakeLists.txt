@@ -1,0 +1,3 @@
+add_subdirectory(PhysX)
+qt_install_3rdparty_library_wrap_config_extra_file(BundledPhysX)
+

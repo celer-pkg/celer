@@ -1,0 +1,536 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// Copyright (C) 2015 basysKom GmbH, info@basyskom.com
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \module QtOpcUa
+    \title Qt OPC UA C++ Classes
+    \ingroup modules
+    \qtvariable opcua
+    \qtcmakepackage OpcUa
+    \since 5.11
+    \brief List of C++ classes that provide the Qt OPC UA functionality.
+
+    For more information on the Qt OPC UA module, see the \l{Qt OPC UA} module documentation.
+*/
+
+/*!
+    \qmlmodule QtOpcUa
+    \title Qt OPC UA QML Types
+    \brief Provides QML types for Qt OPC UA.
+    \ingroup qmlmodules
+
+    For more information on the Qt OPC UA module, see the \l{Qt OPC UA} module documentation.
+
+    The QML API has been marked as deprecated in Qt 6.9 and will be removed in a future version.
+*/
+
+/*!
+    \page qtopcua-index.html
+    \since 5.7
+    \title Qt OPC UA
+    \brief Implements OPC UA connectivity through a Qt API.
+    \preliminary
+
+    The \l{Qt OPC UA Overview}{Qt OPC UA} module implements a Qt API to interact with OPC UA
+    servers on top of the \l{https://www.open62541.org/}{open62541} library.
+
+    The QML API has been marked as deprecated in Qt 6.9 and will be removed in a future version.
+
+    \section1 Using the Module
+
+    \section2 QML API
+
+    The \l{Qt OPC UA QML Types}{QML types} are available through the \c QtOpcUa import. To use the
+    types, add the following import statement to your .qml file:
+
+    \qml
+    import QtOpcUa as QtOpcUa
+    \endqml
+
+    \section2 C++ API
+
+    Using the \l{Qt OPC UA C++ Classes}{C++ API} requires linking against the module library,
+    either directly or through other dependencies.
+    Several build tools have dedicated support for this, including CMake and qmake.
+
+    \section3 Building with CMake
+
+    Use the \c find_package() command to locate the needed module components in the Qt6 package:
+
+    \badcode
+    find_package(Qt6 REQUIRED COMPONENTS OpcUa)
+    target_link_libraries(mytarget Qt::OpcUa)
+    \endcode
+
+
+    \section3 Building with qmake
+
+    To configure the module for building with qmake, add the module as a value of the QT variable in the project's .pro file:
+
+    \badcode
+    QT += opcua
+    \endcode
+
+    \section1 Articles and Guides
+
+       \list
+           \li \l{Qt OPC UA Overview}{Overview}
+           \li \l{Using the OpenSSL Dependency for Security Support and GDS}
+           \li \l{Building Qt OPC UA Open62541 Plugin}
+           \li \l{The Qt OPC UA data type generator}
+           \li \l{https://opcfoundation.org/about/opc-technologies/opc-ua/}
+               {OPC UA at the OPC foundation}
+    \endlist
+
+    \section1 Examples
+
+    \list
+        \li \l{Qt OPC UA Examples}{Examples}
+    \endlist
+
+    \section1 Reference
+
+    \list
+        \li \l{Qt OPC UA C++ Classes}{C++ Classes}
+        \li \l{Qt OPC UA QML Types}{QML Types}
+    \endlist
+
+    \section1 Licenses and Attributions
+
+    Qt OPC UA is available under commercial licenses from \l{The Qt Company}.
+    In addition, it is available under free software licenses:
+    The \l{GNU Lesser General Public License, version 3}, or
+    the \l{GNU General Public License, version 2}.
+    See \l{Qt Licensing} for further details.
+
+    Furthermore, Qt OPC UA in Qt \QtVersion may contain third-party
+    modules under following permissive licenses:
+
+    \annotatedlist attributions-qtopcua
+*/
+
+/*!
+    \page qtopcua-overview.html
+    \title Qt OPC UA Overview
+
+    OPC UA is a protocol for data modelling and exchange of data in industrial applications.
+
+    An OPC UA server offers access to data that is organized in a mesh of nodes
+    connected by references.
+    The use of different reference types and nodes containing metadata enable a client to navigate and interpret
+    the data without knowing their structure in advance.
+
+    Each node has a unique identifier and attributes that can be read and written.
+    Among others, there are \e Variable nodes that store values and callable
+    \e Method nodes with attached nodes describing parameters and return values.
+    \e Notifications in case of events and monitoring of Variable nodes for
+    value changes are offered too.
+
+    Complex objects can be created by combining nodes using references.
+    Inheritance is also possible. OPC UA offers support for pre-made models
+    that can be extended to fit special needs.
+
+    OPC UA is the platform-independent successor of OPC Classic intended for usage on all levels,
+    from embedded sensors up to manufacturing execution and enterprise resource planning systems.
+    It has a service-oriented architecture based on standardized messages for service requests and responses.
+    There are different ways for these messages to be encoded and transported over the network. The most common way
+    is binary encoding over TCP.
+
+    \section1 Implemented Features from the OPC UA Protocol
+
+    The following table summarizes the features of OPC UA that are supported by
+    Qt OPC UA.
+
+    \table
+    \header
+    \li Feature
+    \row
+    \li Read
+    \row
+    \li Batch read
+    \row
+    \li HistoryRead (Raw)
+    \row
+    \li Write
+    \row
+    \li Batch write
+    \row
+    \li Multidimensional arrays
+    \row
+    \li Browse
+    \row
+    \li Data change subscriptions
+    \row
+    \li Event subscriptions
+    \row
+    \li Modify subscriptions / monitored Items
+    \row
+    \li Method calls
+    \row
+    \li Browse path resolution
+    \row
+    \li GetEndpoints
+    \row
+    \li FindServers
+    \row
+    \li NodeManagement
+    \row
+    \li RegisterNodes
+    \row
+    \li UnregisterNodes
+    \endtable
+
+    \section1 Data Types
+    A subset of the OPC UA data types is currently supported in Qt OPC UA.
+
+    \table
+    \header
+    \li Data type
+    \li Qt OPC UA data type
+    \row
+    \li Int16, Int32, Int64
+    \li Directly used
+    \row
+    \li UInt16, UInt32, UInt64
+    \li Directly used
+    \row
+    \li Byte
+    \li quint8
+    \row
+    \li SByte
+    \li qint8
+    \row
+    \li Boolean
+    \li Directly used
+    \row
+    \li Double
+    \li Directly used
+    \row
+    \li Float
+    \li Directly used
+    \row
+    \li String
+    \li QString
+    \row
+    \li LocalizedText
+    \li \l QOpcUaLocalizedText
+    \row
+    \li DateTime
+    \li QDateTime
+    \row
+    \li ByteString
+    \li QByteArray
+    \row
+    \li XmlElement
+    \li QString
+    \row
+    \li NodeId
+    \li QString
+    \row
+    \li GUID
+    \li QUuid
+    \row
+    \li QualifiedName
+    \li \l QOpcUaQualifiedName
+    \row
+    \li StatusCode
+    \li \l QOpcUa::UaStatusCode
+    \row
+    \li Range
+    \li \l QOpcUaRange
+    \row
+    \li EUInformation
+    \li \l QOpcUaEUInformation
+    \row
+    \li ComplexNumber
+    \li \l QOpcUaComplexNumber
+    \row
+    \li DoubleComplexNumber
+    \li \l QOpcUaDoubleComplexNumber
+    \row
+    \li AxisInformation
+    \li \l QOpcUaAxisInformation
+    \row
+    \li XV
+    \li \l QOpcUaXValue
+    \row
+    \li Argument
+    \li QOpcUaArgument
+    \row
+    \li ExpandedNodeId
+    \li QOpcUaExpandedNodeId
+    \row
+    \li ExtensionObject
+    \li QOpcUaExtensionObject
+    \row
+    \li StructureDefinition
+    \li QOpcUaStructureDefinition
+    \row
+    \li StructureField
+    \li QOpcUaStructureField
+    \row
+    \li EnumDefinition
+    \li QOpcUaEnumDefinition
+    \row
+    \li EnumField
+    \li QOpcUaEnumField
+    \row
+    \li DiagnosticInfo
+    \li QOpcUaDiagnosticInfo
+    \row
+    \li SimpleAttributeOperand
+    \li QOpcUaSimpleAttributeOperand
+    \row
+    \li AttributeOperand
+    \li QOpcUaAttributeOperand
+    \row
+    \li LiteralOperand
+    \li QOpcUaLiteralOperand
+    \row
+    \li ElementOperand
+    \li QOpcUaElementOperand
+    \row
+    \li RelativePathElement
+    \li QOpcUaRelativePathElement
+    \row
+    \li ContentFilterElement
+    \li QOpcUaContentFilterElement
+    \row
+    \li EventFilter
+    \li QOpcUaMonitoringParameters::EventFilter
+    \endtable
+
+    \section1 Classes and Ownership
+    Two important classes are exposed to the user: QOpcUaClient and QOpcUaNode.
+
+    Objects of both classes are owned by the user and must be deleted when they are no longer needed.
+
+    \section1 Logging Categories
+    The following table summarizes the logging categories that are used by
+    Qt OPC UA.
+    \table
+    \header
+    \li Logging Category
+    \li Description
+    \row
+    \li qt.opcua
+    \li Plugin independent messages generated by \l QOpcUaProvider and \l QOpcUaClient
+    \row
+    \li qt.opcua.plugins.open62541
+    \li Messages generated by the open62541 plugin
+    \endtable
+
+    \section2 Open62541 specific Logging Categories
+    The open62541 sdk logging categories depend on the log level for open62541, which is configured at compile time.
+    The default is 300, which enables: info, warning, error and critical.
+    To obtain less or more verbose output, the open62541 sdk needs to be rebuilt with a different configuration.
+
+    The following table shows the logging categories used by open62541:
+
+    \table
+    \header
+    \li Open62541 Logging Category
+    \li Description
+    \row
+    \li qt.opcua.plugins.open62541.sdk.network
+    \li Messages generated by the open62541 network
+    \row
+    \li qt.opcua.plugins.open62541.sdk.securechannel
+    \li Messages generated by the open62541 channel
+    \row
+    \li qt.opcua.plugins.open62541.sdk.session
+    \li Messages generated by the open62541 session
+    \row
+    \li qt.opcua.plugins.open62541.sdk.server
+    \li Messages generated by open62541 server components
+    \row
+    \li qt.opcua.plugins.open62541.sdk.client
+    \li Messages generated by the open62541 client
+    \row
+    \li qt.opcua.plugins.open62541.sdk.userland
+    \li Messages generated by the open62541 userland
+    \row
+    \li qt.opcua.plugins.open62541.sdk.securitypolicy
+    \li Messages generated by the open62541 security policies
+    \endtable
+
+    \section1 Licenses
+
+    The Qt OPC UA module is available under commercial licenses from \l{The Qt Company}.
+    In addition, it is available under free software licenses.
+    These free software licenses are
+    \l{GNU Lesser General Public License, version 3}, or
+    the \l{GNU General Public License, version 2}.
+    See \l{Qt Licensing} for further details.
+
+    Qt OPC UA in Qt \QtVersion may contain third party modules under following
+    permissive licenses:
+
+    \annotatedlist attributions-qtopcua
+
+    Linking to external libraries involves licenses from the backend providers.
+
+    \section2 Open62541
+
+    The Open62541 plugin is available under the same licenses as Qt OPC UA. The Open62541 library itself
+    is licensed under \l {https://open62541.org}{Mozilla Public License v2.0}.
+
+    The security support is provided by the OpenSSL plugins of the open62541 library.
+    If the open62541 plugin is built with security support and OpenSSL is not available
+    on the target system, the open62541 plugin will fail to load.
+*/
+
+/*!
+    \page qtopcua-build-open62541.html
+    \title Building Qt OPC UA Open62541 Plugin
+    \brief Build instructions for the Qt OPC UA Open62541 plugin.
+
+    The Open62541 plugin is built by default from the included 3rd party sources and has no external dependencies.
+    The open62541 library uses OpenSSL for security. If the OpenSSL library is detected during configuration,
+    security is enabled for the tests and the open62541 backend.
+    The Open62541 source and header files bundled with Qt OPC UA have been generated from the open62541 v1.4.14
+    tag using the following commands:
+
+    \code
+        cmake -DUA_ENABLE_AMALGAMATION=ON -DUA_AMALGAMATION_MULTIARCH=ON -DUA_MULTITHREADING=0 /path/to/open62541-source
+        make
+    \endcode
+
+    In case you want to build a custom version of the open62541 plugin, an installed open62541 v1.4.14 built with the default options is required.
+    To enable encryption support, the open62541 build must be configured using the following parameters:
+
+    \code
+        cmake -DUA_ENABLE_ENCRYPTION=OPENSSL /path/to/open62541-source
+    \endcode
+
+    The following options must be passed to cmake when building with a custom open62541 installation.
+
+    \code
+        -DINPUT_open62541=system -DCMAKE_PREFIX_PATH=/path/to/open62541-install-dir
+    \endcode
+
+    The \a CMAKE_PREFIX_PATH is only required if open62541 is installed in a location cmake doesn't check by default.
+*/
+
+/*!
+    \page qtopcua-build-openssl.html
+    \title Using the OpenSSL Dependency for Security Support and GDS
+    \brief Using the OpenSSL Dependency for Security Support and GDS
+
+    The GDS feature of Qt OPC UA as well as the security support for the Open62541 plugin
+    requires the OpenSSL 3.x headers and libraries.
+
+    If OpenSSL is not installed to a path that is searched by default, the
+    location of the headers and libraries must be passed to the build process.
+
+    For example, if OpenSSL has been installed to \c{/opt/openssl}, the
+    locations must be passed as follows:
+
+    \badcode
+        -DOPENSSL_ROOT_DIR=/opt/openssl/
+    \endcode
+
+    The security capabilities of the Open62541 plugin and the GDS feature will be
+    automatically disabled if OpenSSL is not detected during configuration.
+*/
+
+/*!
+    \page qopcuaxmldatatypes2cpp.html
+    \title The Qt OPC UA data type generator
+    \brief The Qt OPC UA data type generator
+
+    Starting with Qt 6.7, Qt OPC UA comes with a data type generator named \a qopcuaxmldatatypes2cpp
+    which generates Qt OPC UA compatible C++ enumerations and data classes from enums and structured types
+    in .bsd files. As a secondary function, node id enums are generated from CSV files.
+
+    The generator is a command line tool which can be controlled by the following arguments:
+
+    \table
+    \header
+    \li Long
+    \li Short
+    \li Purpose
+    \row
+    \li \--input
+    \li -i
+    \li A .bsd file for which all contained enum and struct types will be generated. Can be used more than once to generate code for multiple models.
+    \row
+    \li \--dependencyinput
+    \li -d
+    \li A dependency input .bsd file where only types required by a struct from an input file passed via \--input will be generated. Can be used more than once to accommodate models with dependencies to multiple other models.
+    \row
+    \li \--nodeids
+    \li -n
+    \li A name and the path to a .csv file with node ids to generate an enum for, e.g. MyModel:/path/to/nodeids.csv => enum class MyModelNodeId. Can be specified multiple times.
+    \row
+    \li \--output
+    \li -o
+    \li The output directory where the generated files will be placed.
+    \row
+    \li \--prefix
+    \li -p
+    \li The prefix for the generated file, enum and class names. The default value is \a GeneratedOpcUa.
+    \row
+    \li \--bundle
+    \li -b
+    \li Generate bundle files <prefix>datatypes.h and <prefix>datatypes.cpp which #include all generated files
+    \endtable
+
+    The following files are generated for each run:
+
+    \list
+    \li One \a .h file containing a namespace with all enumerated types
+    \li One \a .h and one \a .cpp file for each structured type
+    \li One \a .h and one \a .cpp file containing encoding and decoding methods
+    \li One \a .h file containing the node id enums if -n is given at least once
+    \li The bundle files <prefix>datatypes.h and <prefix>datatypes.cpp if \e -b is given
+    \endlist
+
+    \section2 CMake Integration
+
+    The \e qt_opcua_generate_datatypes() function takes one or multiple input \e .bsd files and any required dependency \e .bsd files
+    and invokes \e qopcuaxmldatatypes2cpp. The generated source and header files are written to \e OUTPUT_DIR and are added to the target
+    specified as the first argument.
+
+    The \e OUTPUT_DIR or its parent directory must also be added to the target's include directories.
+
+    The following \e CMakeLists.txt snippet shows how to integrate the code generator in to a CMake based project:
+
+    \code
+    find_package(Qt6 REQUIRED COMPONENTS Core OpcUa)
+
+    qt_standard_project_setup()
+
+    qt_add_executable(my_codegen
+        mycodegen.cpp
+    )
+
+    qt_opcua_generate_datatypes(
+        my_codegen # The target to add the generated files to
+        INPUT_BSD "${CMAKE_CURRENT_SOURCE_DIR}/mymodel.bsd" # Must be set at least once if INPUT_CSV_MAP is not set
+        INPUT_BSD "${CMAKE_CURRENT_SOURCE_DIR}/myothermodel.bsd"
+        DEPENDENCY_BSD "${CMAKE_CURRENT_SOURCE_DIR}/mydependency.bsd" # Optional
+        INPUT_CSV_MAP "MyModel:${CMAKE_CURRENT_SOURCE_DIR}/mymodel.csv" # Must be set at least once if INPUT_BSD is not set
+        INPUT_CSV_MAP "MyOtherModel:${CMAKE_CURRENT_SOURCE_DIR}/myothermodel.csv"
+        PREFIX "GeneratedOpcUa" # Mandatory
+        OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated" # Mandatory
+    )
+
+    target_include_directories(my_codegen
+        PRIVATE
+            ${CMAKE_CURRENT_BINARY_DIR}
+    )
+
+    target_link_libraries(my_codegen PRIVATE Qt6::Core Qt6::OpcUa)
+    \endcode
+
+    The generated files can then be used in any header or source file by including the two top-level headers
+    for the data types and the encoder/decoder class.
+
+    \code
+    #include <generated/generatedopcuabinarydeencoder.h> // If INPUT_BSD was set
+    #include <generated/generatedopcuadatatypes.h> // If INPUT_BSD was set
+    #include <generated/generatedopcuanodeids.h> // If INPUT_CSV_MAP was set
+    \endcode
+*/

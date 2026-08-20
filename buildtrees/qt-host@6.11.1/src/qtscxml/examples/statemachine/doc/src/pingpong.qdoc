@@ -1,0 +1,70 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example pingpong
+    \title Ping Pong States
+    \ingroup examples-qtstatemachine
+    \examplecategory {Data Processing & I/O}
+
+    \brief The Ping Pong States example shows how to use parallel states together
+    with custom events and transitions in \l{Qt State Machine Overview}{Qt State Machine Framework}.
+
+    This example implements a statechart where two states communicate by
+    posting events to the state machine. The state chart looks as follows:
+
+    \image pingpong-example.png
+           {Two parallel states: pinger posts ping on entry and responds to pong,
+           ponger responds to ping by posting pong}
+
+    The \c pinger and \c ponger states are parallel states, i.e. they are
+    entered simultaneously and will take transitions independently of
+    each other.
+
+    The \c pinger state will post the first \c ping event upon entry; the \c
+    ponger state will respond by posting a \c pong event; this will cause the
+    \c pinger state to post a new \c ping event; and so on.
+
+    \snippet pingpong/main.cpp 0
+
+    Two custom events are defined, \c PingEvent and \c PongEvent.
+
+    \snippet pingpong/main.cpp 1
+
+    The \c Pinger class defines a state that posts a \c PingEvent to the state
+    machine when the state is entered.
+
+    \snippet pingpong/main.cpp 2
+
+    The \c PingTransition class defines a transition that is triggered by
+    events of type \c PingEvent, and that posts a \c PongEvent (with a delay
+    of 500 milliseconds) to the state machine when the transition is
+    triggered.
+
+    \snippet pingpong/main.cpp 3
+
+    The \c PongTransition class defines a transition that is triggered by
+    events of type \c PongEvent, and that posts a \c PingEvent (with a delay
+    of 500 milliseconds) to the state machine when the transition is
+    triggered.
+
+    \snippet pingpong/main.cpp 4
+
+    The main() function begins by creating a state machine and a parallel
+    state group.
+
+    \snippet pingpong/main.cpp 5
+
+    Next, the \c pinger and \c ponger states are created, with the parallel
+    state group as their parent state. Note that the transitions are \e
+    targetless. When such a transition is triggered, the source state won't be
+    exited and re-entered; only the transition's onTransition() function will
+    be called, and the state machine's configuration will remain the same,
+    which is precisely what we want in this case.
+
+    \snippet pingpong/main.cpp 6
+
+    Finally, the group is added to the state machine, the machine is started,
+    and the application event loop is entered.
+
+  */

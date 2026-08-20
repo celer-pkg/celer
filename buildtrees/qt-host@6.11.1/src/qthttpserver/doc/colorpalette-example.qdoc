@@ -1,0 +1,70 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\ingroup qthttpserver-examples
+\title RESTful API Server
+\examplecategory {Web Technologies}
+\brief Example of how to create a RESTful API server using the QHttpServer.
+
+\image restful-color-palette-server-example.png {Qt HTTP RESTful API server}
+\example colorpalette
+
+This example shows how to create and host simple RESTful web APIs in a small
+application using the QHttpServer class. This server accepts calls in REST
+style and can be used with its counterpart example
+\l {Qt Quick Demo - RESTful API client} {RESTful Color Palette API client}
+on the client side.
+
+An application that obeys the REST constraints may be informally described as
+RESTful. The RESTful API Server allows create, read, update and delete
+operations of colors (unknown resource to be compatible with Reqres API) and
+users. The RESTful API Server also provides login/logout functionality.
+The example is based on \l {https://reqres.in/}{Reqres API}.
+
+To run the server application, execute server binary:
+\code
+./colorpaletteserver
+\endcode
+or
+\code
+./colorpaletteserver --port 1234
+\endcode
+An optional \c port parameter may be provided to specify the port
+on which the server shall run.
+
+\snippet colorpalette/main.cpp GET paginated list example
+In the example above, the route is specified for the GET method,
+which returns the JSON array with paginated list of items stored.
+To achieve that, the \l QHttpServer::route() method is used with the
+\l QHttpServerRequest::Method::Get enumeration.
+
+\snippet colorpalette/main.cpp GET single item example
+To get a single item from the list of entities, the item ID is passed
+in the request query.
+
+\snippet colorpalette/main.cpp POST example
+In this example, the route accepts POST method, which adds a new entry to
+the item list and returns a JSON object that represents the added entry.
+This request must be authorized. To authorize the request the value of
+the header \c TOKEN must be equal to previously returned token from
+the \c api/login or the \c api/register methods.
+
+\snippet colorpalette/apibehavior.h POST return different status code example
+Besides new entry as JSON object POST methods returns also different
+HTTP status code: \c Created for new entries, or \c AlreadyReported for pre-existing entries.
+This example makes use of an overload of QHttpServerResponse::QHttpServerResponse
+to send a JSON object and corresponding HTTP status code.
+
+To create an entry, the request body must be a JSON object with
+\c email \c first_name \c last_name and \c avatar fields - to create new users.
+For example:
+    \code
+    {
+        "email": "jane.doe@qt.io",
+        "first_name": "Jane",
+        "last_name": "Doe",
+        "avatar": "/img/faces/1-image.jpg"
+    }
+    \endcode
+*/

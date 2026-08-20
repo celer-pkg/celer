@@ -1,0 +1,152 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page examples-layouts.html
+    \title Layout Examples
+    \brief Using Qt's layout-based approach to widget management.
+
+    \image layout-examples.png
+
+    Qt uses a layout-based approach to widget management. Widgets are arranged
+    in the optimal positions in windows based on simple layout rules, leading to
+    a consistent look and feel. Custom layouts provide more control over the
+    positions and sizes of child widgets.
+
+    These \l{Qt Examples and Tutorials}{Qt Examples} demonstrate various
+    ways of setting widgets in layouts.
+
+    \list
+    \li \l{Basic Layouts Example}{Basic Layouts}
+    \li \l{Flow Layout Example}{Flow Layout}
+    \endlist
+
+    \sa {Layout Management}
+*/
+
+/*!
+    \page examples-draganddrop.html
+    \title Drag and Drop Examples
+    \brief How to access your platform's native drag and drop functionality.
+
+    Qt supports native drag and drop on all platforms via an extensible
+    MIME-based system that enables applications to send data to each other in the
+    most appropriate formats.
+
+    Drag and drop can also be implemented for internal use by applications.
+
+    \list
+    \li \l{draganddrop/draggableicons}{Draggable Icons}
+    \li \l{draganddrop/draggabletext}{Draggable Text}
+    \li \l{draganddrop/dropsite}{Drop Site}
+    \endlist
+
+*/
+
+/*!
+    \page examples-threadandconcurrent.html
+    \title Threading and Concurrent Programming Examples
+    \brief Threading and concurrent programming in Qt.
+
+    \image thread-examples.png
+
+    Qt makes it easy to write multithreaded applications. Signals and slots can be used
+    to safely communicate between threads in your application.
+
+    \annotatedlist qtconcurrent-mtexamples
+
+    The QtConcurrent namespace includes a collection of classes and functions
+    for straightforward concurrent programming.
+
+    These examples show how to apply the basic techniques of concurrent
+    programming to simple problems.
+
+    \annotatedlist qtconcurrentexamples
+*/
+
+/*!
+    \title Tools Examples
+    \brief Using Qt's containers, iterators, and other tool classes.
+    \group examples-widgets-tools
+
+    \image tool-examples.png
+
+    Qt is equipped with a range of capable tool classes, from containers and
+    iterators to classes for string handling and manipulation.
+
+    Other classes provide application infrastructure support, handling plugin
+    loading and managing configuration files.
+*/
+
+/*!
+    \group examples-ipc
+    \title IPC Examples
+    \brief Inter-process communication with Qt.
+*/
+
+/*!
+    \page examples-sql.html
+    \title SQL Examples
+    \brief Accessing your SQL database from Qt.
+
+    \image sql-examples.png
+
+    Qt provides extensive database interoperability, with support for products
+    from both open source and proprietary vendors.
+
+    SQL support is integrated with Qt's model/view architecture, making it easier
+    to provide GUI integration for your database applications.
+
+    \annotatedlist sql_examples
+*/
+
+
+/*!
+    \page examples-xml.html
+    \title XML Examples
+    \brief Using XML with Qt.
+
+    XML parsing and handling is supported through SAX and DOM compliant APIs as well as streaming classes.
+
+    \annotatedlist xml-examples
+
+    \image xml-examples.png XML
+*/
+
+/*!
+    \page examples-animation.html
+    \title Animation Framework Examples
+    \brief Doing animations with Qt.
+
+    \image animation-examples.png Animation
+
+    \list
+    \li \l{animation/easing}{Easing Curves}
+    \endlist
+*/
+
+/*!
+    \group touchinputexamples
+    \title Touch Input Examples
+    \brief Using Qt's touch input capability in widget-based applications.
+
+    Qt Widgets have legacy support for touch input.
+
+    Applications intended for use on touchscreens often have "fluid" UI
+    designs, because touch input feels better with quick animated feedback.
+    You should consider using \l {Qt Quick} to benefit from GPU acceleration,
+    rather than attempting to develop a fluid UI with Widgets.
+*/
+
+/*!
+    \page examples-gestures.html
+    \title Gestures Examples
+    \brief Gesture programming examples.
+
+    The API of the gesture framework is not yet finalized and
+    still subject to change.
+
+    \list
+    \li \l{gestures/imagegestures}{Image Gestures}
+    \endlist
+*/

@@ -1,0 +1,62 @@
+{
+    "name": "Quick",
+    "author": "Qt",
+    "description": "Warns about QtQuick best practices",
+    "version": "1.0",
+    "isInternal": true,
+    "loggingCategories": [
+        {
+            "name": "layout-positioning",
+            "settingsName": "LayoutsPositioning",
+            "description": "Warn about using the wrong kind of positioning in layouts"
+        },
+        {
+            "name": "attached-property-type",
+            "settingsName": "AttachedPropertyType",
+            "description": "Warn about attached properties being used in the wrong type"
+        },
+        {
+            "name": "anchor-combinations",
+            "settingsName": "Anchors",
+            "description": "Warn about invalid anchor combinations"
+        },
+        {
+            "name": "controls-native-customize",
+            "settingsName": "ControlsNativeCustomize",
+            "description": "Warn about unsupported customizing of native controls"
+        },
+        {
+            "name": "unexpected-var-type",
+            "settingsName": "UnexpectedVarType",
+            "description": "Warn about incompatible types being set on var properties"
+        },
+        {
+            "name": "property-changes-parsed",
+            "settingsName": "PropertyChangesParsed",
+            "description": "Warn about legacy PropertyChanges that rely on the custom parser"
+        },
+        {
+            "name": "controls-attached-property-reuse",
+            "settingsName": "ControlsAttachedPropertyReuse",
+            "description": "Warn about failure to re-use attached objects of controls",
+            "enabled": false
+        },
+        {
+            "name": "attached-property-reuse",
+            "settingsName": "AttachedPropertyReuse",
+            "description":
+                    "Warn about failure to re-use any attached objects. Implies ControlsAttachedPropertyReuse.",
+            "enabled": false
+        },
+        {
+            "name": "color",
+            "settingsName": "Color",
+            "description": "Warn about invalid color values."
+        },
+        {
+            "name": "state-no-child-item",
+            "settingsName": "StateNoChildItem",
+            "description": "Warn about State Objects that have illegal child items"
+        }
+    ]
+}

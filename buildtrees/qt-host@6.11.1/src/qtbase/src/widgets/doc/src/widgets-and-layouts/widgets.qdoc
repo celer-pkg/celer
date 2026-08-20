@@ -1,0 +1,96 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+  \page widget-classes.html
+  \title Widgets Classes
+  \ingroup qt-gui-concepts
+  \brief The primary elements for designing user interfaces in Qt.
+
+  \section1 The Widget Classes
+
+  The following sections list the widget classes. See the \l{Qt Widget
+  Gallery} for some examples.
+
+  \section2 Basic Widget Classes
+
+    These basic widgets (controls), e.g. buttons, comboboxes and
+    scroll bars, are designed for direct use.
+
+    \table
+    \row
+    \li \image fusion-label.png {Label}
+    \li \image windowsvista-pushbutton.png {Cancel button}
+    \li \image macos-progressbar.png {Progress bar}
+    \row
+    \li \image fusion-combobox.png {Combo box}
+    \li \image windowsvista-radiobutton.png {Radio box}
+    \li \image macos-lineedit.png {Line edit}
+    \endtable
+
+    \annotatedlist basicwidgets
+
+
+  \section2 Advanced Widget Classes
+
+      Advanced GUI widgets, e.g. tab widgets and progress bars, provide
+      more complex user interface controls.
+
+      \table
+      \row
+      \li \image fusion-treeview.png
+                 {Directory widget showing the contents using a tree view}
+      \li \image fusion-calendarwidget.png
+                 {Calendar widget showing the month, year, and a selected day}
+      \li \image qundoview.png
+                 {Undo stack showing list of commands}
+      \endtable
+
+      \annotatedlist advanced
+
+
+  \section2 Abstract Widget Classes
+
+    The abstract widget classes are base classes. They are not usable as
+    standalone classes but provide functionality when they are subclassed.
+
+    \annotatedlist abstractwidgets
+
+
+  \section2 Organizer Widget Classes
+
+    Classes like splitters, tab bars, button groups, etc are used for
+    organizing and grouping GUI primitives into more complex
+    applications and dialogs.
+
+    \annotatedlist organizers
+
+
+  \section2 Graphics View Classes
+
+    \annotatedlist graphicsview-api
+
+
+  \section2 Model/View Classes
+
+    \annotatedlist model-view
+
+
+  \section2 Main Window and Related Classes
+
+    \annotatedlist mainwindow-classes
+
+
+  \section2 Widget Appearance and Style-Related Classes
+    Classes used for customizing UI appearance and style.
+
+    \annotatedlist appearance
+
+
+  \section2 Layout Classes
+    \annotatedlist geomanagement
+
+
+*/
+
+

@@ -1,0 +1,33 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+[
+    object,
+    dual,
+    uuid(f4811a11-3092-415e-a473-38c627544246),
+    oleautomation,
+    pointer_default(unique)
+]
+interface IComServer : IUnknown
+{
+    HRESULT SetObserver([in] IUnknown *observer);
+    HRESULT VariantIn([in] VARIANT arg);
+};
+
+[
+    uuid(104d435f-7504-4786-aae7-b22745450c4c),
+    version(1.0),
+]
+library ComServerLib
+{
+    [
+        uuid(af732aba-95cf-4ee7-bd59-8f946b7f82e3),
+    ]
+    coclass TestServer
+    {
+        interface IComServer;
+    };
+};

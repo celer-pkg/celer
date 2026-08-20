@@ -1,0 +1,767 @@
+{{>licenseInfo}}
+#include "{{prefixLowerCase}}helpers.h"
+
+#include <QtCore/qdebug.h>
+#include <QtCore/QJsonParseError>
+
+#include <limits>
+#include <type_traits>
+
+{{#buildingQtSources}}
+QT_BEGIN_NAMESPACE
+{{/buildingQtSources}}
+
+{{#cppCommonNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppCommonNamespaceDeclarations}}
+
+using namespace Qt::StringLiterals;
+
+class {{prefix}}SerializerSettings {
+public:
+    struct CustomDateTimeFormat{
+        bool isStringSet = false;
+        QString formatString;
+        bool isEnumSet = false;
+        Qt::DateFormat formatEnum;
+    };
+
+    static CustomDateTimeFormat getCustomDateTimeFormat()
+    {
+        return getInstance()->customDateTimeFormat;
+    }
+
+    static void setDateTimeFormatString(const QString &dtFormat)
+    {
+        getInstance()->customDateTimeFormat.isStringSet = true;
+        getInstance()->customDateTimeFormat.isEnumSet = false;
+        getInstance()->customDateTimeFormat.formatString = dtFormat;
+    }
+
+    static void setDateTimeFormatEnum(const Qt::DateFormat &dtFormat)
+    {
+        getInstance()->customDateTimeFormat.isEnumSet = true;
+        getInstance()->customDateTimeFormat.isStringSet = false;
+        getInstance()->customDateTimeFormat.formatEnum = dtFormat;
+    }
+
+    static {{prefix}}SerializerSettings *getInstance()
+    {
+        if (instance == nullptr) {
+            instance = new {{prefix}}SerializerSettings();
+        }
+        return instance;
+    }
+
+private:
+    explicit {{prefix}}SerializerSettings()
+    {
+        instance = this;
+        customDateTimeFormat.isStringSet = false;
+        customDateTimeFormat.isEnumSet = false;
+    }
+    static {{prefix}}SerializerSettings *instance;
+    CustomDateTimeFormat customDateTimeFormat;
+};
+
+{{prefix}}SerializerSettings * {{prefix}}SerializerSettings::instance = nullptr;
+
+bool setDateTimeFormat(const QString &dateTimeFormat)
+{
+    bool success = false;
+    auto dt = QDateTime::fromString(QDateTime::currentDateTime().toString(dateTimeFormat), dateTimeFormat);
+    if (dt.isValid()) {
+        success = true;
+        {{prefix}}SerializerSettings::setDateTimeFormatString(dateTimeFormat);
+    }
+    return success;
+}
+
+bool setDateTimeFormat(const Qt::DateFormat &dateTimeFormat)
+{
+    bool success = false;
+    auto dt = QDateTime::fromString(QDateTime::currentDateTime().toString(dateTimeFormat), dateTimeFormat);
+    if (dt.isValid()) {
+        success = true;
+        {{prefix}}SerializerSettings::setDateTimeFormatEnum(dateTimeFormat);
+    }
+    return success;
+}
+
+QString toStringValue(const QVariant &value)
+{
+    return value.toString();
+}
+
+QString toStringValue(const QString &value)
+{
+    return value;
+}
+
+QString toStringValue(const QDateTime &value)
+{
+    if ({{prefix}}SerializerSettings::getInstance()->getCustomDateTimeFormat().isStringSet) {
+        return value.toString({{prefix}}SerializerSettings::getInstance()->getCustomDateTimeFormat().formatString);
+    }
+
+    if ({{prefix}}SerializerSettings::getInstance()->getCustomDateTimeFormat().isEnumSet) {
+        return value.toString({{prefix}}SerializerSettings::getInstance()->getCustomDateTimeFormat().formatEnum);
+    }
+
+    // ISO 8601
+    return value.toString(Qt::ISODate);
+}
+
+QString toStringValue(const QByteArray &value)
+{
+    return QString::fromUtf8(value);
+}
+
+QString toStringValue(const QDate &value)
+{
+    // ISO 8601
+    return value.toString(Qt::DateFormat::ISODate);
+}
+
+QString toStringValue(qint32 value)
+{
+    return QString::number(value);
+}
+
+QString toStringValue(qint64 value)
+{
+    return QString::number(value);
+}
+
+QString toStringValue(bool value)
+{
+    return QString(value ? "true"_L1 : "false"_L1);
+}
+
+QString toStringValue(float value)
+{
+    return toStringValue(static_cast<double>(value));
+}
+
+QString toStringValue(double value)
+{
+    return QString::number(value, 'g', QLocale::FloatingPointShortest);
+}
+
+QString toStringValue(const {{prefix}}Object &value)
+{
+    return value.asJson();
+}
+
+QString toStringValue(const {{prefix}}Enum &value)
+{
+    return value.asJson();
+}
+
+QString toStringValue(const {{prefix}}HttpFileElement &value)
+{
+    return value.asJson();
+}
+
+QJsonValue toJsonValue(const QString &value)
+{
+    return QJsonValue(value);
+}
+
+QJsonValue toJsonValue(const QDateTime &value)
+{
+    if ({{prefix}}SerializerSettings::getInstance()->getCustomDateTimeFormat().isStringSet) {
+        return QJsonValue(value.toString({{prefix}}SerializerSettings::getInstance()->getCustomDateTimeFormat().formatString));
+    }
+
+    if ({{prefix}}SerializerSettings::getInstance()->getCustomDateTimeFormat().isEnumSet) {
+        return QJsonValue(value.toString({{prefix}}SerializerSettings::getInstance()->getCustomDateTimeFormat().formatEnum));
+    }
+
+    // ISO 8601
+    return QJsonValue(value.toString(Qt::ISODate));
+}
+
+QJsonValue toJsonValue(const QByteArray &value)
+{
+    return QJsonValue(QString::fromUtf8(value.toBase64()));
+}
+
+QJsonValue toJsonValue(const QDate &value)
+{
+    return QJsonValue(value.toString(Qt::ISODate));
+}
+
+QJsonValue toJsonValue(qint32 value)
+{
+    return QJsonValue(value);
+}
+
+QJsonValue toJsonValue(qint64 value)
+{
+    return QJsonValue(value);
+}
+
+QJsonValue toJsonValue(bool value)
+{
+    return QJsonValue(value);
+}
+
+QJsonValue toJsonValue(float value)
+{
+    return QJsonValue(static_cast<double>(value));
+}
+
+QJsonValue toJsonValue(double value)
+{
+    return QJsonValue(value);
+}
+
+QJsonValue toJsonValue(const {{prefix}}Object &value)
+{
+    return value.asJsonObject();
+}
+
+QJsonValue toJsonValue(const {{prefix}}Enum &value)
+{
+    return value.asJsonValue();
+}
+
+QJsonValue toJsonValue(const {{prefix}}HttpFileElement &value)
+{
+    return value.asJsonValue();
+}
+
+QJsonValue toJsonValue(const QJsonValue &value)
+{
+    return value;
+}
+
+bool fromByteArray(const QByteArray &input, QString &value)
+{
+    value = QString::fromUtf8(input);
+    return !input.isEmpty();
+}
+
+
+bool fromByteArray(const QByteArray &input, QDateTime &value)
+{
+    const QString inStr = QString::fromUtf8(input);
+    return fromStringValue(inStr, value);
+}
+
+bool fromByteArray(const QByteArray &input, QByteArray &value)
+{
+    value = input;
+    return !input.isEmpty();
+}
+
+bool fromByteArray(const QByteArray &input, QDate &value)
+{
+    const QString inStr = QString::fromUtf8(input);
+    return fromStringValue(inStr, value);
+}
+
+bool fromByteArray(const QByteArray &input, qint32 &value)
+{
+    bool ok = false;
+    value = input.toInt(&ok);
+    return ok;
+}
+
+bool fromByteArray(const QByteArray &input, qint64 &value)
+{
+    bool ok = false;
+    value = input.toLongLong(&ok);
+    return ok;
+}
+
+bool fromByteArray(const QByteArray &input, bool &value)
+{
+    bool ok = false;
+    if (input == "true") {
+        value = true;
+        ok = true;
+    } else if (input == "false") {
+        value = false;
+        ok = true;
+    }
+    return ok;
+}
+
+bool fromByteArray(const QByteArray &input, float &value)
+{
+    bool ok = false;
+    value = input.toFloat(&ok);
+    return ok;
+}
+
+bool fromByteArray(const QByteArray &input, double &value)
+{
+    bool ok = false;
+    value = input.toDouble(&ok);
+    return ok;
+}
+
+bool fromByteArray(const QByteArray &input, {{prefix}}Object &value)
+{
+    QJsonParseError err;
+    QJsonDocument::fromJson(input, &err);
+    if (err.error == QJsonParseError::NoError) {
+        // TODO: rework {{prefix}}Object to take QBA?
+        value.fromJson(QString::fromUtf8(input));
+        return true;
+    }
+    return false;
+}
+
+bool fromByteArray(const QByteArray &input, {{prefix}}Enum &value)
+{
+    // TODO: rework {{prefix}}Enum to take QBA?
+    value.fromJson(QString::fromUtf8(input));
+    return true;
+}
+
+bool fromByteArray(const QByteArray &input, {{prefix}}HttpFileElement &value)
+{
+    return value.saveToLocalFile(input);
+}
+
+bool fromStringValue(const QString &inStr, QString &value)
+{
+    value.clear();
+    value.append(inStr);
+    return !inStr.isEmpty();
+}
+
+bool fromStringValue(const QString &inStr, QDateTime &value)
+{
+    if (inStr.isEmpty()) {
+        return false;
+    } else {
+       QDateTime dateTime;
+        if ({{prefix}}SerializerSettings::getInstance()->getCustomDateTimeFormat().isStringSet) {
+            dateTime = QDateTime::fromString(inStr, {{prefix}}SerializerSettings::getInstance()->getCustomDateTimeFormat().formatString);
+        } else if ({{prefix}}SerializerSettings::getInstance()->getCustomDateTimeFormat().isEnumSet) {
+            dateTime = QDateTime::fromString(inStr, {{prefix}}SerializerSettings::getInstance()->getCustomDateTimeFormat().formatEnum);
+        } else {
+            dateTime = QDateTime::fromString(inStr, Qt::ISODate);
+        }
+
+        if (dateTime.isValid()) {
+            value.setDate(dateTime.date());
+            value.setTime(dateTime.time());
+        } else {
+            qDebug() << "DateTime is invalid";
+        }
+        return dateTime.isValid();
+    }
+}
+
+bool fromStringValue(const QString &inStr, QByteArray &value)
+{
+    if (inStr.isEmpty()) {
+        return false;
+    } else {
+        value.clear();
+        value.append(inStr.toUtf8());
+        return !value.isEmpty();
+    }
+}
+
+bool fromStringValue(const QString &inStr, QDate &value)
+{
+    if (inStr.isEmpty()) {
+        return false;
+    } else {
+        auto date = QDate::fromString(inStr, Qt::DateFormat::ISODate);
+        if (date.isValid()) {
+            value.setDate(date.year(), date.month(), date.day());
+        } else {
+            qDebug() << "Date is invalid";
+        }
+        return date.isValid();
+    }
+}
+
+bool fromStringValue(const QString &inStr, qint32 &value)
+{
+    bool ok = false;
+    value = QVariant(inStr).toInt(&ok);
+    return ok;
+}
+
+bool fromStringValue(const QString &inStr, qint64 &value)
+{
+    bool ok = false;
+    value = QVariant(inStr).toLongLong(&ok);
+    return ok;
+}
+
+bool fromStringValue(const QString &inStr, bool &value)
+{
+    value = QVariant(inStr).toBool();
+    return ((inStr == "true"_L1) || (inStr == "false"_L1));
+}
+
+bool fromStringValue(const QString &inStr, float &value)
+{
+    bool ok = false;
+    value = inStr.toFloat(&ok);
+    return ok;
+}
+
+bool fromStringValue(const QString &inStr, double &value)
+{
+    bool ok = false;
+    value = inStr.toDouble(&ok);
+    return ok;
+}
+
+bool fromStringValue(const QString &inStr, {{prefix}}Object &value)
+{
+    QJsonParseError err;
+    QJsonDocument::fromJson(inStr.toUtf8(),&err);
+    if (err.error == QJsonParseError::NoError) {
+        value.fromJson(inStr);
+        return true;
+    }
+    return false;
+}
+
+bool fromStringValue(const QString &inStr, {{prefix}}Enum &value)
+{
+    value.fromJson(inStr);
+    return true;
+}
+
+bool fromStringValue(const QString &inStr, {{prefix}}HttpFileElement &value)
+{
+    return value.fromStringValue(inStr);
+}
+
+bool fromJsonValue(QString &value, const QJsonValue &jval)
+{
+    if (jval.isString()) {
+        value = jval.toString();
+        return true;
+    }
+    return false;
+}
+
+bool fromJsonValue(QDateTime &value, const QJsonValue &jval)
+{
+    bool ok = true;
+    if (!jval.isUndefined() && !jval.isNull() && jval.isString()) {
+        if ({{prefix}}SerializerSettings::getInstance()->getCustomDateTimeFormat().isStringSet) {
+            value = QDateTime::fromString(jval.toString(), {{prefix}}SerializerSettings::getInstance()->getCustomDateTimeFormat().formatString);
+        } else if ({{prefix}}SerializerSettings::getInstance()->getCustomDateTimeFormat().isEnumSet) {
+            value = QDateTime::fromString(jval.toString(), {{prefix}}SerializerSettings::getInstance()->getCustomDateTimeFormat().formatEnum);
+        } else {
+            value = QDateTime::fromString(jval.toString(), Qt::ISODate);
+        }
+        ok = value.isValid();
+    } else {
+        ok = false;
+    }
+    return ok;
+}
+
+bool fromJsonValue(QByteArray &value, const QJsonValue &jval)
+{
+    bool ok = true;
+    if (!jval.isUndefined() && !jval.isNull() && jval.isString()) {
+        value = QByteArray::fromBase64(QByteArray::fromStdString(jval.toString().toStdString()));
+        ok = value.size() > 0;
+    } else {
+        ok = false;
+    }
+    return ok;
+}
+
+bool fromJsonValue(QDate &value, const QJsonValue &jval)
+{
+    bool ok = true;
+    if (!jval.isUndefined() && !jval.isNull() && jval.isString()) {
+        value = QDate::fromString(jval.toString(), Qt::ISODate);
+        ok = value.isValid();
+    } else {
+        ok = false;
+    }
+    return ok;
+}
+
+// Template helper for signed integer types
+template <typename IntType,
+          std::enable_if_t<
+              std::conjunction_v<std::is_integral<IntType>,
+                                 std::is_signed<IntType>>,
+              bool> = true>
+static bool fromJsonValueIntegral(IntType &value, const QJsonValue &jval)
+{
+    if (!jval.isDouble())
+        return false;
+
+    const qint64 intVal = jval.toInteger();
+    // Roundtrip to catch actual 0 value
+    if (static_cast<double>(intVal) != jval.toDouble())
+        return false;
+
+    // Range check
+    if (intVal < std::numeric_limits<IntType>::min()
+        || intVal > std::numeric_limits<IntType>::max()) {
+        return false;
+    }
+
+    value = static_cast<IntType>(intVal);
+    return true;
+}
+
+bool fromJsonValue(qint32 &value, const QJsonValue &jval)
+{
+    return fromJsonValueIntegral(value, jval);
+}
+
+bool fromJsonValue(qint64 &value, const QJsonValue &jval)
+{
+    return fromJsonValueIntegral(value, jval);
+}
+
+bool fromJsonValue(bool &value, const QJsonValue &jval)
+{
+    bool ok = true;
+    if (jval.isBool()) {
+        value = jval.toVariant().toBool();
+    } else {
+        ok = false;
+    }
+    return ok;
+}
+
+bool fromJsonValue(float &value, const QJsonValue &jval)
+{
+    bool ok = true;
+    if (jval.isDouble()) {
+        value = static_cast<float>(jval.toVariant().toDouble());
+    } else {
+        ok = false;
+    }
+    return ok;
+}
+
+bool fromJsonValue(double &value, const QJsonValue &jval)
+{
+    bool ok = true;
+    if (jval.isDouble()) {
+        value = jval.toVariant().toDouble();
+    } else {
+        ok = false;
+    }
+    return ok;
+}
+
+bool fromJsonValue({{prefix}}Object &value, const QJsonValue &jval)
+{
+    bool ok = true;
+    if (jval.isObject()) {
+        value.fromJsonObject(jval.toObject());
+        ok = value.isValid();
+    } else {
+        ok = false;
+    }
+    return ok;
+}
+
+bool fromJsonValue({{prefix}}Enum &value, const QJsonValue &jval)
+{
+    value.fromJsonValue(jval);
+    return true;
+}
+
+bool fromJsonValue({{prefix}}HttpFileElement &value, const QJsonValue &jval)
+{
+    return value.fromJsonValue(jval);
+}
+
+bool fromJsonValue(QJsonValue &value, const QJsonValue &jval)
+{
+    value = jval;
+    return true;
+}
+
+// Specialization for QString
+bool isPrimitiveType(const QString&)
+{
+    return true;
+}
+
+// Specialization for QByteArray
+bool isPrimitiveType(const QByteArray&)
+{
+    return true;
+}
+
+QString convertJsonValueToString(const QJsonValue &jsonValue)
+{
+    if (jsonValue.isArray()) {
+        return QString::fromUtf8(QJsonDocument(jsonValue.toArray()).toJson(QJsonDocument::Compact));
+    }
+    if (jsonValue.isObject()) {
+        return QString::fromUtf8(QJsonDocument(jsonValue.toObject()).toJson(QJsonDocument::Compact));
+    }
+    return jsonValue.toVariant().toString();
+}
+
+// Param prefix - the first parameter related symbol in a serialization string.
+QString getParamStylePrefix(std::string_view style)
+{
+    if (style == "matrix") {
+        return ";"_L1;
+    } else if (style == "label") {
+        return "."_L1;
+    } else if (style == "form") {
+        return "?"_L1;
+    } else if (style == "simple") {
+        return ""_L1;
+    } else if (style == "spaceDelimited") {
+        return "?"_L1;
+    } else if (style == "pipeDelimited") {
+        return "?"_L1;
+    } else if (style == "deepObject") {
+        return "?"_L1;
+    }
+    Q_UNREACHABLE_RETURN(QString());
+}
+
+QString getParamStyleSuffix(std::string_view style, const QString &name, SerializationFlags flags)
+{
+    const bool isExplode = flags.testFlag(SerializationFlag::Explode);
+    const bool isObject = flags.testFlag(SerializationFlag::Object);
+    if (style == "matrix") {
+        // for undefined cases "=" will be deleted on serialization.
+        return (isExplode && isObject) ? QString() : name + QString::fromLatin1("=");
+    } else if (style == "label") {
+        return ""_L1;
+    } else if (style == "form") {
+        return (isExplode && isObject) ? QString() : name + QString::fromLatin1("=");
+    } else if (style == "simple") {
+        return ""_L1;
+    } else if (style == "spaceDelimited") {
+        return name + "="_L1;
+    } else if (style == "pipeDelimited") {
+        return name + "="_L1;
+    } else if (style == "deepObject") {
+        return name;
+    }
+    Q_UNREACHABLE_RETURN(QString());
+}
+
+QString getParamStyleDelimiter(std::string_view style, SerializationFlags flags)
+{
+    const bool isExplode = flags.testFlag(SerializationFlag::Explode);
+    if (style == "matrix") {
+        return (isExplode) ? ";"_L1 : ","_L1;
+    } else if (style == "label") {
+        return (isExplode) ? "."_L1 : ","_L1;
+    } else if (style == "form") {
+        return (isExplode) ? "&"_L1 : ","_L1;
+    } else if (style == "simple") {
+        return ","_L1;
+    } else if (style == "spaceDelimited") {
+        return QString::fromLatin1(QUrl::toPercentEncoding(" "_L1));
+    } else if (style == "pipeDelimited") {
+        return QString::fromLatin1(QUrl::toPercentEncoding("|"_L1));
+    } else if (style == "deepObject") {
+        return "&"_L1;
+    }
+    Q_UNREACHABLE_RETURN(QString());
+}
+
+QString getParamStyleAssignOperator(std::string_view style, SerializationFlags flags)
+{
+    const bool isExplode = flags.testFlag(SerializationFlag::Explode);
+    const bool isObject = flags.testFlag(SerializationFlag::Object);
+    if (!isObject)
+        return ""_L1;
+    if (style == "matrix") {
+        return (isExplode) ? "="_L1 : ","_L1;
+    } else if (style == "label") {
+        return (isExplode) ? "="_L1 : ","_L1;
+    } else if (style == "form") {
+        return (isExplode) ? "="_L1 : ","_L1;
+    } else if (style == "simple") {
+        return (isExplode) ? "="_L1 : ","_L1;
+    } else if (style == "spaceDelimited") {
+        return QString::fromLatin1(QUrl::toPercentEncoding(" "_L1));
+    } else if (style == "pipeDelimited") {
+        return QString::fromLatin1(QUrl::toPercentEncoding("|"_L1));
+    } else if (style == "deepObject") {
+        return "="_L1;
+    }
+    Q_UNREACHABLE_RETURN(QString());
+}
+
+QString serializeJsonValue(const QJsonValue &value, const SerializationOptions &opts)
+{
+    const bool percentEncode = opts.flags.testFlag(SerializationFlag::NeedPercentEncoding);
+    QString paramString;
+    switch(value.type()) {
+    case QJsonValue::String:
+    case QJsonValue::Bool:
+    case QJsonValue::Double:
+    {
+        paramString = opts.suffix;
+        const QString stringValue = toStringValue(value.toVariant());
+        paramString.append(percentEncode ? QString::fromLatin1(QUrl::toPercentEncoding(stringValue))
+                                         : stringValue);
+    } break;
+    case QJsonValue::Array:
+    {
+        const QVariantList array = value.toArray().toVariantList();
+        paramString = serializeArrayValue(array, opts);
+    } break;
+    case QJsonValue::Object:
+    {
+        QVariantMap map = value.toObject().toVariantMap();
+        if (map.size() > 0) {
+            if (opts.style == "deepObject") {
+                qsizetype index = 0;
+                for (const auto &[key, val] : map.asKeyValueRange()) {
+                    if (index > 0)
+                        paramString.append(opts.delimiter);
+                    if (percentEncode) {
+                        paramString.append(opts.suffix
+                                           + QString::fromLatin1(QUrl::toPercentEncoding(u"[%1]"_s.arg(key)))
+                                           + opts.assignOperator
+                                           + QString::fromLatin1(QUrl::toPercentEncoding(toStringValue(val))));
+                    } else {
+                        paramString.append(opts.suffix  + u"[%1]"_s.arg(key)
+                                           + opts.assignOperator + toStringValue(val));
+                    }
+                    ++index;
+                }
+            } else {
+                paramString = opts.suffix;
+                paramString.append(serializeMapValue(map, opts));
+            }
+        } else {
+            qWarning() << "Serialized QJsonValue::Object is empty!";
+        }
+    } break;
+    case QJsonValue::Null:
+    case QJsonValue::Undefined:
+    {
+        paramString = opts.suffix;
+        qWarning() << "Parameter serialization is not supported for the value:" << value;
+    } break;
+    }
+    return paramString;
+}
+
+{{#cppCommonNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppCommonNamespaceDeclarations}}
+
+{{#buildingQtSources}}
+QT_END_NAMESPACE
+{{/buildingQtSources}}

@@ -1,0 +1,15 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  template: ../../probe-config.hjson
+  args: {
+    TRACE_PROCESSOR_QUERIES: [
+      metrics/cpu-stress.hjson
+    ]
+    METRIC_DEFINITIONS: [
+      ./metrics.textproto
+    ]
+    TRACE_CONFIG: ../../trace-config/detailed-trace-config.pbtxt
+  }
+}

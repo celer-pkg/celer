@@ -1,0 +1,72 @@
+{
+    "QEN": {
+        "description": "Generates normal mapping effect where texture is used for adding 3D appearance for the source item. This is useful for example to faking the lighting of bumps and dents.",
+        "fragmentCode": [
+            "@main",
+            "{",
+            "    vec2 coord = vec2(fract(texCoord * normalMapTextureScale));",
+            "    vec4 normalMapTexture = texture(normalMapImage, coord);",
+            "    vec3 lightDir = vec3(normalMapLightPosition.xy - texCoord, normalMapLightPosition.z);",
+            "    // Aspect ratio correction",
+            "    lightDir.x *= iResolution.x / iResolution.y;",
+            "    float d = length(lightDir);",
+            "    vec3 n = normalize(normalMapTexture.rgb * 2.0 - 1.0);",
+            "    vec3 l = normalize(lightDir);",
+            "    vec3 normalMapDiffuse = (normalMapLightColor.rgb * normalMapLightColor.a) * max(dot(n, l), 0.0);",
+            "    float lightFade = 1.0 / (normalMapLightFade + normalMapLightFade * d + normalMapLightFade * d * d);",
+            "    // Fade based on normal map alpha",
+            "    lightFade *= pow(normalMapTexture.a, 10.0);",
+            "    vec3 normalMap = fragColor.rgb * normalMapDiffuse * lightFade;",
+            "    fragColor.rgb = mix(fragColor.rgb, normalMap, normalMapOpacity);",
+            "}"
+        ],
+        "name": "NormalMapping",
+        "properties": [
+            {
+                "defaultValue": "../images/scratches_n.png",
+                "description": "Texture for the normal mapping effect. If scaling is used then this should support seamless tiling.",
+                "name": "normalMapImage",
+                "type": "image"
+            },
+            {
+                "defaultValue": "1",
+                "description": "Scaling of the normal map texture. The default value is 1.0, meaning the texture matches to source item size.",
+                "maxValue": "4",
+                "minValue": "0.2",
+                "name": "normalMapTextureScale",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0.5, 0.5, 0.5",
+                "description": "Position of the point light relative to the item coordinates. Bigger z value means the light if further away from the surface.",
+                "maxValue": "1, 1, 1",
+                "minValue": "0, 0, 0",
+                "name": "normalMapLightPosition",
+                "type": "vec3"
+            },
+            {
+                "defaultValue": "1, 1, 1, 1",
+                "description": "Defines color of the light. The default value is white (1.0, 1.0, 1.0, 1.0).",
+                "name": "normalMapLightColor",
+                "type": "color"
+            },
+            {
+                "defaultValue": "0.5",
+                "description": "Defines the fading rate at which the lighting effect dims the light in proportion to the distance to the light. The default value is 0.5.",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "normalMapLightFade",
+                "type": "float"
+            },
+            {
+                "defaultValue": "1",
+                "description": "Defines the opacity of the normal map effect. Value 1.0 means full opacity while 0.0 means full transparency. The default value is 1.0.",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "normalMapOpacity",
+                "type": "float"
+            }
+        ],
+        "version": 1
+    }
+}

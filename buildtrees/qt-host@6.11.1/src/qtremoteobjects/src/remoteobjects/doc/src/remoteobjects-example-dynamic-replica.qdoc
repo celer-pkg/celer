@@ -1,0 +1,50 @@
+// Copyright (C) 2019 Ford Motor Company
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page remoteobjects-example-dynamic-replica.html
+\title Example 2: Direct Connection with a Dynamic Replica
+\brief Describes how the Qt Remote Objects establishes a direct connection with a dynamic replica.
+\target qtro-example2
+
+Initially, a dynamic replica is created as a "bare" QObject - without
+properties, signals or slots. Then, during initialization, QtRO returns the
+API for the object, after the connection to the source is made. Thus, the API
+is added to the object at runtime.
+
+There are no changes to be made on the source side, as a dynamic \l Replica
+only impacts how the requestor node acquires the replica. So, we use the
+source-side code shown in \l {qtro-example1}{Example 1}.
+
+\list 1
+    \li Add replica generation to the project.
+
+        Because the replica is dynamically acquired, no \c .rep file is
+        required unlike in \l {qtro-example1}{Example 1}.
+
+    \li Create the remote node and connect it to the source host node.
+
+        The code for this step is unchanged from \l {qtro-example1}{Example 1}.
+        \snippet doc_src_simpleswitch.cpp simpleSwitch_dynamicclientnode_example2
+
+    \li Acquire a replica of the remote source object.
+
+        In \c main.cpp, we use a QSharedPointer to hold a replica of the
+        remote object, and then instantiate a replica requestor object:
+
+        \snippet doc_src_simpleswitch.cpp simpleSwitch_dynamicclientmaincpp_example2
+\endlist
+
+The complete declaration and definition of the requestor class,
+\c DynamicClient, is as follows:
+
+\c dynamicclient.h
+\snippet doc_src_simpleswitch.cpp simpleSwitch_dynamicclientheader_example2
+
+\c dynamicclient.cpp
+\snippet doc_src_simpleswitch.cpp simpleSwitch_dynamicclientcpp_example2
+
+When run together with the source-side example, the output is identical
+to \l {qtro-example1}{Example 1}.
+
+*/

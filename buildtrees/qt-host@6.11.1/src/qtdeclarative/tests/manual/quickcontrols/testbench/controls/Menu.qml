@@ -1,0 +1,99 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+
+// TODO
+QtObject {
+    property string customControlName: qsTr("Menu, MenuItem & MenuSeparator")
+
+    property var supportedStates: [
+        []
+    ]
+
+    property Component component: Button {
+        id: menuButton
+        text: qsTr("Menu")
+        checked: menu.visible
+        checkable: true
+
+        Menu {
+            id: menu
+            x: 1
+            y: 1 + parent.height
+            visible: menuButton.checked
+            closePolicy: Popup.CloseOnPressOutsideParent
+
+            MenuItem {
+                text: "Normal"
+            }
+            MenuItem {
+                text: "Pressed"
+                down: true
+            }
+            MenuItem {
+                text: "Disabled"
+                enabled: false
+            }
+            MenuItem {
+                text: "Icon"
+                icon.source: Utils.iconUrl
+            }
+            MenuItem {
+                text: "Transparent Icon"
+                icon.source: Utils.iconUrl
+                icon.color: "transparent"
+            }
+
+            MenuSeparator {}
+
+            MenuItem {
+                text: "Checked"
+                checkable: true
+                checked: true
+            }
+            MenuItem {
+                text: "Checked + Pressed"
+                checkable: true
+                checked: true
+                down: true
+            }
+            MenuItem {
+                text: "Checked + Disabled"
+                checkable: true
+                checked: true
+                enabled: false
+            }
+
+            MenuSeparator {}
+
+            Menu {
+                title: "Submenu"
+
+                MenuItem {
+                    text: "Submenu item"
+                }
+            }
+
+            Menu {
+                title: "Submenu with icon"
+                icon {
+                    width: 14
+                    height: 14
+                    source: "qrc:/qt-project.org/imports/QtQuick/Controls/Basic/images/double-arrow.png"
+                }
+
+                MenuItem {
+                    text: "Submenu item"
+                }
+            }
+
+            Menu {
+                title: "Disabled Submenu"
+                enabled: false
+            }
+        }
+    }
+}

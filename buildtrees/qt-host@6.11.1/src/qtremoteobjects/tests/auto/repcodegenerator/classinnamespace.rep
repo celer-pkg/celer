@@ -1,0 +1,17 @@
+#HEADER namespace Test {
+#HEADER     namespace MyNamespace {
+
+POD MyNamespacePod (int number)
+
+ENUM MyNamespaceEnum {Value1, Value2}
+
+class MyNamespaceClass
+{
+    PROP(bool myProp READONLY)
+    PROP(Test::MyNamespace::MyNamespaceEnumEnum::MyNamespaceEnum myEnum READONLY)
+    MODEL tracks(title)
+    SIGNAL(customSignal(Test::MyNamespace::MyNamespacePod pod))
+}
+
+#FOOTER    } // namespace MyNamespace
+#FOOTER } // namespace Test

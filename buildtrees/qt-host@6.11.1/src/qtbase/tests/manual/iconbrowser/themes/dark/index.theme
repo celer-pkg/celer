@@ -1,0 +1,11 @@
+[Icon Theme]
+Name=dark
+
+Directories=svgs
+
+[svgs]
+Size=22
+Context=Actions
+Type=Scalable
+MinSize=22
+MaxSize=512

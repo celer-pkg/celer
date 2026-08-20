@@ -1,0 +1,74 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page solutions-for-application-development.html
+
+    \title Solutions for Developers
+    \brief Qt solutions for developer use cases.
+    \image front-coding.png
+
+    As a developer, you most likely have a favorite operating system, toolchain,
+    and language. Qt lets you use one software code base across all operating
+    systems and devices, including desktops, embedded systems,
+    business applications, in-vehicle systems, wearables, and mobile devices
+    connected to the Internet of Things.
+
+    The options are endless, but the following table summarizes the solutions
+    available for different types of target platforms or industries with links
+    to more information.
+
+    \table
+    \header
+            \li To Develop For
+            \li You Need
+        \row
+            \li Desktop
+            \li \l {Qt for Linux}, \l {Qt for macOS} {macOS},
+                or \l {Qt for Windows} {Windows} with the appropriate
+                \l{All Modules}{Qt modules}, depending on what your
+                applications will be used for.
+        \row
+            \li Mobile Devices
+            \li \l{Qt for Android} or \l{Qt for iOS}.
+        \row
+            \li Embedded Devices
+            \li \l {Qt for Embedded Linux}, \l {Qt for WebOS}, \l{Qt for INTEGRITY},
+                \l {Qt for QNX}, \l {Boot to Qt} as a full stack for embedded Linux.
+                \l {Qt for Android Automotive} as a specialized suite for
+                automotive development. \l {Qt Safe Renderer} for
+                safety-critical UI elements.
+        \row
+            \li MCUs (microcontroller unit)
+            \li \l{Qt for MCUs}
+        \row
+            \li Web Browsers
+            \li \l{Qt for WebAssembly}
+        \endtable
+
+        You can use QML, C++, or Python for application development:
+
+        \table
+        \header
+            \li To Develop With
+            \li You Need
+        \row
+            \li QML and Qt Quick
+            \li \l {Qt for Linux} {Qt for Linux}, \l {Qt for macOS} {macOS},
+             or \l {Qt for Windows} {Windows}
+        \row
+            \li Qt C++
+            \li \l {Qt for Linux} {Qt for Linux}, \l {Qt for macOS} {macOS},
+                or \l {Qt for Windows} {Windows}
+        \row
+            \li Python
+            \li \l{Qt for Python}
+        \endtable
+
+        \list
+            \li \l{Get and Install Qt}
+                {I want to install the necessary tools and modules}
+            \li \l{Create Your First Applications}
+                {I've already installed everything and want to start developing}
+    \endlist
+*/

@@ -1,0 +1,21 @@
+<RCC>
+    <qresource prefix="/">
+        <file>dict.txt</file>
+        <file>main.qml</file>
+        <file>qml/GameView.qml</file>
+        <file>qml/GuessWordView.qml</file>
+        <file>qml/Hangman.qml</file>
+        <file>qml/HowToView.qml</file>
+        <file>qml/Key.qml</file>
+        <file>qml/Letter.qml</file>
+        <file>qml/LetterSelector.qml</file>
+        <file>qml/MainView.qml</file>
+        <file>qml/PageHeader.qml</file>
+        <file>qml/ScoreItem.qml</file>
+        <file>qml/SimpleButton.qml</file>
+        <file>qml/SplashScreen.qml</file>
+        <file>qml/StoreItem.qml</file>
+        <file>qml/StoreView.qml</file>
+        <file>qml/Word.qml</file>
+    </qresource>
+</RCC>

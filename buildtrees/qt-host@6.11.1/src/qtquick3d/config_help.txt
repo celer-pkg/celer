@@ -1,0 +1,4 @@
+QtQuick3D options:
+
+  -assimp .............. Select used assimp library [system/qt/no]
+  -openxr .............. Select used OpenXR library [system/qt/no]

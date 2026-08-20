@@ -1,0 +1,51 @@
+{
+  pages: {
+    amazon_product: [
+      {action: "inject_new_document_script", script_path: "amazon_instrumentation.js", timeout: "5s"},
+      {action: "js", script: '''
+        performance.mark('LoadLine2/tablet/amazon_product_start');
+        window.location.href = 'https://www.amazon.co.uk/NIVEA-Suncream-Spray-Protect-Moisture/dp/B001B0OJXM';
+      '''},
+      {action: "wait_for_ready_state", ready_state: "complete", timeout: "20s"},
+      {action: "js", script: "performance.mark('LoadLine2/tablet/amazon_product_finish')"},
+    ],
+    google_doc: [
+      {action: "inject_new_document_script", script_path: "google_docs_instrumentation.js", timeout: "5s"},
+      {action: "js", script: '''
+        performance.mark('LoadLine2/tablet/google_doc_start');
+        window.location.href = 'https://docs.google.com/document/d/13AWeOGqtSkfpPK7meqE_X-GQQggwx4JJ1vc0YGvKg34/edit#heading=h.gjdgxs';
+      '''},
+      {action: "wait_for_ready_state", ready_state: "complete", timeout: "20s"},
+      {action: "js", script: "performance.mark('LoadLine2/tablet/google_doc_finish')"},
+    ],
+    cnn_article: [
+      {action: "inject_new_document_script", script_path: "cnn_instrumentation.js", timeout: "5s"},
+      {action: "js", script: '''
+        performance.mark('LoadLine2/tablet/cnn_article_start');
+        window.location.href = 'https://edition.cnn.com/2024/04/21/china/china-spy-agency-public-profile-intl-hnk/index.html';
+      '''},
+      {action: "wait_for_ready_state", ready_state: "complete", timeout: "20s"},
+      {action: "js", script: "performance.mark('LoadLine2/tablet/cnn_article_finish')"},
+    ],
+    google_search_result: [
+      // TODO(crbug.com/372457479): Consider using existing markers emitted by page such as trigger:SearchAFTEnd
+      // instead of custom ones.
+      {action: "inject_new_document_script", script_path: "google_search_tablet_instrumentation.js", timeout: "5s"},
+      {action: "js", script: '''
+        performance.mark('LoadLine2/tablet/google_search_result_start');
+        window.location.href = 'https://www.google.com/search?q=cats';
+      '''},
+      {action: "wait_for_ready_state", ready_state: "complete", timeout: "20s"},
+      {action: "js", script: "performance.mark('LoadLine2/tablet/google_search_result_finish')"},
+    ],
+    youtube_video: [
+      {action: "inject_new_document_script", script_path: "youtube_instrumentation.js", timeout: "5s"},
+      {action: "js", script: '''
+        performance.mark('LoadLine2/tablet/youtube_video_start');
+        window.location.href = 'https://www.youtube.com/watch?v=WuS9kPNAXHw&themeRefresh=1';
+      '''},
+      {action: "wait_for_condition", condition: "return !!localStorage.getItem('youtube_complete')", timeout: "20s"},
+      {action: "js", script: "performance.mark('LoadLine2/tablet/youtube_video_finish');"},
+    ],
+  },
+}

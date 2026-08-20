@@ -1,0 +1,204 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtbluetooth-index.html
+\title Qt Bluetooth
+\brief Qt Bluetooth enables connectivity between Bluetooth enabled devices.
+\ingroup technology-apis
+
+The Bluetooth API provides connectivity between Bluetooth enabled devices.
+
+Currently, the API is supported on the following platforms:
+
+\table
+\header
+    \li API Feature
+    \li \l {Qt for Android}{Android}
+    \li \l {Qt for iOS}{iOS}
+    \li \l {Qt for Linux}{Linux (BlueZ 5.x)}
+    \li \l {Qt for macOS}{\macos}
+    \li \l {Qt for Windows}{Windows}
+\row
+    \li Classic Bluetooth
+    \li x
+    \li
+    \li x
+    \li x
+    \li x
+\row
+    \li Bluetooth LE Central
+    \li x
+    \li x
+    \li x
+    \li x
+    \li x
+\row
+    \li Bluetooth LE Peripheral
+    \li x
+    \li x
+    \li x
+    \li x
+    \li
+\endtable
+
+\section1 Overview
+
+Bluetooth is a short-range (less than 100 meters) wireless technology. It
+has a data transfer rate of 2.1 Mbps, which makes it ideal
+for transferring data between devices. Bluetooth connectivity is based on
+basic device management, such as scanning for devices, gathering information
+about them, and exchanging data between them.
+
+Qt Bluetooth supports Bluetooth Low Energy development for client/central role
+use cases. Further details can be found in the
+\l {Bluetooth Low Energy Overview}{Bluetooth Low Energy Overview} section.
+
+\section1 Using the Module
+
+\include {module-use.qdocinc} {using the c++ api}
+
+\section2 Building with CMake
+
+\include {module-use.qdocinc} {building with cmake} {Bluetooth}
+
+\section2 Building with qmake
+
+\include {module-use.qdocinc} {building_with_qmake} {bluetooth}
+
+\section1 Permissions
+
+Starting from Qt 6.6, the Qt Bluetooth module uses new \l QPermission API
+to handle \l {QBluetoothPermission}{Bluetooth} permissions. This means that Qt
+itself no longer queries for these permissions, so this needs to be done
+directly from the client application.
+
+Please refer to the \l {Application Permissions} page for an example of how
+to integrate the new \l QPermission API into the application.
+
+\section1 Related Information
+
+\section2 Building Qt Bluetooth
+
+Even though the module can be built for all Qt platforms, the module is not
+ported to all of them. Non-supported platforms employ a dummy backend that is
+automatically selected when the platform is not supported. The dummy backend
+reports appropriate error messages and values, which enables you to detect at
+runtime that the current platform is not supported. The dummy backend is also
+selected on Linux if BlueZ development headers are not found during build time
+or Qt was built without Qt D-Bus support.
+
+The usage of the dummy backend is highlighted via an appropriate warning while building and running.
+
+\section3 Linux Specific
+
+Since Qt 6.5 the Linux peripheral support has two backend alternatives:
+BlueZ DBus and Bluetooth Kernel API. The DBus backend is the default
+backend since Qt 6.7.
+
+BlueZ DBus is the newer BlueZ stack and possibly the eventual successor of the
+older Kernel API. It is a bit more limited in terms of features, but in a
+typical usage this should not matter. One notable benefit of using the DBus
+backend is that the user process no longer needs to have the
+\e CAP_NET_ADMIN capability (for example by running as \c root user).
+
+The DBus backend requires BlueZ version 5.56 or higher, and that it provides
+the needed DBus APIs. If these requirements are not met, Qt automatically
+falls back to the Bluetooth Kernel API backend.
+
+The older kernel backend can also be selected manually by setting the
+\e QT_BLUETOOTH_USE_KERNEL_PERIPHERAL environment variable.
+
+\section3 \macos Specific
+The Bluetooth API on \macos requires a certain type of event dispatcher
+that in Qt causes a dependency to \l QGuiApplication. However, you can set the
+environment variable \c {QT_EVENT_DISPATCHER_CORE_FOUNDATION=1} to circumvent
+this issue.
+
+Applications that don't use Classic Bluetooth will find a subset of QtBluetooth
+is available, as CoreBluetooth (Bluetooth LE) don't require \l QApplication or
+\l QGuiApplication.
+
+\section2 Articles and Guides
+\list
+    \li \l {Qt Bluetooth Overview}{Classic Bluetooth Overview}
+    \li \l {Bluetooth Low Energy Overview}
+\endlist
+
+\section2 Reference
+\list
+    \li \l {Qt Bluetooth C++ Classes}{C++ Classes}
+\endlist
+
+\section2 Logging Categories
+
+The \l QtBluetooth module exports the following
+\l {Configuring Categories}{logging categories}:
+
+\table
+\header
+    \li Logging Category
+    \li Description
+\row
+    \li qt.bluetooth
+    \li Enables logging of cross platform code path in QtBluetooth
+\row
+    \li qt.bluetooth.android
+    \li Enables logging of the \l {Qt for Android} {Android} implementation
+\row
+    \li qt.bluetooth.bluez
+    \li Enables logging of the BLuez/Linux implementation
+\row
+    \li qt.bluetooth.ios
+    \li Enables logging of the \l {Qt for iOS} {iOS} implementation
+\row
+    \li qt.bluetooth.osx
+    \li Enables logging of the \l {Qt for macOS} {macOS} implementation
+\row
+    \li qt.bluetooth.windows
+    \li Enables logging of the \l {Qt for Windows} {Windows} implementation
+\endtable
+
+Logging categories enable additional warning and debug output for QtBluetooth.
+More detailed information about logging is found in \l QLoggingCategory. A
+quick way to enable all QtBluetooth logging is to add the following line to the
+\c main() function:
+
+\code
+    QLoggingCategory::setFilterRules(QStringLiteral("qt.bluetooth* = true"));
+\endcode
+
+\section2 Examples
+\list
+    \li QML
+    \list
+        \li \l {heartrate-game}{Bluetooth Low Energy Heart Rate Game}
+        \li \l {heartrate-server}{Bluetooth Low Energy Heart Rate Server}
+        \li \l {lowenergyscanner}{Bluetooth Low Energy Scanner}
+    \endlist
+    \li C++
+    \list
+        \li \l {btchat}{Bluetooth Chat}
+    \endlist
+\endlist
+
+\section1 Module Evolution
+
+\l{Changes to Qt Bluetooth} lists important changes in the module
+API and functionality that were done for the Qt 6 series of Qt.
+
+\section1 Licenses and Attributions
+
+Qt Bluetooth is available under commercial licenses from \l{The Qt Company}.
+In addition, it is available under the
+\l{GNU Lesser General Public License, version 3}, or
+the \l{GNU General Public License, version 2}.
+See \l{Qt Licensing} for further details.
+
+On Linux, Qt Bluetooth uses a separate executable, \c sdpscanner,
+to integrate with the official Linux bluetooth protocol stack
+BlueZ. BlueZ is available under the \l{GNU General Public License,
+version 2}.
+
+\annotatedlist attributions-qtbluetooth
+*/

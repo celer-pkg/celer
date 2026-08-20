@@ -1,0 +1,56 @@
+[
+    {
+        "Id": "protobuf",
+        "Name": "protobuf",
+        "QDocModule": "qtprotobuf",
+        "QtUsage": "Used in the qtprotobufgen generator.",
+        "QtParts": [ "tools" ],
+
+        "SecurityCritical": false,
+        "Homepage": "https://protobuf.dev",
+        "License": "BSD 3-clause \"New\" or \"Revised\" License",
+        "LicenseId": "BSD-3-Clause",
+        "LicenseFile": "LICENSES/LicenseRef-protobuf.txt",
+        "Copyright": "Copyright 2008 Google Inc.",
+        "Version": "21.9",
+        "PURL": [
+            "pkg:github/protocolbuffers/protobuf@v$<VERSION>"
+        ],
+        "CPE": "cpe:2.3:a:google:protobuf:$<VERSION>:*:*:*:*:*:*:*"
+    },
+    {
+        "Id": "protobuf-qtgrpcgen",
+        "Name": "protobuf",
+        "QDocModule": "qtgrpc",
+        "QtUsage": "Used in the qtgrpcgen generator.",
+        "QtParts": [ "tools" ],
+
+        "SecurityCritical": false,
+        "Homepage": "https://protobuf.dev",
+        "License": "BSD 3-clause \"New\" or \"Revised\" License",
+        "LicenseId": "BSD-3-Clause",
+        "LicenseFile": "LICENSES/LicenseRef-protobuf.txt",
+        "Copyright": "Copyright 2008 Google Inc.",
+        "Version": "21.9",
+        "PURL": [
+            "pkg:github/protocolbuffers/protobuf@v$<VERSION>"
+        ],
+        "CPE": "cpe:2.3:a:google:protobuf:$<VERSION>:*:*:*:*:*:*:*"
+    },
+    {
+        "Id": "grpc",
+        "Name": "gRPC",
+        "QDocModule": "qtgrpc",
+        "QtUsage": "Used in the gRPC examples and tests.",
+        "QtParts": [ "examples" ],
+
+        "SecurityCritical": false,
+        "Homepage": "https://grpc.io",
+        "Comment": "no relevant PURL or CPE set, because the dependency is just for examples and tests",
+        "License": "Apache License 2.0",
+        "LicenseId": "Apache-2.0",
+        "LicenseFile": "LICENSE.Apache-2.0.txt",
+        "Copyright": "Copyright 2015 gRPC authors.",
+        "Version": "1.50.1"
+    }
+]

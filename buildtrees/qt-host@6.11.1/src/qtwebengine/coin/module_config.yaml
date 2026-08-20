@@ -1,0 +1,118 @@
+version: 2
+tags: [git]
+accept_configuration:
+  condition: property
+  property: features
+  not_contains_value: Disable
+
+machine_type:
+  Build:
+    # Run Windows cross-compilation on larger VM, due to extreme length.
+    - cores: 32
+      enable_if:
+        condition: and
+        conditions:
+          - condition: property
+            property: host.os
+            equals_value: Windows
+          - condition: property
+            property: host
+            not_equals_property: target
+          - condition: property
+            property: target.os
+            not_equals_value: Android
+    - cores: 16
+      enable_if:
+        condition: or
+        conditions:
+          - condition: and
+            conditions:
+              - condition: property
+                property: host.os
+                equals_value: Windows
+              - condition: property
+                property: host.compiler
+                contains_value: MSVC
+              - condition: property
+                property: host.arch
+                equals_value: X86_64
+          - condition: and
+            conditions:
+              - condition: property
+                property: host.os
+                equals_value: Linux
+              - condition: property
+                property: host.arch
+                equals_value: AARCH64
+
+    - cores: 8
+
+  Test:
+    cores: 4
+
+instructions:
+  Build:
+    - type: AppendToEnvironmentVariable
+      variableName: COMMON_NON_QTBASE_CMAKE_ARGS
+      variableValue: " -DFEATURE_qtwebengine_build=OFF"
+      enable_if:
+        condition: or
+        conditions:
+          - condition: runtime
+            env_var: COIN_PLATFORM_ID
+            contains_value: "windows-11_22h2-arm64-msvc2022"
+          - condition: runtime
+            env_var: COIN_PLATFORM_ID
+            contains_value: "windows-11_23h2-arm64-msvc2022"
+    - type: AppendToEnvironmentVariable
+      variableName: COMMON_NON_QTBASE_CMAKE_ARGS
+      variableValue: " -DFEATURE_webengine_system_libxml=OFF -DFEATURE_webengine_system_libtiff=OFF"
+      enable_if:
+        condition: property
+        property: features
+        contains_value: Packaging
+    - type: AppendToEnvironmentVariable
+      variableName: COMMON_NON_QTBASE_CMAKE_ARGS
+      variableValue: " -DFEATURE_webengine_precompiled_headers=OFF"
+      enable_if:
+        condition: property
+        property: features
+        contains_value: Sccache
+    - type: AppendToEnvironmentVariable
+      variableName: COMMON_NON_QTBASE_TARGET_CMAKE_ARGS
+      variableValue: " -DFEATURE_webengine_precompiled_headers=OFF"
+      enable_if:
+        condition: property
+        property: features
+        contains_value: Sccache
+    - type: EnvironmentVariable
+      variableName: VERIFY_SOURCE_SBOM
+      variableValue: "ON"
+    - type: EnvironmentVariable
+      variableName: CMAKE_BUILD_TIMEOUT
+      variableValue: "36000"
+    - type: EnvironmentVariable
+      variableName: CMAKE_BUILD_OUTPUT_TIMEOUT
+      variableValue: "3600"
+    - type: EnvironmentVariable
+      variableName: NINJAFLAGS
+      variableValue: "-j{{.NumCPU}}"
+    - type: EnvironmentVariable
+      variableName: QTWEBENGINE_GN_THREADS
+      variableValue: "1"
+      enable_if:
+        condition: property
+        property: host.os
+        equals_value: MacOS
+    - !include "{{qt/qtwebengine}}/enable_swap_file.yaml"
+    - !include "{{qt/qtbase}}/coin_module_build_template_v2.yaml"
+  Test:
+    - type: EnvironmentVariable
+      variableName: QTWEBENGINE_DISABLE_SANDBOX
+      variableValue: "1"
+      enable_if:
+        condition: property
+        property: target.osVersion
+        equals_value: QEMU
+    - !include "{{qt/qtbase}}/coin_module_test_template_v3.yaml"
+    - !include "{{qt/qtbase}}/coin_module_test_docs.yaml"

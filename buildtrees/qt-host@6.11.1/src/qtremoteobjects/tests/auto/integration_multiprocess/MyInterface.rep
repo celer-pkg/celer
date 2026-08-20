@@ -1,0 +1,22 @@
+#include <QtCore>
+#include "rep_ExtPodInterface_merged.h"
+
+class MyInterface
+{
+    ENUM Enum1 { First, Second, Third }
+    PROP(Enum1 enum1 = First READWRITE)
+
+    PROP(bool started = false)
+    PROP(int initialValue)
+
+    SLOT(bool start())
+    SLOT(bool stop())
+    SLOT(bool quit())
+    SLOT(void testEnumParamsInSlots(Enum1 enumSlotParam, bool slotParam2, int))
+
+    SIGNAL(advance())
+    SIGNAL(testEnumParamsInSignals(Enum1 enumSignalParam, bool signalParam2, QString))
+
+    SLOT(void testExtPODListSlot(const QList<ExtPOD> &))
+    SIGNAL(testExtPODListSignal(const QList<ExtPOD> &))
+};

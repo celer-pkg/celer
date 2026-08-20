@@ -1,0 +1,20 @@
+#version 440
+
+layout ( local_size_x = 1, local_size_y = 1, local_size_z = 1 ) in;
+
+layout ( r32f, binding = 0 ) uniform image2D image;
+layout ( r32f, binding = 1 ) writeonly uniform image2D imageWriteOnly;
+layout ( r32f, binding = 2 ) readonly uniform image2D imageReadOnly;
+layout ( r32f, binding = 3 ) readonly writeonly uniform image2D imageReadOnlyWriteOnly;
+
+void main()
+{
+    imageLoad(image, ivec2(gl_GlobalInvocationID.xy));
+    imageStore(image, ivec2(gl_GlobalInvocationID.xy), vec4(0));
+
+    imageStore(imageWriteOnly, ivec2(gl_GlobalInvocationID.xy), vec4(0));
+
+    imageLoad(imageReadOnly, ivec2(gl_GlobalInvocationID.xy));
+
+    imageSize(imageReadOnlyWriteOnly);
+}

@@ -1,0 +1,7 @@
+module demos.calqlatr
+Main 1.0 Main.qml
+ApplicationState 1.0 content/ApplicationState.qml
+BackspaceButton 1.0 content/BackspaceButton.qml
+CalculatorButton 1.0 content/CalculatorButton.qml
+Display 1.0 content/Display.qml
+NumberPad 1.0 content/NumberPad.qml

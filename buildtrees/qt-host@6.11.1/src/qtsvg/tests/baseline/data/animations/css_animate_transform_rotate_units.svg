@@ -1,0 +1,44 @@
+<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+  <style>
+  @keyframes rotateDeg {
+    0% {transform: rotate(0)} 
+    100% {transform: rotate(45deg)}
+  }
+  @keyframes rotateRad {
+    0% {transform: rotate(0)} 
+    100% {transform: rotate(0.78rad)}
+  }
+  @keyframes rotateGrad {
+    0% {transform: rotate(0)} 
+    100% {transform: rotate(50grad)}
+  }
+  @keyframes rotateTurn {
+    0% {transform: rotate(0)} 
+    100% {transform: rotate(0.125turn)}
+  }
+  circle.deg {
+    animation-duration: 2s;
+    animation-name: rotateDeg;
+    animation-iteration-count: infinite;
+  }
+  circle.rad {
+    animation-duration: 2s;
+    animation-name: rotateRad;
+    animation-iteration-count: infinite;
+  }
+  circle.grad {
+    animation-duration: 2s;
+    animation-name: rotateGrad;
+    animation-iteration-count: infinite;
+  }
+  circle.turn {
+    animation-duration: 2s;
+    animation-name: rotateTurn;
+    animation-iteration-count: infinite;
+  }
+  </style>
+  <circle class="deg" cx="350" cy="200" r="100" fill="none" stroke-width="6" stroke="red"/>
+  <circle class="rad" cx="350" cy="200" r="80" fill="none" stroke-width="6" stroke="blue"/>
+  <circle class="grad" cx="350" cy="200" r="60" fill="none" stroke-width="6" stroke="green"/>
+  <circle class="turn" cx="350" cy="200" r="40" fill="none" stroke-width="6" stroke="violet"/>
+</svg>

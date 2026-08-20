@@ -1,0 +1,2 @@
+https://git.qt.io/aledelev/vcpkg.git
+https://git.qt.io/mrmsdbdl/vcpkg-mirror.git

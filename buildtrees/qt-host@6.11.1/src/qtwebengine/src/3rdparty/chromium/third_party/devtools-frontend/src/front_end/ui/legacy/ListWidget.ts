@@ -1,0 +1,504 @@
+// Copyright 2015 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+/* eslint-disable rulesdir/no-imperative-dom-api */
+/* eslint-disable rulesdir/no-lit-render-outside-of-view */
+
+import './Toolbar.js';
+
+import * as i18n from '../../core/i18n/i18n.js';
+import * as Platform from '../../core/platform/platform.js';
+import * as Buttons from '../../ui/components/buttons/buttons.js';
+import {html, render} from '../lit/lit.js';
+import * as VisualLogging from '../visual_logging/visual_logging.js';
+
+import * as ARIAUtils from './ARIAUtils.js';
+import listWidgetStyles from './listWidget.css.js';
+import {Tooltip} from './Tooltip.js';
+import {createInput, createTextButton, ElementFocusRestorer} from './UIUtils.js';
+import {VBox} from './Widget.js';
+
+const UIStrings = {
+  /**
+   *@description Text on a button to start editing text
+   */
+  editString: 'Edit',
+  /**
+   *@description Label for an item to remove something
+   */
+  removeString: 'Remove',
+  /**
+   *@description Text to save something
+   */
+  saveString: 'Save',
+  /**
+   *@description Text to add something
+   */
+  addString: 'Add',
+  /**
+   *@description Text to cancel something
+   */
+  cancelString: 'Cancel',
+  /**
+   * @description Text for screen reader to announce that an item has been saved.
+   */
+  changesSaved: 'Changes to item have been saved',
+  /**
+   * @description Text for screen reader to announce that an item has been removed.
+   */
+  removedItem: 'Item has been removed',
+} as const;
+const str_ = i18n.i18n.registerUIStrings('ui/legacy/ListWidget.ts', UIStrings);
+const i18nString = i18n.i18n.getLocalizedString.bind(undefined, str_);
+
+export class ListWidget<T> extends VBox {
+  private delegate: Delegate<T>;
+  private readonly list: HTMLElement;
+  private lastSeparator: boolean;
+  private focusRestorer: ElementFocusRestorer|null;
+  private items: T[];
+  private editable: boolean[];
+  private elements: Element[];
+  private editor: Editor<T>|null;
+  private editItem: T|null;
+  private editElement: Element|null;
+  private emptyPlaceholder: Element|null;
+  private isTable: boolean;
+  constructor(delegate: Delegate<T>, delegatesFocus = true, isTable = false) {
+    super({useShadowDom: true, delegatesFocus});
+    this.registerRequiredCSS(listWidgetStyles);
+    this.delegate = delegate;
+
+    this.list = this.contentElement.createChild('div', 'list');
+
+    this.lastSeparator = false;
+    this.focusRestorer = null;
+    this.items = [];
+    this.editable = [];
+    this.elements = [];
+    this.editor = null;
+    this.editItem = null;
+    this.editElement = null;
+
+    this.emptyPlaceholder = null;
+
+    this.isTable = isTable;
+    if (isTable) {
+      this.list.role = 'table';
+    }
+
+    this.updatePlaceholder();
+  }
+
+  clear(): void {
+    this.items = [];
+    this.editable = [];
+    this.elements = [];
+    this.lastSeparator = false;
+    this.list.removeChildren();
+    this.updatePlaceholder();
+    this.stopEditing();
+  }
+
+  appendItem(item: T, editable: boolean): void {
+    if (this.lastSeparator && this.items.length) {
+      const element = document.createElement('div');
+      element.classList.add('list-separator');
+      if (this.isTable) {
+        element.role = 'rowgroup';
+      }
+      this.list.appendChild(element);
+    }
+    this.lastSeparator = false;
+
+    this.items.push(item);
+    this.editable.push(editable);
+
+    const element = this.list.createChild('div', 'list-item');
+    if (this.isTable) {
+      element.role = 'rowgroup';
+    }
+    const content = this.delegate.renderItem(item, editable);
+    if (!content.hasAttribute('jslog')) {
+      element.setAttribute('jslog', `${VisualLogging.item()}`);
+    }
+    element.appendChild(content);
+    if (editable) {
+      element.classList.add('editable');
+      element.tabIndex = 0;
+      element.appendChild(this.createControls(item, element));
+    }
+    this.elements.push(element);
+    this.updatePlaceholder();
+  }
+
+  appendSeparator(): void {
+    this.lastSeparator = true;
+  }
+
+  removeItem(index: number): void {
+    if (this.editItem === this.items[index]) {
+      this.stopEditing();
+    }
+
+    const element = this.elements[index];
+
+    const previous = element.previousElementSibling;
+    const previousIsSeparator = previous?.classList.contains('list-separator');
+
+    const next = element.nextElementSibling;
+    const nextIsSeparator = next?.classList.contains('list-separator');
+
+    if (previousIsSeparator && (nextIsSeparator || !next)) {
+      previous?.remove();
+    }
+    if (nextIsSeparator && !previous) {
+      next?.remove();
+    }
+    element.remove();
+
+    this.elements.splice(index, 1);
+    this.items.splice(index, 1);
+    this.editable.splice(index, 1);
+    this.updatePlaceholder();
+  }
+
+  addNewItem(index: number, item: T): void {
+    this.startEditing(item, null, this.elements[index] || null);
+  }
+
+  setEmptyPlaceholder(element: Element|null): void {
+    this.emptyPlaceholder = element;
+    this.updatePlaceholder();
+  }
+
+  private createControls(item: T, element: Element): Element {
+    const controls = document.createElement('div');
+    controls.classList.add('controls-container');
+    controls.classList.add('fill');
+
+    // clang-format off
+    render(html`
+      <div class="controls-gradient"></div>
+      <div class="controls-buttons">
+        <devtools-toolbar>
+          <devtools-button class=toolbar-button
+                           .iconName=${'edit'}
+                           .jslogContext=${'edit-item'}
+                           .title=${i18nString(UIStrings.editString)}
+                           .variant=${Buttons.Button.Variant.ICON}
+                           @click=${onEditClicked}></devtools-button>
+          <devtools-button class=toolbar-button
+                           .iconName=${'bin'}
+                           .jslogContext=${'remove-item'}
+                           .title=${i18nString(UIStrings.removeString)}
+                           .variant=${Buttons.Button.Variant.ICON}
+                           @click=${onRemoveClicked}></devtools-button>
+        </devtools-toolbar>
+      </div>`, controls, {host: this});
+    // clang-format on
+
+    return controls;
+
+    function onEditClicked(this: ListWidget<T>): void {
+      const index = this.elements.indexOf(element);
+      const insertionPoint = this.elements[index + 1] || null;
+      this.startEditing(item, element, insertionPoint);
+    }
+
+    function onRemoveClicked(this: ListWidget<T>): void {
+      const index = this.elements.indexOf(element);
+      this.element.focus();
+      this.delegate.removeItemRequested(this.items[index], index);
+      ARIAUtils.LiveAnnouncer.alert(i18nString(UIStrings.removedItem));
+      if (this.elements.length >= 1) {
+        // focus on the next item in the list, or the last item if we're removing the last item
+        (this.elements[Math.min(index, this.elements.length - 1)] as HTMLElement).focus();
+      }
+    }
+  }
+
+  override wasShown(): void {
+    super.wasShown();
+    this.stopEditing();
+  }
+
+  private updatePlaceholder(): void {
+    if (!this.emptyPlaceholder) {
+      return;
+    }
+
+    if (!this.elements.length && !this.editor) {
+      this.list.appendChild(this.emptyPlaceholder);
+    } else {
+      this.emptyPlaceholder.remove();
+    }
+  }
+
+  private startEditing(item: T, element: Element|null, insertionPoint: Element|null): void {
+    if (element && this.editElement === element) {
+      return;
+    }
+
+    this.stopEditing();
+    this.focusRestorer = new ElementFocusRestorer(this.element);
+
+    this.list.classList.add('list-editing');
+    this.element.classList.add('list-editing');
+    this.editItem = item;
+    this.editElement = element;
+    if (element) {
+      element.classList.add('hidden');
+    }
+
+    const index = element ? this.elements.indexOf(element) : -1;
+    this.editor = this.delegate.beginEdit(item);
+    this.updatePlaceholder();
+    this.list.insertBefore(this.editor.element, insertionPoint);
+    this.editor.beginEdit(
+        item, index, element ? i18nString(UIStrings.saveString) : i18nString(UIStrings.addString),
+        this.commitEditing.bind(this), this.stopEditing.bind(this));
+  }
+
+  private commitEditing(): void {
+    const editItem = this.editItem;
+    const isNew = !this.editElement;
+    const editor = (this.editor as Editor<T>);
+    // Focus on the current item or the new item after committing
+    const focusElementIndex = this.editElement ? this.elements.indexOf(this.editElement) : this.elements.length - 1;
+    this.stopEditing();
+    if (editItem !== null) {
+      this.delegate.commitEdit(editItem, editor, isNew);
+      ARIAUtils.LiveAnnouncer.alert(i18nString(UIStrings.changesSaved));
+      if (this.elements[focusElementIndex]) {
+        (this.elements[focusElementIndex] as HTMLElement).focus();
+      }
+    }
+  }
+
+  private stopEditing(): void {
+    this.list.classList.remove('list-editing');
+    this.element.classList.remove('list-editing');
+    if (this.focusRestorer) {
+      this.focusRestorer.restore();
+    }
+    if (this.editElement) {
+      this.editElement.classList.remove('hidden');
+    }
+    if (this.editor?.element.parentElement) {
+      this.editor.element.remove();
+    }
+
+    this.editor = null;
+    this.editItem = null;
+    this.editElement = null;
+    this.updatePlaceholder();
+  }
+}
+
+export interface Delegate<T> {
+  renderItem(item: T, editable: boolean): Element;
+  removeItemRequested(item: T, index: number): void;
+  beginEdit(item: T): Editor<T>;
+  commitEdit(item: T, editor: Editor<T>, isNew: boolean): void;
+}
+
+export interface CustomEditorControl<T> extends HTMLElement {
+  value: T;
+  validate: () => ValidatorResult;
+}
+
+export type EditorControl<T = string> = (HTMLInputElement|HTMLSelectElement|CustomEditorControl<T>);
+
+export class Editor<T> {
+  element: HTMLDivElement;
+  private readonly contentElementInternal: HTMLElement;
+  private commitButton: Buttons.Button.Button;
+  private readonly cancelButton: Buttons.Button.Button;
+  private errorMessageContainer: HTMLElement;
+  private readonly controls: EditorControl[] = [];
+  private readonly controlByName = new Map<string, EditorControl>();
+  private readonly validators: Array<(arg0: T, arg1: number, arg2: EditorControl) => ValidatorResult> = [];
+  private commit: (() => void)|null = null;
+  private cancel: (() => void)|null = null;
+  private item: T|null = null;
+  private index = -1;
+
+  constructor() {
+    this.element = document.createElement('div');
+    this.element.classList.add('editor-container');
+    this.element.setAttribute('jslog', `${VisualLogging.pane('editor').track({resize: true})}`);
+    this.element.addEventListener(
+        'keydown', onKeyDown.bind(null, Platform.KeyboardUtilities.isEscKey, this.cancelClicked.bind(this)), false);
+
+    this.contentElementInternal = this.element.createChild('div', 'editor-content');
+    this.contentElementInternal.addEventListener('keydown', onKeyDown.bind(null, event => {
+      if (event.key !== 'Enter') {
+        return false;
+      }
+      if (event.target instanceof HTMLSelectElement) {
+        // 'Enter' on <select> is supposed to open the drop down, so don't swallow that here.
+        return false;
+      }
+      return true;
+    }, this.commitClicked.bind(this)), false);
+
+    const buttonsRow = this.element.createChild('div', 'editor-buttons');
+    this.cancelButton = createTextButton(i18nString(UIStrings.cancelString), this.cancelClicked.bind(this), {
+      jslogContext: 'cancel',
+      variant: Buttons.Button.Variant.OUTLINED,
+    });
+    this.cancelButton.setAttribute('jslog', `${VisualLogging.action('cancel').track({click: true})}`);
+    buttonsRow.appendChild(this.cancelButton);
+    this.commitButton = createTextButton('', this.commitClicked.bind(this), {
+      jslogContext: 'commit',
+      variant: Buttons.Button.Variant.PRIMARY,
+    });
+    buttonsRow.appendChild(this.commitButton);
+
+    this.errorMessageContainer = this.element.createChild('div', 'list-widget-input-validation-error');
+    ARIAUtils.markAsAlert(this.errorMessageContainer);
+
+    function onKeyDown(predicate: (arg0: KeyboardEvent) => boolean, callback: () => void, event: KeyboardEvent): void {
+      if (predicate(event)) {
+        event.consume(true);
+        callback();
+      }
+    }
+  }
+
+  contentElement(): Element {
+    return this.contentElementInternal;
+  }
+
+  createInput(
+      name: string, type: string, title: string,
+      validator: (arg0: T, arg1: number, arg2: EditorControl) => ValidatorResult): HTMLInputElement {
+    const input = (createInput('', type));
+    input.placeholder = title;
+    input.addEventListener('input', this.validateControls.bind(this, false), false);
+    input.setAttribute('jslog', `${VisualLogging.textField().track({change: true, keydown: 'Enter'}).context(name)}`);
+    ARIAUtils.setLabel(input, title);
+    this.controlByName.set(name, input);
+    this.controls.push(input);
+    this.validators.push(validator);
+    return input;
+  }
+
+  createSelect(
+      name: string, options: string[], validator: (arg0: T, arg1: number, arg2: EditorControl) => ValidatorResult,
+      title?: string): HTMLSelectElement {
+    const select = document.createElement('select');
+    select.setAttribute('jslog', `${VisualLogging.dropDown().track({change: true}).context(name)}`);
+    for (let index = 0; index < options.length; ++index) {
+      const option = select.createChild('option');
+      option.value = options[index];
+      option.textContent = options[index];
+      option.setAttribute(
+          'jslog', `${VisualLogging.item(Platform.StringUtilities.toKebabCase(options[index])).track({click: true})}`);
+    }
+    if (title) {
+      Tooltip.install(select, title);
+      ARIAUtils.setLabel(select, title);
+    }
+    select.addEventListener('input', this.validateControls.bind(this, false), false);
+    select.addEventListener('blur', this.validateControls.bind(this, false), false);
+    this.controlByName.set(name, select);
+    this.controls.push(select);
+    this.validators.push(validator);
+    return select;
+  }
+
+  createCustomControl<S, U extends CustomEditorControl<S>>(
+      name: string, ctor: {new(): U},
+      validator: (arg0: T, arg1: number, arg2: EditorControl) => ValidatorResult): CustomEditorControl<S> {
+    const control = new ctor();
+    this.controlByName.set(name, control as unknown as CustomEditorControl<string>);
+    this.controls.push(control as unknown as CustomEditorControl<string>);
+    this.validators.push(validator);
+    return control;
+  }
+
+  control(name: string): EditorControl {
+    const control = this.controlByName.get(name);
+    if (!control) {
+      throw new Error(`Control with name ${name} does not exist, please verify.`);
+    }
+    return control;
+  }
+
+  private validateControls(forceValid: boolean): void {
+    let allValid = true;
+    this.errorMessageContainer.textContent = '';
+    for (let index = 0; index < this.controls.length; ++index) {
+      const input = this.controls[index];
+      const {valid, errorMessage} = this.validators[index].call(null, (this.item as T), this.index, input);
+
+      input.classList.toggle('error-input', !valid && !forceValid);
+      if (valid || forceValid) {
+        ARIAUtils.setInvalid(input, false);
+      } else {
+        ARIAUtils.setInvalid(input, true);
+      }
+
+      if (!forceValid && errorMessage) {
+        if (this.errorMessageContainer.textContent) {
+          const br = document.createElement('br');
+          this.errorMessageContainer.append(br);
+        }
+        this.errorMessageContainer.append(errorMessage);
+      }
+
+      allValid = allValid && valid;
+    }
+    this.commitButton.disabled = !allValid;
+  }
+
+  requestValidation(): void {
+    this.validateControls(false);
+  }
+
+  beginEdit(item: T, index: number, commitButtonTitle: string, commit: () => void, cancel: () => void): void {
+    this.commit = commit;
+    this.cancel = cancel;
+    this.item = item;
+    this.index = index;
+
+    this.commitButton.textContent = commitButtonTitle;
+    this.element.scrollIntoViewIfNeeded(false);
+    if (this.controls.length) {
+      this.controls[0].focus();
+    }
+    this.validateControls(true);
+  }
+
+  private commitClicked(): void {
+    if (this.commitButton.disabled) {
+      return;
+    }
+
+    const commit = this.commit;
+    this.commit = null;
+    this.cancel = null;
+    this.item = null;
+    this.index = -1;
+    if (commit) {
+      commit();
+    }
+  }
+
+  private cancelClicked(): void {
+    const cancel = this.cancel;
+    this.commit = null;
+    this.cancel = null;
+    this.item = null;
+    this.index = -1;
+    if (cancel) {
+      cancel();
+    }
+  }
+}
+export interface ValidatorResult {
+  valid: boolean;
+  errorMessage?: string;
+}

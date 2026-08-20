@@ -1,0 +1,7 @@
+# QTQAINFRA-4127
+[passwordCharacter]
+ci b2qt 32bit
+
+# QTBUG-103256
+[copyAndPasteKeySequence]
+android

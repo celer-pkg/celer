@@ -1,0 +1,26 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+float qt_calcRGBAvg(in vec4 rgba)
+{
+    return (rgba.r + rgba.g + rgba.b) / 3.0;
+}
+
+vec3 qt_defaultMaterialBumpNoLod(in sampler2D inSampler, in float factor,
+                                 in vec2 texCoord, in vec3 tangent, in vec3 binormal,
+                                 in vec3 normal)
+{
+    // invert factor
+    float invFactor = -factor;
+
+    vec2 unitStep = 1.0 / vec2(textureSize(inSampler, 0));
+
+    float du = qt_calcRGBAvg(texture2D(inSampler, vec2(texCoord.x + unitStep.x, texCoord.y)))
+             - qt_calcRGBAvg(texture2D(inSampler, vec2(texCoord.x, texCoord.y)));
+    float dv = qt_calcRGBAvg(texture2D(inSampler, vec2(texCoord.x, texCoord.y + unitStep.y)))
+             - qt_calcRGBAvg(texture2D(inSampler, vec2(texCoord.x, texCoord.y)));
+
+    vec3 n = normalize(vec3(invFactor * du, invFactor * dv, 1.0));
+    n = n.x * normalize(tangent) + n.y * normalize(binormal) + n.z * normal;
+    return normalize(normal + n);
+}

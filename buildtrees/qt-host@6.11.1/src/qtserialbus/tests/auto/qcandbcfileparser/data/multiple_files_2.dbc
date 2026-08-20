@@ -1,0 +1,26 @@
+BO_  1235 Test1: 3 Vector__XXX
+ SG_ s4 m2 : 8|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ s3 m1 : 8|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ s2 m2 : 4|12@1- (1,0) [0|0] "" Vector__XXX
+ SG_ s1 m1M : 4|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ s0 M : 0|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ s5 : 16|8@1- (1,0) [0|0] "" Vector__XXX
+
+BO_  1236 Test2: 3 Vector__XXX
+ SG_ s4 m2 : 8|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ s3 m1 : 8|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ s2 m2 : 4|12@1- (1,0) [0|0] "" Vector__XXX
+ SG_ s1 m1M : 4|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ s0 M : 0|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ s5 : 16|8@1- (1,0) [0|0] "" Vector__XXX
+
+SG_MUL_VAL_  1235 s4 s1 2-3, 5-5 ;
+SG_MUL_VAL_  1235 s3 s1 1 - 1;
+SG_MUL_VAL_  1235 s2 s0 2 -4 , 6-  8 , 10  -10  ;
+SG_MUL_VAL_  1235 s1 s0 1-1, 5-5, 9-9;
+
+CM_ "Typo in multiplexed signal name";
+SG_MUL_VAL_  1236 s6 s1 2-3, 5-5;
+SG_MUL_VAL_  1236 s3 s1 1-1;
+SG_MUL_VAL_  1236 s2 s0 2-4, 6-8, 10-10;
+SG_MUL_VAL_  1236 s1 s0 1-1, 5-5, 9-9;

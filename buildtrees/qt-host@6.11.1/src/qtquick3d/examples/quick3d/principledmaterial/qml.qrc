@@ -1,0 +1,16 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>AlphaPane.qml</file>
+        <file>BackgroundCurtain.qml</file>
+        <file>BasicsPane.qml</file>
+        <file>ClearcoatPane.qml</file>
+        <file>DemoPane.qml</file>
+        <file>DetailsPane.qml</file>
+        <file>MarkdownLabel.qml</file>
+        <file>RefractionPane.qml</file>
+        <file>SpecialPane.qml</file>
+        <file>TextureSourceControl.qml</file>
+        <file>VerticalSectionSeparator.qml</file>
+    </qresource>
+</RCC>

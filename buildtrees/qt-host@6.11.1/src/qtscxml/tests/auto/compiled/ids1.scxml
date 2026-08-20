@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<!--
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+-->
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="ids1">
+    <!-- valid IDs: -->
+    <state id="foo.bar"/>
+    <state id="foo-bar"/>
+    <state id="foo_bar"/>
+    <state id="_"/>
+    <state id="näl"/>
+    <state id="n_0xe4_l"/>
+    <state id="_VALID"/>
+    <state id="__valid"/>
+    <state id="q&#x00ff;&#x0300;i"/>
+</scxml>

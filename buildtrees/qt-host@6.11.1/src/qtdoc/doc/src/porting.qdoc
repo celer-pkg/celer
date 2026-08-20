@@ -1,0 +1,129 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+
+\page portingguide.html
+\title Porting to Qt 6
+\brief Guide for porting Qt 5 applications to Qt 6.
+
+There are many changes to Qt from the previous version, Qt 5, to Qt 6.
+Before upgrading to Qt 6, make sure that your Qt 5 application is updated to Qt
+5.15. The latest Qt 5 version has the least amount of changes when porting to
+Qt 6. However, APIs marked as deprecated or obsolete in Qt 5.15 may have been
+removed in Qt 6.
+
+Here are things you should check if you are porting your Qt 5 applications into
+Qt 6.
+
+\section1 Disable use of C++ API deprecated in Qt 5.15
+
+Usage of API deprecated in Qt will typically show up in the form of a compiler
+warning. You can also make the use an error by defining the
+\l{QT_DISABLE_DEPRECATED_UP_TO} C++ macro in your build system. To disable
+any API deprecated in 5.15 or older Qt versions, define the macro to
+\c{0x050F00}, which is '5.15.0' encoded as a hexadecimal number.
+
+For example, in a qmake project file, define the macro with:
+\code
+DEFINES += QT_DISABLE_DEPRECATED_UP_TO=0x050F00
+\endcode
+
+In CMake, you can use add_compile_definitions:
+
+\code
+add_compile_definitions(QT_DISABLE_DEPRECATED_UP_TO=0x050F00)
+\endcode
+
+\list
+\li \l{https://doc.qt.io/qt-5/obsoleteclasses.html}
+    {Qt 5.15 Obsolete C++ Classes}
+\li \l{https://doc.qt.io/qt-5/obsoleteqmltypes.html}{Qt 5.15 Obsolete QML Types}
+\li \l{Obsolete Classes}{Qt 6 Obsolete C++ Classes}
+\li \l{Obsolete QML Types}{Qt 6 Obsolete QML Types}
+\endlist
+
+
+\section1 Check the Changes to the Modules
+
+A goal for the Qt 6 release is to maintain a streamlined framework which means
+the removal of some Qt 5 modules in Qt 6. In some cases, APIs from a
+deprecated module are available in another module. In future Qt 6 releases,
+new or previous modules may be added.
+
+\list
+\li \l{Removed Modules in Qt 6.0}
+\li \l{New Modules in Qt 6.0}
+\li \l{New and Restored Modules in Qt 6.1}
+\li \l{New and Restored Modules in Qt 6.2}
+\li \l{Changes to Qt Modules in Qt 6} - list of changes per Qt module
+\endlist
+
+
+\section1 Test for Graphical Regressions
+
+QML applications have a new graphical backend, which you should test for
+regressions. OpenGL is no longer guaranteed as default on target platforms
+and you should check that your graphics code is still creating the same effects
+you want.
+
+It is still possible to use OpenGL calls in Qt applications, but the OpenGL
+APIs are moved to the \l{Qt OpenGL} module. The graphical backend for Qt Widgets
+applications are unchanged from Qt 5.
+
+\list
+\li \l{Graphics}
+\li \l{Changes to Qt Quick} - changes to Qt Quick graphics that may affect Qt 5
+    applications
+\endlist
+
+\section2 High-DPI
+
+Qt 6 supports high-DPI displays on all platforms, and will automatically account
+for the display resolution when using higher level APIs such as Qt Widgets
+or Qt Quick. Applications only need to provide high-resolution assets,
+such as images and icons. The feature is always enabled.
+
+Qt 6 changes the default scale factor rounding policy from
+\l{Qt::HighDpiScaleFactorRoundingPolicy}{Qt::HighDpiScaleFactorRoundingPolicy::Round} to
+\l{Qt::HighDpiScaleFactorRoundingPolicy}{Qt::HighDpiScaleFactorRoundingPolicy::PassThrough}
+in order to track operating system DPI settings accurately. Applications that
+use Qt Widgets may encounter graphical glitches at non-integer scale factors,
+for example on Windows with a display configured for 175%. In that case, set the
+rounding policy to \l{Qt::HighDpiScaleFactorRoundingPolicy}{Round} to restore Qt 5 behavior.
+
+See \l{High DPI} for more details.
+
+\section1 Use the Platform Integration APIs
+
+There is better integration with the native APIs on target platforms in Qt 6.
+You can use platform integration APIs to implement native behavior that is not
+provided by Qt. For Qt 6, check for any updates to your application's target
+platform.
+
+\list
+\li \l{Platform Integration}
+\li \l{Qt Platform Abstraction}
+\li \l{Supported Platforms}
+\endlist
+
+\section1 Use Porting Tool
+
+A Clazy-based tool is available to facilitate porting from Qt 5 to Qt 6:
+\l {Porting C++ Applications to Qt 6 using Clazy checks}.
+
+\section1 Further Reading
+
+\list
+\li \l{What's new in Qt 6} - changes in Qt 6 minor versions
+\li \l{Build System Changes in Qt 6} - for building Qt 6 from source
+\li \l{Qt 5 and Qt 6 compatibility}{CMake: Qt 5 and Qt 6 compatibility}
+    - how to support both Qt 5 and Qt 6 in CMake
+\endlist
+
+\section2 QTextStream Changes
+
+The method QTextStream::setCodec() has been removed in Qt 6. Use
+QTextStream::setEncoding() instead.
+
+*/

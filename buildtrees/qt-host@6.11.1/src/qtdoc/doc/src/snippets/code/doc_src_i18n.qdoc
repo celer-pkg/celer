@@ -1,0 +1,15 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [7]
+HEADERS         = funnydialog.h \
+                  wackywidget.h
+SOURCES         = funnydialog.cpp \
+                  main.cpp \
+                  wackywidget.cpp
+FORMS           = fancybox.ui
+TRANSLATIONS    = superapp_dk.ts \
+                  superapp_fi.ts \
+                  superapp_no.ts \
+                  superapp_se.ts
+//! [7]

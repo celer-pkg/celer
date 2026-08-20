@@ -1,0 +1,14 @@
+Version: 2
+Configurations:
+-
+    Id: 'opensuse-15.6-host-asan'
+    Template: 'qtci-linux-openSUSE-15.6-x86_64-51'
+    Compiler: 'GCC'
+    Features: ['Sccache', 'WarningsAreErrors', 'UseConfigure', 'UseAddressSanitizer']
+    Configure arguments: '-nomake examples -developer-build'
+    Environment variables: [
+        'CMAKE_ARGS=-DOPENSSL_ROOT_DIR={{.Env.OPENSSL_HOME}}',
+        'NON_QTBASE_CMAKE_ARGS=-DFFMPEG_DIR={{.Env.FFMPEG_DIR}} -DQT_DEPLOY_FFMPEG=TRUE',
+        'VCPKG_HOST_TRIPLET=x64-linux-qt',
+        'VCPKG_TARGET_TRIPLET=x64-linux-qt',
+    ]

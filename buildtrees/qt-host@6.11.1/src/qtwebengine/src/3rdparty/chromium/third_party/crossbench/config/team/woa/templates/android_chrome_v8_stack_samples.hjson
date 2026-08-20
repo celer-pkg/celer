@@ -1,0 +1,35 @@
+// Minimum config required to collect Chrome and V8 stack samples on Android.
+// V8 Jitted code will be symbolized but to symbolize chrome you will need to
+// use Perfetto's symbolization tools.
+{
+  browsers: {
+    chrome: {
+      browser: "chrome-stable",
+      flags: [
+        "--js-flags=--interpreted_frames_native_stack,--perfetto_code_logger"
+      ]
+      driver: {
+        type: "adb",
+      }}}
+  env: {}
+  probes: {
+    trace_processor: {
+    }
+    perfetto: {
+      textproto: '''
+buffers {
+  size_kb: 500000
+  fill_policy: DISCARD
+}
+data_sources {
+  config {
+    name: "dev.v8.code"
+  }}
+'''
+    }
+    profiling: {
+      target: "renderer_main_only"
+      pprof: false
+      events: ['cpu-cycles']
+      count: 1000000
+    }}}

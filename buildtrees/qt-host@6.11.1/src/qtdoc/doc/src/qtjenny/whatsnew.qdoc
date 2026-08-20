@@ -1,0 +1,25 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+\page qtjenny-whatsnew.html
+\ingroup qtjenny
+\meta sortkey {0_whatsnew}
+
+\title What's new in Qt Jenny
+
+The following page describes new features by version.
+
+\section1 Qt Jenny 1.0
+
+\list
+    \li Initial release.
+    \li Templated code generation for any Java class.
+\endlist
+
+\section2 Qt 6.10.2, Qt 6.11
+
+\list
+    \li Support for callbacks, both for implementing Java interfaces and
+    extending Java classes, abstract or not, in C++.
+\endlist
+*/

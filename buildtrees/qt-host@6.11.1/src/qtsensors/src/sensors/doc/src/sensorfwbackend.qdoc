@@ -1,0 +1,12 @@
+// Copyright (C) 2017 Jolla Mobile
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page senorfwbackend.html
+    \title Sensorfw Backend
+    \brief Information about the Sensorfw sensor backend
+
+    The Sensorfw sensor backend requires the Sensorfw and sensor daemon. Sensorfw
+    was originally used in MeeGo, and is available on:
+    \l{https://github.com/sailfishos/sensorfw}.
+*/

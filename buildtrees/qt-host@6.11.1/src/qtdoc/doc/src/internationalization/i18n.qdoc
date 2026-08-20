@@ -1,0 +1,1174 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \group internationalization
+    \title Internationalization with Qt
+    \brief Qt's support for internationalization and multiple languages.
+    \nextpage Writing Source Code for Translation
+
+    \ingroup explanations-accessibility
+    \keyword internationalization
+    \keyword i18n
+
+    The \e internationalization and \e localization of an application are the
+    processes of adapting the application to different languages, regional
+    differences, and technical requirements of a target market.
+
+    \list
+        \li \l {Writing Source Code for Translation}{Internationalization}
+            means designing an application so that it can be adapted to various
+            languages and regions without engineering changes.
+        \li \l {Localizing Applications}{Localization} means adapting
+            internationalized applications for a specific region or language by
+            adding locale-specific components (such as date, time, and number
+            formats) and translating text.
+    \endlist
+
+    The need for internationalization ranges from spelling changes to enabling
+    the application to operate in different languages and to use different input
+    techniques, character encoding, and presentation conventions.
+
+    All input controls and text drawing methods in Qt offer built-in support for
+    all supported languages. The built-in font engine correctly renders text that
+    contains characters from a variety of different writing systems at the same
+    time.
+
+    \table
+    \header
+        \li For more information about
+        \li See
+    \row
+        \li Internationalizing source code
+        \li \l{Writing Source Code for Translation}
+    \row
+        \li Configuring and deploying translations, as well as using existing
+            Qt module translations
+        \li \l {Localizing Applications}
+    \row
+        \li Using the Qt translation tools
+        \li \l {Qt Linguist Manual}
+    \endtable
+
+    The following video shows how to internationalize and localize a simple
+    example application:
+
+    \youtube xNIz78IPBu0
+
+    \section1 Qt Classes for Internationalization
+
+    The following classes support internationalizing of Qt applications.
+
+    \annotatedlist i18n
+
+    See \l{Writing Source Code for Translation} for more information about how
+    to use the classes in applications.
+
+    \section1 Languages and Writing Systems
+
+    Qt supports most \l {QLocale::Language}{languages} in use today.
+
+    Input controls, such as the Qt Quick TextInput type and QLineEdit, QTextEdit,
+    and derived classes, as well as display controls, such as the \l Text type
+    and QLabel class handle the following special features of the different
+    writing systems:
+
+    \list
+
+    \li Line breaks
+
+        Some of the Asian languages are
+        written without spaces between words. Line breaking can occur either
+        after any character (with exceptions) as in Chinese, Japanese and
+        Korean, or after logical word boundaries as in Thai.
+
+    \li Bidirectional writing
+
+        Arabic and Hebrew are written from right to
+        left, except for numbers and embedded English text which is written
+        left to right. The exact behavior is defined in the
+        \l{https://www.unicode.org/unicode/reports/tr9/}{Unicode Technical Annex #9}.
+
+    \li Non-spacing or diacritical marks, such as accents or umlauts in European
+        languages
+
+        Some languages, such as Vietnamese, make extensive use of
+        these marks and some characters can have more than one mark at the
+        same time to clarify pronunciation.
+
+    \li Ligatures
+
+        In special contexts, some pairs of characters get
+        replaced by a combined glyph forming a ligature. Common examples are
+        the \c fl and \c fi ligatures used in typesetting US and European books.
+
+    \endlist
+
+    \l{Rich Text Processing}{Qt's text engine} supports different
+    \l {QLocale::Script}{writing systems} that work on all platforms
+    if the fonts for rendering them are installed.
+
+    You do not need to know about the writing system used in a particular
+    language, unless you want to write your own text input controls. In some
+    languages, such as Arabic or languages from the
+    Indian subcontinent, the width and shape of a glyph changes depending on the
+    surrounding characters. To take this into account in C++ code, use QTextLayout.
+    Writing input controls also requires some knowledge of the scripts they are
+    going to be used in. Usually, the easiest way is to subclass QLineEdit or
+    QTextEdit.
+
+    \section1 Encoding
+
+    Encoding is relevant both for application source files and the text files
+    that the application reads or writes.
+
+    \section2 Encoding Source Code
+
+    QML documents are always encoded in UTF-8 format. Since Qt 6, 8-bit
+    \l{https://www.ietf.org/rfc/rfc2279.txt}{UTF-8} is the predominant encoding
+    also in Qt C++.
+
+    The \c lupdate tool extracts UI strings from your application.
+    It expects all source code to be encoded in UTF-8 by default.
+
+    However, some editors, such as Visual Studio, use a different
+    encoding by default. One way to avoid encoding issues is to limit any
+    source code to ASCII, and use escape sequences for translatable strings
+    with other characters, for example:
+
+    \code
+    label->setText(tr("F\374r \310lise"));
+    \endcode
+
+    QString::toUtf8() returns the text in UTF-8 encoding, which preserves
+    \l{Unicode in Qt}{Unicode} information while looking like plain ASCII if
+    the text is wholly ASCII. To convert Unicode to local 8-bit encoding, use
+    QString::toLocal8Bit(). On Unix systems, this is equivalent to \c toUtf8().
+    On Windows, the system's current code page is used.
+
+    For converting from UTF-8 and local 8-bit encoding to QString, use the
+    QString::fromUtf8() and QString::fromLocal8Bit() convenience functions.
+
+    \section2 Encoding Text Input/Output
+
+    Use QTextStream::setEncoding() to set common encoding for text streams.
+
+    If you need some other legacy encoding, use the QTextCodec class from the
+    Qt5Compat module.
+
+    When an application starts, the locale of the machine determines the 8-bit
+    encoding used for external 8-bit data. QTextCodec::codecForLocale()
+    returns a codec that you can use to convert between this locale encoding
+    and Unicode.
+
+    The application may occasionally require encoding other than the
+    default local 8-bit encoding. For example, an application in a
+    Cyrillic KOI8-R locale (the de-facto standard locale in Russia) might
+    need to output Cyrillic in the ISO 8859-5 encoding. Code for this
+    would be:
+
+    \snippet snippets/code/doc_src_i18n.cpp 9
+
+    The following code demonstrates the conversion from ISO 8859-5 Cyrillic to
+    Unicode:
+
+    \snippet snippets/code/doc_src_i18n.cpp 10
+
+    For a complete list of supported encodings see the \l QTextCodec
+    documentation.
+
+    \section1 Operating and Windowing Systems
+
+    Some of the operating systems and windowing systems that Qt runs on
+    only have limited support for Unicode. The level of support available
+    in the underlying system has some influence on the support that Qt can
+    provide on those platforms, although in general Qt applications need
+    not be too concerned with platform-specific limitations.
+
+    \section2 Unix/X11
+
+    \list
+    \li Qt hides locale-oriented fonts and input methods and
+        provides Unicode input and output.
+    \li Most Unix variants use filesystem conventions such as UTF-8
+        by default. All Qt file functions allow Unicode, but convert
+        filenames to the local 8-bit encoding, as this is the Unix convention.
+    \li  File I/O defaults to the local 8-bit encoding,
+        with Unicode options in QTextStream.
+    \li  Some older Unix distributions contain only partial support for some locales.
+        For example, even if you have a \c /usr/share/locale/ja_JP.EUC directory,
+        you cannot display Japanese text unless you install Japanese fonts and
+        the directory is complete. For best results, use complete locales from
+        your system vendor.
+    \endlist
+
+    \section2 Linux
+
+    \list
+    \li  Qt provides full Unicode support, including input methods, fonts,
+        clipboard, and drag-and-drop.
+    \li The file system is encoded in UTF-8 on all modern Linux distributions.
+        File I/O defaults to UTF-8.
+    \endlist
+
+    \section2 Windows
+
+    \list
+    \li  Qt provides full Unicode support, including input methods, fonts,
+        clipboard, drag-and-drop, and file names.
+    \li  File I/O defaults to Latin1, with Unicode options in QTextStream.
+        However, some Windows programs do not understand big-endian
+        Unicode text files even though that is the order prescribed by
+        the Unicode standard in the absence of higher-level protocols.
+    \endlist
+
+    \section1 Related Topics
+*/
+
+/*!
+    \page i18n-source-translation.html
+    \title Writing Source Code for Translation
+    \ingroup internationalization
+    \previouspage Internationalization with Qt
+    \nextpage Localizing Applications
+    \brief Writing source code that enables the localization of applications.
+
+    Write QML and Qt C++ source code in a way that enables you to localize
+    applications:
+
+    \list
+        \li \l {Mark Strings for Translation}
+        \li \l {Use Parameters Instead of Concatenating Strings}
+        \li \l {Handle Plural Forms}
+        \li \l {Use Regional Number Settings}
+        \li \l {Internationalize Date, Time, and Currency}
+        \li \l {Mark Translatable Data Text Strings}
+        \li \l {Add Comments for Translators}
+        \li \l {Disambiguate Identical Text}
+        \li \l {Make Keyboard Shortcuts Translatable}
+        \li \l {Use Locale to Extend Localization Features}
+        \li \l {Enable Translation}
+        \li \l {Prepare for Dynamic Language Changes}
+    \endlist
+
+    When developing C++ applications, see also
+    \l {Additional Considerations for C++ Code}.
+
+    \section1 Mark Strings for Translation
+
+    Most of the text that must be translated in an application consists of
+    either single words or short phrases. These typically appear as window
+    titles, menu items, tooltips, and labels to buttons, check boxes, and
+    radio buttons.
+
+    Qt minimizes the performance cost of using translations by
+    translating the phrases for each window as they are created. In most
+    applications, the main window is created just once. Dialogs are often
+    created once and then shown and hidden as required. Once the initial
+    translation has taken place, there is no further runtime overhead for
+    the translated windows. Only those windows that are created,
+    destroyed and subsequently created will have a translation
+    performance cost.
+
+    You can create applications that switch language at runtime, but it
+    requires an effort and comes with a runtime performance cost.
+
+    Use translation functions to mark user-visible UI text for
+    translation in QML and C++ code. Qt supports two approaches to
+    identifying translatable text: \e text-based and \e ID-based.
+
+    In the \e text-based translation approach, Qt indexes each translatable
+    string by the \e{translation context} and optionally a disambiguating
+    \e{comment} it is associated with. The same phrase may occur in more
+    than one context without conflict. If a phrase occurs more than once in
+    a particular context, it is translated only once and the translation
+    is applied to every occurrence within the context.
+
+    In the \e ID-based Translation approach, each translation is uniquely
+    identified by an explicit ID. The IDs are unique project-wide. If an
+    ID occurs more than once in a project, it is translated only once and
+    the translation is applied to every occurrence within the project.
+
+    \section2 QML
+
+
+    In QML, you can use the following functions to mark user-visible strings for
+    translation in .qml files:
+
+    \list
+        \li \l [QML] {Qt::}{qsTr()}: \e{Text-based translation}
+        \li \l [QML] {Qt::}{qsTranslate()}: \e{Text-based translation}
+        \li \l [QML] {Qt::}{qsTrId()}: \e{ID-based translation}
+    \endlist
+
+    \section3 Text-based qsTr():
+
+    \code
+    Text {
+        id: txt1
+        text: qsTr("Back")
+    }
+    \endcode
+
+    This code makes \e Back a key entry in the translation source (TS) files. At
+    runtime, the translation system looks up the keyword \e Back in the current
+    context (see below) and then gets the corresponding translation value
+    for the current system locale. The result is returned to the \c text property
+    and the UI shows the appropriate translation of \e Back for the current locale.
+    If no translation is found, \c qsTr() returns the original string.
+
+    The translation context can be set for a given file with:
+
+    \code
+    pragma Translator: ChosenContext
+    \endcode
+
+    or
+
+    \code
+    pragma Translator: "Chosen::Context"
+    \endcode
+
+    The context set via \c qsTranslate() takes precedent over the context set via \c pragma \c Translator.
+    In QML, by default, the translation context is the file name.
+
+    \section3 ID-based qsTrId():
+
+    \code
+    Text {
+        id: txt1
+        //% "Back"
+        text: qsTrId("BackID")
+    }
+    \endcode
+
+    This code makes \e "BackID" a unique key entry in the translation source
+    (TS) files, and writes \e "Back" as it's source text. At runtime, the
+    translation system looks up the ID \e "BackID" and then
+    gets the corresponding translation value (or if not translated, the source
+    text) for the current system locale. The result is returned to the \c text
+    property and the UI shows the appropriate translation of \e "BackID" for the
+    current locale. If no entry with ID \e "BackID" in TS files is found,
+    \c qsTrId() returns the ID itself. This should not happen under normal conditions.
+
+    \section2 C++
+
+    In C++, you can use the following functions to mark user-visible strings for
+    translation:
+
+    \list
+        \li \l {QObject::}{tr()}: \e{Text-based translation}
+        \li \l {QCoreApplication::translate()}: \e{Text-based translation}
+        \li \l {QTranslator::translate()}: \e{Text-based translation}
+        \li \l qtTrId(): \e{ID-based translation}
+        \li For more options refer to \l linguist-id-based-i18n.html
+    \endlist
+
+    \section3 Text-based tr()
+
+    Use the \l{QObject::}{tr()} function to mark text as translatable
+    and to display translated text. The translation context is the name of the
+    QObject subclass the string is used in. To define translation context for new
+    QObject-based classes, use the Q_OBJECT macro in each new class definition.
+
+    When \c tr() is called, it looks up the translatable string using a
+    \l QTranslator object, which you must install on the application object,
+    as described in \l{Enable Translation}.
+
+    For example, assuming the \c LoginWidget is a subclass of QWidget:
+
+    \snippet snippets/code/doc_src_i18n.cpp 0
+
+    This accounts for 99% of the user-visible strings you're likely to
+    write. For information about marking string literals translatable,
+    see \l {Mark Translatable Data Text Strings}.
+
+    If the quoted text is not in a member function of a QObject subclass,
+    use either the \c tr() function of an appropriate class, or the
+    QCoreApplication::translate() function directly:
+
+    \snippet snippets/code/doc_src_i18n.cpp 1
+
+    \section3 ID-based qtTrId()
+
+    \l qtTrId() returns a translated string identified by ID. So instead of writing
+    the translatable string itself in the function, you write the ID of the
+    translation. The source text (default string) is written using metastring
+    notation \c {//%}. If the text is not translated, the source text annotated by
+    \c {//%} is returned. If no matching ID is found, the ID itself is returned.
+    This should not happen under normal conditions.
+
+    \code
+    //% "Password:"
+    QLabel *label = new QLabel(qtTrId("PasswordID"));
+    \endcode
+
+    This code makes \e "PasswordID" a unique key entry in the translation source
+    (TS) files, and writes \e "Password:" as it's source text. At runtime, the
+    translation system looks up the ID \e "PasswordID" and then
+    gets the corresponding translation value (or if not translated, the source
+    text) for the current system locale.
+
+    \note If you disable the \c{const char *} to QString automatic conversion by
+    compiling your application with the macro \c QT_NO_CAST_FROM_ASCII defined,
+    you will most likely catch any strings you are missing. See
+    QString::fromUtf8() and QString::fromLatin1() for more information.
+
+    \section1 Use Parameters Instead of Concatenating Strings
+
+    Different languages arrange words differently in phrases, clauses, and
+    sentences, so do not create strings by concatenating words and data. Instead,
+    use \c % to insert parameters into strings.
+
+    For example, in the string \c {After processing file %1, file %2 is next in
+    line}, \c{%1} and \c{%2} are numbered parameters. At runtime, \c{%1} and
+    \c{%2} are replaced with the first and second file names, respectively. The
+    same numbered parameters must appear in the translation, but not necessarily
+    in the same order. A German translation of the string might reverse the
+    phrases. For example, \c{Datei %2 wird bearbeitet, wenn Datei %1 fertig ist}.
+    Both numbered parameters appear in the translation, but in the reverse order.
+
+    \section2 QML: Use .arg()
+
+    The following QML snippet has a string with two number parameters
+    \c %1 and \c %2. These parameters are inserted with the \c .arg() functions.
+
+    \code
+    Text {
+        text: qsTr("File %1 of %2").arg(counter).arg(total)
+    }
+    \endcode
+
+    \c %1 refers to the first parameter and \c %2 refers to the second parameter,
+    so this code produces output like: \e {File 2 of 3}.
+
+
+    Avoid using template strings with arguments because
+    the resulting string is defined at runtime, rather than compile-time.
+    As a result, the translation tools cannot find the correct translation
+    for the template strings.
+
+    \section2 C++: Use QString::arg()
+
+    In C++, use the QString::arg() functions to substitute parameters:
+
+    \snippet snippets/code/doc_src_i18n.cpp 4
+
+    This code produces output like: \e {5 of 10 files copied. Copying:
+    somefile.txt}.
+
+    \section1 Handle Plural Forms
+
+    You can pass an additional integer parameter (\e n) to the translation
+    functions and use a special notation for plural forms (\c %n) in each
+    translatable string.
+
+    Depending on the value of \e n, the translation function returns a different
+    translation, with the correct grammatical number for the target language.
+    Also, any occurrence of \c %n is replaced with \e n's value.
+
+    For example, the English and French translations of the string
+    \c {%n message(s) saved} require different plural forms.
+
+    \table
+    \header
+        \li \e n
+        \li No Translation
+        \li French
+        \li English
+    \row
+        \li 0
+        \li "0 message(s) saved"
+        \li "0 message sauvegard\unicode{0xE9}"
+        \li "0 message\b{s} saved"
+    \row
+        \li 1
+        \li "1 message(s) saved"
+        \li "1 message sauvegard\unicode{0xE9}"
+        \li "1 message saved"
+    \row
+        \li 2
+        \li "2 message(s) saved"
+        \li "2 message\b{s} sauvegard\unicode{0xE9}\b{s}"
+        \li "2 message\b{s} saved"
+    \row
+        \li 37
+        \li "37 message(s) saved"
+        \li "37 message\b{s} sauvegard\unicode{0xE9}\b{s}"
+        \li "37 message\b{s} saved"
+    \endtable
+
+    This idiom also works with target languages that have several plural forms,
+    such as a \e dual form. In addition, the idiom handles the \e n \c {== 0}
+    case correctly for languages such as French that require the singular.
+
+    For a summary of the rules that \QL and \c lrelease use to translate strings
+    that contain plural forms, see \l{Translation Rules for Plural Forms}.
+
+    To handle plural forms in the native language, load a TS file for this
+    language, too. Use the \c lupdate tool \c -pluralonly command line option,
+    to create TS files that contain only entries with plural forms.
+
+    Alternatively, you can use the \c lconvert tool's \c -pluralonly command
+    line option to remove all non-plural forms from an existing TS file.
+
+    \section2 QML Example
+
+    The following QML code snippet translates the source text into the correct
+    plural form and replaces \c %n with the value of \c total:
+
+    \code
+    Text {
+        text: qsTr("%n message(s) saved", "", total)
+    }
+    \endcode
+
+    \section2 C++ Example
+
+    The following C++ code snippet replaces \c %n with the value that the
+    \c {count()} function returns:
+
+    \snippet snippets/code/src_corelib_kernel_qobject.cpp 18
+
+    \section1 Use Regional Number Settings
+
+    If you include the \c %L modifier when you specify a parameter, the number is
+    localized according to the current regional settings. The conversion uses the
+    default locale if you set it or the system-wide locale, otherwise.
+
+    \section2 QML: Use %L
+
+    For example, in the following QML snippet, \c %L1 formats the first
+    parameter according to the number formatting conventions of the currently
+    selected locale (geographical region):
+
+    \code
+    Text {
+        text: qsTr("%L1").arg(total)
+    }
+    \endcode
+
+    If \c total is the number \e {4321.56}, with English regional settings
+    (locale) the output is \e {4,321.56}, whereas with German regional settings
+    it is \e {4.321,56}.
+
+    \section2 C++: Use %Ln
+
+    In C++, you can use \c %Ln to produce a localized representation of \c n.
+    Use QLocale::setDefault() to set the default locale.
+
+    \keyword localization
+    \section1 Internationalize Date, Time, and Currency
+
+    Present date, time, and currency using the locally preferred formats.
+
+    \section2 QML: Use QtQml Functions
+
+    QML does not have special in-string modifiers for formatting dates and times.
+    Instead, you need to query the current locale (geographical region) and use
+    the methods of \l {QtQml::}{Date} to format the string.
+
+    \c Qt.locale() returns a \l {QtQml::}{Locale} object which contains
+    information about the locale. In particular, the \l {QtQml::Locale::name}
+    {Locale.name} property contains the language and country of the current
+    locale. You can use the value as is or parse it to determine the appropriate
+    content for the current locale.
+
+    The following snippet gets the current date and time with \c Date(), then
+    converts that to a string for the current locale. Then it inserts the date
+    string into the \c %1 parameter for the appropriate translation.
+
+    \code
+    Text {
+        text: qsTr("Date %1").arg(Date().toLocaleString(Qt.locale()))
+    }
+    \endcode
+
+    To localize currency numbers, use the \l {QtQml::}{Number} type. It has
+    similar functions as the \c Date type for converting numbers into localized
+    currency strings.
+
+    \section2 C++: Use QLocale Class
+
+    In C++, use QLocale::timeFormat() or QLocale::toString(QTime) or
+    \c toString(QDate):
+
+    \code
+    QLabel *label = new QLabel(this);
+    label->setText(tr("Date %1").arg(QLocale().toString(QDate::currentDate()));
+    \endcode
+
+    \section1 Mark Translatable Data Text Strings
+
+    Use \c _NOOP functions (in QML) and \c _NOOP macros (in C++) to mark
+    translatable string literals for extraction by the \c lupdate tool.
+
+    \section2 QML: Use _NOOP Functions
+
+    In QML, use the following functions to mark translatable string literals:
+
+    \list
+        \li \l [QML] {Qt::}{QT_TR_NOOP()}
+        \li \l [QML] {Qt::}{QT_TRANSLATE_NOOP()}
+        \li \l [QML] {Qt::}{QT_TRID_NOOP()}
+    \endlist
+
+    If the user changes the system language without a reboot, depending on the
+    system, the strings in arrays and list models and other data structures might
+    not be refreshed automatically. To force the texts to be refreshed when they
+    are displayed in the UI, you need to declare the strings with the
+    \c {QT_TR_NOOP()} function. Then, when you populate the objects for display,
+    you need to explicitly retrieve the translation for each text.
+
+    For example:
+
+    \code
+    ListModel {
+        id: myListModel
+
+        ListElement {
+            //: Capital city of Finland
+            name: QT_TR_NOOP("Helsinki")
+        }
+    }
+
+    ...
+
+    Text {
+        text: qsTr(myListModel.get(0).name)
+        // Get the translation of the name property in element 0
+    }
+    \endcode
+
+    \section2 C++: Use _NOOP Macros
+
+    For translatable text completely outside a function, use the \l QT_TR_NOOP(),
+    \l QT_TRID_NOOP(), and \l QT_TRANSLATE_NOOP() macros that expand to just the text
+    without the context.
+
+    An example of \c QT_TR_NOOP():
+
+    \snippet snippets/code/doc_src_i18n.cpp 2
+
+    An example of \c QT_TRANSLATE_NOOP():
+
+    \snippet snippets/code/doc_src_i18n.cpp 3
+
+    \section1 Add Comments for Translators
+
+    You can add comments in the source code before a string you mark as
+    translatable to clarify its purpose. The comments are included in the
+    TS files that you deliver to the translator.
+
+    \note The TS files are XML files with the source texts and a place for the
+    translated text. The updated TS files are converted into binary translation
+    files and included as part of the final application.
+
+    \section2 QML: Use //: and //~
+
+    In the following code snippet, the text on the \c {//:} line is the main comment
+    for the translator.
+
+    The text on the \c{//~} line is optional extra information. The first word of
+    the text is used as an additional identifier in the XML element in the TS file
+    so make sure the first word is not part of the sentence. For example, the
+    comment \e {Context Not related to back-stepping} is converted to
+    \c {<extra-Context>Not related to back-stepping} in the TS file.
+
+    \code
+    Text {
+        id: txt1;
+        // This UI string is only used here
+        //: The back of the object, not the front
+        //~ Context Not related to back-stepping
+        text: qsTr("Back");
+    }
+    \endcode
+
+    \section2 C++: Use Comment Characters
+
+    To add comments in C++, annotate the \c tr() calls in your code with
+    comments of the form \c {//:} or by marking the beginning and end of
+    the comment.
+
+    In the following examples, the comments are associated with the strings
+    passed to \c tr() in the context of each call:
+
+    \snippet snippets/code/src_corelib_kernel_qobject.cpp 40
+
+    To add optional comments, use:
+
+    \code
+    //~ <field name> <field contents>
+    \endcode
+
+    The field name should consist of a domain prefix (possibly the conventional
+    file extension of the file format the field is inspired by), a hyphen, and
+    the actual field name in underscore-delimited notation. For storage in TS
+    files, the field name together with the prefix \c extra- will form an XML
+    element name. The field contents will be XML-escaped, but otherwise appear
+    verbatim as the element's contents. You can add any number of unique fields
+    to each message.
+
+    Example:
+
+    \snippet snippets/code/src_corelib_kernel_qobject.cpp meta data
+
+    \note The use of \c{//=} metastring comments to set IDs for text-based
+    translations is deprecated in Qt 6.10, and will be removed in the
+    upcoming versions.
+
+    You can use the keyword \e TRANSLATOR for translator comments.
+    Metadata appearing right in front of the TRANSLATOR keyword applies to
+    the whole TS file.
+
+    \note When the TS file is opened in \QL, the comments
+    annotated by \c {//:} are presented in the message editor of \QL.
+    Whereas, the texts provided using the \c{//~} notations
+    are extra information and are generated in the TS file only. They are mainly
+    intended for conversions to other formats and are hidden in \QL.
+
+    \section2 Grouping ID-Based Translations
+
+    You can assign each ID-based translation a \e label to organize
+    ID-based entries of large projects into smaller groups.
+
+    To assign a \e label to an ID-based entry, add a \c{//@} comment
+    naming the label, for example in C++:
+
+    \code cpp
+    //% "Open file"
+    //@ FileOperations
+    qtTrId("msg.open");
+    \endcode
+
+    Or in QML:
+    \code qml
+    //% "Open file"
+    //@ FileOperations
+    qsTrId("msg.open");
+    \endcode
+
+    When you open the TS file in \l {Qt Linguist}, the ID-based entries with
+    the same \e label are grouped together, similar to text-based
+    entries that are grouped by context.
+    Any item without a \e label appears under \c{<unnamed label>}.
+
+    \note Label names have no effect on lookup or uniqueness: IDs remain globally
+    unique and can still be loaded via \c{qtTrId("msgid")} without referencing a
+    label. The label tag is used only to improve the translator’s navigation
+    and does not change runtime behavior.
+
+
+    \section1 Disambiguate Identical Text
+
+    The translation system consolidates the UI text strings into unique items to
+    avoid having to translate the same text multiple times. However, a text
+    might look identical to another text but have a different meaning. For
+    example, in English, \e back means both a step backward and the part of an
+    object opposite to the front. You need to tell the translation system about
+    these two separate meanings, so the translator can create two separate
+    translations.
+
+    \section2 QML: Add a Disambiguator to qsTr()
+
+    In QML, add a disambiguating string as the second parameter of the \c qsTr()
+    function.
+
+    In the following code snippet, the ID \c {not front} differentiates this
+    \e Back text from the backstepping \e Back text:
+
+    \code
+    Text {
+        id: txt1
+        // This UI string is used only here
+        //: The back of the object, not the front
+        //~ Context Not related to back-stepping
+        text: qsTr("Back", "not front")
+    }
+    \endcode
+
+    \section2 C++: Add a Disambiguator to tr()
+
+    In C++, pass a disambiguating string in the call to \l{QObject::}{tr()}.
+
+    In the following code snippet, the ID \c recipient differentiates the name of
+    the recipient from that of the sender:
+
+    \snippet snippets/code/src_corelib_kernel_qobject.cpp 17
+    \dots
+
+    \section1 Make Keyboard Shortcuts Translatable
+
+    In its most common form, a keyboard shortcut describes a combination of keys
+    that you press to perform some action. For \l{Standard Shortcuts}
+    {standard shortcuts}, use a standard key to request the platform-specific
+    key sequence associated with each shortcut.
+
+    For custom shortcuts, use human-readable strings, such as \key Ctrl+Q or
+    \key Alt+F. You can translate them into the appropriate shortcuts for the
+    speakers of different languages.
+
+    If you hard-code keyboard shortcuts in your application, translators cannot
+    override them.
+
+    When you use keyboard shortcuts in menu item and button text, a
+    \e mnemonic character (marked by underlining) indicates that pressing
+    \key Alt or \key Ctrl with the underlined character performs the same action
+    as clicking the menu item or pressing the button.
+
+    For example, applications often use \e F as the mnemonic character in the
+    \uicontrol {File} menu, so you can either click the menu item or press
+    \key {Alt+F} to open the menu. To define the mnemonic character in the
+    translatable string ("File"), prefix it with an ampersand: \c {"&File"}.
+    The translation for the string should also have an ampersand in it,
+    preferably in front of the same character.
+
+    \section2 QML Example
+
+    In QML:
+
+    \badcode
+    Menu {
+        id: fileMenu
+        title: qsTr("&File")
+
+        MenuItem {
+            objectName: "quitMenuItem"
+            text: qsTr("E&xit")
+            onTriggered: Qt.quit()
+        }
+    }
+    \endcode
+
+    \section2 C++: Use the QKeySequence Class
+
+    In C++, use QAction and QKeySequence objects to specify the keyboard
+    shortcuts that trigger actions:
+
+    \code
+    exitAct = new QAction(tr("E&xit"), this);
+    exitAct->setShortcuts(QKeySequence::Quit);
+    \endcode
+
+    The translations of keyboard shortcuts are associated with the QShortcut
+    context.
+
+    \section1 Use Locale to Extend Localization Features
+
+    You might find different graphics or audio more suitable for different
+    geographical regions.
+
+    Generally, try to avoid localizing images. Create icons that are globally
+    appropriate, rather than relying on local puns or stretched metaphors.
+    However, you might have to reverse images of left and right pointing arrows
+    for Arabic and Hebrew locales.
+
+    Locale is one of the default file selectors, so you can use file selection
+    to display different images that you deliver as resources depending on the
+    system locale.
+
+    The QML and C++ code examples in the following sections assume that you
+    deliver the following files in the application resources and use language
+    and country codes as the subfolder names:
+
+    \badcode
+    images
+    ├── language-icon.png
+    ├── +en_GB
+    │   └── language-icon.png
+    └── +fi_FI
+        └── language-icon.png
+    \endcode
+
+    \section2 QML: Set Image Source
+
+    The following QML code snippet shows how to select an icon source image
+    according to the current locale:
+
+    \code
+    icon.source: "qrc:/images/language-icon.png"
+    \endcode
+
+    \section2 C++: Use QFileSelector
+
+    The following C++ code snippet uses QFileSelector to pick a language icon
+    from the \c images folder according to the system locale:
+
+    \code
+    const QFileSelector selector;
+    const QIcon languageIcon(selector.select(":/images/language-icon.png"));
+    \endcode
+
+    \section1 Enable Translation
+
+    TS file names must contain ISO language and country codes:
+
+    \list
+        \li \e language is an \l {https://www.iso.org/iso-639-language-codes.html}
+            {ISO-639} language code in lowercase.
+        \li \e country is an \l {https://www.iso.org/iso-3166-country-codes.html}
+            {ISO-3166} two-letter country code in uppercase.
+    \endlist
+
+    For example, \c qml_de.ts sets the target language to German, and
+    \c qml_de_CH.ts sets the target language to German and the target
+    country to Switzerland. The \c lrelease tool generates QM files
+    called \c qml_de.qm and \c qml_de_CH.qm that the application loads
+    depending on the system locale.
+
+    \section2 QML: Use QQmlApplicationEngine
+
+    In QML, use \l QQmlApplicationEngine to automatically load translation files
+    from a subdirectory called \c i18n in the directory that contains the main
+    QML file. The translation file names must have the prefix \c qml_.
+    For example, \c qml_en_US.qm. See the following CMake code snippets for how
+    to set up a multilingual app:
+
+    \badcode
+    ...
+    find_package(Qt6 6.5 REQUIRED COMPONENTS Quick LinguistTools)
+    qt_standard_project_setup(REQUIRES 6.5 I18N_TRANSLATED_LANGUAGES ja_JP)
+
+    qt_add_qml_module(appmultilingual_demo
+        URI multilingual_demo
+        QML_FILES
+            Main.qml
+    )
+
+    qt_add_translations(appmultilingual_demo
+        TS_FILE_BASE qml
+        TS_FILE_DIR i18n
+        RESOURCE_PREFIX /qt/qml/multilingual_demo/i18n
+    )
+    ...
+    \endcode
+
+    Applications reload translations when the \l QJSEngine::uiLanguage or
+    \l {Qt::uiLanguage}{Qt.uiLanguage} property value changes. The following
+    code snippet changes the language dynamically when the user clicks
+    the button:
+
+    \qml
+    Button {
+        anchors.centerIn: parent
+        text: qsTr("Translate")
+        onClicked: {
+            Qt.uiLanguage = Qt.uiLanguage === "en" ? "ja" : "en"
+        }
+    }
+    \endqml
+
+    \section2 C++: Use QTranslator
+
+    In C++, the TS file names must contain the application name. For example,
+    \c app_de_DE.ts.
+
+    Typically, your Qt C++ application's \c main() function will look like
+    this:
+
+    \snippet snippets/code/doc_src_i18n.cpp 8
+
+    For a translation-aware application, you create a QTranslator object,
+    \l {QTranslator::load()}{load} a translation according to the user's
+    UI display locale at runtime, and install the translator object into
+    the application.
+
+
+    \section1 Prepare for Dynamic Language Changes
+
+    Both Qt Widgets and Qt Quick use
+    \l {The Event System}{Qt's event system} to inform classes about
+    translation changes.
+
+    \l{QEvent::LanguageChange}{LanguageChange} events are posted when you use
+    the QCoreApplication::installTranslator() function to install a new
+    translation. Other application components can also force widgets or
+    QML types derived from the \l Item type to update themselves by posting
+    \c LanguageChange events to them.
+
+    By default, \c LanguageChange events are propagated to all top-level
+    windows, and from there they're propagated through the entire tree of
+    widgets or QML types derived from Item.
+
+    \section2 Qt Widgets: Override changeEvent
+
+    The default event handler for QWidget subclasses responds to the
+    QEvent::LanguageChange event and calls the \c {changeEvent()}
+    function when necessary.
+
+    To make Qt widgets aware of changes to the installed QTranslator objects,
+    reimplement the widget's \l{QWidget::changeEvent()}{changeEvent()} function
+    to check whether the event is a \l{QEvent::LanguageChange}{LanguageChange}
+    event and update the text displayed by widgets using the \l{QObject::tr()}
+    {tr()} function. For example:
+
+    \snippet snippets/code/doc_src_i18n.cpp 12
+
+    When using \QD UI files (.ui) and \c uic, you can read the new
+    translation files and call \c ui.retranslateUi(this) directly:
+
+    \snippet snippets/code/doc_src_i18n.cpp 17
+
+    To pass on other change events, call the default implementation of the
+    function.
+
+    The list of installed translators might change in response to a
+    \l{QEvent::LocaleChange}{LocaleChange} event, or the application might
+    provide a UI that allows the user to change the current
+    application language.
+
+    \section2 QML: Override event for Types Derived from Item
+    For plain QML applications without any custom C++ registered types,
+    \l {QML: Use QQmlApplicationEngine}{using QQmlApplicationEngine} is enough
+    to trigger an update of all translation bindings.
+
+    However, if you registered a type derived from QQuickItem, and one of
+    its properties exposes translated text (or is otherwise language
+    dependent), override its \l{QObject::event}{event method} and
+    emit the property's change signal in it (or call
+    \l{QObjectBindableProperty::notify()}{notify} in case of bindable
+    properties). For example:
+
+    \snippet snippets/code/doc_src_i18n.cpp 15
+
+    This ensures that any binding in QML in which the property is used is
+    reevaluated and takes the language change into account.
+
+    \section2 Generic QObject-derived Classes: Use Event Filters
+
+    Some classes are neither derived from QWidget nor from QQuickItem, but might
+    still need to handle language change events. In that case, install
+    \l{Event Filters}{an event filter} on
+    QCoreApplication.
+
+    \snippet snippets/code/doc_src_i18n.cpp 16
+
+    This might be necessary when translated strings are provided by the class
+    that later get displayed in a user interface (for example, a custom
+    \l{QAbstractItemModel}{item model}), or when the class acts as a container
+    of Widgets or Quick Items, and is therefore responsible for forwarding the
+    event to them.
+
+    \section1 Additional Considerations for C++ Code
+
+    The following sections contain more information about using the Qt C++
+    classes and functions in translatable applications:
+
+    \list
+        \li \l {Use QString for All User-Visible Text}
+        \li \l {Define a Translation Context}
+        \li \l {Translate Non-Qt Classes}
+        \li \l {Translate Text That is Outside of a QObject Subclass}
+    \endlist
+
+    \section2 Use QString for All User-Visible Text
+
+    QString uses the \l {Unicode in Qt}{Unicode} encoding internally, and
+    therefore you can use familiar text processing operations to transparently
+    process all languages in the world. Also, since all Qt functions
+    that present text to the user take a QString object as a parameter,
+    there is no \c{char *} to QString conversion overhead.
+
+    \section2 Define a Translation Context
+
+    The translation context for QObject and each QObject subclass is the
+    class name itself. If you subclass QObject, use the Q_OBJECT macro in the
+    class definition to override the translation context. The macro sets the
+    context to the name of the subclass.
+
+    For example, the following class definition includes the Q_OBJECT macro,
+    implementing a new \c tr() function that uses the \c MainWindow context:
+
+    \code
+    class MainWindow : public QMainWindow
+    {
+        Q_OBJECT
+
+    public:
+        MainWindow();
+    \endcode
+    \dots
+
+    If you do not use Q_OBJECT in a class definition, the context is
+    inherited from the base class. For example, since all QObject-based
+    classes in Qt provide a context, a new QWidget subclass defined without
+    a Q_OBJECT macro uses the \c QWidget context if you invoke its \c tr()
+    function.
+
+    \section2 Translate Non-Qt Classes
+
+    You must provide extra information for \c lupdate about strings in classes
+    that do not inherit QObject or use the Q_OBJECT macro. To add translation
+    support to a non-Qt class, you can use the Q_DECLARE_TR_FUNCTIONS() macro.
+    For example:
+
+    \snippet snippets/i18n-non-qt-class/myclass.h 0
+    \dots
+    \snippet snippets/i18n-non-qt-class/myclass.h 1
+
+    This provides the class with \l{QObject::}{tr()} functions that you can use
+    to translate strings associated with the class, and enables \c lupdate to
+    find translatable strings in the source code.
+
+    Alternatively, you can call the QCoreApplication::translate() function
+    with a specific context that \c lupdate and Qt Linguist recognize.
+
+    \section2 Translate Text That is Outside of a QObject Subclass
+
+    If the quoted text is not in a member function of a QObject subclass,
+    use either the \c tr() function of an appropriate class or the
+    QCoreApplication::translate() function directly:
+
+    \snippet snippets/code/doc_src_i18n.cpp 13
+*/
+
+/*!
+    \page i18n-plural-rules.html
+    \title Translation Rules for Plural Forms
+    \ingroup internationalization
+    \previouspage Localizing Applications
+    \brief A summary of the translation rules for plural forms produced by Qt's
+    translation tools.
+
+    Qt Linguist and \c lrelease support plural forms for all languages that are
+    supported by \l QLocale.
+
+    The table below shows the specific rules for a small selection of languages.
+    Cells marked \e otherwise indicate the form the tools use when none of the
+    other rules are appropriate for a specific language.
+
+    \table 80%
+    \header \li Language \li Rule 1 \li Rule 2 \li Rule 3
+    \row \li English \li \c{n == 1}
+        \li \e{otherwise} \li N/A
+    \row \li French \li \c{n < 2}
+        \li \e{otherwise} \li N/A
+    \row \li Czech \li \c{n % 100 == 1}
+        \li \c{n % 100 >= 2 && n % 100 <= 4}
+        \li \e{otherwise}
+    \row \li Irish \li \c{n == 1}
+        \li \c{n == 2} \li \e{otherwise}
+    \row \li Latvian \li \c{n % 10 == 1&& n % 100 != 11}
+        \li \c{n != 0} \li \e{otherwise}
+    \row \li Lithuanian \li \c{n % 10 == 1&& n % 100 != 11}
+        \li \c{n % 100 != 12 && n % 10 == 2}
+        \li \e{otherwise}
+    \row \li Macedonian \li \c{n % 10 == 1}
+        \li \c{n % 10 == 2} \li \e{otherwise}
+    \row \li Polish \li \c{n == 1}
+        \li \c{n % 10 >= 2 && n % 10 <= 4
+            && (n % 100 < 10 || n % 100 > 20)}
+        \li \e{otherwise}
+    \row \li Romanian \li \c{n == 1}
+        \li \c{n == 0|| (n % 100 >= 1 && n % 100 <= 20)}
+        \li \e{otherwise}
+    \row \li Russian \li \c{n % 10 == 1&& n % 100 != 11}
+        \li \c{n % 10 >= 2 && n % 10 <= 4
+            && (n % 100 < 10 || n % 100 > 20)}
+        \li \e{otherwise}
+    \row \li Slovak \li \c{n == 1} \li \c{n >= 2 && n <= 4}
+        \li \e{otherwise}
+    \row \li Japanese \li \e{otherwise} \li N/A \li N/A
+    \endtable
+*/

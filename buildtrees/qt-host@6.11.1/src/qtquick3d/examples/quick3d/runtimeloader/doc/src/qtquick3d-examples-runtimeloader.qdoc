@@ -1,0 +1,75 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example runtimeloader
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - RuntimeLoader Example
+    \examplecategory {3D}
+    \brief Demonstrates how assets can be loaded at runtime.
+    \image runtimeloader-example.jpg
+           {Multiple car models with instancing and toolbar controls}
+
+    This example shows how to implement a simple asset viewer using the \l RuntimeLoader.
+
+    See the \l{Qt Quick 3D - Introduction}{introductory example documentation} for an explanation of
+    how to set up a basic scene. Once we have the scene set up we can add the \l RuntimeLoader
+    item:
+
+    \snippet runtimeloader/main.qml runtimeloader
+
+    Loading an asset is done by setting the RuntimeLoader's \l {RuntimeLoader::source}{source}
+    property. In this example the \l {RuntimeLoader::source}{source} is bound to the \c importUrl
+    which will be changed when the user selects a file in the file-dialog.
+
+    Assuming the asset can be loaded, the content will be created as children of the \l
+    RuntimeLoader \c importNode. Note that the \l RuntimeLoader is a \l Node type, and since it is
+    also the root node for the loaded asset, any transforms applied to the \c importNode will also
+    affect its children.
+
+    \section2 Error handling
+
+    If an asset fails to load then the RuntimeLoader's \l {RuntimeLoader::status}{status} property
+    will be set to \c Error. The RuntimeLoader's \l {RuntimeLoader::errorString}{errorString} can
+    then be queried to get a more detailed description of the error.
+
+    In this example we will be displaying the error message in a red message box in the middle of
+    the screen, like this:
+
+    \snippet runtimeloader/main.qml status report
+
+    \section2 Moving the camera
+
+    To make it possible to change the position of the camera we use the \l WasdController from the
+    \l{Qt Quick 3D Helpers QML Types}{Helpers} module and bind it to our camera, like this:
+
+    \snippet runtimeloader/main.qml camera control
+
+    In addition to the \l WasdController, the example uses a \l [QML]{QtQuick}{WheelHandler} and
+    a \l [QML]{QtQuick}{PointerHandler} to scale and rotate the model.
+
+    \section2 Instancing
+
+    The RuntimeLoader item can also be used in combination with instancing, as shown here:
+
+    \snippet runtimeloader/main.qml instancing
+
+    RuntimeLoader does not inherit from Model, but it has its own
+    \l{RuntimeLoader::instancing}{instancing} property which allows us to instance a complex
+    imported asset as if it were a simple model. In this case we use the \l RandomInstancing
+    component from the \l{Qt Quick 3D Helpers QML Types}{Helpers} module to randomly position items
+    within a fixed area and with a random color.
+
+    \section2 Material Overrides
+
+    Sometimes when loading an asset, it is possible that it may not look as expected. The
+    \l {DebugSettings::materialOverride}{materialOverride} property will change how each material
+    in the scene is rendered to display a particular contribution to the overall rendering. This can
+    be useful for determining what exactly about the asset is not correct so that the original asset
+    can be adjusted if necessary.
+
+    \image runtimeloader-normals.jpg
+           {3D model rendered with normal map material override showing
+           surface details}
+*/
+

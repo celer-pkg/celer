@@ -1,0 +1,111 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+    \page qtgrpc-index.html
+    \title Qt GRPC
+    \keyword Qt GRPC
+    \ingroup frameworks-technologies
+    \brief Provides support for communicating with \gRPC services.
+
+    Qt GRPC, together with the \l{Qt Protobuf} module, enables fast and
+    space-efficient communication with \gRPC servers. It integrates \gRPC
+    services seamlessly into the Qt framework, allowing communication across
+    different programming languages or environments regardless of whether the
+    server is based on Qt.
+
+    \section1 Overview
+
+    \gRPC is a cross-platform, high-performance Remote Procedure Call (RPC)
+    framework. It uses the Protobuf compiler (\c{protoc}) to generate client
+    and server interfaces from \c{service} sections in a protobuf schema for
+    various programming languages. It is commonly used to connect services in
+    microservices-style architectures or to link mobile applications and
+    browsers with backend systems. For more details, see the
+    \l{https://grpc.io/docs/what-is-grpc/introduction/}{gRPC Introduction}.
+
+    Qt GRPC consists of C++ and Qt Quick APIs that handle the asynchronous
+    nature of Remote Procedure Calls using the well-known \l{Signals & Slots}
+    mechanism. It also provides command-line tools and a CMake API to
+    streamline the generation of Qt-specific interfaces using \c{protoc}.
+
+    Qt GRPC currently supports \b{client-side} functionality. This means it
+    can communicate with a gRPC-compatible server. This could be your own
+    server with its protobuf API or a publicly available API, such as the \l
+    {https://github.com/googleapis/googleapis} {Google APIs}.
+
+    \section1 Using the Module
+
+    \section2 Module prerequisites
+
+    \list
+        \li \c protoc, the Protocol Buffers compiler, is required to run
+            the Qt code generator plugins. See \l
+            {https://grpc.io/docs/protoc-installation/} {Protoc Installation}.
+
+        \li Optional: \l {Secure Sockets Layer (SSL) Classes} {SSL} support.
+
+        \li Optional: \l {https://github.com/grpc/grpc/blob/master/src/cpp/README.md}
+            {gRPC C++} for running the examples.
+    \endlist
+
+    \note See the \l {Example of installation for Windows using vcpkg} for
+    instructions on installing \gRPC and \e Protobuf, and running Qt GRPC
+    examples.
+
+    \section2 C++ API
+
+    To add protobuf files to a Qt-based project and generate the required
+    source code, use the \c protoc compiler along with the \c qtgrpcgen and \c
+    qtprotobufgen Qt plugins.
+
+    \list
+        \li \l{The qtprotobufgen Tool} generates Qt classes from protobuf
+            \b message definitions. Use the \l{qt_add_protobuf} CMake command to
+            automate this process.
+
+        \li \l{The qtgrpcgen Tool} generates interfaces from protobuf \b
+            service definitions. Use the \l{qt_add_grpc} CMake command to
+            automate this process.
+    \endlist
+
+    A minimal example of a CMake project file that uses Qt GRPC can look like
+    this:
+
+    \snippet qt-add-grpc-example.cmake 0
+
+    \section2 QML API
+
+    \include {module-use.qdocinc} {using the qml api} {QtGrpc}
+
+    \section1 Articles and Guides
+    \list
+        \li \l{clientguide} {Qt GRPC Client Guide}
+        \li \l{CMake Commands in Qt6 GRPC}
+        \li \l{Qt GRPC Security Considerations}
+        \li \l{Qt GRPC Interceptors Overview}
+    \endlist
+
+    \section1 References
+    \list
+        \li \l{Qt GRPC C++ Classes}{C++ Classes}
+        \li \l{Qt GRPC QML Types}{Qt GRPC Quick}
+    \endlist
+
+    \section1 Examples
+
+    \list
+        \li \l {Qt GRPC Examples}
+    \endlist
+
+    \section1 Licenses and Attributions
+
+    The Qt GRPC module is available under commercial licenses from \l {The Qt
+    Company}. In addition, it is available under free software licenses: The
+    \l {GNU General Public License, version 3}. See \l {Qt Licensing} for
+    further details.
+
+    Furthermore, Qt GRPC in Qt \QtVersion may contain third party modules under
+    the following permissive licenses:
+
+    \annotatedlist attributions-qtgrpc-examples
+*/

@@ -1,0 +1,9 @@
+# QTBUG-82043
+[pressAndHold]
+macos ci
+
+# QTBUG-103092
+[pressOneAndTapAnother]
+android
+[containsMouseAndVisibility]
+android

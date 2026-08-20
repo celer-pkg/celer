@@ -1,0 +1,639 @@
+{{>licenseInfo}}
+#include "{{#lambda.lowercase}}{{{classname}}}{{/lambda.lowercase}}.h"
+#include "{{prefixLowerCase}}serverconfiguration.h"
+
+#include <QtCore/qanystringview.h>
+#include <QtCore/qflags.h>
+#include <QtCore/qjsonarray.h>
+#include <QtCore/qjsondocument.h>
+#include <QtNetwork/qhttpmultipart.h>
+#include <QtNetwork/qnetworkaccessmanager.h>
+#include <QtNetwork/qnetworkreply.h>
+#include <QtNetwork/qnetworkrequestfactory.h>
+#include <QtNetwork/qrestaccessmanager.h>
+
+#include <string_view>
+
+using namespace Qt::StringLiterals;
+using namespace std::string_view_literals;
+
+{{#cppCommonNamespaceDeclarations}}
+using namespace {{this}};
+{{/cppCommonNamespaceDeclarations}}
+
+{{#cppNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppNamespaceDeclarations}}
+
+{{classname}}::{{classname}}(QObject *parent)
+    : {{prefix}}BaseApi(parent)
+{
+    initializeServerConfigs();
+}
+
+{{classname}}::~{{classname}}()
+{
+}
+
+void {{classname}}::initializeServerConfigs()
+{
+    //Default server
+    QList<{{prefix}}ServerConfiguration> defaultConf = QList<{{prefix}}ServerConfiguration>();
+    //varying endpoint server
+{{#vendorExtensions.x-cpp-global-server-list}}
+    defaultConf.append({{prefix}}ServerConfiguration(
+        u"{{{url}}}"_s,
+        u"{{{description}}}{{^description}}No description provided{{/description}}"_s,
+        {{#variables}}{{#-first}}QMap<QString, {{prefix}}ServerVariable>{ {{/-first}}
+        {u"{{{name}}}"_s, {{prefix}}ServerVariable(u"{{{description}}}{{^description}}No description provided{{/description}}"_s, u"{{{defaultValue}}}"_s,
+        QSet<QString>{ {{#enumValues}}{u"{{{.}}}"_s}{{#-last}} })},{{/-last}}{{^-last}}, {{/-last}}{{/enumValues}}{{^enumValues}}/* empty */ })},{{/enumValues}}{{#-last}} }));{{/-last}}
+        {{/variables}}{{^variables}}QMap<QString, {{prefix}}ServerVariable>()));{{/variables}}
+{{/vendorExtensions.x-cpp-global-server-list}}
+{{#operations}}
+{{#operation}}
+    {
+{{^servers}}
+        setServersForOperation(u"{{nickname}}"_s, defaultConf);
+{{/servers}}
+{{#servers}}
+{{#-first}}
+        QList<{{prefix}}ServerConfiguration> serversForOperation;
+
+{{/-first}}
+        serversForOperation.append({{prefix}}ServerConfiguration(
+            u"{{{url}}}"_s,
+            u"{{{description}}}{{^description}}No description provided{{/description}}"_s,
+            {{#variables}}{{#-first}}QMap<QString, {{prefix}}ServerVariable>{ {{/-first}}
+            {u"{{{name}}}"_s, {{prefix}}ServerVariable(u"{{{description}}}{{^description}}No description provided{{/description}}"_s, u"{{{defaultValue}}}"_s,
+            QSet<QString>{ {{#enumValues}}{u"{{{.}}}"_s}{{#-last}} })},{{/-last}}{{^-last}}, {{/-last}}{{/enumValues}}{{^enumValues}}/* empty */ })},{{/enumValues}}{{#-last}} }));{{/-last}}
+            {{/variables}}{{^variables}}QMap<QString, {{prefix}}ServerVariable>()));{{/variables}}
+{{#-last}}
+
+        setServersForOperation(u"{{nickname}}"_s, serversForOperation);
+{{/-last}}
+{{/servers}}
+    }
+{{/operation}}
+{{/operations}}
+}
+
+{{#operations}}
+{{#operation}}
+/**
+* \fn {{#makeOperationsVirtual}}virtual {{/makeOperationsVirtual}}void {{classname}}::{{nickname}}({{#hasParams}}{{#allParams}}const {{#required}}{{{dataType}}} &{{/required}}{{^required}}{{cppCommonNamespace}}::OptionalParameter<{{{dataType}}}> &{{/required}}{{paramName}}{{^required}} = {{cppCommonNamespace}}::OptionalParameter<{{{dataType}}}>(){{/required}}{{^-last}}, {{/-last}}{{/allParams}}{{/hasParams}})
+* {{#isDeprecated}}\deprecated {{/isDeprecated}}'{{nickname}}' operation sends the request to a server.
+* The request parameters are defined by a specification file.
+{{#hasParams}}{{#allParams}}{{#required}}
+* @param[in] {{paramName}} {{{dataType}}} [required]{{/required}}{{^required}}
+* @param[in] {{paramName}} {{{dataType}}} [optional]{{/required}}{{/allParams}}{{/hasParams}}
+*/
+
+/**
+* \fn template < Functor, > void {{classname}}::{{nickname}}({{#allParams}}const {{#required}}{{{dataType}}} &{{/required}}{{^required}}{{cppCommonNamespace}}::OptionalParameter<{{{dataType}}}> &{{/required}}{{paramName}}{{^required}} = {{cppCommonNamespace}}::OptionalParameter<{{{dataType}}}>(){{/required}}, {{/allParams}}const ContextTypeForFunctor< Functor > *context = nullptr, Functor &&callback = (){})
+* {{#isDeprecated}}\deprecated {{/isDeprecated}}'{{nickname}}' operation sends the request to a server.
+* The request parameters are defined by a specification file.
+*
+* \attention Use the operation with following parameters in the callback:
+* \code {c++}
+*    {{nickname}}({{#hasParams}}{{#allParams}}{{paramName}}, {{/allParams}}{{/hasParams}}this, [&](const QRestReply &reply{{#returnType}}, const {{{.}}} &summary{{/returnType}}) { if (reply.isSuccess()) ... });
+* \endcode
+* \note The template function can not be virtual in C++17.
+* If you want to use 'makeOperationsVirtual' option for mocking API,
+* please override virtual {{nickname}}WithDataImpl() in derived class.
+* The virtual {{nickname}}WithDataImpl() is being called by the template
+* function.
+{{#hasParams}}{{#allParams}}{{#required}}
+* @param[in] {{paramName}} {{{dataType}}} [required]{{/required}}{{^required}}
+* @param[in] {{paramName}} {{{dataType}}} [optional]{{/required}}{{/allParams}}{{/hasParams}}
+* @param[in] context const ContextTypeForFunctor< Functor > * [optional]
+* @param[in] callback Functor && [optional]
+*/
+
+/**
+* \fn void {{classname}}::{{nickname}}Callback(const QRestReply &reply)
+* Processes a \a reply response from a server.
+* The result of processed data is emitted by {{nickname}}Finished() or
+* being returned as a callback parameter of {{nickname}}() request.
+* @param[in] reply const QRestReply &
+*/
+
+/**
+* \fn {{#makeOperationsVirtual}}virtual {{/makeOperationsVirtual}}void {{classname}}::{{nickname}}WithDataImpl({{#allParams}}const {{#required}}{{{dataType}}} &{{/required}}{{^required}}{{cppCommonNamespace}}::OptionalParameter<{{{dataType}}}> &{{/required}}{{paramName}}, {{/allParams}}const QObject *context, QtPrivate::QSlotObjectBase *slot)
+* Implements the {{nickname}}() operation request.
+* \note If 'makeOperationsVirtual' option is true, this function is declared as virtual
+* and can be overloaded for mocking {{nickname}}() operation calls.
+{{#hasParams}}{{#allParams}}{{#required}}
+* @param[in] {{paramName}} {{{dataType}}} [required]{{/required}}{{^required}}
+* @param[in] {{paramName}} {{{dataType}}} [optional]{{/required}}{{/allParams}}{{/hasParams}}
+* @param[in] context const QObject * [optional]
+* @param[in] slot QtPrivate::QSlotObjectBase * [optional]
+*/
+void {{classname}}::{{nickname}}WithDataImpl({{#allParams}}const {{#required}}{{{dataType}}} &{{/required}}{{^required}}{{cppCommonNamespace}}::OptionalParameter<{{{dataType}}}> &{{/required}}{{paramName}}, {{/allParams}}const QObject *context, QtPrivate::QSlotObjectBase *slot)
+{
+    QtPrivate::SlotObjUniquePtr slotPtr(slot);
+    setBaseServerUrl(u"{{nickname}}"_s);
+    QString fullPath = u"{{{path}}}"_s;
+{{#authMethods}}
+{{#isApiKey}}
+{{#isKeyInHeader}}
+    if (const auto key = apiKey("{{name}}"_L1); key.has_value()) {
+        setHeader("{{name}}"_L1, *key);
+    }
+{{/isKeyInHeader}}
+{{#isKeyInQuery}}
+    if (const auto key = apiKey(u"{{name}}"_s); key.has_value()) {
+        if (fullPath.indexOf(u'?') > 0)
+            fullPath.append(u'&');
+        else
+            fullPath.append(u'?');
+        fullPath.append(u"{{{name}}}="_s).append(*key);
+    }
+{{/isKeyInQuery}}
+{{/isApiKey}}
+{{#isBasicBearer}}
+    if (const auto token = bearerToken(); !token.isEmpty())
+        setHeader(QHttpHeaders::WellKnownHeader::Authorization, "Bearer "_L1 + token);
+{{/isBasicBearer}}
+{{#isBasicBasic}}
+    if (const QString un = username(), p = password(); !un.isEmpty() && !p.isEmpty()) {
+        QByteArray b64;
+        b64.append(un.toUtf8() + ":" + p.toUtf8());
+        setHeader(QHttpHeaders::WellKnownHeader::Authorization, "Basic "_L1 + b64.toBase64());
+    }
+{{/isBasicBasic}}
+{{/authMethods}}
+{{#pathParams}}
+    {
+        QString {{paramName}}PathParam = u"{%1}"_s.arg(u"{{baseName}}"_s);
+{{#vendorExtensions.x-warningMessage}}
+        qWarning("{{{vendorExtensions.x-warningMessage}}}");
+{{/vendorExtensions.x-warningMessage}}
+
+        SerializationFlags flags;
+        flags.setFlag(SerializationFlag::Object, {{^isAnyType}}{{isModel}} || {{isMap}}{{/isAnyType}}{{#isAnyType}}{{paramName}}.type() == QJsonValue::Object{{/isAnyType}});
+        flags.setFlag(SerializationFlag::NeedPercentEncoding, true);
+        flags.setFlag(SerializationFlag::Explode, {{isExplode}});
+
+        SerializationOptions opts;
+        opts.style = "{{style}}"sv.empty() ? "simple" : "{{style}}";
+        opts.prefix = getParamStylePrefix(opts.style);
+        opts.delimiter = getParamStyleDelimiter(opts.style, flags);
+        opts.assignOperator = getParamStyleAssignOperator(opts.style, flags);
+        opts.suffix = getParamStyleSuffix(opts.style, QUrl::toPercentEncoding(u"{{baseName}}"_s), flags);
+        opts.flags = flags;
+{{^isAnyType}}
+        QString paramString = opts.prefix + opts.suffix;
+{{/isAnyType}}
+{{#isAnyType}}
+        QString paramString = opts.prefix + serializeJsonValue({{paramName}}, opts);
+{{/isAnyType}}
+{{#isModel}}
+        paramString = opts.prefix + serializeJsonValue(QJsonValue({{paramName}}.asJsonObject()), opts);
+{{/isModel}}
+{{#isMap}}
+{{#additionalProperties.isModel}}
+{{^content}}
+        qWarning() << "Serialization of complex array or object properties in path or query "
+                      "parameters is undefined. The generated result will not conform to the "
+                      "OpenAPI standard.";
+{{/content}}
+{{/additionalProperties.isModel}}
+        paramString.append(serializeMapValue({{paramName}}, opts));
+{{/isMap}}
+{{#isPrimitiveType}}
+        paramString += QUrl::toPercentEncoding(::{{cppCommonNamespace}}::toStringValue({{paramName}}));
+{{/isPrimitiveType}}
+{{#isArray}}
+        paramString = opts.prefix + serializeArrayValue({{paramName}}, opts);
+{{/isArray}}
+        // In case style=matrix and paramString is empty due to any reasons,
+        // we serialize it like undefined value and delete '='.
+        // Described here: https://spec.openapis.org/oas/v3.1.1.html#style-values
+        if ((paramString == opts.prefix + opts.suffix) && opts.style == "matrix")
+            paramString.chop(1);
+        fullPath.replace({{paramName}}PathParam, paramString);
+    }
+{{/pathParams}}
+{{#hasQueryParams}}
+    int queryParamCounter = 0;{{/hasQueryParams}}
+{{#queryParams}}
+    {
+        [[maybe_unused]] QString paramString;
+{{#vendorExtensions.x-warningMessage}}
+        qWarning("{{{vendorExtensions.x-warningMessage}}}");
+{{/vendorExtensions.x-warningMessage}}
+
+        SerializationFlags flags;
+        flags.setFlag(SerializationFlag::Object, {{^isAnyType}}{{isModel}} || {{isMap}}{{/isAnyType}}{{#isAnyType}}{{paramName}}{{^required}}.value(){{/required}}.type() == QJsonValue::Object{{/isAnyType}});
+        flags.setFlag(SerializationFlag::NeedPercentEncoding, true);
+        flags.setFlag(SerializationFlag::Explode, {{isExplode}});
+
+        SerializationOptions opts;
+        opts.style = "{{style}}"sv.empty() ? "form" : "{{style}}";
+        opts.prefix = getParamStylePrefix(opts.style);
+        opts.delimiter = getParamStyleDelimiter(opts.style, flags);
+        opts.assignOperator = getParamStyleAssignOperator(opts.style, flags);
+        opts.suffix = getParamStyleSuffix(opts.style, QUrl::toPercentEncoding(u"{{baseName}}"_s), flags);
+        opts.flags = flags;
+{{^isAnyType}}
+{{^isArray}}
+{{^isDeepObject}}
+        paramString = opts.suffix;
+{{/isDeepObject}}
+{{/isArray}}
+{{/isAnyType}}
+        if ((fullPath.indexOf(u'?') != fullPath.size() - 1) && (queryParamCounter == 0))
+            fullPath.append(opts.prefix);
+        {{^required}}if ({{paramName}}.hasValue()) {{/required}}{
+            if (queryParamCounter > 0)
+                fullPath.append(u'&');
+{{#isAnyType}}
+            const QJsonValue::Type paramType = {{paramName}}{{^required}}.value(){{/required}}.type();
+            if (paramType != QJsonValue::Object) {
+                if (opts.style == "deepObject") {
+                    qWarning("Be aware that 'deepObject' style is only valid for parameters of "
+                             "type 'object'. The generated result will not conform to the OpenAPI "
+                             "standard.");
+                } else if (paramType != QJsonValue::Array
+                           && (opts.style == "pipeDelimited"
+                               || opts.style == "spaceDelimited")) {
+                    qWarning("Be aware that '%s' style is invalid for primitive parameters. "
+                             "The generated result will not conform to the OpenAPI standard.",
+                             opts.style.c_str());
+                }
+            }
+            paramString = serializeJsonValue({{paramName}}{{^required}}.value(){{/required}}, opts);
+            fullPath.append(paramString);
+{{/isAnyType}}
+{{#isModel}}
+            const QJsonObject parameter = {{paramName}}{{^required}}.value(){{/required}}.asJsonObject();
+            paramString = serializeJsonValue(QJsonValue(parameter), opts);
+            // style=form && explode=true && non-object => '{{baseName}}' isn't used in serialization
+            // style=form && explode=true && empty object => need to be '{{baseName}}='
+            // see https://spec.openapis.org/oas/v3.1.1.html#style-values
+            if (paramString.isEmpty() && opts.style == "form")
+                paramString = u"{{baseName}}="_s;
+            fullPath.append(paramString);
+{{/isModel}}
+{{#isMap}}
+{{#additionalProperties.isModel}}
+{{^content}}
+            qWarning() << "Serialization of complex array or object properties in path or query "
+                          "parameters is undefined. The generated result will not conform to the"
+                          " OpenAPI standard.";
+{{/content}}
+{{/additionalProperties.isModel}}
+            if (opts.style == "deepObject") {
+                qsizetype index = 0;
+                if ({{paramName}}{{^required}}.value(){{/required}}.isEmpty())
+                    qWarning() << "Map is empty!";
+                for (const auto &[key, value] : {{paramName}}{{^required}}.value(){{/required}}.asKeyValueRange()) {
+                    if (index > 0)
+                        paramString.append(opts.delimiter);
+                    paramString.append(opts.suffix + QUrl::toPercentEncoding(u"[%1]"_s.arg(key)) + opts.assignOperator + QUrl::toPercentEncoding(::{{cppCommonNamespace}}::toStringValue(value)));
+                    index++;
+                }
+            } else {
+                paramString.append(serializeMapValue({{paramName}}{{^required}}.value(){{/required}}, opts));
+            }
+            fullPath.append(paramString);
+{{/isMap}}
+{{#isPrimitiveType}}
+            fullPath.append(opts.suffix + QUrl::toPercentEncoding(::{{cppCommonNamespace}}::toStringValue({{paramName}}{{^required}}.value(){{/required}})));
+{{/isPrimitiveType}}
+{{#isArray}}
+            fullPath.append(serializeArrayValue({{paramName}}{{^required}}.value(){{/required}}, opts));
+{{/isArray}}
+            queryParamCounter++;
+        }{{^required}}{{#isNullable}} else if ({{paramName}}.isNull()) {
+            if (queryParamCounter > 0)
+                fullPath.append(u'&');
+            // style=form && explode=true && non-object => '{{baseName}}' isn't used in serialization
+            // style=form && explode=true && empty object => need to be '{{baseName}}='
+            // see https://spec.openapis.org/oas/v3.1.1.html#style-values
+            if (opts.style == "form")
+                fullPath.append(u"{{baseName}}="_s);
+            else
+                fullPath.append(opts.suffix);
+            queryParamCounter++;
+        }{{/isNullable}}{{/required}}
+    }
+{{/queryParams}}
+    {{prefix}}HttpRequestInput input(fullPath, "{{httpMethod}}"_L1);
+{{#hasFormParams}}
+{{#consumes}}
+{{#-first}}
+    input.headers().replaceOrAppend(QHttpHeaders::WellKnownHeader::ContentType, "{{{mediaType}}}"_L1);
+{{/-first}}
+{{/consumes}}
+    input.setIsFormData(true);
+{{#isMultipart}}
+    input.setVariableLayout({{prefix}}HttpRequestInput::VariableLayout::Multipart);
+{{/isMultipart}}
+{{^isMultipart}}
+    input.setVariableLayout(input.httpMethod() == "GET"_L1 || input.httpMethod() == "HEAD"_L1
+                       ? {{prefix}}HttpRequestInput::VariableLayout::Address
+                       : {{prefix}}HttpRequestInput::VariableLayout::UrlEncoded);
+{{/isMultipart}}
+{{/hasFormParams}}
+{{#formParams}}
+    {{^required}}if ({{paramName}}.hasValue()) {{/required}}{
+        QString contentType;
+{{#consumes}}
+{{#contentType}}
+        contentType = u"{{contentType}}"_s;
+{{/contentType}}
+{{/consumes}}
+{{#isFile}}
+        input.addFile(u"{{baseName}}"_s, {{paramName}}{{^required}}.value(){{/required}}.filename(), contentType);
+{{/isFile}}
+{{^isFile}}
+{{#isContainer}}
+        // if contentType is explicitly specified as json,
+        // or if it is not specified and the elements of the
+        // array are non-primitive, also serialize as a json-object
+{{#isArray}}
+        using VT = std::decay_t<decltype({{paramName}}{{^required}}.value(){{/required}})>::value_type;
+        if (contentType == "application/json"_L1
+            || (contentType.isEmpty() && !isPrimitiveMediaType<VT>)) {
+            input.addFieldHeaders(u"{{baseName}}"_s, "application/json"_L1);
+            input.addVariable(u"{{baseName}}"_s, ::{{cppCommonNamespace}}::convertJsonValueToString(::{{cppCommonNamespace}}::toJsonValue({{paramName}}{{^required}}.value(){{/required}})));
+        } else {
+            // if none of the above - serialize according to the content type of items
+            for (const auto &item : {{paramName}}{{^required}}.value(){{/required}}) {
+                input.addVariable(u"{{baseName}}"_s, ::{{cppCommonNamespace}}::serializeMediaTypeContentField(contentType, item));
+            }
+            input.addFieldHeaders(u"{{baseName}}"_s, "text/plain"_L1);
+        }
+{{/isArray}}
+{{#isMap}}
+        using MapType = std::decay_t<decltype({{paramName}}{{^required}}.value(){{/required}})>;
+        using VT = typename MapType::mapped_type;
+        if (contentType == "application/json"_L1
+            || (contentType.isEmpty() && !isPrimitiveMediaType<VT>)) {
+            input.addFieldHeaders(u"{{baseName}}"_s, "application/json"_L1);
+            input.addVariable(u"{{baseName}}"_s, ::{{cppCommonNamespace}}::convertJsonValueToString(::{{cppCommonNamespace}}::toJsonValue({{paramName}}{{^required}}.value(){{/required}})));
+        } else {
+            // if none of the above - serialize according to the content type of items
+            for (const auto &[key, value] : {{paramName}}{{^required}}.value(){{/required}}.asKeyValueRange()) {
+                input.addVariable(key, ::{{cppCommonNamespace}}::serializeMediaTypeContentField(contentType, value));
+            }
+            input.addFieldHeaders(u"{{baseName}}"_s, "text/plain"_L1);
+        }
+{{/isMap}}
+{{/isContainer}}
+{{^isContainer}}
+        using VT = std::decay_t<decltype({{paramName}}{{^required}}.value(){{/required}})>;
+        input.addFieldHeaders(u"{{baseName}}"_s, addContentField<VT>(contentType));
+        input.addVariable(u"{{baseName}}"_s, ::{{cppCommonNamespace}}::serializeMediaTypeContentField(contentType, {{paramName}}{{^required}}.value(){{/required}}));
+{{/isContainer}}
+{{/isFile}}
+    }
+{{/formParams}}
+{{#bodyParams}}
+{{#consumes}}
+{{#-first}}
+    input.headers().replaceOrAppend(QHttpHeaders::WellKnownHeader::ContentType, "{{{mediaType}}}"_L1);
+{{/-first}}
+{{/consumes}}
+    {{^required}}if ({{paramName}}.hasValue()) {{/required}}{
+{{#isContainer}}
+{{#isArray}}
+        QJsonDocument doc(::{{cppCommonNamespace}}::toJsonValue({{paramName}}{{^required}}.value(){{/required}}).toArray());
+{{/isArray}}
+{{#isMap}}
+        QJsonDocument doc(::{{cppCommonNamespace}}::toJsonValue({{paramName}}{{^required}}.value(){{/required}}).toObject());
+{{/isMap}}
+        QByteArray bytes = doc.toJson(QJsonDocument::Compact);
+        input.setRequestBody(bytes);
+{{/isContainer}}
+{{^isContainer}}
+{{#isString}}
+        const QByteArray output = {{paramName}}{{^required}}.value(){{/required}}.toUtf8();
+{{/isString}}
+{{#isByteArray}}
+        const QByteArray output({{paramName}}{{^required}}.value(){{/required}});
+{{/isByteArray}}
+{{#isNumeric}}
+        const QByteArray output = QByteArray::number({{paramName}}{{^required}}.value(){{/required}});
+{{/isNumeric}}
+{{#isBoolean}}
+        const QByteArray output = ::{{cppCommonNamespace}}::toStringValue({{paramName}}{{^required}}.value(){{/required}}).toUtf8();
+{{/isBoolean}}
+{{#isModel}}
+        const QByteArray output = {{paramName}}{{^required}}.value(){{/required}}.asJson().toUtf8();
+{{/isModel}}
+{{#isFile}}
+        const QByteArray output = {{paramName}}{{^required}}.value(){{/required}}.loadFromLocalFile();
+{{/isFile}}
+{{#isFreeFormObject}}
+        const QByteArray output = {{paramName}}{{^required}}.value(){{/required}}.asJson().toUtf8();
+{{/isFreeFormObject}}
+{{#isAnyType}}
+        const QByteArray output = {{paramName}}{{^required}}.value(){{/required}}.toJson(QJsonValue::JsonFormat::Compact);
+        if ({{paramName}}{{^required}}.value(){{/required}}.isUndefined())
+            qWarning() << "The QJsonValue is undefined.";
+{{/isAnyType}}
+        input.setRequestBody(output);
+{{/isContainer}}
+    }{{^required}}{{#isNullable}} else if ({{paramName}}.isNull()) {
+        input.setRequestBody("null");
+    }{{/isNullable}}{{/required}}
+{{/bodyParams}}
+{{#headerParams}}
+    {{^required}}if ({{paramName}}.hasValue()){{/required}}
+    {
+{{#vendorExtensions.x-warningMessage}}
+        qWarning("{{{vendorExtensions.x-warningMessage}}}");
+{{/vendorExtensions.x-warningMessage}}
+
+        SerializationFlags flags;
+        flags.setFlag(SerializationFlag::Object, {{^isAnyType}}{{isModel}} || {{isMap}}{{/isAnyType}}{{#isAnyType}}{{paramName}}{{^required}}.value(){{/required}}.type() == QJsonValue::Object{{/isAnyType}});
+        flags.setFlag(SerializationFlag::NeedPercentEncoding, false);
+        flags.setFlag(SerializationFlag::Explode, {{isExplode}});
+
+        SerializationOptions opts;
+        opts.style = "{{style}}"sv.empty() ? "simple" : "{{style}}";
+        opts.prefix = getParamStylePrefix(opts.style);
+        opts.delimiter = getParamStyleDelimiter(opts.style, flags);
+        opts.assignOperator = getParamStyleAssignOperator(opts.style, flags);
+        opts.suffix = getParamStyleSuffix(opts.style, u"{{baseName}}"_s, flags);
+        opts.flags = flags;
+
+{{#isAnyType}}
+        const QString headerString = serializeJsonValue({{paramName}}{{^required}}.value(){{/required}}, opts);
+{{/isAnyType}}
+{{#isModel}}
+        const QJsonObject parameter = {{paramName}}{{^required}}.value(){{/required}}.asJsonObject();
+        const QString headerString = serializeJsonValue(parameter, opts);
+{{/isModel}}
+{{#isMap}}
+        const QString headerString = serializeMapValue({{paramName}}{{^required}}.value(){{/required}}, opts);
+{{/isMap}}
+{{#isPrimitiveType}}
+        const QString headerString = toStringValue({{paramName}}{{^required}}.value(){{/required}});
+{{/isPrimitiveType}}
+{{#isArray}}
+        const QString headerString = serializeArrayValue({{paramName}}{{^required}}.value(){{/required}}, opts);
+{{/isArray}}
+        if (!headerString.isEmpty())
+            input.headers().replaceOrAppend(u"{{baseName}}"_s, headerString);
+    }
+{{/headerParams}}
+{{#cookieParams}}
+    {{^required}}if ({{paramName}}.hasValue()){{/required}}
+    {
+{{#vendorExtensions.x-warningMessage}}
+        qWarning("{{{vendorExtensions.x-warningMessage}}}");
+{{/vendorExtensions.x-warningMessage}}
+
+        SerializationFlags flags;
+        flags.setFlag(SerializationFlag::Object, {{^isAnyType}}{{isModel}} || {{isMap}}{{/isAnyType}}{{#isAnyType}}{{paramName}}{{^required}}.value(){{/required}}.type() == QJsonValue::Object{{/isAnyType}});
+        flags.setFlag(SerializationFlag::NeedPercentEncoding, false);
+        flags.setFlag(SerializationFlag::Explode, {{isExplode}});
+
+        SerializationOptions opts;
+        opts.style = "{{style}}"sv.empty() ? "form" : "{{style}}";
+        opts.prefix = getParamStylePrefix(opts.style);
+        opts.delimiter = getParamStyleDelimiter(opts.style, flags);
+        opts.assignOperator = getParamStyleAssignOperator(opts.style, flags);
+        opts.suffix = getParamStyleSuffix(opts.style, u"{{baseName}}"_s, flags);
+        opts.flags = flags;
+
+        QString cookieString;
+{{#isAnyType}}
+        cookieString = serializeJsonValue({{paramName}}{{^required}}.value(){{/required}}, opts);
+{{/isAnyType}}
+{{#isModel}}
+        const QJsonObject parameter = {{paramName}}{{^required}}.value(){{/required}}.asJsonObject();
+        cookieString = serializeJsonValue(parameter, opts);
+{{/isModel}}
+{{#isMap}}
+        cookieString = opts.suffix + serializeMapValue({{paramName}}{{^required}}.value(){{/required}}, opts);
+{{/isMap}}
+{{#isPrimitiveType}}
+        cookieString = opts.suffix + toStringValue({{paramName}}{{^required}}.value(){{/required}});
+{{/isPrimitiveType}}
+{{#isArray}}
+        cookieString = serializeArrayValue({{paramName}}{{^required}}.value(){{/required}}, opts);
+{{/isArray}}
+        // See https://spec.openapis.org/oas/v3.1.1.html#style-values column "undefined"
+        if (cookieString.isEmpty())
+            cookieString = u"{{baseName}}="_s;
+        input.headers().append(QHttpHeaders::WellKnownHeader::Cookie, cookieString);
+    }
+{{/cookieParams}}
+    QByteArray requestContent;
+    QNetworkRequest request
+        = {{prefix}}HttpRequestWorker::getNetworkRequest(input, requestContent,
+                                                         networkRequestFactory(),
+                                                         responseCompressionEnabled(),
+                                                         requestCompressionEnabled());
+    QNetworkReply *reply = execute(input, request, requestContent);
+    if (reply != nullptr) {
+        reply->setParent(this);
+        setCallerInfo(reply, {{prefix}}CallerInfo{context, QtPrivate::SlotObjSharedPtr(std::move(slotPtr))});{{#addDownloadProgress}}
+        connect(reply, &QNetworkReply::downloadProgress, this, &{{classname}}::{{nickname}}Progress);{{/addDownloadProgress}}
+        connect(reply, &QNetworkReply::finished, this, [this, reply] {
+            {{nickname}}Callback(QRestReply(reply));
+        });
+        connect(reply, &QNetworkReply::errorOccurred, this, [this, reply] {
+            if (reply) {
+                emit {{nickname}}ErrorOccurred(reply->error(), reply->errorString());
+                {{prefix}}CallerInfo callerInfo = takeCallerInfo(reply);
+                if (callerInfo.slot) {
+                    {{#returnType}}{{{.}}} empty;
+                    {{/returnType}}QRestReply restRepl(reply);
+                    void *argv[] = { nullptr, &restRepl{{#returnType}}, &empty{{/returnType}} };
+                    QObject *context = callerInfo.contextObject ? const_cast<QObject*>(callerInfo.contextObject.get()) : nullptr;
+                    callerInfo.slot->call(context, argv);
+                }
+            }
+        });
+    }
+}
+
+void {{classname}}::{{nickname}}Callback(const QRestReply &reply)
+{
+    auto netReply = reply.networkReply();
+    if (netReply)
+        netReply->disconnect(this);
+    if (!reply.isSuccess())
+        return;
+
+{{#returnType}}
+{{^returnTypeIsPrimitive}}
+{{#isResponseFile}}
+    QMap<QString, {{prefix}}HttpFileElement> responseFiles;
+{{/isResponseFile}}
+{{/returnTypeIsPrimitive}}
+    const QByteArray response = {{prefix}}HttpRequestWorker::parseResponse(reply, workingDirectory(){{^returnTypeIsPrimitive}}{{#isResponseFile}}, &responseFiles{{/isResponseFile}}{{/returnTypeIsPrimitive}});
+{{#isArray}}
+    {{{returnType}}} output;
+    const QJsonDocument doc = QJsonDocument::fromJson(response);
+    if (!doc.isNull() && doc.isArray()) {
+        const QJsonArray jsonArray = doc.array();
+        for (const QJsonValue &obj : jsonArray) {
+            {{{returnBaseType}}} val;
+            const bool ok = ::{{cppCommonNamespace}}::fromJsonValue(val, obj);
+            if (!ok)
+                qWarning("%s: Failed to convert QJsonValue to {{returnBaseType}}.", Q_FUNC_INFO);
+            {{#uniqueItems}}
+            output.insert(val);
+            {{/uniqueItems}}
+            {{^uniqueItems}}
+            output.append(val);
+            {{/uniqueItems}}
+        }
+    } else {
+        qWarning("%s: Failed to parse the response as a JSON array.", Q_FUNC_INFO);
+    }
+{{/isArray}}
+{{^isArray}}
+{{^isMap}}
+{{#returnTypeIsPrimitive}}
+    {{{returnType}}} output;
+    const bool ok = ::{{cppCommonNamespace}}::fromByteArray(response, output);
+    if (!ok)
+        qWarning("%s: Failed to convert the response to {{returnType}}.", Q_FUNC_INFO);
+{{/returnTypeIsPrimitive}}
+{{/isMap}}
+{{#isMap}}
+    {{{returnType}}} output;
+    const QJsonDocument doc = QJsonDocument::fromJson(response);
+    if (!doc.isNull() && doc.isObject()) {
+        const QJsonObject obj = doc.object();
+        for (const QString &key : obj.keys()) {
+            {{returnBaseType}} val;
+            const bool ok = ::{{cppCommonNamespace}}::fromJsonValue(val, obj[key]);
+            if (!ok)
+                qWarning("%s: Failed to convert QJsonValue to {{returnBaseType}}.", Q_FUNC_INFO);
+            output.insert(key, val);
+        }
+    } else {
+        qWarning("%s: Failed to parse the response as a JSON object.", Q_FUNC_INFO);
+    }
+{{/isMap}}
+{{^isMap}}
+{{^returnTypeIsPrimitive}}
+    {{{returnType}}} output{{^isResponseFile}}(response){{/isResponseFile}}{{#isResponseFile}} = {{prefix}}HttpRequestWorker::getHttpFileElement(responseFiles){{/isResponseFile}};
+{{/returnTypeIsPrimitive}}
+{{/isMap}}
+{{/isArray}}
+{{/returnType}}
+    // Check if callback is provided
+    {{prefix}}CallerInfo callerInfo = takeCallerInfo(netReply);
+    if (callerInfo.slot) {
+        void *argv[] = { nullptr, const_cast<QRestReply*>(&reply){{#returnType}}, &output{{/returnType}} };
+        QObject *context = callerInfo.contextObject
+                        ? const_cast<QObject*>(callerInfo.contextObject.get()) : nullptr;
+        callerInfo.slot->call(context, argv);
+    }
+    emit {{nickname}}Finished({{#returnType}}output{{/returnType}});
+}
+
+{{/operation}}
+{{/operations}}
+{{#cppNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppNamespaceDeclarations}}

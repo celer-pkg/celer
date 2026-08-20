@@ -1,0 +1,26 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page remoteobjects-toc.html
+    \title Qt Remote Objects module topics
+
+    The following list has links to all the individual topics (HTML files)
+    in the Qt Remote Objects module.
+
+    \list
+    \li \l {Getting Started with Qt Remote Objects}{Getting Started}
+    \li \l {Qt Remote Objects Nodes}{Nodes}
+    \li \l {Qt Remote Objects Source}{Source}
+    \li \l {Qt Remote Objects Replica}{Replica}
+    \li \l {Qt Remote Objects Registry}{Registry}
+    \li \l {Qt Remote Objects - External QIODevices}{External QIODevices}
+    \li \l {APIs for Implementing Custom Transport Backends}{Implementing Custom Transport Backends}
+    \li \l {Qt Remote Objects Compiler}{Compiler}
+    \li \l {Remote Object Interaction}
+    \li \l {Troubleshooting Qt Remote Objects}{Troubleshooting}
+    \li \l {Qt Remote Objects Protocol Versioning}{Protocol Versioning}
+    \li \l {Changes to Qt Remote Objects}{Upgrading from Qt 5}
+    \endlist
+
+*/

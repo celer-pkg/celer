@@ -1,0 +1,65 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  "wait-$[INDEX_PREFIX]0": {
+    template: ./switch-wait-close.hjson
+    args: {
+      PAGE_URL: .*Pampers.*
+    }
+  }
+  "wait-$[INDEX_PREFIX]1": {
+    template: ./switch-wait-close.hjson
+    args: {
+      PAGE_URL: .*deals.*
+    }
+  }
+  "wait-$[INDEX_PREFIX]2": {
+    template: ./switch-wait-close.hjson
+    args: {
+      PAGE_URL: .*apple.*
+    }
+  }
+  "wait-$[INDEX_PREFIX]3": {
+    template: ./switch-wait-close.hjson
+    args: {
+      PAGE_URL: .*ebay.*
+    }
+  }
+  "wait-$[INDEX_PREFIX]4": {
+    template: ./switch-wait-close.hjson
+    args: {
+      PAGE_URL: .*google.*
+    }
+  }
+  "wait-$[INDEX_PREFIX]5": {
+    template: ./switch-wait-close.hjson
+    args: {
+      PAGE_URL: .*wattpad.*
+    }
+  }
+  "wait-$[INDEX_PREFIX]6": {
+    template: ./switch-wait-close.hjson
+    args: {
+      PAGE_URL: .*bbc.*
+    }
+  }
+  "wait-$[INDEX_PREFIX]7": {
+    template: ./switch-wait-close.hjson
+    args: {
+      PAGE_URL: .*yahoo.*
+    }
+  }
+  "wait-$[INDEX_PREFIX]8": {
+    template: ./switch-wait-close.hjson
+    args: {
+      PAGE_URL: .*stackoverflow.*
+    }
+  }
+  "wait-$[INDEX_PREFIX]9": {
+    template: ./switch-wait-close.hjson
+    args: {
+      PAGE_URL: .*wikipedia.*
+    }
+  }
+}

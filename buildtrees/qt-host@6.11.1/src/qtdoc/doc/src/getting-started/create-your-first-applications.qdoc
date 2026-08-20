@@ -1,0 +1,86 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page create-your-first-applications.html
+
+    \title Create Your First Applications
+    \brief Creating Qt applications.
+
+    Learn the basics of Qt and Qt Quick development by following the tutorials
+    that illustrate how to use \l{\QC Documentation}{\QC} or
+    \l{Qt Design Studio Manual}{Qt Design Studio} to create simple applications
+    and build and run them on target platforms:
+
+    \table
+    \header
+        \li To Develop With
+        \li Tutorials
+        \li Examples
+    \row
+        \li Qt Quick
+        \li \list
+                \li \l{\QC: Tutorial: Qt Quick application}{\QC: Transitions}
+                \li \l{Getting Started programming with Qt Quick: An Alarm Application}
+                    {\QC: Alarms}
+                \li \l{Qt Design Studio: Tutorials}{Qt Design Studio: Log In UI}
+            \endlist
+        \li \l{Qt Quick Examples and Tutorials}
+    \row
+        \li Python
+        \li \list
+                \li \l{Qt for Python Tutorials}
+                \li \l{\QC: Tutorial: Qt Quick and Python}
+                \li \l{\QC: Tutorial: Qt Widgets and Python}
+                \li \l{\QC: Tutorial: Qt Widgets UI and Python}
+            \endlist
+        \li \l{Qt for Python Examples}
+    \endtable
+
+    For a more thorough walkthrough of the different aspects of developing
+    applications with Qt 6, see the \l {Qt 6 QML Book}. It focuses on Qt Quick,
+    but also provides the information needed to use QML together with C++.
+
+    The following tutorials illustrate how to use \QC or Qt Design Studio
+    to develop simple applications for a particular platform:
+
+    \table
+    \header
+        \li To Develop For
+        \li Tutorials
+        \li Examples
+    \row
+        \li Mobile Devices
+        \li \l{\QC: Tutorial: Mobile application}{\QC: Accelbubble}
+        \li \l{Qt Examples And Tutorials#Mobile}{Mobile Examples}
+    \row
+        \li Embedded Devices
+        \li \list
+                \li \l{Tutorial: Deploying Your First Project with Boot to Qt}
+                \li \l{Qt for Android Automotive Quick Starter Guide}
+            \endlist
+        \li \list
+                \li Examples in \l{Qt for Android Automotive}
+            \endlist
+    \row
+        \li MCUs
+        \li \l{Qt Design Studio: Washing Machine UI}
+        \li \l{Qt Quick Ultralite Examples}
+    \endtable
+
+    To view a list of all Qt examples, see \l {All Qt Examples}.
+
+    You can follow the learning paths and tutorials on
+    \l {https://www.qt.io/academy/course-catalog}{Qt Academy} to learn more
+    about how to create Qt applications:
+
+    \list
+        \li \l {https://www.qt.io/academy/course-catalog#creating-your-first-app-with-qt-design-studio}{Creating Your First App with Qt Design Studio}
+        \li \l {https://www.qt.io/academy/course-catalog#creating-a-simple-qt-quick-application-}{Creating a Simple Qt Quick Application}
+    \endlist
+
+    \note Add your project build directory to the list of excluded directories
+     of any anti-virus application that runs on your system.
+
+    Now, we'd like to send you off on your journey to \l{Explore Qt}.
+*/

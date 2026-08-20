@@ -1,0 +1,225 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page topics-graphics2d.html
+\title 2D Graphics in Qt
+\keyword topics-graphics2d
+\brief Qt's 2D graphics features
+\ingroup explanations-graphicsandmultimedia
+
+Two-dimensional graphics is at the core of Qt's user interface capabilities. This page provides
+an overview of the tools and APIs at your disposal for rendering your own 2D graphics. It also aims
+to clarify the difference between APIs that perform similar tasks.
+
+This is a high-level overview, focusing on the direct ways to render graphics primitives such as
+circles, rectangles, complex shapes and images. For a low-level view of Qt graphics internals, see
+the \l{Graphics}{graphics overview documentation}.
+
+Qt also includes high-end \l{Qt Quick 3D}{3D rendering capabilities} with its own set of APIs and
+tools. The focus in the following overview will be on two-dimensional graphics, so \l{Qt Quick 3D}
+and related components will not be covered here.
+
+\section1 Qt Quick
+
+\l{Qt Quick} has the tools for rendering hardware-accelerated and animated 2D graphics. It serves
+as the basis for the rich UI components in \l{Qt Quick Controls}.
+
+The Qt Quick module provides essential primitives such as \l{Rectangle}{rectangles}, \l{Text}{text}
+and \l{Image}{images}. These are typically the foundation of a two-dimensional user interface.
+
+User interfaces in Qt Quick can be transformed and animated at a low performance overhead, and this
+promise lies at the core of the module. The API is declarative, which allows Qt to optimize how
+graphics are stored, rendered and how animation updates are managed.
+
+\section2 Qt Quick Shapes
+
+In addition to the basic primitives, Qt Quick has APIs for rendering more complex shapes. These can
+be accessed by importing the \l{Qt Quick Shapes QML Types}{Qt Quick Shapes} module in your code.
+
+Qt Quick Shapes allows you to construct arbitrary \l{ShapePath}{paths} from path operations such as
+\l{PathMove}{move-to}, \l{PathLine}{line-to}, \l{PathCubic}{cubic-to} and \l{PathArc}{arc-to}.
+
+Each path can have a stroke defined by a rich set of options. In addition, it can be filled with
+either a solid color, a gradient, an image, or even another Qt Quick item.
+
+\image 2dgraphics/tiger.png
+
+The \l{Qt Quick Examples - Shapes}{Qt Quick Shapes example} shows how the classic GhostScript tiger
+can be rendered using paths constructed with Qt Quick Shapes.
+
+\section3 Curve renderer
+
+By default, Qt Quick Shapes relies on multi-sampling for antialiasing. In addition, curves are
+flattened to short line segments, and this can be visible if you zoom the shape. By setting the
+\l{Shape} item's \l{Shape::preferredRendererType}{preferredRendererType} property to
+\c{Shape.CurveRenderer}, a different renderer will be used internally. This curve renderer solves
+the curves on the GPU itself and applies antialiasing without MSAA.
+
+It comes at some extra cost to performance the first time the shape is rendered. After this,
+however, the shape can be smoothly scaled and transformed without extra cost.
+
+\section3 Other operations
+
+In addition to the basic operations for building a path, Qt Quick Shapes also includes some
+powerful convenience components.
+
+\list
+\li The \l{PathQuad} component can be used to add a quadratic curve to the path.
+\li The \l{PathRectangle} component can be used to construct a rectangle, optionally with rounded
+    corners.
+\li The \l{PathSvg} component can be used to construct a path using SVG's path syntax. (Note: this
+    component only provides a compact way to describe a path, it does not support the entire SVG
+    syntax.)
+\li The \l{PathText} component can be used to add outlines from a font to the path. This comes in
+    addition to Qt Quick's \l{Text} component. It can be used for advanced effects, for instance
+    gradient fills and path operations such as subtracting the text from another shape.
+\endlist
+
+\section2 Raster images
+
+Raster images (or pixmaps) can be displayed in Qt Quick using the \l{Image} component. A set of
+image formats are supported by default through the \l{Qt GUI} module (PNG, JPEG, BMP and GIF). In
+addition, the \l{Qt Image Formats} module has plugins for loading other image formats. As long as
+your application can access the plugin for a certain format, it can be loaded using the \l{Image}
+component.
+
+\section2 Vector images
+
+A limitation of raster images is that they cannot be scaled or otherwise transformed without causing
+some reduction of quality. For images that will be displayed at different sizes or with transforms,
+it is usually preferable to use a vector image format instead.
+
+The \l{VectorImage} component can be used to include scalable vector graphics directly in your
+Qt Quick application. It currently supports the SVG format by default. By deploying a plugin with
+your application, it can also be made to support the Lottie format.
+
+The \l{VectorImage} parses the document and creates a Qt Quick scene in memory that represents its
+contents, using Qt Quick Shapes and other primitives. Therefore it will behave the same as if the
+vector image had been written using Qt Quick.
+
+The vector images can also be converted to QML ahead of time, using the \l{svgtoqml} and
+\l{lottietoqml} tools. This creates the same representation of the vector image using Qt Quick
+components. However, instead of creating the representation in memory, it is saved to a file.
+Pregenerating the QML file means it can be precompiled as part of the application assets, which will
+save some time when loading it.
+
+\image 2dgraphics/weatherforecastexample.png
+
+The \l{Weather Forecast Example} shows how \l{svgtoqml} can be used in an application. Weather
+symbols, maps and icons are SVG files that have been converted to QML and loaded as items in the
+application scene.
+
+Similarly, the \l{lottietoqml} tool can be used to convert Lottie animations into QML.
+
+\section2 Prerasterized vector images
+
+For vector images that are only ever displayed at a single size, it is more efficient to rasterize
+them into pixmaps ahead of time and show these using \l{Image}. Often, such images will be stored
+as SVGs in the application source assets and then converted to PNGs (for instance) at predefined
+sizes. This is typically done as part of the application build and packaging process.
+
+Rendering an image is faster than rendering the complex shapes, so for static images this is the
+optimal approach. However, for some applications it is not convenient to do this conversion at
+build-time. If the application is targeting many different form factors, for instance, the list
+of predefined sizes to cover them all may be very long and hard to predict. Since each prerendered
+image consumes extra space in the application deployment, there is also a cost to pay for this
+approach.
+
+Qt therefore also supports rasterizing SVG files at a specific size when the image is loaded. This
+can be done simply by loading the file through the regular \l{Image} component. The
+\l{Image::sourceSize}{sourceSize} property can be used to control the rasterized size of the image.
+
+Loading the SVG through \l{Image} is different from loading it through \l{VectorImage} in the
+following ways:
+\list
+\li With \l{Image}, the image is rasterized on the CPU before it is loaded as a texture. So there
+is an extra loading cost involved which depends on the target size of the rasterized image.
+Subsequent rendering of the same image, however, will be as fast as if the image was pre-rasterized
+and loaded as a pixmap.
+\li Additionally, the rasterized image may consume more memory, depending on the complexity of the
+vector image and the size of the rasterized data.
+\li Scaling/transforming the \l{Image} has the same drawbacks as if it were loaded as a pixmap.
+\li If the image has animations, then \l{Image} will only show the first frame.
+\endlist
+
+So as a general rule, using prerasterized vector images will be better when the image is not
+animated and its size remains the same through-out the life time of the application. Whether the
+images are rasterized on build-time by a third party tool, or at run-time when Qt loads the image
+is a trade-off between load time and convenience/deployment size.
+
+\image 2dgraphics/vectorimageexample.png
+
+The \l{Vector Image Example} shows an SVG file displayed at different scales using \l{Image},
+\l{VectorImage} and a QML file generated with \l{svgtoqml}. When displayed at its source size,
+the rendering looks the same across the board, and the \l{Image} will be slightly faster to render.
+At higher scales, the \l{Image} becomes blurry and pixelated, whereas the other approaches remain
+sharp and true to the source.
+
+\section2 Animated vector graphics
+
+Animations are at the core of Qt Quick's offering. Many vector graphics animations can be run
+without changing the geometries of items, and thus benefit well from Qt Quick's hardware-accelerated
+renderer.
+
+\l{VectorImage}, \l{svgtoqml} and \l{lottietoqml} support animations for a selected subset of
+properties.
+
+\image 2dgraphics/lottietoqmlexample.png
+
+The \l{lottietoqml Example} shows how animated Lottie files can be converted to QML. As seen in
+this screenshot, multiple animated images are laid out in a grid. They can each be zoomed without
+scaling artifacts or loss of fidelity.
+
+\section2 Effects
+
+The support for post-processing effects is included as a core feature in Qt Quick. Any item can
+be turned into a texture and the \l{ShaderEffect} component can be used to apply any effect to it.
+
+In addition to this low-level support for effects, Qt Quick also has a few high-level components
+to make the process easier.
+
+The \l{MultiEffect} component allows applying one or more of a pre-defined set of common effects
+to an item.
+
+\image 2dgraphics/quickeffectmaker.png
+
+For more complex use cases, the \l{Qt Quick Effect Maker} provides a visual tool where you can
+string together pre-defined and custom effects and generate the shader code for use with
+\l{ShaderEffect}.
+
+\section1 QPainter
+
+\l{QPainter} is the basis of \l{Qt Widgets}. It provides an imperative API for drawing complex
+shapes and images with pixel-perfect antialiasing.
+
+Shapes can be specified using \l{QPainterPath} and the renderer also directly supports primitives
+such as text and images.
+
+The \l{QPainter} is primarily a software renderer, and it is optimized for smaller, partial updates
+of the screen. Thus it is a good fit for the traditional, desktop-style interfaces of
+\l{Qt Widgets}, where most of the UI is static from frame to frame. Therefore, rendering large and
+complex 2D scenes with it may be expensive, and it could be worth considering \l{Qt Quick Shapes}
+instead.
+
+On the other hand, the rendering quality is higher, so for many use cases it will still be
+preferrable. When rendering an SVG image through \l{Image} as outlined previously, \l{QPainter}
+will be the underlying renderer.
+
+If pixel perfection is the goal, and updates are rare and/or confined to small regions, then
+QPainter is a powerful tool. If it becomes a performance bottle neck, you may consider moving
+to using \l{Qt Quick} and \l{Qt Quick Shapes} instead.
+
+\section1 Higher-level components
+
+Building on top of these basic graphics primitives, Qt also provides many specialized, high-level
+components.
+
+\l{Qt Quick Controls} is one such module. It provides a rich and stylable set of common user
+interface components. Similarly, \l{Qt Widgets} provides the same for \l{QPainter}-based
+applications.
+
+In addition, \l{Qt Graphs} is a data visualization module. It provides many different components to
+visualize data sets and graphs in a \l{Qt Quick} application. \l{Qt Graphs} supports both 2D and
+3D graphs.
+*/

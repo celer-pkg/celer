@@ -1,0 +1,18 @@
+{
+    "Id": "xatlas",
+    "Name": "xatlas",
+    "QDocModule": "qtquick3d",
+    "Description": "xatlas is a small C++11 library with no external dependencies that generates unique texture coordinates suitable for baking lightmaps or texture painting.",
+    "QtUsage": "Used for lightmap UV set generation in Qt Quick 3D",
+
+    "Homepage": "https://github.com/jpcy/xatlas",
+    "PURL": [
+        "pkg:github/jpcy/xatlas@$<VERSION>"
+    ],
+    "Comment": "No relevant CPE found",
+    "Version": "16ace528acd2cf1f16a7c0dde99c42c486488dbe",
+    "License": "MIT License",
+    "LicenseId": "MIT",
+    "LicenseFile": "LICENSE",
+    "Copyright": "Copyright (c) 2018-2020 Jonathan Young"
+}

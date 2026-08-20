@@ -1,0 +1,90 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Lightning Viewer
+    \ingroup qtquickdemos
+    \example demos/lightningviewer
+    \brief An application with a responsive UI showing lightning strikes on a
+    map in real-time by combining Qt Quick, Qt Location, Qt Positioning and
+    Qt Websockets.
+    \examplecategory {Application Examples}
+    \examplecategory {Mobile}
+    \examplecategory {Networking}
+    \examplecategory {Positioning & Location}
+    \image {lightningviewer.jpg} {}
+    \meta {tag} {demo, quick, location, positioning, websockets}
+    \meta {docdependencies} {QtWebSockets,QtPositioning,QtLocation}
+
+    \e{Lightning Viewer} is an application that receives simulated lightning
+    strike data from a \l{WebSocket} and displays it on a map in real-time. It
+    features a responsive UI that adapts well to mobile, tablet and
+    desktop-sized screens in both landscape and portrait orientation. Lightning
+    strikes appear as icons on the map, and a separate overlay shows the
+    distance and time of the last strike. These data layers can be hidden and
+    revealed with toggles that are accessed by pressing the map layers button.
+    There is also a switch for switching between map types and a button that
+    centers the map at the user's location.
+
+    \include examples-run.qdocinc
+
+    \section1 Application structure and relevant classes
+    This application follows the Model-View-Controller (MVC) pattern. The
+    \c LightningItemModel class serves as the model. It stores a list of
+    \c LightningItemData objects and provides methods to insert new data and to
+    get information about the latest strikes. The View is defined in multiple
+    QML components that display the data and user interface and handle user
+    interaction. The \c Controller class manages the data flow between the
+    \c LightningItemModel and the QML components. The \c LightningProvider class
+    opens a \l{WebSocket} connection to an online server from which it receives
+    a JSON message for each simulated lightning strike. It parses the messages
+    and passes the data on to the \c LightningItemModel via a signal connected
+    to a slot in the \c Controller:
+
+    \code
+        connect(m_provider.get(), &LightningProvider::dataReady, this, &Controller::onDataReceived);
+    \endcode
+
+    Each lightning strike is represented by a \c LightningItemData struct. It
+    contains the timestamp, latitude and longitude of the strike, and includes
+    methods returning its distance and direction from the user location provided
+    as a \l{QGeoCoordinate}. The \c LastStrikeInfo struct holds information
+    about the last lightning strike.
+
+    \c LightningView.qml serves as the main view of the application. It is
+    responsible for displaying the map and lightning data through the component
+    \c MapView.qml, and the user controls through the component
+    \c ActionsLayer.qml.
+
+    \c MapView.qml handles map zooming and panning. It uses a \l{PositionSource}
+    to obtain the user’s current location and a \l{Map} to display the map.
+    Furthermore, it includes a \c LightningMapLayer.qml for displaying the
+    lightning data and a \c DistanceTimeLayer.qml for showing information about
+    the last lightning strike.
+
+    \c ActionsLayer.qml provides a button for recentering the map and a custom
+    switch control, \c SwitchMap.qml, for switching between different map types.
+    It also includes a map layers button that reveals the map layer toggles.
+    These toggles are defined in \c MapLayersItem.qml. In landscape orientation
+    they appear next to the map layers button, while in horizontal orientation
+    they are placed in a \l{Drawer} defined in \c MapLayersDrawer.qml.
+
+    \section1 Lightning strike data source
+    The application receives simulated lightning strike data from a server
+    maintained by Qt. The server provides a WebSocket API accepting connections
+    on the following URL:
+    \code
+        wss://ewea0y4bn0.execute-api.eu-north-1.amazonaws.com/production/
+    \endcode
+    After connecting to the server, the application triggers the live data feed
+    by sending the following JSON message to the server:
+    \code
+        "{\"action\": \"simulatelightningdata\"}"
+    \endcode
+
+    \section1 Source files
+
+    \sa {All Qt Examples}, {Qt Quick Examples and Tutorials},
+    {Qt Location Examples}, {Qt Positioning Examples},
+    {Qt WebSockets Examples}
+*/

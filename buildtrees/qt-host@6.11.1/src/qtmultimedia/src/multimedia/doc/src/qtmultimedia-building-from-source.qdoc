@@ -1,0 +1,108 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtmultimedia-building-from-source.html
+\title Building Qt Multimedia from sources
+\brief This document describes how to build Qt Multimedia with full
+feature support from source code.
+
+This page describes the process of configuring and building \l{Qt
+Multimedia}. This description assumes familiarity with \l{Building Qt
+Sources} which specifies build requirements for your platform, as well
+as an overview of \l{Qt Configure Options}. For platform-specific
+considerations related to the Qt Multimedia module, see \l{Platform
+Notes} below.
+
+\section1 Building from source
+
+Building Qt Multimedia with full feature support depends on \l
+{https://ffmpeg.org/}{FFmpeg} headers and libraries on most platforms.
+It is possible to build Qt Multimedia without the Qt Multimedia FFmpeg
+media backend, but this is only recommended when building for platforms
+where the FFmpeg backend is not supported.
+
+FFmpeg development libraries required to build Qt Multimedia can be
+built from sources or downloaded as binary packages. Qt Multimedia can
+use either static linking or dynamic linking to FFmpeg libraries. We
+recommend using the same major version of FFmpeg that is listed in
+\l{Target platform and backend notes}. For information on how to build
+the FFmpeg development libraries, see \l{Building FFmpeg from source}.
+
+To build Qt Multimedia with FFmpeg support, specify the \c{-ffmpeg-dir}
+option on the configure command line when building Qt.
+
+\badcode
+qt-source/configure -ffmpeg-dir <FFMPEG_DIR>
+\endcode
+
+Here, \c{<FFMPEG_DIR>} is the directory containing the FFmpeg include,
+lib, and bin directories. To build Qt Multimedia without FFmpeg, omit
+the \c{<FFMPEG_DIR>} variable and specify the \c{-no-feature-ffmpeg}
+configure option.
+
+If you prefer not to build all Qt's submodules, you can reduce configure
+and build times using the \c{-submodules} configure option. This will
+configure a build that only builds Qt Multimedia and its dependencies.
+
+\badcode
+qt-source/configure -submodules qtmultimedia -ffmpeg-dir <FFMPEG_DIR>
+\endcode
+
+If you configure Qt Multimedia against FFmpeg built with shared
+libraries (dynamic linking), the FFmpeg shared libraries must be in the
+module loader's search path to run tests or use examples.
+
+\note Qt Multimedia requires the FFmpeg avformat, avcodec, swresample,
+swscale, and avutil libraries during runtime to be able to use the
+FFmpeg media backend. If one or more of these dynamic libraries are not
+found during application startup, the FFmpeg media backend will fail to
+load, and the system will attempt to load the native backend. Qt
+Multimedia doesn't support as many features on native backends.
+
+If you don't already have these libraries in the \c{path}, specify the
+\c{-ffmpeg-deploy} configure option. With this option enabled,
+the necessary FFmpeg binaries will be copied to Qt's install directory
+during the build and install steps:
+
+\badcode
+qt-source/configure -submodules qtmultimedia -ffmpeg-dir <FFMPEG_DIR> -ffmpeg-deploy
+\endcode
+
+After configuring Qt Multimedia, carefully review the configure summary
+(found in the config.summary file). You can verify that FFmpeg is found
+under the "Plugin" section. Then follow the regular build and install
+steps described in \l{Building Qt Sources}.
+
+\section1 Platform Notes
+
+\section2 iOS
+
+\list
+    \li When configuring Qt Multimedia with FFmpeg support, the CMake
+        configuration process looks for \c .xcframework files in the
+        supplied FFmpeg directory. Using \c .dylib binaries directly
+        is not supported. See \l{Building FFmpeg from source for iOS on macOS}
+        and \l{https://developer.apple.com/documentation/xcode/creating-a-multi-platform-binary-framework-bundle}
+        for details on how to package FFmpeg build artifacts into
+        \c .xcframework files.
+\endlist
+
+\section2 Linux
+
+\list
+    \li When configuring Qt Multimedia with FFmpeg enabled, the
+        pipewire or the pulseaudio development package is required. Without
+        one of these packages, FFmpeg will not be recognized.
+    \li When using a version of FFmpeg that is built with VAAPI support,
+        we recommend building Qt Multimedia with VAAPI support as well
+        to make hardware texture conversion possible. To configure Qt
+        Multimedia with VAAPI support, VAAPI developer libraries must be
+        installed on your system. Review the config.summary file to
+        verify that VAAPI support is enabled under the "Hardware
+        acceleration and features" section.
+    \li When configuring Qt Multimedia with the GStreamer backend, GStreamer
+        v1.20 is the minimum requirement. However, we recommend using the
+        latest stable GStreamer upstream release if possible.
+\endlist
+*/

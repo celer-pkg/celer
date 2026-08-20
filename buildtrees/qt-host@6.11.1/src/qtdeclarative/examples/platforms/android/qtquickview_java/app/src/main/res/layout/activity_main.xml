@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainLinear"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    android:orientation="vertical"
+    android:baselineAligned="false">
+
+    <FrameLayout
+        android:id="@+id/firstQmlFrame"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/secondQmlFrame"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+    </FrameLayout>
+
+    <RelativeLayout
+        android:id="@+id/javaRelative"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_horizontal"
+        android:background="@color/lilac">
+
+        <TextView
+            android:id="@+id/header_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:text="@string/java"
+            android:layout_marginTop="@dimen/title_margin_top"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:textSize="@dimen/title_text_size"/>
+
+        <TextView
+            android:id="@+id/qmlStatusText"
+            android:textSize="@dimen/other_text_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/header_title"
+            android:layout_marginTop="@dimen/bigger_top_margin"
+            android:layout_centerHorizontal="true"
+            android:text="@string/qml_view_status"
+            android:textColor="@color/white"/>
+
+        <LinearLayout
+            android:id="@+id/qmlColorLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/qmlStatusText"
+            android:layout_marginTop="@dimen/bigger_top_margin">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                android:textSize="@dimen/other_text_size"
+                android:layout_gravity="center_vertical"
+                android:text="@string/qml_view_color_label"/>
+
+            <RelativeLayout
+                android:id="@+id/qmlColorBox"
+                android:layout_width="@dimen/color_box_width"
+                android:layout_height="@dimen/color_box_height"
+                android:background="@color/cardview_shadow_start_color"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="@dimen/color_box_margin_start">
+
+                <TextView
+                    android:id="@+id/qmlViewBackgroundText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/other_text_size"
+                    android:text=""
+                    android:layout_centerInParent="true"
+                    android:textColor="@color/white"/>
+
+            </RelativeLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/switchAndTextLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/qmlColorLayout"
+            android:layout_marginTop="@dimen/bigger_top_margin"
+            android:layout_centerHorizontal="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/connect_qml_button_signal_listener"
+                android:textSize="@dimen/other_text_size"
+                android:textColor="@color/white"/>
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/disconnectQmlListenerSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/switch_left_margin"
+                app:track="@drawable/switch_track"
+                android:thumb="@drawable/switch_thumb"
+                android:checked="true"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_horizontal"
+            android:layout_below="@+id/switchAndTextLayout"
+            android:layout_marginTop="@dimen/bigger_top_margin">
+            <Button
+                android:id="@+id/changeQmlColorButton"
+                android:layout_width="@dimen/other_buttons_width"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:text="@string/change_qml_background"
+                android:textSize="@dimen/other_text_size"
+                android:maxLines="2"
+                app:cornerRadius="@dimen/button_corner_radius"/>
+            <Button
+                android:id="@+id/rotateQmlGridButton"
+                android:layout_width="@dimen/other_buttons_width"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:text="@string/rotate_qml_grid"
+                android:textSize="@dimen/other_text_size"
+                app:cornerRadius="@dimen/button_corner_radius"
+                android:layout_marginStart="@dimen/rotate_qml_grid_margin_start"/>
+        </LinearLayout>
+    </RelativeLayout>
+</LinearLayout>

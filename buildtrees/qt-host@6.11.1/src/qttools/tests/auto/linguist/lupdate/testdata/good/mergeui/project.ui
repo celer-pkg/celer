@@ -1,0 +1,39 @@
+<ui version="4.0" >
+ <author></author>
+  <comment>
+* Copyright (C) 2016 The Qt Company Ltd.
+* SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+</comment>
+ <exportmacro></exportmacro>
+ <class>FindDialog</class>
+ <widget class="QWidget" name="FindDialog" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>172</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Qt Assistant - Find Text</string><!-- changed to uppercase, marked as finished -->
+  </property>
+  <property name="height" >
+   <string>300px</string>
+  </property>
+  <property name="width" >
+   <string>401 pixels</string><!-- Changed from 400px to 401 pixels, but this is marked as unfinished -->
+  </property>
+ </widget>
+ <tabstops>
+  <tabstop>comboFind</tabstop>
+  <tabstop>checkWords</tabstop>
+  <tabstop>checkCase</tabstop>
+  <tabstop>radioForward</tabstop>
+  <tabstop>radioBackward</tabstop>
+  <tabstop>findButton</tabstop>
+  <tabstop>closeButton</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,0 +1,15 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  template: ../../common-action-blocks/workspace/google-workspace-template.hjson
+  args: {
+    TEST_NAME: wbp-3
+    DOC_URL: https://docs.google.com/document/d/11E6jzIVCyJwWQQdJaqKEPWxcdKt3_-GDoUOWi20Wy6g/edit?hl=en&tab=t.0#heading=h.khmqmf7bmw9z
+    COMMENT_TEXT: This document is the foundation of American Literature!
+    CLICK_INPUT_SOURCE: touch
+    SCROLL_SELECTOR: "#kix-appview"
+    SCROLL_END_DISTANCE_SELECTOR: .kix-appview-editor
+    ARIA_DISABLED: "[aria-disabled='false']"
+  }
+}

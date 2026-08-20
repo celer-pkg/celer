@@ -1,0 +1,817 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \qmlmodule QtQuick3D.Effects \QtVer
+    \title Qt Quick 3D Effects QML Types
+    \brief Provides QML types for the effects included in the Qt Quick 3D
+           effect library.
+
+    \deprecated [6.5] Use \l ExtendedSceneEnvironment,
+    \l[QML]{MultiEffect}, or user-defined effects via the \l
+    Effect type instead.
+
+    \warning All pre-made standalone effects in QtQuick3D.Effects are
+    considered deprecated starting with Qt 6.5. Instead, to get high quality,
+    high performing implementations of post-processing effects performed by the
+    3D renderer, such as depth of field, glow and bloom, lens flare, vignette,
+    color adjustments and grading, fog, or ambient occlusion, use \l
+    ExtendedSceneEnvironment. It offers better performance, better visual
+    quality, better interoperation when combining effects, for instance proper
+    support for tonemapping, and is a better fit for visual design tools such
+    as Qt Design Studio. For 2D effects that do not need to be performed within
+    the 3D scene, such as bluring the content of a \l View3D item, use
+    \l[QML]{MultiEffect} on the \l View3D (or a parent of it).
+    If none of these are suitable, applications can provide their own
+    post-processing effects via the \l Effect type.
+
+    \warning All pre-made, standalone effects in QtQuick3D.Effects are
+    incompatible with the \l{Multiview Rendering}{multiview rendering mode} of
+    Qt Quick 3D XR that is often used in VR/AR applications. New application
+    should always use \l ExtendedSceneEnvironment or application-provided custom
+    effects via the \l Effect type, which are fully compatible with multiview
+    rendering as well.
+ */
+
+/*!
+    \qmltype AdditiveColorGradient
+    \inqmlmodule QtQuick3D.Effects
+    \brief A gradient with additive color effect.
+
+    \deprecated [6.5] Use \l ExtendedSceneEnvironment instead.
+
+    \warning All pre-made standalone effects in QtQuick3D.Effects are
+    considered deprecated starting with Qt 6.5. To perform color adjustments
+    and color grading, use \l ExtendedSceneEnvironment instead.
+
+    \image effect_additive_color_gradient.png
+           {Scene comparison showing additive color gradient effect}
+
+    This effect adds a vertical gradient to the whole scene, then additively blends it with all
+    other elements on the layer. Additive blending adds the pixel values of the gradient and the
+    layer, making the result lighter. White areas do not change, and black areas are the same color
+    as the gradient.
+*/
+/*!
+    \qmlproperty vector3d AdditiveColorGradient::bottomColor
+    The color to be used at the bottom of the screen for the gradient.
+    The default is \c {Qt.vector3d(0.0, 0.0, 0.0)} (i.e. black).
+*/
+/*!
+    \qmlproperty vector3d AdditiveColorGradient::topColor
+    The color to be used at the top of the screen for the gradient. The default value
+    is \c {Qt.vector3d(1.0, 1.0, 1.0)} (i.e. white).
+*/
+
+/*!
+    \qmltype Blur
+    \inqmlmodule QtQuick3D.Effects
+    \brief A one-pass blur effect.
+
+    \deprecated [6.5] Use \l[QML]{MultiEffect} instead.
+
+    \warning All pre-made standalone effects in QtQuick3D.Effects are
+    considered deprecated starting with Qt 6.5. To perform blur, use Qt Quick's
+    \l[QML]{MultiEffect} on the \l View3D item (or a parent of
+    it).
+
+    \image effect_blur.png {Scene comparison showing blur effect}
+
+    This effect provides a simple one-pass blur. It is less expensive than GaussianBlur, but
+    does not give the same quality result.
+*/
+/*!
+    \qmlproperty real Blur::amount
+    The strength of the blur. Sensible values are in the range \c {[0...0.01]}. The default value is \c {0.01}.
+*/
+
+/*!
+    \qmltype BrushStrokes
+    \inqmlmodule QtQuick3D.Effects
+    \brief A brush strokes noise effect.
+
+    \deprecated [6.5] Use \l ExtendedSceneEnvironment,
+    \l[QML]{MultiEffect}, or user-defined effects via the \l
+    Effect type instead.
+
+    \warning All pre-made standalone effects in QtQuick3D.Effects are
+    considered deprecated starting with Qt 6.5. Applications are advised to use
+    \l ExtendedSceneEnvironment or \l[QML]{MultiEffect}
+    instead, when applicable, or alternatively provide their own custom
+    post-processing effect via the \l Effect type.
+
+    \image effect_brush_strokes.png
+           {Scene comparison showing brush strokes effect}
+
+    The BrushStrokes effect simulates an artistic painting of the image.
+*/
+/*!
+    \qmlproperty TextureInput BrushStrokes::noiseSample
+    The brush noise texture map. Default is a \l Texture with source \c {"maps/brushnoise.png"}.
+*/
+/*!
+    \qmlproperty real BrushStrokes::brushLength
+    How far to offset the image with the brush. Sensible values are in the range \c {[0...3]}.
+    The default value is \c {1}.
+*/
+/*!
+    \qmlproperty real BrushStrokes::brushSize
+    The scale of the brush. Smaller values yield larger sizes. Sensible values are in the range
+    \c {[10...200]}. The default value is \c {100}.
+*/
+/*!
+    \qmlproperty real BrushStrokes::brushAngle
+    The amount to rotate the brush noise texture, in degrees. The default value is \c {45}.
+*/
+
+/*!
+    \qmltype ChromaticAberration
+    \inqmlmodule QtQuick3D.Effects
+    \brief A chromatic aberration effect.
+
+    \deprecated [6.5] Use \l ExtendedSceneEnvironment,
+    \l[QML]{MultiEffect}, or user-defined effects via the \l
+    Effect type instead.
+
+    \warning All pre-made standalone effects in QtQuick3D.Effects are
+    considered deprecated starting with Qt 6.5. Applications are advised to use
+    \l ExtendedSceneEnvironment or \l[QML]{MultiEffect}
+    instead, when applicable, or alternatively provide their own custom
+    post-processing effect via the \l Effect type.
+
+    \image effect_chromatic_aberration.png
+           {Scene comparison showing chromatic aberration effect}
+
+    The ChromaticAberration effect simulates an imperfection of optical lenses. In real life,
+    chromatic aberration is an optical phenomenon causing color fringes in high contrast
+    areas. These color fringes are caused by different colors refracting at different angles
+    splitting white light into a spectrum. This is called dispersion.
+*/
+/*!
+    \qmlproperty TextureInput ChromaticAberration::maskTexture
+    A grayscale texture to control the position and strength of the effect. The effect is strongest in
+    white areas, and weakest in black areas.
+    The default is a \l Texture with source \c {"maps/white.png"}.
+*/
+/*!
+    \qmlproperty real ChromaticAberration::aberrationAmount
+    The strength of the aberration effect. A negative value inverses the effect. The default value is \c {50}.
+*/
+/*!
+    \qmlproperty real ChromaticAberration::focusDepth
+    The distance to the focus plane. The dispersion scales in relation to the distance from this
+    value. The default value is \c {600}.
+*/
+
+/*!
+    \qmltype ColorMaster
+    \inqmlmodule QtQuick3D.Effects
+    \brief A color adjustment effect.
+
+    \deprecated [6.5] Use \l ExtendedSceneEnvironment instead.
+
+    \warning All pre-made standalone effects in QtQuick3D.Effects are
+    considered deprecated starting with Qt 6.5. To perform color adjustments,
+    use \l ExtendedSceneEnvironment instead.
+
+    \image effect_color_master.png
+           {Scene comparison showing color master effect}
+
+    The ColorMaster effect adjusts the color balance and saturation of the scene.
+*/
+/*!
+    \qmlproperty real ColorMaster::redStrength
+    A multiplication factor for the red color channel. The range is \c {[0...2]}. The default value is \c {1}.
+*/
+/*!
+    \qmlproperty real ColorMaster::greenStrength
+    A multiplication factor for the green color channel. The range is \c {[0...2]}. The default value is \c {1.5}.
+*/
+/*!
+    \qmlproperty real ColorMaster::blueStrength
+    A multiplication factor for the blue color channel. The range is \c {[0...2]}. The default value is \c {1}.
+*/
+/*!
+    \qmlproperty real ColorMaster::saturation
+    The strength of all the colors in the scene. The range is \c {[-1...1]}, where \c {-1} is fully desaturated,
+    \c {0} is unmodified, and \c {1} is heavily oversaturated. The default value is \c {0}.
+*/
+
+/*!
+    \qmltype DepthOfFieldHQBlur
+    \inqmlmodule QtQuick3D.Effects
+    \brief A depth-based blur effect.
+
+    \deprecated [6.5] Use \l ExtendedSceneEnvironment instead.
+
+    \warning All pre-made standalone effects in QtQuick3D.Effects are
+    considered deprecated starting with Qt 6.5. To apply a depth-of-field
+    effect to the scene, use \l ExtendedSceneEnvironment instead.
+
+    \image effect_depth_of_field_hq_blur.png
+           {Scene comparison showing depth of field blur effect}
+
+    The DepthOfFieldHQBlur effect performs a gradient blur on regions of the image based on their
+    deviation from a specified distance from the camera.
+
+    For this effect to work well, you need to adjust the \l {PerspectiveCamera::clipFar}{clipFar}
+    and \l {PerspectiveCamera::clipNear}{clipNear} properties of the camera for the scene to frame
+    the content. You ideally want the largest possible value for
+    \l {PerspectiveCamera::clipNear}{clipNear} and the smallest possible value for
+    \l {PerspectiveCamera::clipFar}{clipFar}. Next, adjust the properties of the effect for the
+    desired result.
+
+    For example, a \l focusDistance of \c 100 and a \l focusRange of \c 20 means that everything
+    that is between 90 and 110 units away from the camera will be entirely in focus, items at a
+    distance of 70-90 and 110-130 units will experience variable blurring, and everything closer
+    than 70 or farther than 130 will be entirely blurred.
+
+    \sa TiltShift
+*/
+/*!
+    \qmlproperty real DepthOfFieldHQBlur::focusDistance
+    The distance from the camera where the content is in perfect focus. The default value is \c {600}.
+*/
+/*!
+    \qmlproperty real DepthOfFieldHQBlur::focusRange
+    The distance around the \l focusDistance where items are fully in focus. The focus then
+    fades away to fully blurred by the same distance on both the near and far sides.
+    The default value is \c {100}.
+*/
+/*!
+    \qmlproperty real DepthOfFieldHQBlur::blurAmount
+    The strength of blur when out of focus. Sensible values are in the range \c {[1...10]}.
+    The default value is \c {4}.
+*/
+
+/*!
+    \qmltype Desaturate
+    \inqmlmodule QtQuick3D.Effects
+    \brief A desaturating effect.
+
+    \deprecated [6.5] Use \l ExtendedSceneEnvironment instead.
+
+    \warning All pre-made standalone effects in QtQuick3D.Effects are
+    considered deprecated starting with Qt 6.5. To perform color adjustments
+    and color grading, use \l ExtendedSceneEnvironment instead.
+
+    \image effect_desaturate.png {Scene comparison showing desaturate effect}
+
+    The Desaturate effect allows decreasing the intensity of all colors in the scene.
+*/
+/*!
+    \qmlproperty real Desaturate::amount
+    The strength of desaturation. The range is \c {[0...1]}, with \c 0 being fully saturated and \c 1
+    being fully grayscale. The default value is \c {0.5}.
+*/
+
+/*!
+    \qmltype DistortionRipple
+    \inqmlmodule QtQuick3D.Effects
+    \brief A ripple distortion effect.
+
+    \deprecated [6.5] Use \l ExtendedSceneEnvironment,
+    \l[QML]{MultiEffect}, or user-defined effects via the \l
+    Effect type instead.
+
+    \warning All pre-made standalone effects in QtQuick3D.Effects are
+    considered deprecated starting with Qt 6.5. Applications are advised to use
+    \l ExtendedSceneEnvironment or \l[QML]{MultiEffect}
+    instead, when applicable, or alternatively provide their own custom
+    post-processing effect via the \l Effect type.
+
+    \image effect_distortion_ripple.png
+           {Scene comparison showing distortion ripple effect}
+
+    The DistortionRipple effect adds a wavelike distortion of circular ripples around a center point.
+*/
+/*!
+    \qmlproperty real DistortionRipple::radius
+    How far the ripples extend from the center point. Sensible values are in the range \c {[0...100]}.
+    The default value is \c {100}.
+*/
+/*!
+    \qmlproperty real DistortionRipple::distortionWidth
+    The width of a ripple. Sensible values are in the range \c {[2...100]}. The default value is \c {10}.
+*/
+/*!
+    \qmlproperty real DistortionRipple::distortionHeight
+    The distortion amount. Sensible values are in the range \c {[0...100]}. The default value is \c {10}.
+*/
+/*!
+    \qmlproperty real DistortionRipple::distortionPhase
+    The offset of each wave. Animate this property to see the waves move. Sensible values are in
+    the range \c {[0...360]}. The default value is \c {0}.
+*/
+/*!
+    \qmlproperty vector2d DistortionRipple::center
+    The center point of the distortion. The default is \c {Qt.vector2d(0.5, 0.5)}, the center of the scene.
+*/
+
+/*!
+    \qmltype DistortionSphere
+    \inqmlmodule QtQuick3D.Effects
+    \brief A sphere distortion effect.
+
+    \deprecated [6.5] Use \l ExtendedSceneEnvironment,
+    \l[QML]{MultiEffect}, or user-defined effects via the \l
+    Effect type instead.
+
+    \warning All pre-made standalone effects in QtQuick3D.Effects are
+    considered deprecated starting with Qt 6.5. Applications are advised to use
+    \l ExtendedSceneEnvironment or \l[QML]{MultiEffect}
+    instead, when applicable, or alternatively provide their own custom
+    post-processing effect via the \l Effect type.
+
+    \image effect_distortion_sphere.png
+           {Scene comparison showing distortion sphere effect}
+
+    The DistortionSphere effect creates a 3D effect of wrapping the scene around a spherical shape.
+*/
+/*!
+    \qmlproperty real DistortionSphere::radius
+    How far the distortion extends from the center point. The range is \c {[0...1]}. The default value is \c {0.25}.
+*/
+/*!
+    \qmlproperty real DistortionSphere::distortionHeight
+    The distortion amount. The range is \c {[-1...1]}, where positive values distort towards the
+    camera, and negative values distort away from the camera. The default value is \c {0.5}.
+*/
+/*!
+    \qmlproperty vector2d DistortionSphere::center
+    The center point of the distortion. The default is \c {Qt.vector2d(0.5, 0.5)}, the center of the scene.
+*/
+
+/*!
+    \qmltype DistortionSpiral
+    \inqmlmodule QtQuick3D.Effects
+    \brief A spiral distortion effect.
+
+    \deprecated [6.5] Use \l ExtendedSceneEnvironment,
+    \l[QML]{MultiEffect}, or user-defined effects via the \l
+    Effect type instead.
+
+    \warning All pre-made standalone effects in QtQuick3D.Effects are
+    considered deprecated starting with Qt 6.5. Applications are advised to use
+    \l ExtendedSceneEnvironment or \l[QML]{MultiEffect}
+    instead, when applicable, or alternatively provide their own custom
+    post-processing effect via the \l Effect type.
+
+    \image effect_distortion_spiral.png
+           {Scene comparison showing distortion spiral effect}
+
+    The DistortionSpiral effect creates a twirl-shaped distortion.
+*/
+/*!
+    \qmlproperty real DistortionSpiral::radius
+    How far the distortion extends from the center point. The range is \c {[0...1]}. The default value is \c {0.25}.
+*/
+/*!
+    \qmlproperty real DistortionSpiral::distortionStrength
+    The distortion amount. The range is \c {[-10...10]}. The default value is \c {1.0}.
+*/
+/*!
+    \qmlproperty vector2d DistortionSpiral::center
+    The center point of the distortion. The default is \c {Qt.vector2d(0.5, 0.5)}, the center of the scene.
+*/
+
+/*!
+    \qmltype EdgeDetect
+    \inqmlmodule QtQuick3D.Effects
+    \brief An edge highlighting effect.
+
+    \deprecated [6.5] Use \l ExtendedSceneEnvironment,
+    \l[QML]{MultiEffect}, or user-defined effects via the \l
+    Effect type instead.
+
+    \warning All pre-made standalone effects in QtQuick3D.Effects are
+    considered deprecated starting with Qt 6.5. Applications are advised to use
+    \l ExtendedSceneEnvironment or \l[QML]{MultiEffect}
+    instead, when applicable, or alternatively provide their own custom
+    post-processing effect via the \l Effect type.
+
+    \image effect_edge_detect.png {Scene comparison showing edge detect effect}
+
+    The EdgeDetect effect turns smooth, unchanging areas of the scene darker, while areas of the
+    scene with sharp color changes are brightened to highlight the edges.
+*/
+/*!
+    \qmlproperty real EdgeDetect::edgeStrength
+    The strength of the edge highlighting. The range is \c {[0...1]}. The default value is \c {0.5}.
+*/
+
+/*!
+    \qmltype Emboss
+    \inqmlmodule QtQuick3D.Effects
+    \brief An emboss effect.
+
+    \deprecated [6.5] Use \l ExtendedSceneEnvironment,
+    \l[QML]{MultiEffect}, or user-defined effects via the \l
+    Effect type instead.
+
+    \warning All pre-made standalone effects in QtQuick3D.Effects are
+    considered deprecated starting with Qt 6.5. Applications are advised to use
+    \l ExtendedSceneEnvironment or \l[QML]{MultiEffect}
+    instead, when applicable, or alternatively provide their own custom
+    post-processing effect via the \l Effect type.
+
+    \image effect_emboss.png {Scene comparison showing emboss effect}
+
+    The Emboss effect replaces each pixel either by a highlight or a shadow, depending on light/dark
+    boundaries on the scene. Low contrast areas are replaced by a gray background. The embossed
+    result represents the rate of color change at each location.
+*/
+/*!
+    \qmlproperty real Emboss::amount
+    The strength of the emboss effect. Sensible values are in the range \c {[0...0.01]}. The default value is \c {0.003}.
+*/
+
+/*!
+    \qmltype Flip
+    \inqmlmodule QtQuick3D.Effects
+    \brief A scene flipping effect.
+
+    \deprecated [6.5] Use \l ExtendedSceneEnvironment,
+    \l[QML]{MultiEffect}, or user-defined effects via the \l
+    Effect type instead.
+
+    \warning All pre-made standalone effects in QtQuick3D.Effects are
+    considered deprecated starting with Qt 6.5. Applications are advised to use
+    \l ExtendedSceneEnvironment or \l[QML]{MultiEffect}
+    instead, when applicable, or alternatively provide their own custom
+    post-processing effect via the \l Effect type.
+
+    \image effect_flip.png {Scene comparison showing flip effect}
+
+    The Flip effect flips the whole scene either horizontally, vertically, or in both directions.
+*/
+/*!
+    \qmlproperty bool Flip::flipHorizontally
+    This property determines whether the scene is flipped horizontally. The default value is \c {true}.
+*/
+/*!
+    \qmlproperty bool Flip::flipVertically
+    This property determines whether the scene is flipped vertically. The default value is \c {true}.
+*/
+
+/*!
+    \qmltype Fxaa
+    \inqmlmodule QtQuick3D.Effects
+    \brief A fast approximate anti-aliasing effect.
+
+    \deprecated [6.5] Use \l ExtendedSceneEnvironment instead.
+
+    \warning All pre-made standalone effects in QtQuick3D.Effects are
+    considered deprecated starting with Qt 6.5. To apply FXAA to the scene, use
+    \l ExtendedSceneEnvironment instead.
+
+    \image effect_fxaa.png
+           {Scene comparison showing fast approximate anti-aliasing effect}
+
+    The FXAA effect applies fast approximate anti-aliasing to the scene. FXAA is a high-speed
+    anti-aliasing technique that removes some of the artifacts from the image without impacting
+    performance as heavily as super-sampling would.
+
+    \table
+      \header
+        \li
+          Pros
+        \li
+          Cons
+      \row
+        \li
+          \list
+            \li
+              Easy fix for many aliasing problems.
+            \li
+              Works with moving images.
+          \endlist
+        \li
+          \list
+            \li
+              Can blur and distort fine text details.
+            \li
+              As a screen-space heuristic technique, it can sometimes leave
+              sharp edges that ideally would be anti-aliased.
+          \endlist
+    \endtable
+
+    Fxaa does not have adjustable properties.
+*/
+
+/*!
+    \qmltype GaussianBlur
+    \inqmlmodule QtQuick3D.Effects
+    \brief A two-pass gaussian blur effect.
+
+    \deprecated [6.5] Use \l[QML]{MultiEffect} instead.
+
+    \warning All pre-made standalone effects in QtQuick3D.Effects are
+    considered deprecated starting with Qt 6.5. To perform blur, use Qt Quick's
+    \l[QML]{MultiEffect} on the \l View3D item (or a parent of
+    it).
+
+    \image effect_gaussian_blur.png
+           {Scene comparison showing gaussian blur effect}
+
+    The GaussianBlur effect blurs all objects in the scene evenly. To keep the effect performant,
+    a large blur \l amount will not produce a perfectly smooth blur, but rather a mosaic result.
+*/
+/*!
+    \qmlproperty real GaussianBlur::amount
+    The strength of the blur. Sensible values are in the range \c {[0...10]}. The default value is \c {2}.
+*/
+
+/*!
+    \qmltype HDRBloomTonemap
+    \inqmlmodule QtQuick3D.Effects
+    \brief A bloom with tonemapping effect.
+
+    \deprecated [6.5] Use \l ExtendedSceneEnvironment instead.
+
+    \warning All pre-made standalone effects in QtQuick3D.Effects are
+    considered deprecated starting with Qt 6.5. To apply glow and bloom to the
+    scene, use \l ExtendedSceneEnvironment instead.
+
+    \image effect_hdr_bloom_tonemap.png
+           {Scene comparison showing HDR bloom tonemap effect}
+
+    The HDRBloomTonemap effect provides two features:
+
+    \list
+    \li
+      Adjusting the gamma and exposure of the high-dynamic range rendered
+      content to achieve the image quality you want.
+    \li
+      Applying an adjustable bloom effect to bright areas (like the sun
+      glinting off a car).
+    \endlist
+*/
+/*!
+    \qmlproperty real HDRBloomTonemap::gamma
+    Affects the non-linear curve of the lighting. Higher values increase the exposure of mid tones,
+    lightening the image and decreasing the contrast. A value of \c{1.0} causes no
+    adjustment to the image. Sensible values are in the range \c {[0.1...4]}. The default value is \c {1}.
+*/
+/*!
+    \qmlproperty real HDRBloomTonemap::exposure
+    Sets a linear multiplier on the lighting, brightening, or darkening the image overall. A value of
+    \c{0.0} causes no adjustment to the image. The range is \c {[-9...9]}. The default value is \c {0}.
+*/
+/*!
+    \qmlproperty real HDRBloomTonemap::bloomThreshold
+    Sets the threshold for the bloom effect. Any part of the scene brighter than this value will bloom.
+    A value of \c{1.0} corresponds to white. Lowering this value causes more areas of the rendered scene to bloom.
+    At a value of \c{0.0} everything in the scene blooms. The range is \c {[0...1]}. The default value is \c {1}.
+*/
+/*!
+    \qmlproperty real HDRBloomTonemap::blurFalloff
+    Adjusts the amount of bloom. Lower values result in a stronger bloom effect, and higher values
+    make the effect more subtle. The range is \c {[0...10]}. The default value is \c {0}.
+*/
+/*!
+    \qmlproperty real HDRBloomTonemap::tonemappingLerp
+    Specifies the strength of the overall bloom effect. There is usually no need to adjust this. The range is
+    \c {[0...1]}, with \c 0 being no blur and \c 1 being full bloom. The default value is \c {1}.
+*/
+/*!
+    \qmlproperty real HDRBloomTonemap::channelThreshold
+    Specifies the white point for the image. There is usually no need to adjust this. The range is \c {[0...1]}.
+    The default value is \c {1}.
+*/
+
+/*!
+    \qmltype MotionBlur
+    \inqmlmodule QtQuick3D.Effects
+    \brief A motion blur effect.
+
+    \deprecated [6.5] Use \l ExtendedSceneEnvironment,
+    \l[QML]{MultiEffect}, or user-defined effects via the \l
+    Effect type instead.
+
+    \warning All pre-made standalone effects in QtQuick3D.Effects are
+    considered deprecated starting with Qt 6.5. Applications are advised to use
+    \l ExtendedSceneEnvironment or \l[QML]{MultiEffect}
+    instead, when applicable, or alternatively provide their own custom
+    post-processing effect via the \l Effect type.
+
+    \image effect_motion_blur.png {Scene comparison showing motion blur effect}
+
+    The MotionBlur effect creates a trailing streak for rapidly moving objects in the scene.
+
+    \note The \l {SceneEnvironment::backgroundMode}{background mode} must be
+    \c {SceneEnvironment.Transparent} for MotionBlur to work.
+*/
+/*!
+    \qmlproperty real MotionBlur::fadeAmount
+    How fast the trail fades. The range is \c {[0...1]}, with \c 0 meaning that the object trail persists
+    indefinitely, and \c 1 meaning that the object trail fades out immediately. The default value is \c {0.25}.
+*/
+/*!
+    \qmlproperty real MotionBlur::blurQuality
+    The quality of the blur used to create the trail. Increasing quality will have impact on performance.
+    The range is \c {[0...1]}. The default value is \c {0.25}.
+*/
+
+/*!
+    \qmltype Scatter
+    \inqmlmodule QtQuick3D.Effects
+    \brief A scatter noise effect.
+
+    \deprecated [6.5] Use \l ExtendedSceneEnvironment,
+    \l[QML]{MultiEffect}, or user-defined effects via the \l
+    Effect type instead.
+
+    \warning All pre-made standalone effects in QtQuick3D.Effects are
+    considered deprecated starting with Qt 6.5. Applications are advised to use
+    \l ExtendedSceneEnvironment or \l[QML]{MultiEffect}
+    instead, when applicable, or alternatively provide their own custom
+    post-processing effect via the \l Effect type.
+
+    \image effect_scatter.png {Scene comparison showing scatter effect}
+
+    Scatters the pixels in a scene, creating a blurry or smeared appearance. Without changing the
+    color of each individual pixel, the Scatter effect redistributes the pixels randomly, but in
+    the same general area as their original positions.
+*/
+/*!
+    \qmlproperty TextureInput Scatter::noiseSample
+    The scatter noise texture map. The default is a \l Texture with source \c {"maps/brushnoise.png"}.
+*/
+/*!
+    \qmlproperty real Scatter::amount
+    Determines how much to scatter. The range is \c {[0...127]}. The default value is \c {10}.
+*/
+/*!
+    \qmlproperty int Scatter::direction
+    The direction in which to scatter the pixels. Set to \c 0 for both horizontal and vertical,
+    \c 1 for horizontal, and  \c 2 for vertical. The default value is \c 0.
+*/
+/*!
+    \qmlproperty bool Scatter::randomize
+    Specifies whether the scattering pattern changes for each frame. The default value is \c {true}.
+*/
+
+/*!
+    \qmltype SCurveTonemap
+    \inqmlmodule QtQuick3D.Effects
+    \brief A tonemapping effect.
+
+    \deprecated [6.5] Use \l ExtendedSceneEnvironment instead.
+
+    \warning All pre-made standalone effects in QtQuick3D.Effects are
+    considered deprecated starting with Qt 6.5. To control tonemapping, use
+    \l ExtendedSceneEnvironment instead.
+
+    \image effect_scurve_tonemap.png
+           {Scene comparison showing S-curve tonemap effect}
+
+    The SCurveTonemap effect maps the luminance of each pixel in the Scene
+    according to an s-shaped curve:
+
+    \image effect_scurve_graph.png {Graph showing S-curve tonemap function}
+
+    The curve has three parts. The \e {toe area} determines the shadows, and
+    is governed by \l toeSlope and \l toeEmphasis. The middle part determines
+    overall contrast, and is changed by \l contrastBoost. The \e {shoulder
+    area} determines the highlights, and is governed by \l shoulderSlope and
+    \l shoulderEmphasis.
+
+*/
+/*!
+    \qmlproperty real SCurveTonemap::shoulderSlope
+    Sets the slope of the \e shoulder part of the s-curve. The shoulder defines
+    where highlights lose contrast.
+
+    The range is \c {[0...3]}. The default value is \c {1}.
+
+    \sa shoulderEmphasis
+*/
+/*!
+    \qmlproperty real SCurveTonemap::shoulderEmphasis
+    Modifies the shape of the \e shoulder part of the s-curve.
+    The range is \c {[-1...1]}. The default value is \c {0}.
+
+    \sa shoulderSlope
+*/
+/*!
+    \qmlproperty real SCurveTonemap::toeSlope
+    Sets the slope of the \e toe part of the s-curve. The toe defines where
+    shadows lose contrast.
+
+    The range is \c {[0...3]}.  The default value is \c {1}.
+
+    \sa toeEmphasis
+*/
+/*!
+    \qmlproperty real SCurveTonemap::toeEmphasis
+    Modifies the shape of the \e toe part of the s-curve.
+    The range is \c {[-1...1]}. The default value is \c {0}.
+
+    \sa toeSlope
+*/
+/*!
+    \qmlproperty real SCurveTonemap::contrastBoost
+    Enhances or reduces the overall contrast of the tonemap. This changes
+    the slope of the middle part of the s-curve.
+
+    The range is \c {[-1...2]}. The default value is \c {0}.
+*/
+/*!
+    \qmlproperty real SCurveTonemap::saturationLevel
+    Sets the overall saturation level of the tonemap effect. The range is \c {[0...2]}, with \c 0 being fully
+    grayscale and \c 2 being very oversaturated. The default value is \c {1}.
+*/
+/*!
+    \qmlproperty real SCurveTonemap::gammaValue
+    Sets the gamma value for the tonemap effect. Sensible values are in the range \c {[0.1...8]}. The default value is \c {2.2}.
+*/
+/*!
+    \qmlproperty bool SCurveTonemap::useExposure
+    Makes the effect use \l whitePoint instead of \l exposureValue for luminance calculations.
+    The default value is \c {false}.
+*/
+/*!
+    \qmlproperty real SCurveTonemap::whitePoint
+    Sets the white point of the tonemap. This value is only used if \l useExposure is \c {false}.
+    The range is \c {[0.01...128]}. The default value is \c {1}.
+*/
+/*!
+    \qmlproperty real SCurveTonemap::exposureValue
+    Specifies the exposure for the tonemap effect. This value is only used if \l useExposure is \c {true}.
+    The range is \c {[0.01...16]}. The default value is \c {1}.
+*/
+
+/*!
+    \qmltype TiltShift
+    \inqmlmodule QtQuick3D.Effects
+    \brief A tilt shift blur effect.
+
+    \deprecated [6.5] Use \l ExtendedSceneEnvironment,
+    \l[QML]{MultiEffect}, or user-defined effects via the \l
+    Effect type instead.
+
+    \warning All pre-made standalone effects in QtQuick3D.Effects are
+    considered deprecated starting with Qt 6.5. Applications are advised to use
+    \l ExtendedSceneEnvironment or \l[QML]{MultiEffect}
+    instead, when applicable, or alternatively provide their own custom
+    post-processing effect via the \l Effect type.
+
+    \image effect_tilt_shift.png {Scene comparison showing tilt shift effect}
+
+    The TiltShift effect simulates depth of field in a simple and performant manner.
+    Instead of blurring based on the depth buffer, it blurs everything outside a horizontal
+    or vertical strip of the scene.
+
+    \sa DepthOfFieldHQBlur
+*/
+/*!
+    \qmlproperty real TiltShift::focusPosition
+    The placement of the focus bar in normalized coordinates. The range is \c {[0...1]}.
+    The default value is \c {0.5}, corresponding to the middle of the scene.
+*/
+/*!
+    \qmlproperty real TiltShift::focusWidth
+    Specifies the width of the in-focus area in normalized coordinates.
+    Objects within this range of \l focusPosition will be in focus.
+    The range is \c {[0...1]}. The default value is \c {0.2}.
+*/
+/*!
+    \qmlproperty real TiltShift::blurAmount
+    Specifies the strength of the blur effect. Values above 4 may cause artifacts.
+    The range is \c {[0...10]}. The default value is \c {4}.
+*/
+/*!
+    \qmlproperty bool TiltShift::isVertical
+    Makes the effect work vertically instead of horizontally. The default value is \c {false}.
+*/
+/*!
+    \qmlproperty bool TiltShift::isInverted
+    Inverts the blur area, so the center is blurred instead. The default value is \c {false}.
+*/
+
+/*!
+    \qmltype Vignette
+    \inqmlmodule QtQuick3D.Effects
+    \brief A vignette effect.
+
+    \deprecated [6.5] Use \l ExtendedSceneEnvironment instead.
+
+    \warning All pre-made standalone effects in QtQuick3D.Effects are
+    considered deprecated starting with Qt 6.5. To apply a vignette effect to
+    the 3D scene, use \l ExtendedSceneEnvironment instead.
+
+    \image effect_vignette.png {Scene comparison showing vignette effect}
+*/
+/*!
+    \qmlproperty real Vignette::vignetteStrength
+    Specifies the strength of the vignetting. The range is \c {[0...15]}. The default value is \c {15}.
+*/
+/*!
+    \qmlproperty real Vignette::vignetteRadius
+    Specifies the size of the vignetting. The range is \c {[0...5]}. The default value is \c {0.35}.
+*/
+/*!
+    \qmlproperty vector3d Vignette::vignetteColor
+    Sets the color to use for the vignetting. The default value is \c {Qt.vector3d(0.5, 0.5, 0.5)}.
+*/

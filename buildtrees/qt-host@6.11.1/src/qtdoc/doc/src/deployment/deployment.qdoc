@@ -1,0 +1,102 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page deployment.html
+    \title Deploying Qt Applications
+
+    Deploying an Qt application does not require any C++
+    programming. All you need to do is to build Qt and your
+    application in release mode, following the procedures described in
+    this documentation.
+
+    \section1 Static vs. Shared Libraries
+
+    There are two ways of deploying an application:
+
+    \list
+        \li Static Linking
+        \li Shared Libraries (Frameworks on Mac)
+    \endlist
+
+    Static linking results in a stand-alone executable. The advantage
+    is that you will only have a few files to deploy. The
+    disadvantages are that the executables are large and with no
+    flexibility (i.e a new version of the application, or of Qt, will
+    require that the deployment process is repeated), and that you
+    cannot deploy plugins.
+
+    To deploy plugin-based applications, you can use the shared
+    library approach. Shared libraries also provide smaller, more
+    flexible executables. For example, using the shared library
+    approach, the user is able to independently upgrade the Qt library
+    used by the application.
+
+    Another reason why you might want to use the shared library
+    approach, is if you want to use the same Qt libraries for a family
+    of applications. In fact, if you download the binary installation
+    of Qt, you get Qt as a shared library.
+
+    The disadvantage with the shared library approach is that you
+    will get more files to deploy. For more information, see
+    \l{Creating Shared Libraries}.
+
+    \section1 Deploying Qt's Libraries
+
+    Unless Qt is part of the system libraries it must be redistributed
+    with your application. The minimum is to redistribute the run-time
+    of the libraries used by the application.  However, with static linking,
+    the Qt run-times can be compiled into the executable.
+
+    In general, you should deploy all plugins that your Qt build uses,
+    excluding those that you have identified as unnecessary for your
+    application and its users.
+
+    For instance, you may need to deploy plugins for JPEG support and
+    SQL drivers, but you should also deploy plugins that your users may
+    require, including those for accessibility.
+    For more information about plugins, see \l{How to Create Qt Plugins}.
+
+    Applications using \l{Qt Qml} also need to ship the
+    \l{All QML Modules}{QML modules} they use.
+
+    While deploying an application using the shared library approach,
+    you must ensure that the Qt libraries use the correct path to
+    find the Qt plugins, documentation, translation, and so on. To do this, you
+    can use a \c qt.conf file. For more information, see \l {Using
+    qt.conf}.
+
+    Depending on configuration, compiler-specific libraries must be
+    redistributed as well. For more information, see the
+    platform-specific application dependencies for
+    \l{Qt for Linux - Deployment#Application Dependencies}{Linux},
+    \l{Qt for Windows - Deployment#Application Dependencies}{Windows},
+    and \l{Qt for macOS}{\macos}.
+
+    \section1 Licensing
+
+    Some of Qt's libraries are based on third party libraries that are
+    not licensed using the same dual-license model as Qt. As a result,
+    care must be taken when deploying applications that use these
+    libraries, particularly when the application is statically linked
+    to them.
+    For more information, see \l{Third-Party Code Used in Qt}.
+
+    Some configurations of QtNetwork use OpenSSL at run-time. Deployment
+    of OpenSSL libraries is subject to both licensing and export restrictions.
+    For more information, see \l{Secure Sockets Layer (SSL) Classes}.
+
+    \section1 Platform-Specific Notes
+
+    The procedure of deploying Qt applications is different for the
+    various platforms:
+
+    \list
+        \li \l{Qt for Linux - Deployment}{Qt for Linux}
+        \li \l{Qt for Windows - Deployment}{Qt for Windows}
+        \li \l{Qt for macOS#Deploying Applications on macOS}{Qt for macOS}
+        \li \l{Deploying an Application on Android}{Qt for Android}
+    \endlist
+
+    \sa {Deploy Translations}
+*/

@@ -1,0 +1,68 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example websockets
+    \title QtRemoteObjects WebSockets Applications
+    \brief Using a non-QIODevice-based transport (QWebSocket) with QtRemoteObjects.
+    \examplecategory {Connectivity}
+    \meta tag {rpc,network,websockets}
+    \ingroup qtremoteobjects-examples
+
+    This example shares a \c QStandardItemModel over a web socket. The model
+    can be edited in the window of the \c wsserver application, and the
+    changes are propagated to the window of the \c wsclient application.
+
+    This is made possible by implementing a small QIODevice-derived wrapper,
+    \c WebSocketIoDevice, for \c QWebSocket. SSL is used if Qt is compiled
+    with support for it.
+
+    \image StandardItemTableWindow.webp
+           {SourceView window with two-column table and colored row highlighting}
+
+    \section1 The WsServer Application
+
+    The \c wsserver application creates a \c QStandardItemModel with two
+    columns and inserts data into it.
+
+    \snippet websockets/wsserver/main.cpp 0
+
+    It then starts a \c QWebSocketServer bound to port 8088, and hosts the
+    data model.
+
+    \snippet websockets/wsserver/main.cpp 1
+
+    When handling new connections, SSL is configured if Qt is compiled
+    with support for it. Then a \c WebSocketIoDevice is created using the
+    incoming WebSocketServer connection.
+
+    \snippet websockets/wsserver/main.cpp 2
+
+    A QTreeView is created with the QStandardItemModel as model.
+    Then multiple timers are started with QTimer::singleShot to perform
+    more modifications to the model.
+
+    \snippet websockets/wsserver/main.cpp 3
+
+    \section1 The WsClient Application
+
+    The \c wsclient application creates a QWebSocket and a
+    \c WebSocketIoDevice taking it as an argument.
+
+    \snippet websockets/wsclient/main.cpp 0
+
+    If Qt is compiled with support for SSL, the client is configured with it.
+
+    \snippet websockets/wsclient/main.cpp 1
+
+    Then a QRemoteObjectNode is created, and setup to use the
+    WebSocketIoDevice. Then it connects to \c wsserver.
+
+    \snippet websockets/wsclient/main.cpp 2
+
+    A QTreeView is created to display the data from the server. The model is
+    acquired from the node, and it is then set as the model of the
+    QTreeView, which is then shown.
+
+    \snippet websockets/wsclient/main.cpp 3
+*/

@@ -1,0 +1,7 @@
+void MAIN()
+{
+    METALNESS = 0.5;
+    ROUGHNESS = 0.0;
+    FRESNEL_POWER = 5.0;
+    SPECULAR_AMOUNT = 1.0;
+}

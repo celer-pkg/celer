@@ -1,0 +1,65 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \class QAxObjectInterface
+    \brief QAxObjectInterface is an interface providing common properties of QAxObject and QAxWidget.
+    \inmodule QAxContainer
+    \since 6.0
+*/
+
+/*!
+    \fn QAxObjectInterface::~QAxObjectInterface()
+
+    Destroys the QAxObjectInterface.
+*/
+
+/*!
+    \fn virtual ulong QAxObjectInterface::classContext() const
+
+    \return the context the ActiveX control will run in (default CLSCTX_SERVER).
+
+    \sa QAxBaseWidget::classContext, QAxBaseObject::classContext
+*/
+
+/*!
+    \fn virtual void QAxObjectInterface::setClassContext(ulong classContext)
+
+    Sets the context the ActiveX control will run in to \a classContext
+
+    Affects the "dwClsContext" argument when calling CoCreateInstance.
+    This can be used to control in-proc vs. out-of-proc startup for controls
+    supporting both alternatives. Also, it can be used to modify/reduce control
+    permissions when used with CLSCTX_ENABLE_CLOAKING and an impersonation token.
+
+    Note that this function must be called before setControl() to have any
+    effect.
+
+    \sa QAxBaseWidget::classContext, QAxBaseObject::classContext
+*/
+
+/*!
+    \fn virtual QString QAxObjectInterface::control() const
+
+    \return the name of the COM object wrapped by this QAxBase object.
+
+    \sa QAxBaseWidget::control, QAxBaseObject::control
+*/
+
+/*!
+    \fn virtual bool QAxObjectInterface::setControl(const QString &c)
+
+    \return whether setting the COM object succeeded.
+
+     Sets the name of the COM object wrapped by this QAxBase object to \a c.
+
+    \sa QAxBaseWidget::control, QAxBaseObject::control
+*/
+
+/*!
+    \fn virtual void QAxObjectInterface::resetControl()
+
+    Disconnects and destroys the COM object.
+
+    \sa QAxBaseWidget::control, QAxBaseObject::control
+*/

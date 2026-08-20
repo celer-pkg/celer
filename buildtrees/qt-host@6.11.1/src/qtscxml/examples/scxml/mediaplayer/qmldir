@@ -1,0 +1,3 @@
+module Mediaplayer
+prefer :/qt/qml/Mediaplayer/
+MainWindow 1.0 MainWindow.qml

@@ -1,0 +1,69 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Qt Quick 3D - SSGI Lightmap Example
+    \example ssgilightmap
+    \ingroup quick3d-examples
+    \brief An example showing scenes using SSGI and Lightmaps.
+    \examplecategory {3D}
+    \meta {tag} {quick, 3d, ssgi, lightmaps}
+    \meta {docdependencies} {QtQuick3D}
+
+    \image {ssgilightmap-screenshot.webp} {A 3D scene showing a cabin bedroom}
+
+    This example demonstrates two global illumination techniques available in
+    Qt Quick 3D: Screen Space Global Illumination (SSGI) and baked lightmaps.
+    It allows comparing the visual differences and performance characteristics of
+    real-time and precomputed lighting.
+
+    The application includes three common test scenes used to evaluate rendering:
+
+    \list
+    \li Cornell Box -
+        A classic lighting test setup highlighting diffuse
+        color bleeding and indirect illumination.
+    \li Bedroom -
+        An indoor environment with soft, warm lighting and a
+        mixture of materials and occluded spaces.
+    \li Sponza Atrium -
+        A large architectural test scene with drapery,
+        arcades, and multiple layers of indirect lighting.
+    \endlist
+
+    Each scene provides a number of predefined camera positions. A built-in
+    Demo mode automatically cycles through these viewpoints to show how the
+    lighting behaves from different angles.
+
+    The lighting mode can be changed at runtime to one of the following:
+
+    \list
+    \li SSGI -
+      Enables real-time, screen-space global illumination.
+      This is controlled through the
+      \l{QtQuick3D.Helpers::ExtendedSceneEnvironment::ssgiEnabled}
+      {ssgiEnabled} property of \l
+      {QtQuick3D.Helpers::ExtendedSceneEnvironment}
+      {ExtendedSceneEnvironment}. SSGI offers dynamic
+      indirect lighting suitable for interactive and
+      animated content, at some performance cost and
+      with approximations inherent to screen-space
+      techniques.
+    \li Baked Lightmaps -
+      Uses precomputed direct, indirect, or both
+      lighting stored in texture lightmaps. Lightmap
+      baking is performed offline by the Qt Quick 3D
+      Lightmap Baker. See \l{Lightmaps and Global
+      Illumination}{Lightmap Baking} for details.
+      This provides high-quality, path-traced illumination with very low
+      runtime cost, best suited for mostly static environments.
+    \li Off -
+      Disables both SSGI and baked lightmaps for comparison against direct
+      lighting only.
+    \endlist
+
+    \sa {QtQuick3D.Helpers::ExtendedSceneEnvironment::ssgiEnabled}
+    {ExtendedSceneEnvironment::ssgiEnabled}
+    \sa {Lightmaps and Global Illumination}
+    {Lightmap Baking}
+*/

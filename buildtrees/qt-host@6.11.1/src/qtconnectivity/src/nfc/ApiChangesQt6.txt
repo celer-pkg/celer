@@ -1,0 +1,18 @@
+This document lists the API changed done to QtNFC between Qt 5.15 and Qt 6.
+
+- Removed function QNearFieldTarget::url(). No replacement available as the function was never implemented.
+- Removed function QNearFieldTarget::sendCommands(...). No replacement available as the function needs to be implemented by the API user.
+- Renamed function QNearFieldManager::isAvailable() to QNearFieldManager::isEnabled().
+- Removed functions QNearFieldTarget::keepConnection() and QNearFieldTarget::setKeepConnection(...). Keeping the connection is the default behavior now.
+- Removed QML API. No replacement available because the support has been discontinued.
+- Removed functions QNearFieldTarget::(un)registerNdefMessageHandler(...). No replacement available.
+- Removed QNearFieldShareManager/QNearFieldShareTarget. No replacement available.
+- Removed function QNearFieldTarget::isProcessingCommand(). No replacement available as the function is not implemented.
+- Removed functions setResponseForRequest, handleResponse and reportError from QNearFieldTarget. No replacement available as this is for internal use only.
+- Added NfcTagType4A and NfcTagType4B to QNearFieldTarget::Type.
+- Changed the type of typeInfo in QNdefNfcSmartPosterRecord from QByteArray to QString.
+- Removed TargetAccessModes, setTargetAccessModes and targetAccessModes from QNearFieldManager. No replacement available.
+- Removed ndefMessagesWritten signal. A requestCompleted signal is used instead.
+- Added QNdefRecord::clear() method.
+- QNdefFilter::appendRecord now returns bool to indicate if the record is added or not.
+- Added QNdefFilter::match() to check if a message matches the filter.

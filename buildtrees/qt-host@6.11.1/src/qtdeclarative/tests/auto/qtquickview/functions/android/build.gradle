@@ -1,0 +1,50 @@
+plugins {
+    id 'com.android.application' version '9.0.0'
+    id 'org.qtproject.qt.gradleplugin' version '1.4'
+}
+
+QtBuild {
+    qtPath = file(qtAndroidDir).parentFile.parentFile.parentFile
+    projectPath = file('qml/')
+    extraCMakeArguments = ['-DANDROID_NDK_ROOT=' + System.getenv('ANDROID_NDK_ROOT')]
+}
+
+android {
+    namespace androidPackageName
+    compileSdkVersion androidCompileSdkVersion
+    buildToolsVersion androidBuildToolsVersion
+    ndkVersion androidNdkVersion
+
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            java.srcDirs = [qtAndroidDir + '/src', 'src', 'java']
+            res.srcDirs = [qtAndroidDir + '/res', 'res']
+       }
+    }
+
+    tasks.withType(JavaCompile) {
+        options.incremental = true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+
+    // Do not compress Qt binary resources file
+    aaptOptions {
+        noCompress 'rcc'
+    }
+
+    defaultConfig {
+        resConfig "en"
+        minSdkVersion qtMinSdkVersion
+        targetSdkVersion qtTargetSdkVersion
+        ndk.abiFilters = qtTargetAbiList.split(",")
+    }
+}

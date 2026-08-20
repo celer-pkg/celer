@@ -1,0 +1,6 @@
+module AlarmsModule
+AlarmDelegate 254.0 AlarmDelegate.qml
+AlarmDialog 254.0 AlarmDialog.qml
+AlarmModel 254.0 AlarmModel.qml
+TumblerDelegate 254.0 TumblerDelegate.qml
+Main 254.0 Main.qml

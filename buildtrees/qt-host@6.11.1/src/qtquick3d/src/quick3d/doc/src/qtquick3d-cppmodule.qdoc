@@ -1,0 +1,18 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\module QtQuick3D
+\title Qt Quick 3D C++ Classes
+\brief Provides classes for Qt Quick 3D application development.
+
+This module provides classes for developing QML applications using Qt Quick 3D.
+
+Qt Quick 3D provides the following C++ types:
+
+\section1 QtQuick3D C++ Types
+
+\generatelist classesbymodule QtQuick3D
+
+\noautolist
+*/

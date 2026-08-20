@@ -1,0 +1,15 @@
+PROPFIND /container/ HTTP/1.1
+depth: 1
+content-length: 95
+connection: Keep-Alive{{Ignore}}
+http2-settings: {{Ignore}}
+accept-encoding: {{Ignore}}
+accept-language: {{Ignore}}
+content-type:i application/xml; charset="utf-8"
+user-agent: Mozilla/5.0
+host: {{ServerHostUrl}}
+
+<?xml version="1.0" encoding="utf-8" ?>
+<D:propfind xmlns:D="DAV:">
+<D:allprop/>
+</D:propfind>

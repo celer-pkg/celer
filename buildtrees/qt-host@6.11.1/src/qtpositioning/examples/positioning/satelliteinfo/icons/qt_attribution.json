@@ -1,0 +1,15 @@
+[
+    {
+        "Id": "material_symbols_and_icons",
+        "Name": "Material Symbols and Icons",
+        "QDocModule": "qtpositioning",
+        "QtUsage": "Used in the \"Satellite Info\" example",
+        "QtParts": [ "examples" ],
+        "Description": "Material Symbols and Icons",
+        "Homepage": "https://fonts.google.com/icons",
+        "License": "Apache License Version 2.0",
+        "LicenseId": "Apache-2.0",
+        "Copyright": "© Google",
+        "Files": "checkbox.svg checkbox_blank.svg darkmode.svg filter.svg help.svg lightmode.svg rssiview.svg search.svg settings.svg skyview.svg sort.svg tableview.svg"
+    }
+]

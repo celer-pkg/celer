@@ -1,0 +1,5 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/qt/qml/stringlistmodel">
+    <file>view.qml</file>
+</qresource>
+</RCC>

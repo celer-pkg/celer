@@ -1,0 +1,20 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+   \module QtTextToSpeech
+   \title Qt TextToSpeech C++ Classes
+   \ingroup modules
+   \qtcmakepackage TextToSpeech
+   \qtvariable texttospeech
+
+   \brief provides C++ API to access text-to-speech engines.
+*/
+
+/*!
+    \qmlmodule QtTextToSpeech
+    \title Qt TextToSpeech QML Types
+    \ingroup qmlmodules
+
+    \brief provides QML types to access text-to-speech functionality.
+ */

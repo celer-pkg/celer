@@ -1,0 +1,38 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  // Google One Storage Management, confirm delete and navigate back.
+  actions: [
+    {
+      // Click the "I understand that deleted items can't be recovered" checkbox.
+      action: click
+      position: {
+        selector: "[aria-modal='true'][aria-label='Confirmation dialog to delete selected items'] input[type='checkbox']"
+        wait: true
+      }
+      source: $[CLICK_INPUT_SOURCE]
+      verify: xpath///*[@aria-modal='true'][@aria-label='Confirmation dialog to delete selected items']//button[not(@disabled)]//span[text()='Permanently delete']
+    }
+    {
+      // Click the "Permanently delete" button.
+      action: click
+      position: {
+        selector: xpath///*[@aria-modal='true'][@aria-label='Confirmation dialog to delete selected items']//button[not(@disabled)]//span[text()='Permanently delete']
+        wait: true
+      }
+      source: $[CLICK_INPUT_SOURCE]
+      verify: body:not(:has([aria-modal='true']))
+    }
+    {
+      // Click the go back arrow at the top to return to the Google One Storage Manager page.
+      action: click
+      position: {
+        selector: "[role='button'][aria-label='Go back']"
+        wait: true
+      }
+      source: $[CLICK_INPUT_SOURCE]
+      verify: xpath///span[@role='heading'][@aria-level='1'][text()='Google One Storage Manager']
+    }
+  ]
+}

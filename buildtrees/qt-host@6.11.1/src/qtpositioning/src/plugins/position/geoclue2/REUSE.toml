@@ -1,0 +1,10 @@
+version = 1
+
+[[annotations]]
+path = ["org.freedesktop.GeoClue2.Client.xml",
+        "org.freedesktop.GeoClue2.Location.xml",
+        "org.freedesktop.GeoClue2.Manager.xml"]
+precedence = "closest"
+comment = "license need to be checked"
+SPDX-FileCopyrightText = "Copyright 2013 Red Hat, Inc."
+SPDX-License-Identifier = "CC0-1.0"

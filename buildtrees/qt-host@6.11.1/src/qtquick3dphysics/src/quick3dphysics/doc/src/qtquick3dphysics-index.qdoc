@@ -1,0 +1,75 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtquick3dphysics-index.html
+\title Qt Quick 3D Physics
+\brief Provides API for physics on 3D items using QML.
+
+Qt Quick 3D Physics provides a high-level API for physics simulation.
+It supports simulating interactive rigid bodies as well as static meshes and non-colliding bodies used for detecting overlaps.
+Every simulated body can have its own physical properties like mass, density and friction.
+
+\image physics.jpg {Screenshot of a scene showing a ball destructing a structure of marbles by falling on it}
+
+
+\section1 Using the Module
+
+\section2 QML API
+
+\include {module-use.qdocinc} {using the qml api} {QtQuick3D.Physics}
+
+This a pure QML module and it does not have a C++ API.
+
+
+\section1 Articles and Guides
+
+\list
+    \li \l{Qt Quick 3D Physics Shapes and Bodies}
+    \li \l{Qt Quick 3D Physics Units}{Qt Quick 3D Physics Units}
+    \li \l{Qt Quick 3D Physics Cooking}{Qt Quick 3D Physics Cooking}
+\endlist
+
+\section1 Examples
+
+The best way to see what Qt Quick 3D Physics can do is to check out the examples:
+
+\list
+    \li \l{Qt Quick 3D Physics - Simple Example}{Simple}
+    \li \l{Qt Quick 3D Physics - Material Example}{Material}
+    \li \l{Qt Quick 3D Physics - Mass Example}{Mass}
+    \li \l{Qt Quick 3D Physics - Compound Shapes Example}{Compound Shapes}
+    \li \l{Qt Quick 3D Physics - Custom Shapes Example}{Custom Shapes}
+    \li \l{Qt Quick 3D Physics - Cannon Example}{Cannon}
+    \li \l{Qt Quick 3D Physics - Impeller Example}{Impeller}
+    \li \l{Qt Quick 3D Physics - CharacterController Example}{Character Controller}
+\endlist
+
+\section1 Reference
+\list
+    \li \l{Qt Quick 3D Physics QML Types}
+\endlist
+
+\note There are API changes compared to the Tech Preview API (Qt version 6.4).
+See the \l {Qt Quick 3D Physics API Changes from Tech Preview} for the difference.
+
+\section1 Related Modules
+
+\list
+    \li \l{Qt Quick}
+    \li \l{Qt Quick 3D}
+\endlist
+
+\section1 License and Attributions
+
+Qt Quick 3D Physics is available under the commercial license from \l {The Qt Company}.
+In addition, it is available under the
+\l{GNU General Public License, version 3}.
+See \l {Qt Licensing} for further details.
+
+Furthermore Qt Quick 3D Physics contains third party modules
+under the following permissive licenses:
+
+\annotatedlist attributions-qtquick3dphysics
+
+*/

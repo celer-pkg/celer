@@ -1,0 +1,11 @@
+{
+  probes: {
+    frequency: {
+      cpus: {
+        cpu0: 1111,
+        cpu1: "min",
+        cpu2: "max"
+      }
+    }
+  }
+}

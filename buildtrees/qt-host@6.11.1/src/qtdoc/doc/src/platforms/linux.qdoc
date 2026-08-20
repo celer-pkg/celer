@@ -1,0 +1,1065 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page linux.html
+    \title Qt for Linux
+    \brief Qt natively supports Linux.
+    \ingroup supportedplatform
+    \keyword Qt for Linux/X11
+
+    Qt's support for different Linux platforms is extensive and mature.
+
+    To download and install Qt for Linux, follow the instructions on the
+    \l{Getting Started with Qt} page. You can also install Qt using your
+    distribution's package manager; see
+    \l{Qt for Linux - Alternative ways of installing Qt}{Alternative ways of installing Qt for Linux}
+    for more information.
+
+    \target linux-supported-configurations
+    \section1 Supported Configurations
+
+    The following configurations are supported.
+
+    \include supported-platforms.qdocinc linux
+
+    \section1 Requirements for Development Host
+
+    The Qt installers for Linux assume that a C++ compiler, debugger,
+    make, and other development tools are provided by the host
+    operating system. In addition, building graphical Qt applications requires
+    \l {Qt for Linux - Requirements}, and OpenGL libraries and headers installed.
+    Most Linux distributions do not install all of these by default, but setting
+    up a development environment is still straightforward.
+
+    Use the following commands to install the basic requirements for
+    building Qt applications:
+
+    \section3 Debian/Ubuntu (apt-get)
+
+    \badcode
+    sudo apt-get install build-essential libgl1-mesa-dev
+    \endcode
+
+    \section3 Fedora/RHEL/CentOS (yum)
+
+    \badcode
+    sudo yum groupinstall "C Development Tools and Libraries"
+    sudo yum install mesa-libGL-devel
+    \endcode
+
+    \section3 openSUSE (zypper)
+
+    \badcode
+    sudo zypper install -t pattern devel_basis
+    \endcode
+
+    \section1 Building Qt from Source
+
+    You can also build Qt from the source package and configure it according
+    to your target platform. The source packages are obtained from
+    \l{http://www.qt.io/download/}.
+
+    Below, you will find more information about building Qt from source.
+    \list
+    \li \l {Qt for Linux - Requirements}
+    \li \l{Qt for Linux - Building from Source}
+    \endlist
+
+    \section1 Deployment and Other Issues
+
+    The pages below covers specific issues and recommendations for creating
+    Linux/X11 applications.
+
+    \list
+    \li \l{Qt for Linux - Deployment}
+    \li \l{Qt for Linux - Specific Issues}
+    \endlist
+
+    \section1 Where to Go from Here
+
+    We invite you to explore the rest of Qt. We prepared overviews which help
+    you decide which APIs to use and our examples demonstrate how to use our
+    API.
+
+    \list
+    \li \l{Qt Overviews} - list of topics about application development
+    \li \l{Qt Examples and Tutorials}{Examples and Tutorials} - code samples and tutorials
+    \li \l{Qt Reference Pages} - a listing of C++ and QML APIs
+    \endlist
+
+    Qt's vibrant and active community site, \l{https://www.qt.io} houses
+    a wiki, a forum, and additional learning guides and presentations.
+*/
+
+/*!
+    \page linux-requirements.html
+    \title Qt for Linux - Requirements
+    \keyword {Qt for X11 Requirements}
+    \brief Setting up the Linux environment for Qt.
+
+    \section1 Platform Plugin Dependencies
+
+    On Linux, the \e xcb QPA (Qt Platform Abstraction) platform plugin is used.
+    It provides the basic functionality needed by \l{Qt GUI} and \l{Qt Widgets}
+    to run against X11. Its library dependencies are described the following
+    table. To build Qt from its source code, you will also need to install the
+    development packages for these libraries for your system.
+
+    \table 100%
+    \header
+    \li Name
+    \li Library
+    \li Notes
+    \li Configuration options
+    \li Minimum working version
+    \row {id="OptionalColor"}
+    \li XRender
+    \li libXrender
+    \li X Rendering Extension; used for anti-aliasing and alpha cursor support
+    \li \tt{-xrender} or auto-detected
+    \li 0.9.0
+    \row {id="OptionalColor"}
+    \li xcb-render
+    \li libxcb-render
+    \li X C Bindings for Render extension
+    \li auto-detected
+    \li 1.11
+    \row {id="OptionalColor"}
+    \li xcb-render-util
+    \li libxcb-render-util
+    \li Utility library for XCB for Render extension
+    \li auto-detected
+    \li 0.3.9
+    \row {id="OptionalColor"}
+    \li xcb-shape
+    \li libxcb-shape
+    \li X C Bindings for Shape extension
+    \li auto-detected
+    \li 1.11
+    \row {id="DefaultColor"}
+    \li xcb-randr
+    \li libxcb-randr
+    \li X C Bindings for Resize and Rotate Extension
+    \li auto-detected
+    \li 1.11
+    \row {id="DefaultColor"}
+    \li xcb-xfixes
+    \li libxcb-xfixes
+    \li X C Bindings for Fixes Extension
+    \li auto-detected
+    \li 1.11
+    \row {id="DefaultColor"}
+    \li xcb-xkb
+    \li libxcb-xkb
+    \li X C Bindings for XKeyboard Extension
+    \li auto-detected
+    \li 1.11
+    \row {id="DefaultColor"}
+    \li xcb-sync
+    \li libxcb-sync
+    \li X C Bindings for Sync Extension
+    \li auto-detected
+    \li 1.11
+    \row {id="DefaultColor"}
+    \li xcb-shm
+    \li libxcb-shm
+    \li X C Bindings for Shared Memory Extension
+    \li auto-detected
+    \li 1.11
+    \row {id="DefaultColor"}
+    \li xcb-icccm
+    \li libxcb-icccm
+    \li X C Bindings for ICCCM Protocol
+    \li auto-detected
+    \li 0.3.9
+    \row {id="DefaultColor"}
+    \li xcb-keysyms
+    \li libxcb-keysyms
+    \li Utility library for XCB for keycode conversion
+    \li auto-detected
+    \li 0.3.9
+    \row {id="DefaultColor"}
+    \li xcb-image
+    \li libxcb-image
+    \li Utility library for XCB for XImage and XShmImage, used for QBackingStore and cursor support
+    \li auto-detected
+    \li 0.3.9
+    \row {id="DefaultColor"}
+    \li xcb-util
+    \li libxcb-util
+    \li Utility library for XCB for atom, aux and event
+    \li auto-detected
+    \li 0.3.9
+    \row {id="DefaultColor"}
+    \li xcb-cursor0
+    \li libxcb-cursor0
+    \li Utility library for XCB for cursor
+    \li auto-detected
+    \li 0.1.1
+
+    \row {id="OptionalColor"}
+    \li xkbcommon
+    \li libxkbcommon
+    \li Keymap handling
+    \li \tt{-xkbcommon} or auto-detected
+    \li 0.9.0
+    \row {id="OptionalColor"}
+    \li xkbcommon-x11
+    \li libxkbcommon-x11
+    \li Keymap handling
+    \li auto-detected
+    \li 0.9.0
+
+    \row {id="OptionalColor"}
+    \li Fontconfig
+    \li libfontconfig
+    \li Font customization and configuration
+    \li \tt{-fontconfig} or auto-detected
+    \li 2.6
+    \row {id="OptionalColor"}
+    \li FreeType
+    \li libfreetype
+    \li Font engine
+    \li
+    \li 2.3.0
+    \row {id="DefaultColor"}
+    \li Xext
+    \li libXext
+    \li X Extensions
+    \li
+    \li 6.4.3
+    \row {id="DefaultColor"}
+    \li X11
+    \li libX11
+    \li X11 client-side library
+    \li
+    \li 6.2.1
+    \row {id="DefaultColor"}
+    \li xcb
+    \li libxcb
+    \li X C Binding library
+    \li
+    \li 1.11
+    \row {id="DefaultColor"}
+    \li X11-xcb
+    \li libX11-xcb
+    \li Xlib/XCB interface library
+    \li
+    \li 1.3.2
+
+    \row {id="SMColor"}
+    \li SM
+    \li libSM
+    \li X Session Management
+    \li \tt{-sm} or auto-detected
+    \li 6.0.4
+    \row {id="SMColor"}
+    \li ICE
+    \li libICE
+    \li Inter-Client Exchange
+    \li \tt{-sm} or auto-detected
+    \li 6.3.5
+
+    \row {id="GlibColor"}
+    \li glib
+    \li libglib-2.0
+    \li Common event loop handling
+    \li \tt{-glib} or auto-detected
+    \li 2.8.3
+    \row {id="PthreadColor"}
+    \li pthread
+    \li libpthread
+    \li Multithreading
+    \li
+    \li 2.3.5
+    \endtable
+
+    Development packages for the above libraries contain header files that are
+    used when building Qt from its source code. The package names may differ
+    among Linux distributions, and some distributions may not include all
+    packages in the default configuration for their package management system.
+
+    As an example, you can run the following command to install the recommended
+    packages on Debian-based GNU/Linux systems:
+
+    \badcode
+    apt install \
+        libfontconfig1-dev \
+        libfreetype-dev \
+        libgtk-3-dev \
+        libx11-dev \
+        libx11-xcb-dev \
+        libxcb-cursor-dev \
+        libxcb-glx0-dev \
+        libxcb-icccm4-dev \
+        libxcb-image0-dev \
+        libxcb-keysyms1-dev \
+        libxcb-randr0-dev \
+        libxcb-render-util0-dev \
+        libxcb-shape0-dev \
+        libxcb-shm0-dev \
+        libxcb-sync-dev \
+        libxcb-util-dev \
+        libxcb-xfixes0-dev \
+        libxcb-xkb-dev \
+        libxcb1-dev \
+        libxext-dev \
+        libxfixes-dev \
+        libxi-dev \
+        libxkbcommon-dev \
+        libxkbcommon-x11-dev \
+        libxrender-dev
+    \endcode
+
+    Some of these packages depend on others in this list, so installing one
+    may cause others to be automatically installed. Other distributions may
+    provide system packages with similar names.
+
+    Qt does not maintain a comprehensive package list for all distributions.
+    Some distributions, such as \tm{Red Hat} and its derivatives, may require
+    additional repositories for certain packages (e.g., EPEL for RHEL).
+    Consult your distribution's documentation for specific package names. RHEL
+    users can contact \tm{Red Hat} support for detailed information.
+
+    \section1 Accessibility Dependencies
+
+    The Qt accessibility implementation uses the \e{Assistive Technology
+    Service Provider Interface} (AT-SPI). Besides DBUS, the development
+    package \c{libatspi2.0-dev} must be installed.
+
+    \section1 OpenGL Dependencies
+
+    Configure attempts to automatically detect OpenGL ES 2.0, or later, or
+    regular desktop OpenGL. You can disable OpenGL support by using the
+    \c -no-opengl option.
+
+    \note The Qt OpenGL module (which contains classes that start with \e QGL)
+    has been deprecated in favor of the \l{Qt GUI} module (which contains
+    classes that start with \e QOpenGL).
+
+    \omit
+    \section1 Speech Dependencies
+
+    \l{Qt Speech} depends on Speech Dispatcher (libspeechd) on the Linux platform.
+    The following development packages should be installed:
+
+    \list
+    \li flite1-dev
+    \li libspeechd-dev
+    \li speech-dispatcher
+    \endlist
+    \endomit
+
+    \section1 QDoc Dependencies
+    \l{QDoc Manual}{QDoc} uses Clang to parse C++ code.
+    If you wish to build QDoc manually, refer to \l {Installing Clang for QDoc}
+    for specific build requirements.
+*/
+
+/*!
+    \page linux-building.html
+    \title Qt for Linux - Building from Source
+    \keyword {Qt for Linux/X11 - Building from Source}
+    \brief How to configure and build Qt on Linux/X11 platforms.
+
+    This page describes configuring and building \l{Qt for Linux} from
+    sources. Note that it is typically easier to install the pre-built Qt
+    libraries and tools via \l [QtDoc] {Get and Install Qt}
+    {\QOI}. A lot of Linux distributions also provide Qt packages
+    through their package manager. Build Qt from sources, however, if you want
+    to customize Qt further or are using a distribution for which no binary Qt
+    packages (in the right version) are available.
+
+    Distribution packagers can find further information on how to package Qt in
+    the \l{Qt Packaging Recommendations}{packaging recommendations}.
+
+    \section1 Step 1: Getting the Sources
+
+    Qt sources can be installed in \QOI. Source packages are also
+    available \l{Getting Qt Sources from the Git repository}{through Git}, as
+    archives in the \l{Qt Account} (commercial users), and on
+    \l{https://download.qt.io/official_releases/qt/}{download.qt.io}
+    (open-source users).
+
+    If you install the sources through \QOI, they will
+    be available in the Qt installation directory, for example
+    \tt{$HOME/Qt/\QtVersion/Src}.
+
+    If you downloaded the single source archive, extract it to a directory of
+    your choice:
+
+    \include snippets/code/doc_src_installation.qdoc 11
+
+    \section1 Step 2: Install Build Requirements
+
+    Building Qt requires a build environment with tools, compilers, and
+    development packages.
+
+    \section2 Build Tools
+
+    \table 80%
+    \header \li Tool \li Supported Versions
+    \row
+        \li CMake
+        \li Version 3.22 and newer.
+    \row
+        \li \notranslate Ninja
+        \li -
+    \row
+        \li Python
+        \li Version 3
+    \endtable
+
+    \include use-ninja-note.qdocinc ninja-note
+
+    \section2 Compilers & Development Packages
+
+    The following compilers and configurations are supported in Qt \QtVer:
+
+    \include supported-platforms.qdocinc linux
+
+    Other compilers and configurations might work but are not actively tested.
+
+    Qt also relies on the availability of various libraries and development
+    packages, which are typically installed by the package manager of the
+    respective resolution. See \l{Qt for Linux - Requirements} for the details.
+
+    \section1 Step 3: Build the Qt Libraries and Tools
+
+    To configure your build, create a build directory and run the
+    \c{./configure} script in this directory:
+
+    \include snippets/code/doc_src_installation.qdoc 12
+
+    By default, Qt is configured for installation in the
+    \tt{/usr/local/Qt-\QtVersion} directory. This can be changed by using the
+    \c{-prefix} option. See the list of \l{Qt Configure Options}{configure options}
+    to tweak further.
+
+    Did \c{configure} run successfully? Then proceed with building the libraries
+    and tools:
+
+    \badcode
+    cmake --build . --parallel
+    \endcode
+
+    After building, you need to install the libraries and tools in the
+    appropriate place (unless you enabled a
+    \l{Developer Builds}{developer build}):
+
+    \badcode
+    cmake --install .
+    \endcode
+
+    Note that this might require root access.
+
+    \section1 Step 4: Building Your Application
+
+    After Qt is installed, you can start building applications with it.
+
+    If you work from the command line, consider adding the Qt tools to your
+    default \c PATH. This is done as follows:
+
+    In \c{.profile} (if your shell is bash, ksh, zsh or sh), add the
+    following lines:
+
+    \badcode \QtVersion
+    PATH=/usr/local/Qt-\1/bin:$PATH
+    export PATH
+    \endcode
+
+    In \c{.login} (if your shell is csh or tcsh), add the following line:
+
+    \badcode \QtVersion
+    setenv PATH /usr/local/Qt-\1/bin:$PATH
+    \endcode
+
+    If you plan to use Qt from an IDE, you need to register the Qt version
+    explicitly there. For \QC, see \l{\QC: Add Qt versions}.
+*/
+
+/*!
+    \page linux-deployment.html
+    \title Qt for Linux - Deployment
+    \keyword {Qt for Linux/X11 - Deployment}
+    \brief Deployment of Qt applications on Linux.
+
+    This documentation discusses specific deployment issues for
+    \l{Qt for Linux}. We will demonstrate the procedures in terms of deploying
+    the \l{tools/plugandpaint/app}{Plug & Paint} example application that comes
+    with the Qt source package.
+
+    Due to the proliferation of Unix systems (such as commercial Unixes or Linux
+    distributions), deployment on Unix is a complex
+    topic. Before we start, be aware that programs compiled for one
+    Unix flavor will probably not run on a different Unix system. For
+    example, unless you use a cross-compiler, you cannot compile your
+    application on Irix and distribute it on AIX.
+
+    \section1 Shared Libraries
+
+    We have two challenges when deploying the \c plugandpaint application
+    using the shared libraries approach: The Qt runtime has to be correctly
+    redistributed along with the application executable, and the
+    plugins have to be installed in the correct location on the target
+    system so that the application can find them.
+
+    \section2 Building Qt as a Shared Library
+
+    We assume that you already have installed Qt as a shared library,
+    which is the default when installing Qt, in the \c /path/to/Qt
+    directory.
+
+    \section2 Linking the Application to Qt as a Shared Library
+
+    After ensuring that Qt is built as a shared library, we can build
+    the \c plugandpaint application. First, we must go into the directory
+    that contains the application:
+
+    \snippet snippets/code/doc_src_deployment.qdoc 4
+
+    Now run qmake to create a new makefile for the application, and do
+    a clean build to create the dynamically linked executable:
+
+    \snippet snippets/code/doc_src_deployment.qdoc 5
+
+    This builds the core application, the following will build the
+    plugins:
+
+    \snippet snippets/code/doc_src_deployment.qdoc 6
+
+    If everything compiled and linked without any errors, we will get
+    a \c plugandpaint executable and the \c libpnp_basictools.so and
+    \c libpnp_extrafilters.so plugin files.
+
+    \section2 Creating the Application Package
+
+    There is no standard package management on Unix, so the method we
+    present below is a generic solution. See the documentation for
+    your target system for information on how to create a package.
+
+    To deploy the application, we must make sure that we copy the
+    relevant Qt libraries (corresponding to the Qt modules used in the
+    application), the \l {#Qt Plugins}{platform plugin}, and the executable
+    to the same directory tree. Remember that if your application depends
+    on compiler specific libraries, these must also be redistributed along
+    with your application. For more information, see the \l{#Application
+    Dependencies}{Application Dependencies} section.
+
+    We'll cover the plugins shortly, but the main issue with shared
+    libraries is that you must ensure that the dynamic linker will
+    find the Qt libraries. Unless told otherwise, the dynamic linker
+    doesn't search the directory where your application resides. There
+    are many ways to solve this:
+
+    \list
+
+    \li You can install the Qt libraries in one of the system
+       library paths (for example, \c /usr/lib on most systems).
+
+    \li You can pass a predetermined path to the \c -rpath command-line
+       option when linking the application. This will tell the dynamic
+       linker to look in this directory when starting your application.
+
+    \li You can write a startup script for your application, where you
+       modify the dynamic linker configuration (for example, adding your
+       application's directory to the \c LD_LIBRARY_PATH environment
+       variable. \note If your application will be running with "Set
+       user ID on execution," and if it will be owned by root, then
+       LD_LIBRARY_PATH will be ignored on some platforms. In this
+       case, use of the LD_LIBRARY_PATH approach is not an option).
+
+    \endlist
+
+    The disadvantage of the first approach is that the user must have
+    super user privileges. The disadvantage of the second approach is
+    that the user may not have privileges to install into the
+    predetermined path. In either case, the users don't have the option
+    of installing to their home directory. We recommend using the
+    third approach since it is the most flexible. For example, a \c
+    plugandpaint.sh script will look like this:
+
+    \snippet snippets/code/doc_src_deployment.qdoc 7
+
+    By running this script instead of the executable, you are sure
+    that the Qt libraries will be found by the dynamic linker. Note
+    that you only have to rename the script to use it with other
+    applications.
+
+    When looking for plugins, the application searches in a plugins
+    subdirectory inside the directory of the application
+    executable. Either you have to manually copy the plugins into the
+    \c plugins directory, or you can set the \c DESTDIR in the
+    plugins' project files:
+
+    \snippet snippets/code/doc_src_deployment.pro 8
+
+    An archive distributing all the Qt libraries, and all the plugins,
+    required to run the \c plugandpaint application, would have to
+    include the following files:
+
+    \table 100%
+    \header
+        \li Component \li {2, 1} File Name
+    \row
+        \li The executable
+        \li {2, 1} \c plugandpaint
+    \row
+        \li The script to run the executable
+        \li {2, 1} \c plugandpaint.sh
+    \row
+        \li The Basic Tools plugin
+        \li {2, 1} \c plugins\libpnp_basictools.so
+    \row
+        \li The ExtraFilters plugin
+        \li {2, 1} \c plugins\libpnp_extrafilters.so
+    \row
+        \li The Qt xcb platform plugin
+        \li {2, 1} \c platforms\libqxcb.so
+    \row
+        \li The Qt Core module
+        \li {2, 1} \c libQt6Core.so.6
+    \row
+        \li The Qt GUI module
+        \li {2, 1} \c libQt6Gui.so.6
+    \row
+        \li The Qt Widgets module
+        \li {2, 1} \c libQt6Widgets.so.6
+    \endtable
+
+    On most systems, the extension for shared libraries is \c .so. A
+    notable exception is HP-UX, which uses \c .sl.
+
+    Remember that if your application depends on compiler specific
+    libraries, these must still be redistributed along with your
+    application. For more information, see the \l{#Application
+    Dependencies}{Application Dependencies} section.
+
+    To verify that the application now can be successfully deployed,
+    you can extract this archive on a machine without Qt and without
+    any compiler installed, and try to run it, that is, run the \c
+    plugandpaint.sh script.
+
+    An alternative to putting the plugins in the \c plugins
+    subdirectory is to add a custom search path when you start your
+    application using QApplication::addLibraryPath() or
+    QApplication::setLibraryPaths().
+
+    \snippet snippets/code/doc_src_deployment.cpp 9
+
+    \section1 Static Linking
+
+    Static linking is often the safest and easiest way to distribute
+    an application on Unix since it relieves you from the task of
+    distributing the Qt libraries and ensuring that they are located
+    in the default search path for libraries on the target system.
+
+    \section2 Building Qt Statically
+
+    To use this approach, you must start by building a _static_ version
+    of the Qt libraries. Follow the steps in
+    \l{Qt for Linux - Building from Source}, but remember to add
+    a \c{-static} argument to configure:
+
+    \include snippets/code/doc_src_deployment.qdoc 0
+
+    \section2 Linking the Application to the Static Version of Qt
+
+    Once Qt is built statically, the next step is to regenerate the
+    makefile and rebuild the application. First, we must go into the
+    directory that contains the application:
+
+    \snippet snippets/code/doc_src_deployment.qdoc 1
+
+    Now run qmake to create a new makefile for the application, and do
+    a clean build to create the statically linked executable:
+
+    \snippet snippets/code/doc_src_deployment.qdoc 2
+
+    You probably want to link against the release libraries, and you
+    can specify this when invoking \c qmake. Note that we must set the
+    path to the static Qt that we just built.
+
+    To check that the application really links statically with Qt, run
+    the \c ldd tool (available on most Unixes):
+
+    \snippet snippets/code/doc_src_deployment.qdoc 3
+
+    Verify that the Qt libraries are not mentioned in the output.
+
+    Now, provided that everything compiled and linked without any
+    errors, we should have a \c plugandpaint file that is ready for
+    deployment. One easy way to check that the application really can
+    be run stand-alone is to copy it to a machine that doesn't have Qt
+    or any Qt applications installed, and run it on that machine.
+
+    Remember that if your application depends on compiler specific
+    libraries, these must still be redistributed along with your
+    application. For more information, see the \l{#Application
+    Dependencies}{Application Dependencies} section.
+
+    The \l {tools/plugandpaint/app}{Plug & Paint} example consists of
+    several components: The core application (\l
+    {tools/plugandpaint/app}{Plug & Paint}), and the \l
+    {tools/plugandpaint/plugins/basictools}{Basic Tools} and \l
+    {tools/plugandpaint/plugins/extrafilters}{Extra Filters}
+    plugins. Since we cannot deploy plugins using the static linking
+    approach, the executable we have prepared so far is
+    incomplete. The application will run, but the functionality will
+    be disabled due to the missing plugins. To deploy plugin-based
+    applications we should use the shared library approach.
+
+    \section1 Application Dependencies
+
+    \section2 Additional Libraries
+
+    To find out which libraries your application depends on, run the
+    \c ldd tool (available on most Unixes):
+
+    \snippet snippets/code/doc_src_deployment.qdoc 10
+
+    This will list all the shared library dependencies for your
+    application. Depending on configuration, these libraries must be
+    redistributed along with your application. In particular, the
+    standard C++ library must be redistributed if you're compiling
+    your application with a compiler that is binary incompatible with
+    the system compiler. When possible, the safest solution is to link
+    against these libraries statically.
+
+    You will probably want to link dynamically with the regular X11
+    libraries, since some implementations will try to open other
+    shared libraries with \c dlopen(), and if this fails, the X11
+    library might cause your application to crash.
+
+    It's also worth mentioning that Qt will look for certain X11
+    extensions, such as Xinerama and Xrandr, and possibly pull them
+    in, including all the libraries that they link against. If you
+    can't guarantee the presence of a certain extension, the safest
+    approach is to disable it when configuring Qt (for example, \c {./configure
+    -no-xrandr}).
+
+    FontConfig and FreeType are other examples of libraries that
+    aren't always available or that aren't always binary
+    compatible. As strange as it may sound, some software vendors have
+    had success by compiling their software on very old machines and
+    have been very careful not to upgrade any of the software running
+    on them.
+
+    When linking your application against the static Qt libraries, you
+    must explicitly link with the dependent libraries mentioned
+    above. Do this by adding them to the \c LIBS variable in your
+    project file.
+
+    \section2 Qt Plugins
+
+    All Qt GUI applications require a plugin that implements the \l {Qt
+    Platform Abstraction} (QPA) layer in Qt. For Linux/X11, the name of the
+    platform plugin is \c {libqxcb.so}. This file must be located within a
+    specific subdirectory (by default, \c platforms) under your distribution
+    directory. Alternatively, it is possible to adjust the search path Qt
+    uses to find its plugins, as described below.
+
+    Your application may also depend on one or more Qt plugins, such
+    as the JPEG image format plugin or a SQL driver plugin. Be sure
+    to distribute any Qt plugins that you need with your application.
+    Similar to the platform plugin, each type of plugin must be located
+    within a specific subdirectory (such as \c imageformats or \c sqldrivers)
+    within your distribution directory.
+
+    The search path for Qt plugins (as well as a few other paths) is
+    hard-coded into the QtCore library. By default, the first plugin
+    search path will be hard-coded as \c /path/to/Qt/plugins. As
+    mentioned above, using predetermined paths has certain
+    disadvantages, so you need to examine various alternatives to make
+    sure that the Qt plugins are found:
+
+    \list
+
+    \li \l{qt-conf.html}{Using \c qt.conf}. This is the recommended
+    approach since it provides the most flexibility.
+
+    \li Using QApplication::addLibraryPath() or
+    QApplication::setLibraryPaths().
+
+    \li Using a third party installation utility or the target system's
+    package manager to change the hard-coded paths in the QtCore
+    library.
+
+    \endlist
+
+    The \l{How to Create Qt Plugins} document outlines the issues you
+    need to pay attention to when building and deploying plugins for
+    Qt applications.
+
+    \section1 Walkthrough: Create a DEB Package
+
+    This section describes how to create a DEB package for your Qt application
+    on Linux using CMake deployment API available in Qt 6.5 or newer. There's
+    no dedicated \c linuxdeployqt tool. The current solution only relies on
+    CMake's built-in functionality.
+
+    \section2 Example Project Setup
+
+    Start with a simple CMake project:
+
+    \badcode
+    cmake_minimum_required(VERSION 3.22)
+    project(MyApp)
+
+    find_package(Qt6 REQUIRED COMPONENTS Widgets)
+    qt_standard_project_setup()
+
+    qt_add_executable(MyApp main.cpp)
+    target_link_libraries(MyApp PRIVATE Qt::Widgets)
+    \endcode
+
+    \section2 Step 1: Prepare the Installation
+
+    Add commands for installing the application and generating a deployment
+    script to create a self-contained directory:
+
+    \badcode
+    # Install the executable to "${CMAKE_INSTALL_PREFIX}/bin".
+    install(TARGETS MyApp
+        BUNDLE  DESTINATION .
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+
+    # Generate the deployment script for MyApp.
+    qt_generate_deploy_app_script(
+        TARGET MyApp
+        FILENAME_VARIABLE deploy_script
+        NO_UNSUPPORTED_PLATFORM_ERROR
+    )
+
+    # Run the deployment script during installation (on "cmake --install").
+    install(SCRIPT ${deploy_script})
+    \endcode
+
+    Build and install the project:
+
+    \badcode
+    qt-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/tmp/my-application ..
+    cmake --build .
+    cmake --install .
+    \endcode
+
+    The deployment script:
+
+    \list
+    \li Creates a qt.conf file next to the executable that contains information
+        about the directory layout. This is needed at runtime to find the
+        plugins and assets. See the qt.conf documentation for details.
+    \li Inspects the executable and used Qt plugins with CMake's built-in file
+        (GET_RUNTIME_DEPENDENCIES) to determine which Qt libraries to deploy.
+    \li Installs the necessary Qt plugins and Qt libraries.
+    \endlist
+
+    The installation directory can now be copied to a different machine, and
+    the application should still work.
+
+    \section2 Step 2: Create the DEB Package
+
+    After installation, package the directory using CPack. Add the following to
+    your CMake project:
+
+    \badcode
+    set(CPACK_PACKAGE_NAME my-app)
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "My amazing application")
+    set(CPACK_PACKAGE_VENDOR "My Company")
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY ${CPACK_PACKAGE_NAME})
+    set(CPACK_VERBATIM_VARIABLES ON)
+    set(CPACK_PACKAGING_INSTALL_PREFIX "/opt/myapp")
+    set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Package Maintainer <maintainer@example.com>")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS libc6 libstdc++6 libgcc-s1)
+    include(CPack)
+    \endcode
+
+    Reconfigure the project, navigate to the build directory (it must contain
+    the \c CPackConfig.cmake file), and run CPack to generate the DEB package:
+
+    \badcode
+    cpack -G DEB
+    \endcode
+
+    To inspect the contents of the package:
+
+    \badcode
+    dpkg -c my_app-1.0-Linux.deb
+    \endcode
+
+    To install the package:
+
+    \badcode
+    sudo dpkg -i my_app-1.0-Linux.deb
+    \endcode
+
+*/
+
+/*!
+    \page linux-issues.html
+    \title Qt for Linux - Specific Issues
+    \keyword {Qt for Linux/X11 - Specific Issues}
+    \brief A description of issues with Qt that are specific to Linux.
+
+    This page contains information about the X11 platforms Qt is currently
+    known to run on, with links to platform-specific notes.
+
+    \section1 Linux
+
+    There are no known problems with using Qt on Linux. For information
+    about the specific compilers and distributions supported, visit the
+    \l{Supported Platforms}{supported platforms} page.
+*/
+
+/*!
+\page linux-alternative-installers.html
+\title Qt for Linux - Alternative ways of installing Qt
+\brief This article explains how to install Qt on Linux using \QOI, distribution
+packages, and Flatpak.
+
+\section1 Overview
+
+You can install Qt Framework as well as design and development tools on Linux
+from these sources:
+
+\list
+\li \l{Get and Install Qt with \QOI}{\QOI} (Recommended).
+
+    \list
+    \li Gives you access to latest versions of Qt, on the day of their release.
+    \li Allows you to install older versions of Qt, in parallel to newer ones.
+    \li Features all Qt modules, including ones that are commercial-only.
+    \li Preconfigures Qt versions in \QC and \QDS.
+    \endlist
+
+    \QOI is full-featured, flexible, and fully supports commercial use cases,
+    including shipping distribution-independent builds of your application. It
+    is also the one supported best by The Qt Company and The Qt Project. We
+    recommend it if you plan to develop with Qt.
+
+
+\li Native package managers.
+
+    \list
+    \li Do not require a Qt Account.
+    \li Typically ship a recent version of Qt 6 (though not always the latest one).
+    \li Qt libraries and tools use third-party modules from the package manager,
+        instead of bundled ones.
+    \li May miss some of the Qt modules (especially commercial-only ones) and
+        tools.
+    \li May require additional configuration after installation.
+    \endlist
+
+    You can install Qt Framework, \QDS, and \QC using:
+
+    \list
+    \li Distribution's package manager (for Qt Framework and \QC).
+    \li Flatpak (for \QDS and \QC).
+    \endlist
+
+    Installing Qt Framework from native package managers is lightweight and easy
+    to automate. It relieves you from selecting and maintaining a particular Qt
+    version, at the expense of flexibility and control. It works best if you
+    need to install Qt only as a dependency for a local application, or plan to
+    make your application available via the native package manager.
+
+\endlist
+
+\section1 Installing Qt and \QC using your distribution's package manager
+
+Many Linux distributions provide Qt packages and \QC through their package
+managers.
+
+\section2 Installing Qt on Ubuntu and Debian-based systems
+
+Use the following commands to find and install the packages required for
+building Qt applications on Debian-based systems:
+
+\list
+\li To see available packages:
+    \badcode
+    apt list qt6-*dev*
+    \endcode
+\li To install specific dev packages, for example, \c qtbase and
+    \c qtdeclarative:
+    \badcode
+    sudo apt install qt6-{base,declarative}-dev
+    \endcode
+\li To install all the available dev packages with the documentation, build
+    tools, and \QC:
+    \badcode
+    sudo apt install qt6-*{dev,doc}* qtcreator cmake clazy g++
+    \endcode
+\endlist
+
+See also: \l{Enterprise Qt Debian Packages}
+
+\section2 Installing Qt on Fedora-based systems
+
+Use the following commands to find and install the packages required for
+building Qt applications on Fedora-based systems:
+
+\list
+\li To see available packages:
+    \badcode
+    dnf repoquery qt6-*devel*
+    \endcode
+
+\li To install specific dev packages, for example, \c qtbase and
+    \c qtdeclarative:
+    \badcode
+    sudo dnf install qt6-{qtbase,qtdeclarative}*devel*
+    \endcode
+
+\li To install all the available dev packages with the documentation, build
+    tools, and \QC:
+    \badcode
+    sudo dnf install qt6-*{devel,doc}* qt-creator
+    \endcode
+\endlist
+
+
+\section2 Installing Qt on openSUSE-based systems
+
+Use the following commands to find and install the packages required for
+building Qt applications on openSUSE-based systems:
+
+\list
+\li To see available packages:
+    \badcode
+    zypper se qt6*devel*
+    \endcode
+\li To install specific devel packages, for example, \c base and \c declarative:
+    \badcode
+    sudo zypper in qt6-{base,declarative}*devel
+    \endcode
+\li To install all the available devel packages with the documentation, and \QC:
+    \badcode
+    sudo zypper in qt6*{devel,docs,creator}*
+    \endcode
+\endlist
+
+\section1 Installing \QC and \QDS using Flatpak
+
+You can install \QC and \QDS as Flatpak applications from the Flathub
+repository:
+
+\list
+\li \QC is available at \l {https://flathub.org/en/apps/io.qt.QtCreator}.
+\li \QDS is available at \l {https://flathub.org/en/apps/io.qt.qtdesignstudio}.
+\endlist
+
+Refer to your distribution documentation for instructions on how to install
+Flatpak applications on your system.
+
+\section1 Additional configuration
+
+After installing Qt Framework and \QC from your distribution's package manager,
+you may need to configure your development environment. For example, you may
+want to create and configure Qt versions and kits in \QC.
+
+Refer to the \l{\QC: Configuring \QC} page for details.
+
+*/

@@ -1,0 +1,21 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [0]
+configure.exe -D QT_NO_FILEDIALOG
+//! [0]
+
+
+//! [1]
+./configure -no-feature-filedialog
+//! [1]
+
+
+//! [2]
+configure.exe -qconfig myfile
+//! [2]
+
+
+//! [3]
+./configure -qconfig myfile
+//! [3]

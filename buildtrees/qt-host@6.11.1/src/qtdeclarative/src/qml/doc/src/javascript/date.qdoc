@@ -1,0 +1,248 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qml-qtqml-date.html
+    \title The Date JavaScript Object
+    \inqmlmodule QtQml
+    \brief Provides date functions.
+
+    The QML Date object extends the
+    \l{ECMAScript Specification of Date}{JS Date object} with
+    locale aware functions.
+
+    Functions that accept a \c format argument take either Locale.LongFormat,
+    Locale.ShortFormat, Locale.NarrowFormat enumeration values,
+    or a string specifying the format.
+
+    The form of the supported format strings is as described in the
+    documentation of \l QDate::toString(), \l QTime::toString() and \l
+    QDateTime::toString().
+
+    If the date is invalid, an empty string is returned.
+
+    \section1 Format Enumeration Values
+
+    Use the enumeration values when you want a format that matches the locale
+    preferences.
+
+    \table
+    \row \li Locale.LongFormat \li Longer format
+    \row \li Locale.ShortFormat \li Shorter format
+    \row \li Locale.NarrowFormat \li In this context same as Locale.ShortFormat
+    \endtable
+
+    The format that the enumerations represent will depend on your locale, but also
+    the method that the enumeration is used for.
+
+    For example, for the \c en_US locale, these format strings are used:
+
+    \table
+    \header \li Function \li Locale Enum \li Format String
+    \row \li fromLocaleDateString, toLocaleDateString \li Locale.LongFormat \li \c{dddd, MMMM d, yyyy}
+    \row \li fromLocaleDateString, toLocaleDateString \li Locale.ShortFormat \li \c{M/d/yy}
+    \row \li fromLocaleTimeString, toLocaleTimeString \li Locale.LongFormat \li \c{h:mm:ss AP t}
+    \row \li fromLocaleTimeString, toLocaleTimeString \li Locale.ShortFormat \li \c{h:mm AP}
+    \row \li fromLocaleString, toLocaleString \li Locale.LongFormat \li \c{dddd, MMMM d, yyyy h:mm:ss AP t}
+    \row \li fromLocaleString, toLocaleString \li Locale.ShortFormat \li \c{M/d/yy h:mm AP}
+    \endtable
+
+    \section1 Further Notes
+
+    Using the locale-aware functions to perform date or time formatting can
+    result in incorrectly formatted times, due to an inconsistency in specification
+    between Qt and JS.  ECMA-262 specifies that historical dates should be intrepreted
+    by projecting the current rules for daylight-saving onto past years, while Qt uses
+    historical data (where available) to determine whether daylight-saving was in
+    effect for a given date.  Therefore, constructing a Date value in JS and converting
+    it to a string using the locale-aware functions can yield a result incorrect by one
+    hour, if DST is currently in effect, while it was not for the time specified, or
+    vice versa.
+
+    There are different date formats with different understandings of negative years. Common
+    human language does not have a year 0. The year after 1BC is 1AD. This understanding is
+    reflected when printing or parsing dates in one of the formats not standardized by ECMAScript.
+    That is: toString(), toLocaleString(), toUTCString() and friends. ECMAScript does standardize
+    one format: ISO 8601. This is what you get when you call toISOString(). This format does include
+    a year 0, which is 1BC in other formats. Thus you get different years when printing negative
+    dates with toISOString() and toString().
+
+    When setting the year using the Date constructor or set(UTC)FullYear(), the convention set by
+    ISO 8601 is used and 0 is a valid year. This means negative years set with the constructor or
+    set(UTC)FullYear() are zero-based and thus offset by one year from what is printed with
+    toString() and friends. Parsing the output of any of the to*String() methods will yield the same
+    date value you printed from. Date.parse() will recognize the different formats and their
+    convention on the existence of year 0.
+
+    Note that all this is different from what you get in other JavaScript implementations which
+    usually treat year 0 as valid in all string representations. As the date formats are
+    "implementation-dependent" in the ECMAScript standard, this is still valid, though.
+
+    \sa {QtQml::Locale}{Locale}
+
+    \section1 string Date::toLocaleString(locale, format)
+
+    Converts the Date to a string containing the date and time
+    suitable for the specified \a locale
+    in the specified \a format.
+
+    If \a format is not specified, \l {QtQml::Locale}{Locale.LongFormat} will
+    be used.
+
+    If \a locale is not specified, the default locale will be used.
+
+    The following example shows the current date and time formatted
+    for the German locale:
+    \code
+    import QtQuick 2.0
+
+    Text {
+        text: "The date is: " + new Date().toLocaleString(Qt.locale("de_DE"))
+    }
+    \endcode
+
+    \section1 string Date::toLocaleDateString(locale, format)
+
+    Converts the Date to a string containing the date suitable for the specified \a locale
+    in the specified \a format.
+
+    If \a format is not specified, \l {QtQml::Locale}{Locale.LongFormat} will
+    be used.
+
+    If \a locale is not specified, the default locale will be used.
+
+    The following example shows the current date formatted
+    for the German locale:
+    \code
+    import QtQuick 2.0
+
+    Text {
+        text: "The date is: " + new Date().toLocaleDateString(Qt.locale("de_DE"))
+    }
+    \endcode
+
+    \section1 string Date::toLocaleTimeString(locale, format)
+
+    Converts the Date to a string containing the time suitable for the specified \a locale
+    in the specified \a format.
+
+    If \a format is not specified, \l {QtQml::Locale}{Locale.LongFormat} will
+    be used.
+
+    If \a locale is not specified, the default locale will be used.
+
+    The following example shows the current time formatted
+    for the German locale:
+    \code
+    import QtQuick 2.0
+
+    Text {
+        text: "The date is: " + new Date().toLocaleTimeString(Qt.locale("de_DE"))
+    }
+    \endcode
+
+    \section1 string Date::fromLocaleString(locale, dateTimeString, format)
+
+    Converts the datetime string \a dateTimeString to a \l {The Date JavaScript Object}{Date}
+    object using \a locale and \a format.
+
+    If \a format is not specified, \l {QtQml::Locale}{Locale.LongFormat} will
+    be used.
+
+    If \a locale is not specified, the default locale will be used.
+
+    The following example shows a datetime being parsed from a datetime string
+    in a certain format using the default locale:
+    \code
+    import QtQml 2.0
+
+    QtObject {
+        property var locale: Qt.locale()
+        property string dateTimeString: "Tue 2013-09-17 10:56:06"
+
+        Component.onCompleted: {
+            print(Date.fromLocaleString(locale, dateTimeString, "ddd yyyy-MM-dd hh:mm:ss"));
+        }
+    }
+    \endcode
+
+    \section1 string Date::fromLocaleDateString(locale, dateString, format)
+
+    Converts the date string \a dateString to a \l {The Date JavaScript Object}{Date} object
+    using \a locale and \a format.
+
+    If \a format is not specified, \l {QtQml::Locale}{Locale.LongFormat} will
+    be used.
+
+    If \a locale is not specified, the default locale will be used.
+
+    The following example shows the current date first being formatted as a date
+    string using the default locale and format, then parsed back again in the
+    same manner:
+    \code
+    import QtQml 2.0
+
+    QtObject {
+        property var locale: Qt.locale()
+        property date currentDate: new Date()
+        property string dateString
+
+        Component.onCompleted: {
+            dateString = currentDate.toLocaleDateString();
+            print(Date.fromLocaleDateString(dateString));
+        }
+    }
+    \endcode
+
+    \section1 string Date::fromLocaleTimeString(locale, timeString, format)
+
+    Converts the time string \a timeString to a \l {The Date JavaScript Object}{Date} object
+    using \a locale and \a format.
+
+    If \a format is not specified, \l {QtQml::Locale}{Locale.LongFormat} will
+    be used.
+
+    If \a locale is not specified, the default locale will be used.
+
+    The following example shows the current time first being formatted as a time
+    string using the default locale and a short format, then parsed back again
+    in the same manner:
+    \code
+    import QtQml 2.2
+
+    QtObject {
+        property var locale: Qt.locale()
+        property date currentTime: new Date()
+        property string timeString
+
+        Component.onCompleted: {
+            timeString = currentTime.toLocaleTimeString(locale, Locale.ShortFormat);
+            print(Date.fromLocaleTimeString(locale, timeString, Locale.ShortFormat));
+        }
+    }
+    \endcode
+
+    \section1 string Date::timeZoneUpdated()
+
+    Informs the JS engine that the system's timezone has been changed, which is necessary
+    for the correct manipulation of datetime data.
+
+    JS stores Date objects in UTC time; all access to and from Date components in local
+    time involves the application of the current offset from UTC.  If the current offset
+    changes due to the timezone being updated, the JS engine needs to be informed so that
+    it can recalculate the offset.
+
+    This function should be called after the system's timezone has been updated.
+
+    For example, an application that changes the timezone would call timeZoneUpdated() after
+    setting the new time zone:
+
+    \code
+        property string selectedTimeZone
+
+        onSelectedTimeZoneChanged: {
+            MyFunctions.setSystemTimeZone(selectedTimeZone)
+            Date.timeZoneUpdated()
+        }
+    \endcode
+*/

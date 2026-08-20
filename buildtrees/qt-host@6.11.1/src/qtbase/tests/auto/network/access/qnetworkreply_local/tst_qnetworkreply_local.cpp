@@ -1,0 +1,312 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#define QTEST_THROW_ON_FAIL
+
+#include <QtNetwork/qtnetworkglobal.h>
+
+#include <QtTest/qtest.h>
+
+#include <QtNetwork/qnetworkreply.h>
+#include <QtNetwork/qnetworkaccessmanager.h>
+
+#include <QtCore/qbuffer.h>
+
+#include "minihttpserver.h"
+
+using namespace Qt::StringLiterals;
+
+
+/*
+    The tests here are meant to be self-contained, using servers in the same
+    process if needed. This enables externals to more easily run the tests too.
+*/
+class tst_QNetworkReply_local : public QObject
+{
+    Q_OBJECT
+    enum Method {
+        Get,
+        Put,
+        Post,
+        Custom,
+    };
+private slots:
+    void initTestCase_data();
+
+    void get();
+    void requestWithPayload_data();
+    void requestWithPayload();
+    void emptyDeviceUpload_data();
+    void emptyDeviceUpload();
+
+#if QT_CONFIG(localserver)
+    void fullServerName_data();
+    void fullServerName();
+#endif
+};
+
+void tst_QNetworkReply_local::initTestCase_data()
+{
+    QTest::addColumn<QString>("scheme");
+
+    QTest::newRow("http") << "http";
+#if QT_CONFIG(localserver)
+    QTest::newRow("unix") << "unix+http";
+    QTest::newRow("local") << "local+http"; // equivalent to unix, but test that it works
+#endif
+}
+
+static std::unique_ptr<MiniHttpServerV2> getServerForCurrentScheme()
+{
+    auto server = std::make_unique<MiniHttpServerV2>();
+    QFETCH_GLOBAL(QString, scheme);
+    if (scheme.startsWith("unix"_L1) || scheme.startsWith("local"_L1)) {
+#if QT_CONFIG(localserver)
+        QLocalServer *localServer = new QLocalServer(server.get());
+        const size_t hash = qHashMulti(0, QByteArrayView(QTest::currentTestFunction()),
+                                       QCoreApplication::applicationPid());
+        bool listening = localServer->listen(u"qt_networkreply_test_"_s
+                                             % QString::number(hash, 16));
+        if (!listening) {
+            QFAIL(qPrintable(
+                    u"Failed to listen on local server: %1"_s.arg(localServer->errorString())));
+        }
+        server->bind(localServer);
+#endif
+    } else if (scheme == "http") {
+        QTcpServer *tcpServer = new QTcpServer(server.get());
+        if (!tcpServer->listen(QHostAddress::LocalHost, 0))
+            QFAIL(qPrintable(u"Failed to listen on TCP port: %1"_s.arg(tcpServer->errorString())));
+        server->bind(tcpServer);
+    }
+    return server;
+}
+
+static QUrl getUrlForCurrentScheme(MiniHttpServerV2 *server)
+{
+    QFETCH_GLOBAL(QString, scheme);
+    const QString address = server->addressForScheme(scheme);
+    const QString urlString = QLatin1StringView("%1://%2").arg(scheme, address);
+    return { urlString };
+}
+
+void tst_QNetworkReply_local::get()
+{
+    std::unique_ptr<MiniHttpServerV2> server = getServerForCurrentScheme();
+    const QUrl url = getUrlForCurrentScheme(server.get());
+
+    QNetworkAccessManager manager;
+    std::unique_ptr<QNetworkReply> reply(manager.get(QNetworkRequest(url)));
+
+    const bool res = QTest::qWaitFor([reply = reply.get()] { return reply->isFinished(); });
+    QVERIFY(res);
+
+    QCOMPARE(reply->readAll(), QByteArray("Hello World!"));
+    QCOMPARE(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(), 200);
+}
+
+void tst_QNetworkReply_local::requestWithPayload_data()
+{
+    QTest::addColumn<Method>("method");
+    QTest::addColumn<QString>("customVerb");
+    QTest::addRow("get") << Put << "";
+    QTest::addRow("put") << Put << "";
+    QTest::addRow("post") << Post << "";
+    QTest::addRow("custom-get") << Custom << "get";
+    QTest::addRow("custom-put") << Custom << "put";
+    QTest::addRow("custom-post") << Custom << "post";
+    QTest::addRow("custom-delete") << Custom << "delete";
+}
+
+
+void tst_QNetworkReply_local::requestWithPayload()
+{
+    QFETCH(const Method, method);
+    QFETCH(const QString, customVerb);
+    std::unique_ptr<MiniHttpServerV2> server = getServerForCurrentScheme();
+    const QUrl url = getUrlForCurrentScheme(server.get());
+
+    QNetworkAccessManager manager;
+    const QByteArray payload = "Hello from the other side!"_ba;
+    QNetworkRequest req(url);
+    req.setHeader(QNetworkRequest::ContentTypeHeader, "text/plain");
+    auto reply = [&]() -> std::unique_ptr<QNetworkReply> {
+        using unique_ptr = std::unique_ptr<QNetworkReply>;
+        switch (method) {
+        case Get:
+            return unique_ptr{ manager.get(req, payload) };
+        case Put:
+            return unique_ptr{ manager.put(req, payload) };
+        case Post:
+            return unique_ptr{ manager.post(req, payload) };
+        case Custom:
+            return unique_ptr{ manager.sendCustomRequest(req, customVerb.toUtf8(),
+                                                         payload) };
+        }
+        Q_UNREACHABLE_RETURN({});
+    }();
+
+    const bool res = QTest::qWaitFor([reply = reply.get()] { return reply->isFinished(); });
+    QVERIFY(res);
+
+    QCOMPARE(reply->readAll(), QByteArray("Hello World!"));
+    QCOMPARE(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(), 200);
+
+    auto states = server->peerStates();
+    QCOMPARE(states.size(), 1);
+
+    const auto &firstRequest = states.at(0);
+
+    QVERIFY(firstRequest.checkedContentLength);
+    QCOMPARE(firstRequest.contentLength, payload.size());
+    QCOMPARE_GT(firstRequest.receivedData.size(), payload.size() + 4);
+    QCOMPARE(firstRequest.receivedData.last(payload.size() + 4), "\r\n\r\n" + payload);
+}
+
+void tst_QNetworkReply_local::emptyDeviceUpload_data()
+{
+    QTest::addColumn<Method>("method");
+    QTest::addColumn<QString>("customVerb");
+    QTest::addColumn<bool>("contentLengthExpected");
+    QTest::addColumn<bool>("sequential");
+    for (auto sequential : { false, true }) {
+        const char *suffix = sequential ? "sequential" : "non-sequential";
+        QTest::addRow("get-%s", suffix) << Get << "" << false << sequential;
+        QTest::addRow("put-%s", suffix) << Put << "" << true << sequential;
+        QTest::addRow("post-%s", suffix) << Post << "" << true << sequential;
+        QTest::addRow("custom-get-%s", suffix) << Custom << "get" << false << sequential;
+        QTest::addRow("custom-post-%s", suffix) << Custom << "post" << true << sequential;
+        QTest::addRow("custom-connect-%s", suffix) << Custom << "cOnNeCt" << false << sequential;
+    }
+}
+
+class EmptySequentialDevice : public QIODevice {
+public:
+    EmptySequentialDevice() = default;
+    bool isSequential() const override { return true; }
+
+protected:
+    qint64 readData(char *buf, qint64 len) override
+    {
+        Q_UNUSED(buf);
+        Q_UNUSED(len);
+        return -1;
+    }
+    qint64 writeData(const char *buf, qint64 len) override
+    {
+        Q_UNUSED(buf);
+        Q_UNUSED(len);
+        return -1;
+    }
+};
+
+void tst_QNetworkReply_local::emptyDeviceUpload()
+{
+    QFETCH(const Method, method);
+    QFETCH(const QString, customVerb);
+    QFETCH(const bool, contentLengthExpected);
+    QFETCH(const bool, sequential);
+    std::unique_ptr<MiniHttpServerV2> server = getServerForCurrentScheme();
+    const QUrl url = getUrlForCurrentScheme(server.get());
+
+    QNetworkAccessManager manager;
+
+    QBuffer emptyDevice;
+    emptyDevice.open(QIODevice::ReadOnly);
+
+    EmptySequentialDevice emptySequentialDevice;
+    emptySequentialDevice.open(QIODevice::ReadOnly);
+
+    QIODevice *device = sequential ? static_cast<QIODevice *>(&emptySequentialDevice)
+                                   : static_cast<QIODevice *>(&emptyDevice);
+    auto reply = [&]() -> std::unique_ptr<QNetworkReply> {
+        using unique_ptr = std::unique_ptr<QNetworkReply>;
+        switch (method) {
+        case Get:
+            return unique_ptr{ manager.get(QNetworkRequest(url), device) };
+        case Put:
+            return unique_ptr{ manager.put(QNetworkRequest(url), device) };
+        case Post:
+            return unique_ptr{ manager.post(QNetworkRequest(url), device) };
+        case Custom:
+            return unique_ptr{ manager.sendCustomRequest(QNetworkRequest(url), customVerb.toUtf8(),
+                                                         device) };
+        }
+        Q_UNREACHABLE_RETURN({});
+    }();
+
+    QTRY_VERIFY(reply->isFinished());
+
+    auto printErrorOnFail = qScopeGuard([reply = reply.get()]() {
+        qWarning() << "Error in the reply:" << reply->errorString();
+    });
+    QCOMPARE(reply->readAll(), QByteArray("Hello World!"));
+    QCOMPARE(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(), 200);
+    const QList<MiniHttpServerV2::State> peerStates = server->peerStates();
+    QCOMPARE(peerStates.size(), 1);
+    QCOMPARE(peerStates[0].foundContentLength, contentLengthExpected);
+    printErrorOnFail.dismiss();
+}
+
+#if QT_CONFIG(localserver)
+void tst_QNetworkReply_local::fullServerName_data()
+{
+#if defined(Q_OS_ANDROID) || defined(QT_PLATFORM_UIKIT)
+    QSKIP("While partially supported, the test as-is doesn't make sense on this platform.");
+#else
+
+    QTest::addColumn<QString>("hostAndPath");
+
+    QTest::newRow("dummy-host") << u"://irrelevant/test"_s;
+    QTest::newRow("no-host") << u":///test"_s;
+#endif
+}
+
+void tst_QNetworkReply_local::fullServerName()
+{
+    QFETCH_GLOBAL(QString, scheme);
+    if (!scheme.startsWith("unix"_L1) && !scheme.startsWith("local"_L1))
+        return; // only relevant for local sockets
+
+    MiniHttpServerV2 server;
+    QLocalServer localServer;
+
+    QString path;
+#ifdef Q_OS_WIN
+    path = uR"(\\.\pipe\qt_networkreply_test_fullServerName)"_s
+            % QString::number(QCoreApplication::applicationPid());
+#else
+    path = u"/tmp/qt_networkreply_test_fullServerName"_s
+            % QString::number(QCoreApplication::applicationPid()) % u".sock"_s;
+#endif
+
+    QVERIFY(localServer.listen(path));
+    server.bind(&localServer);
+
+    QFETCH(QString, hostAndPath);
+    QUrl url(scheme % hostAndPath);
+    QNetworkRequest req(url);
+    req.setAttribute(QNetworkRequest::FullLocalServerNameAttribute, path);
+
+    QNetworkAccessManager manager;
+    std::unique_ptr<QNetworkReply> reply(manager.get(req));
+
+    const bool res = QTest::qWaitFor([reply = reply.get()] { return reply->isFinished(); });
+    QVERIFY(res);
+
+    QCOMPARE(reply->readAll(), QByteArray("Hello World!"));
+    QCOMPARE(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(), 200);
+
+    const QByteArray receivedData = server.peerStates().at(0).receivedData;
+    const QByteArray expectedGet = "GET " % url.path().toUtf8() % " HTTP/1.1\r\n";
+    QVERIFY(receivedData.startsWith(expectedGet));
+
+    const QByteArray expectedHost = "host: " % url.host().toUtf8() % "\r\n";
+    QVERIFY(receivedData.toLower().contains(expectedHost));
+}
+#endif
+
+QTEST_MAIN(tst_QNetworkReply_local)
+
+#include "tst_qnetworkreply_local.moc"
+#include "moc_minihttpserver.cpp"

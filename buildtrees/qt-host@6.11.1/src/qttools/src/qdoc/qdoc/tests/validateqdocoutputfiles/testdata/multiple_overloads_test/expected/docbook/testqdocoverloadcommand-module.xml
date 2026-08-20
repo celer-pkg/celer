@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<db:article xmlns:db="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.2" xml:lang="en">
+<db:info>
+<db:title/>
+<db:productname>Qt</db:productname>
+<db:titleabbrev>QDoc multiple overloads test Reference Documentation</db:titleabbrev>
+<db:abstract>
+<db:para>A test module.</db:para>
+</db:abstract>
+</db:info>
+<db:para>A test module.</db:para>
+<db:section xml:id="classes">
+<db:title>Classes</db:title>
+<db:variablelist role="classes">
+<db:varlistentry>
+<db:term><db:link xlink:href="testdate.xml" xlink:role="class">TestDate</db:link></db:term>
+<db:listitem>
+<db:para>Test class simulating QDate.</db:para>
+</db:listitem>
+</db:varlistentry>
+<db:varlistentry>
+<db:term><db:link xlink:href="testdatetime.xml" xlink:role="class">TestDateTime</db:link></db:term>
+<db:listitem>
+<db:para>Test class simulating QDateTime.</db:para>
+</db:listitem>
+</db:varlistentry>
+<db:varlistentry>
+<db:term><db:link xlink:href="testoverloads.xml" xlink:role="class">TestOverloads</db:link></db:term>
+<db:listitem>
+<db:para>Demonstrates multiple overloads and the \overload primary feature.</db:para>
+</db:listitem>
+</db:varlistentry>
+<db:varlistentry>
+<db:term><db:link xlink:href="testpositiondependent.xml" xlink:role="class">TestPositionDependent</db:link></db:term>
+<db:listitem>
+<db:para>Test class to verify position-dependent primary overload behavior.</db:para>
+</db:listitem>
+</db:varlistentry>
+<db:varlistentry>
+<db:term><db:link xlink:href="testtime.xml" xlink:role="class">TestTime</db:link></db:term>
+<db:listitem>
+<db:para>Test class simulating QTime.</db:para>
+</db:listitem>
+</db:varlistentry>
+</db:variablelist>
+</db:section>
+<db:section xml:id="details">
+<db:title>Detailed Description</db:title>
+</db:section>
+</db:article>

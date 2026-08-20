@@ -1,0 +1,59 @@
+[
+    {
+        "Id": "head-plus",
+        "Name": "head plus",
+        "QDocModule": "qtopenapi",
+        "QtUsage": "Used in ChatGpt Client example in QtOpenAPI",
+        "QtParts": [
+            "examples"
+        ],
+        "Files": "head-plus.svg",
+        "Homepage": "https://www.freeicons.org/",
+        "License": "Apache License Version 2.0",
+        "LicenseId": "Apache-2.0",
+        "Copyright": "Pictogrammers"
+    },
+    {
+        "Id": "head",
+        "Name": "head",
+        "QDocModule": "qtopenapi",
+        "QtUsage": "Used in ChatGpt Client example in QtOpenAPI",
+        "QtParts": [
+            "examples"
+        ],
+        "Files": "head.svg",
+        "Homepage": "https://www.freeicons.org/",
+        "License": "Apache License Version 2.0",
+        "LicenseId": "Apache-2.0",
+        "Copyright": "Pictogrammers"
+    },
+    {
+        "Id": "graduation-hat",
+        "Name": "graduation hat",
+        "QDocModule": "qtopenapi",
+        "QtUsage": "Used in ChatGpt Client example in QtOpenAPI",
+        "QtParts": [
+            "examples"
+        ],
+        "Files": "graduation-hat.svg",
+        "Homepage": "https://www.freeicons.org/",
+        "License": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+        "LicenseId": "CC-BY-4.0",
+        "Copyright": "Dazzle UI"
+    },
+    {
+        "Id": "magic-hat",
+        "Name": "hat wizard",
+        "QDocModule": "qtopenapi",
+        "QtUsage": "Used in ChatGpt Client example in QtOpenAPI",
+        "QtParts": [
+            "examples"
+        ],
+        "Files": "magic-hat.svg",
+        "Homepage": "https://www.freeicons.org/",
+        "License": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+        "LicenseId": "CC-BY-4.0",
+        "Copyright": "Font Awesome"
+    }
+]
+

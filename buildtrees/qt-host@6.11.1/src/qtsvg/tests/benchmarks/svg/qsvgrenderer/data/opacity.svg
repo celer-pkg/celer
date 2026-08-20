@@ -1,0 +1,19 @@
+<svg version="1.2" baseProfile="tiny" viewBox="0 0 200 200" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
+
+  <g transform="translate(0, 0)">
+    <path style="fill:#808080" d="M 10 10 L 10 50 L 50 50 L 50 10 z" fill-opacity="0.5"/>
+    <path style="fill:#808080" d="M 30 30 L 30 70 L 70 70 L 70 30 z" fill-opacity="0.5"/>
+  </g>
+  <g transform="translate(80, 0)"                fill-opacity="0.5">
+    <path style="fill:#808080" d="M 10 10 L 10 50 L 50 50 L 50 10 z"/>
+    <path style="fill:#808080" d="M 30 30 L 30 70 L 70 70 L 70 30 z"/>
+  </g>
+  <g transform="translate(0, 80)">
+    <path style="fill:#808080" d="M 10 10 L 10 50 L 50 50 L 50 10 z" opacity="0.5"/>
+    <path style="fill:#808080" d="M 30 30 L 30 70 L 70 70 L 70 30 z" opacity="0.5"/>
+  </g>
+  <g transform="translate(80, 80)"                    opacity="0.5">
+    <path style="fill:#808080" d="M 10 10 L 10 50 L 50 50 L 50 10 z"/>
+    <path style="fill:#808080" d="M 30 30 L 30 70 L 70 70 L 70 30 z"/>
+  </g>
+</svg>

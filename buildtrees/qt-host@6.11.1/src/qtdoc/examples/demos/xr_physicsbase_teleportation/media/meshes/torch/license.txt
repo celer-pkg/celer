@@ -1,0 +1,11 @@
+Model Information:
+* title: Manor Torch
+* source: https://sketchfab.com/3d-models/manor-torch-09ad1f3d3256404d85f30a738e38db68
+* author: RomarovArt (https://sketchfab.com/RomarArt)
+
+Model License:
+* license type: CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements: Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Manor Torch" (https://sketchfab.com/3d-models/manor-torch-09ad1f3d3256404d85f30a738e38db68) by RomarovArt (https://sketchfab.com/RomarArt) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

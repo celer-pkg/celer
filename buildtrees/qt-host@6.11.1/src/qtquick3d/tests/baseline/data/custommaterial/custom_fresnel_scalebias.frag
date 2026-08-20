@@ -1,0 +1,16 @@
+VARYING vec3 vNormal;
+VARYING vec3 vViewVec;
+
+void MAIN()
+{
+    METALNESS = 1.0;
+    ROUGHNESS = 0.25;
+    FRESNEL_POWER = 5.0;
+    FRESNEL_SCALE = 1.2;
+    FRESNEL_BIAS = 0.5;
+}
+
+void AMBIENT_LIGHT()
+{
+    DIFFUSE += TOTAL_AMBIENT_COLOR;
+}

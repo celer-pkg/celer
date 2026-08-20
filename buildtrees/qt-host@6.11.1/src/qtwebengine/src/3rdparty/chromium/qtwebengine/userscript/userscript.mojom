@@ -1,0 +1,35 @@
+module qtwebengine.mojom;
+
+import "url/mojom/url.mojom";
+
+enum InjectionPoint {
+  AfterLoad,
+  DocumentLoadFinished,
+  DocumentElementCreation
+};
+
+struct UserScriptData {
+  string source;
+  url.mojom.Url url;
+  uint8 injectionPoint = 0; // fixme : use InjectionPoint Enum
+  bool injectForSubframes = false;
+  uint8 worldId = 1;
+  uint64 scriptId = 0;
+  array<string> globs;
+  array<string> excludeGlobs;
+  array<string> urlPatterns;
+};
+
+// per frame
+interface UserResourceControllerRenderFrame {
+  AddScript(UserScriptData data);
+  RemoveScript(UserScriptData data);
+  ClearScripts();
+};
+
+// global
+interface UserResourceController {
+  AddScript(UserScriptData data);
+  RemoveScript(UserScriptData data);
+  ClearScripts();
+};

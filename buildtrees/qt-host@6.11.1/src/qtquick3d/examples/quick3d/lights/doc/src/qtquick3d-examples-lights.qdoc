@@ -1,0 +1,67 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example lights
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - Lights Example
+    \examplecategory {3D}
+    \brief Demonstrates the use of different light types.
+    \image lights-example.webp
+           {Qt logo tile with colored lights and shadows demonstrating
+           lighting types}
+
+    This example demonstrates using three different light types in an application.
+
+    \section1 Setting the Scene Lights
+
+    \section2 Directional Light
+
+    The directional light emits light in one direction from an unidentifiable source located
+    infinitely far away. This is similar to the way sunlight works in real life. A directional
+    light has infinite range and does not diminish.
+
+    We setup directional light to emit red color and animate its rotation around x-axis.
+
+    \snippet lights/main.qml directional light
+
+    \section2 Point Light
+
+    The point light can be described as a sphere, emitting light with equal strength in all
+    directions from the center of the light. This is similar to the way a light bulb emits light.
+
+    We setup point light to emit green color and animate its position in x-coordinate.
+
+    \snippet lights/main.qml point light
+
+    \section2 Spot Light
+
+    The spot light is similar to the point light, except that it emits light in a cone shape
+    towards one direction instead of all directions. Aside from the cone angle, a spot light
+    has the same characteristics and properties as the point light.
+
+    We setup spot light to emit a warm color and animate its rotation in y-coordinate.
+
+    \snippet lights/main.qml spot light
+
+    \section1 Setting the Scene Models
+
+    First we add two rectangle models to act as the floor and the back wall for our scene.
+    These are useful for seeing light shadows.
+
+    \snippet lights/main.qml rectangle models
+
+    Then we add our main logo model which is rotated around y-axis.
+
+    \snippet lights/RotatingLogo.qml logo model
+
+    We also add small cube models to demonstrate position & rotation of each light type.
+    These cubes scale bigger when user is accessing related sliders.
+
+    \snippet lights/main.qml light models
+
+    From the settings panel user can then enable shadows and control visibility and brightness
+    of each light separately.
+*/
+
+

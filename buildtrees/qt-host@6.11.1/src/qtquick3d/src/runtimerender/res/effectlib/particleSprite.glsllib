@@ -1,0 +1,27 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+/*
+    qt_spriteConfig
+    x: number of images
+    y: one over number of images
+    z: unused
+    w: blend between images
+*/
+float qt_spriteCoords(out vec2 coords[2])
+{
+    float imageOffset = (qt_spriteConfig.x - qt_spriteConfig.w) * spriteData.y;
+    float factor = fract(imageOffset);
+    vec2 imageOffsets = vec2(imageOffset - factor, imageOffset - factor + 1.0);
+    imageOffsets = clamp(imageOffsets * qt_spriteConfig.y, 0.0, 1.0);
+    coords[0] = coords[1] = vec2(texcoord.x * qt_spriteConfig.y, texcoord.y);
+    coords[0].x += imageOffsets.x;
+    coords[1].x += imageOffsets.y;
+    return factor * qt_spriteConfig.w;
+}
+
+float qt_rand(vec2 co)
+{
+    return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);
+}
+

@@ -1,0 +1,31 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+[
+  {
+    action: js
+    script: performance.mark('scroll-start');
+  }
+  {
+    action: js
+    path: ./scripts/page-scroll.js
+    replacements: {
+      PER_PAGE_DURATION: $[PER_PAGE_DURATION]
+      SCROLL_DISTANCE: 600
+      WAIT_DURATION: 20
+    }
+    timeout: $[PER_PAGE_DURATION]
+  }
+  {
+    action: wait
+    duration: $[PER_PAGE_DURATION]
+  }
+  {
+    action: js
+    script:
+      '''
+      performance.mark('scroll-end', {detail: document.querySelector('html').scrollTop});
+      performance.measure('scroll-duration', 'scroll-start', 'scroll-end');
+      '''
+  }
+]

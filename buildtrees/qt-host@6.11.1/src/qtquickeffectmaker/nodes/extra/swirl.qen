@@ -1,0 +1,53 @@
+{
+    "QEN": {
+        "description": "Simple swirl distortion effect. The effect uses by default 100 x 100 sized grid mesh and adjusts the geometry accoring to the given parameters. The item size should be scaled big enough to allow for the distortion without revealing the edges of the distorted item geometry.",
+        "name": "Swirl",
+        "properties": [
+            {
+                "defaultValue": "4",
+                "maxValue": "10",
+                "minValue": "0",
+                "name": "swirlWaveLength",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0.05",
+                "maxValue": "0.5",
+                "minValue": "0",
+                "name": "swirlAmplitude",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "swirlPhase",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0.5, 0.5",
+                "maxValue": "1, 1",
+                "minValue": "0, 0",
+                "name": "swirlCenterPoint",
+                "type": "vec2"
+            }
+        ],
+        "version": 1,
+        "vertexCode": [
+            "@mesh 100, 100",
+            "#define TAU 6.28318530718",
+            "@main",
+            "{",
+            "    const vec2 cp = iResolution.xy * swirlCenterPoint;",
+            "    const vec2 d = vertCoord - cp;",
+            "    if (d.x != 0.0 || d.y != 0.0) {",
+            "        const float dd = sqrt(d.x*d.x + d.y*d.y);",
+            "        float a = atan(d.y, d.x);",
+            "        a += sin((dd * swirlWaveLength / iResolution.x + swirlPhase) * TAU) * swirlAmplitude;",
+            "        vertCoord.x = cp.x + cos(a) * dd;",
+            "        vertCoord.y = cp.y + sin(a) * dd;",
+            "    }",
+            "}"
+        ]
+    }
+}

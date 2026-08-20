@@ -1,0 +1,16 @@
+<RCC>
+    <qresource prefix="/qt/qml/clocks">
+        <file>Main.qml</file>
+        <file>images/arrow.png</file>
+        <file>images/background.png</file>
+        <file>images/center.png</file>
+        <file>images/clock-night.png</file>
+        <file>images/clock.png</file>
+        <file>Clock.qml</file>
+        <file>images/hour.png</file>
+        <file>images/minute.png</file>
+        <file>images/quit.png</file>
+        <file>images/second.png</file>
+        <file>qmldir</file>
+    </qresource>
+</RCC>

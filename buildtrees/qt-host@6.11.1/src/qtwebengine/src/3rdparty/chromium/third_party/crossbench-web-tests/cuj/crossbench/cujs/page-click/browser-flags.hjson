@@ -1,0 +1,15 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  template: ../../browser-flags/common-flags.hjson
+  args: {
+    CHROME_FLAGS: ""
+
+    // Use the following for WPR recording mode. This requires the host running
+    // the WPR recoder server opening http port 8080 and https port 8081.
+    // Also need to remove --wpr $[WEB_TESTS]/cuj/crossbench/wpr/page-click-scroll.wprgo
+    // from cb-args.
+    // CHROME_FLAGS: --host-resolver-rules="MAP *:80 127.0.0.1:8080,MAP *:443 127.0.0.1:8081,EXCLUDE localhost" --ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I=,2HcXCSKKJS0lEXLQEWhpHUfGuojiU0tiT5gOF9LP6IQ=
+  }
+}

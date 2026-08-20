@@ -1,0 +1,27 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+  \module QtWaylandCompositor
+  \title Qt Wayland Compositor C++ Classes
+  \ingroup modules
+  \qtcmakepackage WaylandCompositor
+  \qtvariable waylandcompositor
+
+  \brief Provides C++ classes for writing custom Wayland display servers.
+
+  \section1 Using the Module
+
+  \include {module-use.qdocinc} {using the c++ api} {WaylandCompositor}
+
+  \section2 Building with CMake
+
+  \include {module-use.qdocinc} {building with cmake} {WaylandCompositor}
+
+  \section2 Building with qmake
+
+  \include {module-use.qdocinc} {building_with_qmake} {waylandcompositor}
+
+  For more information about using these classes in your application,
+  see the \l{Qt Wayland Compositor} documentation.
+*/

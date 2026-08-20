@@ -1,0 +1,46 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page wayland-requirements.html
+    \title Qt for Wayland Requirements
+    \brief Setting up Wayland for Qt.
+
+    To download and install Qt for Wayland, follow the instructions on the
+    \l {Getting Started with Qt} page.
+
+    \section1 Requirements for Development Host
+
+    Ubuntu versions later than 14.04 contain all necessary
+    dependencies, so you dont' need to build Wayland yourself.
+
+    The following packages are required:
+
+    \list
+        \li libwayland-dev
+        \li libwayland-egl1-mesa
+        \li libwayland-server0
+        \li libgles2-mesa-dev
+        \li libxkbcommon-dev
+    \endlist
+
+    \section1 Building Qt for Wayland
+
+    \section2 Getting the Sources
+
+    \include linux-wayland-build-qt-from-source.qdocinc getting-the-sources
+
+    \section2 Install Build Requirements
+
+    \include linux-wayland-build-qt-from-source.qdocinc install-build-requirements
+
+    \section2 Build the Qt Libraries and Tools
+
+    \include linux-wayland-build-qt-from-source.qdocinc build-the-qt-libraries-and-tools
+
+    \section2 Using Qt
+
+    \include linux-wayland-build-qt-from-source.qdocinc using-qt
+
+    \sa {Wayland and Qt}
+*/

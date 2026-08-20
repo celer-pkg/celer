@@ -1,0 +1,124 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#include <qtest.h>
+#include <private/qtqmlmodelsglobal_p.h>
+#include <private/qtquick-config_p.h> // For feature definitions
+
+using namespace Qt::StringLiterals;
+
+class tst_qmltc : public QObject
+{
+    Q_OBJECT
+
+    bool isCacheDisabled() const
+    {
+        static bool isDisabled = []() { return qgetenv("QML_DISABLE_DISK_CACHE") == "1"_ba; }();
+        return isDisabled;
+    }
+
+public:
+    tst_qmltc();
+
+private slots:
+    void initTestCase();
+
+    void qmlNameConflictResolution();
+    void helloWorld();
+    void qtQuickIncludes();
+    void enumerations();
+    void methods();
+#if QT_CONFIG(quick_tableview)
+    void properties();
+#if QT_CONFIG(quick_gridview)
+    void ids();
+#endif
+#endif
+    void importNamespace();
+    void deferredProperties();
+    void gradients(); // QTBUG-102560
+    void jsvalueAssignments();
+    void extensionTypeBindings();
+    void visibleAliasMethods(); // QTBUG-103956
+    void customInitialization(); // QTBUG-120700
+    void requiredPropertiesInitialization();
+    void nonStandardIncludesInsideModule(); // QTBUG-104094
+    void specialProperties();
+    void regexpBindings();
+    void aliasAssignments();
+    void connections();
+
+    void signalHandlers();
+    void jsFunctions();
+    void changingBindings();
+    void propertyAlias();
+    void propertyAlias_external();
+    void propertyAliasAttribute();
+    void complexAliases();
+    void propertyChangeHandler();
+    void nestedHelloWorld();
+    void componentHelloWorld();
+    void propertyReturningFunction();
+    void listProperty();
+    void listPropertiesWithTheSameName();
+    void defaultProperty();
+    void defaultPropertyCorrectSelection();
+    void defaultAlias();
+    void attachedProperty();
+    void attachedPropertyObjectCreatedOnce();
+    void groupedProperty();
+    void groupedProperty_qquicktext();
+    void localImport();
+    void explicitLocalImport();
+    void newPropertyBoundToOld();
+    void oldPropertyBoundToNew();
+    void nonLocalQmlPropertyBoundToAny();
+    void localImportWithOnCompleted();
+    void justAnimation();
+    void justAnimationOnAlias();
+    void behaviorAndAnimation();
+    void behaviorAndAnimationOnAlias();
+    void bindingsThroughIds();
+    void contextHierarchy_rootBaseIsQml();
+    void contextHierarchy_childBaseIsQml();
+    void contextHierarchy_delegate();
+    void contextHierarchy_nontrivial();
+    void javascriptImport();
+    void listView();
+    void bindingOnValueType();
+    void keyEvents();
+    void privateProperties();
+    void calqlatrBits(); // corner cases from calqlatr demo
+    void trickyPropertyChangeAndSignalHandlers();
+    void valueTypeListProperty();
+    void translations();
+    void repeaterCrash();
+    void generalizedGroupedProperty();
+    void appendToQQmlListProperty();
+    void inlineComponents();
+    void aliases();
+    void inlineComponentsFromDifferentFiles();
+    void singletons();
+    void constSignalParameters();
+    void cppNamespaces();
+    void namespacedName();
+    void checkExportsAreCompiling();
+    void checkExportsNoFileName();
+
+#if QT_CONFIG(qml_labs) && QT_CONFIG(qml_table_model)
+    void qmlTableModel();
+#endif
+    void urlToString();
+    void signalConnections();
+
+    void hpp();
+
+    void attachedComponentProperty();
+    void attachedNamespacedProperty();
+
+    void newLineTranslation();
+
+    void nestedWithId();
+
+    void typedMethodCallOnIdLookup();
+};

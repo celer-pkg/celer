@@ -1,0 +1,132 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qt-conf.html
+
+    \title Using qt.conf
+
+    You can use the \c qt.conf file to override paths or to specify arguments
+    to be passed to the platform plugins.
+
+    \section1 Format and Location
+
+    The \c qt.conf file is an INI text file, as described in the
+    \l {QSettings::Format}{QSettings} documentation.
+
+    QLibraryInfo will load \c qt.conf from one of the following locations:
+
+    \list 1
+
+    \li \c :/qt/etc/qt.conf using the resource system
+
+    \li on \macos, in the Resource directory inside the application
+    bundle, for example \c assistant.app/Contents/Resources/qt.conf
+
+    \li in the directory containing the application executable, i.e.
+    QCoreApplication::applicationDirPath() + QDir::separator() + "qt.conf"
+
+    \endlist
+
+    \section1 Overriding Paths
+
+    The \c qt.conf file can be used to override the hard-coded paths that are
+    compiled into the Qt library. These paths are accessible using the
+    QLibraryInfo class. Without \c qt.conf, the functions in
+    QLibraryInfo return these hard-coded paths; otherwise they return
+    the paths as specified in \c qt.conf.
+
+    Without \c qt.conf, the Qt libraries will use the hard-coded paths
+    to look for plugins, translations, and so on. These paths may not
+    exist on the target system, or they may not be
+    accessible. Because of this, you may need \c qt.conf to make the Qt
+    libraries look elsewhere.
+
+    The file should have
+    a \c Paths group which contains the entries that correspond to
+    each value of the QLibraryInfo::LibraryLocation enum. See the
+    QLibraryInfo documentation for details on the meaning of the
+    various locations.
+
+    \table
+
+    \header \li Entry            \li Default Value
+
+    \row \li \c Prefix              \li \l QCoreApplication::applicationDirPath()
+    \row \li \c Documentation       \li \c doc
+    \row \li \c Headers             \li \c include
+    \row \li \c Libraries           \li \c lib
+    \row \li \c LibraryExecutables  \li \c libexec on Unix, \c bin on Windows
+    \row \li \c Binaries            \li \c bin
+    \row \li \c Plugins             \li \c plugins
+    \row \li \c QmlImports          \li \c qml
+    \row \li \c ArchData            \li \c .
+    \row \li \c Data                \li \c .
+    \row \li \c Translations        \li \c translations
+    \row \li \c Examples            \li \c examples
+    \row \li \c Tests               \li \c tests
+    \row \li \c Settings            \li \c .
+
+    \endtable
+
+    Absolute paths are used as specified in the \c qt.conf file. All
+    paths are relative to the \c Prefix. On Windows and Linux, the \c
+    Prefix is relative to the directory containing the application
+    executable (QCoreApplication::applicationDirPath()). On \macos,
+    the \c Prefix is relative to the \c Contents in the application
+    bundle. For example, \c application.app/Contents/plugins/ is the
+    default location for loading Qt plugins. Note that the plugins
+    need to be placed in specific sub-directories under the
+    \c{plugins} directory (see \l{How to Create Qt Plugins} for
+    details).
+
+    \note For backwards-compatibility, the entry \c Qml2Imports is valid in the
+    \c{Paths} section and is treated as fallback for \c{QmlImports}.
+
+    For example, a \c qt.conf file could contain the following:
+
+    \snippet snippets/code/doc_src_qt-conf.qdoc 0
+
+    \note The backslash character is treated as a special character
+    in INI files (see QSettings). It is therefore recommended to
+    use forward slashes for paths on Windows as well. Otherwise,
+    an escape character is required:
+
+    \code
+    Prefix = c:\\SomePath
+    \endcode
+
+    Since Qt 6.8, it is possible to provide more than one path per entry.
+    They have to be provided as a comma separated list. For example
+    \code
+    QmlImports = "/path/to/imports1","/path/to/imports2"
+    \endcode
+    It is possible to add spaces before and after the comma. It is also
+    possible to omit the quotes around entries if path do not contain
+    commas or spaces.
+
+    \section1 Configuring Arguments to the Platform Plugins
+
+    The \c qt.conf may contain a \c Platforms group, whose keys are
+    comma-delimited lists of arguments to be passed to the platform
+    plugin. The key name is the name of the platform plugin with the
+    first letter upper-cased followed by \c Arguments.
+
+    For example:
+
+    \snippet snippets/code/doc_src_qt-conf.qdoc 1
+
+    would cause the Windows platform plugin to use the FreeType font engine.
+
+    \section1 How to deal with parallel installations of older Qt versions
+
+    For environments that require an installation of an earlier major
+    version of Qt as well, it is possible to use a version-specific
+    qt.conf. This is often necessary in transition phases from one Qt
+    version to the next, or to avoid conflicts caused by an existing
+    file without version.
+
+    For this purpose, a file named \tt qt\qtmajorversion.conf can be
+    used instead of the \c qt.conf file. If both files exist in the
+    directory described above, \tt qt\qtmajorversion.conf is used.
+*/

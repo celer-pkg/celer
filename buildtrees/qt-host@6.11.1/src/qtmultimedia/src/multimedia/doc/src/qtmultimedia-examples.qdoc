@@ -1,0 +1,15 @@
+// Copyright (C) 2015 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \group multimedia_examples
+    \title Qt Multimedia Examples
+    \brief Demonstrates the multimedia functionality provided by Qt.
+
+    The \l{Qt Multimedia} module provides cross-platform multimedia capabilities
+    for Qt based applications.
+
+    The examples listed below show some typical use cases in various areas, featuring
+    both low-level audio examples, high level audio and video playback
+    as well as capturing and recording of audiovisual content using both C++ and QML.
+*/

@@ -1,0 +1,14 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtmultimedia-building-ffmpeg-macos.html
+\title Building FFmpeg from source on macOS
+\brief This document describes how to build FFmpeg from source code.
+
+\include building-FFmpeg-contents.qdocinc {macos}
+\include building-FFmpeg-source.qdocinc {macos}
+\include building-FFmpeg-prerequisites.qdocinc {macos}
+\include building-FFmpeg-configure.qdocinc {macos}
+
+*/

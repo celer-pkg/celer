@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/bars/Axes.qml</file>
+        <file>qml/bars/Data.qml</file>
+        <file>qml/bars/main.qml</file>
+    </qresource>
+</RCC>

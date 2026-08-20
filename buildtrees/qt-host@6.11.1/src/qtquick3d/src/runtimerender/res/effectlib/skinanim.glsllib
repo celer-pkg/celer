@@ -1,0 +1,43 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+// boneTransform for even indices and boneNormalTransform for odd indices
+mat4 qt_getTexMatrix(int index)
+{
+    mat4 ret;
+    int width = textureSize(qt_boneTexture, 0).x;
+
+    int matId = index * 4;
+    ivec2 p;
+    // Rounding mode of integers is undefined for GLES 3.0
+    // https://www.khronos.org/registry/OpenGL/specs/es/3.0/GLSL_ES_Specification_3.00.pdf (section 12.33)
+    p.x = matId % width;
+    p.y = (matId - p.x) / width;
+    ret[0] = texelFetch(qt_boneTexture, p, 0);
+    p.x = (matId + 1) % width;
+    p.y = (matId + 1 - p.x) / width;
+    ret[1] = texelFetch(qt_boneTexture, p, 0);
+    p.x = (matId + 2) % width;
+    p.y = (matId + 2 - p.x) / width;
+    ret[2] = texelFetch(qt_boneTexture, p, 0);
+    p.x = (matId + 3) % width;
+    p.y = (matId + 3 - p.x) / width;
+    ret[3] = texelFetch(qt_boneTexture, p, 0);
+    return ret;
+}
+
+mat4 qt_getSkinMatrix(ivec4 joints, vec4 weights)
+{
+    return qt_getTexMatrix(joints.x * 2) * weights.x
+            + qt_getTexMatrix(joints.y * 2) * weights.y
+            + qt_getTexMatrix(joints.z * 2) * weights.z
+            + qt_getTexMatrix(joints.w * 2) * weights.w;
+}
+
+mat3 qt_getSkinNormalMatrix(ivec4 joints, vec4 weights)
+{
+    return mat3(qt_getTexMatrix(joints.x * 2 + 1))  * weights.x
+            + mat3(qt_getTexMatrix(joints.y * 2 + 1)) * weights.y
+            + mat3(qt_getTexMatrix(joints.z * 2 + 1)) * weights.z
+            + mat3(qt_getTexMatrix(joints.w * 2 + 1)) * weights.w;
+}

@@ -1,0 +1,40 @@
+// Copyright (C) 2014 NVIDIA Corporation.
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#ifndef SSAO_CUSTOM_MATERIAL_GLSLLIB
+#define SSAO_CUSTOM_MATERIAL_GLSLLIB
+
+#ifdef QQ3D_SHADER_META
+/*{
+    "uniforms": [
+        { "type": "sampler2D", "name": "qt_aoTexture" , "condition": "QSSG_ENABLE_SSAO", "multiview_dependent": true }
+    ]
+}*/
+#endif // QQ3D_SHADER_META
+
+#if QSSG_ENABLE_SSAO
+
+float qt_screenSpaceAmbientOcclusionFactor()
+{
+#if QSHADER_VIEW_COUNT >= 2
+    ivec2 iSize = textureSize(qt_aoTextureArray, 0).xy;
+    vec2 smpUV = (gl_FragCoord.xy) / vec2(iSize);
+    return texture(qt_aoTextureArray, vec3(smpUV, qt_viewIndex)).x;
+#else
+    ivec2 iSize = textureSize(qt_aoTexture, 0);
+    vec2 smpUV = (gl_FragCoord.xy) / vec2(iSize);
+    return texture(qt_aoTexture, smpUV).x;
+#endif
+}
+
+#else
+
+float qt_screenSpaceAmbientOcclusionFactor()
+{
+    return 1.0;
+}
+
+#endif
+
+#endif

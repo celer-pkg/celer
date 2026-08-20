@@ -1,0 +1,7 @@
+version = 1
+
+[[annotations]]
+path = ["patches/*"]
+precedence = "closest"
+SPDX-License-Identifier = "MIT"
+SPDX-FileCopyrightText = "Copyright (C) 2025 The Qt Company Ltd."

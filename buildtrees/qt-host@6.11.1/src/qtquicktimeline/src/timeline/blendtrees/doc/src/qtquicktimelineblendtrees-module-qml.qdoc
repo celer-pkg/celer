@@ -1,0 +1,20 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \qmlmodule QtQuick.Timeline.BlendTrees
+    \title Qt Quick Timeline Blend Trees QML Types
+    \since 6.7
+
+    \brief Provides QML types for blending multiple \l {TimelineAnimation}s
+           together, creating new dynamic animations.
+
+//! [usage]
+    To import the QML types into your application, use the following import
+    statement in your .qml file:
+
+    \qml
+    import QtQuick.Timeline.BlendTrees
+    \endqml
+//! [usage]
+*/

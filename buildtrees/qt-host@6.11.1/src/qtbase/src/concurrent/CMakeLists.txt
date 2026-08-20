@@ -1,0 +1,51 @@
+# Copyright (C) 2022 The Qt Company Ltd.
+# SPDX-License-Identifier: BSD-3-Clause
+
+#####################################################################
+## Concurrent Module:
+#####################################################################
+
+qt_internal_add_module(Concurrent
+    NO_PRIVATE_MODULE
+    EXCEPTIONS
+    SOURCES
+        qtaskbuilder.h
+        qtconcurrent_global.h
+        qtconcurrentcompilertest.h
+        qtconcurrentfilter.cpp qtconcurrentfilter.h
+        qtconcurrentfilterkernel.h
+        qtconcurrentfunctionwrappers.h
+        qtconcurrentiteratekernel.cpp qtconcurrentiteratekernel.h
+        qtconcurrentmap.cpp qtconcurrentmap.h
+        qtconcurrentmapkernel.h
+        qtconcurrentmedian.h
+        qtconcurrentreducekernel.h
+        qtconcurrentrun.cpp qtconcurrentrun.h
+        qtconcurrentrunbase.h
+        qtconcurrentstoredfunctioncall.h
+        qtconcurrenttask.h
+        qtconcurrentthreadengine.cpp qtconcurrentthreadengine.h
+    DEFINES
+        QT_NO_CONTEXTLESS_CONNECT
+        QT_NO_FOREACH
+        QT_NO_URL_CAST_FROM_STRING
+        QT_NO_USING_NAMESPACE
+        QT_USE_NODISCARD_FILE_OPEN
+    LIBRARIES
+        Qt::CorePrivate
+    PUBLIC_LIBRARIES
+        Qt::Core
+    PRECOMPILED_HEADER
+        "../corelib/global/qt_pch.h"
+)
+
+## Scopes:
+#####################################################################
+
+qt_internal_extend_target(Concurrent CONDITION MSVC AND (TEST_architecture_arch STREQUAL "i386")
+    LINK_OPTIONS
+        "/BASE:0x66000000"
+)
+qt_internal_add_docs(Concurrent
+    doc/qtconcurrent.qdocconf
+)

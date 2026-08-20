@@ -1,0 +1,46 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example customeffect
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - Custom Effect Example
+    \examplecategory {3D}
+    \brief Demonstrates writing custom post-processing effects.
+    \image customeffect-example.jpg
+           {Warped scene with pink Qt logo and checkered floor showing
+           custom post-processing effects}
+
+    The example implements its own custom post-processing effects, which are then applied on
+    the scene via \l SceneEnvironment::effects. It demonstrates both the simplest type of
+    effects that only have a fragment shader, and also the more advanced case with both a
+    vertex and fragment shader present, with data passed between the two.
+
+    The simple effect is using only a single fragment shader, and adding a texture input from
+    an image file:
+
+    \snippet customeffect/main.qml eff1
+
+    This effect uses a very simple fragment shader, just taking the input texture containing
+    the scene, and multiplying it with the image texture:
+
+    \quotefile customeffect/effect.frag
+
+    The shader snippets in the \c{.vert} and \c{.frag} files are written using the
+    built-in keywords as described in the \l Effect documentation. Custom properties with
+    basic types, as well as properties with the \l TextureInput type are automatically
+    exposed to the shaders as uniforms and samplers.
+
+
+    The second effect is more complex. It specifies both a vertex and a fragment shader, as
+    well as two properties: \c uRed and \c uGreen, with an animation on \c uRed:
+
+    \snippet customeffect/main.qml eff2
+
+    The fragment shader for this effect creates a distortion by modifying the sampling
+    coordinates. The calculation uses \c center_vec, which comes from the fragment shader.
+    Finally, the shader adjusts the color using the \c uRed and \c uGreen uniforms. Note
+    that these uniforms do not have to be declared in the shader:
+
+    \quotefile customeffect/effect2.frag
+*/

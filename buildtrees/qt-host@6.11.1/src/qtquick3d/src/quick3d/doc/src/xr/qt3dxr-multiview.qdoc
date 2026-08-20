@@ -1,0 +1,149 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qt3dxr-multiview.html
+    \title Multiview Rendering
+
+    \brief This page describes the concepts and practical implications of
+    multiview rendering support in Qt Quick 3D.
+
+    Multiview rendering refers to instancing draw calls into layers of a 2D
+    texture array. In Qt, it is relevant, in particular for VR/AR applications
+    built with \qxr. Instead of independently doing scene traversal, rendering
+    preparations, and render pass recording for the left and right eye's
+    content, multiview rendering allows doing it once, with the draw calls in
+    the single render pass being instanced into layers 0 and 1 of a texture
+    array. The vertex shader uses a special variable indicating the view index
+    and computes per-view values based on that. Uniforms that contain
+    view-dependent data, such as camera matrices, must be provided for both
+    eyes. Multiview rendering is expected to decrease the renderer's load on the
+    system, potentially leading to better performance. It comes at the expense
+    of having to make the renderer and shaders aware of working with
+    view-dependent data and texture array as appropriate.
+
+    \section1 Low-Level Overview
+
+    Qt application developers do not necessarily need a full understanding of
+    how multiview rendering is enabled on the lower levels of the Qt rendering
+    stack. The following links are provided for developers wishing to look more
+    into the details under the hood.
+
+    \section2 Multiview support in 3D APIs
+
+    Multiview rendering is available only when the underlying 3D API supports it
+    at run time. For details, see the appropriate specifications and documentation:
+
+    \list
+
+    \li OpenGL:
+    \l{https://registry.khronos.org/OpenGL/extensions/OVR/OVR_multiview.txt}{OVR_multiview1} and
+    \l{https://registry.khronos.org/OpenGL/extensions/OVR/OVR_multiview2.txt}{OVR_multiview2}
+
+    \li Vulkan:
+    \l{https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VK_KHR_multiview.html}{VK_KHR_multiview}
+
+    \li Direct 3D 12:
+    \l{https://microsoft.github.io/DirectX-Specs/d3d/ViewInstancing.html}{ViewInstancing}
+
+    \li Metal:
+    \l{https://developer.apple.com/documentation/metal/render_passes/rendering_to_multiple_texture_slices_in_a_draw_command}{rendering_to_multiple_texture_slices}
+
+    \endlist
+
+    \section2 Multiview support in Qt's rendering hardware interface (RHI)
+
+    In Qt, the 3D graphics APIs are abstracted by the \l QRhi class. Qt Quick
+    and Qt Quick 3D uses this infrastructure for all their accelerated
+    rendering. See the following for further low-level information on multiview
+    rendering support:
+
+    \list
+    \li \l QRhi::MultiView
+    \li \l QRhiColorAttachment::setMultiViewCount()
+    \li \l QRhiGraphicsPipeline::setMultiViewCount()
+    \endlist
+
+    \section1 Multiview Support in the Qt Quick - Quick 3D - Quick 3D XR Stack
+
+    \section2 Multiview support in Qt Quick
+
+    Qt Quick is multiview-aware, but is never using multiview rendering on its
+    own. Supporting multiview rendering becomes important in combination with Qt
+    Quick 3D when 2D elements are embedded into the 3D scene. To render the 2D
+    content correctly when the 3D scene is output to a multiview render target,
+    the 2D renderer and its materials (shaders) must be prepared for multiview
+    support.
+
+    Developers of Qt-based applications do not need to take this into
+    consideration in many cases because Qt Quick's built-in materials that
+    items such as \l Rectangle, \l Image, or \l Text are built on are all
+    multiview compatible.
+
+    However, when developing custom materials (\l QSGMaterial, \l
+    QSGMaterialShader) or writing shaders for \l ShaderEffect, and the intention
+    is to use that 2D content within a VR/AR scene in a \qxr application, the
+    custom content must be multiview-aware. see \l QSGMaterial::viewCount() for
+    details on this.
+
+    Writing multiview-aware shaders is enabled by Qt's shader conditioning
+    pipeline. See the Multiview sections in \l{QSB Manual} and \l{Qt Shader
+    Tools Build System Integration} for details.
+
+    \section2 Multiview support in Qt Quick 3D
+
+    Qt Quick 3D applications that do not use \qxr, meaning they are not VR/AR
+    applications, cannot currently use multiview rendering. The 3D renderer is
+    fully multiview-capable, however, since \qxr is built on the same
+    infrastructure. All standard, built-in features, such as \l Model or \l
+    PrincipledMaterial are fully multiview compatible. Some deprecated
+    functionality, such as the old standalone effects module, may not support
+    multiview rendering.
+
+    When custom shader snippets are involved in a \l CustomMaterial or \l
+    Effect, the application-provided shader code needs to be written with
+    multiview support in mind in order to function correctly in a \qxr
+    application with multiview rendering enabled. See the documentation of these
+    types on how to achieve this. The special keywords for which this is
+    particularly important are \c VIEW_INDEX, \c INPUT, \c SCREEN_TEXTURE, \c
+    DEPTH_TEXTURE, \c AO_TEXTURE.
+
+    For example, the following postprocessing effect is multiview compatible,
+    because it is prepared for the case when \c INPUT is a \c sampler2DArray
+    instead of a \c sampler2D:
+
+    \badcode
+    void MAIN()
+    {
+        vec4 c = texture(someTexture, TEXTURE_UV);
+        // ...
+    #if QSHADER_VIEW_COUNT >= 2
+        FRAGCOLOR = c * texture(INPUT, vec3(INPUT_UV, VIEW_INDEX));
+    #else
+        FRAGCOLOR = c * texture(INPUT, INPUT_UV);
+    #endif
+    }
+    \endcode
+
+    \section2 Multiview support in \qxr
+
+    Multiview rendering is \b enabled by default, as long as the underlying graphics API
+    supports it. This is done to ensure the best possible performance. To query if multiview
+    rendering is supported, check the
+    \l{QtQuick3D.Xr::XrView::multiViewRenderingSupported}{multiViewRenderingSupported}
+    property.
+
+    For development and testing purposes, it can be useful to disable the usage of
+    multiview rendering. This is done by setting the environment variable
+    \c QT_QUICK3D_XR_DISABLE_MULTIVIEW to a non-zero value.
+
+    To query if multiview rendering is enabled, use the
+    \l{QtQuick3D.Xr::XrView::multiViewRenderingEnabled}{multiViewRenderingEnabled}
+    property. The value stays false always if multiview rendering cannot be
+    enabled.
+
+    In general, it is recommended that VR/AR applications leave multiview
+    rendering enabled when it's supported, and only disable it when experiencing problems,
+    or for testing purposes. Multiview rendering is expected to improve performance,
+    reducing the GPU and especially the CPU load.
+*/

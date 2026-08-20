@@ -1,0 +1,100 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtlanguages.html
+    \title Qt Languages
+    \brief An overview of programming languages that you can use to write Qt applications.
+
+    The Qt API is implemented in C++, and provides additional features for easier
+    cross-platform development. Qt supports QML, its own declarative language
+    built on top of JavaScript, and Qt Quick, a framework built on top of QML.
+    It is designed to describe a program's user interface: what it looks like and
+    how it behaves. As an alternative to using C++, bindings to Qt exist for
+    Python as \l {Qt for Python}.
+
+    \section1 C++
+    The Qt framework contains a comprehensive set of highly intuitive and
+    modularized C++ library classes and is loaded with APIs to simplify your
+    application development.
+    Qt provides an intuitive C++ class library with a rich set of application
+    build blocks for C++ development and adds the following features to C++:
+
+    \list
+    \li A powerful mechanism for seamless object communication called
+    \l{signals and slots}
+    \li Queryable and designable \l{Qt's Property System}{object
+       properties}
+    \li Powerful \l{The Event System}{events and event filters}
+    \li Contextual \l{Internationalization with Qt}{string translation for
+       internationalization}
+    \li Sophisticated interval-driven \l {Timers}{timers} that make it possible
+       to elegantly integrate many tasks in an event-driven GUI
+    \li Hierarchical and queryable \l{Object Trees & Ownership}{object
+       trees} that organize object ownership in a natural way
+    \li A \l{metaobjects.html#qobjectcast}{dynamic cast} that works across
+       library boundaries
+    \li Support for integration of \l {Creating Custom Qt Types}{custom types}
+       into Qt metatype system
+    \endlist
+
+    \section1 QML
+
+    \l {Qt Qml} provides a framework for developing applications and libraries
+    with the \l{QML Applications}{QML language}. It defines and implements
+    the language and engine infrastructure, and provides an API to enable and
+    extend the QML language with custom types and integrate QML code
+    with JavaScript and C++. The Qt Qml module provides both a \l{Qt Qml QML Types}
+    {QML API} and a \l{Qt Qml C++ Classes}{C++ API}.
+
+    The \l {Qt Qml} module provides the language and infrastructure
+    for QML applications. The \l{Qt Quick} module provides many visual components,
+    model-view support, an animation framework, and much more for building user
+    interfaces.
+
+    The QML language allows you to define trees of objects with a JSON-like syntax.
+    It also allows you to implement logic in JavaScript.
+
+    \section2 JavaScript for QML Applications
+    JavaScript expressions allow QML code to contain application logic.
+    Qt Qml provides the framework for running JavaScript expressions in QML and
+    from C++. It supports:
+
+    \list
+    \li Quick development of both user-interfaces and application logic.
+    \li The \l {JavaScript Host Environment} provided by QML that can run valid
+        JavaScript, as specified in the 7th edition of the standard, as well as
+        some extensions from later standards.
+    \li The dynamic creation of objects from within JavaScript. This is useful to
+        delay instantiation of objects until necessary, thereby improving application
+        startup time.
+    \endlist
+
+    \section1 Qt for Python
+
+    \l {Qt for Python} offers the official Python bindings for Qt, which enables you
+    to use Python to write your Qt applications. The project has the following components:
+    \list
+        \li \l {https://doc.qt.io/qtforpython/api.html} {PySide6}: The official
+               Python bindings for Qt 6
+        \li \l {https://doc.qt.io/qtforpython-6/shiboken6/index.html} {Shiboken6}:
+               A binding generator tool, to expose C++ code to Python
+        \li \l {https://doc.qt.io/qtforpython/gettingstarted/package_details.html#tools-included}
+               {Tooling}: To make application development easier with PySide6
+        \li \l {https://doc.qt.io/qtforpython/shiboken6/shibokenmodule.html} {Shiboken module}:
+               Provides utility functions for debugging
+         \endlist
+
+    \section2 Related Content
+
+    \list
+        \li \l {https://doc.qt.io/qtforpython/faq/whyqtforpython.html} {Why Qt for Python?}
+        \li \l {https://doc.qt.io/qtforpython/gettingstarted/porting_from2.html}
+               {Porting Applications from PySide2 to PySide6}
+        \li \l {https://doc.qt.io/qtforpython/deployment/index.html#deployment-guides}
+               {Deploying PySide6 application}
+        \li \l {https://doc.qt.io/qtforpython/considerations.html} {Considerations}
+        \li \l {https://doc.qt.io/qtforpython/videos.html} {Webinars and Talks}
+    \endlist
+
+*/

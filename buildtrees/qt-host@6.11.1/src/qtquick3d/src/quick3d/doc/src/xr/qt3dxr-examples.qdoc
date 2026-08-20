@@ -1,0 +1,18 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+    \page qt3dxr-examples.html
+    \title \qxr Examples
+    \brief This page lists the examples and information common to them.
+
+    This is a list of all examples included in \qxr:
+
+    \annotatedlist qt3dxr-examples
+
+    \target qt3dxr-app-specifics
+
+    \include examples-run.qdocinc
+
+    Make sure you have selected the correct target device and kit combination.
+
+*/

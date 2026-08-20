@@ -1,0 +1,52 @@
+# Copyright 2025 The Chromium Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+query {
+  id: "cpu_stress_output_query"
+  table {
+    table_name: "cpu_stress_output"
+    module_name: "sql_packages.cujs.cpu_stress.output"
+    column_names: "foreground_size"
+    column_names: "foreground_throughput"
+    column_names: "background_size"
+    column_names: "background_throughput"
+    column_names: "workers"
+  }
+}
+
+metric_spec: {
+  id: "cuj.cpu-stress.foreground_size"
+  dimensions: "workers"
+  value: "foreground_size"
+  query {
+    inner_query_id: "cpu_stress_output_query"
+  }
+}
+
+metric_spec: {
+  id: "cuj.cpu-stress.foreground_throughput"
+  dimensions: "workers"
+  value: "foreground_throughput"
+  query {
+    inner_query_id: "cpu_stress_output_query"
+  }
+}
+
+metric_spec: {
+  id: "cuj.cpu-stress.background_size"
+  dimensions: "workers"
+  value: "background_size"
+  query {
+    inner_query_id: "cpu_stress_output_query"
+  }
+}
+
+metric_spec: {
+  id: "cuj.cpu-stress.background_throughput"
+  dimensions: "workers"
+  value: "background_throughput"
+  query {
+    inner_query_id: "cpu_stress_output_query"
+  }
+}

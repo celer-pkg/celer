@@ -1,0 +1,15 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  template: ../../common-action-blocks/workspace/google-workspace-template.hjson
+  args: {
+    TEST_NAME: wbp-4
+    DOC_URL: https://docs.google.com/spreadsheets/d/1Acn9EMcQVTA5RFAFgSk9FXEGkHzcKO8-jSrym9XAEk0/edit?usp=sharing
+    COMMENT_TEXT: Ontario sure has a lot of public employees!
+    CLICK_INPUT_SOURCE: touch
+    SCROLL_SELECTOR: "[class='goog-inline-block grid4-inner-container']"
+    SCROLL_END_DISTANCE_SELECTOR: div[class="native-scrollbar native-scrollbar-ltr native-scrollbar-y"]
+    ARIA_DISABLED: ""
+  }
+}

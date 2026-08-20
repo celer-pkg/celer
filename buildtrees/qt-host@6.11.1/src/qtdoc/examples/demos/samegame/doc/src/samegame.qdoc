@@ -1,0 +1,25 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Same Game
+    \ingroup qtquickdemos
+    \example demos/samegame
+    \brief A QML implementation of the popular puzzle game by Kuniaki Moribe.
+    \meta {tag} {demo,quick,game}
+    \examplecategory {Application Examples}
+
+    \e{Same Game} demonstrates a QML game with custom types and logic written in
+    JavaScript. The game uses various \l{Qt Quick} features such as
+    particles, animation, and loading images.
+
+    \image qtquick-demo-samegame-med-1.png
+    \image qtquick-demo-samegame-med-2.png
+
+    For more details about different parts of the example, see
+    \l{QML Advanced Tutorial}.
+
+    \include examples-run.qdocinc
+
+    \sa {QML Applications}
+*/

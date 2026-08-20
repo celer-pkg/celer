@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+-->
+<scxml
+    xmlns="http://www.w3.org/2005/07/scxml"
+    version="1.0"
+    name="MediaPlayerStateMachine"
+    initial="stopped"
+    datamodel="cplusplus:TheDataModel:thedatamodel.h"
+>
+    <state id="stopped">
+        <transition event="tap" cond="isValidMedia()" target="playing"/>
+    </state>
+
+    <state id="playing">
+        <onentry>
+            <script>
+                media = eventData().value(QStringLiteral(&quot;media&quot;)).toString();
+            </script>
+            <send event="playbackStarted">
+                <param name="media" expr="media"/>
+            </send>
+        </onentry>
+
+        <onexit>
+            <send event="playbackStopped">
+                <param name="media" expr="media"/>
+            </send>
+        </onexit>
+
+        <transition event="tap" cond="!isValidMedia() || media == eventData().value(QStringLiteral(&quot;media&quot;))" target="stopped"/>
+        <transition event="tap" cond="isValidMedia() &amp;&amp; media != eventData().value(QStringLiteral(&quot;media&quot;))" target="playing"/>
+    </state>
+</scxml>

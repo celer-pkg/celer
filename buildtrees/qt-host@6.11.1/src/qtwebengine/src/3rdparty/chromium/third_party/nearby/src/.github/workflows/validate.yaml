@@ -1,0 +1,64 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Validate
+
+on: [push, pull_request]
+
+env:
+  FORCE_COLOR: true
+
+jobs:
+  build-swift:
+    name: Build Swift
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: Build
+      run: swift build
+
+  test-swift:
+    name: Test Swift
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: Test
+      run: swift test
+
+  build-linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build Connections
+      run: CC=clang-16 CXX=clang-16++ bazel build --proto_compiler=@com_github_protobuf_prebuilt//:protoc --copt='-DGITHUB_BUILD' //connections:core
+    - name: Build Presence
+      run: CC=clang-16 CXX=clang-16++ bazel build --proto_compiler=@com_github_protobuf_prebuilt//:protoc --copt='-DGITHUB_BUILD' //presence
+    - name: Build Sharing
+      run: CC=clang-16 CXX=clang-16++ bazel build --proto_compiler=@com_github_protobuf_prebuilt//:protoc --verbose_failures --copt='-DGITHUB_BUILD' //sharing/proto/... //sharing/analytics
+
+  build-rust-linux:
+    name: Build Rust on Linux
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    - name: Build FPP
+      run:  cargo build --manifest-path presence/fpp/fpp/Cargo.toml
+  

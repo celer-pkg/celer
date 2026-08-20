@@ -1,0 +1,234 @@
+{{>licenseInfo}}
+#include "{{prefixLowerCase}}httpfileelement.h"
+
+#include <QtCore/qdebug.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qjsondocument.h>
+#include <QtCore/qjsonobject.h>
+#include <QtCore/qjsonvalue.h>
+#include <QtCore/qstring.h>
+
+{{#buildingQtSources}}
+QT_BEGIN_NAMESPACE
+{{/buildingQtSources}}
+
+{{#cppCommonNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppCommonNamespaceDeclarations}}
+
+class {{prefix}}HttpFileElementPrivate : public QSharedData
+{
+public:
+    explicit {{prefix}}HttpFileElementPrivate(const QString &localFilename)
+        : m_localFilename(localFilename) {}
+    ~{{prefix}}HttpFileElementPrivate();
+
+    QString m_variableName;
+    const QString m_localFilename;
+    QString m_mimeType;
+    bool m_temporary = false;
+};
+
+{{prefix}}HttpFileElementPrivate::~{{prefix}}HttpFileElementPrivate()
+{
+    // Cleanup temporary file when last reference is destroyed
+    if (m_temporary && !m_localFilename.isEmpty() && QFile::exists(m_localFilename))
+        QFile::remove(m_localFilename);
+}
+
+{{prefix}}HttpFileElement::{{prefix}}HttpFileElement()
+    : d(new {{prefix}}HttpFileElementPrivate({}))
+{}
+
+{{prefix}}HttpFileElement::{{prefix}}HttpFileElement(const QString &localFilename)
+    : d(new {{prefix}}HttpFileElementPrivate(localFilename))
+{}
+
+{{prefix}}HttpFileElement::{{prefix}}HttpFileElement(const {{prefix}}HttpFileElement &other)
+    : d(other.d)
+{}
+
+{{prefix}}HttpFileElement::{{prefix}}HttpFileElement({{prefix}}HttpFileElement &&other) noexcept
+    = default;
+
+{{prefix}}HttpFileElement &{{prefix}}HttpFileElement::operator=(const {{prefix}}HttpFileElement &other)
+{
+    if (this != &other)
+        d = other.d;
+    return *this;
+}
+
+{{prefix}}HttpFileElement &{{prefix}}HttpFileElement::operator=({{prefix}}HttpFileElement &&other) noexcept
+{
+    swap(other);
+    return *this;
+}
+
+{{prefix}}HttpFileElement::~{{prefix}}HttpFileElement() = default;
+
+void {{prefix}}HttpFileElement::swap({{prefix}}HttpFileElement &other) noexcept
+{
+    d.swap(other.d);
+}
+
+void {{prefix}}HttpFileElement::setMimeType(const QString &mime)
+{
+    d.detach();
+    d->m_mimeType = mime;
+}
+
+void {{prefix}}HttpFileElement::setVariableName(const QString &name)
+{
+    d.detach();
+    d->m_variableName = name;
+}
+
+void {{prefix}}HttpFileElement::setTemporary(bool temp)
+{
+    d.detach();
+    d->m_temporary = temp;
+}
+
+QString {{prefix}}HttpFileElement::mimeType() const
+{
+    return d->m_mimeType;
+}
+
+QString {{prefix}}HttpFileElement::filename() const
+{
+    return d->m_localFilename;
+}
+
+QString {{prefix}}HttpFileElement::variableName() const
+{
+    return d->m_variableName;
+}
+
+QString {{prefix}}HttpFileElement::requestFilename() const
+{
+    return QFileInfo(d->m_localFilename).fileName();
+}
+
+
+bool {{prefix}}HttpFileElement::isTemporary() const
+{
+    return d->m_temporary;
+}
+
+bool {{prefix}}HttpFileElement::isSet() const {
+    return !d->m_localFilename.isEmpty();
+}
+
+/*!
+    \internal
+
+    Returns the content of the local file as QString.
+*/
+QString {{prefix}}HttpFileElement::asJson() const
+{
+    const QByteArray data = loadFromLocalFile();
+    return QString::fromUtf8(data);
+}
+
+/*!
+    \internal
+
+    Returns the content of the local file as QJsonValue.
+*/
+QJsonValue {{prefix}}HttpFileElement::asJsonValue() const
+{
+    const QByteArray data = loadFromLocalFile();
+    const QJsonObject object = QJsonDocument::fromJson(data).object();
+    return QJsonValue(object);
+}
+
+/*!
+    \internal
+
+    Writes the string \a instr to the file with filename m_localFilename,
+    creating or overwriting it.
+*/
+bool {{prefix}}HttpFileElement::fromStringValue(const QString &instr)
+{
+    return saveToLocalFile(instr.toUtf8());
+}
+
+/*!
+    \internal
+
+    Writes the json value \a jval to the file with filename m_localFilename,
+    creating or overwriting it.
+*/
+bool {{prefix}}HttpFileElement::fromJsonValue(const QJsonValue &jval)
+{
+    const QByteArray content = QJsonDocument(jval.toObject()).toJson(QJsonDocument::Compact);
+    return saveToLocalFile(content);
+}
+
+/*!
+    \internal
+
+    Creates or overwrites a file with filename m_localFilename,
+    with \a bytes content.
+*/
+bool {{prefix}}HttpFileElement::saveToLocalFile(const QByteArray &bytes)
+{
+    if (d->m_localFilename.isEmpty()) {
+        qDebug() << "Local filename is empty, skipping save.";
+        return false;
+    }
+    QFile file(d->m_localFilename);
+    bool result = file.open(QIODevice::WriteOnly | QIODevice::Truncate);
+    if (result) {
+        const qint64 written = file.write(bytes);
+        file.close();
+        result = (written == bytes.size());
+        if (!result)
+            qDebug() << "Failed to write data to the file" << d->m_localFilename;
+    } else {
+        qDebug() << "Failed to create the file" << d->m_localFilename;
+    }
+    return result;
+}
+
+/*!
+    \internal
+
+    Reads the content of the file with filename m_localFilename.
+*/
+QByteArray {{prefix}}HttpFileElement::loadFromLocalFile() const
+{
+    QByteArray bArray;
+
+    if (d->m_localFilename.isEmpty()) {
+        qDebug() << "Local filename is empty, skipping reading.";
+        return bArray;
+    }
+
+    QFile file(d->m_localFilename);
+    if (file.exists() && file.open(QIODevice::ReadOnly)) {
+        bArray = file.readAll();
+        file.close();
+    } else {
+        qDebug("Failed to open the file %s", qPrintable(d->m_localFilename));
+    }
+    return bArray;
+}
+
+bool
+comparesEqual(const {{prefix}}HttpFileElement &lhs, const {{prefix}}HttpFileElement &rhs) noexcept
+{
+    return lhs.d->m_variableName == rhs.d->m_variableName
+        && lhs.d->m_localFilename == rhs.d->m_localFilename
+        && lhs.d->m_mimeType == rhs.d->m_mimeType
+        && lhs.d->m_temporary == rhs.d->m_temporary;
+}
+
+{{#cppCommonNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppCommonNamespaceDeclarations}}
+
+{{#buildingQtSources}}
+QT_END_NAMESPACE
+{{/buildingQtSources}}

@@ -1,0 +1,27 @@
+# Copyright (C) 2022 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+
+qt_internal_add_example(contentmanipulation)
+qt_internal_add_example(cookiebrowser)
+qt_internal_add_example(permissionbrowser)
+qt_internal_add_example(notifications)
+qt_internal_add_example(simplebrowser)
+qt_internal_add_example(push-notifications)
+qt_internal_add_example(videoplayer)
+if(QT_FEATURE_webengine_geolocation)
+    qt_internal_add_example(maps)
+endif()
+if(QT_FEATURE_webengine_webchannel)
+    qt_internal_add_example(recipebrowser)
+endif()
+if(QT_FEATURE_webengine_printing_and_pdf)
+    qt_internal_add_example(printme)
+    qt_internal_add_example(html2pdf)
+endif()
+if(QT_FEATURE_webengine_spellchecker AND NOT CMAKE_CROSSCOMPILING
+    AND NOT QT_FEATURE_webengine_native_spellchecker AND NOT WIN32)
+    qt_internal_add_example(spellchecker)
+endif()
+if(QT_FEATURE_ssl)
+    qt_internal_add_example(clientcertificate)
+endif()

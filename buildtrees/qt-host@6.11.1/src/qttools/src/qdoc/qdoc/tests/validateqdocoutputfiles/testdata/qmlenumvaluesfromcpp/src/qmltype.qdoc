@@ -1,0 +1,47 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+
+/*!
+    \qmlmodule QmlModule
+*/
+
+/*!
+    \qmltype Type
+    \inqmlmodule QmlModule
+*/
+
+/*!
+    \qmlproperty enumeration Type::values
+    \qmlenumeratorsfrom Class::Values
+
+    You can even use these values in QML.
+*/
+
+/*!
+    \qmlproperty enumeration Type::something
+    \qmlenumeratorsfrom [SomeType] Class::MoreValues
+*/
+
+/*!
+    \qmlenum Type::different
+
+    \value And now
+    \value For something
+    \value [since 0.9] Completely different
+*/
+
+/*!
+    \qmlenum Type::more_values
+    \qmlenumeratorsfrom [More] Class::Values
+
+    //! Attempt linking to \qmlenum enumerator
+    \sa {Type::And}{Type.And}
+*/
+
+/*!
+    \qmlenum Type::even_more
+
+    //! Values already have a prefix 'Foo.'
+    \value Foo.Have
+    \value [since 0.1] Foo.Prefix Already
+*/

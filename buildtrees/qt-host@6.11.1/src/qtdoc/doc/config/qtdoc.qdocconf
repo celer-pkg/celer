@@ -1,0 +1,140 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/global/externalsites.qdocconf)
+include($QT_INSTALL_DOCS/config/exampleurl-qtdoc.qdocconf)
+
+project                 = QtDoc
+description             = Qt Reference Documentation
+version                 = $QT_VERSION
+
+# Instruct Clang not to look for a module header
+moduleheader =
+
+# Depend on everything - load all available index files
+depends = *
+
+headerdirs  += ../src
+imagedirs   += ../src/images \
+               ../images
+
+sourcedirs  += \
+    ../src
+
+exampledirs += \
+    ../src \
+    ../snippets \
+    ../../examples
+
+excludedirs += \
+    ../src/snippets \
+    ../src/cmake \
+    ../src/platformintegration
+
+# include java files in the list of example sources
+examples.fileextensions =+ *.java \
+                           *.kt \
+                           *.gradle
+
+# Exclude documentation for the broken examples
+excludefiles += \
+    ../../examples/demos/maroon/doc/src/maroon.qdoc
+
+examplesinstallpath =
+
+qhp.projects            = QtDoc
+
+qhp.QtDoc.file                = qtdoc.qhp
+qhp.QtDoc.namespace           = org.qt-project.qtdoc.$QT_VERSION_TAG
+qhp.QtDoc.virtualFolder       = qtdoc
+qhp.QtDoc.indexTitle          = Qt $QT_VERSION Reference Documentation
+qhp.QtDoc.indexRoot           =
+
+qhp.QtDoc.subprojects = manual
+qhp.QtDoc.subprojects.manual.title = Qt $QT_VERSION Reference Documentation
+qhp.QtDoc.subprojects.manual.indexTitle = All Topics
+qhp.QtDoc.subprojects.manual.type = manual
+
+qhp.QtDoc.subprojects.examples.title = Tutorials and Examples
+qhp.QtDoc.subprojects.examples.indexTitle = Qt Examples And Tutorials
+qhp.QtDoc.subprojects.examples.selectors = example
+qhp.QtDoc.subprojects.examples.sortPages = true
+
+# Add an image used in example manifests to qhp, as well as thumbnails for YouTube links
+{HTML.extraimages,DocBook.extraimages,qhp.QtDoc.extraFiles} += images/qt-codesample.png \
+                                                               images/5OiIqFTjUZI.jpg \
+                                                               images/nmvurCcsWos.jpg \
+                                                               images/xNIz78IPBu0.jpg
+
+# Add an .html file with sidebar content, used in the online style
+HTML.stylesheets             += style/tree_config.xml
+
+macro.indextitle              = "\\title Qt $QT_VER"
+macro.qtver                   = "$QT_VER"
+macro.qtmajorversion          = "$QT_VER"
+macro.qtmajorversion.match    = "^(\\d+)"
+macro.QtVersionTag           = "$QT_VERSION_TAG"
+
+macro.qt5 = "\\l{https://doc.qt.io/qt-5/\1}{\2}"
+macro.qtbug = "\\l{https://bugreports.qt.io/browse/\1}{\1}"
+
+# Highlight all examples in "Application Examples" category, as they are
+# often added also to other categories (and typically are highlighted there)
+manifestmeta.highlighted.names = "QtDoc/Calqlatr" \
+                                 "QtDoc/Car Configurator" \
+                                 "QtDoc/Coffee Machine" \
+                                 "QtDoc/Dice" \
+                                 "QtDoc/Document Viewer" \
+                                 "QtDoc/FX & Material Showroom" \
+                                 "QtDoc/Lightning Viewer" \
+                                 "QtDoc/Media Player" \
+                                 "QtDoc/Photo Surface" \
+                                 "QtDoc/Robot Arm" \
+                                 "QtDoc/Thermostat" \
+                                 "QtDoc/To Do List" \
+                                 "QtDoc/Toy Customizer" \
+                                 "QtDoc/Same Game" \
+                                 "QtDoc/StocQt" \
+                                 "QtDoc/OSM Buildings"
+
+manifestmeta.examplecategories = "Application Examples" \
+                                 "Desktop" \
+                                 "Mobile" \
+                                 "Embedded" \
+                                 "Graphics" \
+                                 "Multimedia" \
+                                 "3D" \
+                                 "Data Visualization" \
+                                 "Data Processing & I/O" \
+                                 "Connectivity" \
+                                 "Networking" \
+                                 "Positioning & Location" \
+                                 "User Interface Components" \
+                                 "Web Technologies"
+
+# Include 'Qt for Education' pages
+include(../edu/config/qtforeducation.qdocconf)
+
+# doc/src/overviews.qdoc:
+#   (qdoc) warning: '\generatelist explanations-webtechnologies' no such group
+#   (qdoc) warning: '\generatelist explanations-positioning' no such group
+#   (qdoc) warning: '\generatelist explanations-programminglanguages' no such group
+warninglimit = 3
+
+# Autogenerate navigation linking based on "All Topics":
+navigation.toctitles = "All Topics"
+navigation.toctitles.inclusive = false
+
+# Apple platform versions
+macro.macOSMinSdkVersion = $QT_SUPPORTED_MIN_MACOS_SDK_VERSION
+macro.macOSMinXcodeVersion = $QT_SUPPORTED_MIN_MACOS_XCODE_VERSION
+macro.macOSMinVersion = $QT_SUPPORTED_MIN_MACOS_VERSION
+macro.macOSMaxVersionTested = $QT_SUPPORTED_MAX_MACOS_VERSION_TESTED
+
+macro.iOSMinSdkVersion = $QT_SUPPORTED_MIN_IOS_SDK_VERSION
+macro.iOSMinXcodeVersion = $QT_SUPPORTED_MIN_IOS_XCODE_VERSION
+macro.iOSMinVersion = $QT_SUPPORTED_MIN_IOS_VERSION
+macro.iOSMaxVersionTested = $QT_SUPPORTED_MAX_IOS_VERSION_TESTED
+
+macro.visionOSMinSdkVersion = $QT_SUPPORTED_MIN_VISIONOS_SDK_VERSION
+macro.visionOSMinXcodeVersion = $QT_SUPPORTED_MIN_VISIONOS_XCODE_VERSION
+macro.visionOSMinVersion = $QT_SUPPORTED_MIN_VISIONOS_VERSION
+macro.visionOSMaxVersionTested = $QT_SUPPORTED_MAX_VISIONOS_VERSION_TESTED

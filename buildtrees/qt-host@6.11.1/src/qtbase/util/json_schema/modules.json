@@ -1,0 +1,251 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Qt modules",
+  "description": "Schema for the modules/*.json files",
+  "$comment": "Implemented in qt_describe_module() function from QtModuleHelpers.cmake",
+  "type": "object",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/modules_v2"
+    },
+    {
+      "$ref": "#/$defs/modules_v3"
+    }
+  ],
+  "$defs": {
+    "modules_base": {
+      "$comment": "Common schema fields for all modules versions",
+      "allOf": [
+        {
+          "type": "object",
+          "properties": {
+            "name": {
+              "description": "Name of the Qt module",
+              "type": "string"
+            },
+            "version": {
+              "description": "Qt project version that built the module",
+              "type": "string"
+            },
+            "repository": {
+              "description": "Qt repository where the module is defined in",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "version",
+            "repository"
+          ]
+        },
+        {
+          "$ref": "#/$defs/extra_module_information"
+        }
+      ]
+    },
+    "modules_v2": {
+      "$comment": "Introduced in https://codereview.qt-project.org/c/qt/qtbase/+/602617",
+      "allOf": [
+        {
+          "$ref": "#/$defs/modules_base"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "schema_version": {
+              "const": 2
+            },
+            "platforms": {
+              "description": "",
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/platform_v2"
+              }
+            }
+          },
+          "required": [
+            "schema_version",
+            "platforms"
+          ]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "modules_v3": {
+      "$comment": "Introduced in https://codereview.qt-project.org/c/qt/qtbase/+/654550",
+      "allOf": [
+        {
+          "$ref": "#/$defs/modules_base"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "schema_version": {
+              "const": 3
+            },
+            "platforms": {
+              "description": "",
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/platform_v3"
+              }
+            }
+          },
+          "required": [
+            "schema_version",
+            "platforms"
+          ]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "platform_base": {
+      "description": "",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "",
+          "type": "string"
+        },
+        "variant": {
+          "description": "",
+          "type": "string"
+        },
+        "compiler_id": {
+          "description": "",
+          "type": "string"
+        },
+        "compiler_version": {
+          "description": "",
+          "type": "string"
+        },
+        "targets": {
+          "description": "",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/platform_target"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "compiler_id",
+        "compiler_version",
+        "targets"
+      ]
+    },
+    "platform_v2": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/platform_base"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "version": {
+              "description": "The CMAKE_SYSTEM_VERSION of the builder if available",
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "platform_v3": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/platform_base"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "version": {
+              "description": "The CMAKE_SYSTEM_VERSION. Maybe null if it cannot be shared, see: https://codereview.qt-project.org/c/qt/qtbase/+/654550",
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "version"
+          ]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "platform_target": {
+      "description": "",
+      "type": "object",
+      "properties": {
+        "architecture": {
+          "description": "",
+          "type": "string"
+        },
+        "abi": {
+          "description": "",
+          "type": "string"
+        },
+        "static": {
+          "description": "",
+          "type": "boolean"
+        },
+        "api_version": {
+          "description": "",
+          "type": "string"
+        },
+        "ndk_version": {
+          "description": "",
+          "type": "string"
+        }
+      },
+      "required": [
+        "architecture",
+        "abi"
+      ],
+      "additionalProperties": false
+    },
+    "extra_module_information": {
+      "$comment": "Constructed from extra_module_information in QtModuleHelpers.cmake",
+      "type": "object",
+      "properties": {
+        "plugin_types": {
+          "description": "",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "internal": {
+          "description": "",
+          "type": "boolean"
+        },
+        "bundle_type": {
+          "description": "",
+          "type": "string"
+        },
+        "namespace": {
+          "description": "",
+          "type": "string"
+        },
+        "qpa": {
+          "description": "",
+          "type": "object",
+          "properties": {
+            "platforms": {
+              "description": "",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "default_platform": {
+              "description": "",
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

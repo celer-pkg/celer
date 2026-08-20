@@ -1,0 +1,30 @@
+In the context of linking C++ libraries, functions and objects are referred to as symbols.
+Symbols can have either \c default or \c hidden
+\l {https://developer.apple.com/library/archive/documentation/DeveloperTools/Conceptual/DynamicLibraries/100-Articles/DynamicLibraryDesignGuidelines.html#//apple_ref/doc/uid/TP40002013-SW18}{visibility}.
+
+For performance reasons, Qt and many other libraries compile their sources using \c hidden
+visibility by default, and only mark symbols with \c default visibility when they are meant
+to be used in user projects.
+
+Unfortunately the Apple linker can issue warnings when one library is compiled with \c hidden
+visibility and a user project application or library is compiled with \c default visibility.
+
+If project developers want to silence the warning, they need to build their project code
+with \c hidden visibility as well.
+
+In CMake that can be done by adding the following code to the your \c CMakeLists.txt:
+
+\badcode
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+\endcode
+
+In qmake that can be done by adding the following code to your \c .pro file:
+
+\badcode
+CONFIG+=hide_symbols
+\endcode
+
+In case if a project builds libraries, any symbols in the library that are meant to be used
+in another library or application will have to be explicitly marked with \c default
+visibility. For example, that can be done by annotating such functions or classes with
+\l Q_DECL_EXPORT.

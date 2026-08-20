@@ -1,0 +1,15 @@
+BO_ 1234 MessageName : 8 Vector__XXX
+SG_ : 0|8@1+ (1,0) [0|0] "unit" Vector__XXX
+SG_ SignalName 0|8@1+ (1,0) [0|0] "unit" Vector__XXX
+SG_ SignalName : |8@1+ (1,0) [0|0] "unit" Vector__XXX
+SG_ SignalName : 08@1+ (1,0) [0|0] "unit" Vector__XXX
+SG_ SignalName : 0|@1+ (1,0) [0|0] "unit" Vector__XXX
+SG_ SignalName : 0|81+ (1,0) [0|0] "unit" Vector__XXX
+SG_ SignalName : 0|8@+ (1,0) [0|0] "unit" Vector__XXX
+SG_ SignalName : 0|8@1 (1,0) [0|0] "unit" Vector__XXX
+SG_ SignalName : 0|8@1+ [0|0] "unit" Vector__XXX
+SG_ SignalName : 0|8@1+ (0) [0|0] "unit" Vector__XXX
+SG_ SignalName : 0|8@1+ (1,0)  "unit" Vector__XXX
+SG_ SignalName : 0|8@1+ (1,0) [0] "unit" Vector__XXX
+SG_ SignalName : 0|8@1+ (1,0) [0|0]  Vector__XXX
+SG_ SignalName : 0|8@1+ (1,0) [0|0] "unit"

@@ -1,0 +1,13 @@
+// Copyright (C) 2014 Gunnar Sletta <gunnar@sletta.org>
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example scenegraph/twotextureproviders
+    \title Scene Graph - Two Texture Providers
+    \examplecategory {Graphics}
+    \ingroup qtquickexamples
+
+    \brief Shows how to combine two textures from two texture providers in a custom scene graph node.
+
+    \image twotextureproviders-example.jpg
+ */

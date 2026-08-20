@@ -1,0 +1,9 @@
+{
+    "Keys": ["test.source"],
+    "Provider": "test.source",
+    "Position": true,
+    "Satellite": false,
+    "Monitor": false,
+    "Priority": 2,
+    "Testable": true
+}

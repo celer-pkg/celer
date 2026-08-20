@@ -1,0 +1,64 @@
+{{>licenseInfo}}
+#ifndef {{prefix}}_OBJECT_H
+#define {{prefix}}_OBJECT_H
+
+#include "{{prefixLowerCase}}{{packageNameLowerCase}}commonexports.h"
+
+#include <QtCore/qjsonobject.h>
+#include <QtCore/qstring.h>
+
+#include <memory>
+
+{{#buildingQtSources}}
+QT_BEGIN_NAMESPACE
+{{/buildingQtSources}}
+
+{{#cppCommonNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppCommonNamespaceDeclarations}}
+
+class {{prefix}}ObjectPrivate;
+
+class {{packageNameUpperCase}}_COMMON_EXPORT {{prefix}}Object {
+public:
+    {{prefix}}Object();
+    {{prefix}}Object(const {{prefix}}Object &other);
+    {{prefix}}Object &operator=(const {{prefix}}Object &other);
+    {{prefix}}Object({{prefix}}Object &&) noexcept;
+    {{prefix}}Object &operator=({{prefix}}Object &&) noexcept;
+    virtual ~{{prefix}}Object();
+
+    virtual QJsonObject asJsonObject() const;
+    virtual QString asJson() const;
+    virtual void fromJson(const QString &jsonString);
+    virtual void fromJsonObject(const QJsonObject &json);
+    virtual bool isSet() const;
+    virtual bool isValid() const;
+
+private:
+    friend bool operator==(const {{prefix}}Object &lhs, const {{prefix}}Object &rhs)
+    { return lhs.asJsonObject() == rhs.asJsonObject(); }
+    friend bool operator!=(const {{prefix}}Object &lhs, const {{prefix}}Object &rhs)
+    { return !operator==(lhs, rhs); }
+
+    friend size_t qHash(const {{prefix}}Object &obj, size_t seed)
+    { return qHash(obj.asJsonObject(), seed); }
+    friend size_t qHash(const {{prefix}}Object &obj)
+    { return qHash(obj, 0); }
+
+private:
+    // Note that d_ptr refers to QObjectPrivate, which we cannot use because
+    // we do not want to link to CorePrivate
+    friend class {{prefix}}ObjectPrivate;
+    std::unique_ptr<{{prefix}}ObjectPrivate> d;
+};
+
+{{#cppCommonNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppCommonNamespaceDeclarations}}
+
+{{#buildingQtSources}}
+QT_END_NAMESPACE
+{{/buildingQtSources}}
+
+#endif // {{prefix}}_OBJECT_H

@@ -1,0 +1,354 @@
+{{>licenseInfo}}
+#include "{{prefixLowerCase}}baseapi.h"
+#include "{{prefixLowerCase}}httprequest.h"
+
+#include <QtCore/qdir.h>
+#include <QtCore/qjsonarray.h>
+#include <QtCore/qjsondocument.h>
+#include <QtCore/qlist.h>
+#include <QtCore/qmap.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qurl.h>
+
+#include <QtNetwork/qhttpmultipart.h>
+#include <QtNetwork/qnetworkaccessmanager.h>
+#include <QtNetwork/qnetworkreply.h>
+#include <QtNetwork/qrestaccessmanager.h>
+
+QT_BEGIN_NAMESPACE
+using namespace Qt::StringLiterals;
+QT_END_NAMESPACE
+
+{{#buildingQtSources}}
+QT_BEGIN_NAMESPACE
+{{/buildingQtSources}}
+
+{{#cppCommonNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppCommonNamespaceDeclarations}}
+
+class {{prefix}}BaseApiPrivate
+{
+public:
+    QMap<QString, qsizetype> m_serverIndices;
+    QMap<QString, QList<{{prefix}}ServerConfiguration>> m_serverConfigs;
+    QMap<QString, QString> m_apiKeys;
+    QMap<QNetworkReply *, {{prefix}}BaseApi::{{prefix}}CallerInfo> m_callerData;
+    QString m_bearerToken;
+    QString m_username;
+    QString m_password;
+    QString m_workingDirectory;
+    // Networking API
+    QRestAccessManager *m_restManager = nullptr;
+    QNetworkRequestFactory m_networkFactory;
+    bool m_isResponseCompressionEnabled = false;
+    bool m_isRequestCompressionEnabled = false;
+};
+
+{{prefix}}BaseApi::{{prefix}}BaseApi(QObject *parent)
+    : QObject(parent),
+      d(new {{prefix}}BaseApiPrivate)
+{
+    d->m_workingDirectory = QDir::currentPath();
+
+    auto manager = new QNetworkAccessManager(this);
+    d->m_restManager = new QRestAccessManager(manager, this);
+}
+
+{{prefix}}BaseApi::~{{prefix}}BaseApi()
+{
+}
+
+QList<QString> {{prefix}}BaseApi::operations() const
+{
+    return d->m_serverConfigs.keys();
+}
+
+QList<{{prefix}}ServerConfiguration> {{prefix}}BaseApi::serverConfigurations(const QString &operation) const
+{
+    const auto it = d->m_serverConfigs.find(operation);
+    if (it != d->m_serverConfigs.cend())
+        return it.value();
+    return {};
+}
+
+{{prefix}}BaseApi::ServerError
+{{prefix}}BaseApi::setServerVariable(const QString &operation, qsizetype serverIndex,
+                                     const QString &variable, const QString &value)
+{
+    auto it = d->m_serverConfigs.find(operation);
+
+    if (it == d->m_serverConfigs.end())
+        return ServerError::OperationNotFound;
+
+    auto &configs = it.value();
+    if (serverIndex < 0 || serverIndex >= configs.size())
+        return ServerError::ServerIndexNotFound;
+
+    return configs[serverIndex].setVariableValue(variable, value);
+}
+
+{{prefix}}BaseApi::ServerError
+{{prefix}}BaseApi::setServer(const QString &operation, qsizetype serverIndex)
+{
+    const auto it = d->m_serverConfigs.constFind(operation);
+
+    if (it == d->m_serverConfigs.cend())
+        return ServerError::OperationNotFound;
+
+    if (serverIndex < 0 || serverIndex >= it.value().size())
+        return ServerError::ServerIndexNotFound;
+
+    d->m_serverIndices[operation] = serverIndex;
+    return ServerError::NoError;
+}
+
+std::optional<qsizetype> {{prefix}}BaseApi::activeServer(const QString &operation) const
+{
+    const auto it = d->m_serverIndices.find(operation);
+    if (it == d->m_serverIndices.cend())
+        return std::nullopt;
+    return it.value();
+}
+
+void {{prefix}}BaseApi::setApiKey(const QString &apiKeyName, const QString &apiKey)
+{
+    d->m_apiKeys.insert(apiKeyName, apiKey);
+}
+
+std::optional<QString> {{prefix}}BaseApi::apiKey(const QString &name) const
+{
+    const auto it = d->m_apiKeys.find(name);
+    if (it != d->m_apiKeys.cend())
+        return it.value();
+    return std::nullopt;
+}
+
+void {{prefix}}BaseApi::setBearerToken(const QString &token)
+{
+    d->m_bearerToken = token;
+}
+
+QString {{prefix}}BaseApi::bearerToken() const
+{
+    return d->m_bearerToken;
+}
+
+void {{prefix}}BaseApi::setUsername(const QString &username)
+{
+    d->m_username = username;
+}
+
+QString {{prefix}}BaseApi::username() const
+{
+    return d->m_username;
+}
+
+void {{prefix}}BaseApi::setPassword(const QString &password)
+{
+    d->m_password = password;
+}
+
+QString {{prefix}}BaseApi::password() const
+{
+    return d->m_password;
+}
+
+void {{prefix}}BaseApi::setTimeOut(std::chrono::milliseconds timeOut)
+{
+    d->m_networkFactory.setTransferTimeout(timeOut);
+}
+
+#if QT_CONFIG(ssl)
+void {{prefix}}BaseApi::setSslConfiguration(QSslConfiguration config)
+{
+    d->m_networkFactory.setSslConfiguration(config);
+}
+
+QSslConfiguration {{prefix}}BaseApi::sslConfiguration() const
+{
+    return d->m_networkFactory.sslConfiguration();
+}
+#endif // ssl
+
+void {{prefix}}BaseApi::setWorkingDirectory(const QString &path)
+{
+    d->m_workingDirectory = path;
+}
+
+QString {{prefix}}BaseApi::workingDirectory() const
+{
+    return d->m_workingDirectory;
+}
+
+void {{prefix}}BaseApi::setRestAccessManager(QRestAccessManager *ram)
+{
+    if (ram == d->m_restManager)
+        return;
+    if (!ram)
+        qCritical() << "QRestAccessManager cannot be nullptr.";
+
+    // clean-up the objects if we own them
+    auto manager = d->m_restManager->networkAccessManager();
+
+    if (d->m_restManager->parent() == this)
+        delete d->m_restManager;
+
+    if (manager->parent() == this)
+        delete manager;
+
+    d->m_restManager = ram;
+}
+
+QRestAccessManager *{{prefix}}BaseApi::restAccessManager() const
+{
+    return d->m_restManager;
+}
+
+void {{prefix}}BaseApi::setNetworkRequestFactory(QNetworkRequestFactory factory)
+{
+    d->m_networkFactory = factory;
+}
+
+QNetworkRequestFactory {{prefix}}BaseApi::networkRequestFactory() const
+{
+    return d->m_networkFactory;
+}
+
+void {{prefix}}BaseApi::setHeader(QHttpHeaders::WellKnownHeader key, QAnyStringView value)
+{
+    QHttpHeaders headers = d->m_networkFactory.commonHeaders();
+    if (headers.values(key).contains(value))
+        return;
+    headers.replaceOrAppend(key, value);
+    d->m_networkFactory.setCommonHeaders(std::move(headers));
+}
+
+void {{prefix}}BaseApi::setHeader(QAnyStringView key, QAnyStringView value)
+{
+    QHttpHeaders headers = d->m_networkFactory.commonHeaders();
+    if (headers.values(key).contains(value))
+        return;
+    headers.replaceOrAppend(key, value);
+    d->m_networkFactory.setCommonHeaders(std::move(headers));
+}
+
+void {{prefix}}BaseApi::setRequestCompressionEnabled(bool enabled)
+{
+{{^contentCompression}}
+    qWarning("The code was generated with content compression disabled. "
+             "The parameter is ignored. Run the OpenAPI generator with "
+             "'--additional-properties=contentCompression=true' to enable it.");
+    Q_UNUSED(enabled);
+{{/contentCompression}}
+{{#contentCompression}}
+    d->m_isRequestCompressionEnabled = enabled;
+{{/contentCompression}}
+}
+
+bool {{prefix}}BaseApi::requestCompressionEnabled() const
+{
+    return d->m_isRequestCompressionEnabled;
+}
+
+void {{prefix}}BaseApi::setResponseCompressionEnabled(bool enabled)
+{
+{{^contentCompression}}
+    qWarning("The code was generated with content compression disabled. "
+             "The parameter is ignored. Run the OpenAPI generator with "
+             "'--additional-properties=contentCompression=true' to enable it.");
+    Q_UNUSED(enabled);
+{{/contentCompression}}
+{{#contentCompression}}
+    d->m_isResponseCompressionEnabled = enabled;
+{{/contentCompression}}
+}
+
+bool {{prefix}}BaseApi::responseCompressionEnabled() const
+{
+    return d->m_isResponseCompressionEnabled;
+}
+
+QString {{prefix}}BaseApi::errorString(ServerError error) const
+{
+    switch (error) {
+    case ServerError::NoError:
+        return "No Error"_L1;
+    case ServerError::ServerVariableNotFound:
+        return "Server Variable Not Found"_L1;
+    case ServerError::EnumValueNotFound:
+        return "Enum Value Not Found"_L1;
+    case ServerError::OperationNotFound:
+        return "Operation Not Found"_L1;
+    case ServerError::ServerIndexNotFound:
+        return "Server Index Not Found"_L1;
+    }
+    Q_UNREACHABLE_RETURN(QString());
+}
+
+QNetworkReply *{{prefix}}BaseApi::execute({{prefix}}HttpRequestInput &input, QNetworkRequest &request, QByteArray &requestContent)
+{
+    const bool isMultiPartMode = input.hasMultiPart();
+    QNetworkReply *reply = nullptr;
+    const QString httpMethod = input.httpMethod();
+    if (httpMethod == "GET"_L1) {
+        reply = d->m_restManager->get(request);
+    } else if (httpMethod == "POST"_L1) {
+        if (isMultiPartMode)
+            reply = d->m_restManager->post(request, input.multiPart());
+        else
+            reply = d->m_restManager->post(request, requestContent);
+    } else if (httpMethod == "PUT"_L1) {
+        if (isMultiPartMode)
+            reply = d->m_restManager->put(request, input.multiPart());
+        else
+            reply = d->m_restManager->put(request, requestContent);
+    } else if (httpMethod == "HEAD"_L1) {
+        reply = d->m_restManager->head(request);
+    } else if (httpMethod == "DELETE"_L1) {
+        reply = d->m_restManager->deleteResource(request);
+    } else {
+        if (isMultiPartMode)
+            reply = d->m_restManager->sendCustomRequest(request, httpMethod.toLatin1(), input.multiPart());
+        else
+            reply = d->m_restManager->sendCustomRequest(request, httpMethod.toLatin1(), requestContent);
+    }
+    // Reparent QHttpMultiPart* to extend its lifetime to the lifetime of the reply
+    if (reply && isMultiPartMode) {
+        auto multiPart = input.takeMultiPart(); // releases the ownership
+        if (multiPart)
+            multiPart->setParent(reply);
+    }
+    return reply;
+}
+
+void {{prefix}}BaseApi::setServersForOperation(const QString &operation, const QList<{{prefix}}ServerConfiguration> &configs)
+{
+    Q_ASSERT(!configs.empty()); // This probably means a corrupted yaml file!
+    d->m_serverConfigs[operation] = configs;
+    d->m_serverIndices[operation] = 0;
+}
+
+void {{prefix}}BaseApi::setBaseServerUrl(const QString &operation)
+{
+    const QUrl serverUrl = d->m_serverConfigs[operation][d->m_serverIndices.value(operation)].url();
+    d->m_networkFactory.setBaseUrl(serverUrl);
+}
+
+void {{prefix}}BaseApi::setCallerInfo(QNetworkReply *reply, const {{prefix}}BaseApi::{{prefix}}CallerInfo &info)
+{
+    d->m_callerData.insert(reply, info);
+}
+
+{{prefix}}BaseApi::{{prefix}}CallerInfo {{prefix}}BaseApi::takeCallerInfo(QNetworkReply *reply)
+{
+    return d->m_callerData.take(reply);
+}
+
+{{#cppCommonNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppCommonNamespaceDeclarations}}
+
+{{#buildingQtSources}}
+QT_END_NAMESPACE
+{{/buildingQtSources}}

@@ -1,0 +1,24 @@
+// This is an example config to be used with the --probe-config switch.
+{
+  probes: {
+    chrome_histograms: {
+      // metrics is a dictionary keyed by UMA histogram name, see
+      // chrome://histograms for histograms logged by a browser. Each histogram
+      // key has an array of metrics to generate. Metrics can be the following:
+      // * "count": the number of samples logged to the histogram.
+      // * "mean": the average value logged to the histogram.
+      // * "p{number}" (e.g. "p50", "p90"): The percentile value of samples
+      //     logged to the histogram. APPROXIMATE.
+      metrics: {
+        // E.g. the following line will create four entries in the results:
+        // * "WebVitals.FirstContentfulPaint3_count"
+        // * "WebVitals.FirstContentfulPaint3_mean"
+        // * "WebVitals.FirstContentfulPaint3_p50"
+        // * "WebVitals.FirstContentfulPaint3_p90"
+        "WebVitals.FirstContentfulPaint3": ["count", "mean", "p50", "p90"],
+        // And another metrics are made from this histogram.
+        "Startup.FirstWebContents.NonEmptyPaint3": ["count", "mean", "p50", "p90"],
+      },
+    },
+  }
+}

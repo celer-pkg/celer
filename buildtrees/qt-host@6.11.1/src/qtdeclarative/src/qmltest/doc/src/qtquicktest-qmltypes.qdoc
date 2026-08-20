@@ -1,0 +1,22 @@
+// Copyright (C) 2018 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \qmlmodule QtTest
+    \title Qt Quick Test QML Types
+    \brief Provides QML types to unit test your QML application.
+    \ingroup qmlmodules
+
+    You can import this module using the following statement:
+
+    \qml
+    import QtTest
+    \endqml
+
+    \section1 QML Types
+    \generatelist {qmltypesbymodule QtTest}
+    \noautolist
+
+    For more information about how to use these types, see
+    \l{Qt Quick Test}.
+*/

@@ -1,0 +1,91 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/config/exampleurl-qtbase.qdocconf)
+
+project                 = QtGui
+description             = Qt GUI Reference Documentation
+version                 = $QT_VERSION
+
+includepaths           += ./includes
+moduleheader            = QtGuiDoc
+
+examplesinstallpath     = gui
+
+# Path to the root of qtbase (for automatic linking to source code)
+url.sources.rootdir     = ../../..
+
+qhp.projects            = QtGui
+
+qhp.QtGui.file         = qtgui.qhp
+qhp.QtGui.namespace           = org.qt-project.qtgui.$QT_VERSION_TAG
+qhp.QtGui.virtualFolder       = qtgui
+qhp.QtGui.indexTitle          = Qt GUI
+qhp.QtGui.indexRoot           =
+
+qhp.QtGui.subprojects = manual classes
+
+qhp.QtGui.subprojects.manual.title = Qt GUI
+qhp.QtGui.subprojects.manual.indexTitle = Qt GUI module topics
+qhp.QtGui.subprojects.manual.type = manual
+
+qhp.QtGui.subprojects.classes.title = C++ Classes
+qhp.QtGui.subprojects.classes.indexTitle = Qt GUI C++ Classes
+qhp.QtGui.subprojects.classes.selectors = class fake:headerfile
+qhp.QtGui.subprojects.classes.sortPages = true
+
+tagfile                 = ../../../doc/qtgui/qtgui.tags
+
+depends += \
+    qtcore \
+    qtimageformats \
+    qtnetwork \
+    qtopengl \
+    qtprintsupport \
+    qtsvg \
+    qtqml \
+    qtquick \
+    qtwidgets \
+    qtdoc \
+    qmake \
+    qtcmake \
+    qtshadertools \
+    qttestlib \
+    qtplatformintegration \
+    qthelp \
+    qtquickcontrols
+
+headerdirs  += ..
+
+sourcedirs  += .. \
+               ../../../examples/gui/doc/src \
+               src/includes
+
+exampledirs += ../../../examples/gui \
+               ../../../examples/vulkan \
+               ../../widgets/doc/snippets \
+               snippets
+
+imagedirs   += images \
+               ../../../examples/gui/doc/images \
+               ../../../doc/src/images
+
+# Included in qttestlib.qdocconf instead
+excludefiles += ../kernel/qtestsupport_gui.cpp \
+                ../painting/qdrawhelper_ssse3.cpp
+
+manifestmeta.highlighted.names = "QtGui/Hello Vulkan Cubes Example"
+
+navigation.landingpage = "Qt GUI"
+navigation.cppclassespage = "Qt GUI C++ Classes"
+# Auto-generate navigation linking based on "Qt GUI module topics":
+navigation.toctitles = "Qt GUI module topics"
+navigation.toctitles.inclusive = false
+
+# Ignore warnings about undocumented enum values for the QGradient presets
+spurious += "Undocumented enum item '.*' in QGradient::Preset"
+
+# \svgcolor {#ffdead}
+macro.svgcolor.HTML = "<div style=\"padding:10px;color:#fff;background:\1;\"></div>"
+macro.svgcolor.DocBook = "<db:phrase role=\"color:\1\">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</db:phrase>"
+
+# Enforce zero documentation warnings
+warninglimit = 0

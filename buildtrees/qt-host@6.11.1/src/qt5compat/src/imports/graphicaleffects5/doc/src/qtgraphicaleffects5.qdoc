@@ -1,0 +1,25 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \qmlmodule Qt5Compat.GraphicalEffects
+    \title Qt 5 Compatibility APIs: Graphical Effect QML Types
+    \ingroup qmlmodules
+
+    \brief The Qt Graphical Effects module is provided for compatibility with
+    applications written for Qt 5.
+
+    The \l{qtgraphicaleffects5-index.html}{Qt Graphical Effects} module provides a set of QML types for
+    adding visually impressive and configurable effects to user
+    interfaces. Effects are visual items that can be added to Qt Quick
+    user interface as UI components.
+
+    To use the types in this module, import the module with the following line:
+    \qml
+    import Qt5Compat.GraphicalEffects
+    \endqml
+
+    \note The Qt Graphical Effects module is provided for compatibility with
+    applications written for Qt 5.
+ */
+

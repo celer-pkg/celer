@@ -1,0 +1,43 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  switch-tab: {
+    actions: [
+      {
+        action: switch_tab
+        tab_index: $[TAB_INDEX]
+      }
+    ]
+  }
+  page-load: {
+    template: ../../../common-action-blocks/basic/page-load.hjson
+    args: {
+      READY_STATE: any
+      TARGET: _self
+      PAGE_LOAD_TIMEOUT: 2m
+    }
+    unbound_args: [
+      PAGE_URL
+    ]
+  }
+  verify-page-loaded: {
+    actions: [
+      // A condition is being added to identify if the actual page not loaded
+      // due to other reasons (e.g. cert error, offline, connection timeout, etc.)
+      {
+        action: wait_for_condition
+        condition: return document.getElementsByClassName("interstitial-wrapper").length < 1
+        timeout: 5s
+      }
+    ]
+  }
+  page-scroll: {
+    actions: {
+      template: ../../../common-action-blocks/power-browsing/page-scroll.hjson
+      args: {
+        PER_PAGE_DURATION: 180
+      }
+    }
+  }
+}

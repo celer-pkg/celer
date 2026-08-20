@@ -1,0 +1,18 @@
+version = 1
+
+[[annotations]]
+path = ["maps/carpet_texture_baseColor.jpeg",
+        "meshes/object_2.mesh",
+        "meshes/object_3.mesh"]
+precedence = "closest"
+SPDX-FileCopyrightText = "1-3D.com"
+SPDX-License-Identifier = "CC-BY-SA-4.0"
+
+[[annotations]]
+path = ["maps/M_Side_Table_Natural_Wenge_Wood_4K_baseColor_small.jpg",
+        "maps/M_Side_Table_Natural_Wenge_Wood_4K_metallicRoughness_small.png",
+        "maps/M_Side_Table_Natural_Wenge_Wood_4K_normal_small.png",
+        "meshes/side_Table_Pine_LOD0_M_Side_Table_Natural_Wenge_Wood_4K_0.mesh"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Intermittent Art"
+SPDX-License-Identifier = "CC-BY-4.0"

@@ -1,0 +1,160 @@
+# Copyright 2019 The Chromium Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build_overrides/build.gni")
+import("../gni/openscreen.gni")
+
+visibility = [ "../*" ]
+
+declare_args() {
+  # Enables trace logging in build. This is true by default, but may be disabled
+  # for a slight performance increase.
+  enable_trace_logging = true
+}
+
+config("trace_logging_config") {
+  if (enable_trace_logging) {
+    defines = [ "ENABLE_TRACE_LOGGING" ]
+  }
+}
+
+openscreen_source_set("util") {
+  public = [
+    "alarm.h",
+    "base64.h",
+    "big_endian.h",
+    "chrono_helpers.h",
+    "crypto/certificate_utils.h",
+    "crypto/digest_sign.h",
+    "crypto/openssl_util.h",
+    "crypto/pem_helpers.h",
+    "crypto/random_bytes.h",
+    "crypto/rsa_private_key.h",
+    "crypto/secure_hash.h",
+    "crypto/sha2.h",
+    "enum_name_table.h",
+    "flat_map.h",
+    "hashing.h",
+    "integer_division.h",
+    "json/json_helpers.h",
+    "json/json_serialization.h",
+    "json/json_value.h",
+    "osp_logging.h",
+    "read_file.h",
+    "saturate_cast.h",
+    "simple_fraction.h",
+    "span_util.h",
+    "std_util.h",
+    "string_parse.h",
+    "string_util.h",
+    "stringprintf.h",
+    "trace_logging.h",
+    "url.h",
+    "weak_ptr.h",
+    "yet_another_bit_vector.h",
+  ]
+
+  sources = [
+    "alarm.cc",
+    "base64.cc",
+    "big_endian.cc",
+    "crypto/certificate_utils.cc",
+    "crypto/digest_sign.cc",
+    "crypto/openssl_util.cc",
+    "crypto/pem_helpers.cc",
+    "crypto/random_bytes.cc",
+    "crypto/rsa_private_key.cc",
+    "crypto/secure_hash.cc",
+    "crypto/sha2.cc",
+    "json/json_serialization.cc",
+    "json/json_value.cc",
+    "read_file.cc",
+    "scoped_wake_lock.cc",
+    "simple_fraction.cc",
+    "span_util.cc",
+    "std_util.cc",
+    "string_util.cc",
+    "stringprintf.cc",
+    "trace_logging/macro_support.h",
+    "trace_logging/scoped_trace_operations.cc",
+    "trace_logging/scoped_trace_operations.h",
+    "url.cc",
+    "yet_another_bit_vector.cc",
+  ]
+
+  public_deps = [
+    "../platform:api",
+    "../platform:base",
+    "../platform:logging",
+    "../third_party/abseil",
+    "../third_party/boringssl",
+    "../third_party/jsoncpp",
+  ]
+
+  deps = [
+    "../third_party/boringssl",
+    "../third_party/googleurl",
+
+    # We do a clone of Chrome's modp_b64 in order to share their BUILD.gn
+    # and license files, so this should always be an absolute reference.
+    "//third_party/modp_b64",
+  ]
+
+  public_configs = [ ":trace_logging_config" ]
+
+  if (is_mac) {
+    frameworks = [
+      "CoreFoundation.framework",
+      "IOKit.framework",
+    ]
+    sources += [ "scoped_wake_lock_mac.cc" ]
+  }
+}
+
+openscreen_source_set("unittests") {
+  testonly = true
+
+  sources = [
+    "alarm_unittest.cc",
+    "base64_unittest.cc",
+    "big_endian_unittest.cc",
+    "crypto/certificate_utils_unittest.cc",
+    "crypto/random_bytes_unittest.cc",
+    "crypto/rsa_private_key_unittest.cc",
+    "crypto/secure_hash_unittest.cc",
+    "crypto/sha2_unittest.cc",
+    "enum_name_table_unittest.cc",
+    "flat_map_unittest.cc",
+    "integer_division_unittest.cc",
+    "json/json_helpers_unittest.cc",
+    "json/json_serialization_unittest.cc",
+    "json/json_value_unittest.cc",
+    "saturate_cast_unittest.cc",
+    "simple_fraction_unittest.cc",
+    "std_util_unittest.cc",
+    "string_parse_unittest.cc",
+    "string_util_unittest.cc",
+    "stringprintf_unittest.cc",
+    "trace_logging/scoped_trace_operations_unittest.cc",
+    "url_unittest.cc",
+    "weak_ptr_unittest.cc",
+    "yet_another_bit_vector_unittest.cc",
+  ]
+
+  # The trace logging unittests depend on macros only defined
+  # when trace logging is enabled.
+  if (enable_trace_logging) {
+    sources += [ "trace_logging_unittest.cc" ]
+  }
+
+  deps = [
+    ":util",
+    "../platform:test",
+    "../third_party/abseil",
+    "../third_party/boringssl",
+    "../third_party/googletest:gmock",
+    "../third_party/googletest:gtest",
+    "../third_party/jsoncpp",
+  ]
+}

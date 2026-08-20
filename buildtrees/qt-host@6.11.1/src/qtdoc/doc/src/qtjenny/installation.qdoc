@@ -1,0 +1,52 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+\page qtjenny-installation.html
+\ingroup qtjenny
+\meta sortkey {1_install}
+\title Qt Jenny installation
+
+To install Qt Jenny:
+
+\section1 The quick-start approach
+
+Take the \l {QtJenny Demo} as a starting point. It already
+has a code generation project configured for a set of Android
+Java classes, and that code generation project is integrated
+into the main Qt C++ application project.
+
+\section1 The expert approach, and a more detailed explanation
+
+\list 1
+
+\li You will need to configure a Gradle project that has a dependency
+to \c qtjenny-annotation and \c qtjenny-compiler. The qtjenny-annotation
+provides an annotation processor, and qtjenny-compiler provides
+a \l {Android: Kapt compiler plugin}{KAPT} module.
+
+Qt Jenny can be made to process annotations in Java code, instead of
+Kotlin, but that's not important, because the annotations are not
+for the code of the generation project itself; they are there just
+to trigger wrapper generation for classes that are already defined
+and available via some package, such as the Android API classes
+which are provided by the Android SDK.
+
+\li In addition, you need a set of templates for the code generation. The Gradle
+dependencies do not install any templates, because that would put them
+in a Gradle cache directory, where editing the templates would be
+cumbersome. Not all users need to modify the templates, but to allow
+for that possibility, they are installed separately. The \l {QtJenny Demo}
+has suitable templates installed in its code generation
+subproject.
+
+\li Once these steps have been done, run the generation build. After
+that, the code has been generated and is available to be used
+by the normal Qt C++ project.
+
+This step happens automatically during the configure step of the
+Qt C++ project if the CMake project is done as in the \l {QtJenny Demo}.
+
+\endlist
+
+
+*/

@@ -1,0 +1,85 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  actions: [
+    {
+      action: js
+      script: performance.mark('scroll-entire-page-start');
+    }
+    {
+      action: scroll
+      distance: $[SCROLL_DISTANCE]
+      duration: $[SCROLL_DURATION]
+      source: $[SCROLL_SOURCE]
+    }
+    {
+      action: wait
+      duration: $[SCROLL_DURATION]
+    }
+    {
+      action: scroll
+      distance: $[SCROLL_DISTANCE]
+      duration: $[SCROLL_DURATION]
+      source: $[SCROLL_SOURCE]
+    }
+    {
+      action: wait
+      duration: $[SCROLL_DURATION]
+    }
+    {
+      action: scroll
+      distance: $[SCROLL_DISTANCE]
+      duration: $[SCROLL_DURATION]
+      source: $[SCROLL_SOURCE]
+    }
+    {
+      action: wait
+      duration: $[SCROLL_DURATION]
+    }
+    {
+      action: scroll
+      distance: $[SCROLL_DISTANCE]
+      duration: $[SCROLL_DURATION]
+      source: $[SCROLL_SOURCE]
+    }
+    {
+      action: wait
+      duration: $[SCROLL_DURATION]
+    }
+    {
+      action: scroll
+      distance: $[SCROLL_DISTANCE]
+      source: $[SCROLL_SOURCE]
+      duration: $[SCROLL_DURATION]
+    }
+    {
+      action: wait
+      duration: $[SCROLL_DURATION]
+    }
+    {
+      action: scroll
+      distance: $[SCROLL_DISTANCE]
+      source: $[SCROLL_SOURCE]
+      duration: $[SCROLL_DURATION]
+    }
+    {
+      action: wait
+      duration: $[SCROLL_DURATION]
+    }
+    {
+      action: js
+      script:
+        '''
+        performance.mark('scroll-entire-page-end', {detail: document.querySelector('html').scrollTop});
+        performance.measure('scroll-entire-page-duration', 'scroll-entire-page-start', 'scroll-entire-page-end');
+        '''
+    }
+    // To prevent the page elements from being unstable after operation,
+    // which will affect some subsequent operations, a short wait is added here
+    {
+      action: wait
+      duration: 2s
+    }
+  ]
+}

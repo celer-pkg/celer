@@ -1,0 +1,117 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: CMake Test
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+  schedule:
+    # Triggered nightly at 8:00 AM UTC to re-create the build cache (ccache).
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+
+jobs:
+  run_tests:
+    name: Run CMake tests
+    # TODO(xinhaoyuan): Bump to 24.04 after https://github.com/llvm/llvm-project/issues/102443
+    # is fixed.
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    env:
+      CCACHE_BASEDIR: ${{ github.workspace }}
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+    strategy:
+      matrix:
+        mode: ['default', 'fuzzing', 'codelab']
+    steps:
+      - name: Disable core dumping and piping due to slowness
+        run: |
+          sudo sysctl -w kernel.core_pattern=""
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -yq \
+            ccache clang gcc g++ cmake ninja-build libprotobuf-dev protobuf-compiler
+      - name: Restore latest cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: cmake-cache-${{ matrix.mode }}
+          restore-keys: cmake-cache-${{ matrix.mode }}-
+      - name: Check whether FuzzTest can be build using FetchContent
+        if: matrix.mode == 'codelab'
+        run: |
+          CC=clang CXX=clang++ cmake \
+            -S codelab \
+            -B build_codelab \
+            -G Ninja  \
+            -D CMAKE_C_COMPILER_LAUNCHER=ccache \
+            -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -D CMAKE_BUILD_TYPE=RelWithDebug \
+            -D FUZZTEST_REPO="${{ github.event.pull_request.head.repo.full_name || github.repository }}" \
+            -D FUZZTEST_REPO_BRANCH="${{ github.head_ref || github.ref_name }}" \
+          && cmake --build build_codelab -j $(nproc)
+      - name: Run all tests in default mode with clang
+        if: matrix.mode == 'default'
+        run: |
+          CC=clang CXX=clang++ cmake \
+            -S . \
+            -B build \
+            -G Ninja \
+            -D CMAKE_C_COMPILER_LAUNCHER=ccache \
+            -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -D CMAKE_BUILD_TYPE=RelWithDebug \
+            -D FUZZTEST_BUILD_TESTING=on \
+            -D FUZZTEST_BUILD_FLATBUFFERS=on \
+          && cmake --build build -j $(nproc) \
+          && ctest --test-dir build -j $(nproc) --output-on-failure
+      - name: Run all tests in default mode with gcc
+        if: matrix.mode == 'default'
+        run: |
+          CC=gcc CXX=g++ cmake \
+            -S . \
+            -B build_gcc \
+            -G Ninja \
+            -D CMAKE_C_COMPILER_LAUNCHER=ccache \
+            -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -D CMAKE_BUILD_TYPE=RelWithDebug \
+            -D FUZZTEST_BUILD_TESTING=on \
+            -D FUZZTEST_BUILD_FLATBUFFERS=on \
+          && cmake --build build_gcc -j $(nproc) \
+          && ctest --test-dir build_gcc -j $(nproc) --output-on-failure
+      - name: Run end-to-end tests in fuzzing mode
+        if: matrix.mode == 'fuzzing'
+        run: |
+          CC=clang CXX=clang++ cmake \
+            -S . \
+            -B build \
+            -G Ninja \
+            -D CMAKE_C_COMPILER_LAUNCHER=ccache \
+            -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -D CMAKE_BUILD_TYPE=RelWithDebug \
+            -D FUZZTEST_FUZZING_MODE=on \
+            -D FUZZTEST_BUILD_TESTING=on \
+            -D FUZZTEST_BUILD_FLATBUFFERS=on \
+          && cmake --build build -j $(nproc) \
+          && ctest --test-dir build -j $(nproc) --output-on-failure -R "functional_test"
+      - name: Save new cache based on main
+        if: github.ref == 'refs/heads/main'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: cmake-cache-${{ matrix.mode }}-${{ github.run_id }}

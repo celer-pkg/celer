@@ -1,0 +1,61 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example impeller
+    \ingroup quick3dphysics-examples
+    \title Qt Quick 3D Physics - Impeller Example
+    \examplecategory {3D}
+    \brief Demonstrates using trigger bodies and collision info.
+    \image impeller-example.jpg {Screenshot of a 3D rendering showing a blue sphere on a green surface, a pink rectangular block above it,
+           and a red sphere floating on top}
+
+    This example demonstrates how to use trigger bodies and collision info.
+    The scene consists of a green static plane, a red dynamic sphere, a pink box trigger and a blue static sphere.
+    When the red sphere overlaps the trigger body it will turn yellow and when it collides with the blue sphere it will be repelled away.
+
+    \section1 Setup
+
+    As usual we need to add our PhysicsWorld:
+
+    \snippet impeller/main.qml world
+
+    We also add a View3D where we put our scene objects.
+    In this we have some settings for the visual environment:
+
+    \snippet impeller/main.qml environment
+
+    \section1 Physical objects
+
+    We have our regular static plane:
+
+    \snippet impeller/main.qml plane
+
+    This is how our dynamic sphere is defined:
+
+    \snippet impeller/main.qml sphere
+
+    The property \c inArea is a custom property we use to keep track of when the sphere is overlapping the box trigger body.
+    This is then used for the \c baseColor property to make the sphere yellow when it is overlapping the box and red otherwise.
+    Since we want the sphere to partake in contact reporting the property \l {PhysicsNode::} {sendContactReports} needs to be set to \c true.
+    Since we also want the sphere to get callbacks when entering and leaving a TriggerBody, the property
+    \l {PhysicsNode::} {receiveContactReports} is also set to \c true.
+    We implement the \l {PhysicsNode::} {enteredTriggerBody} and \l {PhysicsNode::} {exitedTriggerBody} signal methods
+    on the sphere where we set the \c inArea property to \c true or \c false when entering or leaving the trigger body.
+
+    Now let's look at the trigger body:
+
+    \snippet impeller/main.qml box
+
+    The qml type is a TriggerBody which acts like a static body except its collisions are inactive.
+    Instead it will trigger \l {PhysicsNode::} {enteredTriggerBody} and \l {PhysicsNode::} {exitedTriggerBody} method calls on the sphere.
+
+    Finally, lets look at the impeller:
+
+    \snippet impeller/main.qml impeller
+
+    This is a static body and we set \l {PhysicsNode::} {receiveContactReports} to \c true to enable the collision callbacks.
+    The callback \l {PhysicsNode::} {bodyContact} gets called whenever a collision is reported.
+    In the method we call \l{DynamicRigidBody::}{setLinearVelocity} to set the linear velocity
+    in the opposite direction of the collision normal vector to simulate an impeller.
+*/

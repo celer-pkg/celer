@@ -1,0 +1,102 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example 2d/cockpit
+    \meta tags {Graphs, GraphsView, BarSeries, LineSeries, SplineSeries, PieSeries}
+    \examplecategory {Data Visualization}
+
+    \title Cockpit
+    \ingroup qtgraphs_qmlexamples
+    \brief Example application imitating an airplane cockpit using Graphs.
+
+    \image cockpit-example.png
+
+    The cockpit example features a number of different graph types to draw fictional airplane control screens.
+    The graphs used in the example are:
+
+    \list
+        \li PieSeries (Speedometer)
+        \li LineSeries (Vibration Panel, Navigation Map)
+        \li AreaSeries (Navigation Map, Primary Flight Display)
+        \li BarSeries (Navigation Map, Primary Flight Display)
+        \li ScatterSeries (Navigation Map)
+        \li SplineSeries (Primary Flight Display)
+    \endlist
+
+    \include examples-run.qdocinc
+
+    \section1 Speedometer
+
+    The speedometer view consists of 3 PieSeries inside a single GraphsView with
+    QML Rectangles as needles for both of the dials.
+
+    The \b backgroundVisible property for the GraphsTheme is set to \c false.
+    All the \l {PieSlice}{PieSlices} have their own custom colors. To display a circle scale
+    with a hollow center, the example uses PieSeries with different \b holeSize.
+
+    \snippet 2d/cockpit/qml/cockpit/Speedometer.qml 1
+
+    \section1 Vibration Panel
+
+    The Vibration Panel contains a \l LineSeries which is dynamically updated at
+    runtime. After launch, a set of points is added to the series using the QML
+    invoked \b append function. Then on each frame, the values are replaced
+    using the \b replace function with calculated values. Users can change these
+    values through the Vibration Graph Panel.
+
+    \snippet 2d/cockpit/qml/cockpit/VibrationSensor.qml 1
+
+    \section1 Vibration Graph Panel
+
+    This panel contains control knobs to adjust values that affect the
+    visualization displayed in the Vibration Panel.
+
+    \section1 Navigation Map
+
+    The Navigation Map has two main sections:
+
+    \list
+    	\li The left panel contains a number of \l BarSeries with a custom shader
+        that utilizes the \l {BarSet}{BarSets} color to shade each of the bars.
+
+        \snippet 2d/cockpit/qml/cockpit/Map.qml 1
+
+        \li The right panel contains:
+
+            \list
+                \li An \l AreaSeries with two \l LineSeries visualizes a
+                    fictional lake.
+                \li A \l ScatterSeries on top of that displays custom icons, for
+                    example, airports, on a map.
+                \li The \e ADD button adds a \l LineSeries whose points can be
+                    moved around to create a path. This \l LineSeries uses a
+                    custom shader for the \b pointDelegate and the
+                    \l ScatterSeries uses an image.
+            \endlist
+
+        \snippet 2d/cockpit/qml/cockpit/Map.qml 2
+    \endlist
+
+    \section1 Primary Flight Display
+
+    The Primary Flight Display features an imitation of the "3D" view of the
+    terrain. It is implemented with two \l AreaSeries to represent the ground and
+    the sky each with custom colors. A \l FrameAnimation updates the values of
+    these series.
+
+    \snippet 2d/cockpit/qml/cockpit/ArtificialHorizon.qml 1
+
+    At the left side, a themed \l BarSeries shows the y-axis labels. This
+    \l BarSeries also uses a custom shader for the bar.
+
+    \snippet 2d/cockpit/qml/cockpit/ArtificialHorizon.qml 2
+
+    At the bottom of the view, a \l SplineSeries visualizes the terrain height
+    under the plane. The \l SplineSeries is updated at each frame. The code that
+    updates the series appends to the back and removes them from the front a
+    continuous series of points. On hover, the \l SplineSeries shows a tooltip
+    which displays the y-axis value (Altitude).
+
+    \snippet 2d/cockpit/qml/cockpit/ArtificialHorizon.qml 3
+*/

@@ -1,0 +1,35 @@
+version: 2
+accept_configuration:
+  condition: property
+  property: features
+  not_contains_value: Disable
+
+create_debian_from_openapi-cli: &create_debian_from_openapi-cli
+     type: Group
+     instructions:
+       - type: ExecuteCommand
+         command: "coin/make_openapi_generator_cli_as_debian.sh"
+         maxTimeInSeconds: 1400
+         maxTimeBetweenOutput: 1200
+         enable_if:
+           condition: property
+           property: features
+           contains_value: DebianPackaging
+         userMessageOnFailure: >
+             Failed to build openapi-generator-cli.jar debian package
+
+instructions:
+  Build:
+    - type: EnvironmentVariable
+      variableName: VERIFY_SOURCE_SBOM
+      variableValue: "ON"
+    - type: Group
+      instructions:
+        - *create_debian_from_openapi-cli
+        - !include "{{qt/qtbase}}/coin_module_build_template_v2.yaml"
+
+  Test:
+    - type: Group
+      instructions:
+        - !include "{{qt/qtbase}}/coin_module_test_template_v3.yaml"
+        - !include "{{qt/qtbase}}/coin_module_test_docs.yaml"

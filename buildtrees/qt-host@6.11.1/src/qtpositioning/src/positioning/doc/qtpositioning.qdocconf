@@ -1,0 +1,81 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/config/exampleurl-qtpositioning.qdocconf)
+
+project           = QtPositioning
+description    = Qt Positioning Reference Documentation
+version          = $QT_VERSION
+
+qhp.projects            = QtPositioning
+
+qhp.QtPositioning.file                = qtpositioning.qhp
+qhp.QtPositioning.namespace           = org.qt-project.qtpositioning.$QT_VERSION_TAG
+qhp.QtPositioning.virtualFolder       = qtpositioning
+qhp.QtPositioning.indexTitle          = Qt Positioning
+qhp.QtPositioning.indexRoot           =
+
+qhp.QtPositioning.subprojects = manual examples classes qml
+
+qhp.QtPositioning.subprojects.classes.title = C++ Classes
+qhp.QtPositioning.subprojects.classes.indexTitle = Qt Positioning C++ Classes
+qhp.QtPositioning.subprojects.classes.selectors = class fake:headerfile
+qhp.QtPositioning.subprojects.classes.sortPages = true
+
+qhp.QtPositioning.subprojects.qml.title = QML Types
+qhp.QtPositioning.subprojects.qml.indexTitle = Qt Positioning QML Types
+qhp.QtPositioning.subprojects.qml.selectors = qmlclass
+qhp.QtPositioning.subprojects.qml.sortPages = true
+
+qhp.QtPositioning.subprojects.examples.title = Qt Positioning Examples
+qhp.QtPositioning.subprojects.examples.indexTitle = Qt Positioning Examples
+qhp.QtPositioning.subprojects.examples.selectors = fake:example
+
+qhp.QtPositioning.subprojects.manual.title = Qt Positioning
+qhp.QtPositioning.subprojects.manual.indexTitle = Qt Positioning module topics
+qhp.QtPositioning.subprojects.manual.type = manual
+
+tagfile                 = ../../../doc/qtpositioning/qtpositioning.tags
+
+depends += qtcore \
+           qtdoc \
+           qtquick \
+           qtqml \
+           qtnetwork \
+           qtqmlxmllistmodel \
+           qmake \
+           qtcmake \
+           qtserialport \
+           qtlocation
+
+headerdirs  += .. \
+                ../../positioningquick
+
+sourcedirs  += .. \
+                ../../positioningquick
+
+examplesinstallpath = positioning
+
+# Path to the root of qtpositioning (for automatic linking to source code)
+url.sources.rootdir     = ../../..
+
+exampledirs += ../../../examples/positioning \
+               snippets/
+
+
+imagedirs   += images
+
+navigation.landingpage = "Qt Positioning"
+navigation.cppclassespage = "Qt Positioning C++ Classes"
+navigation.qmltypespage = "Qt Positioning QML Types"
+# Auto-generate navigation linking based on "Qt Positioning module topics":
+navigation.toctitles = "Qt Positioning module topics"
+navigation.toctitles.inclusive = false
+
+manifestmeta.thumbnail.names += "QtPositioning/Log File*"
+manifestmeta.highlighted.names = \
+    "QtPositioning/Satellite Info" \
+    "QtPositioning/Weather Info"
+
+# Allow zero warnings when testing documentation in CI
+warninglimit = 0
+
+spurious += "Undocumented property .*"

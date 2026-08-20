@@ -1,0 +1,13 @@
+[scrollUpdate]
+android
+b2qt
+[wheelEventPropagation]
+android
+[forwardTouchEvent]
+android
+[touchEventPropagation]
+android
+[windowOpacity]
+macos # QTBUG-139950
+[bypassGraphicsProxyWidget]
+wayland

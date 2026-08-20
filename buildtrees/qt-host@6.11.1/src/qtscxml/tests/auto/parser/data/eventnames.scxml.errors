@@ -1,0 +1,5 @@
+:/tst_parser/data/eventnames.scxml:25:38: error: '.invalid' is not a valid event
+:/tst_parser/data/eventnames.scxml:26:38: error: 'invalid.' is not a valid event
+:/tst_parser/data/eventnames.scxml:14:36: error: '.invalid' is not a valid event
+:/tst_parser/data/eventnames.scxml:15:36: error: 'invalid.' is not a valid event
+:/tst_parser/data/eventnames.scxml:16:36: error: 'in valid' is not a valid event

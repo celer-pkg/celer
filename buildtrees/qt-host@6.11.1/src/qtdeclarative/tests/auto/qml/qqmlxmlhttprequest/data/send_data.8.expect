@@ -1,0 +1,8 @@
+OPTIONS / HTTP/1.1
+content-length: 0
+connection: Keep-Alive{{Ignore}}
+http2-settings: {{Ignore}}
+accept-encoding: {{Ignore}}
+accept-language: {{Ignore}}
+user-agent: Mozilla/5.0
+host: {{ServerHostUrl}}

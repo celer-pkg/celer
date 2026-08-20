@@ -1,0 +1,6 @@
+void MAIN()
+{
+    METALNESS = 0.0;
+    ROUGHNESS = 1.0;
+    OCCLUSION_AMOUNT = UV0.x;
+}

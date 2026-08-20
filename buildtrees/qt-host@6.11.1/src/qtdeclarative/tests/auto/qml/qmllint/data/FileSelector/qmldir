@@ -1,0 +1,4 @@
+module test
+
+ToolBar 1.0 +Material/ToolBar.qml
+ToolBar 1.0 ToolBar.qml

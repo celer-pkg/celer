@@ -1,0 +1,89 @@
+//! [fillRule-property]
+\qmlproperty enumeration \1::fillRule
+
+This property holds the fill rule. The default value is
+\c ShapePath.OddEvenFill. For an explanation on fill rules, see
+QPainterPath::setFillRule().
+
+\value ShapePath.OddEvenFill
+    Odd-even fill rule.
+
+\value ShapePath.WindingFill
+    Non-zero winding fill rule.
+//! [fillRule-property]
+
+
+//! [joinStyle-property]
+\qmlproperty enumeration \1::joinStyle
+
+This property defines how joins between two connected lines are drawn. The
+default value is \c ShapePath.BevelJoin.
+
+\value ShapePath.MiterJoin
+    The outer edges of the lines are extended to meet at an angle, and
+    this area is filled.
+
+\value ShapePath.BevelJoin
+    The triangular notch between the two lines is filled.
+
+\value ShapePath.RoundJoin
+    A circular arc between the two lines is filled.
+//! [joinStyle-property]
+
+//! [capStyle-property]
+\qmlproperty enumeration \1::capStyle
+
+This property defines how the end points of lines are drawn. The
+default value is \c ShapePath.SquareCap.
+
+\value ShapePath.FlatCap
+    A square line end that does not cover the end point of the line.
+
+\value ShapePath.SquareCap
+    A square line end that covers the end point and extends beyond it
+    by half the line width.
+
+\value ShapePath.RoundCap
+    A rounded line end.
+//! [capStyle-property]
+
+
+//! [strokeStyle-property]
+\qmlproperty enumeration \1::strokeStyle
+
+This property defines the style of stroking. The default value is
+ShapePath.SolidLine.
+
+\value ShapePath.SolidLine
+    A plain line.
+
+\value ShapePath.DashLine
+    Dashes separated by a few pixels.
+//! [strokeStyle-property]
+
+
+//! [dashOffset-property]
+\qmlproperty real \1::dashOffset
+
+This property defines the starting point on the dash pattern, measured in
+units used to specify the dash pattern.
+
+The default value is \c 0.
+
+\sa QPen::setDashOffset()
+//! [dashOffset-property]
+
+
+//! [dashPattern-property]
+\qmlproperty list<real> \1::dashPattern
+
+This property defines the dash pattern when \l strokeStyle is set
+to ShapePath.DashLine. The pattern must be specified as an even number of
+positive entries where the entries 1, 3, 5... are the dashes and 2, 4,
+6... are the spaces. The pattern is specified in units of the pen's width.
+
+The default value is (4, 2), meaning a dash of 4 * \l strokeWidth
+pixels followed by a space of 2 * \l strokeWidth pixels.
+
+\sa QPen::setDashPattern()
+//! [dashPattern-property]

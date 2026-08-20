@@ -1,0 +1,23 @@
+# See qtbase/src/testlib/qtestblacklist.cpp for format
+
+[doubleClickInMouseArea]
+macos # QTBUG-139571
+
+[popupWindowFocus]
+offscreen # QTBUG-128321
+
+[focusMultiplePopup]
+linux # QTBUG-133530
+
+[orientation]
+android
+[popupWindowPositionerRespectingScreenBounds]
+android
+[shrinkPopupThatWasLargerThanWindow]
+android
+
+[fadeDimmer]
+macos # QTBUG-131695
+
+[activeFocusItemAfterWindowInactive]
+wayland

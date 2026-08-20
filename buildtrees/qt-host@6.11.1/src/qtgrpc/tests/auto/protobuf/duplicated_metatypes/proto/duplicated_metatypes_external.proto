@@ -1,0 +1,22 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+syntax = "proto3";
+
+package qtprotobufnamespace.duplicated_metatypes_external;
+
+enum TestEnum {
+    TEST_ENUM_VALUE0 = 0;
+    TEST_ENUM_VALUE1 = 1;
+}
+
+message Message1 {
+    string opts = 1;
+}
+
+message Message2 {
+    map<string, Message1> opts = 1;
+}
+
+message Message3 {
+    map<string, TestEnum> opts = 1;
+}

@@ -1,0 +1,105 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*! \example modbus/custom
+    \title Modbus Custom Command
+    \ingroup qtserialbus-examples
+    \examplecategory Connectivity
+
+    \brief The example shows how to handle custom Modbus function codes.
+
+    The example acts as both Modbus client and server in a single application.
+    The connection between them is established via Modbus TCP. It is used to
+    send and receive custom Modbus requests and adjusts its internal states
+    based on the request and response.
+
+    The main purpose of the example is to provide some demo code on how to
+    implement a Modbus client or Modbus server handling custom Modbus function
+    codes.
+
+    \image ../images/custom.png
+
+    \section1 User-Defined Modbus Function Codes
+
+    The Modbus protocol supports function codes in the range \c {1 - 127
+    (0x01 - 0x7F HEX)}. Most of the function codes are well defined and publicly
+    documented. However, there are two ranges that can be used for user-defined
+    functions. Those are \c {65 - 72 (0x41 - 48 HEX)} and
+    \c {100 - 110 (0x64 - 0x6E HEX)}. The user can select function codes from
+    these ranges and handle them in some custom way.
+
+    This application uses function code \c {65 (0x41 HEX)} to implement
+    \c CustomRead command and function code \c {66 (0x42 HEX)} to implement
+    \c CustomWrite command. In this example the custom commands are used to
+    simply read and write the
+    \l {QModbusDataUnit::HoldingRegisters}{Holding Registers}.
+
+    \section1 Sending Custom Modbus Commands
+
+    The custom Modbus commands are sent using the
+    \l QModbusClient::sendRawRequest() method. This method requires to generate
+    a \l QModbusRequest object with the desired function code and a list of
+    arguments which will be encoded into a \l {QByteArray}:
+
+    \snippet modbus/custom/mainwindow.cpp generate_modbus_request
+
+    The \l QModbusClient::sendRawRequest() method returns a \l QModbusReply
+    object which can be used to check for errors as usual:
+
+    \snippet modbus/custom/mainwindow.cpp send_custom_command
+
+    \section1 Custom Modbus Server
+
+    The custom server is derived from the \l QModbusTcpServer class. It
+    overrides the \l QModbusServer::processPrivateRequest() method.
+
+    \snippet modbus/custom/modbusserver.h custom_server
+
+    The base server class calls the
+    \l {QModbusServer::}{processPrivateRequest()} method when a command with a
+    custom function code is received.
+
+    The custom implementation handles the \c CustomRead command by generating
+    a \l QModbusResponse with the values of requested registers:
+
+    \snippet modbus/custom/modbusserver.cpp handle_custom_read
+
+    Handling \c CustomWrite command includes extracting the new values from
+    the received \l QModbusPdu, doing the actual value update, and returning
+    a \l QModbusResponse with the registers that were actually updated:
+
+    \snippet modbus/custom/modbusserver.cpp handle_custom_write
+
+    \section1 Custom Modbus Client
+
+    The custom client is derived from the \l QModbusTcpClient class. It
+    overrides the \l QModbusClient::processPrivateResponse() method.
+
+    \snippet modbus/custom/modbusclient.h custom_client
+
+    The base client class calls the
+    \l {QModbusClient::}{processPrivateResponse()} method to process the server
+    responses with custom function codes.
+
+    The custom implementation handles the responses with \c CustomRead and
+    \c CustomWrite function codes:
+
+    \snippet modbus/custom/modbusclient.cpp private_response
+
+    The \c CustomRead response is handled by decoding the provided \l QModbusPdu
+    and extracting the values for requested registers:
+
+    \snippet modbus/custom/modbusclient.cpp process_custom_read
+
+    The \c CustomWrite response is handled by simply validating the response
+    parameters:
+
+    \snippet modbus/custom/modbusclient.cpp process_custom_write
+
+    \include examples-run.qdocinc
+
+    This example cannot be used in conjunction with other applications. Once the
+    example is started, it can only exchange custom Modbus commands within the
+    application itself. All interactions between the client and server use the
+    Modbus TCP protocol.
+*/

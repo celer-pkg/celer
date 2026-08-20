@@ -1,0 +1,142 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  pages: {
+    page-load-and-click-1: {
+      blocks: {
+        template: ./page-load-and-click.hjson
+        args: {
+          PAGE_URL: https://www.amazon.com/Pampers-Sensitive-Water-Based-Diaper-Pop-Top/dp/B01C3H4ZTY/
+          CLICK_SELECTOR: a[data-csa-c-content-id='nav_cs_bestsellers']
+          VERIFY_SELECTOR: div[aria-label='Navigation Tree']
+        }
+        unbound_args: [
+          TARGET
+        ]
+      }
+    }
+    page-load-and-click-2: {
+      blocks: {
+        template: ./page-load-and-click.hjson
+        args: {
+          PAGE_URL: https://www.amazon.com/deals?ref_=nav_cs_gb
+          CLICK_SELECTOR: xpath/(//img[contains(@alt, 'BLACK+DECKER Smart Portable Air Conditioner')])[1]
+          VERIFY_SELECTOR: input#buy-now-button
+        }
+        unbound_args: [
+          TARGET
+        ]
+      }
+    }
+    page-load-and-click-3: {
+      blocks: {
+        template: ./page-load-and-click.hjson
+        args: {
+          PAGE_URL: https://www.apple.com/
+          CLICK_SELECTOR: a[href='/us-edu/shop/goto/edu_store']
+          VERIFY_SELECTOR: div#page > div.rs-storehome
+        }
+        unbound_args: [
+          TARGET
+        ]
+      }
+    }
+    page-load-and-click-4: {
+      blocks: {
+        template: ./page-load-and-click.hjson
+        args: {
+          PAGE_URL: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/ebay.html
+          CLICK_SELECTOR: xpath/(//li[@class='vl-flyout-nav__js-tab' and @data-currenttabindex='0']//a[normalize-space(text())='Motors'])[1]
+          VERIFY_SELECTOR: xpath/(//html/body/div[2]/div[2]/section[1]/h1)[1]
+        }
+        unbound_args: [
+          TARGET
+        ]
+      }
+    }
+    page-load-and-click-5: {
+      blocks: {
+        template: ./page-load-and-click.hjson
+        args: {
+          PAGE_URL: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/google.html
+          CLICK_SELECTOR: xpath/(//a[contains(@data-hveid, 'CA0QAQ')])[1]
+          VERIFY_SELECTOR: xpath/(//a[@aria-current='page'])
+        }
+        unbound_args: [
+          TARGET
+        ]
+      }
+    }
+    page-load-and-click-6: {
+      blocks: {
+        template: ./page-load-and-click.hjson
+        args: {
+          PAGE_URL: https://www.wattpad.com/1064082391-king-of-dust-chapter-01
+          CLICK_SELECTOR: a[title='Wattpad Home']
+          VERIFY_SELECTOR: xpath/(//button[text()='Start Reading'])[1]
+        }
+        unbound_args: [
+          TARGET
+        ]
+      }
+    }
+    page-load-and-click-7: {
+      blocks: {
+        template: ./page-load-and-click.hjson
+        args: {
+          PAGE_URL: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/bbc.html
+          CLICK_SELECTOR: xpath/(//a[@href='https://www.bbc.com/news'])[1]
+          VERIFY_SELECTOR: xpath/(//button[@aria-label='Open menu'])[1]
+        }
+        unbound_args: [
+          TARGET
+        ]
+      }
+    }
+    page-load-and-click-8: {
+      blocks: {
+        template: ./page-load-and-click.hjson
+        args: {
+          PAGE_URL: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/yahoo.html
+          CLICK_SELECTOR: xpath/(//a[@href='https://finance.yahoo.com/'])[1]
+          VERIFY_SELECTOR: xpath/(//h1[text()='Yahoo Finance'])[1]
+        }
+        unbound_args: [
+          TARGET
+        ]
+      }
+    }
+    page-load-and-click-9: {
+      blocks: {
+        template: ./page-load-and-click.hjson
+        args: {
+          PAGE_URL: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/stackoverflow.html
+          CLICK_SELECTOR: xpath/(//a[contains(@class, 's-topbar--logo js-gps-track')])[1]
+          VERIFY_SELECTOR: xpath/(//div[@id='left-sidebar']/div[1]/nav/ol/li[1]/ol/li[1]/a)[1]
+        }
+        unbound_args: [
+          TARGET
+        ]
+      }
+    }
+    page-load-and-click-10: {
+      blocks: {
+        template: ./page-load-and-click.hjson
+        args: {
+          PAGE_URL: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/wikipedia.html
+          CLICK_SELECTOR: xpath/(//a[contains(@class, 'mw-logo')])[1]
+          VERIFY_SELECTOR: xpath/(//li[@id='ca-nstab-main']/a)[1]
+        }
+        unbound_args: [
+          TARGET
+        ]
+      }
+      teardown: [
+        {
+          action: close_all_tabs
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,86 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page android-3rdparty-libs.html
+    \title Third-party Android Libraries
+    \ingroup android-platform-extra-topics
+    \brief Instructions on including third-party Android libraries in an application.
+    \previouspage android-services.html
+    \nextpage android-publishing-to-googleplay.html
+
+    This guide describes how to include a third-party library in your
+    application package. There are many libraries which provide APIs that
+    may be useful to your application.
+
+    \section1 Prerequisites
+
+    This guide assumes that the \l{androiddeployqt} tool is used for constructing
+    the deployment package. When using \QC for building and deploying,
+    androiddeployqt is used behind the scenes, so this also applies to
+    development with \QC. Explaining how to access the library's APIs after
+    being included in the project is not in the scope of this guide. For
+    more information, see \l{Extending Qt with Android Facilities}.
+
+    \section1 Including a Library to an Android Project
+
+    The very first thing you need to do is to copy the library files into
+    your project. The contents of the library have to be copied without
+    modifications into the packaging directory, i.e. into the path set by
+    \l{QT_ANDROID_PACKAGE_SOURCE_DIR}. By default, it's a directory named
+    \c android under the root of the project source. For more information,
+    see \l{Android Libraries}.
+
+    If you are using \QC, you can quickly set up the packaging directory
+    structure by selecting \uicontrol Projects > \uicontrol Build >
+    \uicontrol {Build Android APK} > \uicontrol {Create Templates}. This creates
+    a directory for your \l{Extending Qt with Android Facilities}{Android package customizations}.
+    Copy the library directory into \e {"<target_src>/android/libs/"}.
+
+    \section2 Adding a Native Shared Library
+
+    To add native shared libraries, you can use CMake's property
+    \l QT_ANDROID_EXTRA_LIBS or \c qmake's \c ANDROID_EXTRA_LIBS which enables
+    bundling the library into the Android package.
+
+    \section2 Adding a .jar or .aar Library
+
+    By default, Qt for Android uses can use \c .jar or \c .aar libraries that are
+    found in the path \e {"<target_src>/android/libs/"}. Qt has the following
+    rule in \c{build.gradle} file that is part of \l{Gradle files}{the Gradle files}
+    used by Android build:
+
+    \badcode
+    dependencies {
+        implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+        ...
+    }
+    \endcode
+
+    You can build \l{Android Packaging Options}{AAR Libraries} with Qt for Android.
+
+    \section1 Adding a Library Project
+
+    Having a library called \c{CustomLibrary}, similar to the previous approach,
+    copy the library project to your packaging directory
+    \e {"<target_src>/android/libs/"}, then create a file \c{settings.gradle}
+    with the following content:
+
+    \badcode
+    include ':libs:CustomLibrary'
+    \endcode
+
+    Then, add the dependency to \c{build.gradle} file inside the \c{dependencies}
+    block:
+
+    \badcode
+    dependencies {
+        ...
+        implementation project(":libs:CustomLibrary")
+        ...
+    }
+    \endcode
+
+    For more information on adding libraries to an Android project, see
+    \l{Android: Add build dependencies}{Add build dependencies Android documentation}.
+*/

@@ -1,0 +1,156 @@
+[
+    {
+        "CPE": [],
+        "Copyright": "",
+        "CopyrightFile": "",
+        "Description": "Hello world!\nLine 2",
+        "DownloadLocation": "",
+        "Files": "",
+        "Homepage": "",
+        "Id": "chromium-test",
+        "License": "License",
+        "LicenseFile": "",
+        "LicenseId": "",
+        "Name": "Test",
+        "PURL": [],
+        "PackageComment": "",
+        "Path": "%{PWD}/chromium",
+        "QDocModule": "qtwebengine",
+        "QtParts": [
+            "libs"
+        ],
+        "QtUsage": "Used in Qt WebEngine",
+        "SecurityCritical": false,
+        "Version": ""
+    },
+    {
+        "CPE": [
+            "cpe:2.3:a:qt:qt:1.0:*:*:*:*:*:*:*",
+            "cpe:2.3:a:qt:qtbase:1.0:*:*:*:*:*:*:*"
+        ],
+        "Copyright": "Copyright",
+        "CopyrightFile": "",
+        "Description": "Multi\nLine\nDescription",
+        "DownloadLocation": "www.qt.io/1.0/qt-1-0",
+        "Files": "",
+        "Homepage": "www.qt.io",
+        "Id": "complete",
+        "License": "License",
+        "LicenseFile": "%{PWD}/complete/../../../../../../LICENSES/BSD-3-Clause.txt",
+        "LicenseId": "xxx",
+        "Name": "Complete",
+        "PURL": [
+            "pkg:github/qt/qt@1.0",
+            "pkg:github/qt/qtbase@1.0"
+        ],
+        "PackageComment": "just a test package",
+        "Path": "%{PWD}/complete",
+        "QDocModule": "qtest",
+        "QtParts": [
+            "examples"
+        ],
+        "QtUsage": "Multi\nLine\nUsage",
+        "SecurityCritical": true,
+        "Version": "1.0"
+    },
+    {
+        "CPE": [],
+        "Copyright": "Copyright",
+        "CopyrightFile": "",
+        "Description": "",
+        "DownloadLocation": "",
+        "Files": "",
+        "Homepage": "",
+        "Id": "licenses-dir",
+        "License": "BSD 3-Clause \"New\" or \"Revised\" License",
+        "LicenseFile": "%{LICENSES_DIR}/BSD-3-Clause.txt",
+        "LicenseId": "BSD-3-Clause",
+        "Name": "LicensesDir",
+        "PURL": [],
+        "PackageComment": "",
+        "Path": "%{PWD}/licenses-dir",
+        "QDocModule": "qtest",
+        "QtParts": [
+            "libs"
+        ],
+        "QtUsage": "Usage",
+        "SecurityCritical": false,
+        "Version": ""
+    },
+    {
+        "CPE":[],
+        "Copyright":"",
+        "CopyrightFile":"",
+        "Description":"",
+        "DownloadLocation":"",
+        "Files":"",
+        "Homepage":"",
+        "Id":"local",
+        "License":"License",
+        "LicenseFiles":[
+            "%{PWD}/local_license/LICENSE.Id1.txt",
+            "%{PWD}/local_license/LICENSE.Id2.txt"
+        ],
+        "LicenseId":"Id1 AND Id2",
+        "Name":"Local Test",
+        "PURL":[],
+        "PackageComment":"",
+        "Path":"%{PWD}/local_license",
+        "QDocModule":"qtest",
+        "QtParts":["libs"],
+        "QtUsage":"Usage",
+        "SecurityCritical":false,
+        "Version":""
+    },
+    {
+        "CPE": ["cpe:2.3:a:qt:qtbase:test-version:*:*:*:*:*:*:*"],
+        "Copyright": "Copyright",
+        "CopyrightFile": "",
+        "Description": "",
+        "DownloadLocation": "",
+        "Files": "",
+        "Homepage": "",
+        "Id": "minimal",
+        "License": "License",
+        "LicenseFile": "",
+        "LicenseId": "",
+        "Name": "Minimal",
+        "PURL": ["pkg:github/qt/qtbase@test-version"],
+        "PackageComment": "",
+        "Path": "%{PWD}/minimal",
+        "QDocModule": "qtest",
+        "QtParts": [
+            "libs"
+        ],
+        "QtUsage": "Usage",
+        "SecurityCritical": false,
+        "Version": ""
+    },
+    {
+        "CPE": [],
+        "Copyright": "",
+        "CopyrightFile": "%{PWD}/variants/COPYRIGHT.txt",
+        "Description": "",
+        "DownloadLocation": "",
+        "Files": "",
+        "Homepage": "",
+        "Id": "variants",
+        "License": "License",
+        "LicenseFiles": [
+            "%{PWD}/variants/LICENSE.1.txt",
+            "%{PWD}/variants/LICENSE.2.txt"
+        ],
+        "LicenseId": "",
+        "Name": "Variants Test",
+        "PURL": [],
+        "PackageComment": "",
+        "Path": "%{PWD}/variants",
+        "QDocModule": "qtest",
+        "QtParts": [
+            "libs"
+        ],
+        "QtUsage": "Usage",
+        "SecurityCritical": false,
+        "Version": ""
+    }
+]

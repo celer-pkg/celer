@@ -1,0 +1,47 @@
+<html xmlns="http://www.w3.org/1999/xhtml" />
+<meta charset="UTF-8">
+
+<head>
+    <style>
+        body,
+        html {
+            background-color: #ffffff;
+            color: #000000;
+            margin: 0px;
+            height: 100%;
+            width: 100%;
+            overflow-x: hidden;
+            overflow-y: hidden;
+            font-family: Arial;
+            font-weight: bold;
+        }
+    </style>
+    <script src=https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.4.1/lottie.js type="text/javascript"></script>
+</head>
+
+<body>
+
+<div class="position">
+    <div class="title">CONTENT</div>
+    <div class="bodymovin" id="content"></div>
+</div>
+
+    <script>
+        var content = {
+            container: document.getElementById('content'),
+            renderer: 'svg',
+            loop: true,
+            autoplay: true,
+            rendererSettings: {
+                progressiveLoad: false
+            },
+            path: 'content.json'
+        };
+
+        var anim = bodymovin.loadAnimation(content);
+    </script>
+
+
+</body>
+
+</html>

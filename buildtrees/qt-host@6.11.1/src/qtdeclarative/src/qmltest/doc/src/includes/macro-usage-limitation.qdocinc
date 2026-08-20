@@ -1,0 +1,2 @@
+\note This macro can only be used in a test function that is invoked by the
+test framework.

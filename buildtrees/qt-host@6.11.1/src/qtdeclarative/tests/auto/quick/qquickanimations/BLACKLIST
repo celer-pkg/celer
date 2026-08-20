@@ -1,0 +1,18 @@
+# QTBUG-82015
+[simplePath]
+macos ci
+# QTBUG-85624
+[reparent]
+macos ci
+
+#QTBUG-98516
+[pathTransition]
+macos ci
+
+#QTBUG-98516
+[opacityAnimationFromZero]
+macos ci
+
+# QTBUG-104107
+[frameAnimation2]
+macos ci

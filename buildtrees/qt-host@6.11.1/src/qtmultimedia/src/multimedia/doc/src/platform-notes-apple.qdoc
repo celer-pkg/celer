@@ -1,0 +1,50 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtmultimedia-apple.html
+\title Qt Multimedia on macOS and iOS
+\brief Platform notes for iOS
+
+This page covers the availability of Qt Multimedia features on iOS and macOS.
+
+\section1 Limitations
+
+Since Qt Multimedia for iOS uses the camera and microphone, the \c Info.plist
+assigned to QMAKE_INFO_PLIST in the project file must contain the keys
+\c NSCameraUsageDescription and \c NSMicrophoneUsageDescription. Otherwise, the
+application will abort on startup. See \l{Info.plist} documentation from Apple
+for more information regarding this key.
+
+\section1 Use of FFmpeg libraries on iOS
+
+FFmpeg binaries from the online installer must be embedded into the application's
+bundle. To embed these libraries, you can add the \l{qt6_add_ios_ffmpeg_libraries}{qt6_add_ios_ffmpeg_libraries()}
+command to the app's CMakeLists.txt file:
+
+\code
+   qt_add_ios_ffmpeg_libraries(mytarget)
+\endcode
+
+\sa {qt6_add_ios_ffmpeg_libraries}{qt_add_ios_ffmpeg_libraries()}
+
+When using QMake, add the following to your \c{.pro} file:
+
+\code
+CONFIG += add_ios_ffmpeg_libraries
+\endcode
+
+\note The FFmpeg binaries from the online installer are built for arm64 and x86_64-simulator to ensure they
+pass validation with Apple Store Connect and can be used when running the iOS simulator.
+
+\note A limitation in Qt Multimedia builds that include FFmpeg support,
+is that FFmpeg libraries must be provided at link-time when building
+iOS applications. Failing to do so will result in linker errors. This
+includes the Qt Multimedia builds supplied by Qt Maintenance Tool.
+Applications that use such builds are required to call
+\l{qt_add_ios_ffmpeg_libraries}, or otherwise link their own FFmpeg
+libraries. As a consequence, application developers that wish to
+deploy iOS applications without FFmpeg, must build their own build
+of Qt Multimedia without FFmpeg support.
+
+*/

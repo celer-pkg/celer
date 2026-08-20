@@ -1,0 +1,58 @@
+{
+    "QEN": {
+        "description": "Animated bars effect.",
+        "fragmentCode": [
+            "@main",
+            "{",
+            "    float px = 1.0 / iResolution.x;",
+            "    float sbar = iResolution.x / barsBarWidth * 0.5;",
+            "    float movement = -iTime * px * barsAnimationSpeed;",
+            "    float p = ((fragCoord.x + fragCoord.y * barsBarAngle) * px + movement) * sbar;",
+            "    float bar = abs(2.0 * fract(p) - 1.0);",
+            "    float barSmoothness = 2.0 / barsBarWidth;",
+            "    bar = smoothstep(0.5 - barSmoothness, 0.5 + barSmoothness, bar);",
+            "    fragColor = mix(barsColor1, barsColor2, bar);",
+            "}"
+        ],
+        "name": "Bars",
+        "properties": [
+            {
+                "defaultValue": "0, 0, 0, 1",
+                "description": "First color of the bars.",
+                "name": "barsColor1",
+                "type": "color"
+            },
+            {
+                "defaultValue": "1, 1, 1, 1",
+                "description": "Second color of the bars.",
+                "name": "barsColor2",
+                "type": "color"
+            },
+            {
+                "defaultValue": "30",
+                "description": "Width of the bars in pixels.",
+                "maxValue": "100",
+                "minValue": "4",
+                "name": "barsBarWidth",
+                "type": "float"
+            },
+            {
+                "defaultValue": "50",
+                "description": "How fast the bars animate in pixels per second.",
+                "maxValue": "200",
+                "minValue": "-200",
+                "name": "barsAnimationSpeed",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0.5",
+                "description": "Rotation angle of the bars.",
+                "maxValue": "1",
+                "minValue": "-1",
+                "name": "barsBarAngle",
+                "type": "float"
+            }
+        ],
+        "version": 1
+    }
+}

@@ -1,0 +1,38 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example instancing
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - Instanced Rendering Example
+    \examplecategory {3D}
+    \brief Demonstrates how to do instanced rendering in Qt Quick 3D.
+    \image instancing.jpg
+           {Space scene with asteroid field and two spaceships demonstrating
+           instanced rendering}
+
+    This example shows how do instanced rendering using the basic QML API.
+
+    The spaceship and asteroid models were created using the Blender 3D modeling tool, and imported with \l{Balsam Asset Import Tool}{balsam}.
+
+    \section1 Random instancing
+
+    We use \l {RandomInstancing} to make a random table that defines our asteroid field:
+
+    \snippet instancing/main.qml randomInstancing
+
+    Position and rotation are allowed to vary freely. Scaling is set to be uniform in all directions
+    and colors are grayscale. This is done by setting the
+    \l{InstanceRange::proportional}{proportional} attribute.
+
+    The spaceships are placed manually using \l{InstanceList}:
+    \snippet instancing/main.qml manualInstancing
+    The properties of \l InstanceListEntry are bindable: here we animate the red ship so it crosses the path of the camera.
+
+    Finally we apply the instancing tables to the objects:
+    \snippet instancing/main.qml objects
+
+    By animating the rotation of the asteroid model, all of the instances will rotate without having
+    to change the contents of the instance table. Since the asteroid instances have random
+    rotations, all the asteroids will rotate around different axes.
+*/

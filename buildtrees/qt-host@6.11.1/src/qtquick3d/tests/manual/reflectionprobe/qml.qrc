@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>qt_logo.png</file>
+        <file>OpenfootageNET_garage-1024.hdr</file>
+        <file>material_simple.frag</file>
+        <file>snowflake.png</file>
+        <file>cubemap_bc1.ktx</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,80 @@
+# Copyright 2022 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("../../../scripts/build/ninja/devtools_entrypoint.gni")
+import("../../../scripts/build/ninja/devtools_module.gni")
+import("../../../scripts/build/typescript/typescript.gni")
+import("../visibility.gni")
+
+devtools_module("trace") {
+  sources = [
+    "LanternComputationData.ts",
+    "ModelImpl.ts",
+    "Processor.ts",
+  ]
+
+  deps = [
+    "../../core/common:bundle",
+    "../../core/platform:bundle",
+    "../../core/root:bundle",
+    "../../core/sdk:bundle",
+    "../../generated:protocol",
+    "../cpu_profile:bundle",
+    "extras:bundle",
+    "handlers:bundle",
+    "helpers:bundle",
+    "insights:bundle",
+    "lantern:bundle",
+    "types:bundle",
+  ]
+}
+
+devtools_entrypoint("bundle") {
+  entrypoint = "trace.ts"
+
+  deps = [
+    ":trace",
+    "extras:bundle",
+    "handlers:bundle",
+    "helpers:bundle",
+    "insights:bundle",
+    "lantern:bundle",
+    "types:bundle",
+  ]
+
+  visibility = [
+    ":*",
+    "../../../test/interactions/*",
+    "../../core/sdk:unittests",
+    "../../legacy_test_runner/*",
+    "../../panels/lighthouse/*",
+    "../../panels/network/*",
+    "../../panels/recorder/*",
+    "../../panels/timeline/*",
+    "../../services/trace_bounds/*",
+    "../../services/tracing/*",
+    "../../testing/*",
+    "../../ui/components/docs/*",
+    "../../ui/legacy/components/utils/*",
+    "../ai_assistance/*",
+    "../live-metrics/*",
+    "./*",
+  ]
+
+  visibility += devtools_models_visibility
+}
+
+ts_library("unittests") {
+  testonly = true
+
+  sources = [
+    "ModelImpl.test.ts",
+    "Processor.test.ts",
+  ]
+
+  deps = [
+    ":bundle",
+    "../../testing",
+  ]
+}

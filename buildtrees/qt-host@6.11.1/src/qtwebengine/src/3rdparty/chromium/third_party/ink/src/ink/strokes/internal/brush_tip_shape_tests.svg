@@ -1,0 +1,2945 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 13.425 432.982 1167.121"
+   version="1.1"
+   id="svg960"
+   sodipodi:docname="brush_tip_shape_tests.svg"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   width="432.98199"
+   height="1167.121"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs964" />
+  <sodipodi:namedview
+     id="namedview962"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="2"
+     inkscape:cx="37.75"
+     inkscape:cy="1124.5"
+     inkscape:window-width="1916"
+     inkscape:window-height="1153"
+     inkscape:window-x="0"
+     inkscape:window-y="23"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg960">
+    <inkscape:grid
+       type="xygrid"
+       id="grid1398" />
+  </sodipodi:namedview>
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="30"
+     cy="65"
+     r="20"
+     id="circle2" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="10.014"
+     y="32.472"
+     id="text4">Circles</text>
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="40"
+     cy="65"
+     r="20"
+     id="circle6" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="10.00975"
+     y="102.423"
+     id="text10">Circle + Stadium<tspan
+   x="10.00975"
+   dy="12"
+   id="tspan8">​</tspan></text>
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="40.890999"
+     cy="149.66701"
+     r="20"
+     id="circle12" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="30.891001"
+     cy="139.66701"
+     r="10"
+     id="circle14" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="50.890999"
+     cy="139.66701"
+     r="10"
+     id="circle16" />
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="30"
+     y1="45"
+     x2="40"
+     y2="45"
+     id="line18" />
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="29.999912"
+     y1="84.999893"
+     x2="39.999912"
+     y2="84.999893"
+     id="line20" />
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="20.891001"
+     y1="149.668"
+     x2="20.891001"
+     y2="139.668"
+     id="line22" />
+  <line
+     style="fill:#0000ff;stroke:#0000ff;paint-order:fill"
+     x1="30.891001"
+     y1="129.66701"
+     x2="50.890999"
+     y2="129.66701"
+     id="line24" />
+  <line
+     style="fill:#0000ff;stroke:#0000ff;paint-order:fill"
+     x1="30.891001"
+     y1="149.66701"
+     x2="50.890999"
+     y2="149.66701"
+     id="line26" />
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="60.890999"
+     y1="139.66701"
+     x2="60.890999"
+     y2="149.66701"
+     id="line28" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="27.893"
+     y="143.12801"
+     id="text30">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="47.12619"
+     y="143.0845"
+     id="text34">0<tspan
+   x="47.12619"
+   dy="12"
+   id="tspan32">​</tspan></text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0d00"
+     x="36.91"
+     y="161.453"
+     id="text36">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="14.547"
+     y="125.456"
+     id="text38">#1</text>
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="107.57"
+     cy="155.284"
+     r="20"
+     id="circle40" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="108.009"
+     cy="125.392"
+     r="10"
+     id="circle42" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="108.009"
+     cy="145.392"
+     r="10"
+     id="circle44" />
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="88.665001"
+     y1="147.838"
+     x2="98.973999"
+     y2="119.476"
+     id="line46" />
+  <line
+     style="fill:#0000ff;stroke:#0000ff;paint-order:fill"
+     x1="98.009003"
+     y1="125.392"
+     x2="98.009003"
+     y2="145.392"
+     id="line48" />
+  <line
+     style="fill:#0000ff;stroke:#0000ff;paint-order:fill"
+     x1="118.009"
+     y1="125.392"
+     x2="118.009"
+     y2="145.392"
+     id="line50" />
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="117.347"
+     y1="120.331"
+     x2="126.122"
+     y2="148.575"
+     id="line52" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="105.07"
+     y="129.759"
+     id="text54">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="104.30176"
+     y="148.71617"
+     id="text58">0<tspan
+   x="104.30176"
+   dy="12"
+   id="tspan56">​</tspan></text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0d00"
+     x="103.589"
+     y="167.07001"
+     id="text60">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="69.186996"
+     y="126.041"
+     id="text62">#2</text>
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="187.132"
+     cy="138.32201"
+     r="20"
+     id="circle64" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="177.272"
+     cy="158.08099"
+     r="10"
+     id="circle66" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="197.272"
+     cy="158.08099"
+     r="10"
+     id="circle68" />
+  <line
+     style="fill:#0000ff;stroke:#ff0000;paint-order:fill"
+     x1="177.272"
+     y1="148.08099"
+     x2="197.272"
+     y2="148.08099"
+     id="line70" />
+  <line
+     style="fill:#0000ff;stroke:#ff0000;paint-order:fill"
+     x1="177.272"
+     y1="168.08099"
+     x2="197.272"
+     y2="168.08099"
+     id="line72" />
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="207.02299"
+     y1="134.77"
+     x2="207.02299"
+     y2="159.29601"
+     id="line74" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000;stroke-opacity:0;paint-order:fill"
+     x="173.274"
+     y="161.54201"
+     id="text76">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000;stroke-opacity:0;paint-order:fill"
+     id="text82"
+     x="178.5045"
+     y="33.038158"><tspan
+       x="194.5065"
+       y="161.49916"
+       id="tspan78">1</tspan><tspan
+       x="194.5065"
+       dy="12"
+       id="tspan80">​</tspan></text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="183.06599"
+     y="140.463"
+     id="text84">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="145.7524"
+     y="126.09604"
+     id="text88">#3<tspan
+   x="145.7524"
+   dy="12"
+   id="tspan86">​</tspan></text>
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="167.23"
+     y1="135.85899"
+     x2="167.23"
+     y2="160.38499"
+     id="line90" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="271.45001"
+     cy="144.92"
+     r="10"
+     id="circle92" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="271.45001"
+     cy="164.92"
+     r="10"
+     id="circle94" />
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="281.702"
+     y1="168.686"
+     x2="290.901"
+     y2="141.41499"
+     id="line96" />
+  <line
+     style="fill:#0000ff;stroke:#ff0000;paint-order:fill"
+     x1="261.45001"
+     y1="144.92"
+     x2="261.45001"
+     y2="164.92"
+     id="line98" />
+  <line
+     style="fill:#0000ff;stroke:#ff0000;paint-order:fill"
+     x1="281.45001"
+     y1="144.92"
+     x2="281.45001"
+     y2="164.92"
+     id="line100" />
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="253.248"
+     y1="141.991"
+     x2="262.37701"
+     y2="169.87"
+     id="line102" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="268.51099"
+     y="149.287"
+     id="text104">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     id="text110"
+     x="251.74069"
+     y="39.782433"><tspan
+       x="267.74268"
+       y="168.24344"
+       id="tspan106">0</tspan><tspan
+       x="267.74268"
+       dy="12"
+       id="tspan108">​</tspan></text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="225.05376"
+     y="126.20164"
+     id="text116">#4<tspan
+   x="225.05376"
+   dy="12"
+   id="tspan112">​</tspan><tspan
+   x="225.05376"
+   dy="12"
+   id="tspan114">​</tspan></text>
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="271.94699"
+     cy="135.02"
+     r="20"
+     id="circle118" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="267.659"
+     y="134.272"
+     id="text120">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="12.382944"
+     y="194.50325"
+     id="text124">Circle + Square<tspan
+   x="12.382944"
+   dy="12"
+   id="tspan122">​</tspan></text>
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="182.317"
+     cy="311.55899"
+     r="10"
+     id="circle126" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="182.317"
+     cy="351.55899"
+     r="10"
+     id="circle128" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="222.317"
+     cy="311.55899"
+     r="10"
+     id="circle130" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="222.31799"
+     cy="351.55899"
+     r="10"
+     id="circle132" />
+  <line
+     style="stroke:#0000ff"
+     x1="182.317"
+     y1="301.55899"
+     x2="222.317"
+     y2="301.55899"
+     id="line134" />
+  <line
+     style="stroke:#0000ff"
+     x1="182.317"
+     y1="361.55899"
+     x2="222.317"
+     y2="361.55899"
+     id="line136" />
+  <line
+     style="stroke:#0000ff"
+     x1="172.317"
+     y1="311.55899"
+     x2="172.317"
+     y2="351.55899"
+     id="line138" />
+  <line
+     style="stroke:#0000ff"
+     x1="232.317"
+     y1="311.55899"
+     x2="232.317"
+     y2="351.55899"
+     id="line140" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="92.137001"
+     cy="238.511"
+     r="30"
+     id="circle142" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="14.085"
+     y="218.271"
+     id="text144">#1</text>
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="218.4718"
+     cy="-82.202805"
+     r="10"
+     transform="rotate(90)"
+     id="circle146" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="218.4718"
+     cy="-42.202805"
+     r="10"
+     transform="rotate(90)"
+     id="circle148" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="258.4718"
+     cy="-82.202805"
+     r="10"
+     transform="rotate(90)"
+     id="circle150" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="258.47278"
+     cy="-42.202805"
+     r="10"
+     transform="rotate(90)"
+     id="circle152" />
+  <line
+     style="stroke:#ff0000"
+     x1="92.202988"
+     y1="218.472"
+     x2="92.202988"
+     y2="258.47198"
+     id="line154" />
+  <line
+     style="stroke:#ff0000"
+     x1="32.202984"
+     y1="218.472"
+     x2="32.202984"
+     y2="258.47198"
+     id="line156" />
+  <line
+     style="stroke:#ff0000"
+     x1="82.202988"
+     y1="208.472"
+     x2="42.202984"
+     y2="208.472"
+     id="line158" />
+  <line
+     style="stroke:#ff0000"
+     x1="82.202988"
+     y1="268.47198"
+     x2="42.202999"
+     y2="268.47198"
+     id="line160" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0d00"
+     x="78.796997"
+     y="221.48801"
+     id="text162">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0d00"
+     x="38.52"
+     y="222.035"
+     id="text164">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0d00"
+     x="38.438"
+     y="262.991"
+     id="text166">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0d00"
+     x="79.032997"
+     y="262.646"
+     id="text168">3</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="94.952003"
+     y="241.067"
+     id="text170">0</text>
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="82.037003"
+     y1="207.90199"
+     x2="92.037003"
+     y2="207.90199"
+     id="line172" />
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="82.459"
+     y1="268.87299"
+     x2="92.459"
+     y2="268.87299"
+     id="line174" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="-4.0861883"
+     cy="-342.34824"
+     r="10"
+     transform="rotate(134.66012)"
+     id="circle176" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="-4.0862026"
+     cy="-302.34821"
+     r="10"
+     transform="rotate(134.66012)"
+     id="circle178" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="35.913811"
+     cy="-342.34824"
+     r="10"
+     transform="rotate(134.66012)"
+     id="circle180" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="35.914787"
+     cy="-302.34824"
+     r="10"
+     transform="rotate(134.66012)"
+     id="circle182" />
+  <line
+     style="stroke:#ff0000"
+     x1="253.49292"
+     y1="244.75923"
+     x2="225.37694"
+     y2="273.21078"
+     id="line184" />
+  <line
+     style="stroke:#ff0000"
+     x1="210.81494"
+     y1="202.58623"
+     x2="182.69894"
+     y2="231.03778"
+     id="line186" />
+  <line
+     style="stroke:#ff0000"
+     x1="253.4077"
+     y1="230.61702"
+     x2="224.95615"
+     y2="202.50104"
+     id="line188" />
+  <line
+     style="stroke:#ff0000"
+     x1="211.23468"
+     y1="273.29501"
+     x2="182.78313"
+     y2="245.17903"
+     id="line190" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="179.508"
+     cy="238.867"
+     r="30"
+     id="circle192" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="126.92875"
+     y="216.57153"
+     id="text194">#2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0d00"
+     x="214.16"
+     y="213.34"
+     id="text196">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0d00"
+     x="186.983"
+     y="242.069"
+     id="text198">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0d00"
+     x="214.37801"
+     y="271.198"
+     id="text200">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0d00"
+     x="242.332"
+     y="242.326"
+     id="text202">3</text>
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="173.194"
+     y1="209.679"
+     x2="216.049"
+     y2="200.14301"
+     id="line204" />
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="169.48199"
+     y1="268.01199"
+     x2="217.632"
+     y2="277.04501"
+     id="line206" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="167.50432"
+     y="240.29041"
+     id="text208">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="271.99185"
+     y="215.63919"
+     id="text212">#3<tspan
+   x="271.99185"
+   dy="12"
+   id="tspan210">​</tspan></text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="152.40829"
+     y="37.264244"
+     id="text218">brush_tip_shape_test.cc test cases for<tspan
+   x="152.40829"
+   dy="12"
+   id="tspan214">​</tspan>GetTangentCircleIndices<tspan
+   x="152.40829"
+   dy="12"
+   id="tspan216">​</tspan>(approximate scale and proportions)</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="360.944"
+     y="39.814999"
+     id="text220" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="319.58701"
+     cy="240.739"
+     r="30"
+     id="circle222" />
+  <ellipse
+     style="fill:none;stroke:#ff0000;stroke-width:0.639704;paint-order:stroke"
+     cx="229.09113"
+     cy="-360.5253"
+     transform="rotate(90)"
+     id="circle224"
+     rx="6.38939"
+     ry="6.4046998" />
+  <ellipse
+     style="fill:none;stroke:#ff0000;stroke-width:0.639704;paint-order:stroke"
+     cx="229.09113"
+     cy="-334.90649"
+     transform="rotate(90)"
+     id="circle226"
+     rx="6.38939"
+     ry="6.4046998" />
+  <ellipse
+     style="fill:none;stroke:#ff0000;stroke-width:0.639704;paint-order:stroke"
+     cx="254.64868"
+     cy="-360.5253"
+     transform="rotate(90)"
+     id="circle228"
+     rx="6.38939"
+     ry="6.4046998" />
+  <ellipse
+     style="fill:none;stroke:#ff0000;stroke-width:0.639704;paint-order:stroke"
+     cx="254.64931"
+     cy="-334.90649"
+     transform="rotate(90)"
+     id="circle230"
+     rx="6.38939"
+     ry="6.4046998" />
+  <line
+     style="stroke:#ff0000"
+     x1="366.92999"
+     y1="229.09099"
+     x2="366.92999"
+     y2="254.649"
+     id="line232" />
+  <line
+     style="stroke:#ff0000"
+     x1="328.50201"
+     y1="229.09099"
+     x2="328.50201"
+     y2="254.649"
+     id="line234" />
+  <line
+     style="stroke:#ff0000"
+     x1="360.52548"
+     y1="222.70151"
+     x2="334.90646"
+     y2="222.70151"
+     id="line236" />
+  <line
+     style="stroke:#ff0000"
+     x1="360.52551"
+     y1="261.03851"
+     x2="334.90652"
+     y2="261.03851"
+     id="line238" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="309.603"
+     y="244.271"
+     id="text240">0</text>
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="325.45801"
+     y1="210.97099"
+     x2="363.21701"
+     y2="222.548"
+     id="line242" />
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="326.078"
+     y1="270.00201"
+     x2="364.53201"
+     y2="261.03201"
+     id="line244" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0d00"
+     x="357.26001"
+     y="259.01599"
+     id="text246">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0d00"
+     x="357.80301"
+     y="233.187"
+     id="text248">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0d00"
+     x="331.427"
+     y="233.18401"
+     id="text250">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0d00"
+     x="331.14499"
+     y="258.95001"
+     id="text252">3</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="20.31633"
+     y="300.26315"
+     id="text258">#4<tspan
+   x="20.31633"
+   dy="12"
+   id="tspan254">​</tspan><tspan
+   x="20.31633"
+   dy="12"
+   id="tspan256">​</tspan></text>
+  <ellipse
+     style="fill:none;stroke:#0000ff;stroke-width:0.60523;paint-order:stroke"
+     cx="48.298138"
+     cy="320.9678"
+     id="circle260"
+     rx="6.10852"
+     ry="5.9965901" />
+  <ellipse
+     style="fill:none;stroke:#0000ff;stroke-width:0.60523;paint-order:stroke"
+     cx="48.298138"
+     cy="344.95416"
+     id="circle262"
+     rx="6.10852"
+     ry="5.9965901" />
+  <ellipse
+     style="fill:none;stroke:#0000ff;stroke-width:0.60523;paint-order:stroke"
+     cx="72.732216"
+     cy="320.9678"
+     id="circle264"
+     rx="6.10852"
+     ry="5.9965901" />
+  <ellipse
+     style="fill:none;stroke:#0000ff;stroke-width:0.60523;paint-order:stroke"
+     cx="72.732834"
+     cy="344.95416"
+     id="circle266"
+     rx="6.10852"
+     ry="5.9965901" />
+  <line
+     style="stroke:#0000ff"
+     x1="48.298"
+     y1="314.97101"
+     x2="72.732002"
+     y2="314.97101"
+     id="line268" />
+  <line
+     style="stroke:#0000ff"
+     x1="48.298"
+     y1="350.95001"
+     x2="72.732002"
+     y2="350.95001"
+     id="line270" />
+  <line
+     style="stroke:#0000ff"
+     x1="42.188999"
+     y1="320.96701"
+     x2="42.188999"
+     y2="344.95401"
+     id="line272" />
+  <line
+     style="stroke:#0000ff"
+     x1="78.839996"
+     y1="320.96701"
+     x2="78.839996"
+     y2="344.95401"
+     id="line274" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="89.986"
+     cy="332.51501"
+     r="30"
+     id="circle276" />
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="45.112999"
+     y1="315.492"
+     x2="82.830002"
+     y2="302.99799"
+     id="line278" />
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="45.139999"
+     y1="350.358"
+     x2="76.306"
+     y2="359.59201"
+     id="line280" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="69.334"
+     y="325.37799"
+     id="text282">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="45.372002"
+     y="325.07999"
+     id="text284">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="44.962002"
+     y="349.63199"
+     id="text286">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="69.157997"
+     y="349.005"
+     id="text288">3</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0d00"
+     x="86.741997"
+     y="335.67099"
+     id="text290">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="142.28847"
+     y="302.09"
+     id="text294">#5<tspan
+   x="142.28847"
+   dy="12"
+   id="tspan292">​</tspan></text>
+  <ellipse
+     style="fill:none;stroke:#ff0000;stroke-width:1.00042;paint-order:stroke"
+     cx="219.56331"
+     cy="329.85327"
+     id="circle296"
+     rx="15.355"
+     ry="15.36776" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0d00"
+     x="216.006"
+     y="335.159"
+     id="text298">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="218.83"
+     y="314.90302"
+     id="text300">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="178.866"
+     y="315.022"
+     id="text302">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="178.72301"
+     y="355.49899"
+     id="text304">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="218.582"
+     y="355.267"
+     id="text306">3</text>
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="231.90199"
+     y1="306.98199"
+     x2="235"
+     y2="326.242"
+     id="line308" />
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="234.95201"
+     y1="332.08603"
+     x2="232.27902"
+     y2="354.99402"
+     id="line310" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="11.518135"
+     y="388.5459"
+     id="text314">Stadium + Stadium<tspan
+   x="11.518135"
+   dy="12"
+   id="tspan312">​</tspan></text>
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="49.895"
+     cy="417.85501"
+     r="10"
+     id="circle316" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="49.895"
+     cy="437.85501"
+     r="10"
+     id="circle318" />
+  <line
+     style="fill:#0000ff;stroke:#0000ff;paint-order:fill"
+     x1="39.895"
+     y1="417.85501"
+     x2="39.895"
+     y2="437.85501"
+     id="line320" />
+  <line
+     style="fill:#0000ff;stroke:#0000ff;paint-order:fill"
+     x1="59.895"
+     y1="417.85501"
+     x2="59.895"
+     y2="437.85501"
+     id="line322" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="45.956001"
+     y="422.22198"
+     id="text324">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="46.187485"
+     y="441.17914"
+     id="text328">1<tspan
+   x="46.187485"
+   dy="12"
+   id="tspan326">​</tspan></text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="14.07"
+     y="411.552"
+     id="text330">#1</text>
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="64.627998"
+     cy="417.74301"
+     r="10"
+     id="circle332" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="64.627998"
+     cy="437.742"
+     r="10"
+     id="circle334" />
+  <line
+     style="fill:#0000ff;stroke:#ff0000;paint-order:fill"
+     x1="54.627998"
+     y1="417.74301"
+     x2="54.627998"
+     y2="437.742"
+     id="line336" />
+  <line
+     style="fill:#0000ff;stroke:#ff0000;paint-order:fill"
+     x1="74.627998"
+     y1="417.74301"
+     x2="74.627998"
+     y2="437.742"
+     id="line338" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="61.688999"
+     y="422.10901"
+     id="text340">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     y="441.06601"
+     x="61.921001"
+     id="text342">1</text>
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="49.171001"
+     y1="407.91901"
+     x2="64.348999"
+     y2="407.67499"
+     id="line344" />
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="49.570999"
+     y1="447.58499"
+     x2="64.749001"
+     y2="447.341"
+     id="line346" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="102.42"
+     y="412.69"
+     id="text348">#2</text>
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="136.489"
+     cy="415.504"
+     r="10"
+     id="circle350" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="136.489"
+     cy="435.504"
+     r="10"
+     id="circle352" />
+  <line
+     style="fill:#0000ff;stroke:#0000ff;paint-order:fill"
+     x1="126.489"
+     y1="415.504"
+     x2="126.489"
+     y2="435.504"
+     id="line354" />
+  <line
+     style="fill:#0000ff;stroke:#0000ff;paint-order:fill"
+     x1="146.489"
+     y1="415.504"
+     x2="146.489"
+     y2="435.504"
+     id="line356" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="422.655"
+     cy="-173.39453"
+     r="10"
+     transform="rotate(90.976654)"
+     id="circle358" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="422.655"
+     cy="-153.39453"
+     r="10"
+     transform="rotate(90.976654)"
+     id="circle360" />
+  <line
+     style="fill:#0000ff;stroke:#ff0000;paint-order:fill"
+     x1="166.33542"
+     y1="415.55051"
+     x2="146.33833"
+     y2="415.20963"
+     id="line362" />
+  <line
+     style="fill:#0000ff;stroke:#ff0000;paint-order:fill"
+     x1="165.9944"
+     y1="435.54752"
+     x2="145.99731"
+     y2="435.2066"
+     id="line364" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="131.78101"
+     y="419.664"
+     id="text366">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="132.242"
+     y="441.29501"
+     id="text368">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0d00"
+     x="147.19901"
+     y="429.086"
+     id="text370">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0d00"
+     x="162.94099"
+     y="429.13199"
+     id="text372">1</text>
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="140.067"
+     y1="406.159"
+     x2="169.88699"
+     y2="415.771"
+     id="line374" />
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="140.83701"
+     y1="443.93799"
+     x2="171.487"
+     y2="434.35599"
+     id="line376" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="11.329361"
+     y="481.85785"
+     id="text378">Rectangle + Rectangle</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="12.616"
+     y="504.974"
+     id="text380">#1</text>
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="511.76047"
+     cy="-100.73425"
+     r="10"
+     transform="rotate(90)"
+     id="circle382" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="511.77448"
+     cy="-50.716244"
+     r="10"
+     transform="rotate(90)"
+     id="circle384" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="551.76044"
+     cy="-100.73425"
+     r="10"
+     transform="rotate(90)"
+     id="circle386" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="551.77545"
+     cy="-50.716244"
+     r="10"
+     transform="rotate(90)"
+     id="circle388" />
+  <line
+     style="stroke:#0000ff"
+     x1="110.73402"
+     y1="511.76099"
+     x2="110.73402"
+     y2="551.76099"
+     id="line390" />
+  <line
+     style="stroke:#0000ff"
+     x1="40.716"
+     y1="511.77502"
+     x2="40.716"
+     y2="551.77502"
+     id="line392" />
+  <line
+     style="stroke:#0000ff"
+     x1="100.73402"
+     y1="501.76099"
+     x2="50.734013"
+     y2="501.76099"
+     id="line394" />
+  <line
+     style="stroke:#0000ff"
+     x1="100.734"
+     y1="561.76099"
+     x2="50.716"
+     y2="561.77496"
+     id="line396" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="511.87686"
+     cy="-120.42686"
+     r="10"
+     transform="rotate(90)"
+     id="circle398" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="511.89087"
+     cy="-70.408852"
+     r="10"
+     transform="rotate(90)"
+     id="circle400" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="551.87683"
+     cy="-120.42686"
+     r="10"
+     transform="rotate(90)"
+     id="circle402" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="551.89185"
+     cy="-70.408852"
+     r="10"
+     transform="rotate(90)"
+     id="circle404" />
+  <line
+     style="stroke:#ff0000"
+     x1="130.427"
+     y1="511.87701"
+     x2="130.427"
+     y2="551.87701"
+     id="line406" />
+  <line
+     style="stroke:#ff0000"
+     x1="60.408997"
+     y1="511.89099"
+     x2="60.408997"
+     y2="551.89099"
+     id="line408" />
+  <line
+     style="stroke:#ff0000"
+     x1="120.42699"
+     y1="501.87701"
+     x2="70.426994"
+     y2="501.87701"
+     id="line410" />
+  <line
+     style="stroke:#ff0000"
+     x1="120.427"
+     y1="561.87701"
+     x2="70.408997"
+     y2="561.89099"
+     id="line412" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0d00"
+     x="116.54"
+     y="515.07898"
+     id="text414">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="96.387001"
+     y="515.612"
+     id="text416">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="46.872002"
+     y="515.36499"
+     id="text418">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0d00"
+     x="67.541"
+     y="515.79498"
+     id="text420">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0d00"
+     x="66.803001"
+     y="556.13"
+     id="text422">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="46.393002"
+     y="556.27002"
+     id="text424">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="96.797997"
+     y="555.521"
+     id="text426">3</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0d00"
+     x="116.327"
+     y="556.00299"
+     id="text428">3</text>
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="52.056999"
+     y1="501.70499"
+     x2="67.235001"
+     y2="501.461"
+     id="line430" />
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="51.995998"
+     y1="561.64697"
+     x2="67.174004"
+     y2="561.40302"
+     id="line432" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="635.99243"
+     cy="-237.87814"
+     r="10"
+     transform="rotate(90)"
+     id="circle434" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="675.99243"
+     cy="-237.87814"
+     r="10"
+     transform="rotate(90)"
+     id="circle436" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="676.00745"
+     cy="-187.86014"
+     r="10"
+     transform="rotate(90)"
+     id="circle438" />
+  <line
+     style="stroke:#ff0000"
+     x1="247.87854"
+     y1="635.99353"
+     x2="247.87854"
+     y2="675.99353"
+     id="line440" />
+  <line
+     style="stroke:#ff0000"
+     x1="177.8605"
+     y1="636.00757"
+     x2="177.8605"
+     y2="676.00757"
+     id="line442" />
+  <line
+     style="stroke:#ff0000"
+     x1="237.87854"
+     y1="625.99353"
+     x2="187.87854"
+     y2="625.99353"
+     id="line444" />
+  <line
+     style="stroke:#ff0000"
+     x1="237.87851"
+     y1="685.99359"
+     x2="187.8605"
+     y2="686.00757"
+     id="line446" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="157.08701"
+     y="505.302"
+     id="text448">#2</text>
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="528.729"
+     cy="-239.24101"
+     r="10"
+     transform="rotate(90)"
+     id="circle450" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="528.74304"
+     cy="-189.22301"
+     r="10"
+     transform="rotate(90)"
+     id="circle452" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="568.729"
+     cy="-239.24101"
+     r="10"
+     transform="rotate(90)"
+     id="circle454" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="568.74402"
+     cy="-189.22301"
+     r="10"
+     transform="rotate(90)"
+     id="circle456" />
+  <line
+     style="stroke:#0000ff"
+     x1="249.24103"
+     y1="528.72998"
+     x2="249.24103"
+     y2="568.72998"
+     id="line458" />
+  <line
+     style="stroke:#0000ff"
+     x1="179.22302"
+     y1="528.74402"
+     x2="179.22302"
+     y2="568.74402"
+     id="line460" />
+  <line
+     style="stroke:#0000ff"
+     x1="239.241"
+     y1="518.72998"
+     x2="189.24103"
+     y2="518.72998"
+     id="line462" />
+  <line
+     style="stroke:#0000ff"
+     x1="239.24097"
+     y1="578.73004"
+     x2="189.22302"
+     y2="578.74402"
+     id="line464" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="234.894"
+     y="532.58099"
+     id="text466">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="185.379"
+     y="532.33398"
+     id="text468">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="184.89999"
+     y="573.23901"
+     id="text470">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="235.30499"
+     y="572.48999"
+     id="text472">3</text>
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="506.59024"
+     cy="-260.2229"
+     r="10"
+     transform="rotate(90)"
+     id="circle474" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="506.60425"
+     cy="-210.20488"
+     r="10"
+     transform="rotate(90)"
+     id="circle476" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="546.59027"
+     cy="-260.2229"
+     r="10"
+     transform="rotate(90)"
+     id="circle478" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="546.60522"
+     cy="-210.20488"
+     r="10"
+     transform="rotate(90)"
+     id="circle480" />
+  <line
+     style="stroke:#ff0000"
+     x1="270.22302"
+     y1="506.591"
+     x2="270.22302"
+     y2="546.591"
+     id="line482" />
+  <line
+     style="stroke:#ff0000"
+     x1="200.20502"
+     y1="506.60501"
+     x2="200.20502"
+     y2="546.60498"
+     id="line484" />
+  <line
+     style="stroke:#ff0000"
+     x1="260.22302"
+     y1="496.59097"
+     x2="210.22302"
+     y2="496.59097"
+     id="line486" />
+  <line
+     style="stroke:#ff0000"
+     x1="260.22302"
+     y1="556.591"
+     x2="210.20502"
+     y2="556.60498"
+     id="line488" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="255.87601"
+     y="510.44199"
+     id="text490">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="206.36099"
+     y="510.19501"
+     id="text492">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="205.882"
+     y="551.09998"
+     id="text494">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="256.28699"
+     y="550.35101"
+     id="text496">3</text>
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="181.743"
+     y1="522.50702"
+     x2="202.90401"
+     y2="498.70099"
+     id="line498" />
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="246.446"
+     y1="575.841"
+     x2="268.58499"
+     y2="552.56299"
+     id="line500" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="298.44476"
+     y="504.94733"
+     id="text504">#3<tspan
+   x="298.44476"
+   dy="12"
+   id="tspan502">​</tspan></text>
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="614.1076"
+     cy="104.13868"
+     r="10"
+     transform="rotate(45.620853)"
+     id="circle506" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="614.1076"
+     cy="144.13867"
+     r="10"
+     transform="rotate(45.620853)"
+     id="circle508" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="654.1076"
+     cy="104.13868"
+     r="10"
+     transform="rotate(45.620853)"
+     id="circle510" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="654.10858"
+     cy="144.13867"
+     r="10"
+     transform="rotate(45.620853)"
+     id="circle512" />
+  <line
+     style="stroke:#0000ff"
+     x1="362.22592"
+     y1="504.76019"
+     x2="390.20206"
+     y2="533.3493"
+     id="line514" />
+  <line
+     style="stroke:#0000ff"
+     x1="319.34192"
+     y1="546.72418"
+     x2="347.31805"
+     y2="575.31329"
+     id="line516" />
+  <line
+     style="stroke:#0000ff"
+     x1="348.08453"
+     y1="504.60669"
+     x2="319.49548"
+     y2="532.58282"
+     id="line518" />
+  <line
+     style="stroke:#0000ff"
+     x1="390.04852"
+     y1="547.49066"
+     x2="361.45941"
+     y2="575.4668"
+     id="line520" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="628.53168"
+     cy="95.608353"
+     r="10"
+     transform="rotate(44.933435)"
+     id="circle522" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="628.53168"
+     cy="135.60835"
+     r="10"
+     transform="rotate(44.933435)"
+     id="circle524" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="668.53168"
+     cy="95.608345"
+     r="10"
+     transform="rotate(44.933435)"
+     id="circle526" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="668.53265"
+     cy="135.60835"
+     r="10"
+     transform="rotate(44.933435)"
+     id="circle528" />
+  <line
+     style="stroke:#ff0000"
+     x1="384.49237"
+     y1="504.5275"
+     x2="412.80948"
+     y2="532.77887"
+     id="line530" />
+  <line
+     style="stroke:#ff0000"
+     x1="342.11533"
+     y1="547.00348"
+     x2="370.43243"
+     y2="575.25488"
+     id="line532" />
+  <line
+     style="stroke:#ff0000"
+     x1="370.35062"
+     y1="504.54462"
+     x2="342.09921"
+     y2="532.86169"
+     id="line534" />
+  <line
+     style="stroke:#ff0000"
+     x1="412.82565"
+     y1="546.92163"
+     x2="384.57425"
+     y2="575.23877"
+     id="line536" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="350.561"
+     y="514.99402"
+     id="text538">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="323.30499"
+     y="543.67102"
+     id="text540">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="350.77701"
+     y="572.65802"
+     id="text542">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="379.474"
+     y="545.35602"
+     id="text544">3</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="401.642"
+     y="545.33899"
+     id="text546">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="374.80099"
+     y="515.29901"
+     id="text548">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="345.423"
+     y="543.83002"
+     id="text550">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="374.27802"
+     y="572.65802"
+     id="text552">3</text>
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="355.88699"
+     y1="501.63901"
+     x2="375.129"
+     y2="501.72"
+     id="line554" />
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="356.21201"
+     y1="578.49103"
+     x2="375.45401"
+     y2="578.57202"
+     id="line556" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="14.174"
+     y="607.90997"
+     id="text558">Coincident Points</text>
+  <circle
+     style="fill:none;stroke:#b700ff;paint-order:stroke"
+     cx="758.0188"
+     cy="-346.92746"
+     r="10"
+     transform="rotate(90)"
+     id="circle560" />
+  <circle
+     style="fill:none;stroke:#b700ff;paint-order:stroke"
+     cx="758.0188"
+     cy="-306.92746"
+     r="10"
+     transform="rotate(90)"
+     id="circle562" />
+  <circle
+     style="fill:none;stroke:#b700ff;paint-order:stroke"
+     cx="798.0188"
+     cy="-346.92746"
+     r="10"
+     transform="rotate(90)"
+     id="circle564" />
+  <circle
+     style="fill:none;stroke:#b700ff;paint-order:stroke"
+     cx="798.01978"
+     cy="-306.92746"
+     r="10"
+     transform="rotate(90)"
+     id="circle566" />
+  <line
+     style="stroke:#b700ff"
+     x1="356.92737"
+     y1="758.01935"
+     x2="356.92737"
+     y2="798.01935"
+     id="line568" />
+  <line
+     style="stroke:#b700ff"
+     x1="296.92737"
+     y1="758.01935"
+     x2="296.92737"
+     y2="798.01935"
+     id="line570" />
+  <line
+     style="stroke:#b700ff"
+     x1="346.92737"
+     y1="748.01935"
+     x2="306.92737"
+     y2="748.01935"
+     id="line572" />
+  <line
+     style="stroke:#b700ff"
+     x1="346.92737"
+     y1="808.01935"
+     x2="306.92737"
+     y2="808.01935"
+     id="line574" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="266.96136"
+     y="751.05237"
+     id="text576">#3</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#b700ff"
+     x="343.54639"
+     y="762.26935"
+     id="text578">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#b700ff"
+     x="303.20438"
+     y="761.81335"
+     id="text580">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#b700ff"
+     x="303.61438"
+     y="802.19537"
+     id="text582">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#b700ff"
+     x="343.17538"
+     y="801.83038"
+     id="text584">3</text>
+  <circle
+     style="fill:none;stroke:#b700ff;paint-order:stroke"
+     cx="627.52625"
+     cy="548.98688"
+     r="10.000002"
+     transform="rotate(43.798787)"
+     id="circle586" />
+  <circle
+     style="fill:none;stroke:#b700ff;paint-order:stroke"
+     cx="627.52625"
+     cy="588.98688"
+     r="10.000002"
+     transform="rotate(43.798787)"
+     id="circle588" />
+  <circle
+     style="fill:none;stroke:#b700ff;paint-order:stroke"
+     cx="667.52618"
+     cy="548.98688"
+     r="10.000002"
+     transform="rotate(43.798787)"
+     id="circle590" />
+  <circle
+     style="fill:none;stroke:#b700ff;paint-order:stroke"
+     cx="667.52716"
+     cy="588.98688"
+     r="10.000002"
+     transform="rotate(43.798787)"
+     id="circle592" />
+  <line
+     style="stroke:#b700ff"
+     x1="79.884636"
+     y1="823.35626"
+     x2="108.75563"
+     y2="851.04138"
+     id="line594" />
+  <line
+     style="stroke:#b700ff"
+     x1="38.356659"
+     y1="866.66327"
+     x2="67.227661"
+     y2="894.34839"
+     id="line596" />
+  <line
+     style="stroke:#b700ff"
+     x1="65.745705"
+     y1="823.65332"
+     x2="38.060577"
+     y2="852.52435"
+     id="line598" />
+  <line
+     style="stroke:#b700ff"
+     x1="109.0517"
+     y1="865.18042"
+     x2="81.366577"
+     y2="894.05139"
+     id="line600" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="14.590157"
+     y="833.88477"
+     id="text602">#4</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#b700ff"
+     x="68.710159"
+     y="834.53076"
+     id="text604">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#b700ff"
+     x="41.608147"
+     y="863.42078"
+     id="text606">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#b700ff"
+     x="70.477158"
+     y="891.84479"
+     id="text608">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#b700ff"
+     x="98.378159"
+     y="861.67078"
+     id="text610">3</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="11.504242"
+     y="634.42596"
+     id="text614">#1<tspan
+   x="11.504242"
+   dy="12"
+   id="tspan612">​</tspan></text>
+  <circle
+     style="fill:none;stroke:#b700ff;paint-order:stroke"
+     cx="640.63586"
+     cy="-74.186371"
+     r="10"
+     transform="rotate(90)"
+     id="circle616" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="640.63586"
+     cy="-49.046814"
+     r="10"
+     transform="rotate(90)"
+     id="circle618" />
+  <circle
+     style="fill:none;stroke:#b700ff;paint-order:stroke"
+     cx="680.63586"
+     cy="-74.186371"
+     r="10"
+     transform="rotate(90)"
+     id="circle620" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="680.63684"
+     cy="-49.046814"
+     r="10"
+     transform="rotate(90)"
+     id="circle622" />
+  <line
+     style="stroke:#0000ff"
+     x1="39.046356"
+     y1="640.6366"
+     x2="39.046356"
+     y2="680.6366"
+     id="line624" />
+  <line
+     style="stroke:#b700ff"
+     x1="74.186371"
+     y1="630.66461"
+     x2="49.046356"
+     y2="630.6366"
+     id="line626" />
+  <line
+     style="stroke:#b700ff"
+     x1="74.186371"
+     y1="690.66461"
+     x2="49.046356"
+     y2="690.6366"
+     id="line628" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="640.46033"
+     cy="-101.06916"
+     r="10"
+     transform="rotate(90)"
+     id="circle630" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="680.46033"
+     cy="-101.06916"
+     r="10"
+     transform="rotate(90)"
+     id="circle632" />
+  <line
+     style="stroke:#ff0000"
+     x1="111.06833"
+     y1="640.46057"
+     x2="111.06833"
+     y2="680.46057"
+     id="line634" />
+  <line
+     style="stroke:#ff0000"
+     x1="101.06833"
+     y1="630.46057"
+     x2="74.18631"
+     y2="630.46454"
+     id="line636" />
+  <line
+     style="stroke:#ff0000"
+     x1="101.06833"
+     y1="690.46057"
+     x2="74.18631"
+     y2="690.46454"
+     id="line638" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="46.119385"
+     y="645.17859"
+     id="text640">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="45.278381"
+     y="685.15662"
+     id="text642">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="96.990387"
+     y="644.09589"
+     id="text644">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="97.024384"
+     y="684.69458"
+     id="text646">3</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="67.437378"
+     y="645.60962"
+     id="text648">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="75.074371"
+     y="645.95258"
+     id="text650">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="67.402374"
+     y="685.85962"
+     id="text652">3</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="75.372375"
+     y="685.1496"
+     id="text654">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="138.21616"
+     y="832.14105"
+     id="text660">#5<tspan
+   x="138.21616"
+   dy="12 12"
+   id="tspan656">​​</tspan></text>
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="836.52795"
+     cy="-202.51071"
+     r="10"
+     transform="rotate(90)"
+     id="circle662" />
+  <circle
+     style="fill:none;stroke:#b700ff;paint-order:stroke"
+     cx="836.52795"
+     cy="-177.37115"
+     r="10"
+     transform="rotate(90)"
+     id="circle664" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="876.52795"
+     cy="-202.51071"
+     r="10"
+     transform="rotate(90)"
+     id="circle666" />
+  <circle
+     style="fill:none;stroke:#b700ff;paint-order:stroke"
+     cx="876.52893"
+     cy="-177.37115"
+     r="10"
+     transform="rotate(90)"
+     id="circle668" />
+  <line
+     style="stroke:#b700ff"
+     x1="167.37082"
+     y1="836.52826"
+     x2="167.37082"
+     y2="876.52826"
+     id="line670" />
+  <line
+     style="stroke:#b700ff"
+     x1="202.51083"
+     y1="826.55621"
+     x2="177.37082"
+     y2="826.5282"
+     id="line672" />
+  <line
+     style="stroke:#b700ff"
+     x1="202.51083"
+     y1="886.55621"
+     x2="177.37082"
+     y2="886.5282"
+     id="line674" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="836.35242"
+     cy="-229.39351"
+     r="10"
+     transform="rotate(90)"
+     id="circle676" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="876.35242"
+     cy="-229.39351"
+     r="10"
+     transform="rotate(90)"
+     id="circle678" />
+  <line
+     style="stroke:#ff0000"
+     x1="239.39279"
+     y1="836.35223"
+     x2="239.39279"
+     y2="876.35223"
+     id="line680" />
+  <line
+     style="stroke:#ff0000"
+     x1="229.39279"
+     y1="826.35223"
+     x2="202.51077"
+     y2="826.3562"
+     id="line682" />
+  <line
+     style="stroke:#ff0000"
+     x1="229.39279"
+     y1="886.35223"
+     x2="202.51077"
+     y2="886.3562"
+     id="line684" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#b700ff"
+     x="174.4438"
+     y="841.07025"
+     id="text686">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#b700ff"
+     x="173.6028"
+     y="881.04822"
+     id="text688">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="225.3148"
+     y="839.98822"
+     id="text690">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="225.3488"
+     y="880.58624"
+     id="text692">3</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="198.8448"
+     y="841.12024"
+     id="text694">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="198.3308"
+     y="880.23224"
+     id="text696">3</text>
+  <line
+     style="stroke:#0000ff"
+     x1="84.122406"
+     y1="639.78961"
+     x2="84.122406"
+     y2="679.78961"
+     id="line698" />
+  <line
+     style="stroke:#ff0000"
+     x1="64.312347"
+     y1="640.18158"
+     x2="64.312347"
+     y2="680.18158"
+     id="line700" />
+  <line
+     style="stroke:#0000ff"
+     x1="212.87381"
+     y1="835.70721"
+     x2="212.87381"
+     y2="875.70721"
+     id="line702" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="148.19638"
+     y="632.78571"
+     id="text706">#2<tspan
+   x="148.19638"
+   dy="12"
+   id="tspan704">​</tspan></text>
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="-230.61731"
+     cy="-685.0188"
+     r="9.9999962"
+     transform="rotate(-179.74927)"
+     id="circle708" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="-230.6033"
+     cy="-635.00079"
+     r="9.9999962"
+     transform="rotate(-179.74927)"
+     id="circle710" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="-190.61737"
+     cy="-685.0188"
+     r="9.9999962"
+     transform="rotate(-179.74927)"
+     id="circle712" />
+  <circle
+     style="fill:none;stroke:#b700ff;paint-order:stroke"
+     cx="-190.60239"
+     cy="-635.00079"
+     r="9.9999962"
+     transform="rotate(-179.74927)"
+     id="circle714" />
+  <line
+     style="stroke:#0000ff"
+     x1="227.57339"
+     y1="696.02338"
+     x2="187.57379"
+     y2="695.84833"
+     id="line716" />
+  <line
+     style="stroke:#0000ff"
+     x1="237.61722"
+     y1="686.06665"
+     x2="237.83603"
+     y2="636.06714"
+     id="line718" />
+  <ellipse
+     style="fill:none;stroke:#0000ff;stroke-width:0.618621;paint-order:stroke"
+     cx="760.75665"
+     cy="-92.498367"
+     transform="rotate(90)"
+     id="circle720"
+     rx="6.21558"
+     ry="6.15698" />
+  <ellipse
+     style="fill:none;stroke:#0000ff;stroke-width:0.618621;paint-order:stroke"
+     cx="760.76538"
+     cy="-61.702381"
+     transform="rotate(90)"
+     id="circle722"
+     rx="6.21558"
+     ry="6.15698" />
+  <ellipse
+     style="fill:none;stroke:#0000ff;stroke-width:0.618621;paint-order:stroke"
+     cx="785.61896"
+     cy="-92.498367"
+     transform="rotate(90)"
+     id="circle724"
+     rx="6.21558"
+     ry="6.15698" />
+  <ellipse
+     style="fill:none;stroke:#0000ff;stroke-width:0.618621;paint-order:stroke"
+     cx="785.6283"
+     cy="-61.702381"
+     transform="rotate(90)"
+     id="circle726"
+     rx="6.21558"
+     ry="6.15698" />
+  <line
+     style="stroke:#0000ff"
+     x1="98.655258"
+     y1="760.75848"
+     x2="98.655258"
+     y2="785.62048"
+     id="line728" />
+  <line
+     style="stroke:#0000ff"
+     x1="55.545269"
+     y1="760.76648"
+     x2="55.545269"
+     y2="785.62848"
+     id="line730" />
+  <line
+     style="stroke:#0000ff"
+     x1="92.497726"
+     y1="754.54205"
+     x2="61.712749"
+     y2="754.54205"
+     id="line732" />
+  <line
+     style="stroke:#0000ff"
+     x1="92.497726"
+     y1="791.836"
+     x2="61.70274"
+     y2="791.84399"
+     id="line734" />
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="232.76553"
+     y1="694.44257"
+     x2="246.16653"
+     y2="682.47253"
+     id="line736" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="238.10852"
+     y="639.94855"
+     id="text738">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="221.38953"
+     y="640.36853"
+     id="text740">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#b700ff"
+     x="184.46054"
+     y="640.46057"
+     id="text742">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="184.17554"
+     y="694.11658"
+     id="text744">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="184.37653"
+     y="675.79254"
+     id="text746">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="223.66153"
+     y="694.70654"
+     id="text748">3</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="238.28354"
+     y="679.86157"
+     id="text750">3</text>
+  <line
+     style="stroke:#b700ff"
+     x1="177.58252"
+     y1="673.56256"
+     x2="177.58252"
+     y2="687.26459"
+     id="line752" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="14.347125"
+     y="724.23132"
+     id="text756">One Inside The Other<tspan
+   x="14.347125"
+   dy="12"
+   id="tspan754">​</tspan></text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="11.504242"
+     y="750.84149"
+     id="text758">#1</text>
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="752.84399"
+     cy="-101.42789"
+     r="10"
+     transform="rotate(90)"
+     id="circle760" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="752.85803"
+     cy="-51.409878"
+     r="10"
+     transform="rotate(90)"
+     id="circle762" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="792.84399"
+     cy="-101.42789"
+     r="10"
+     transform="rotate(90)"
+     id="circle764" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="792.85901"
+     cy="-51.409878"
+     r="10"
+     transform="rotate(90)"
+     id="circle766" />
+  <line
+     style="stroke:#ff0000"
+     x1="111.42827"
+     y1="752.84552"
+     x2="111.42827"
+     y2="792.84546"
+     id="line768" />
+  <line
+     style="stroke:#ff0000"
+     x1="41.410259"
+     y1="752.8595"
+     x2="41.410259"
+     y2="792.8595"
+     id="line770" />
+  <line
+     style="stroke:#ff0000"
+     x1="101.42827"
+     y1="742.84552"
+     x2="51.428265"
+     y2="742.84552"
+     id="line772" />
+  <line
+     style="stroke:#ff0000"
+     x1="101.42827"
+     y1="802.84546"
+     x2="51.410259"
+     y2="802.8595"
+     id="line774" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="97.654243"
+     y="755.83154"
+     id="text776">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="48.323242"
+     y="757.40955"
+     id="text778">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="47.544239"
+     y="797.67853"
+     id="text780">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="97.710243"
+     y="797.82953"
+     id="text782">3</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="89.175247"
+     y="765.29749"
+     id="text784">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="59.599239"
+     y="765.35754"
+     id="text786">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="57.974239"
+     y="789.68549"
+     id="text788">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="88.931244"
+     y="789.97754"
+     id="text790">3</text>
+  <ellipse
+     style="fill:none;stroke:#ff0000;stroke-width:0.618621;paint-order:stroke"
+     cx="760.71698"
+     cy="-214.61595"
+     transform="rotate(90)"
+     id="circle796"
+     rx="6.21558"
+     ry="6.15698" />
+  <ellipse
+     style="fill:none;stroke:#ff0000;stroke-width:0.618621;paint-order:stroke"
+     cx="760.72571"
+     cy="-183.81998"
+     transform="rotate(90)"
+     id="circle798"
+     rx="6.21558"
+     ry="6.15698" />
+  <ellipse
+     style="fill:none;stroke:#ff0000;stroke-width:0.618621;paint-order:stroke"
+     cx="785.57928"
+     cy="-214.61595"
+     transform="rotate(90)"
+     id="circle800"
+     rx="6.21558"
+     ry="6.15698" />
+  <ellipse
+     style="fill:none;stroke:#ff0000;stroke-width:0.618621;paint-order:stroke"
+     cx="785.58862"
+     cy="-183.81998"
+     transform="rotate(90)"
+     id="circle802"
+     rx="6.21558"
+     ry="6.15698" />
+  <line
+     style="stroke:#ff0000"
+     x1="220.77318"
+     y1="760.71851"
+     x2="220.77318"
+     y2="785.58051"
+     id="line804" />
+  <line
+     style="stroke:#ff0000"
+     x1="177.66325"
+     y1="760.7265"
+     x2="177.66325"
+     y2="785.5885"
+     id="line806" />
+  <line
+     style="stroke:#ff0000"
+     x1="214.61571"
+     y1="754.50201"
+     x2="183.83067"
+     y2="754.50201"
+     id="line808" />
+  <line
+     style="stroke:#ff0000"
+     x1="214.61577"
+     y1="791.79602"
+     x2="183.82079"
+     y2="791.80402"
+     id="line810" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="752.80432"
+     cy="-223.54547"
+     r="10"
+     transform="rotate(90)"
+     id="circle812" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="752.81836"
+     cy="-173.52747"
+     r="10"
+     transform="rotate(90)"
+     id="circle814" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="792.80432"
+     cy="-223.54547"
+     r="10"
+     transform="rotate(90)"
+     id="circle816" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="792.81934"
+     cy="-173.52747"
+     r="10"
+     transform="rotate(90)"
+     id="circle818" />
+  <line
+     style="stroke:#0000ff"
+     x1="233.54625"
+     y1="752.80554"
+     x2="233.54625"
+     y2="792.80554"
+     id="line820" />
+  <line
+     style="stroke:#0000ff"
+     x1="163.52824"
+     y1="752.81952"
+     x2="163.52824"
+     y2="792.81952"
+     id="line822" />
+  <line
+     style="stroke:#0000ff"
+     x1="223.54625"
+     y1="742.80554"
+     x2="173.54625"
+     y2="742.80554"
+     id="line824" />
+  <line
+     style="stroke:#0000ff"
+     x1="223.54619"
+     y1="802.80554"
+     x2="173.52818"
+     y2="802.81952"
+     id="line826" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="219.77225"
+     y="755.7915"
+     id="text828">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="170.44124"
+     y="757.36951"
+     id="text830">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="169.66225"
+     y="797.63849"
+     id="text832">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="219.82825"
+     y="797.78949"
+     id="text834">3</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="211.29324"
+     y="765.25751"
+     id="text836">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="181.71724"
+     y="765.3175"
+     id="text838">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="180.09224"
+     y="789.64551"
+     id="text840">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="211.04924"
+     y="789.9375"
+     id="text842">3</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="135.32825"
+     y="751.72949"
+     id="text848">#2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="19.913"
+     y="931.46899"
+     id="text850">More Than Two Points Of Intersection</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="14.045486"
+     y="1056.1864"
+     id="text850-3">One Corner Inside</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="14.814"
+     y="961.59302"
+     id="text852">#1</text>
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="972.98279"
+     cy="-95.209129"
+     r="10"
+     transform="rotate(90)"
+     id="circle854" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="972.98279"
+     cy="-55.209133"
+     r="10"
+     transform="rotate(90)"
+     id="circle856" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="1012.9828"
+     cy="-95.209129"
+     r="10"
+     transform="rotate(90)"
+     id="circle858" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="1012.9838"
+     cy="-55.209133"
+     r="10"
+     transform="rotate(90)"
+     id="circle860" />
+  <line
+     style="stroke:#0000ff"
+     x1="105.20905"
+     y1="972.98297"
+     x2="105.20905"
+     y2="1012.983"
+     id="line862" />
+  <line
+     style="stroke:#0000ff"
+     x1="45.209045"
+     y1="972.98297"
+     x2="45.209045"
+     y2="1012.983"
+     id="line864" />
+  <line
+     style="stroke:#0000ff"
+     x1="95.209045"
+     y1="962.98297"
+     x2="55.209045"
+     y2="962.98297"
+     id="line866" />
+  <line
+     style="stroke:#0000ff"
+     x1="95.209045"
+     y1="1022.983"
+     x2="55.208984"
+     y2="1022.983"
+     id="line868" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="741.27789"
+     cy="620.8139"
+     r="9.9999943"
+     transform="rotate(45.600959)"
+     id="circle870" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="741.27795"
+     cy="660.8139"
+     r="9.9999943"
+     transform="rotate(45.600959)"
+     id="circle872" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="781.27789"
+     cy="620.81396"
+     r="9.9999943"
+     transform="rotate(45.600959)"
+     id="circle874" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="781.27887"
+     cy="660.8139"
+     r="9.9999943"
+     transform="rotate(45.600959)"
+     id="circle876" />
+  <line
+     style="stroke:#ff0000"
+     x1="82.220192"
+     y1="956.98785"
+     x2="110.20623"
+     y2="985.5672"
+     id="line878" />
+  <line
+     style="stroke:#ff0000"
+     x1="39.351238"
+     y1="998.96777"
+     x2="67.33728"
+     y2="1027.5471"
+     id="line880" />
+  <line
+     style="stroke:#ff0000"
+     x1="68.078911"
+     y1="956.83948"
+     x2="39.499546"
+     y2="984.82556"
+     id="line882" />
+  <line
+     style="stroke:#ff0000"
+     x1="110.05791"
+     y1="999.70947"
+     x2="81.478546"
+     y2="1027.6956"
+     id="line884" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#333333"
+     x="149.92"
+     y="962.263"
+     id="text886">#2</text>
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="828.21039"
+     cy="536.31537"
+     r="10"
+     transform="rotate(44.50337)"
+     id="circle888" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="828.21039"
+     cy="576.31537"
+     r="10"
+     transform="rotate(44.50337)"
+     id="circle890" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="868.21039"
+     cy="536.31537"
+     r="10"
+     transform="rotate(44.50337)"
+     id="circle892" />
+  <circle
+     style="fill:none;stroke:#0000ff;paint-order:stroke"
+     cx="868.21136"
+     cy="576.31537"
+     r="10"
+     transform="rotate(44.50337)"
+     id="circle894" />
+  <line
+     style="stroke:#0000ff"
+     x1="221.76596"
+     y1="955.90869"
+     x2="250.29433"
+     y2="983.94672"
+     id="line896" />
+  <line
+     style="stroke:#0000ff"
+     x1="179.70897"
+     y1="998.70062"
+     x2="208.23734"
+     y2="1026.7386"
+     id="line898" />
+  <line
+     style="stroke:#0000ff"
+     x1="207.62418"
+     y1="956.03052"
+     x2="179.58614"
+     y2="984.5589"
+     id="line900" />
+  <line
+     style="stroke:#0000ff"
+     x1="250.41615"
+     y1="998.08752"
+     x2="222.37807"
+     y2="1026.616"
+     id="line902" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="971.25757"
+     cy="-235.01875"
+     r="10"
+     transform="rotate(90)"
+     id="circle904" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="971.25757"
+     cy="-195.01875"
+     r="10"
+     transform="rotate(90)"
+     id="circle906" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="1011.2576"
+     cy="-235.01875"
+     r="10"
+     transform="rotate(90)"
+     id="circle908" />
+  <circle
+     style="fill:none;stroke:#ff0000;paint-order:stroke"
+     cx="1011.2585"
+     cy="-195.01875"
+     r="10"
+     transform="rotate(90)"
+     id="circle910" />
+  <line
+     style="stroke:#ff0000"
+     x1="245.01802"
+     y1="971.258"
+     x2="245.01802"
+     y2="1011.258"
+     id="line912" />
+  <line
+     style="stroke:#ff0000"
+     x1="185.01802"
+     y1="971.258"
+     x2="185.01802"
+     y2="1011.258"
+     id="line914" />
+  <line
+     style="stroke:#ff0000"
+     x1="235.01802"
+     y1="961.258"
+     x2="195.01802"
+     y2="961.258"
+     id="line916" />
+  <line
+     style="stroke:#ff0000"
+     x1="235.01797"
+     y1="1021.2581"
+     x2="195.01791"
+     y2="1021.2581"
+     id="line918" />
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="70.803001"
+     y="966.75897"
+     id="text920">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="231.205"
+     y="975.36902"
+     id="text922">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="46.824001"
+     y="996.005"
+     id="text924">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="191.287"
+     y="974.53802"
+     id="text926">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="69.894997"
+     y="1025.96"
+     id="text928">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="97.610001"
+     y="996.62903"
+     id="text930">3</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="231.912"
+     y="1015.536"
+     id="text932">3</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#ff0000"
+     x="190.153"
+     y="1015.33"
+     id="text934">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="91.973"
+     y="976.81598"
+     id="text936">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="210.886"
+     y="966.68103"
+     id="text938">0</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="52.389999"
+     y="976.92297"
+     id="text940">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="186.036"
+     y="995.93103"
+     id="text942">1</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="50.103001"
+     y="1017.898"
+     id="text944">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="210.832"
+     y="1024.7209"
+     id="text946">2</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="236.623"
+     y="995.53802"
+     id="text948">3</text>
+  <text
+     style="font-size:12px;font-family:sans-serif;white-space:pre;fill:#0000ff"
+     x="92.137001"
+     y="1017.745"
+     id="text950">3</text>
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="49.108002"
+     y1="964.367"
+     x2="72.115997"
+     y2="953.815"
+     id="line952" />
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="49.891998"
+     y1="1021.066"
+     x2="73.693001"
+     y2="1031.13"
+     id="line954" />
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="177.83501"
+     y1="986.43402"
+     x2="186.147"
+     y2="965.32098"
+     id="line956" />
+  <line
+     style="fill:#f700ff;stroke:#b700ff"
+     x1="176.524"
+     y1="994.59497"
+     x2="186.7"
+     y2="1018.096"
+     id="line958" />
+  <circle
+     style="fill:none;stroke:#ff0000"
+     id="path1454"
+     cx="65"
+     cy="1118.425"
+     r="50" />
+  <rect
+     style="fill:none;stroke:#0000ff"
+     id="rect1456"
+     width="15"
+     height="15"
+     x="95.5"
+     y="1148.925" />
+  <path
+     style="fill:none;stroke:#ff00ff"
+     d="m 110.5,1163.925 3.80231,-37.1764"
+     id="path1566" />
+  <path
+     style="fill:none;stroke:#ff00ff"
+     d="m 110.5,1163.925 -37.1764,3.8024"
+     id="path1566-6" />
+</svg>

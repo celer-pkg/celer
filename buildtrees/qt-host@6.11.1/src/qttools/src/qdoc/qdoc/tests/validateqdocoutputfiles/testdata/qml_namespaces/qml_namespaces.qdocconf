@@ -1,0 +1,16 @@
+project = Qml Namespaces
+sourcedirs = src
+
+productname = Qt
+
+outputformats = HTML DocBook
+
+{HTML.nosubdirs,HTML.outputsubdir} = html
+{DocBook.nosubdirs,DocBook.outputsubdir,DocBook.its,DocBook.usedocbookextensions} = docbook
+
+# zero warning policy
+warninglimit = 0
+warninglimit.enabled = true
+
+# don't write host system-specific paths to index files
+locationinfo = false

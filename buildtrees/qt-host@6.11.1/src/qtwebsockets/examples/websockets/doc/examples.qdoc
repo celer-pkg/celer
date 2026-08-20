@@ -1,0 +1,11 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+
+/*!
+    \group qtwebsockets-examples
+    \title Qt WebSockets Examples
+    \brief List of Qt WebSocket examples
+
+    The examples below can be used as a guide to using the \l{Qt WebSockets} API.
+*/

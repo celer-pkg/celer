@@ -1,0 +1,13 @@
+//! [thread-safety-section1]
+\section1 Thread safety
+
+Being a \l {Accessing QObject Subclasses from Other Threads}{subclass of
+QObject}, \1 is not \l {Reentrancy and Thread-Safety}{thread-safe}. Any \1
+model-related API should only be called from the thread the model object lives
+in. If \1 is connected to a view, it operates on the GUI thread, as the view
+resides there and interacts with the model from that thread. While a background
+thread can be used to populate or modify the model's contents, it must do so
+carefully, as it cannot call any model-related API directly. Instead, you should
+queue the updates and apply them in the main thread. This can be done with
+\l {Signals and Slots Across Threads}{queued connections}.
+//! [thread-safety-section1]

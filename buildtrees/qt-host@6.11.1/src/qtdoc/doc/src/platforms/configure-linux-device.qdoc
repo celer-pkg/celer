@@ -1,0 +1,335 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page configure-linux-device.html
+    \title Configure an Embedded Linux Device
+    \brief Provides information about how to configure an Embedded Linux device in Qt.
+    \ingroup explanations-platforms
+
+    Cross-compiling Qt for a given device requires a \b toolchain and a \b sysroot. The
+    toolchain is expected to contain a version of gcc, or another compiler, and associated
+    tools built for cross-compilation. This means these tools run on the \b host system
+    (typically x64), while producing binaries for the target architecture (for example, 32
+    or 64 bit ARM). The sysroot contains the headers and libraries for the target system,
+    allowing compiling and linking libraries and applications on the host.
+
+    This overview page describes to the generic approach, where no distribution building
+    systems, such as Yocto or Buildroot, are used. It is always possible to cross-compile
+    and deploy Qt onto a device as long as a suitable toolchain and sysroot are available.
+
+    \warning This page can only provide a generic, high-level overview. There are a
+    vast number of details that can vary depending on the build environment, the
+    target device, and the toolchain. When in doubt, refer to your system
+    integrator. For pre-built reference images and SDKs, refer to the \l{Boot to Qt}
+    offering.
+
+    When running Qt-based applications without a windowing system, such as X11 or Wayland,
+    some devices require vendor-specific adaptation code for EGL and OpenGL ES
+    support. This is provided in form of backends for the EGLFS platform plugin. This is
+    not relevant for non-accelerated platforms, such as those that use the LinuxFB
+    platform plugin, which is meant for software-based rendering only. As of Qt 6, many
+    embedded systems use \l{https://en.wikipedia.org/wiki/Direct_Rendering_Manager}{drm}
+    to set a video mode, manage display connectors and graphical surfaces. For example, an
+    NXP i.MX8-based device or a Raspberry Pi 4 will use this approach, and therefore the
+    most commonly used backend for EGLFS is \b eglfs_kms, which enables EGL and OpenGL
+    ES based rendering with \c drm, using \c gbm for surface and buffer management. Older
+    devices, such as the NXP i.MX6, will continue to use the legacy, GPU vendor-specific
+    approach to connect EGL window surfaces to the framebuffer, using dedicated eglfs
+    backends, such as \c eglfs_viv.
+
+    \note Be aware that Qt is just one component in the software stack for an embedded
+    device. Especially when accelerated graphics are involved, Qt expects a functional
+    graphics stack, with an appropriate configuration for the userspace and kernel
+    components, such as the display driver. These components are outside of Qt's domain,
+    and it is the system integrator's responsibility to ensure the base system is fully
+    functional and optimal, including accelerated graphics.
+
+    For further information on graphics and input configuration for Embedded Linux
+    systems, refer to \l{Qt for Embedded Linux}.
+
+    \section1 Toolchain Files versus Device Makespecs
+
+    In Qt 5, you would typically use a device spec under the \e qtbase/mkspecs/devices
+    directory. These contain the appropriate compiler and linker flags for a certain
+    device, also making sure the correct EGL and OpenGL ES libraries are picked up, in
+    case they are in a non-standard location in the sysroot.
+
+    For example, you could have configured a Qt 5 build for a Raspberry Pi 2 with a
+    configure command like the following:
+
+    \badcode
+    ./configure -release -opengl es2 -device linux-rasp-pi2-g++ -device-option CROSS_COMPILE=$TOOLCHAIN/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin/arm-linux-gnueabihf- -sysroot $ROOTFS -prefix /usr/local/qt5
+    \endcode
+
+    \include use-ninja-note.qdocinc ninja-note
+
+    With Qt 6 and CMake, this approach is \b{no longer sufficient} on its own. Rather, a
+    \l{https://cmake.org/cmake/help/latest/manual/cmake-toolchains.7.html}{CMake toolchain
+    file} must be provided before configuring can happen. It is in this file where
+    customization with regards to compiler and linker flags, and toolchain and sysroot
+    specific quirks, happens.
+
+    In the below sections we will present a toolchain file that can be used in many cases,
+    with minimal customization. It is based on the approach presented in
+    \l{https://www.qt.io/blog/standalone-boot2qt-/-yocto-sdk-cmake-toolchain}{this blog
+    post}.
+
+    \note The toolchain file presented below is an example, that will often need further
+    customization for a given device. Users and system integrators are also free to
+    create their own toolchain files in any way they see fit.
+
+    While CMake is the only supported build system for building Qt itself, applications
+    may still be built using \c qmake in Qt 6.0. In order to get a \c qmake setup that is
+    functional with cross-compilation, one will need to specify some of the legacy
+    arguments to CMake or to configure.
+
+    \section1 Host Tools
+
+    Cross-compiling Qt requires a host build of Qt being available. See
+    \l{Cross-compiling Qt} for details.
+
+    \section1 Configuring Qt
+
+    Let's assume that the following are available:
+
+    \list
+    \li a toolchain and sysroot under \c{$HOME/rpi-sdk},
+    \li a checkout of Qt, at minimum the qtbase module, under \c{$HOME/qt-cross},
+    \li a host build of Qt in \c{$HOME/qt-host}.
+    \endlist
+
+    In addition, the following must be decided before configuring:
+
+    \list
+
+    \li Where will the Qt build be installed on the local system once the build completes?
+    In the example we will use \c{$HOME/qt6-rpi}.
+
+    \li Where will the Qt build be deployed on the device? In the example we will use
+    \c{/usr/local/qt6}.
+
+    \endlist
+
+    In the example we are going to use a Raspberry Pi 4 SDK (toolchain+sysroot) generated
+    via Yocto, but the instructions here are completely generic, with no dependency on
+    Yocto. The steps are the same with any other toolchain and sysroot, once the toolchain
+    file is updated with the correct cross compiler and other paths.
+
+    After creating and switching to a \c build directory:
+
+    \badcode
+    $HOME/qt-cross/qtbase/configure -release -opengl es2 -nomake examples -nomake tests \
+      -qt-host-path $HOME/qt-host                              \
+      -extprefix $HOME/qt6-rpi                                 \
+      -prefix /usr/local/qt6                                   \
+      -- -DCMAKE_TOOLCHAIN_FILE=$HOME/qt-cross/toolchain.cmake
+    \endcode
+
+    In practice this configure command is equivalent to the following direct CMake call:
+
+    \badcode
+    cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DINPUT_opengl=es2 -DQT_BUILD_EXAMPLES=OFF -DQT_BUILD_TESTS=OFF \
+      -DQT_HOST_PATH=$HOME/qt-host                           \
+      -DCMAKE_STAGING_PREFIX=$HOME/qt6-rpi                   \
+      -DCMAKE_INSTALL_PREFIX=/usr/local/qt6                  \
+      -DCMAKE_TOOLCHAIN_FILE=$HOME/qt-cross/toolchain.cmake  \
+      $HOME/qt-cross/qtbase
+    \endcode
+
+    Given the appropriate toolchain file, this is sufficient to generate a Qt build that
+    then allows applications to be built using CMake. To enable applications to be built
+    with \c qmake as well, the Qt 5 style device spec and device options must be
+    specified, in addition to all arguments shown above:
+
+    \badcode
+    $HOME/qt-cross/qtbase/configure ...
+      ...
+      -device linux-rasp-pi4-v3d-g++ \
+      -device-option CROSS_COMPILE=$HOME/rpi_sdk/sysroots/x86_64-pokysdk-linux/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi- \
+      -device-option DISTRO_OPTS="hard-float" \
+      ...
+    \endcode
+
+    By default, when cross-compiling, only the Qt libraries and tools that are
+    supposed to run on the target device are built. Build-related tools like \c
+    moc and \c uic are not built. Building such tools can be enabled by setting
+    \c{QT_FORCE_BUILD_TOOLS} to \c{ON}.
+
+    \note When \c{QT_FORCE_BUILD_TOOLS} is enabled, target binaries of tools
+    like \c qmake will get installed to the staging location. Therefore, if \c qmake is
+    used to build applications, call the \c{host-qmake} script instead.
+
+    Once configuration completes without errors, run \c{cmake --build . --parallel} to
+    build. Once built, run \c{cmake --install .} to install the results to
+    \c{$HOME/qt6-rpi}. From there the Qt build can be deployed to the device by using
+    rsync, scp, or another method.
+
+    If building individual Qt modules, one can use the \c qt-configure-module script from
+    the \c bin directory of the staging location (\c{$HOME/qt6-rpi} in the example) to
+    configure additional modules, such as qtdeclarative, qtquick3d, and so on. They can
+    then be built using \c{cmake --build .} and installed to the staging location by
+    running \c{cmake --install .}
+
+    \note Before starting the build, always inspect the output of the configuration step
+    carefully: does it have all the expected features enabled? Making a build and
+    deploying it to the device is futile if essential features are not enabled at
+    configuration time.
+
+    For example, when accelerated graphics via OpenGL is desired, pay extra attention to
+    the following features:
+
+    \badcode
+    EGL .................................... yes
+    OpenGL:
+      Desktop OpenGL ....................... no
+      OpenGL ES 2.0 ........................ yes
+      OpenGL ES 3.0 ........................ yes
+    ...
+    evdev .................................. yes
+    libinput ............................... yes
+    ...
+    EGLFS .................................. yes
+    EGLFS details:
+      EGLFS OpenWFD ........................ no
+      EGLFS i.Mx6 .......................... no
+      EGLFS i.Mx6 Wayland .................. no
+      EGLFS RCAR ........................... no
+      EGLFS EGLDevice ...................... yes
+      EGLFS GBM ............................ yes
+      EGLFS VSP2 ........................... no
+      EGLFS Mali ........................... no
+      EGLFS Raspberry Pi ................... no
+      EGLFS X11 ............................ no
+    LinuxFB ................................ yes
+    \endcode
+
+    With the Raspberry Pi 4 example, we expect that EGL, OpenGL ES and \c{EGLFS GBM} are
+    all reported as \c yes, otherwise the EGLFS platform plugin and its \b eglfs_kms
+    backend will not be functional on the device. For getting function mouse, keyboard,
+    and touch input, either \c evdev or \c libinput must be enabled.
+
+    Similarly, if X11 is planned to be used as the (or one of the) windowing systems on
+    the device, then ensure the xcb and X11 related features are marked as \c yes.
+
+    \section1 An Example Toolchain File
+
+    We will assume there is a sysroot and toolchain available under \c{$HOME/rpi-sdk}. \c
+    TARGET_SYSROOT and \c CROSS_COMPILER must be adjusted to the toolchain and sysroot in
+    use. The example here is only suitable for one specific, Yocto-generated SDK. The same
+    is true for \c CMAKE_C_COMPILER and \c CMAKE_CXX_COMPILER.
+
+    We do not rely on any wrapper scripts that would provide environment variables such as
+    PKG_CONFIG_*. Rather, the path to the .pc files is specified in the toolchain file. It
+    is likely that another sysroot will need adjustments in \c PKG_CONFIG_LIBDIR. For
+    example, with a sysroot generated from a Raspberry Pi OS (formerly Raspbian) image one
+    would use \c{/usr/lib/arm-gnueabihf/pkgconfig} instead.
+
+    The compiler and linker flags are not necessary optimal in the example. Adjust them as
+    necessary for the target device.
+
+    For further information on the CMake specifics in the example toolchain file, refer to
+    \l{https://www.qt.io/blog/standalone-boot2qt-/-yocto-sdk-cmake-toolchain}{this blog
+    post} and \l{https://cmake.org/cmake/help/latest/manual/cmake-toolchains.7.html}{the
+    CMake documentation}.
+
+    \badcode
+cmake_minimum_required(VERSION 3.18)
+include_guard(GLOBAL)
+
+set(CMAKE_SYSTEM_NAME Linux)
+set(CMAKE_SYSTEM_PROCESSOR arm)
+
+set(TARGET_SYSROOT /home/user/rpi-sdk/sysroots/cortexa7t2hf-neon-vfpv4-poky-linux-gnueabi)
+set(CROSS_COMPILER /home/user/rpi-sdk/sysroots/x86_64-pokysdk-linux/usr/bin/arm-poky-linux-gnueabi)
+
+set(CMAKE_SYSROOT ${TARGET_SYSROOT})
+
+set(ENV{PKG_CONFIG_PATH} "")
+set(ENV{PKG_CONFIG_LIBDIR} ${CMAKE_SYSROOT}/usr/lib/pkgconfig:${CMAKE_SYSROOT}/usr/share/pkgconfig)
+set(ENV{PKG_CONFIG_SYSROOT_DIR} ${CMAKE_SYSROOT})
+
+set(CMAKE_C_COMPILER ${CROSS_COMPILER}/arm-poky-linux-gnueabi-gcc)
+set(CMAKE_CXX_COMPILER ${CROSS_COMPILER}/arm-poky-linux-gnueabi-g++)
+
+set(QT_COMPILER_FLAGS "-march=armv7-a -mfpu=neon -mfloat-abi=hard")
+set(QT_COMPILER_FLAGS_RELEASE "-O2 -pipe")
+set(QT_LINKER_FLAGS "-Wl,-O1 -Wl,--hash-style=gnu -Wl,--as-needed")
+
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+
+include(CMakeInitializeConfigs)
+
+function(cmake_initialize_per_config_variable _PREFIX _DOCSTRING)
+  if (_PREFIX MATCHES "CMAKE_(C|CXX|ASM)_FLAGS")
+    set(CMAKE_${CMAKE_MATCH_1}_FLAGS_INIT "${QT_COMPILER_FLAGS}")
+
+    foreach (config DEBUG RELEASE MINSIZEREL RELWITHDEBINFO)
+      if (DEFINED QT_COMPILER_FLAGS_${config})
+        set(CMAKE_${CMAKE_MATCH_1}_FLAGS_${config}_INIT "${QT_COMPILER_FLAGS_${config}}")
+      endif()
+    endforeach()
+  endif()
+
+  if (_PREFIX MATCHES "CMAKE_(SHARED|MODULE|EXE)_LINKER_FLAGS")
+    foreach (config SHARED MODULE EXE)
+      set(CMAKE_${config}_LINKER_FLAGS_INIT "${QT_LINKER_FLAGS}")
+    endforeach()
+  endif()
+
+  _cmake_initialize_per_config_variable(${ARGV})
+endfunction()
+    \endcode
+
+    \section1 Building Applications for the Target Device
+
+    Once the Qt build is done and installed to the staging location, examples or
+    applications can be built.
+
+    With CMake, use the generated \c qt-cmake script in the \c bin directory of the
+    staging location (\c{$HOME/qt6-rpi} in the example) to configure, then run \c
+    ninja. For example:
+
+    \badcode
+    $HOME/qt6-rpi/bin/qt-cmake .
+    cmake --build .
+    \endcode
+
+    The resulting application binary can then be deployed to the device. Using the \c
+    qt-cmake helper script is convenient, because the script ensures the toolchain file
+    that was used for building Qt is loaded, so there is no need to repeatedly specify it
+    for each application.
+
+    Unlike for Qt itself, building applications with qmake is still supported in Qt 6.0,
+    as long as a suitable device spec is available, and the appropriate legacy arguments
+    were passed to CMake or configure when configuring Qt. If this is all true, then
+    running \c qmake and \c make will also generate an application binary for the target
+    device.
+
+    \section1 Defaults for Platform Plugins and EGLFS
+
+    Once configured, a default platform plugin is chosen. This is used when launching an
+    application without the \c{-platform} argument and without having the \c
+    QT_QPA_PLATFORM environment variable set.
+
+    Similarly, the EGLFS platform plugin has multiple backends. The default is chosen
+    based on availability and a pre-defined priority order. If drm and gbm are available,
+    the default will be the \b eglfs_kms backend. This can always be overridden at runtime
+    by setting the \c QT_QPA_EGLFS_INTEGRATION environment variable.
+
+    To change these defaults for the build, without having to force a specific value at
+    run time, the following two CMake cache variables are available after CMake has been run
+    once:
+
+    \list
+    \li \c QT_QPA_DEFAULT_PLATFORM (\c STRING) - The name of the default platform plugin.
+    \li \c QT_QPA_DEFAULT_EGLFS_INTEGRATION (\c STRING) - The default EGLFS backend.
+    \endlist
+
+    These variables can also be set inside the toolchain file.
+
+    For more information on configuring Qt, see \l {Qt Configure Options}.
+*/

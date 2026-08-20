@@ -1,0 +1,225 @@
+// Copyright (C) 2026 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\inmodule QtGrpc
+\page qtgrpc-interceptors-overview.html
+\ingroup qtgrpc-interceptors
+\title Qt GRPC Interceptors Overview
+\brief Provides an overview of the Qt GRPC interceptor mechanism.
+
+\section1 Interceptors overview
+
+Client-side interceptors provide a lightweight mechanism for implementing
+behavior that should apply consistently across many RPCs. They are
+especially useful for cross-cutting concerns that are independent of a
+specific RPC method, such as:
+
+\list
+    \li Distributed tracing
+    \li Logging
+    \li Authentication and authorization
+    \li Metrics and observability
+    \li Policy enforcement
+    \li Client-side caching
+    \li Fault injection
+\endlist
+
+Interceptors are installed on a channel using a QGrpcInterceptorChain.
+Each interceptor implements one or more interceptor interfaces (for example
+QGrpcStartInterceptor and QGrpcFinishedInterceptor). The Qt GRPC channel
+invokes the corresponding interface whenever that stage of an RPC is reached,
+providing the context of the current RPC.
+
+Interceptors operate at the level of individual RPCs. They can inspect and
+modify request or response metadata and payloads as the RPC progresses.
+They are intended for implementing per-call behavior rather than managing
+channel or transport configuration.
+
+\note Interceptors in Qt GRPC are installed on a channel and apply to all
+RPCs performed through that channel. The interceptor chain is fixed at
+construction time and cannot be modified afterwards. To change the
+interception behavior, create a new channel with a different interceptor
+chain.
+
+\section2 Capabilities and hook points
+
+Each interception interface represents a hook point in the RPC lifetime. An
+interceptor class can implement multiple interfaces by using \b {multiple
+inheritance}.
+
+Qt GRPC detects which interception interfaces an interceptor implements and
+exposes them as \l {QtGrpc::InterceptorCapabilities}{capabilities}. Qt GRPC
+uses these capabilities to dispatch only the hooks that are actually
+implemented.
+
+//! [interface-table]
+
+\table 85 %
+\header
+    \li Interface
+    \li Hook Point
+    \li Direction
+    \li Can Modify
+\row
+    \li QGrpcStartInterceptor
+    \li Before the RPC is initiated
+    \li Outbound
+    \li Initial message object, call options
+\row
+    \li QGrpcWriteMessageInterceptor
+    \li Before an outgoing message is written
+    \li Outbound
+    \li Message object
+\row
+    \li QGrpcWritesDoneInterceptor
+    \li When the client indicates writes are done
+    \li Outbound
+    \li —
+\row
+    \li QGrpcCancelInterceptor
+    \li When the RPC is cancelled
+    \li Outbound
+    \li —
+\row
+    \li QGrpcInitialMetadataInterceptor
+    \li When initial metadata is received
+    \li Inbound
+    \li Metadata
+\row
+    \li QGrpcMessageReceivedInterceptor
+    \li When a message payload is received
+    \li Inbound
+    \li Serialized message data
+\row
+    \li QGrpcTrailingMetadataInterceptor
+    \li When trailing metadata is received
+    \li Inbound
+    \li Metadata
+\row
+    \li QGrpcFinishedInterceptor
+    \li When the RPC completes
+    \li Inbound
+    \li Final status
+\endtable
+
+//! [interface-table]
+
+All callbacks receive a QGrpcInterceptionContext, which provides
+information about the intercepted RPC, such as the \l
+{QtGrpc::RpcDescriptor}{RPC descriptor}, the \l
+{QGrpcInterceptionContext::}{channel} or the \l
+{QGrpcInterceptionContext::}{callOptions} in effect. The context object is
+only valid for the duration of the callback and must not be used
+afterwards.
+
+\note Keep interception logic lightweight and avoid blocking operations in
+callbacks. Perform slow work (for example I/O or token refresh) outside the
+callback and only apply the result in the hook.
+
+\section2 Direction and flow
+
+When multiple interceptors are used, their order is significant. It is
+useful to think of interceptors as arranged in a line between the
+application and the network. Interceptors earlier in the chain process the
+RPC first and may modify it before passing it to the next interceptor.
+Interceptors closer to the network have the last chance to observe or
+adjust what is actually sent.
+
+Interceptors are added to a QGrpcInterceptorChain in a defined order.
+QtGrpc traverses the chain as the RPC flows:
+
+\list
+\li For outbound stages (application → network), callbacks are invoked in
+    the order in which interceptors were added to the chain.
+\li For inbound stages (network → application), callbacks are invoked in
+    the reverse order so that the last interceptor “closest to the network”
+    sees inbound data first.
+\endlist
+
+\image {interceptor_directions.webp} {Two diagrams showing outbound and inbound
+interceptor directions}
+
+Outbound stages correspond to operations initiated by the client, such as
+sending a message or completing a write sequence (for example, \l
+{QGrpcBidiStream::} {writeMessage} or \l {QGrpcBidiStream::} {writesDone}).
+These events travel from the application through the interceptor chain
+toward the network.
+
+Inbound stages correspond to events produced by the RPC, such as receiving
+a message or the completion of the call (for example, \l
+{QGrpcBidiStream::} {messageReceived} or \l {QGrpcBidiStream::}
+{finished}). These events travel from the network back through the
+interceptor chain toward the application.
+
+\section2 Ownership and lifetime
+
+QGrpcInterceptorChain supports two primary lifetime models:
+
+\list
+\li \b{Owning}: Add interceptors using \c{std::unique_ptr<T>()}. On success,
+    the chain takes ownership and destroys the interceptors when the chain (and
+    therefore the channel) is destroyed.
+\li \b{Non-owning}: Add interceptors using raw pointers \c{T*}. The chain
+    does not take ownership. The caller must ensure that interceptor objects
+    remain valid for as long as the channel may invoke them.
+\endlist
+
+Both models can also be combined within the same chain. While supported,
+\b{mixing} owning and non-owning interceptors requires care to ensure that
+non-owning interceptors outlive all channels that may use them.
+
+Non-owning interceptors can be shared between multiple channels by adding the same
+interceptor instance to multiple chains. This is useful for shared logging or shared
+metrics collection, but it requires careful management of lifetime and concurrent access.
+
+\section2 Thread safety and shared state
+
+Interceptor callbacks run in the thread of the channel that owns the
+interceptor chain.
+
+Reentrant interceptors do not require any synchronization.
+
+Synchronization is only required when interceptors access shared data that
+may be used from multiple threads. This can occur, for example, when the
+same interceptor instance is used by channels living in different threads,
+or when multiple interceptor instances access the same shared data.
+
+When shared data must be accessed across threads, prefer keeping
+interceptor instances thread-local and storing the shared data in a
+separately synchronized object.
+
+\code
+    struct SharedData
+    {
+        QReadWriteLock lock;
+        // shared data protected by lock
+    };
+
+    class MyInterceptor : public QGrpcStartInterceptor
+    {
+    public:
+        explicit MyInterceptor(std::shared_ptr<SharedData> data)
+            : m_sharedData(std::move(data)) {}
+
+        Continuation onStart(~~~) override; {
+            // access shared data here
+        }
+
+    private:
+        std::shared_ptr<SharedData> m_sharedData;
+    };
+    ~~~
+    auto sharedData = std::make_shared<SharedData>();
+    bool ok = chain1.set(
+        std::make_unique<MyInterceptor>(sharedData),
+        std::make_unique<MyInterceptor>(sharedData)
+    );
+    // repeats for chain2
+    ~~~
+    auto channelThread1 = std::make_shared<QGrpcHttp2Channel>(
+        QUrl("address:port"), std::move(chain1));
+    auto channelThread2 = std::make_shared<QGrpcHttp2Channel>(
+        QUrl("address:port"), std::move(chain2));
+\endcode
+*/

@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/scenegraph/graph">
+        <file>main.qml</file>
+        <file>shaders/noisy.vert.qsb</file>
+        <file>shaders/noisy.frag.qsb</file>
+        <file>shaders/line.vert.qsb</file>
+        <file>shaders/line.frag.qsb</file>
+    </qresource>
+</RCC>

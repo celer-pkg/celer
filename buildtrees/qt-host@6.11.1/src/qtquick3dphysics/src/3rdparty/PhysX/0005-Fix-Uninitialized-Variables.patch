@@ -1,0 +1,26 @@
+diff --git a/src/3rdparty/PhysX/source/geomutils/src/mesh/GuMidphaseRTree.cpp b/src/3rdparty/PhysX/source/geomutils/src/mesh/GuMidphaseRTree.cpp
+index 564a11d..441ebf0 100644
+--- a/src/3rdparty/PhysX/source/geomutils/src/mesh/GuMidphaseRTree.cpp
++++ b/src/3rdparty/PhysX/source/geomutils/src/mesh/GuMidphaseRTree.cpp
+@@ -237,7 +237,7 @@ struct RayRTreeCallback : RTree::CallbackRaycast, RTree::Callback
+ 
+ 	virtual bool processResults(PxU32 numTouched, PxU32* touched)
+ 	{
+-		PxF32 dummy;
++		PxF32 dummy = 0;
+ 		return RayRTreeCallback::processResults(numTouched, touched, dummy);
+ 	}
+ 
+diff --git a/src/3rdparty/PhysX/source/geomutils/src/pcm/GuPCMTriangleContactGen.cpp b/src/3rdparty/PhysX/source/geomutils/src/pcm/GuPCMTriangleContactGen.cpp
+index a18e38f..44bf61e 100644
+--- a/src/3rdparty/PhysX/source/geomutils/src/pcm/GuPCMTriangleContactGen.cpp
++++ b/src/3rdparty/PhysX/source/geomutils/src/pcm/GuPCMTriangleContactGen.cpp
+@@ -874,7 +874,7 @@ namespace physx
+ 		Vec3V points1In0[3];
+ 		FloatV points1In0TValue[3];
+ 
+-		bool points1In0Penetration[3];
++		bool points1In0Penetration[3] = { false, false, false};
+ 		
+ 		//Transform all the verts from vertex space to shape space
+ 		map0->populateVerts(inds0, referencePolygon.mNbVerts, polyData0.mVerts, points0In0);

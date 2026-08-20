@@ -1,0 +1,32 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  template: ../../probe-config.hjson
+  args: {
+    TRACE_PROCESSOR_QUERIES: [
+      {
+        name: Total Load Duration
+        sql:
+          '''
+            include PERFETTO MODULE sql_packages.cujs.simultaneous_load.total_load_duration;
+            SELECT * FROM total_load_duration_output;
+          '''
+      }
+      {
+        name: Tab Load Durations
+        sql:
+          '''
+            include PERFETTO MODULE sql_packages.cujs.simultaneous_load.tab_load_durations;
+            SELECT * FROM tab_load_durations_output;
+          '''
+      }
+      ../../common-metrics/v1/tab_open_latency.hjson
+    ]
+    METRIC_DEFINITIONS: [
+      ./metrics.textproto
+      ../../common-metrics/v2/tab_open_latency.textproto
+    ]
+    TRACE_CONFIG: ../../trace-config/long-running-trace-config.pbtxt
+  }
+}

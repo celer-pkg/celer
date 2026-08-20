@@ -1,0 +1,57 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#include "../effectlib/oitcommon.glsllib"
+
+#if QSSG_OIT_METHOD == QSSG_OIT_LINKED_LIST
+
+layout(std430, binding = 3) restrict coherent buffer qt_imgABuffer
+{
+    uvec4 abufData[];
+};
+layout(std430, binding = 4) restrict coherent buffer qt_imgAux
+{
+    uint auxData[];
+};
+layout(std430, binding = 5) restrict buffer qt_imgCounter
+{
+    uint counter;
+};
+
+vec4 qt_oitLinkedList(const vec4 color, const uint listNodeCount, const uint abufImageWidth, const ivec2 viewSize, const uint viewIndex, const uint samples)
+{
+    // +1 as 0 is used as a list terminator. Adds 1 to imgCounter[0,0] and
+    // returns the original value.
+    if (color.a <= 0.000001)
+        return vec4(0);
+
+    const uint newOffset = atomicAdd(counter, 1) + 1;
+    vec4 ret = vec4(0.0);
+
+    if(newOffset < listNodeCount) {
+#if QSHADER_VIEW_COUNT >= 2
+        ivec2 coord = ivec2(gl_FragCoord.x, gl_FragCoord.y + viewIndex * viewSize.y);
+#else
+        ivec2 coord = ivec2(gl_FragCoord.x, gl_FragCoord.y);
+#endif
+#if QSSG_MULTISAMPLE == 1
+        coord.x += gl_SampleID * viewSize.x;
+#endif
+        uint index = coord.x + coord.y * viewSize.x * samples;
+        // Note that this is indeed thread-safe! The order in which threads
+        // reach this line determines the order of the fragments in the linked list.
+        const uint oldOffset = atomicExchange(auxData[index], newOffset);
+
+        const uvec4 storeValue = uvec4(packUnorm4x8(color),
+                                     floatBitsToUint(gl_FragCoord.z),
+                                     oldOffset,
+                                     0);
+
+        abufData[newOffset - 1] = storeValue;
+    } else {
+        ret = color;
+    }
+    return ret;
+}
+
+#endif

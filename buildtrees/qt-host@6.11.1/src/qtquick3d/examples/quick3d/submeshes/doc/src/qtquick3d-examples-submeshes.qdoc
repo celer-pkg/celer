@@ -1,0 +1,53 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example submeshes
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - Sub-mesh Example
+    \examplecategory {3D}
+    \brief Demonstrates how assign materials to sub-meshes.
+    \image submeshes-example.png
+           {Two cubes with sub-mesh materials}
+
+    This example demonstrates how material and sub-meshes are mapped.
+
+    \section1 Sub-meshes and materials
+
+    When a \l Model is built up of two or more meshes, then those meshes are referred to as sub-meshes.
+    Each sub-mesh can have its own material, but it's not required to provide more then one material
+    per model.
+    If there are more sub-meshes then there are materials, then the last material in the
+    \l {Model::materials}{materials} list is used for all remeining sub-meshes. When a model is
+    provided with one material per sub-mesh, then those are mapped on-to-one, meaning the first
+    material in the list is applied to the first sub-mesh, the second material to the second sub-mesh,
+    and so forth. How the sub-meshes are ordered in a model depends on how the model was created and
+    exported by the 3D modeling tool used to create it.
+
+    The following example shows two distored cubes where each side of the cube is a sub-mesh of its
+    own.
+
+    If we look at the cube on the left, we can see that there's one side colored \b red while the
+    rest of the sides are \b green, the reason for this is of course that the material only has two
+    materials, namely one red, and one green. In our model the first sub-mesh happens to be the "top"
+    side of the distored cube, and since the red material is the placed first in the material list,
+    it gets a red color as expected. The second material in the list is the \b green material which
+    is mapped to the second sub-mesh, which is the "fron" side of the distored cube, and since it's
+    the last material in the list, it will also be the material used for all the remaining sides of the distored cube.
+
+    \image submeshes-example1.png
+           {Distorted cube with red back and green front and sides}
+
+    \snippet submeshes/qml/main.qml DistortedCube Left
+
+    Looking at the cube to the right we can see that it has been give some more colors, this is of
+    of course because we now provided one material for each of the six sub-meshes, each with a different
+    color.
+
+    \image submeshes-example2.png
+           {Distorted cube with six different colored sides}
+
+    \snippet submeshes/qml/DistortedCube.qml DistortedCube Right
+*/
+
+

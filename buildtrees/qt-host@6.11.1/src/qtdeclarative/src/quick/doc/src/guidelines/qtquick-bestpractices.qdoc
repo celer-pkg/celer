@@ -1,0 +1,467 @@
+// Copyright (C) 2018 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtquick-bestpractices.html
+\title Best Practices for QML and Qt Quick
+\brief Lists best practices for working with QML and Qt Quick.
+\ingroup best-practices
+\ingroup explanations-programminglanguages
+
+Despite all of the benefits that QML and Qt Quick offer, they can be
+challenging in certain situations. The following sections elaborate on some of
+the best practices that will help you get better results when developing
+applications.
+
+\section1 Use Built-in Controls over Custom UI Controls
+
+A fluid and modern UI is key for any application's success in today's world, and
+that's where QML makes so much sense for a designer or developer. Qt offers the
+most basic UI controls that are necessary to create a fluid and modern-looking
+UI. It is recommended to browse this list of UI controls before creating your
+own custom UI control.
+
+Besides these basic UI controls offered by Qt Quick itself, a rich set of UI
+controls are also available with Qt Quick Controls. They cater to the most
+common use cases without any change, and offer a lot more possibilities with their
+customization options. In particular, Qt Quick Controls provides styling
+options that align with the latest UI design trends. If these UI controls do not
+satisfy your application's needs, only then it is recommended to create a
+custom control.
+
+You can use the controls when you design UIs in Qt Design Studio. In addition,
+it provides timeline-based animations, visual effects, layouts, and a
+live-preview for prototyping applications.
+
+\section2 Related Information
+\list
+\li \l{Qt Quick Controls}
+\li \l{Customizing Qt Quick Controls}
+\li \l{Qt Quick}
+\li \l{Qt Design Studio Manual}
+\endlist
+
+\omit
+\section1 Keep it Short and Simple or "KiSS"
+
+QML being a declarative language, a lot of the details are worked out by the underlying
+engine. So it is important for any QML application, especially one with a
+larger codebase, to have its code organized in smaller and simpler \c .qml files.
+
+TODO: need a few snippet or example applications that showcase this.
+\endomit
+
+\section1 Coding Conventions
+
+See \l{QML Coding Conventions}.
+
+\section1 Bundle Application Resources
+
+Most applications depend on resources, such as images and icons, to provide a
+rich user experience. It can often be a challenge to make these resources
+available to the application regardless of the target OS. Most popular OS-es
+employ security policies that restrict access to the file system,
+making it harder to load these resources. As an alternative, Qt offers its own
+\l {The Qt Resource System}{resource system} that is built into the
+application binary, enabling access to the application's resources regardless
+of the target OS.
+
+For example, for a C++ project, consider the following directory structure:
+
+\badcode
+MyModule
+├── images
+│   ├── image1.png
+│   └── image2.png
+├── CMakeLists.txt
+└── main.qml
+\endcode
+
+You may represent this structure as a \l{qt_add_qml_module}{CMake QML Module} in the following way:
+
+\code
+qt_add_qml_module(my_module
+   URI MyModule
+   VERSION 1.0
+   QML_FILES
+       main.qml
+   RESOURCES
+       images/image1.png
+       images/image2.png
+   # ...
+)
+\endcode
+
+All QML files listed under \c {QML_FILES} will automatically get compiled \l {Ahead-of-Time Compilation}{ahead of time}.
+
+You should keep the QML files in the \e same directory as the CMakeLists.txt with
+the \l {qt_add_qml_module}. Otherwise, their \l{The Implicit Import}{implicit imports}
+will be different from the \l{QML Modules} they belong to. This is a frequent
+source of mistakes.
+
+\section2 Related Information
+\list
+ \li \l{The Qt Resource System}
+\endlist
+
+\section1 Separate UI from Business Logic
+
+One of the key goals that most application developers want to achieve is to
+create a maintainable application. One of the ways to achieve this goal is
+to separate the user interface, the frontend, from the business logic, the backend.
+The following are a few reasons why an application's UI should be written in QML:
+
+\list
+ \li Declarative languages are strongly suited for defining UIs.
+ \li QML code is simpler to write, as it is less verbose than C++, and is not
+     strongly typed. This also results in it being an excellent language to
+     prototype in, a quality that is vital when collaborating with designers,
+     for example.
+ \li JavaScript can easily be used in QML to respond to events.
+\endlist
+
+Strongly typed languages, such as C++, are best suited for an application's
+business logic, the backend. Typically, such code performs tasks such as complex calculations
+or data processing, which are faster in strongly typed languages than in QML.
+
+Qt offers various approaches to integrate QML with a strongly typed language in an application.
+A typical use case is displaying a list of data in a user interface.
+If the data set is static, simple, and small, a model written in QML can be
+sufficient.
+
+The following snippet demonstrates examples of models written in QML:
+
+\qml
+    model: [ "Item 1", "Item 2", "Item 3" ]
+
+    model: 10
+\endqml
+
+For larger and more dynamic data sets, use a strongly typed language, such as
+\l {QAbstractItemModel Subclass}{C++}, to handle the business logic.
+
+\section2 Exposing Data from C++ to QML
+
+Refactoring QML is a lot easier than refactoring C++, so in order to make
+maintenance pain-free, we should strive to keep C++ types unaware of QML as
+much as possible. This can be achieved by "pushing" references to C++ types
+into QML.
+
+This can be done by using \l {Required properties}{required properties} and
+setting them via \l QQmlApplicationEngine::setInitialProperties. It is also
+possible to create one or multiple \l {QML_SINGLETON}{singletons} which will
+return all the data the C++ side wants to provide to QML.
+
+With this approach, the C++ remains unchanged in the event that the QML needs
+to be refactored in the future.
+
+For a quick guide to choosing the correct approach to expose C++ types to QML,
+see \l {Choosing the Correct Integration Method Between C++ and QML}.
+
+\section2 Related Information
+\list
+\li \l{Writing QML Extensions with C++}
+      {Writing QML Extensions with C++ Tutorial}
+\li \l{Qt Quick Controls - Chat Tutorial}{Chat application tutorial}
+\endlist
+
+\section1 Using Qt Design Studio
+
+Qt Design Studio uses UI files that have the filename extension \e {.ui.qml}
+to separate the visual parts of the UI from the UI logic you implement in
+\e {.qml} files. You should edit UI files only in the \uicontrol {2D} view in
+Qt Design Studio. If you use some other tool to add code that Qt Design Studio
+does not support, it displays error messages. Fix the errors to enable visual
+editing of the UI files again. Typically, you should move the unsupported code
+to a \e {.qml} file.
+
+\section2 Related Information
+
+\list
+    \li \l{Qt Design Studio: UI Files}
+\endlist
+
+\section1 Using Qt Quick Views
+
+\section2 Store State in Models
+
+See \l {Avoid Storing State in Delegates}.
+
+\section1 Using Qt Quick Layouts
+
+Qt offers Qt Quick Layouts to arrange Qt Quick items visually in a layout.
+Unlike its alternative, the item positioners, the Qt Quick Layouts can also
+resize its children on window resize. Although Qt Quick Layouts are often
+the desired choice for most use cases, the following \e dos and \e{don'ts}
+must be considered while using them:
+
+\section2 Dos
+
+\list
+ \li Use \l {Item::}{anchors} or the \l {Item::}{width} and \l {Item::}{height}
+     properties to specify the size of the layout against its non-layout parent
+     item.
+ \li Use the \l Layout attached property to set the size and alignment
+     attributes of the layout's immediate children.
+\endlist
+
+\section2 Don'ts
+
+\list
+ \li Do not define preferred sizes for items that provide implicitWidth and
+     implicitHeight, unless their implicit sizes are not satisfactory.
+ \li Do not use anchors on an item that is an immediate child of a layout.
+     Instead, use \c Layout.preferredWidth and \c Layout.preferredHeight:
+
+    \snippet qml/windowconstraints.qml rowlayout
+\endlist
+
+\note Layouts and anchors are both types of objects that take more memory and
+instantiation time. Avoid using them (especially in list and table delegates,
+and styles for controls) when simple bindings to x, y, width, and height
+properties are enough.
+
+\section2 Related Information
+
+\list
+ \li \l{Item Positioners}
+ \li \l{Qt Quick Layouts Overview}
+\endlist
+
+\section1 Type Safety
+
+When declaring properties in QML, it's easy and convenient to use the "var" type:
+
+\code
+property var name
+property var size
+property var optionsMenu
+\endcode
+
+However, this approach has several disadvantages:
+\list
+ \li If a value with the wrong type is assigned, the error reported will point
+     to the location of the property declaration, as opposed to the location
+     where the property was assigned to. This slows down the development
+     process by making it more difficult to track down errors.
+ \li Static anaylsis to catch errors like the ones mentioned above is not
+     possible.
+ \li The actual underlying type of the property is not always immediately clear
+     to the reader.
+\endlist
+
+Instead, always use the actual type where possible:
+
+\code
+property string name
+property int size
+property MyMenu optionsMenu
+\endcode
+
+\section1 Property change signals
+
+Prefer using the explicit interaction signals over the value changed signals to
+avoid subtle bugs.
+
+Using \c {valueChanged} can lead to event cascades where the value is constantly
+changed because it is somehow rounded or normalized.
+
+Using explicit interaction signals alone avoids this whole class of issues.
+
+For example, \l Slider has these similar signals: \l {Slider::}{moved} and
+\c {valueChanged}.
+
+\qml
+Slider {
+    value: someValueFromBackend
+
+    onValueChanged: pushToBackend(value)
+    // or
+    onMoved: pushToBackend(value)
+}
+\endqml
+
+Both cases look similar, and you may want to use \c {valueChanged}.
+
+Developers often overlook the fact that the \l Slider can automatically change
+its value, for example, because of clamping to minimum/maximum values or
+rounding. In this case, the \c {valueChanged} signal is emitted. If you use the
+\c {valueChanged} signal, you may notice it is emitted at unexpected moments.
+
+To avoid possible issues, use an interaction signal: the signal that is emitted
+when user interacts with the control. In this example, if you use the
+\l {Slider::}{moved} signal, the slot will only be triggered if the user
+changes the control.
+
+\section1 Performance
+
+For information on performance in QML and Qt Quick,
+see \l {QML Performance Considerations And Suggestions}.
+
+\section1 Prefer Declarative Bindings Over Imperative Assignments
+
+In QML, it's possible to use imperative JavaScript code to perform tasks
+such as responding to input events, send data over a network, and so on.
+Imperative code has an important place in QML, but it's also important
+to be aware of when not to use it.
+
+For example, consider the following imperative assignment:
+
+\code
+Rectangle {
+    Component.onCompleted: color = "red"
+}
+\endcode
+
+This has the following disadvantages:
+
+\list
+\li It's slow. The color property will first be evaluated with a
+    default-constructed value, and then again with "red" later on.
+\li It delays errors that could be found at build time to run time, slowing
+    down the development process.
+\li It overwrites any declarative binding that was in place. In most cases this
+    is intended, but sometimes it can be unintentional.
+    See \l {Debugging overwriting of bindings} for more information.
+\li It interferes with tooling; Qt Quick Designer, for example, doesn't support
+    JavaScript.
+\endlist
+
+The code can be rewritten to be a declarative binding instead:
+
+\code
+Rectangle {
+    color: "red"
+}
+\endcode
+
+\section1 Don't store state in delegates
+
+Don't store a state in a delegate. The issue here is that the delegate is
+created and destroyed multiple times, so the saved state will be lost.
+
+\qml
+// Wrong approach:
+ListView {
+    // ...
+
+    delegate: Button {
+        // ...
+        property bool someStateProperty
+        onClicked: someStateProperty = true
+    }
+}
+\endqml
+
+Instead, store the state outside of the delegate. For example, in a model.
+When the delegate is destroyed, the saved state is not lost.
+
+\qml
+// Right approach:
+ListView {
+    // ...
+
+    delegate: Button {
+        // ...
+        onClicked: model.someStateProperty = true
+    }
+}
+\endqml
+
+\section1 Make user-facing strings translatable
+
+It is recommended to make user-facing strings translatable from the beginning.
+See \l {Writing Source Code for Translation}.
+
+\qml
+ToolButton {
+    id: selectionToolButton
+    // ...
+    icon.source: "qrc:/images/selection.png"
+
+    Tooltip.Text: qsTr("Select pixels within an area and move them")
+
+    onClicked: canvas.tool = ImageCanvas.SelectionTool
+}
+\endqml
+
+\section1 Do not customize native styles
+
+Native styles (Windows and macOS styles) don't support customization.
+Ensure you don't customize a native style.
+
+\qml *
+// Wrong approach:
+import QtQuick.Controls.Windows
+
+// Don't customize a native style
+Button {
+    background: Rectangle { /\1...\1/ }
+}
+\endqml
+
+\include customizing-native-styles.qdocinc
+
+\qml *
+// Right approach:
+import QtQuick.Controls.Basic
+
+// You can customize a commonly available style
+Button {
+    background: Rectangle { /\1...\1/ }
+}
+\endqml
+
+\section1 Tools and Utilities
+
+For information on useful tools and utilies that make working with QML and
+Qt Quick easier, see \l {Qt Quick Tools and Utilities}.
+
+\section1 Scene Graph
+
+For information on Qt Quick's scene graph, see \l {Qt Quick Scene Graph}.
+
+\section1 Scalable User Interfaces
+
+As display resolutions improve, a scalable application UI becomes more and
+more important. One of the approaches to achieve this is to maintain several
+copies of the UI for different screen resolutions, and load the appropriate one
+depending on the available resolution. Although this works pretty
+well, it adds to the maintenance overhead.
+
+Qt offers a better solution to this problem and recommends the application
+developers to follow these tips:
+
+\list
+ \li Use anchors or the Qt Quick Layouts module to lay out the visual items.
+ \li Do not specify explicit width and height for a visual item.
+ \li Provide UI resources such as images and icons for each display resolution
+     that your application supports. The Qt Quick Controls gallery example
+     demonstrates this well by providing the \c qt-logo.png for \c @2x, \c @3x,
+     and \c @4x resolutions, enabling the application to cater to high
+     resolution displays. Qt automatically chooses the appropriate
+     image that is suitable for the given display, provided the high DPI scaling
+     feature is explicitly enabled.
+ \li Use SVG images for small icons. While larger SVGs can be slow to render,
+     small ones work well. Vector images avoid the need to provide several
+     versions of an image, as is necessary with bitmap images.
+ \li Use font-based icons, such as Font Awesome. These scale to any display
+     resolution, and also allow colorization. The
+     Qt Quick Controls Text Editor example demonstrates this well.
+\endlist
+
+With this in place, your application's UI should scale depending
+on the display resolution on offer.
+
+\image qtquickcontrols-gallery-welcome.png
+
+\section2 Related Information
+
+\list
+ \li \l{Qt Quick Controls - Gallery}{Gallery example}
+ \li \l{Qt Quick Controls - Text Editor}{Text Editor example}
+ \li \l{Font Awesome}
+ \li \l{Scalability}
+ \li \l{High DPI}
+\endlist
+*/

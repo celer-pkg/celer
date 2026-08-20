@@ -1,0 +1,89 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \qmlvaluetype geoSatelliteInfo
+    \ingroup qmlvaluetypes
+    \inqmlmodule QtPositioning
+    \since 6.5
+
+    \brief The geoSatelliteInfo type represents basic information about a
+    satellite.
+
+    This type is a QML representation of \l QGeoSatelliteInfo. The type is
+    uncreatable from QML and can only be used when handling satellite updates
+    from \l SatelliteSource.
+
+    This type contains the \c satelliteSystem, \c satelliteIdentifier and
+    \c signalStrength read-only properties, and also optional attributes.
+
+    Use the \l hasAttribute method to check if the attribute exists or not,
+    and the \l attribute method to get its value.
+
+    \sa QGeoSatelliteInfo
+*/
+
+/*!
+    \qmlproperty enumeration QtPositioning::geoSatelliteInfo::satelliteSystem
+    \readonly
+
+    Holds the GNSS system of the satellite.
+
+    \value GeoSatelliteInfo.Undefined Not defined.
+    \value GeoSatelliteInfo.GPS Global Positioning System (USA).
+    \value GeoSatelliteInfo.GLONASS Global Positioning System (Russia).
+    \value GeoSatelliteInfo.GALILEO Global navigation satellite system (EU).
+    \value GeoSatelliteInfo.BEIDOU BeiDou navigation satellite system (China).
+    \value GeoSatelliteInfo.QZSS Quasi-Zenith Satellite System (Japan).
+    \value GeoSatelliteInfo.Multiple This type normally indicates that the
+           information is received from a device that supports multiple
+           satellite systems, and the satellite system is not explicitly
+           specified.
+    \value GeoSatelliteInfo.CustomType The first type that can be used
+           for user purposes.
+*/
+
+/*!
+    \qmlproperty int QtPositioning::geoSatelliteInfo::satelliteIdentifier
+    \readonly
+
+    Holds the satellite identifier number.
+
+    The satellite identifier number can be used to identify a satellite within
+    the satellite system.
+
+    The actual value may vary, depending on the platform and the selected
+    backend.
+*/
+
+/*!
+    \qmlproperty real QtPositioning::geoSatelliteInfo::signalStrength
+    \readonly
+
+    Holds the signal strength in decibels.
+*/
+
+/*!
+    \qmlmethod real QtPositioning::geoSatelliteInfo::attribute(Attribute attr)
+
+    Returns the value of the attribute \a attr or -1 if the value has not been
+    set.
+
+    The following attributes are supported:
+
+    \list
+        \li \c {GeoSatelliteInfo.Elevation} - the elevation of the satellite,
+            in degrees.
+        \li \c {GeoSatelliteInfo.Azimuth} - the azimuth to true north,
+            in degrees.
+    \endlist
+*/
+
+/*!
+    \qmlmethod bool QtPositioning::geoSatelliteInfo::hasAttribute(Attribute attr)
+
+    Returns \c true if the satellite information contains the attribute \a attr.
+    Otherwise returns \c false.
+
+    See \l attribute() for the list of supported attributes.
+*/

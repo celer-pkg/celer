@@ -1,0 +1,50 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example mass
+    \ingroup quick3dphysics-examples
+    \title Qt Quick 3D Physics - Mass Example
+    \examplecategory {3D}
+    \brief Demonstrates different ways of setting mass and inertia of a body.
+    \image mass-example.jpg {Screenshot of s 3D rendering showing three stacked sphere figures on a green surface, colored blue, purple, and red from left to right}
+
+    This example demonstrates three different ways of setting up the mass and inertia of a body. The scene consists of three bodies that consist of three spheres stacked vertically. These bodies all have the same mass but differing centers of mass and inertia tensors giving them different behavior when colliding.
+
+    \section1 Setup
+
+    We first add our PhysicsWorld:
+
+    \snippet mass/main.qml world
+
+    We do the usual setup where we have an environment, camera and lights:
+
+    \snippet mass/main.qml environment
+
+    \section1 Physical objects
+
+    We have our regular static plane:
+
+    \snippet mass/main.qml plane
+
+    We define a custom QML class for our body which we call RolyPoly since they behave like so called roly-poly toys. The RolyPoly is a DynamicRigidBody with three spherical collision shapes:
+
+    \snippet mass/RolyPoly.qml rolypoly
+
+    We then add three roly-polys to our scene:
+
+    \snippet mass/main.qml rolypolys
+
+    The purple and blue roly-poly has a custom center of mass and inertia tensor. Since bodies use uniform density by default and will calculate mass and inertia automatically we set massMode to DynamicRigidBody.MassAndInertiaTensor in our purple and blue bodies to use our provided mass and inertia tensors instead. The lower center of mass will make it so the bodies will always stand up after being pushed over. The inertia tensor of the purple body makes it so it will wobble easily in one direction but hardly in the other. The red body has an automatically calculated center of mass and will therefore keep lying down after being knocked over.
+
+    \section2 Shooting balls
+
+    To test out the behavior of the different bodies we add a Node for shooting balls:
+
+    \snippet mass/main.qml spawner
+
+    We then add a WasdController to be able to move the camera and aim and shoot balls at the bodies:
+
+    \snippet mass/main.qml controller
+
+*/

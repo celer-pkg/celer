@@ -1,0 +1,7 @@
+version = 1
+
+[[annotations]]
+path = ["earcut.h"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (c) 2015, Mapbox"
+SPDX-License-Identifier = "ISC"

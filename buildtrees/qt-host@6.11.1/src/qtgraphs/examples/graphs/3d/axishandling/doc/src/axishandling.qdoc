@@ -1,0 +1,190 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example 3d/axishandling
+    \meta tags {Graphs, Scatter3D, Custom Input Handler, Dynamic Data, Custom Axis Formatter,
+    Scatter Graph}
+    \examplecategory {Data Visualization}
+    \title Axis Handling
+    \ingroup qtgraphs_qmlexamples_3D
+    \brief Implementing axis dragging with a custom input handler in QML, and creating a custom
+    axis formatter.
+
+    \e {Axis Handling} demonstrates two different custom features with axes. The features have their
+    own tabs in the application.
+
+    The following sections concentrate on those features only and skip explaining the basic
+    functionality - for more detailed QML example documentation, see \l{Simple Scatter Graph}.
+
+    \image axishandling-example.png
+
+    \include examples-run.qdocinc
+
+    \section1 Axis Dragging
+
+    In the \uicontrol {Axis Dragging} tab, implement a custom input handler in QML that enables you
+    to drag axis labels to change axis ranges. Further, use orthographic projection and dynamically
+    update the properties of a custom item.
+
+    \section2 Overriding Default Input Handling
+
+    To deactivate the default input handling mechanism, unset the default input handler of
+    Scatter3D:
+
+    \snippet 3d/axishandling/qml/axishandling/AxisDragging.qml 0
+    \dots
+
+    Then, add a MouseArea and set it to fill the parent, which is the same \c Item our
+    \c scatterGraph is contained in. Also, set it to accept only left mouse button presses,
+    as in this example the other buttons are not needed:
+
+    \snippet 3d/axishandling/qml/axishandling/AxisDragging.qml 1
+    \dots
+
+    Then, listen to mouse presses, and when caught, send a selection query to the graph:
+
+    \snippet 3d/axishandling/qml/axishandling/AxisDragging.qml 2
+
+    The \c{onPositionChanged} signal handler catches the current mouse position that will be
+    needed for move distance calculation:
+
+    \snippet 3d/axishandling/qml/axishandling/AxisDragging.qml 3
+    \dots
+
+    At the end of \c{onPositionChanged}, save the previous mouse position for move distance
+    calculation that will be introduced later:
+
+    \dots 0
+    \snippet 3d/axishandling/qml/axishandling/AxisDragging.qml 4
+
+    \section2 Translating Mouse Movement to Axis Range Change
+
+    In \c {scatterGraph}, listen to \c {onSelectedElementChanged}. The signal
+    is emitted after the selection query has been made in the \c{onPressed} of the \c{inputArea}.
+    Set the element type into a property you defined (\c{property int selectedAxisLabel: -1}) in the
+    main component, since it is of a type you are interested in:
+
+    \snippet 3d/axishandling/qml/axishandling/AxisDragging.qml 5
+
+    Then, back in the \c onPositionChanged of \c{inputArea}, check if a mouse button is pressed
+    and if you have a current axis label selection. If the conditions are met, call the
+    function that does the conversion from mouse movement to axis range update:
+
+    \dots 0
+    \snippet 3d/axishandling/qml/axishandling/AxisDragging.qml 6
+    \dots 0
+
+    The conversion is easy in this case, as the camera rotation is fixed. You can use some
+    precalculated values, calculate mouse move distance, and apply the values to the
+    selected axis range:
+
+    \snippet 3d/axishandling/qml/axishandling/AxisDragging.qml 7
+
+    For a more sophisticated conversion from mouse movement to axis range update, see
+    \l{Graph Gallery}.
+
+    \section2 Other Features
+
+    The example also demonstrates how to use orthographic projection and how to update properties
+    of a custom item on the fly.
+
+    Orthographic projection is very simple. You'll just need to change the \c orthoProjection
+    property of \c{scatterGraph}. The example has a button for toggling it on and off:
+
+    \snippet 3d/axishandling/qml/axishandling/AxisDragging.qml 8
+
+    For custom items, add one to the \c customItemList of \c{scatterGraph}:
+
+    \snippet 3d/axishandling/qml/axishandling/AxisDragging.qml 9
+
+    You implement a timer to add, remove, and rotate all the items in the graph, and use the same
+    timer for rotating the custom item:
+
+    \snippet 3d/axishandling/qml/axishandling/AxisDragging.qml 10
+    \dots
+
+    \section1 Axis Formatters
+
+    In the \uicontrol {Axis Formatter} tab, create a custom axis formatter. It also illustrates how
+    to use predefined axis formatters.
+
+    \section2 Custom Axis Formatter
+
+    Customizing axis formatters requires subclassing the QValue3DAxisFormatter, which cannot be
+    done in QML code alone. In this example, the axis interprets the float values as
+    a timestamp and shows the date in the axis labels. To achieve this, introduce a new class
+    called \c CustomFormatter, which subclasses the QValue3DAxisFormatter:
+
+    \snippet 3d/axishandling/customformatter.h 2
+    \dots 0
+
+    Since float values of a QScatter3DSeries cannot be directly cast into QDateTime values due to
+    a difference in data width, some sort of mapping between the two is needed. To do the mapping,
+    specify an origin date for the formatter and interpret the float values from the
+    QScatter3DSeries as date offsets to that origin value. The origin date is given as
+    a property:
+
+    \snippet 3d/axishandling/customformatter.h 1
+
+    For the mapping from value to QDateTime, use the \c valueToDateTime() method:
+
+    \snippet 3d/axishandling/customformatter.cpp 0
+
+    To function as an axis formatter, \c CustomFormatter needs to reimplement some virtual
+    methods:
+
+    \snippet 3d/axishandling/customformatter.h 0
+
+    The first two methods are simple, just create a new instance of \c CustomFormatter and copy
+    the necessary data over to it. Use these two methods to create and update a cache of formatters
+    for rendering purposes. Remember to call the superclass implementation of \c populateCopy():
+
+    \snippet 3d/axishandling/customformatter.cpp 1
+
+    \c CustomFormatter does the bulk of its work in the \c recalculate() method, where
+    the formatter calculates the grid, subgrid, and label positions, as well as formats the label
+    strings.
+    In the custom formatter, ignore the segment count of the axis and draw a grid line always at
+    midnight. Subsegment count and label positioning are handled normally:
+
+    \snippet 3d/axishandling/customformatter.cpp 2
+
+    The axis labels are formatted to show only the date. However, to increase the resolution of the
+    timestamp of the selection label, specify another property for the custom formatter to allow
+    the user to customize it:
+
+    \snippet 3d/axishandling/customformatter.h 3
+
+    This selection format property is used in the reimplemented \c stringToValue method, where
+    the submitted format is ignored, and the custom selection format substituted for it:
+
+    \snippet 3d/axishandling/customformatter.cpp 3
+
+    To expose our new custom formatter to the QML, declare it and make it a QML module.
+    For information about how to do this, see \l{Surface Graph Gallery}.
+
+    \section2 QML
+
+    In the QML code, define a different axis for each dimension:
+
+    \snippet 3d/axishandling/qml/axishandling/AxisFormatting.qml 3
+
+    The Z-axis is just a regular Value3DAxis:
+
+    \snippet 3d/axishandling/qml/axishandling/AxisFormatting.qml 0
+
+    For the Y-axis, define a logarithmic axis. To make Value3DAxis show a logarithmic scale,
+    specify LogValue3DAxisFormatter for the \c formatter property of the axis:
+
+    \snippet 3d/axishandling/qml/axishandling/AxisFormatting.qml 2
+
+    And finally, for the X-axis use the new \c CustomFormatter:
+
+    \snippet 3d/axishandling/qml/axishandling/AxisFormatting.qml 1
+
+    The rest of the application consists of fairly self-explanatory logic for modifying the axes
+    and showing the graph.
+
+    \section1 Example Contents
+*/

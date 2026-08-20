@@ -1,0 +1,15 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example scenegraph/graph
+    \title Scene Graph - Graph
+    \examplecategory {Graphics}
+    \ingroup qtquickexamples
+
+    \brief Demonstrates how one can combine custom materials and geometries
+    under a single QQuickItem.
+
+    \image graph-example.jpg
+
+ */

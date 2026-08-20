@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="320">
+  <rect width="400" height="320" fill="white"/>
+  <text x="10" y="20" font-family="Arial" font-size="20">invalid dasharray:</text>
+  <path d="M10 30H390" stroke="black" stroke-width="5" stroke-dasharray="xxx"/>
+
+  <text x="10" y="80" font-family="Arial" font-size="20">one length of dashes:</text>
+  <path d="M10 90H390" stroke="black" stroke-width="5" stroke-dasharray="10,5"/>
+  <text x="10" y="110" font-family="Arial" font-size="20">surplus comma after first dash and gap:</text>
+  <path d="M10 120H390" stroke="black" stroke-width="5" stroke-dasharray="10,5,,20,5"/>
+  <text x="10" y="140" font-family="Arial" font-size="20">negative value after first dash and gap:</text>
+  <path d="M10 150H390" stroke="black" stroke-width="5" stroke-dasharray="10,5,-20,5"/>
+  <text x="10" y="170" font-family="Arial" font-size="20">alternating lengths of dashes:</text>
+  <path d="M10 180H390" stroke="black" stroke-width="5" stroke-dasharray="10,5,20,5"/>
+
+  <text x="10" y="230" font-family="Arial" font-size="20">small float dashes:</text>
+  <path d="M10 240H390" stroke="black" stroke-width="5" stroke-dasharray="0.5 0.25"/>
+  <text x="10" y="260" font-family="Arial" font-size="20">missing separator after first dash and gap:</text>
+  <path d="M10 270H390" stroke="black" stroke-width="5" stroke-dasharray="0.5 0.25.99 0.25"/>
+  <text x="10" y="290" font-family="Arial" font-size="20">alternating small float dashes:</text>
+  <path d="M10 300H390" stroke="black" stroke-width="5" stroke-dasharray="0.5 0.25 0.99 0.25"/>
+</svg>

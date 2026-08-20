@@ -1,0 +1,27 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \externalpage https://www.qt.io/academy/course-catalog#embedding-qt-quick-3d-content-in-an-android-app
+    \title Qt Academy: Embedding Qt Quick 3D Content in an Android App
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qt-6/qtquick/android/org/qtproject/qt/android/QtQuickView.html
+    \title QtQuickView
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qt-6/qtquick/android/org/qtproject/qt/android/QtQuickViewContent.html
+    \title QtQuickViewContent
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qt-6/qtquick/android/org/qtproject/qt/android/QtQmlStatus.html
+    \title QtQmlStatus
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qt-6/qtquick/android/org/qtproject/qt/android/QtQmlStatusChangeListener.html
+    \title QtQmlStatusChangeListener
+*/

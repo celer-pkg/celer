@@ -1,0 +1,45 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+\page qtjenny-configuration.html
+\ingroup qtjenny
+\meta sortkey {2_config}
+\title Qt Jenny configuration
+
+\section1 Selecting which Java classes wrappers are generated for
+
+You select the Java classes you want to generate C++ code by adding
+the Kotlin import statements and \c NativeProxyForClasses annotations
+for those classes at the top of the \c GenerateCppCode Kotlin class,
+in the source file in the code generation project. The \l {QtJenny Demo}
+has example annotations done this way.
+
+\section1 Configuring the code generation
+
+The code generator has a couple of configuration parameters that
+are useful to adjust for your project structure:
+
+\list
+\li \c jenny.outputDirectory, the \c output directory, where
+the code is generated. Qt Jenny will add
+the generated files under the specified directory, under the
+jenny/proxy directory.
+\li \c jenny.templateDirectory, the \c template directory,
+from which the templates used for the code generation are loaded.
+\endlist
+
+In addition to this, Qt Jenny projects need to set the properties
+\list
+\li \c jenny.headerOnlyProxy to true,
+\li \c jenny.useJniHelper to false, and
+\li \c jenny.useTemplates to true.
+\endlist
+
+These flags, and their defaults thereof,
+are there to support backwards-compatibility with the project
+Qt Jenny was originally forked from. This means that Qt Jenny
+can be configured to generate code the same way as the original
+project did. The recommended way is, however, to generate code
+using templates that use QJniObject.
+
+*/

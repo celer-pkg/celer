@@ -1,0 +1,18 @@
+version = 1
+
+[[annotations]]
+path = ["head-plus.svg", "head.svg"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright Pictogrammers."
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["graduation-hat.svg"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright Dazzle UI."
+SPDX-License-Identifier = "CC-BY-4.0"
+[[annotations]]
+path = ["magic-hat.svg"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright Font Awesome."
+SPDX-License-Identifier = "CC-BY-4.0"

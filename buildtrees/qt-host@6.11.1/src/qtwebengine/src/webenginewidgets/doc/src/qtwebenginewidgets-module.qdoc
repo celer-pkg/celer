@@ -1,0 +1,32 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \module QtWebEngineWidgets
+    \title Qt WebEngine Widgets C++ Classes
+    \brief Provides C++ classes for rendering web content in a QWidget based application.
+    \ingroup modules
+    \ingroup qtwebengine-modules
+    \qtvariable webenginewidgets
+    \qtcmakepackage WebEngineWidgets
+
+    The \QWE Widgets module provides a web browser engine as well as C++ classes to render
+    and interact with web content.
+
+    \if !defined(qtforpython)
+    To link against the module using build with qmake,
+    add the following QT variable to your qmake .pro file:
+
+    \snippet qtwebenginewidgets_build_snippet.qdoc 0
+
+    For build with CMake use the \c find_package() command to locate the needed module components
+    in the Qt6 package and \c target_link_libraries() to link against the module:
+
+    \snippet qtwebenginewidgets_build_snippet.qdoc 2
+    \endif
+
+    The minimum amount of code needed to load and display an HTML page requires just
+    implementing the \c QWebEngineView class.
+
+    \snippet simple/main.cpp Minimal Example
+*/

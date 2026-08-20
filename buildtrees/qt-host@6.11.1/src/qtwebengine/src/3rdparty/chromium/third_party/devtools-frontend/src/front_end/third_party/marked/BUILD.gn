@@ -1,0 +1,38 @@
+# Copyright 2019 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("../../../scripts/build/ninja/devtools_entrypoint.gni")
+import("../../../scripts/build/ninja/devtools_pre_built.gni")
+import("../visibility.gni")
+
+devtools_pre_built("marked") {
+  sources_are_release = false
+
+  sources = [
+    "marked-tsconfig.json",
+    "package/lib/marked.esm.d.ts",
+    "package/lib/marked.esm.js",
+    "package/lib/marked.esm.js.map",
+  ]
+}
+
+devtools_entrypoint("bundle") {
+  entrypoint = "marked.ts"
+
+  deps = [ ":marked" ]
+
+  visibility = [
+    "../../models/issues_manager/*",
+    "../../panels/ai_assistance/*",
+    "../../panels/explain/*",
+    "../../panels/timeline/*",
+    "../../panels/whats_new/*",
+    "../../ui/components/docs/ai_assistance/*",
+    "../../ui/components/docs/console_insight/*",
+    "../../ui/components/docs/markdown_view/*",
+    "../../ui/components/markdown_view/*",
+  ]
+
+  visibility += devtools_third_party_visibility
+}

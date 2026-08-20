@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+-->
+<scxml
+    xmlns="http://www.w3.org/2005/07/scxml"
+    xmlns:qt="http://theqtcompany.com/scxml/2015/06/"
+    version="1.0"
+    name="IntentionallyBrokenStateMachine"
+    initial="working"
+>
+    I am broken
+</scxml>

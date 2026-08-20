@@ -1,0 +1,43 @@
+<svg height="100" width="200" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <defs>
+        <filter id="double_size" width="2" height="2" x="-0.5" y="-0.5" filterUnits="objectBoundingBox">
+            <feGaussianBlur stdDeviation="10" />
+        </filter>
+
+        <filter id="double_size2" width="2" height="2" x="-0.5" y="-0.5" filterUnits="objectBoundingBox">
+            <feOffset dx="2" />
+        </filter>
+
+        <filter id="show_size" width="1" height="1" x="0" y="0" filterUnits="objectBoundingBox">
+            <feFlood flood-color="green" flood-opacity="0.5" result="flood"/>
+            <feMerge>
+                <feMergeNode in="SourceGraphic" />
+                <feMergeNode in="flood" />
+            </feMerge>
+        </filter>
+    </defs>
+
+    <rect x="10" y="10" width="20" height="20" fill="blue" filter="url(#show_size)" />
+    <rect x="10" y="10" width="20" height="20" fill="none" stroke="black" />
+
+    <g filter="url(#show_size)">
+        <rect x="40" y="10" width="20" height="20" fill="blue" />
+    </g>
+    <rect x="40" y="10" width="20" height="20" fill="none" stroke="black" />
+
+    <g filter="url(#show_size)">
+        <rect x="70" y="10" width="20" height="20" fill="blue" filter="url(#double_size)"/>
+    </g>
+    <rect x="70" y="10" width="20" height="20" fill="none" stroke="black" />
+
+    <g>
+        <rect x="70" y="40" width="20" height="20" fill="blue" filter="url(#double_size)"/>
+    </g>
+
+    <g filter="url(#show_size)">
+        <rect x="100" y="10" width="20" height="20" fill="blue" filter="url(#double_size2)"/>
+    </g>
+    <g>
+        <rect x="100" y="40" width="20" height="20" fill="blue" filter="url(#double_size2)"/>
+    </g>
+</svg>

@@ -1,0 +1,93 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \module QtProtobufQtGuiTypes
+    \title Protobuf Qt GUI Types Module
+    \ingroup frameworks-technologies
+    \qtcmakepackage ProtobufQtGuiTypes
+    \qtvariable protobufqtguitypes
+    \since 6.6
+
+    \brief Provides support for using native Qt Gui types in protobuf.
+
+    Qt::ProtobufQtGuiTypes is a library with pre-defined protobuf messages
+    designed to encapsulate a selection of Qt Gui types.
+
+    List of supported Qt Gui types:
+    \list
+        \li QImage
+        \li QMatrix4x4
+        \li QQuaternion
+        \li QRgba64
+        \li QColor
+        \li QTransform
+        \li QVector2D
+        \li QVector3D
+        \li QVector4D
+    \endlist
+
+    \section1 Qt GUI usage
+    To enable Qt GUI types support, add ProtobufQtGuiTypes as a dependency
+    to your CMake project:
+    \badcode
+        ...
+        find_package(Qt REQUIRED COMPONENTS Protobuf ProtobufQtGuiTypes)
+        ... # After target creation
+        target_link_libraries(${TARGET} PRIVATE Qt::ProtobufQtGuiTypes)
+    \endcode
+
+    Before any serialization or deserialization of messages that use Qt GUI
+    types as fields, call the registration method:
+    \code
+        // e.g. in main.cpp
+        QtProtobuf::qRegisterProtobufQtGuiTypes();
+        ...
+    \endcode
+
+    All supported messages are described in a special .proto file,
+    \e {QtGui.proto}, that describes Qt types from the Qt GUI module.
+
+    You can also use the file to generate code for other
+    languages or frameworks.
+
+    Import the required Qt GUI types module in your interface .proto file
+    For example:
+    \badcode
+        syntax = "proto3";
+
+        package project.module.component;
+
+        import "QtGui/QtGui.proto";
+
+        message QMatrix4x4Message {
+            QtGui.QMatrix4x4 matrix = 1;
+        }
+    \endcode
+
+    The Qt Protobuf generator detects Qt GUI types, supplied by the
+    ProtobufQtGuiTypes package, and uses them directly. This gives
+    you the flexibility to use these types without additional conversion.
+
+    In CMake, you can extract the proto include path from the library using the
+    \c{QT_PROTO_INCLUDES} target property:
+    \badcode
+        qt_add_protobuf(MyProtoLib
+            PROTO_FILES
+                MyQtGuiTypesUsage.proto
+            PROTO_INCLUDES
+                $<TARGET_PROPERTY:Qt::ProtobufQtGuiTypes,QT_PROTO_INCLUDES>
+        )
+    \endcode
+
+    \section2 QImage serialization
+    The ProtobufQtGuiTypes library provides the possibility to work with the
+    QImage class. Usually, the library converts all QImage objects in
+    to \c PNG format. But if the QImage was created using one of the floating
+    point formats of \l {QImage::Format}, then conversion to \c PNG will lead
+    to data loss. To prevent data loss, the library automatically converts
+    the image file to \c TIFF format, if it is supported by the system,
+    otherwise converts to \c PNG.
+    \note if you don't want to use \c TIFF, you need to convert the image
+    explicitly into a non-floating point format.
+*/

@@ -1,0 +1,5 @@
+The command is defined in the Grpc component of the Qt6 package. Load the package with:
+
+\badcode
+find_package(Qt6 REQUIRED COMPONENTS Grpc)
+\endcode

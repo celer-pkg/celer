@@ -1,0 +1,20 @@
+# Copyright (C) 2022 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+
+if(TARGET Qt::Widgets)
+    if(NOT ANDROID AND NOT IOS)
+        qt_internal_add_example(audiodevices)
+    endif()
+    qt_internal_add_example(audiooutput)
+    qt_internal_add_example(audiorecorder)
+    qt_internal_add_example(audiosource)
+    qt_internal_add_example(camera)
+    qt_internal_add_example(player)
+    qt_internal_add_example(videographicsitem)
+    qt_internal_add_example(videowidget)
+    qt_internal_add_example(screencapture)
+endif()
+if(TARGET Qt::Quick)
+    qt_internal_add_example(declarative-camera)
+    add_subdirectory(video)
+endif()

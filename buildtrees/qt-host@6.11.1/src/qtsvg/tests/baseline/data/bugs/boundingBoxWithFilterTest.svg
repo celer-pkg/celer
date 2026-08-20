@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="300" height="200">
+  <defs>
+    <filter id="double_size" width="1.5" height="1.5" x="-0.25" y="-0.25" filterUnits="objectBoundingBox">
+      <feFlood flood-color="red" flood-opacity="0.7" />
+	  <feGaussianBlur stdDeviation="10" />
+    </filter>
+
+	<filter id="double_size2" width="75" height="75" x="-12" y="-12" filterUnits="userSpaceOnUse" >
+      <feFlood flood-color="green" flood-opacity="0.7" />
+	  <feGaussianBlur stdDeviation="10" />
+    </filter>
+
+    <filter id="show_size" width="3" height="3" x="-1" y="-1" filterUnits="objectBoundingBox" primitiveUnits="objectBoundingBox" >
+      <feFlood flood-color="black" flood-opacity="0.4" width="1" height="1" x="0" y="0" result="flood"/>
+      <feMerge>
+          <feMergeNode in="SourceGraphic" />
+          <feMergeNode in="flood" />
+      </feMerge>
+    </filter>
+	
+    <filter id="show_size2" width="1" height="1" x="0" y="0" filterUnits="objectBoundingBox" primitiveUnits="objectBoundingBox" >
+      <feFlood flood-color="black" flood-opacity="0.4" result="flood"/>
+      <feMerge>
+          <feMergeNode in="SourceGraphic" />
+          <feMergeNode in="flood" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <g transform="translate(0 20)" fill="none" filter="url(#show_size)">
+	  <rect width="50" height="50" x="10" y="10" rx="10" fill="red" filter="url(#double_size)" />
+  </g>
+  <rect transform="translate(0 20)" width="50" height="50" x="10" y="10" fill="none" stroke="black" />
+
+  <g transform="translate(70 20)" fill="none" filter="url(#show_size)">
+	  <rect width="50" height="50" x="10" y="10" rx="10" fill="blue"/>
+  </g>
+  <rect transform="translate(70 20)" width="50" height="50" x="10" y="10" fill="none" stroke="black" />
+
+  <g transform="translate(140 20)" fill="none" filter="url(#show_size2)">
+	  <rect width="50" height="50" x="10" y="10" rx="10" fill="green" filter="url(#double_size2)" />
+  </g>
+  <rect transform="translate(140 20)" width="50" height="50" x="10" y="10" fill="none" stroke="black" />
+</svg>

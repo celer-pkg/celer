@@ -1,0 +1,156 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc7636
+    \title RFC 7636
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc6749
+    \title RFC 6749
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.1
+    \title RFC 6749 - Authorization Code
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc6749#appendix-A.6
+    \title RFC 6749 - redirect_uri Syntax
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc6749#section-1.5
+    \title RFC 6749 - Refresh Token
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc6749#section-6
+    \title RFC 6749 - Refreshing Access Tokens
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc8252
+    \title RFC 8252
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc8252#section-6
+    \title RFC 8252 - Authorization Request from a Native App
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc8252#section-7
+    \title RFC 8252 - Authorization Response in a Native App
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc8252#section-7.1
+    \title RFC 8252 - Private-Use URI Scheme Redirection
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc8252#section-7.2
+    \title RFC 8252 - Claimed https Scheme URI Redirection
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc8252#section-7.3
+    \title RFC 8252 - Loopback Interface Redirection
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc5849
+    \title RFC 5849
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc8628
+    \title RFC 8628
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc8628#section-3.3
+    \title RFC 8628 - User Interaction
+*/
+
+/*!
+    \externalpage https://oauth.net
+    \title OAuth
+*/
+
+/*!
+    \externalpage https://oauth.net/1/
+    \title OAuth 1
+*/
+/*!
+    \externalpage https://oauth.net/2/
+    \title OAuth 2.0
+*/
+
+/*!
+    \externalpage http://openid.net/
+    \title OpenID
+*/
+
+/*!
+    \externalpage http://openid.net/connect/
+    \title OpenID Connect
+*/
+
+/*!
+    \externalpage https://openid.net/specs/openid-connect-core-1_0-final.html
+    \title OpenID Connect Core
+*/
+
+/*!
+    \externalpage https://openid.net/specs/openid-connect-core-1_0-final.html#IDTokenValidation
+    \title OpenID Connect ID Validation
+*/
+
+/*!
+    \externalpage https://openid.net/specs/openid-connect-discovery-1_0.html
+    \title OpenID Connect Discovery
+*/
+
+/*!
+    \externalpage https://openid.net/specs/openid-connect-core-1_0-final.html#UserInfo
+    \title OpenID Connect UserInfo Endpoint
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc6750
+    \title RFC 6750
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc6750#section-2.1
+    \title RFC 6750 - Header Field
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc7516
+    \title JSON Web Encryption (JWE)
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc7517#section-5
+    \title JSON Web Key (JWK) Set Format
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc7519
+    \title JSON Web Token (JWT)
+*/
+
+/*!
+    \externalpage https://jwt.io/libraries
+    \title Third-party JWT Libraries
+*/
+
+/*!
+    \externalpage https://github.com/Thalhammer/jwt-cpp
+    \title jwt-cpp
+*/

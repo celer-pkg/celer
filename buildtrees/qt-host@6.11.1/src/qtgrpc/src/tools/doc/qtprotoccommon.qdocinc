@@ -1,0 +1,104 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [proto_files-li]
+\li \c {PROTO_FILES}
+    specifies the list of \e {.proto} files used by the code generation
+    procedure.
+//! [proto_files-li]
+
+//! [proto_includes-li]
+\li \c {PROTO_INCLUDES}
+    specifies the list of directories to be searched for protobuf dependencies.
+
+    \note The location of the \c {PROTO_FILES} is implicitly considered part of
+    the protobuf include path.
+//! [proto_includes-li]
+
+//! [output_directory-li]
+\li \c {OUTPUT_DIRECTORY}
+    defines the directory where the generated files will be placed. By default,
+    the current build directory is used.
+//! [output_directory-li]
+
+//! [generate_package_subfolders-li]
+\li \c {GENERATE_PACKAGE_SUBFOLDERS}
+    uses the package name specifier from the \c {.proto} files to create the
+    folder structure for the generated files. For example, if the package is
+    defined as: \c {package io.qt.test}, the generated files will be placed in
+    \e {OUTPUT_DIRECTORY/io/qt/test/}.
+//! [generate_package_subfolders-li]
+
+//! [copy_comments-li]
+\li \c {COPY_COMMENTS}
+    copies comments from the \c {.proto} files into the generated code.
+//! [copy_comments-li]
+
+//! [export_macro-cmake-li]
+\li \c {EXPORT_MACRO}
+    applies only when creating a new shared library from the \e <target>. This
+    option specifies the base name for the export macro used in the generated
+    code. The final macro name is constructed as \c
+    {QPB_<EXPORT_MACRO>_EXPORT}. If this option is not set, the target name is
+    used as \c {EXPORT_MACRO}.
+
+    Read \l {Creating Shared Libraries} for further in-depth information.
+//! [export_macro-cmake-li]
+
+//! [export_macro-cli-li]
+\li \c {EXPORT_MACRO}
+    defines the base name for the export macro used in the generated code. The
+    final macro name is constructed as \c {QPB_<EXPORT_MACRO>_EXPORT}. If this
+    option is not set, no export macro is generated.
+
+    Since Qt 6.8, the following format is supported: \c
+    {EXPORT_MACRO=macro_name[:macro_output_file[:<true|false>]]}. This format
+    allows you to specify the name of the header file containing the export
+    macro and explicitly control whether it is generated.
+
+    \note If \b {<macro_output_file>} is not provided, the option defaults to
+    the previous syntax.
+//! [export_macro-cli-li]
+
+//! [output_headers-li]
+\li \c {OUTPUT_HEADERS}
+    specifies a variable that will store the list of generated headers. This list
+    can be useful for defining custom project install rules.
+//! [output_headers-li]
+
+//! [output_targets-li]
+\li \c {OUTPUT_TARGETS}
+    specifies a variable that will store the list of generated targets. This
+    list can be useful for defining custom project install rules.
+//! [output_targets-li]
+
+//! [header_guard-li]
+\li \c {HEADER_GUARD}
+    specifies the mechanism used for guarding generated header files from
+    multiple inclusion. Possible values are \c pragma, \c filename. Defaults
+    to \c {filename}.
+    Setting the option to \c pragma generates the modern pragma header guard:
+    \code
+    #pragma once
+    ...
+    \endcode
+    Omitting the option or setting the option to \c filename generates the
+    \c ifdef wrapping guard, and uses the '.proto' filename as the guard infix:
+    \code
+    #ifdef MYMESSAGES_QPB_H
+    #define MYMESSAGES_QPB_H
+    ...
+    #endif // MYMESSAGES_QPB_H
+    \endcode
+    Select the preferred guard style according to your project structure.
+//! [header_guard-li]
+
+//! [generate_non_final_messages-li]
+\li \c {GENERATE_NON_FINAL_MESSAGES}
+    generates QtProtobuf message classes without the \c final specifier.
+    This option is provided for backwards compatibility. Since Qt 6.11,
+    QtProtobuf message classes are generated as \c final by default.
+    To extend the behavior of generated messages, prefer composition over
+    inheritance. This option will be removed in Qt7.
+//! [generate_non_final_messages-li]
+

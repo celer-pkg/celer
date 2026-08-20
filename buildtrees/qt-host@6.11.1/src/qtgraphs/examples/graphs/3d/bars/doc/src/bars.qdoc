@@ -1,0 +1,110 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example 3d/bars
+    \meta tags {Graphs, Bars3D, Multiple Series}
+    \examplecategory {Data Visualization}
+    \title Simple Bar Graph
+    \ingroup qtgraphs_qmlexamples_3D
+    \brief Using Bars3D in a QML application.
+
+    \e {Simple Bar Graph} shows how to make a simple 3D bar graph using Bars3D and QML.
+
+    \image bars-example.png
+
+    The following sections describe how to switch series and display more than one series
+    at a time. For more information about basic QML application functionality, see
+    \l{Simple Scatter Graph}.
+
+    \include examples-run.qdocinc
+
+    \section1 Data
+
+    The example data set is the monthly income and expenses of a fictional company over several years.
+    The data is defined in a list model in \c Data.qml like this:
+
+    \snippet 3d/bars/qml/bars/Data.qml 0
+    \dots
+
+    Each data item has three roles: timestamp, income, and expenses. The timestamp value is in
+    format: \c{<four digit year>-<two digit month>}. Usually, you would map years and months to rows
+    and columns of a bar graph, but you can only show either income or expenses as the value.
+
+    Now, add the data to the Bars3D graph. Create two Bar3DSeries inside it, starting with a series
+    for the income:
+
+    \snippet 3d/bars/qml/bars/main.qml 3
+    \dots
+
+    The data is attached to the \c itemModel property of the ItemModelBarDataProxy inside the
+    series. For the \c{valueRole}, specify the \c income field as it contains the desired value.
+    Getting the years and months is a bit more complicated since they are both found
+    in the same field. To extract these values, specify the \c timestamp field for both
+    \c rowRole and \c columnRole. Additionally, specify a search pattern and a replace rule
+    for those roles to extract the correct portion of the field contents for each role.
+    The search pattern is a normal JavaScript regular expression, and the replace rule specifies
+    what the field content that matches the regular expression is replaced with.
+    In this case, replace the entire field content with just the year or the month,
+    which is the first captured substring for both rows and columns.
+    For more information about the replace functionality with regular expressions, see
+    the QString::replace(const QRegExp &rx, const QString &after) function documentation.
+
+    The \c multiMatchBehavior property specifies what to do in case multiple item model items match
+    the same row/column combination. In this case, add their values together.
+    This property has no effect when showing values for each month, as there are no
+    duplicate months in our item model. However, it becomes relevant later when you want to show
+    the yearly totals.
+
+    Then, add another series for the expenses:
+
+    \snippet 3d/bars/qml/bars/main.qml 4
+    \dots
+
+    The model contains expenses as negative values, but they could be shown as positive bars for
+    easy comparison to income bars. Use the \c valueRolePattern to remove the minus sign, and no
+    replacement string needs to be specified as the default replacement is an empty string.
+
+    Use the \c visible property of the series to hide the second series for now.
+
+    \section1 Custom Axis Labels
+
+    \c Axes.qml redefines the category labels for the column axis because the data contains numbers
+    for months, which would clutter the labels:
+
+    \snippet 3d/bars/qml/bars/Axes.qml 0
+
+    To make axis labels more readable at low camera angles, set automatic axis label rotation.
+
+    \section1 Switching Series
+
+    In \c main.qml, set up the graph and various UI elements. There are three interesting
+    code blocks to highlight here. The first one shows how to change the visualized data between
+    income, expenses, and both, by simply changing the visibility of the two series:
+
+    \snippet 3d/bars/qml/bars/main.qml 0
+
+    The axis label format and item selection label formats are tweaked to get the negative sign
+    showing properly for expenses, which were actually resolved as positive values.
+
+    The second interesting block is where the visualized data is changed by adjusting the proxy
+    properties:
+
+    \snippet 3d/bars/qml/bars/main.qml 1
+
+    To show the yearly totals, combine the twelve months of each year into a single bar.
+    This is achieved by specifying a \c columnRolePattern that matches all model items. In this way,
+    the series will only have a single column. The cumulative \c multiMatchBehavior
+    specified earlier for the proxy becomes relevant now, causing the values of all twelve months
+    of each year to be added up into a single bar.
+
+    To show just a subset of years, set \c autoRowCategories to false on the ItemModelBarDataProxy
+    item and define the row categories explicitly. This way, only the items in the specified row
+    categories are visualized.
+
+    The third interesting block shows how to get the row and column index of an item if you know
+    the row and column values by using ItemModelBarDataProxy methods \c rowCategoryIndex()
+    and \c columnCategoryIndex():
+
+    \snippet 3d/bars/qml/bars/main.qml 2
+*/

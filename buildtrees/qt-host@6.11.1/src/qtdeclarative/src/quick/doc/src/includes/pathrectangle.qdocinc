@@ -1,0 +1,78 @@
+//! [radius-property]
+\qmlproperty real \1::radius
+
+This property defines the corner radius used to define a rounded rectangle.
+
+If radius is a positive value, the rectangle path will be defined as a rounded rectangle,
+otherwise it will be defined as a normal rectangle.
+
+This property may be overridden by the individual corner radius properties.
+
+\sa topLeftRadius, topRightRadius, bottomLeftRadius, bottomRightRadius
+//! [radius-property]
+
+
+//! [radius-properties]
+\qmlproperty real \1::topLeftRadius
+\qmlproperty real \1::topRightRadius
+\qmlproperty real \1::bottomLeftRadius
+\qmlproperty real \1::bottomRightRadius
+
+If set, these properties define the individual corner radii. A zero value defines that corner
+to be sharp, while a positive value defines it to be rounded. When unset, the value of \l
+radius is used instead.
+
+These properties are unset by default. Assign \c undefined to them to return them to the unset
+state.
+
+In the following example, \l radius is set to \c 10, and \c topLeftRadius to \c 0:
+
+\snippet \2 \3
+
+\image pathrectangle.png
+
+\sa radius
+//! [radius-properties]
+
+
+//! [bevel-property]
+\qmlproperty bool \1::bevel
+
+This property defines whether the corners of the rectangle are beveled.
+
+Setting it to \c false results in either sharp or rounded corners,
+depending on the values of the individual \l radius properties.
+
+This property may be overridden by the individual bevel properties.
+
+\snippet \2 \3
+
+\image pathrectangle-bevel.png
+
+\sa topLeftBevel, topRightBevel, bottomLeftBevel, bottomRightBevel
+//! [bevel-property]
+
+
+//! [bevel-properties]
+\qmlproperty bool \1::topLeftBevel
+\qmlproperty bool \1::topRightBevel
+\qmlproperty bool \1::bottomLeftBevel
+\qmlproperty bool \1::bottomRightBevel
+
+If set, these properties define the individual corner bevels. Setting them
+to \c false results in either sharp or rounded corners, depending on the
+values of the individual \l radius properties. Setting them to \c true
+results in bevelled corners. When unset, the value of \l bevel is used
+instead.
+
+These properties are unset by default. Assign \c undefined to them to
+return them to the unset state.
+
+In the following example, \c bottomRightBevel is set to true:
+
+\snippet \2 \3
+
+\image pathrectangle.png
+
+\sa bevel
+//! [bevel-properties]

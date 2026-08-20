@@ -1,0 +1,42 @@
+{
+    "QEN": {
+        "description": "Generates electric clouds type of effect for the source item.",
+        "fragmentCode": [
+            "@requires NoiseHelper",
+            "@main",
+            "{",
+            "    vec2 uv = fragCoord.xy / iResolution.y;",
+            "    float cloudVal = 0.0;",
+            "    float sum = 0.0;",
+            "    float multiplier = 1.0;",
+            "    for (int i = 0; i < electricCloudLevels; i++) {",
+            "        vec3 noisePos = vec3(uv, iTime / multiplier);",
+            "        cloudVal += multiplier * abs(pseudo3dNoise(noisePos));",
+            "        sum += multiplier;",
+            "        multiplier *= 0.5;",
+            "        uv = 2.0 * uv;",
+            "    }",
+            "    cloudVal /= sum;",
+            "    fragColor.rgb = mix(fragColor.rgb, vec3(cos(TAU * cloudVal)) * electricCloudColor.rgb * fragColor.a, electricCloudColor.a);",
+            "}"
+        ],
+        "name": "ElectricClouds",
+        "properties": [
+            {
+                "defaultValue": "6",
+                "description": "The levels of details for the electic clouds. Bigger value means more detailed rending which also requires more processing power. The default value is 6 and practical range is between 1 and 10.",
+                "maxValue": "10",
+                "minValue": "1",
+                "name": "electricCloudLevels",
+                "type": "int"
+            },
+            {
+                "defaultValue": "1, 1, 1, 0.6",
+                "description": "The color used for the clouds. Alpha channel defines the amount of opacity this effect has.",
+                "name": "electricCloudColor",
+                "type": "color"
+            }
+        ],
+        "version": 1
+    }
+}

@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/qt/qml/keyinteraction">
+        <file>keyinteraction.qml</file>
+        <file>focus.qml</file>
+        <file>ContextMenu.qml</file>
+        <file>GridMenu.qml</file>
+        <file>ListMenu.qml</file>
+        <file>ListViewDelegate.qml</file>
+        <file>TabMenu.qml</file>
+        <file>images/arrow.png</file>
+        <file>images/qt-logo.png</file>
+    </qresource>
+</RCC>

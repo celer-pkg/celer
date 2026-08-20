@@ -1,0 +1,8 @@
+version = 1
+
+[[annotations]]
+path = ["GeometryAfrica.qml",
+        "GeometryAntarctica.qml"]
+comment = "MIT license documented in file is not reuse readable."
+precedence = "aggregate"
+SPDX-License-Identifier = "MIT"

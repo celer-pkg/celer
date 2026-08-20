@@ -1,0 +1,5 @@
+module InvokeExample
+prefer :/qt/qml/InvokeExample/
+Button 1.0 Button.qml
+MainView 1.0 MainView.qml
+SubView 1.0 SubView.qml

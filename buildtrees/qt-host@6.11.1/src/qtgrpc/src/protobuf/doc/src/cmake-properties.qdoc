@@ -1,0 +1,47 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\group cmake-target-properties-qtprotobuf
+\title CMake Target Properties in Qt6 Protobuf
+\brief Lists CMake target properties known to Qt6::Protobuf.
+
+\l{CMake Commands in Qt6 Protobuf}{CMake Commands} know about the following
+CMake target properties:
+
+\sa{CMake Property Reference}
+*/
+
+/*!
+\page cmake-target-property-qt-use-protobuf-list-aliases
+\ingroup cmake-properties-qtprotobuf
+\ingroup cmake-target-properties-qtprotobuf
+
+\title QT_USE_PROTOBUF_LIST_ALIASES
+\target cmake-target-property-QT_USE_PROTOBUF_LIST_ALIASES
+
+\summary {Enables QList type aliases in generated code}
+
+\cmakepropertysince 6.9
+\preliminarycmakeproperty
+
+Controls the \c QT_USE_PROTOBUF_LIST_ALIASES definition. The definition
+enables type aliases for the \l{QList} of protobuf messages in the generated
+code.
+
+Set this property to \c TRUE to enable the definition for the protobuf target.
+Set it to \c FALSE to disable it. The default value is \c TRUE.
+
+\badcode
+qt6_add_protobuf(protobuf_target
+    ...
+)
+set_target_properties(protobuf_target PROPERTIES
+    QT_USE_PROTOBUF_LIST_ALIASES FALSE
+)
+\endcode
+
+\note Generating type aliases for \l{QList} of protobuf messages leads to name
+      clashes if the \c .proto schema includes messages with \c Repeated
+      suffixes. To avoid these conflicts, set the property to \c FALSE.
+*/

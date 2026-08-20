@@ -1,0 +1,7 @@
+ENUM MyEnum {Foo, Bar}
+
+class Q_DECL_EXPORT MyAttributeClass
+{
+    PROP(bool myProp READONLY)
+    MODEL tracks(title)
+}

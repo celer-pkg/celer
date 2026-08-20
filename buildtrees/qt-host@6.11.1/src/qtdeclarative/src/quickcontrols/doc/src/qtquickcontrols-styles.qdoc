@@ -1,0 +1,296 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtquickcontrols-styles.html
+    \title Styling Qt Quick Controls
+
+    \section1 Available Styles
+
+    Qt Quick Controls comes with a selection of styles.
+
+    \section2 Basic Style
+
+    \image qtquickcontrols-basic.png
+           {Gallery of controls in Basic style}
+
+    The \l {Basic Style} is a simple and light-weight all-round style that offers
+    the maximum performance for Qt Quick Controls.
+
+    \section2 Fusion Style
+
+    \include style-screenshots.qdocinc {file} {Fusion} {fusion}
+
+    The \l {Fusion Style} is a platform-agnostic style that offers a desktop-oriented
+    look and feel for Qt Quick Controls.
+
+    \section2 Imagine Style
+
+    \image qtquickcontrols-imagine.png
+           {Gallery of controls in Imagine style}
+
+    The \l {Imagine Style} is based on image assets. The style comes with a default
+    set of images which can easily be changed by providing a directory
+    with images using a predefined naming convention.
+
+    \section2 macOS Style
+
+    \include style-screenshots.qdocinc {file} {macOS} {macos}
+
+    The \l {macOS Style} is a native-looking style for macOS.
+    \note this style is only available for applications running on macOS.
+
+    \section2 iOS Style
+
+    \include style-screenshots.qdocinc {file} {iOS} {ios}
+
+    The \l {iOS Style} is a native-looking style for iOS based on image assets.
+    \note this style is only available for applications running on iOS.
+
+    \section2 Material Style
+
+    \include style-screenshots.qdocinc {file} {Material} {material}
+
+    The \l {Material Style} offers an appealing design based on the
+    \l {https://www.google.com/design/spec/material-design/introduction.html}
+    {Google Material Design Guidelines}, but requires more system resources than
+    the Basic style.
+
+    \section2 Universal Style
+
+    \include style-screenshots.qdocinc {file} {Universal} {universal}
+
+    The \l {Universal Style} offers an appealing design based on the
+    Microsoft Universal Design Guidelines,
+    but requires more system resources than the Basic style.
+
+    \section2 Windows Style
+
+    \image qtquickcontrols-windows.png
+           {Gallery of controls in Windows style}
+
+    The \l {Windows Style} is a native-looking style for Windows.
+    \note this style is only available for applications running on Windows.
+
+    \section2 FluentWinUI3 Style
+
+    \include style-screenshots.qdocinc {file} {FluentWinUI3} {fluentwinui3}
+
+    The \l {FluentWinUI3 Style} is a modern, native-looking style designed for platforms
+    running Windows 11 and above, which follows the Fluent UI and the WinUI 3 design guidelines.
+    The FluentWinUI3 can be run on all supported platforms.
+
+    \section1 Using Styles in Qt Quick Controls
+
+    \section2 Default Styles
+
+    If no style is explicitly set, a default style will be used. The style that
+    is used depends on the operating system:
+
+    \list
+    \li Android: \l {Material Style}
+    \li iOS: \l {iOS Style}
+    \li Linux: \l {Fusion Style}
+    \li macOS: \l {macOS Style}
+    \li Windows: \l {Windows Style}
+    \endlist
+
+    For all other operating systems, the \l {Basic Style} is used.
+
+    \section2 Compile-Time Style Selection
+
+    Compile-time style selection is a way of specifying a style to use by
+    explicitly importing it in QML. For example, to import the Material style:
+
+    \qml
+    // The style must be imported before any other QtQuick.Controls imports
+    // in order for run-time style selection API like QQuickStyle::name() to
+    // work.
+    import QtQuick.Controls.Material
+
+    ApplicationWindow {
+        // ...
+    }
+    \endqml
+
+    Notice that \c {QtQuick.Controls} (which is responsible for run-time style
+    selection) is not imported. The fallback style is specified by the qmldir
+    of the style:
+
+    \badcode
+    module QtQuick.Controls.Material
+    # ...
+    import QtQuick.Controls.Basic auto
+    \endcode
+
+    The benefit of compile-time style selection is that the
+    \l {The QML script compiler}{QML compiler} knows which specific style
+    is in use and can generate C++ code for bindings.
+
+    Another benefit is that the \c {QtQuick.Controls} plugin is not used and
+    therefore does not need to be deployed with the application.
+
+    Explicit imports are also necessary if your application is built
+    \l {Static Builds}{statically}.
+
+    A disadvantage of compile-time style selection is that one executable
+    cannot support multiple styles, as each style requires its own.
+
+    See \l {Mixing Style Selection} for information about mixing
+    compile-time and run-time style selection.
+
+    \section2 Run-Time Style Selection
+
+    Run-time style selection is a way of specifying a style to use by importing
+    \c QtQuick.Controls:
+
+    \qml
+    import QtQuick.Controls
+    \endqml
+
+    The \c{QtQuick.Controls} plugin will import the style that was set at runtime
+    via one of the following approaches:
+
+    \list
+    \li \l[CPP]{QQuickStyle::setStyle()}
+    \li The \c -style command line argument
+    \li The \l {Supported Environment Variables in Qt Quick Controls}
+        {QT_QUICK_CONTROLS_STYLE environment variable}
+    \li The \l {Qt Quick Controls Configuration File}{qtquickcontrols2.conf
+        configuration file}
+    \endlist
+
+    The priority of these approaches follows the order they are listed,
+    from highest to lowest. That is, using \c QQuickStyle to set the style will
+    always take priority over using the command line argument, for example.
+
+    Similarly, the fallback style can be set via one of the following methods:
+    \list
+    \li \l[CPP]{QQuickStyle::setFallbackStyle()}
+    \li The \l {Supported Environment Variables in Qt Quick Controls}
+        {QT_QUICK_CONTROLS_FALLBACK_STYLE environment variable}
+    \li The \l {Qt Quick Controls Configuration File}{qtquickcontrols2.conf
+        configuration file}
+    \endlist
+
+    \note you can only dynamically choose the fallback style if it hasn't been
+    chosen statically in the main style's qmldir file.
+
+    The benefit of run-time style selection is that a single application binary
+    can support multiple styles, meaning that the end user can choose which
+    style to run the application with.
+
+    A disadvantage of this approach is that \l {The QML script compiler}
+    {QML compiler} can't know which specific style is in use and therefore
+    cannot generate C++ code for bindings on properties of Qt Quick Controls
+    types. This does not affect the QML compiler's abilities to generate C++
+    for bindings on types from other modules.
+
+    See \l {Mixing Style Selection} for information about mixing
+    run-time and compile-time style selection.
+
+    \section2 Mixing Style Selection
+
+    It is recommended to only use either compile-time or run-time style
+    selection in your application. However, if your application loads third
+    party QML code, for example, it may not be possible to control which
+    imports are used. If you do mix the two approaches, be aware of the
+    following limitations:
+
+    \list
+    \li Compile-time style selection overrides run-time style selection.
+    \li The style that you want to use should always be explicitly imported
+        before any other Controls import. If you don't do this, theming (such
+        as fonts and palettes) will not behave as expected. The first
+        explicitly imported style is also what QQuickStyle::name() will report.
+        \omit
+        (Also, \e only the first imported style's QQuick*Theme::initialize()
+        will be called (assuming it's one of the built-in styles). This is not
+        unique to compile-time selection, as only one theme's initialize
+        function is ever called, but it is worth pointing out that the order
+        matters)
+        \endomit
+    \li The last explicitly imported style is what will actually be used. For
+        example, if you import \c QtQuick.Controls first and then
+        \c QtQuick.Controls.Material, the Material style's Button.qml will be
+        used when a Button is created.
+        Due to the previous point about theming, it is for this reason that you
+        should never explicitly import two different styles in the same
+        application.
+    \li If you intend to use compile-time style selection but load code that
+        imports \c QtQuick.Controls, be aware that calling QQuickStyle::name()
+        before a style has been explicitly imported will cause the platform
+        default to be reported. If you can't avoid this, set the style to match
+        the compile-time one beforehand via \l QQuickStyle::setStyle() or one
+        of the other ways listed in \l {Run-Time Style Selection}.
+    \endlist
+
+    \section3 Using QQuickStyle in C++
+
+    \l[CPP]{QQuickStyle} provides C++ API for configuring a specific
+    style. The following example runs a Qt Quick Controls application
+    with the Material style:
+
+    \code
+    QQuickStyle::setStyle("Material");
+    \endcode
+
+    See the detailed description of \l[CPP]{QQuickStyle} for more
+    details.
+
+    \section3 Command line argument
+
+    Passing a \c -style command line argument is the convenient way to test different
+    styles. It takes precedence over the other methods listed below. The following
+    example runs a Qt Quick Controls application with the Material style:
+
+    \code
+    ./app -style Material
+    \endcode
+
+    \section3 Environment variable
+
+    Setting the \c QT_QUICK_CONTROLS_STYLE environment variable can be used to set
+    a system-wide style preference. It takes precedence over the configuration file
+    mentioned below. The following example runs a Qt Quick Controls application with
+    the Universal style:
+
+    \code
+    QT_QUICK_CONTROLS_STYLE=Universal ./app
+    \endcode
+
+    See \l {Supported Environment Variables in Qt Quick Controls} for the full list
+    of supported environment variables.
+
+    \section3 Configuration file
+
+    Qt Quick Controls support a special configuration file, \c :/qtquickcontrols2.conf,
+    that is built into an application's resources.
+
+    The configuration file can specify the preferred style (may be overridden by either
+    of the methods described earlier) and certain style-specific attributes. The following
+    example specifies that the preferred style is the Material style.
+
+    \code
+    [Controls]
+    Style=Material
+    \endcode
+
+    See \l {Qt Quick Controls Configuration File} for more details about the
+    configuration file.
+
+    \section1 Related Information
+    \list
+    \li \l {Basic Style}
+    \li \l {Fusion Style}
+    \li \l {Imagine Style}
+    \li \l {Material Style}
+    \li \l {Universal Style}
+    \li \l {FluentWinUI3 Style}
+    \li \l {Customizing Qt Quick Controls}
+    \li \l {Using File Selectors with Qt Quick Controls}
+    \li \l {Deploying Qt Quick Controls Applications}
+    \li \l {Qt Quick Controls Configuration File}
+    \li \l {Supported Environment Variables in Qt Quick Controls}
+    \endlist
+*/

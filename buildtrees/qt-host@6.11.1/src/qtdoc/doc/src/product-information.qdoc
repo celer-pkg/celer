@@ -1,0 +1,22 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qt-framework-product-information.html
+    \title Product information
+
+    \section1 Supported platforms and releases
+
+    \list
+        \li \l {Supported Platforms}
+        \li \l {Qt Releases}
+    \endlist
+
+    \section1 Licensing information
+
+    \list
+        \li \l {Qt Licensing}
+        \li \l {Qt for Education}
+    \endlist
+
+*/

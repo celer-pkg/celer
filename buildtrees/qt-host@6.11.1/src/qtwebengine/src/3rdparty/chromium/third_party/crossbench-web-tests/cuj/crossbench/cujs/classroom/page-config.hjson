@@ -1,0 +1,108 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  args: {
+    // Global args
+    TIMEOUT: 2m
+    CLICK_INPUT_SOURCE: touch
+    CLASS_URL: https://classroom.google.com/c/NzM5NTQzNTY1NDkx?cjc=pmkeljz
+
+    // Here 1 specifies the position of the assignment. If you want to use another assignment you can adjust this index
+    ASSIGNMENT_CLICK_INDEX: "1"
+    // Here 1 specifies the position of the appendix. If you want to use another tab you can adjust this index
+    APPENDIX_CLICK_INDEX: "1"
+
+    // download args
+    DOWNLOAD_CLICK_SELECTOR: "[aria-label='Download'][data-tooltip='Download']"
+    DOWNLOAD_FILE_TYPE: .*.gz
+  }
+  template: {
+    pages: {
+      Classroom: {
+        login: google
+        actions: [
+          {
+            action: get
+            url: $[CLASS_URL]
+            ready_state: complete
+            timeout: $[TIMEOUT]
+          }
+          {
+            action: click
+            position: {
+              selector: xpath/(//button[span[text()='Join class']])
+              required: false
+              wait: true
+            }
+            verify: xpath/(//c-wiz[not(@aria-hidden='true')]//div[contains(@aria-label, 'Assignment')]/parent::div)
+          }
+          {
+            action: click
+            position: {
+              selector: xpath/(//c-wiz[not(@aria-hidden='true')]//div[contains(@aria-label, 'Assignment')]/parent::div)[$[ASSIGNMENT_CLICK_INDEX]]
+              scroll_into_view: true
+            }
+            source: $[CLICK_INPUT_SOURCE]
+            verify: xpath/(//c-wiz[not(@aria-hidden='true')]//a[@title])
+          }
+          {
+            action: click
+            position: {
+              selector: xpath/(//c-wiz[not(@aria-hidden='true')]//a[@title])[$[APPENDIX_CLICK_INDEX]]
+              scroll_into_view: true
+            }
+            source: $[CLICK_INPUT_SOURCE]
+            verify: "[aria-label='More actions']"
+          }
+          {
+            action: click
+            position: {
+              selector: "[aria-label='More actions']"
+              scroll_into_view: true
+            }
+            source: $[CLICK_INPUT_SOURCE]
+            verify: xpath///div[text() = 'Open in new window']
+          }
+          {
+            action: click
+            position: {
+              selector: xpath///div[text() = 'Open in new window']
+              scroll_into_view: true
+            }
+            source: $[CLICK_INPUT_SOURCE]
+          }
+          {
+            action: switch_tab
+            url: ^https://drive.google.com
+          }
+          {
+            action: wait_for_ready_state
+            timeout: $[TIMEOUT]
+          }
+          {
+            action: js
+            path: ./scripts/click-download.js
+            replacements: {
+              "$[[DOWNLOAD_CLICK_SELECTOR]": $[DOWNLOAD_CLICK_SELECTOR]
+            }
+          }
+          {
+            action: click
+            position: {
+              selector: $[DOWNLOAD_CLICK_SELECTOR]
+              scroll_into_view: true
+              wait: true
+            }
+            source: $[CLICK_INPUT_SOURCE]
+          }
+          {
+            action: wait_for_download
+            timeout: $[TIMEOUT]
+            pattern: $[DOWNLOAD_FILE_TYPE]
+          }
+        ]
+      }
+    }
+  }
+}

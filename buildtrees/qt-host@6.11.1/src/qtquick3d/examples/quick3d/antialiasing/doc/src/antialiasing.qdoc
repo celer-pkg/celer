@@ -1,0 +1,49 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example antialiasing
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - Antialiasing Example
+    \examplecategory {3D}
+    \brief Demonstrates the antialiasing modes in Qt Quick 3D.
+    \image antialiasing-example.png
+           {Green cube, gray sphere, and yellow cube with antialiasing
+           settings panel}
+
+    The \e {Antialiasing} example demonstrates how to control antialiasing in Qt Quick
+    3D. It shows a simple scene that exhibits antialiasing artifacts. There is a
+    simple Qt Quick user interface that allows choosing between the antialiasing
+    types, and setting the options that control them.
+
+    \section1 The test scene
+
+    This example shows a simple scene that contains a sphere and two rotated cubes.
+    The scene is set up so that it clearly shows jagged edges when antialiasing is not enabled.
+
+    \section1 Controlling antialiasing
+
+    Antialiasing is controlled by the \l [QML] {SceneEnvironment} object. The
+    values are set based on the selection made in the user interface.
+
+    The \l [QML] {SceneEnvironment::antialiasingMode}{antialiasing mode} can be set to \c NoAA to disable antialiasing,
+    or to one of the following:
+    \list
+    \li \c SSAA for supersample antialiasing
+    \li \c MSAA for multisample antialiasing
+    \li \c ProgressiveAA for progressive antialiasing
+    \endlist
+
+    The \l [QML] {SceneEnvironment::antialiasingQuality}{antialiasing quality} can be set to \c Medium, \c High, or \c VeryHigh.
+
+    In addition, \l [QML] {SceneEnvironment::temporalAAEnabled}{temporal antialiasing} can be enabled independently.
+    The \l [QML] {SceneEnvironment::temporalAAMode}{temporal antialiasing mode} can be set to one of the following:
+    \list
+    \li \c TAADefault for basic temporal antialiasing
+    \li \c TAAMotionVector for higher-quality temporal antialiasing which uses motion vectors
+    \endlist
+
+    \snippet antialiasing/main.qml scene environment
+
+    See the \l{quick3d-asset-conditioning-anti-aliasing}{Anti-Aliasing} page in the asset conditioning section for further discussion on antialiasing.
+*/

@@ -1,0 +1,27 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  pages: {
+    WorkspaceWorkflow: {
+      login: google
+      blocks: {
+        copy-doc: {
+          template: ./copy-doc.hjson
+          args: {
+            AFTER_MAKE_COPY_CLICK_ACTIONS: []
+          }
+          unbound_args: [
+            DOC_URL
+            ARIA_DISABLED
+            CLICK_INPUT_SOURCE
+            TEST_NAME
+          ]
+        }
+        comment: ./make-comment.hjson
+        scroll: ../basic/scroll.hjson
+        cleanup: ./cleanup-doc.hjson
+      }
+    }
+  }
+}

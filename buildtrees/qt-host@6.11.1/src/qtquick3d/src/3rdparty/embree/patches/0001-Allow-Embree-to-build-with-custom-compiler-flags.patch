@@ -1,0 +1,33 @@
+From e88ce86ad1bcac88804c80c3aeea60a80515703f Mon Sep 17 00:00:00 2001
+From: Laszlo Agocs <laszlo.agocs@qt.io>
+Date: Fri, 3 Jun 2022 10:35:15 +0200
+Subject: [PATCH] Allow Embree to build with custom compiler flags
+
+Undefine all __AVX* defines to prevent hitting code paths
+that result in linker errors.
+
+Change-Id: I60d8a77c449607762bd5449ead21180744c17dff
+---
+ src/3rdparty/embree/common/sys/platform.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/src/3rdparty/embree/common/sys/platform.h b/src/3rdparty/embree/common/sys/platform.h
+index abc784cee..8965c0626 100644
+--- a/src/3rdparty/embree/common/sys/platform.h
++++ b/src/3rdparty/embree/common/sys/platform.h
+@@ -380,3 +380,12 @@ namespace embree
+   }
+ 
+ }
++
++// Qt's bundled build enforces EMBREE_TARGET_SSE2, it must not hit the AVX code paths
++#undef __AVX512VL__
++#undef __AVX512F__
++#undef __AVX2__
++#undef __AVXI__
++#undef __AVX__
++#undef __SSE4_1__
++#undef __SSE4_2__
+-- 
+2.43.0
+

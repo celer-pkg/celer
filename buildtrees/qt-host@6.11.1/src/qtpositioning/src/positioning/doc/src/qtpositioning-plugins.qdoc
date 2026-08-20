@@ -1,0 +1,91 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtpositioning-plugins.html
+\title Qt Positioning Plugins
+\brief Default Plugins and Implementing Qt Positioning plugins
+
+Qt Positioning provides the majority of its functionality through plugins.
+This document outlines how to develop a new position plugin.
+
+\section1 Default plugins
+Some plugins already ship with Qt. These are:
+
+\table
+    \row
+        \li \b android
+        \li Wraps \l {Qt Positioning Android plugin}{Android} positioning subsystem.
+            Available only on Android.
+    \row
+        \li \b corelocation
+        \li Wraps iOS and macOS positioning subsystems. Available only on Apple platforms supporting corelocation.
+    \row
+        \li \b geoclue2
+        \li A \l {Qt Positioning GeoClue v2 plugin}{GeoClue v2} backend that
+        provides an interface to the GeoClue v2 D-Bus service.
+    \row
+        \li \b gypsy
+        \li A \l {Qt Positioning Gypsy plugin}{Gypsy} backend that provides
+        an interface to the Gypsy daemon.
+    \row
+        \li \b winrt
+        \li Wraps WinRT positioning subsystem. Available only on WinRT and Windows10.
+    \row
+        \li \b nmea
+        \li An \l {Qt Positioning NMEA plugin}{NMEA} backend that parses NMEA
+        streams from a GPS receiver to provide position updates. This plugin can
+        use serial port, socket or file as a source.
+    \row
+        \li \b positionpoll
+        \li A backend providing only area monitoring functionalities via polling on position updates.
+\endtable
+
+
+\section1 Plugin Description
+
+Each plugin is described by a json file. The json describes the plugins capabilities and
+version. Below is an example of a json file used by the postionpoll plugin:
+
+\quotefile ../../../plugins/position/positionpoll/plugin.json
+
+The entries have the following meaning:
+
+\table
+    \header
+        \li Key
+        \li Description
+    \row
+        \li Keys
+        \li The unique name/key of the plugin. Each position plugin must have a unique name.
+    \row
+        \li Provider
+        \li The provider name of the services. Multiple plugins may have the same name.
+            In such cases the Version string will be used to further distinguish the plugins.
+    \row
+        \li Position
+        \li Set to \c true if the plugin implements a \l QGeoPositionInfoSource.
+    \row
+        \li Satellite
+        \li Set to \c true if the plugin implements a \l QGeoSatelliteInfoSource.
+    \row
+        \li Monitor
+        \li Set to \c true if the plugin implements a \l QGeoAreaMonitorSource.
+    \row
+        \li Priority
+        \li The plugin priority. If multiple plugins have the same provider name, the plugin
+            with the higest priority will be used.
+\endtable
+
+\section1 Implementing Plugins
+
+A plugin implementer needs to subclass \l QGeoPositionInfoSourceFactory and override one or more of
+its functions. If a plugin does not support a specific feature the function should return 0 or
+utilize the default implementation.
+
+\list
+    \li \l QGeoPositionInfoSourceFactory::areaMonitor()
+    \li \l QGeoPositionInfoSourceFactory::positionInfoSource()
+    \li \l QGeoPositionInfoSourceFactory::satelliteInfoSource()
+\endlist
+*/

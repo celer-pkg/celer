@@ -1,0 +1,4 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="fatal_error_msg" tools:ignore="UnusedResources">Votre application a rencontré une erreur fatale et ne peut pas continuer.</string>
+</resources>

@@ -1,0 +1,141 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtbluetooth-changes-qt6.html
+    \title Changes to Qt Bluetooth
+    \ingroup changes-qt-5-to-6
+    \brief Migrate QtBluetooth to Qt 6.
+
+    Qt 6 is a result of the conscious effort to make the framework more
+    efficient and easy to use.
+
+    We try to maintain binary and source compatibility for all the public
+    APIs in each release. But some changes were inevitable in an effort to
+    make Qt a better framework.
+
+    In this topic we summarize those changes in QtBluetooth, and provide guidance
+    to handle them.
+
+    \section1 General
+
+    \list
+        \li qbluetoothglobal.h was removed. qtbluetoothglobal.h is the official header with the same purpose.
+
+        \li Every usage of QVector has been replaced by QList.
+
+        \li Win32 backend has been removed. There will not be a working Bluetooth backend when Qt is built with mingw.
+
+        \li Since there is now only one Windows backend, the logging category qt.bluetooth.winrt was removed.
+            The corresponding log messages are now in qt.bluetooth.windows.
+    \endlist
+
+    \section1 QBluetooth namespace
+
+    The enums QBluetooth::Security and QBluetooth::AttAccessConstraint have been changed
+    to a scoped enums for improved type safety.
+
+    \section1 QBluetoothDeviceDiscoveryAgent
+
+    QBluetoothDeviceDiscoveryAgent::inquiryType property and related setter/getter & enum were removed.
+    The API element was never implemented and/or supported.
+
+    \section1 QBluetoothDeviceInfo
+
+    \list
+        \li manufacturerData() returns a QMultiHash rather than QHash. Since Qt 6
+            QMultiHash is no longer derived from QHash.
+
+        \li DataCompleteness was removed without replacement as the related API elements
+            no longer served a purpose
+
+        \li setServiceUuids(const QList<QBluetoothUuid>, DataCompleteness) was replaced by
+            setServiceUuids(const QList<QBluetoothUuid> &uuids)
+
+        \li DataCompleteness serviceUuidsCompleteness() const was removed without replacement.
+
+        \li QList<QBluetoothUuid> serviceUuids(DataCompleteness *completeness = nullptr) const was replaced by
+            QList<QBluetoothUuid> serviceUuids() const.
+    \endlist
+
+    \section1 QBluetoothLocalDevice
+
+    The pairing agent related API was removed without replacement. This includes pairingConfirmation(bool),
+    pairingDisplayPinCode(..) & pairingDisplayConfirmation(..). Except for Android and BlueZ 4 there was
+    never an implementation for it. Bluez 4 support was removed in Qt 6 and Android's implementation
+    required unobtainable BLUETOOTH_PRIVILEGED for at least parts of the code.
+
+    \section1 QLowEnergyService
+
+    Renamed ServiceState enum values:
+    \list
+        \li \l{QLowEnergyService::DiscoveryRequired}{DiscoveryRequired}  becomes \l{QLowEnergyService::RemoteService}{RemoteService}
+        \li \l{QLowEnergyService::DiscoveringService}{DiscoveringService} becomes \l{QLowEnergyService::RemoteServiceDiscovering}{RemoteServiceDiscovering}
+        \li \l{QLowEnergyService::ServiceDiscovered}{ServiceDiscovered} becomes \l{QLowEnergyService::RemoteServiceDiscovered}{RemoteServiceDiscovered}
+    \endlist
+    This change happens in anticipation that service discovery might become an optional
+    step in the future.
+
+    \section1 QBluetoothUuid
+
+    enums \l{QBluetoothUuid::ProtocolUuid}{ProtocolUuid},
+    \l{QBluetoothUuid::ServiceClassUuid}{ServiceClassUuid},
+    \l{QBluetoothUuid::CharacteristicType}{CharacteristicType}, and
+    \l{QBluetoothUuid::DescriptorType}{DescriptorType} are now scoped enums.
+    The usage of enum items has to be adapted in user code.
+
+    \section1 QLowEnergyController
+
+    \list
+        \li Existing ctors and create*() functions with remote QBluetoothAddress parameters have been removed. QBluetoothAddress
+            is not sufficient to indicate remote devices on Apple systems. It requires UUIDs to "name" devices. This can only
+            be satisfied by QBluetoothDeviceInfo.
+
+        \li Remaining QLowEnergyController ctors have been made private. The createPeripheral() and createCentral() functions
+            should be used to obtain QLowEnergyController instances.
+    \endlist
+
+    \section1 QLowEnergyCharacteristic
+
+    \list
+        \li The new method clientCharacteristicConfiguration() has been introduced to conveniently obtain the
+            Client Characteristic Configuration Descriptor.
+        \li The constants
+            \l{QLowEnergyCharacteristic::CCCDDisable}{CCCDDisable},
+            \l{QLowEnergyCharacteristic::CCCDEnableNotification}{CCCDEnableNotification}, and
+            \l{QLowEnergyCharacteristic::CCCDEnableIndication}{CCCDEnableIndication} have been introduced
+            which hold the possible values for the Client Characteristic Configuration Descriptor.
+        \li The handle() method is no longer part of the public Bluetooth LE interfaces. It's purpose as identifier
+            for characteristics was replaced. The QLowEnergyCharacteristic instances itself serve as identifier.
+    \endlist
+
+    \section1 QLowEnergyDescriptor
+
+    The handle() method is no longer part of the public Bluetooth LE interfaces. It's purpose as identifier
+    for descriptors was replaced. The QLowEnergyDescriptor instances itself serve as identifier.
+
+    \section1 QBluetoothTransferManager
+
+    QBluetoothTransferManager, QBluetoothTransferRequest, and QBluetoothTransferReply have been removed
+    without replacement.
+
+    \section1 QBluetoothSocket
+
+    QBluetoothSocket::SocketState and QBluetoothSocket::SocketError are now scoped enums. The usage of enum
+    items has to be adapted in user code.
+
+    \section1 QML Interface
+
+    The QML interface has been removed because socket programming via QML is not advisable.
+    QDeclarativeBluetoothService, QDeclarativeBluetoothSocket, and QDeclarativeBluetoothDiscoveryModel
+    (in QML: BluetoothService, BluetoothSocket, and BluetoothDiscoveryModel)
+    have been removed without replacement.
+
+    \section1 "error" signals
+
+    The "error" signals in QBluetoothDeviceDiscoveryAgent, QBluetoothLocalDevice, QBluetoothServer,
+    QBluetoothServiceDiscoveryAgent, QBluetoothSocket, QLowEnergyController, and QLowEnergyService
+    have been renamed to "errorOccurred" to remove ambiguities between the "error" signal and the
+    "error" getter.
+
+*/

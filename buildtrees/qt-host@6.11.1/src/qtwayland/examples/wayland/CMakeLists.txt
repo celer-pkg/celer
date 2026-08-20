@@ -1,0 +1,23 @@
+# Copyright (C) 2022 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+
+if(QT_FEATURE_wayland_server)
+if(QT_FEATURE_opengl)
+    qt_internal_add_example(minimal-cpp)
+endif()
+if(TARGET Qt::Quick)
+    qt_internal_add_example(minimal-qml)
+    qt_internal_add_example(spanning-screens)
+    qt_internal_add_example(fancy-compositor)
+    qt_internal_add_example(multi-output)
+    qt_internal_add_example(multi-screen)
+    qt_internal_add_example(overview-compositor)
+    qt_internal_add_example(ivi-compositor)
+    qt_internal_add_example(server-side-decoration)
+    qt_internal_add_example(qtshell)
+endif()
+if(TARGET Qt::Quick AND TARGET Qt::WaylandClient)
+    qt_internal_add_example(custom-extension)
+    qt_internal_add_example(custom-shell)
+endif()
+endif()

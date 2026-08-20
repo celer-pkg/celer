@@ -1,0 +1,50 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+syntax = "proto3";
+
+package qtproto.tests;
+
+// Generate the message using one of the messages with all three fields defined
+// in e.g. Python and then deserialize it with PartialMessage.
+
+message StringMessage {
+    int32 aaa = 1;
+    int64 timestamp = 2;
+    string extraField = 3;
+}
+
+message LargeIndexStringMessage {
+    int32 aaa = 1;
+    int64 timestamp = 2;
+    string extraField = 536870900;
+}
+
+message IntMessage {
+    int32 aaa = 1;
+    int64 timestamp = 2;
+    int32 extraField = 3;
+}
+
+message MapMessage {
+    int32 aaa = 1;
+    int64 timestamp = 2;
+    map<int32, int32> extraField = 3;
+}
+
+message RepeatedMessage {
+    int32 aaa = 1;
+    int64 timestamp = 2;
+    repeated int32 extraField = 3;
+}
+
+message RepeatedMessageNonPacked {
+    int32 aaa = 1;
+    int64 timestamp = 2;
+    repeated int32 extraField = 3 [packed = false];
+}
+
+message PartialMessage {
+    int32 aaa = 1;
+    int64 timestamp = 2;
+    // No third field
+}

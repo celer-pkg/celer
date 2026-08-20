@@ -1,0 +1,7 @@
+qt_internal_add_module(WaylandClientFeaturesPrivate
+    INTERNAL_MODULE
+    HEADER_MODULE
+    NO_GENERATE_CPP_EXPORTS
+    NO_MODULE_HEADERS
+    NO_ADDITIONAL_TARGET_INFO
+)

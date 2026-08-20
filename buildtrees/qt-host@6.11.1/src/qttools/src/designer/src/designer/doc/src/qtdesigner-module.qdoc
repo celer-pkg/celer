@@ -1,0 +1,21 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \module QtDesigner
+    \title Qt Widgets Designer C++ Classes
+    \ingroup modules
+    \qtcmakepackage Designer
+    \qtvariable designer
+
+    \brief Provides classes to create your own custom widget plugins for
+    \QD and classes to access \QD components.
+
+    In addition, the QFormBuilder class provides the possibility of
+    constructing user interfaces from UI files at run-time.
+*/
+
+/*!
+    \namespace qdesigner_internal
+    \internal
+*/

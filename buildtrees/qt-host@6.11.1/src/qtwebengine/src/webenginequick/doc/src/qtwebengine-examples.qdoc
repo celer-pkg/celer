@@ -1,0 +1,15 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \group webengine-examples
+    \title Qt WebEngine Quick Examples
+    \brief Examples demonstrating the \QWE usage.
+
+    These examples and demonstrations show a range of different uses for \l{Qt WebEngine},
+    from displaying Web pages within a QML user interface to an implementation of
+    a basic function Web browser.
+
+    For widget-based applications, Qt provides an integrated Web browser component based on
+    Chromium, the popular open source browser engine.
+*/

@@ -1,0 +1,275 @@
+# Copyright 2020 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("../scripts/build/ninja/copy.gni")
+import("../scripts/build/ninja/devtools_entrypoint.gni")
+import("../scripts/build/ninja/node.gni")
+import("../scripts/build/ninja/vars.gni")
+import("../scripts/build/typescript/typescript.gni")
+
+group("front_end") {
+  public_deps = [
+    ":color_tokens",
+    ":devtools_json",
+    ":embedder-scripts",
+    ":html_entrypoints",
+    "Images",
+    "core/i18n/locales",
+    "entrypoints/device_mode_emulation_frame",
+    "entrypoints/devtools_app:entrypoint",
+    "entrypoints/formatter_worker:worker_entrypoint",
+    "entrypoints/heap_snapshot_worker:worker_entrypoint",
+    "entrypoints/inspector:entrypoint",
+    "entrypoints/js_app:entrypoint",
+    "entrypoints/lighthouse_worker:bundle",
+    "entrypoints/ndb_app:entrypoint",
+    "entrypoints/node_app:entrypoint",
+    "entrypoints/rehydrated_devtools_app:entrypoint",
+    "entrypoints/shell",
+    "entrypoints/wasmparser_worker:worker_entrypoint",
+    "entrypoints/worker_app:entrypoint",
+    "third_party/vscode.web-custom-data:web_custom_data",
+  ]
+}
+
+copy_to_gen_with_grd("color_tokens") {
+  sources = [
+    "application_tokens.css",
+    "design_system_tokens.css",
+  ]
+}
+
+copy_to_gen("integration_test_runner") {
+  sources = [ "integration_test_runner.html" ]
+}
+
+group("web_test_resources") {
+  public_deps = [
+    ":integration_test_runner",
+    "legacy_test_runner",
+  ]
+  data_deps = public_deps
+}
+
+node_action("devtools_json") {
+  inputs = []
+
+  script = "scripts/build/generate_devtools_json.js"
+
+  args = [ rebase_path(
+          "$target_gen_dir/.well-known/appspecific/com.chrome.devtools.json",
+          root_build_dir) ]
+
+  outputs =
+      [ "$target_gen_dir/.well-known/appspecific/com.chrome.devtools.json" ]
+}
+
+node_action("html_entrypoints") {
+  inputs = [ "entrypoint_template.html" ]
+
+  script = "scripts/build/generate_html_entrypoint.js"
+
+  _devtools_templates = [
+    "devtools_app",
+    "inspector",
+    "js_app",
+    "ndb_app",
+    "node_app",
+    "rehydrated_devtools_app",
+    "worker_app",
+    "device_mode_emulation_frame",
+  ]
+  args = [
+    "--template",
+    rebase_path("entrypoint_template.html", root_build_dir),
+    "--out-directory",
+    rebase_path(target_gen_dir, root_build_dir),
+  ]
+
+  outputs = []
+  foreach(_devtools_template, _devtools_templates) {
+    outputs += [ "$target_gen_dir/$_devtools_template.html" ]
+    args += [
+      "--entrypoints",
+      _devtools_template,
+    ]
+  }
+
+  metadata = {
+    grd_files = outputs
+  }
+}
+
+copy_to_gen_with_grd("embedder-scripts") {
+  sources = [
+    "Tests.js",
+    "devtools_compatibility.js",
+  ]
+}
+
+group("unittests") {
+  deps = [
+    "Images:optimize_images",
+    "core/common:unittests",
+    "core/dom_extension:unittests",
+    "core/host:unittests",
+    "core/i18n:unittests",
+    "core/i18n/locales",
+    "core/platform:unittests",
+    "core/protocol_client:unittests",
+    "core/root:unittests",
+    "core/sdk:unittests",
+    "entrypoints/formatter_worker:unittests",
+    "entrypoints/heap_snapshot_worker:unittests",
+    "entrypoints/inspector_main:unittests",
+    "entrypoints/main:unittests",
+    "entrypoints/wasmparser_worker:unittests",
+    "models/ai_assistance:unittests",
+    "models/ai_code_completion:unittests",
+    "models/autofill_manager:unittests",
+    "models/bindings:unittests",
+    "models/breakpoints:unittests",
+    "models/cpu_profile:unittests",
+    "models/crux-manager:unittests",
+    "models/emulation:unittests",
+    "models/extensions:unittests",
+    "models/formatter:unittests",
+    "models/har:unittests",
+    "models/heap_snapshot_model:unittests",
+    "models/issues_manager:unittests",
+    "models/javascript_metadata:unittests",
+    "models/logs:unittests",
+    "models/persistence:unittests",
+    "models/project_settings:unittests",
+    "models/source_map_scopes:unittests",
+    "models/text_utils:unittests",
+    "models/trace:unittests",
+    "models/trace/extras:unittests",
+    "models/trace/handlers:unittests",
+    "models/trace/helpers:unittests",
+    "models/trace/insights:unittests",
+    "models/trace/lantern/core:unittests",
+    "models/trace/lantern/graph:unittests",
+    "models/trace/lantern/metrics:unittests",
+    "models/trace/lantern/simulation:unittests",
+    "models/trace/types:unittests",
+    "models/workspace:unittests",
+    "models/workspace_diff:unittests",
+    "panels/accessibility:unittests",
+    "panels/ai_assistance:unittests",
+    "panels/animation:unittests",
+    "panels/application:unittests",
+    "panels/application/components:unittests",
+    "panels/application/fixtures",
+    "panels/application/preloading/components:unittests",
+    "panels/autofill:unittests",
+    "panels/browser_debugger:unittests",
+    "panels/changes:unittests",
+    "panels/common:unittests",
+    "panels/console:unittests",
+    "panels/console_counters:unittests",
+    "panels/coverage:unittests",
+    "panels/css_overview:unittests",
+    "panels/developer_resources:unittests",
+    "panels/elements:unittests",
+    "panels/emulation:unittests",
+    "panels/event_listeners:unittests",
+    "panels/explain:unittests",
+    "panels/issues:unittests",
+    "panels/layer_viewer:unittests",
+    "panels/layers:unittests",
+    "panels/lighthouse:unittests",
+    "panels/linear_memory_inspector:unittests",
+    "panels/linear_memory_inspector/components:unittests",
+    "panels/media:unittests",
+    "panels/mobile_throttling:unittests",
+    "panels/network:unittests",
+    "panels/network/components:unittests",
+    "panels/performance_monitor:unittests",
+    "panels/profiler:unittests",
+    "panels/protocol_monitor:unittests",
+    "panels/recorder:unittests",
+    "panels/recorder/components:unittests",
+    "panels/recorder/converters:unittests",
+    "panels/recorder/injected/selectors:unittests",
+    "panels/recorder/models:unittests",
+    "panels/recorder/testing",
+    "panels/recorder/util:unittests",
+    "panels/screencast:unittests",
+    "panels/search:unittests",
+    "panels/security:unittests",
+    "panels/settings:unittests",
+    "panels/settings/components:unittests",
+    "panels/settings/emulation/components:unittests",
+    "panels/settings/emulation/utils:unittests",
+    "panels/snippets:unittests",
+    "panels/sources:unittests",
+    "panels/sources/components:unittests",
+    "panels/timeline:unittests",
+    "panels/timeline/components:unittests",
+    "panels/timeline/components/insights:unittests",
+#    "panels/timeline/fixtures/traces",
+    "panels/timeline/overlays:unittests",
+    "panels/timeline/overlays/components:unittests",
+    "panels/timeline/track_appenders:unittests",
+    "panels/timeline/utils:unittests",
+    "panels/utils:unittests",
+    "panels/web_audio:unittests",
+    "panels/webauthn:unittests",
+    "panels/whats_new:unittests",
+    "services/trace_bounds:unittests",
+    "testing",
+    "third_party/chromium/client-variations:unittests",
+    "third_party/i18n:unittests",
+    "ui/components/adorners:unittests",
+    "ui/components/buttons:unittests",
+    "ui/components/cards:unittests",
+    "ui/components/chrome_link:unittests",
+    "ui/components/code_highlighter:unittests",
+    "ui/components/dialogs:unittests",
+    "ui/components/diff_view:unittests",
+    "ui/components/expandable_list:unittests",
+    "ui/components/helpers:unittests",
+    "ui/components/highlighting:unittests",
+    "ui/components/icon_button:unittests",
+    "ui/components/issue_counter:unittests",
+    "ui/components/linkifier:unittests",
+    "ui/components/markdown_view:unittests",
+    "ui/components/menus:unittests",
+    "ui/components/node_text:unittests",
+    "ui/components/panel_feedback:unittests",
+    "ui/components/render_coordinator:unittests",
+    "ui/components/report_view:unittests",
+    "ui/components/request_link_icon:unittests",
+    "ui/components/settings:unittests",
+    "ui/components/snackbars:unittests",
+    "ui/components/survey_link:unittests",
+    "ui/components/switch:unittests",
+    "ui/components/text_editor:unittests",
+    "ui/components/text_prompt:unittests",
+    "ui/components/tooltips:unittests",
+    "ui/components/tree_outline:unittests",
+    "ui/legacy:copy_stylesheets_for_server",
+    "ui/legacy:unittests",
+    "ui/legacy/components/color_picker:unittests",
+    "ui/legacy/components/data_grid:unittests",
+    "ui/legacy/components/inline_editor:unittests",
+    "ui/legacy/components/object_ui:unittests",
+    "ui/legacy/components/perf_ui:unittests",
+    "ui/legacy/components/quick_open:unittests",
+    "ui/legacy/components/source_frame:unittests",
+    "ui/legacy/components/utils:unittests",
+    "ui/legacy/theme_support:unittests",
+    "ui/lit:unittests",
+    "ui/visual_logging:unittests",
+  ]
+}
+
+generated_file("test_inputs") {
+  outputs = [ "$target_gen_dir/tests.txt" ]
+  data_keys = [ "tests" ]
+  rebase = target_gen_dir
+
+  deps = [ ":unittests" ]
+}

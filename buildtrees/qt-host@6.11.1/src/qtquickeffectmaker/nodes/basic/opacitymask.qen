@@ -1,0 +1,29 @@
+{
+    "QEN": {
+        "description": "Masks the source item with another item.",
+        "fragmentCode": [
+            "@main",
+            "{",
+            "    float opacityMaskAmount = texture(opacityMaskSource, texCoord).a;",
+            "    opacityMaskAmount = opacityMaskInvert ? 1.0 - opacityMaskAmount : opacityMaskAmount;",
+            "    fragColor = fragColor * opacityMaskAmount;",
+            "}"
+        ],
+        "name": "OpacityMask",
+        "properties": [
+            {
+                "defaultValue": "../images/mask2.png",
+                "description": "This property defines the item that is going to be used as the mask. The mask item alpha values are used to determine the source item's pixels visibility in the display.",
+                "name": "opacityMaskSource",
+                "type": "image"
+            },
+            {
+                "defaultValue": "false",
+                "description": "This property inverts the behavior of the mask source.",
+                "name": "opacityMaskInvert",
+                "type": "bool"
+            }
+        ],
+        "version": 1
+    }
+}

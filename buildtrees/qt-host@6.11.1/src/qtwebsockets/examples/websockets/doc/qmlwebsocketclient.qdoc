@@ -1,0 +1,31 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example qmlwebsocketclient
+    \title QML WebSocket Client
+    \examplecategory {Networking}
+    \ingroup qtwebsockets-examples
+    \brief Explains how to write a QML WebSocket client example.
+
+    The QML WebSocket Client example creates a secure and an
+    insecure \l {Qt WebSockets}{WebSocket} connection to an echo
+    server, using the QML API, and alternates between opening
+    connections and closing them. Every time a connection has
+    been opened, it sends a message.
+
+    \image qmlwebsocketclient-example.webp QML WebSocket Client GUI
+
+    This example opens a window with a welcome message. Every time
+    the window is clicked on, it alternates between opening and
+    closing two connections to an external echo server. The echo
+    server used is at ws.ifelse.io, and an Internet connection is
+    necessary for the example to work. Also TLS must be enabled for
+    the secure connection to work. When the connection is opened or
+    closed, the statusChanged signal is handled by the
+    onStatusChanged handler. Every time the socket is opened, a
+    message is sent, and every time the socket is closed, a message
+    is logged in the window. In addition, there is an
+    onTextMessageReceived handler that logs to the window the
+    messages received from the server.
+*/

@@ -1,0 +1,154 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+    \example texteditor
+    \keyword Qt Quick Controls - Text Editor
+    \title Qt Quick Controls - Text Editor
+    \keyword Qt Quick Controls 2 - Text Editor
+    \ingroup qtquickcontrols-examples
+    \examplecategory {Graphics}
+    \brief A rich-text editor app using Qt Quick Controls.
+
+    The \e {Text Editor Example} allows WYSIWYG editing of an HTML, Markdown or
+    plain text file. The application comes with two user interfaces: one for
+    larger screens, and a simplified UI for small touch-based devices. Both are
+    "pure" QML. \c texteditor.cpp contains the \c main() function, which calls
+    QFontDatabase::addApplicationFont() to add an icon font. (\l FontLoader
+    would be an alternative way to achieve the same result.)
+
+    \section1 Desktop User Interface
+
+    \image qtquickcontrols-texteditor-desktop.jpg
+           {Text editor with menu bar, toolbar, and formatted document content}
+
+    The desktop version is a complete text editor with capabilities for formatting
+    text, and opening and saving HTML, Markdown and plain text files.
+
+    In the \l {https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller}{model-view-control (MVC)}
+    design pattern, the \e control layer includes the set of operations that
+    can be performed. In Qt Quick Controls, the \l Action type is used to
+    encapsulate a single operation or command. Accordingly, we begin with a
+    set of Action objects:
+
+    \quotefromfile texteditor/qml/texteditor.qml
+    \skipto Action
+    \printuntil openAction
+    \printto Action
+
+    The \l Action for opening a file must first prompt the user if the existing
+    document has been changed, to avoid losing the user's changes. Otherwise
+    it simply opens the FileDialog which is declared further below.
+
+    The \l Action for saving the file is enabled only if there are changes to save:
+
+    \printuntil saveAction
+    \printto Action
+
+    \skipto quitAction
+    \skipuntil }
+
+    The \l Action for copying selected text is enabled only if some text is selected:
+
+    \printuntil copyAction
+    \printuntil }
+
+    \skipto pasteAction
+    \skipuntil }
+
+    Each Action to change text formatting (such as bold, italic and alignment)
+    is \l {Action::}{checkable}, and its boolean \c checked state
+    is in sync with the relevant property in the
+    \l {TextEdit::selectedText}{selected text}.
+    Since declarative bidirectional synchronization is difficult, we use
+    an \c onTriggered script to change the property when the Action is
+    activated. The \l {TextEdit::}{cursorSelection} property
+    is new in Qt 6.7 and makes this much easier than it was.
+
+    \printuntil boldAction
+    \printto Action
+
+    \skipto alignLeftAction
+    \skipuntil }
+
+    \printuntil alignCenterAction
+    \printto Action
+
+    We have a \l MenuBar containing the hierarchy of \l {Menu}{Menus} and
+    MenuItems. Each \l MenuItem merely needs to bind the relevant
+    \l {AbstractButton::}{action}, which encapsulates the
+    UI representation and the implementation.
+
+    \skipto MenuBar
+    \printuntil copyAction
+    \printuntil }
+    \dots 8
+
+    The same \l Action objects are reused in the \l ToolBar; but here we
+    override each Action's \l {AbstractButton::}{text} property to
+    choose a textual icon from our icon font:
+
+    \skipto ToolBar
+    \printuntil copyButton
+    \printuntil }
+    \dots 12
+
+    The main part of the text editor is a \l TextArea inside a \l Flickable:
+
+    \skipto Flickable
+    \printuntil persistentSelection
+    \dots 12
+
+    A \l ScrollBar is attached to the vertical axis. Since word-wrapping is
+    enabled via \l {TextEdit::}{wrapMode}, we don't need a horizontal
+    ScrollBar.
+
+    The \l {TextArea::flickable}{TextArea.flickable} attached property is used
+    so that when the text cursor is moved out of the viewport (for example via
+    arrow keys, or by typing a lot of text), \l TextArea scrolls the
+    \l Flickable to keep the cursor visible.
+
+    We take the same actions that we declared in the \l MenuBar and \l ToolBar
+    and append them to the existing items in the standard
+    \l {ContextMenu}{context menu} provided by \c TextArea:
+
+    \skipto ContextMenu
+    \printto }
+
+    We consistently use the \l [QML] {Qt::}{qsTr()} function to enable
+    translation of UI text, so that the application will make sense regardless
+    of the end user's native language.
+
+    We use several kinds of \l {Qt Quick Dialogs QML Types}{dialogs}:
+
+    \quotefromfile texteditor/qml/texteditor.qml
+    \skipto FileDialog
+    \printuntil discardDialog
+    \printuntil }
+    \printuntil }
+
+    It's generally easier to declare separate instances for each purpose.
+    We have two instances of \l {QtQuick.Dialogs::}{FileDialog}, for opening
+    and saving files respectively. This became easier in Qt 6.7, with new
+    features in \l TextDocument.
+
+    A \l {QtQuick.Dialogs::}{FontDialog} and a \l {QtQuick.Dialogs::ColorDialog}{ColorDialog}
+    allow changing text formatting. (In Markdown format, there's no syntax to
+    represent specific font and color choices; but font characteristics such as
+    bold, italic and monospace are saved. In HTML format, all formatting is
+    saved.)
+
+    We have a \l {QtQuick.Dialogs::}{MessageDialog} to show error messages, and
+    two more for prompting the user what to do when a file has been modified.
+
+    \section1 Touch User Interface
+
+    \image qtquickcontrols-texteditor-touch.jpg
+           {Text editor interface for touch devices with formatting toolbar}
+
+    The touch user interface is a simplified version of the text editor. It is
+    suitable for touch devices with limited screen size. The example uses
+    \l{Using File Selectors with Qt Quick Controls}{file selectors} to load
+    the appropriate user interface automatically.
+
+    \include examples-run.qdocinc
+*/

@@ -1,0 +1,52 @@
+{
+    "QEN": {
+        "description": "Creates a rounded rectangle with blur radius. The properties match with the RectangularShadow QtQuick.Effects element, so this node provides a starting point for the custom RectangularShadow materials.",
+        "fragmentCode": [
+            "float roundedBox(vec2 centerPos, vec2 size, float radii) {",
+            "    return length(max(abs(centerPos) - size + radii, 0.0)) - radii;",
+            "}",
+            "",
+            "@main",
+            "{",
+            "    float box = roundedBox(fragCoord - iResolution.xy * 0.5, rectSize, radius);",
+            "    float a = 1.0 - smoothstep(0.0, blur, box);",
+            "    fragColor = color * a * a;",
+            "}",
+            ""
+        ],
+        "name": "RectangularShadow",
+        "properties": [
+            {
+                "defaultValue": "0, 0, 0, 1",
+                "description": "Color of the shadow/glow.",
+                "name": "color",
+                "type": "color"
+            },
+            {
+                "defaultValue": "100, 100",
+                "description": "Size of the shadow rectangle in pixels.",
+                "maxValue": "200, 200",
+                "minValue": "0, 0",
+                "name": "rectSize",
+                "type": "vec2"
+            },
+            {
+                "defaultValue": "0",
+                "description": "Corner radius amount of the shadow rectangle.",
+                "maxValue": "50",
+                "minValue": "0",
+                "name": "radius",
+                "type": "float"
+            },
+            {
+                "defaultValue": "10",
+                "description": "Blur radius amount of the shadow rectangle.",
+                "maxValue": "50",
+                "minValue": "0",
+                "name": "blur",
+                "type": "float"
+            }
+        ],
+        "version": 1
+    }
+}

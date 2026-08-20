@@ -1,0 +1,11 @@
+Model Information:
+* title: wood billet
+* source: https://sketchfab.com/3d-models/wood-billet-9ba273cc850f497f8ffbd127bdd69c28
+* author: falk lochmann (https://sketchfab.com/falk)
+
+Model License:
+* license type: CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements: Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "wood billet" (https://sketchfab.com/3d-models/wood-billet-9ba273cc850f497f8ffbd127bdd69c28) by falk lochmann (https://sketchfab.com/falk) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

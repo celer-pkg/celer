@@ -1,0 +1,91 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page position-plugin-gypsy.html
+\title Qt Positioning Gypsy plugin
+\ingroup QtPositioning-plugins
+
+\brief Uses the Gypsy daemon to provide satellite information
+
+\section1 Overview
+
+The plugin is an interface to the \l {Gypsy daemon}. It requires the daemon
+to be installed and running on the system to function.
+
+The plugin uses D-Bus and GLib to connect to GPS device and provide satellite
+information.
+
+Currently the plugin \e {does not} provide positioning information.
+
+The plugin can be loaded using provider name \b gypsy.
+
+\section1 Parameters
+
+The following table lists parameters that \e can be passed to the gypsy
+plugin.
+
+\table
+\header
+    \li Parameter
+    \li Description
+\row
+    \li deviceName
+    \li The name of the device (or path to the device file) that will be used
+        to provide satellite information. The typical values can be
+        \c {/dev/ttyUSB0} or \c {/dev/ttyACM0}.
+\row
+    \li gconfKey
+    \li The key that will be used to extract device name from the GConf
+        configuration system.
+\endtable
+
+The plugin supports two ways of specifying the device name:
+\list
+    \li Specify the device name directly with the \e deviceName plugin
+        parameter.
+    \li Specify the configuration key using \e gconfKey plugin parameter and
+        extract the device name from the GConf configuration system. This
+        approach is useful when the device name is already specified for some
+        other GConf-based application.
+\endlist
+
+By default, when none of the parameters is specified, the plugin will try to
+extract the device name from the GConf configuration system using the following
+hardcoded key:
+
+\badcode
+/apps/geoclue/master/org.freedesktop.Geoclue.GPSDevice
+\endcode
+
+\section2 Using GConf to set parameters
+
+To specify a value for a key in the GConf configuration system, use
+\e {gconftool-2} as follows:
+
+\badcode
+gconftool-2 -t string -s /apps/geoclue/master/org.freedesktop.Geoclue.GPSDevice /dev/ttyUSB0
+\endcode
+
+\section1 Examples
+
+The following examples show how to create a \b gypsy satellite info source
+from C++.
+
+Specifying device name directly:
+
+\code
+QVariantMap parameters;
+parameters["deviceName"] = "/dev/ttyACM0";
+QGeoSatelliteInfoSource *source = QGeoSatelliteInfoSource::createSource("gypsy", parameters, this);
+\endcode
+
+Using GConf key:
+
+\code
+QVariantMap parameters;
+parameters["gconfKey"] = "/apps/myapp/mykey";
+QGeoSatelliteInfoSource *source = QGeoSatelliteInfoSource::createSource("gypsy", parameters, this);
+\endcode
+
+*/

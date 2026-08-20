@@ -1,0 +1,75 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example xr_freeformteleportation
+    \ingroup quick3d-examples
+    \ingroup qt3dxr-examples
+    \title Qt Quick 3D - XR Freeform Teleportation Example
+    \examplecategory {3D}
+    \brief Demonstrates how to implement simple locomotion in Qt Quick 3D XR.
+    \image xrfreeformteleportation-example.jpg
+           {Grid room with green teleportation arc and target marker}
+
+    \section1 Overview
+
+    This example shows how to move to places in the virtual environment using a simple freeform
+    teleportation system, a non-continuous form of movement.
+
+    \section2 Controls
+
+    For navigation, use the thumbstick on the right controller:
+
+    \list
+        \li Push the stick forwards to aim, and release it to teleport.
+        \li Move the stick sideways to rotate.
+    \endlist
+
+    \section1 Implementation
+
+    The teleportation logic is implemented in the  \c FreeformTeleporter component. This is located in the separate
+    sub-project \c xr_shared, so you can easily re-use it in other projects.
+
+    \snippet xr_freeformteleportation/main.qml FreeformTeleporter component
+
+    The FreeformTeleporter component has the following properties that need to be set:
+
+    \qml
+        QtObject xrView
+    \endqml
+
+    The \c xrView property gives access to XrView's built-in ray-picking. You can use any
+    object that implements a \c rayPick method. For example, a View3D may be useful for prototyping.
+
+    \qml
+        Node originNode
+    \endqml
+
+    The \c originNode property specifies the node that the freeform teleporter will manipulate. In XR,
+    artificial locomotion is performed by moving the XrOrigin. We will therefore use the xrOrigin of our
+    XrView as the \c originNode.
+
+    \qml
+        Node cameraNode
+    \endqml
+
+    The \c cameraNode property provides the position of the camera. When rotating, it defines the center
+    of rotation. When teleporting, it defines the position that will be placed over the selected location.
+    In this example, we use the tracked XrCamera we created earlier.
+
+    \note In XR, the XrOrigin defines the relationship between the scene and the user's reference
+    space. This reference space is typically anchored to the physical space around the user. Changing the position of
+    the XrOrigin will change how physical locations are mapped to scene coordinates. The XrCamera tracks the position of
+    the user's head. When the user moves physically, the XrCamera's position and orientation will change relative to the
+    XrOrigin.
+
+    \qml
+        Node beamHandle
+    \endqml
+
+    The \c beamHandle property is the Node used as the teleportation beam's start point.
+    In this example, we use the right controller as the beamHandle.
+
+    \sa {Locomotion in \qxr}
+
+*/

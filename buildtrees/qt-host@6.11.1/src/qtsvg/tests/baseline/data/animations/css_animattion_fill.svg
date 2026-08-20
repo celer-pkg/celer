@@ -1,0 +1,14 @@
+<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    @keyframes color {
+      0% {fill: red;}
+      100% {fill: blue;}
+  }
+  circle {
+    animation-duration: 1s;
+    animation-name: color;
+    animation-iteration-count: 1;
+  }
+  </style>
+  <circle cx="250" cy="200" r="100" fill="white"/>
+</svg>

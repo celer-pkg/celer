@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/qmlgrabsliceview/main.qml</file>
+        <file>qml/qmlgrabsliceview/SurfaceGraph.qml</file>
+        <file>qml/qmlgrabsliceview/BarGraph.qml</file>
+    </qresource>
+    <qresource prefix="/heightmaps">
+        <file>layer_1.png</file>
+        <file>layer_2.png</file>
+        <file>layer_3.png</file>
+    </qresource>
+</RCC>

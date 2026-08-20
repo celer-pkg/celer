@@ -1,0 +1,19 @@
+{
+    "QEN": {
+        "description": "This node contains commonly used math defines and helper functions.",
+        "fragmentCode": [
+            "#define PI 3.14159265359",
+            "#define TAU 6.28318530718",
+            "#define SQRT2 1.41421356237",
+            "",
+            "mat2 rotate2d(float a) {",
+            "    const float c = cos(a);",
+            "    const float s = sin(a);",
+            "    return mat2(c, -s, s, c);",
+            "}",
+            "@main"
+        ],
+        "name": "MathHelper",
+        "version": 1
+    }
+}

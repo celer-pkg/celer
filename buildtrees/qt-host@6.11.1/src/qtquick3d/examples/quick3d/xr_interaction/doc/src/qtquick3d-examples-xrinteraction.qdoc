@@ -1,0 +1,57 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example xr_interaction
+    \ingroup quick3d-examples
+    \ingroup qt3dxr-examples
+    \title Qt Quick 3D - XR 3D Interaction example
+    \examplecategory {3D}
+    \brief Demonstrates how to manipulate 3D objects with Qt Quick 3D XR.
+    \image xrinteraction-example.jpg
+           {3D scene with colorful letters and shapes floating in space}
+
+    This example shows how to create components that move and resize 3D objects in a scene.
+    It uses the same ray-picking strategy as the \l{Qt Quick 3D - XR Simple Input Example}{xr_input} example.
+
+    \section1 Controller input
+
+    In this example, we create a reusable component named \c AimController. This performs ray
+    picking to select a Model, and optionally allows the user to grab the selected Model and move
+    it around.
+
+    \c AimController defines signals that allows us to implement custom interactions:
+
+    \snippet xr_shared/AimController.qml signals
+
+    \section1 Gadgets
+
+    We define an abstract component, \c XrGadget, which has two functions: \c handleControllerPress and \c handleControllerMove.
+    In C++, these functions would have been virtual. Since this example is implemented completely in QML,
+    we instead emit signals that can be handled in sub-components.
+
+    For example, \c TranslateGadget moves the controlled object along the gadget's axis based on the \c onMoved signal:
+
+    \snippet xr_shared/TranslateGadget.qml onMoved
+
+    \section1 Reusable components
+
+    We put the \c AimController and the gadgets in the separate sub-project \c xr_shared, so we can
+    reuse them in future examples. (\c xr_shared also includes the \c FreeformTeleporter component from the
+    \l{Qt Quick 3D - XR Freeform Teleportation Example}{Freeform Teleportation Example}.)
+
+    \section1 Tying it all together
+
+    We define a component \c GadgetBox that keeps track of which object is selected and shows a
+    translucent box around the selected object, in addition to showing gadgets around the object.
+    When a selected object is pressed, the \c GadgetBox will cycle between the three different
+    types of gadgets (translate, rotate, and resize).
+
+    In \c main.qml we react to the signals from the \c AimController and call the functions in \c GadgetBox:
+
+    \snippet xr_interaction/main.qml connections
+
+    We also provide haptic feedback when the hovered object or gadget changes:
+
+    \snippet xr_interaction/main.qml haptics
+*/

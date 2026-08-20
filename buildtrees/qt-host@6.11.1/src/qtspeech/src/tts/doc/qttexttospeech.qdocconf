@@ -1,0 +1,70 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/config/exampleurl-qtspeech.qdocconf)
+
+project = QtTextToSpeech
+description = Qt TextToSpeech Documentation
+version = $QT_VERSION
+
+sourcedirs      += ../..
+headerdirs      += ../..
+
+imagedirs       += src/images
+
+exampledirs     += ../../../examples/speech
+
+moduleheader     = QtTextToSpeechDoc
+includepaths    += .
+
+depends         += qtcore qtdoc qtgui qtwidgets qtquick qtquickcontrols qtmultimedia qtcmake
+
+# Ignore \since commands for versions earlier than 6.4
+ignoresince = 6.4
+examplesinstallpath              = speech
+
+# Path to the root of qtspeech (for automatic linking to source code)
+url.sources.rootdir     = ../../..
+
+# Defines the name of the project. You cannot use operators (+, =, -) in
+# the name. Properties for this project are set using a qhp.<projectname>.property
+# format.
+qhp.projects                     = QtTextToSpeech
+
+qhp.QtTextToSpeech.file                = qttexttospeech.qhp
+qhp.QtTextToSpeech.namespace           = org.qt-project.qttexttospeech.$QT_VERSION_TAG
+qhp.QtTextToSpeech.virtualFolder       = qttexttospeech
+qhp.QtTextToSpeech.indexTitle          = Qt TextToSpeech
+qhp.QtTextToSpeech.indexRoot           =
+
+qhp.QtTextToSpeech.subprojects = manual examples classes qmltypes
+
+qhp.QtTextToSpeech.subprojects.classes.title = C++ Classes
+qhp.QtTextToSpeech.subprojects.classes.indexTitle = Qt TextToSpeech C++ Classes
+qhp.QtTextToSpeech.subprojects.classes.selectors = class
+qhp.QtTextToSpeech.subprojects.classes.sortPages = true
+
+qhp.QtTextToSpeech.subprojects.qmltypes.title = QML Types
+qhp.QtTextToSpeech.subprojects.qmltypes.indexTitle = Qt TextToSpeech QML Types
+qhp.QtTextToSpeech.subprojects.qmltypes.selectors = qmlclass
+qhp.QtTextToSpeech.subprojects.qmltypes.sortPages = true
+
+qhp.QtTextToSpeech.subprojects.examples.title = Examples
+qhp.QtTextToSpeech.subprojects.examples.indexTitle = Qt TextToSpeech Examples
+qhp.QtTextToSpeech.subprojects.examples.selectors = example
+qhp.QtTextToSpeech.subprojects.examples.sortPages = true
+
+qhp.QtTextToSpeech.subprojects.manual.title = Qt TextToSpeech
+qhp.QtTextToSpeech.subprojects.manual.indexTitle = Qt TextToSpeech module topics
+qhp.QtTextToSpeech.subprojects.manual.type = manual
+
+navigation.landingpage = "Qt TextToSpeech"
+navigation.cppclassespage = "Qt TextToSpeech C++ Classes"
+navigation.qmltypespage = "Qt TextToSpeech QML Types"
+# Auto-generate navigation linking based on "Qt TextToSpeech module topics":
+navigation.toctitles = "Qt TextToSpeech module topics"
+navigation.toctitles.inclusive = false
+
+# Highlighted examples in Data Processing & IO category
+manifestmeta.highlighted.names = "QtTextToSpeech/Quick Speech Example"
+
+# Allow no documentation warnings
+warninglimit = 0

@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/">
+        <file>maps/cloth-heightmap.png</file>
+        <file>maps/numbers-normal.png</file>
+        <file>maps/numbers.png</file>
+        <file>maps/weave.png</file>
+        <file>meshes/cup.mesh</file>
+        <file>meshes/dodecahedron.mesh</file>
+        <file>meshes/icosahedron.mesh</file>
+        <file>meshes/octahedron.mesh</file>
+        <file>meshes/simpleCup.mesh</file>
+        <file>meshes/tetrahedron.mesh</file>
+        <file>meshes/tower.mesh</file>
+    </qresource>
+</RCC>

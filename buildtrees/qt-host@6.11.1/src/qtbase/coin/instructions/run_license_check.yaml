@@ -1,0 +1,9 @@
+type: Group
+instructions:
+    - !include "{{qt/qtbase}}/prepare_license_test.yaml"
+    - type: ExecuteCommand
+      command: perl qt/qtqa-latest/tests/prebuild/license/tst_licenses.pl
+      maxTimeInSeconds: 7200
+      maxTimeBetweenOutput: 120
+      userMessageOnFailure: >
+           Failed to run license check script.

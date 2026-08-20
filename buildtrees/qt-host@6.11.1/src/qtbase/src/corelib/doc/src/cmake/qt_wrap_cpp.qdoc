@@ -1,0 +1,110 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qt-wrap-cpp.html
+\ingroup cmake-commands-qtcore
+
+\title qt_wrap_cpp
+\keyword qt6_wrap_cpp
+
+\summary {Creates .moc files from sources.}
+
+\include cmake-find-package-core.qdocinc
+
+\cmakecommandsince 5.0
+
+\section1 Synopsis
+
+\c{qt_wrap_cpp} supports two signatures. The first signature was added in Qt 6.8
+and has the following form:
+
+\badcode
+qt_wrap_cpp(<TARGET> src_file1 [src_file2 ...]
+            [OPTIONS ...]
+            [DEPENDS ...])
+\endcode
+
+\note The signature above is recommended over the older signature.
+
+\badcode
+qt_wrap_cpp(<VAR> src_file1 [src_file2 ...]
+            [TARGET target]
+            [OPTIONS ...]
+            [DEPENDS ...])
+\endcode
+
+\versionlessCMakeCommandsNote qt6_wrap_cpp()
+
+\section1 Description
+
+Creates rules for calling the \l{moc}{Meta-Object Compiler (moc)} on the given
+source files. For each input file, an output file is generated in the build
+directory.
+
+With the target-based signature, generated files are added as sources to
+\c{<TARGET>}. With the older signature, the paths of the generated files are
+added to \c{<VAR>}.
+
+\note This is a low-level macro. See the \l{CMake AUTOMOC Documentation} for a
+more convenient way to let source files be processed with \c{moc}.
+
+\section1 Arguments
+
+You can set an explicit \c{TARGET}. This will make sure that the target
+properties \c{INCLUDE_DIRECTORIES} and \c{COMPILE_DEFINITIONS} are also used
+when scanning the source files with \c{moc}.
+
+Since Qt 6.8, when a source file is passed to \c{qt_wrap_cpp} instead of a
+header file to generate a \c{.moc} file for a target, the \c{TARGET} parameter
+is needed to set the correct include path for the generated \c{.moc} file in
+the source file.
+
+If you're calling \c qt_wrap_cpp in a directory scope that's different from the
+directory scope of the target, you must use the target-based signature of \c
+qt_wrap_cpp or pass the target with the \c TARGET argument.
+
+You can set additional \c{OPTIONS} that should be added to the \c{moc} calls.
+You can find possible options in the \l{moc}{moc documentation}.
+
+The \c{OPTIONS} can evaluate generator expressions when \c{TARGET} is set.
+\note If the \c{OPTIONS} include both generator expressions and special
+characters, use variables to implement them. For example, use \c{$<ANGLE-R>},
+\c{$<COMMA>} and \c{$<SEMICOLON>} instead of \c{>}, \c{,} and \c{:}. Otherwise,
+the generator expression will not be evaluated correctly. \c {OPTIONS} are
+wrapped in generator expressions, so you must escape special characters in
+them.
+
+\c{DEPENDS} allows you to add additional dependencies for recreation of the
+generated files. This is useful when the sources have implicit dependencies,
+like code for a Qt plugin that includes a \c{.json} file using the
+Q_PLUGIN_METADATA() macro.
+
+\section1 Examples
+
+Since Qt 6.8:
+
+\snippet cmake-macros/examples.cmake qt_wrap_cpp_4
+\br
+\snippet cmake-macros/examples.cpp qt_wrap_cpp_4
+
+In the above file, \c{myapp.moc} is included in \c{myapp.cpp}.
+To generate the \c{myapp.moc} file, the \c{qt_wrap_cpp} macro is used with the
+\c{TARGET} parameter. The \c{.moc} file and its path will be added to the
+target's sources and include directories by the \c{qt_wrap_cpp} macro.
+
+The old version:
+\snippet cmake-macros/examples.cmake qt_wrap_cpp_1
+
+In the following example, the generator expressions passed to \c{OPTIONS}
+will be evaluated since \c{TARGET} is set. The argument is specified this way to
+avoid syntax errors in the generator expressions.
+
+\snippet cmake-macros/examples.cmake qt_wrap_cpp_2
+
+The following example uses \l{https://cmake.org/cmake/help/latest/command/target_compile_definitions.html}{target_compile_definitions}
+to set \l{https://cmake.org/cmake/help/latest/prop_tgt/COMPILE_DEFINITIONS.html}{COMPILE_DEFINITIONS} which will be added to
+\c{OPTIONS}.
+\snippet cmake-macros/examples.cmake qt_wrap_cpp_3
+
+*/

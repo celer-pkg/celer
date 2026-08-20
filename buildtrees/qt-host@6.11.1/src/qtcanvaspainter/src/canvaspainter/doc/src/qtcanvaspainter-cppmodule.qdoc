@@ -1,0 +1,19 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\module QtCanvasPainter
+\title Qt Canvas Painter C++ Classes
+\cmakecomponent CanvasPainter
+\techpreview
+\modulestate Technical Preview
+\brief Provides classes for Qt Canvas Painter application development.
+
+Qt Canvas Painter provides the following C++ types:
+
+\section1 Qt Canvas Painter C++ Types
+
+\generatelist classesbymodule QtCanvasPainter
+
+\noautolist
+*/

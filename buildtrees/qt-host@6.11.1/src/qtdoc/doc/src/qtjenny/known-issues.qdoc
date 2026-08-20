@@ -1,0 +1,26 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+\page qtjenny-knownissues.html
+\ingroup qtjenny
+\meta sortkey {3_knownissues}
+
+\title Qt Jenny known issues
+
+\section1 Qt Jenny 1.0
+
+\list
+    \li Qt Jenny generates header-only code. This is done in order
+    to take advantage of template functionality in QJniObject,
+    and also to use deduced return types of some QJniObject functions,
+    and to expose those return types as deduced in the code generated
+    by Qt Jenny. We expect to keep it that way.
+    \li The generated code is not strongly-typed. If you have a function
+    that takes two different Java types as parameters, the calling
+    code needs to pass the right objects in the right order, and mistakes
+    are run-time errors. We expect to lift this limitation in Qt Jenny
+    1.1, and make it possible to generate code where the parameters
+    have strong types, and mistakes in argument order are compile errors.
+\endlist
+
+*/

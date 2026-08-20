@@ -1,0 +1,24 @@
+# Copyright 2016 The Chromium project authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# Variable that can be used to support multiple build scenarios, like having
+# Chromium specific targets in a client project's GN file etc.
+build_with_chromium = false
+
+# Skip assertions about 4GiB file size limit.
+ignore_elf32_limitations = true
+
+use_system_xcode = true
+
+# Enables assertions on safety checks in libc++.
+#
+# This should be set to true whenever building with Chrome's custom libc++ in
+# order to guard against undefined behavior. However, the asserts added by
+# hardening libc++ may introduce some performance overhead, so this is
+# configurable to simplify A/B tests, and to allow performance-sensitive
+# projects embedding Chrome (e.g. ANGLE) to disable libc++ hardening.
+#
+# Note that setting this to true only has an effect when also building with
+# `use_custom_libcxx = true`.
+enable_safe_libcxx = true

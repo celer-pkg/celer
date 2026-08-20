@@ -1,0 +1,234 @@
+# Copyright 2020 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("../../../scripts/build/ninja/devtools_entrypoint.gni")
+import("../../../scripts/build/ninja/devtools_module.gni")
+import("../../../scripts/build/ninja/devtools_pre_built.gni")
+import("../../../scripts/build/ninja/generate_css.gni")
+import("../../../scripts/build/ninja/node.gni")
+import("../../../scripts/build/ninja/vars.gni")
+import("../../../scripts/build/typescript/typescript.gni")
+import("../visibility.gni")
+
+node_action("generate_easter_egg_file") {
+  script = "front_end/panels/timeline/enable-easter-egg.js"
+
+  args = [ rebase_path(target_gen_dir, root_build_dir) ]
+
+  if (is_chrome_branded) {
+    args += [ "--should-enable" ]
+  }
+
+  outputs = [ "$target_gen_dir/EasterEgg.js" ]
+  data = outputs
+  if (!devtools_bundle) {
+    metadata = {
+      grd_files = outputs
+    }
+  }
+}
+
+devtools_pre_built("easter-egg") {
+  sources = [
+    "EasterEgg.d.ts",
+    "easter-egg-tsconfig.json",
+  ]
+
+  deps = [ ":generate_easter_egg_file" ]
+}
+
+generate_css("css_files") {
+  sources = [
+    "thirdPartyTreeView.css",
+    "timelineDetailsView.css",
+    "timelineFlameChartView.css",
+    "timelineFlamechartPopover.css",
+    "timelineHistoryManager.css",
+    "timelineMiniMap.css",
+    "timelinePaintProfiler.css",
+    "timelinePanel.css",
+    "timelineSelectorStatsView.css",
+    "timelineStatusDialog.css",
+    "timelineTreeView.css",
+  ]
+}
+
+devtools_module("timeline") {
+  sources = [
+    "ActiveFilters.ts",
+    "AnimationsTrackAppender.ts",
+    "AnnotationHelpers.ts",
+    "AppenderUtils.ts",
+    "BenchmarkEvents.ts",
+    "CLSLinkifier.ts",
+    "CompatibilityTracksAppender.ts",
+    "CountersGraph.ts",
+    "EntriesFilter.ts",
+    "EventsTimelineTreeView.ts",
+    "ExtensionTrackAppender.ts",
+    "ExternalRequests.ts",
+    "FreshRecording.ts",
+    "GPUTrackAppender.ts",
+    "Initiators.ts",
+    "InteractionsTrackAppender.ts",
+    "IsolateSelector.ts",
+    "LayoutShiftsTrackAppender.ts",
+    "ModificationsManager.ts",
+    "NetworkTrackAppender.ts",
+    "RecordingMetadata.ts",
+    "SaveFileFormatter.ts",
+    "StatusDialog.ts",
+    "TargetForEvent.ts",
+    "ThirdPartyTreeView.ts",
+    "ThreadAppender.ts",
+    "TimelineController.ts",
+    "TimelineDetailsView.ts",
+    "TimelineEventOverview.ts",
+    "TimelineFilters.ts",
+    "TimelineFlameChartDataProvider.ts",
+    "TimelineFlameChartNetworkDataProvider.ts",
+    "TimelineFlameChartView.ts",
+    "TimelineHistoryManager.ts",
+    "TimelineLayersView.ts",
+    "TimelineLoader.ts",
+    "TimelineMiniMap.ts",
+    "TimelinePaintProfilerView.ts",
+    "TimelinePanel.ts",
+    "TimelineSelection.ts",
+    "TimelineSelectorStatsView.ts",
+    "TimelineTreeView.ts",
+    "TimelineUIUtils.ts",
+    "TimingsTrackAppender.ts",
+    "TracingLayerTree.ts",
+    "TrackConfiguration.ts",
+    "UIDevtoolsController.ts",
+    "UIDevtoolsUtils.ts",
+  ]
+
+  deps = [
+    ":easter-egg",
+    "../../core/host:bundle",
+    "../../core/i18n:bundle",
+    "../../generated:protocol",
+    "../../models/cpu_profile:bundle",
+    "../../models/extensions:bundle",
+    "../../models/source_map_scopes:bundle",
+    "../../models/text_utils:bundle",
+    "../../models/trace:bundle",
+    "../../models/workspace:bundle",
+    "../../panels/coverage:bundle",
+    "../../panels/layer_viewer:bundle",
+    "../../panels/mobile_throttling:bundle",
+    "../../panels/profiler:bundle",
+    "../../services/trace_bounds:bundle",
+    "../../services/tracing:bundle",
+    "../../ui/components/buttons:bundle",
+    "../../ui/components/code_highlighter:bundle",  # trace event highlighting
+    "../../ui/components/copy_to_clipboard:bundle",
+    "../../ui/components/icon_button:bundle",
+    "../../ui/components/linkifier:bundle",
+    "../../ui/components/menus:bundle",
+    "../../ui/components/snackbars:bundle",
+    "../../ui/legacy/components/data_grid:bundle",
+    "../../ui/legacy/components/perf_ui:bundle",
+    "../../ui/legacy/components/utils:bundle",
+    "../../ui/legacy/theme_support:bundle",
+    "../../ui/lit:bundle",
+    "./components:bundle",
+    "./extensions:bundle",
+    "./overlays:bundle",
+    "./utils:bundle",
+  ]
+
+  visibility = [ "../../component_docs/*" ]
+}
+
+devtools_entrypoint("bundle") {
+  entrypoint = "timeline.ts"
+
+  deps = [
+    ":css_files",
+    ":timeline",
+  ]
+
+  visibility = [
+    ":*",
+    "../../../test/interactions/panels/performance/timeline/*",
+    "../../../test/perf/*",
+    "../../entrypoints/*",
+    "../../models/trace/handlers:unittests",
+    "../../panels/ai_assistance/*",
+    "../../services/tracing/*",
+    "../../testing",
+    "../../testing/*",
+    "../../ui/components/docs/performance_panel/*",
+    "../input/*",
+    "../js_timeline/*",
+    "../lighthouse/*",
+    "../recorder/*",
+    "./track_appenders:unittests",
+  ]
+
+  visibility += devtools_panels_visibility
+}
+
+devtools_entrypoint("meta") {
+  entrypoint = "timeline-meta.ts"
+
+  deps = [
+    ":bundle",
+    "../../core/common:bundle",
+    "../../core/i18n:bundle",
+    "../../core/root:bundle",
+    "../../panels/profiler:bundle",
+    "../../ui/legacy:bundle",
+    "./components:bundle",
+  ]
+
+  visibility = [ "../../entrypoints/*" ]
+}
+
+ts_library("unittests") {
+  testonly = true
+
+  sources = [
+    "AnnotationHelpers.test.ts",
+    "Breadcrumbs.test.ts",
+    "CountersGraph.test.ts",
+    "EntriesFilter.test.ts",
+    "ExternalRequests.test.ts",
+    "FreshRecording.test.ts",
+    "Initiators.test.ts",
+    "ModificationsManager.test.ts",
+    "RecordingMetadata.test.ts",
+    "SaveFileFormatter.test.ts",
+    "ThirdPartyTreeView.test.ts",
+    "TimelineController.test.ts",
+    "TimelineDetailsView.test.ts",
+    "TimelineFilters.test.ts",
+    "TimelineFlameChartDataProvider.test.ts",
+    "TimelineFlameChartNetworkDataProvider.test.ts",
+    "TimelineFlameChartView.test.ts",
+    "TimelineHistoryManager.test.ts",
+    "TimelineLoader.test.ts",
+    "TimelineMiniMap.test.ts",
+    "TimelinePanel.test.ts",
+    "TimelineSelection.test.ts",
+    "TimelineTreeView.test.ts",
+    "TimelineUIUtils.test.ts",
+    "TrackConfiguration.test.ts",
+  ]
+
+  deps = [
+    ":bundle",
+    "../../core/platform:bundle",
+    "../../core/root:bundle",
+    "../../core/sdk:bundle",
+    "../../models/bindings:bundle",
+    "../../models/trace:bundle",
+    "../../models/workspace:bundle",
+    "../../testing",
+    "./components:bundle",
+  ]
+}

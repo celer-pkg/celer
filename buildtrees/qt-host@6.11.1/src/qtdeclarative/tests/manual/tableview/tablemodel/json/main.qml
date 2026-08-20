@@ -1,0 +1,86 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+import QtQuick.Window
+import Qt.labs.qmlmodels
+
+import "JsonData.js" as CachedJsonData
+
+ApplicationWindow {
+    id: window
+    width: 800
+    height: 300
+    visible: true
+
+//![parse]
+    function requestJson() {
+        let doc = new XMLHttpRequest()
+        doc.onreadystatechange = function() {
+            if (doc.readyState === XMLHttpRequest.DONE) {
+                var root = JSON.parse(doc.responseText)
+                var race = root.MRData.RaceTable.Races[0]
+                var raceResults = race.Results
+                var drivers = []
+                for (let i = 0; i < raceResults.length; ++i) {
+                    drivers.push(raceResults[i].Driver)
+                }
+                tableView.model.rows = drivers
+                print(JSON.stringify(drivers))
+            }
+        }
+
+        doc.open("GET", "https://api.jolpi.ca/ergast/f1/2005/1/results.json")
+        doc.send()
+    }
+//![parse]
+
+//![assign]
+    Component.onCompleted: requestJson()
+//![assign]
+    // Same as the data we get from ergast. Use it while developing
+    // to avoid flooding the server with requests.
+    // Component.onCompleted: tableView.model.rows = CachedJsonData.drivers
+
+    ColumnLayout {
+        anchors.fill: parent
+
+        TableView {
+            id: tableView
+            boundsBehavior: Flickable.StopAtBounds
+
+            ScrollBar.horizontal: ScrollBar {
+                policy: ScrollBar.AlwaysOn
+            }
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AlwaysOn
+            }
+
+            Layout.minimumHeight: window.height / 2
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+
+//![model]
+            model: TableModel {
+                TableModelColumn { display: "driverId" }
+                TableModelColumn { display: "code" }
+                TableModelColumn { display: "url" }
+                TableModelColumn { display: "givenName" }
+                TableModelColumn { display: "familyName" }
+                TableModelColumn { display: "dateOfBirth" }
+                TableModelColumn { display: "nationality" }
+            }
+//![model]
+
+            delegate: TextField {
+                objectName: "tableViewTextFieldDelegate"
+                text: model.display
+                selectByMouse: true
+                implicitWidth: 140
+                onAccepted: model.display = text
+            }
+        }
+    }
+}

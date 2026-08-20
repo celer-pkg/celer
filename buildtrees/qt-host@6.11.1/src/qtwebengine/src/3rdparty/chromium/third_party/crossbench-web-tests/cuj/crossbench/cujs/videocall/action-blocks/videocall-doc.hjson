@@ -1,0 +1,109 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  pages: {
+    Video-Doc: {
+      playback: $[TOTAL_DURATION]
+      setup: [
+        {
+          action: get
+          url: https://storage.googleapis.com/chromiumos-test-assets-public/power_VideoCall/power_VideoCall.webrtc.html?preset=high
+          ready_state: complete
+          target: _self
+        }
+        {
+          action: wait_for_condition
+          condition: return Array.from(document.getElementsByTagName('video')).every(v => v.currentTime >= 0.001)
+          timeout: 10s
+        }
+        {
+          action: get
+          url: https://storage.googleapis.com/chromiumos-test-assets-public/power_VideoCall/power_VideoCall_doc.html
+          ready_state: complete
+          target: _new_window
+        }
+        {
+          action: wait_for_element
+          selector: textarea#text
+          timeout: 5s
+        }
+      ]
+      actions: {
+        args: {
+          NOTE_DURATION: 6s
+        }
+        template: [
+          {
+            action: text_input
+            text: "1234567890 "
+            duration: $[NOTE_DURATION]
+            source: keyboard
+          }
+          {
+            action: text_input
+            text: "1234567891 "
+            duration: $[NOTE_DURATION]
+            source: keyboard
+          }
+          {
+            action: text_input
+            text: "1234567892 "
+            duration: $[NOTE_DURATION]
+            source: keyboard
+          }
+          {
+            action: text_input
+            text: "1234567893 "
+            duration: $[NOTE_DURATION]
+            source: keyboard
+          }
+          {
+            action: text_input
+            text:
+              '''
+              1234567894
+
+              '''
+            duration: $[NOTE_DURATION]
+            source: keyboard
+          }
+          {
+            action: text_input
+            text: "1234567895 "
+            duration: $[NOTE_DURATION]
+            source: keyboard
+          }
+          {
+            action: text_input
+            text: "1234567896 "
+            duration: $[NOTE_DURATION]
+            source: keyboard
+          }
+          {
+            action: text_input
+            text: "1234567897 "
+            duration: $[NOTE_DURATION]
+            source: keyboard
+          }
+          {
+            action: text_input
+            text: "1234567898 "
+            duration: $[NOTE_DURATION]
+            source: keyboard
+          }
+          {
+            action: text_input
+            text:
+              '''
+              1234567899
+
+              '''
+            duration: $[NOTE_DURATION]
+            source: keyboard
+          }
+        ]
+      }
+    }
+  }
+}

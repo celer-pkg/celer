@@ -1,0 +1,78 @@
+{
+    "QEN": {
+        "description": "Creates ledscreen effect of the source item. Note: Uses source item texture so this node should be used in the beginning of node tree and nodes with color operations applied after it.",
+        "fragmentCode": [
+            "@main",
+            "{",
+            "    const float maxLedSize = ledScreenLedSize;",
+            "    vec2 center = floor(fragCoord / maxLedSize) * maxLedSize + maxLedSize * 0.5;",
+            "    vec3 ledColor = texture(scaledSourceImage, center / iResolution.xy).rgb;",
+            "",
+            "#if LED_SCREEN_SIZE_FROM_COLOR == 1",
+            "    vec3 sizeColorMultiplier = vec3(0.8, 0.4, 0.2);",
+            "    float ledSize = clamp(dot(ledColor, maxLedSize * sizeColorMultiplier), 0.1, maxLedSize);",
+            "#else",
+            "    float ledSize = maxLedSize;",
+            "#endif",
+            "",
+            "    float alpha = 0.0;",
+            "    if (ledSize > 2.0) {",
+            "        float dist = distance(center, fragCoord) * 2.0;",
+            "        alpha = smoothstep(1.0, 0.5, dist / ledSize);",
+            "    }",
+            "",
+            "#if LED_SCREEN_COLOR_FROM_SOURCE == 1",
+            "    fragColor.rgb = ledColor.rgb * alpha;",
+            "#else",
+            "    fragColor.rgb = vec3(alpha) * ledScreenLedColor.rgb;",
+            "#endif",
+            "",
+            "}"
+        ],
+        "name": "LedScreen",
+        "properties": [
+            {
+                "defaultValue": "1",
+                "description": "When this is set to 1, the size of the led is determined by its color.",
+                "name": "LED_SCREEN_SIZE_FROM_COLOR",
+                "type": "define"
+            },
+            {
+                "defaultValue": "1",
+                "description": "When this is set to 1, the color of the led is determined by the color of the source item.",
+                "name": "LED_SCREEN_COLOR_FROM_SOURCE",
+                "type": "define"
+            },
+            {
+                "defaultValue": "20",
+                "description": "Size of a single led in pixels.",
+                "maxValue": "50",
+                "minValue": "4",
+                "name": "ledScreenLedSize",
+                "type": "float"
+            },
+            {
+                "defaultValue": "1, 1, 1, 1",
+                "description": "Color of the leds. This only affects when LED_SCREEN_COLOR_FROM_SOURCE is not set.",
+                "name": "ledScreenLedColor",
+                "type": "color"
+            },
+            {
+                "customValue": "scaledSource",
+                "defaultValue": "",
+                "description": "Helper property for the scaled source item.",
+                "name": "scaledSourceImage",
+                "type": "image",
+                "useCustomValue": true
+            }
+        ],
+        "qmlCode": [
+            "ShaderEffectSource {",
+            "    id: scaledSource",
+            "    sourceItem: source",
+            "    textureSize: Qt.size(source.width / ledScreenLedSize, source.height / ledScreenLedSize);",
+            "}"
+        ],
+        "version": 1
+    }
+}

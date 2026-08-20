@@ -1,0 +1,6 @@
+# QTBUG-59074 and QTBUG-93761: flaky test
+[CoordinateAnimation::test_west_direction_coordinate_animation]
+osx
+# QTBUG-59074 and QTBUG-93761: flaky test
+[CoordinateAnimation::test_east_direction_coordinate_animation]
+osx

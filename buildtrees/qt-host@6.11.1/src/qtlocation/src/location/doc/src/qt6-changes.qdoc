@@ -1,0 +1,79 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtlocation-changes-qt6.html
+    \title Changes to Qt Location
+    \ingroup changes-qt-5-to-6
+    \brief Migrate Qt Location to Qt 6.
+
+    Qt 6 is a result of the conscious effort to make the framework more
+    efficient and easy to use.
+
+    We try to maintain binary and source compatibility for all the public
+    APIs in each release. But some changes were inevitable in an effort to
+    make Qt a better framework.
+
+    In this topic we summarize those changes in Qt Location, and provide
+    guidance to handle them.
+
+    \section1 Breaking public API changes
+
+    \section2 Maps
+
+    \list
+        \li The \c {MapRectangle::backend}, \c {MapCircle::backend},
+            \c {MapPolyline::backend}, and \c {MapPolygon::backend} properties
+            have been removed.
+        \li The former Routing-related QML element types \c Route, \c RouteSegment,
+            and \c RouteManeuver are now value types \l route, \l routeSegment, and
+            \l routeManeuver. They can no longer be instantiated as items in QML,
+            and their properties can not be bound to.
+        \li The former Mapping-related QML element types \c MapType and
+            \c CameraCapabilities are now value types \l mapType and
+            \l cameraCapabilities. They can no longer be instantiated as items in
+            QML, and their properties can not be bound to.
+        \li The \c QGeoRouteLeg class and the QML equivalent, \c RouteLeg, have
+            been merged into \l QGeoRoute (and the \l route type). A route can
+            be an aggregate of several routes.
+        \li The \l {Map} type provides now minimal functionality without handling
+            of user intput. The \c {MapGestureArea} was removed. The \l {MapView}
+            type handles basic user input such as tap and drag events.
+    \endlist
+
+    \section2 Places
+
+    \list
+        \li The \c {QPlaceImage}, \c {QPlaceEditorial}, and \c {QPlaceReview} classes
+            have been folded into \l QPlaceContent.
+        \li The \l QPlaceContent API has been changed to give access to a list of
+            QVariant values.
+    \endlist
+
+    \list
+        \li The former QML element types \c PlaceUser, \c PlaceRatings,
+            \c PlaceAttribute, \c PlaceIcon, \c PlaceSupplier, and
+            \c PlaceContactDetail are now value types \l user,
+            \l ratings, \l placeAttribute, \l icon,
+            \l supplier, and \l contactDetail.
+            They can no longer be instantiated as items from QML, and
+            their properties can not be bound to.
+    \endlist
+
+    \section2 Experimental APIs
+
+    Functionality that had "labs" status has been removed. This includes the
+    experimental framework for turn-by-turn navigation, as well as the
+    MapObjects abstraction.
+
+    \section2 Backend Provider API
+
+    The backend provider API is no longer subject to binary and source
+    compatibility guarantees.
+
+    \section1 Other API changes
+
+    This section contains API improvements that do not break source
+    compatibility. However they might have an impact on the application logic,
+    so it is still useful to know about them.
+*/

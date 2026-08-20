@@ -1,0 +1,28 @@
+version: 2
+accept_configuration:
+  condition: property
+  property: features
+  not_contains_value: Disable
+
+instructions:
+  Build:
+    - type: EnvironmentVariable
+      variableName: VERIFY_SOURCE_SBOM
+      variableValue: "ON"
+    - type: EnvironmentVariable
+      variableName: COIN_NO_MOSQUITTO
+      variableValue: "1"
+      enable_if:
+        condition: and
+        conditions:
+          - condition: property
+            property: host.os
+            equals_value: Windows
+          - condition: property
+            property: target.arch
+            in_values: ["AARCH64", "ARM64"]
+    - !include "{{qt/qtbase}}/coin_module_build_template_v2.yaml"
+
+  Test:
+    - !include "{{qt/qtbase}}/coin_module_test_template_v2.yaml"
+    - !include "{{qt/qtbase}}/coin_module_test_docs.yaml"

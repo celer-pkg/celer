@@ -1,0 +1,25 @@
+From 713fd01631dea4295e9036065cebb851af035258 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Aur=C3=A9lien=20Brooke?= <aurelien@bahiasoft.fr>
+Date: Mon, 24 Mar 2025 13:33:39 +0100
+Subject: [PATCH] Ignore unused-private-field warnings
+
+Change-Id: I64593efbfbda9b0d7676542b328b336c11d570f0
+---
+ src/3rdparty/VulkanMemoryAllocator/vk_mem_alloc.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/3rdparty/VulkanMemoryAllocator/vk_mem_alloc.h b/src/3rdparty/VulkanMemoryAllocator/vk_mem_alloc.h
+index ae395514951..f1a976042f9 100644
+--- a/src/3rdparty/VulkanMemoryAllocator/vk_mem_alloc.h
++++ b/src/3rdparty/VulkanMemoryAllocator/vk_mem_alloc.h
+@@ -2829,6 +2829,7 @@ VMA_CALL_PRE void VMA_CALL_POST vmaFreeStatsString(
+ #pragma clang diagnostic push
+ #pragma clang diagnostic ignored "-Wunused-variable"
+ #pragma clang diagnostic ignored "-Wunused-parameter"
++#pragma clang diagnostic ignored "-Wunused-private-field"
+ #pragma clang diagnostic ignored "-Wmissing-field-initializers"
+ #pragma clang diagnostic ignored "-Wparentheses"
+ #pragma clang diagnostic ignored "-Wimplicit-fallthrough"
+-- 
+2.48.1
+

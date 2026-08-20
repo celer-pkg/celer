@@ -1,0 +1,865 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#include "debugutil_p.h"
+#include "qqmldebugprocess_p.h"
+#include <QtQuickTestUtils/private/qmlutils_p.h>
+
+#include <private/qqmlprofilerclient_p.h>
+#include <private/qqmldebugconnection_p.h>
+
+#include <QtTest/qtest.h>
+#include <QtTest/qsignalspy.h>
+#include <QtCore/qlibraryinfo.h>
+
+#include <QtGui/private/qguiapplication_p.h>
+#include <QtGui/qpa/qplatformintegration.h>
+
+class QQmlProfilerTestClient : public QQmlProfilerEventReceiver
+{
+    Q_OBJECT
+
+public:
+    QQmlProfilerTestClient(QQmlDebugConnection *connection, quint64 features)
+         : client(new QQmlProfilerClient(connection, this, features))
+    {
+        connect(client.data(), &QQmlProfilerClient::traceStarted,
+                this, &QQmlProfilerTestClient::startTrace);
+        connect(client.data(), &QQmlProfilerClient::traceFinished,
+                this, &QQmlProfilerTestClient::endTrace);
+    }
+
+    void startTrace(qint64 timestamp, const QList<int> &engineIds) final;
+    void endTrace(qint64 timestamp, const QList<int> &engineIds) final;
+
+    QPointer<QQmlProfilerClient> client; // Owned by QQmlDebugTest
+    QList<QQmlProfilerEventType> types;
+
+    QList<QQmlProfilerEvent> qmlMessages;
+    QList<QQmlProfilerEvent> javascriptMessages;
+    QList<QQmlProfilerEvent> jsHeapMessages;
+    QList<QQmlProfilerEvent> asynchronousMessages;
+    QList<QQmlProfilerEvent> pixmapMessages;
+    QList<QQmlProfilerEvent> unhandledEvents;
+    bool isComplete = false;
+
+    qsizetype numLoadedEventTypes() const final;
+    qsizetype numLoadedEvents() const final;
+    void addEventType(const QQmlProfilerEventType &type) final;
+    void addEvent(const QQmlProfilerEvent &event) final;
+    void complete(qint64 maximumTime) final;
+    void clear() final;
+
+private:
+    qint64 lastTimestamp = -1;
+};
+
+void QQmlProfilerTestClient::clear()
+{
+    qmlMessages.clear();
+    javascriptMessages.clear();
+    jsHeapMessages.clear();
+    asynchronousMessages.clear();
+    pixmapMessages.clear();
+    lastTimestamp = -1;
+    isComplete = false;
+}
+
+void QQmlProfilerTestClient::startTrace(qint64 timestamp, const QList<int> &engineIds)
+{
+    QQmlProfilerEventReceiver::startTrace(timestamp, engineIds);
+    types.append(QQmlProfilerEventType(Event, MaximumRangeType, StartTrace));
+    asynchronousMessages.append(QQmlProfilerEvent(timestamp, types.size() - 1,
+                                                  engineIds.toVector()));
+}
+
+void QQmlProfilerTestClient::endTrace(qint64 timestamp, const QList<int> &engineIds)
+{
+    QQmlProfilerEventReceiver::endTrace(timestamp, engineIds);
+    types.append(QQmlProfilerEventType(Event, MaximumRangeType, EndTrace));
+    asynchronousMessages.append(QQmlProfilerEvent(timestamp, types.size() - 1,
+                                                  engineIds.toVector()));
+}
+
+qsizetype QQmlProfilerTestClient::numLoadedEventTypes() const
+{
+    return types.size();
+}
+
+qsizetype QQmlProfilerTestClient::numLoadedEvents() const
+{
+    return qmlMessages.size() + javascriptMessages.size() + jsHeapMessages.size()
+            + asynchronousMessages.size() + pixmapMessages.size() + unhandledEvents.size();
+}
+
+void QQmlProfilerTestClient::addEventType(const QQmlProfilerEventType &type)
+{
+    types.append(type);
+}
+
+void QQmlProfilerTestClient::addEvent(const QQmlProfilerEvent &event)
+{
+    const int typeIndex = event.typeIndex();
+    QVERIFY(typeIndex < types.size());
+
+    const QQmlProfilerEventType &type = types[typeIndex];
+
+    const qint64 oldTimestamp = lastTimestamp;
+    lastTimestamp = event.timestamp();
+
+    switch (type.message()) {
+    case Event: {
+        switch (type.detailType()) {
+        case StartTrace:
+            QFAIL("StartTrace should not be passed on as event");
+            break;
+        case EndTrace:
+            QFAIL("EndTrace should not be passed on as event");
+            break;
+        case AnimationFrame:
+            asynchronousMessages.append(event);
+            break;
+        case Mouse:
+        case Key:
+            qmlMessages.append(event);
+            break;
+        default:
+            QFAIL(qPrintable(QString::fromLatin1("Event with unknown detailType %1 received at %2.")
+                             .arg(type.detailType()).arg(event.timestamp())));
+            break;
+        }
+        break;
+    }
+    case RangeStart:
+    case RangeData:
+    case RangeLocation:
+    case RangeEnd:
+        QFAIL("Range stages are transmitted as part of events");
+        break;
+    case Complete:
+        QFAIL("Complete should not be passed on as event");
+        break;
+    case PixmapCacheEvent:
+        pixmapMessages.append(event);
+        break;
+    case SceneGraphFrame:
+        asynchronousMessages.append(event);
+        break;
+    case MemoryAllocation:
+        jsHeapMessages.append(event);
+        break;
+    case DebugMessage:
+    case Quick3DFrame:
+        unhandledEvents.append(event);
+        break;
+    case MaximumMessage:
+        switch (type.rangeType()) {
+        case Painting:
+            QFAIL("QtQuick1 paint message received.");
+            break;
+        case Compiling:
+        case Creating:
+        case Binding:
+        case HandlingSignal:
+            qmlMessages.append(event);
+            break;
+        case Javascript:
+            javascriptMessages.append(event);
+            break;
+        default:
+            QFAIL(qPrintable(
+                      QString::fromLatin1("Unknown range event %1 received at %2.")
+                      .arg(type.rangeType()).arg(event.timestamp())));
+            break;
+        }
+        break;
+    default:
+        QFAIL("Unknown message type");
+        break;
+    }
+
+    QCOMPARE_GE(lastTimestamp, oldTimestamp);
+}
+
+void QQmlProfilerTestClient::complete(qint64 maximumTime)
+{
+    isComplete = true;
+    QQmlProfilerEventReceiver::complete(maximumTime);
+}
+
+class tst_QQmlProfilerService : public QQmlDebugTest
+{
+    Q_OBJECT
+
+public:
+    tst_QQmlProfilerService();
+
+private:
+    enum MessageListType {
+        MessageListQML,
+        MessageListJavaScript,
+        MessageListJsHeap,
+        MessageListAsynchronous,
+        MessageListPixmap
+    };
+
+    enum CheckType {
+        CheckMessageType  = 1 << 0,
+        CheckDetailType   = 1 << 1,
+        CheckLine         = 1 << 2,
+        CheckColumn       = 1 << 3,
+        CheckDataEndsWith = 1 << 4,
+        CheckFileEndsWith = 1 << 5,
+        CheckNumbers      = 1 << 6,
+
+        CheckType = CheckMessageType | CheckDetailType | CheckLine | CheckColumn | CheckFileEndsWith
+    };
+
+    ConnectResult connectTo(
+            bool block, const QString &file, bool recordFromStart = true, uint flushInterval = 0,
+            bool restrictServices = true, const QString &executable
+                = QLibraryInfo::path(QLibraryInfo::BinariesPath) + "/qmlscene",
+            quint64 requestedFeatures = std::numeric_limits<quint64>::max());
+    void checkProcessTerminated();
+    void checkTraceReceived();
+    void checkJsHeap();
+    bool verify(MessageListType type, int expectedPosition,
+                const QQmlProfilerEventType &expected, quint32 checks,
+                const QList<qint64> &expectedNumbers);
+
+    QList<QQmlDebugClient *> createClients() override;
+    QScopedPointer<QQmlProfilerTestClient> m_client;
+
+private slots:
+    void cleanup() override;
+
+    void connect_data();
+    void connect();
+    void pixmapCacheData();
+    void scenegraphData();
+    void profileOnExit();
+    void controlFromJS();
+    void signalSourceLocation();
+    void javascript();
+    void flushInterval();
+    void translationBinding();
+    void memory();
+    void compile();
+    void multiEngine();
+    void batchOverflow();
+    void noFeatures();
+
+private:
+    quint64 m_requestedFeatures = std::numeric_limits<quint64>::max();
+    bool m_recordFromStart = true;
+    bool m_flushInterval = false;
+
+    // Don't use ({...}) here as MSVC will interpret that as the "QVector(int size)" ctor.
+    const QList<qint64> m_rangeStart = (QList<qint64>() << RangeStart);
+    const QList<qint64> m_rangeEnd = (QList<qint64>() << RangeEnd);
+};
+
+#define VERIFY(type, position, expected, checks, numbers) \
+    QVERIFY(verify(type, position, expected, checks, numbers))
+
+tst_QQmlProfilerService::tst_QQmlProfilerService()
+    : QQmlDebugTest(QT_QMLTEST_DATADIR)
+{
+}
+
+QQmlDebugTest::ConnectResult tst_QQmlProfilerService::connectTo(
+        bool block, const QString &file, bool recordFromStart, uint flushInterval,
+        bool restrictServices, const QString &executable, quint64 requestedFeatures)
+{
+    m_requestedFeatures = requestedFeatures;
+    m_recordFromStart = recordFromStart;
+    m_flushInterval = flushInterval;
+
+    // ### Still using qmlscene due to QTBUG-33377
+    return QQmlDebugTest::connectTo(
+                executable,
+                restrictServices ? "CanvasFrameRate,EngineControl,DebugMessages" : QString(),
+                testFile(file), block);
+}
+
+void tst_QQmlProfilerService::checkProcessTerminated()
+{
+    // If the process ends before connect(), we get a non-success value from connect()
+    // That's not a problem as we will still receive the trace. We check that process has terminated
+    // cleanly here.
+
+    // Wait for the process to finish by itself, if that hasn't happened already
+    QVERIFY(m_client);
+    QVERIFY(m_client->client);
+    QTRY_COMPARE(m_client->client->state(), QQmlDebugClient::NotConnected);
+    QVERIFY(m_process);
+    QVERIFY(m_process->exitStatus() != QProcess::CrashExit);
+    QTRY_COMPARE(m_process->exitStatus(), QProcess::NormalExit);
+}
+
+void tst_QQmlProfilerService::checkTraceReceived()
+{
+    QVERIFY(m_process->exitStatus() != QProcess::CrashExit);
+    QTRY_VERIFY2(m_client->isComplete, "No trace received in time.");
+
+    QList<qint64> numbers;
+
+    // must start with "StartTrace"
+    QQmlProfilerEventType expected(Event, MaximumRangeType, StartTrace);
+    VERIFY(MessageListAsynchronous, 0, expected, CheckMessageType | CheckDetailType, numbers);
+
+    // must end with "EndTrace"
+    expected = QQmlProfilerEventType(Event, MaximumRangeType, EndTrace);
+    VERIFY(MessageListAsynchronous, m_client->asynchronousMessages.size() - 1, expected,
+           CheckMessageType | CheckDetailType, numbers);
+}
+
+void tst_QQmlProfilerService::checkJsHeap()
+{
+    QVERIFY(m_client);
+    QVERIFY2(m_client->jsHeapMessages.size() > 0, "no JavaScript heap messages received");
+
+    bool seen_alloc = false;
+    bool seen_small = false;
+    bool seen_large = false;
+    qint64 allocated = 0;
+    qint64 used = 0;
+    qint64 lastTimestamp = -1;
+    for (const QQmlProfilerEvent &message : std::as_const(m_client->jsHeapMessages)) {
+        const auto amount = message.number<qint64>(0);
+        const QQmlProfilerEventType &type = m_client->types.at(message.typeIndex());
+        switch (type.detailType()) {
+        case HeapPage:
+            allocated += amount;
+            seen_alloc = true;
+            break;
+        case SmallItem:
+            used += amount;
+            seen_small = true;
+            break;
+        case LargeItem:
+            allocated += amount;
+            used += amount;
+            seen_large = true;
+            break;
+        }
+
+        QVERIFY(message.timestamp() >= lastTimestamp);
+        // The heap will only be consistent after all events of the same timestamp are processed.
+        if (lastTimestamp == -1) {
+            lastTimestamp = message.timestamp();
+            continue;
+        }
+
+        if (message.timestamp() == lastTimestamp)
+            continue;
+
+        lastTimestamp = message.timestamp();
+
+        QVERIFY2(used >= 0, QString::fromLatin1("Negative memory usage seen: %1")
+                 .arg(used).toUtf8().constData());
+
+        QVERIFY2(allocated >= 0, QString::fromLatin1("Negative memory allocation seen: %1")
+                 .arg(allocated).toUtf8().constData());
+
+        QVERIFY2(used <= allocated,
+                 QString::fromLatin1("More memory usage than allocation seen: %1 > %2")
+                 .arg(used).arg(allocated).toUtf8().constData());
+    }
+
+    QVERIFY2(seen_alloc, "No heap allocation seen");
+    QVERIFY2(seen_small, "No small item seen");
+    QVERIFY2(seen_large, "No large item seen");
+}
+
+bool tst_QQmlProfilerService::verify(tst_QQmlProfilerService::MessageListType type,
+                                     int expectedPosition, const QQmlProfilerEventType &expected,
+                                     quint32 checks, const QList<qint64> &expectedNumbers)
+{
+    if (!m_client) {
+        qWarning() << "No debug client available";
+        return false;
+    }
+
+    const QList<QQmlProfilerEvent> *target = nullptr;
+    switch (type) {
+        case MessageListQML:          target = &(m_client->qmlMessages); break;
+        case MessageListJavaScript:   target = &(m_client->javascriptMessages); break;
+        case MessageListJsHeap:       target = &(m_client->jsHeapMessages); break;
+        case MessageListAsynchronous: target = &(m_client->asynchronousMessages); break;
+        case MessageListPixmap:       target = &(m_client->pixmapMessages); break;
+    }
+
+    if (!target) {
+        qWarning() << "Invalid MessageListType" << type;
+        return false;
+    }
+
+    if (target->size() <= expectedPosition) {
+        qWarning() << "Not enough events. expected position:" << expectedPosition
+                   << "length:" << target->size();
+        return false;
+    }
+
+    int position = expectedPosition;
+    qint64 timestamp = target->at(expectedPosition).timestamp();
+    while (position > 0 && target->at(position - 1).timestamp() == timestamp)
+        --position;
+
+    QStringList warnings;
+
+    do {
+        const QQmlProfilerEvent &event = target->at(position);
+        const QQmlProfilerEventType &actual = m_client->types.at(event.typeIndex());
+        if ((checks & CheckMessageType) &&
+                (actual.message() != expected.message()
+                 || actual.rangeType() != expected.rangeType())) {
+            warnings << QString::fromLatin1("%1: unexpected messageType or rangeType. "
+                                            "actual: %2, %3 - expected: %4, %5")
+                        .arg(position).arg(actual.message()).arg(actual.rangeType())
+                        .arg(expected.message()).arg(expected.rangeType());
+            continue;
+        }
+        if ((checks & CheckDetailType) && actual.detailType() != expected.detailType()) {
+            warnings << QString::fromLatin1("%1: unexpected detailType. actual: %2 - expected: %3")
+                        .arg(position).arg(actual.detailType()).arg(expected.detailType());
+            continue;
+        }
+
+        const QQmlProfilerEventLocation expectedLocation = expected.location();
+        const QQmlProfilerEventLocation actualLocation = actual.location();
+
+        if ((checks & CheckLine) && actualLocation.line() != expectedLocation.line()) {
+            warnings << QString::fromLatin1("%1: unexpected line. actual: %2 - expected: %3")
+                        .arg(position).arg(actualLocation.line())
+                        .arg(expectedLocation.line());
+            continue;
+        }
+        if ((checks & CheckColumn) && actualLocation.column() != expectedLocation.column()) {
+            warnings << QString::fromLatin1("%1: unexpected column. actual: %2 - expected: %3")
+                        .arg(position).arg(actualLocation.column())
+                        .arg(expectedLocation.column());
+            continue;
+        }
+        if ((checks & CheckFileEndsWith) &&
+                !actualLocation.filename().endsWith(expectedLocation.filename())) {
+            warnings << QString::fromLatin1("%1: unexpected fileName. actual: %2 - expected: %3")
+                        .arg(position).arg(actualLocation.filename())
+                        .arg(expectedLocation.filename());
+            continue;
+        }
+
+        if ((checks & CheckDataEndsWith) && !actual.data().endsWith(expected.data())) {
+            warnings << QString::fromLatin1("%1: unexpected detailData. actual: %2 - expected: %3")
+                       .arg(position).arg(actual.data()).arg(expected.data());
+            continue;
+        }
+
+        if (checks & CheckNumbers) {
+            const QList<qint64> actualNumbers = event.numbers<QList<qint64>>();
+            if (actualNumbers != expectedNumbers) {
+
+                QStringList expectedList;
+                for (qint64 number : expectedNumbers)
+                    expectedList.append(QString::number(number));
+                QStringList actualList;
+                for (qint64 number : actualNumbers)
+                    actualList.append(QString::number(number));
+
+                warnings << QString::fromLatin1(
+                                "%1: unexpected numbers. actual [%2] - expected: [%3]")
+                            .arg(position)
+                            .arg(actualList.join(QLatin1String(", ")))
+                            .arg(expectedList.join(QLatin1String(", ")));
+                continue;
+            }
+        }
+
+        return true;
+    } while (++position < target->size() && target->at(position).timestamp() == timestamp);
+
+    for (const QString &message : std::as_const(warnings))
+        qWarning() << message.toLocal8Bit().constData();
+
+    return false;
+}
+
+QList<QQmlDebugClient *> tst_QQmlProfilerService::createClients()
+{
+    m_client.reset(new QQmlProfilerTestClient(m_connection, m_requestedFeatures));
+    m_client->client->setRecording(m_recordFromStart);
+    m_client->client->setFlushInterval(m_flushInterval);
+    QObject::connect(m_client->client.data(), &QQmlProfilerClient::complete,
+                     m_client.data(), &QQmlProfilerTestClient::complete);
+    return QList<QQmlDebugClient *>({m_client->client});
+}
+
+void tst_QQmlProfilerService::cleanup()
+{
+    auto log = [this](const QQmlProfilerEvent &data, int i) {
+        const QQmlProfilerEventType &type = m_client->types.at(data.typeIndex());
+        const QQmlProfilerEventLocation location = type.location();
+        qDebug() << i << data.timestamp() << type.message() << type.rangeType() << type.detailType()
+                 << location.filename() << location.line() << location.column()
+                 << data.numbers<QList<qint64>>();
+    };
+
+    if (m_client && QTest::currentTestFailed()) {
+        qDebug() << "QML Messages:" << m_client->qmlMessages.size();
+        int i = 0;
+        for (const QQmlProfilerEvent &data : std::as_const(m_client->qmlMessages))
+            log(data, i++);
+
+        qDebug() << " ";
+        qDebug() << "JavaScript Messages:" << m_client->javascriptMessages.size();
+        i = 0;
+
+        for (const QQmlProfilerEvent &data : std::as_const(m_client->javascriptMessages))
+            log(data, i++);
+
+        qDebug() << " ";
+        qDebug() << "Asynchronous Messages:" << m_client->asynchronousMessages.size();
+        i = 0;
+        for (const QQmlProfilerEvent &data : std::as_const(m_client->asynchronousMessages))
+            log(data, i++);
+
+        qDebug() << " ";
+        qDebug() << "Pixmap Cache Messages:" << m_client->pixmapMessages.size();
+        i = 0;
+        for (const QQmlProfilerEvent &data : std::as_const(m_client->pixmapMessages))
+            log(data, i++);
+
+        qDebug() << " ";
+        qDebug() << "Javascript Heap Messages:" << m_client->jsHeapMessages.size();
+        i = 0;
+        for (const QQmlProfilerEvent &data : std::as_const(m_client->jsHeapMessages))
+            log(data, i++);
+
+        qDebug() << " ";
+    }
+
+    m_client.reset();
+    QQmlDebugTest::cleanup();
+}
+
+void tst_QQmlProfilerService::connect_data()
+{
+    QTest::addColumn<bool>("blockMode");
+    QTest::addColumn<bool>("restrictMode");
+    QTest::addColumn<bool>("traceEnabled");
+    QTest::newRow("normal/unrestricted/disabled") << false << false << false;
+    QTest::newRow("block/unrestricted/disabled") << true << false << false;
+    QTest::newRow("normal/restricted/disabled") << false << true << false;
+    QTest::newRow("block/restricted/disabled") << true << true << false;
+    QTest::newRow("normal/unrestricted/enabled") << false << false << true;
+    QTest::newRow("block/unrestricted/enabled") << true << false << true;
+    QTest::newRow("normal/restricted/enabled") << false << true << true;
+    QTest::newRow("block/restricted/enabled") << true << true << true;
+}
+
+void tst_QQmlProfilerService::connect()
+{
+    QFETCH(bool, blockMode);
+    QFETCH(bool, restrictMode);
+    QFETCH(bool, traceEnabled);
+
+    QCOMPARE(connectTo(blockMode, "test.qml", traceEnabled, 0, restrictMode), ConnectSuccess);
+
+    if (!traceEnabled)
+        m_client->client->setRecording(true);
+
+    QTRY_VERIFY(m_client->numLoadedEventTypes() > 0);
+    m_client->client->setRecording(false);
+    checkTraceReceived();
+    checkJsHeap();
+}
+
+void tst_QQmlProfilerService::pixmapCacheData()
+{
+
+    QCOMPARE(connectTo(true, "pixmapCacheTest.qml"), ConnectSuccess);
+
+    // Don't wait for readyReadStandardOutput before the loop. It may have already arrived.
+    while (m_process->output().indexOf(QLatin1String("image loaded")) == -1 &&
+           m_process->output().indexOf(QLatin1String("image error")) == -1)
+        QVERIFY(QQmlDebugTest::waitForSignal(m_process, SIGNAL(readyReadStandardOutput())));
+
+    m_client->client->setRecording(false);
+
+    checkTraceReceived();
+    checkJsHeap();
+
+    auto createType = [](PixmapEventType type) {
+        return QQmlProfilerEventType(PixmapCacheEvent, MaximumRangeType, type);
+    };
+
+    QList<qint64> numbers;
+
+    // image starting to load
+    VERIFY(MessageListPixmap, 0, createType(PixmapLoadingStarted),
+           CheckMessageType | CheckDetailType, numbers);
+
+    // image size
+    numbers = QList<qint64>({2, 2, 1});
+    VERIFY(MessageListPixmap, 1, createType(PixmapSizeKnown),
+           CheckMessageType | CheckDetailType | CheckNumbers, numbers);
+
+    // image loaded
+    VERIFY(MessageListPixmap, 2, createType(PixmapLoadingFinished),
+           CheckMessageType | CheckDetailType, numbers);
+
+    // cache size
+    VERIFY(MessageListPixmap, 3, createType(PixmapCacheCountChanged),
+           CheckMessageType | CheckDetailType, numbers);
+}
+
+void tst_QQmlProfilerService::scenegraphData()
+{
+    QCOMPARE(connectTo(true, "scenegraphTest.qml"), ConnectSuccess);
+
+    while (!m_process->output().contains(QLatin1String("tick")))
+        QVERIFY(QQmlDebugTest::waitForSignal(m_process, SIGNAL(readyReadStandardOutput()), 30000));
+    m_client->client->setRecording(false);
+
+    checkTraceReceived();
+    checkJsHeap();
+
+    // Check that at least one frame was rendered.
+    // There should be at least a SGRendererFrame + SGRenderLoopFrame sequence,
+    // but we can't be sure to get the SGRenderLoopFrame in the threaded renderer.
+    //
+    // Since the rendering happens in a different thread, there could be other unrelated events
+    // interleaved. Also, events could carry the same time stamps and be sorted in an unexpected way
+    // if the clocks are acting up.
+    qint64 renderFrameTime = -1;
+    for (const QQmlProfilerEvent &msg : std::as_const(m_client->asynchronousMessages)) {
+        const QQmlProfilerEventType &type = m_client->types.at(msg.typeIndex());
+        if (type.detailType() == SceneGraphRendererFrame) {
+            renderFrameTime = msg.timestamp();
+            break;
+        }
+    }
+    QVERIFY(renderFrameTime != -1);
+}
+
+void tst_QQmlProfilerService::profileOnExit()
+{
+    QCOMPARE(connectTo(true, "exit.qml"), ConnectSuccess);
+    checkProcessTerminated();
+
+    checkTraceReceived();
+    checkJsHeap();
+}
+
+void tst_QQmlProfilerService::controlFromJS()
+{
+    QCOMPARE(connectTo(true, "controlFromJS.qml", false), ConnectSuccess);
+
+    QTRY_VERIFY(m_client->numLoadedEventTypes() > 0);
+    m_client->client->setRecording(false);
+    checkTraceReceived();
+    checkJsHeap();
+}
+
+void tst_QQmlProfilerService::signalSourceLocation()
+{
+    QCOMPARE(connectTo(true, "signalSourceLocation.qml"), ConnectSuccess);
+
+    while (!(m_process->output().contains(QLatin1String("500"))))
+        QVERIFY(QQmlDebugTest::waitForSignal(m_process, SIGNAL(readyReadStandardOutput())));
+    m_client->client->setRecording(false);
+    checkTraceReceived();
+    checkJsHeap();
+
+    auto createType = [](int line, int column, RangeType rangeType = HandlingSignal) {
+        return QQmlProfilerEventType(
+                    MaximumMessage, rangeType, -1,
+                    QQmlProfilerEventLocation(QLatin1String("signalSourceLocation.qml"), line,
+                                              column));
+    };
+
+    // Creating the attached object
+    VERIFY(MessageListQML, 3, createType(8, 5, Creating), CheckType | CheckNumbers, m_rangeStart);
+
+    VERIFY(MessageListQML, 6, createType(8, 5), CheckType | CheckNumbers, m_rangeStart);
+    VERIFY(MessageListQML, 8, createType(7, 5), CheckType | CheckNumbers, m_rangeEnd);
+}
+
+void tst_QQmlProfilerService::javascript()
+{
+    QCOMPARE(connectTo(true, "javascript.qml"), ConnectSuccess);
+
+    while (!(m_process->output().contains(QLatin1String("done"))))
+        QVERIFY(QQmlDebugTest::waitForSignal(m_process, SIGNAL(readyReadStandardOutput())));
+    m_client->client->setRecording(false);
+    checkTraceReceived();
+    checkJsHeap();
+
+    VERIFY(MessageListJavaScript, 2, QQmlProfilerEventType(MaximumMessage, Javascript),
+           CheckMessageType | CheckDetailType | CheckNumbers, m_rangeStart);
+
+    VERIFY(MessageListJavaScript, 3,
+           QQmlProfilerEventType(
+               MaximumMessage, Javascript, -1,
+               QQmlProfilerEventLocation(QLatin1String("javascript.qml"), 4, 5)),
+           CheckType | CheckNumbers, m_rangeStart);
+
+    VERIFY(MessageListJavaScript, 4, QQmlProfilerEventType(
+               MaximumMessage, Javascript, -1,
+               QQmlProfilerEventLocation(), QLatin1String("something")),
+           CheckMessageType | CheckDetailType | CheckDataEndsWith | CheckNumbers, m_rangeStart);
+
+    VERIFY(MessageListJavaScript, 10, QQmlProfilerEventType(MaximumMessage, Javascript),
+           CheckMessageType | CheckDetailType | CheckNumbers, m_rangeEnd);
+}
+
+void tst_QQmlProfilerService::flushInterval()
+{
+    QCOMPARE(connectTo(true, "timer.qml", true, 1), ConnectSuccess);
+
+    // Make sure we get multiple messages
+    QTRY_VERIFY(m_client->qmlMessages.size() > 0);
+    QVERIFY(m_client->qmlMessages.size() < 100);
+    QTRY_VERIFY_WITH_TIMEOUT(m_client->qmlMessages.size() > 100, 5s);
+
+    m_client->client->setRecording(false);
+    checkTraceReceived();
+    checkJsHeap();
+}
+
+void tst_QQmlProfilerService::translationBinding()
+{
+    QCOMPARE(connectTo(true, "qstr.qml"), ConnectSuccess);
+    checkProcessTerminated();
+
+    checkTraceReceived();
+    checkJsHeap();
+
+    const QQmlProfilerEventType type(MaximumMessage, Binding);
+
+    VERIFY(MessageListQML, 4, type, CheckDetailType | CheckMessageType | CheckNumbers,
+           m_rangeStart);
+    VERIFY(MessageListQML, 5, type, CheckDetailType | CheckMessageType | CheckNumbers,
+           m_rangeEnd);
+}
+
+void tst_QQmlProfilerService::memory()
+{
+    QCOMPARE(connectTo(true, "memory.qml"), ConnectSuccess);
+    checkProcessTerminated();
+
+    checkTraceReceived();
+    checkJsHeap();
+
+    QVERIFY(m_client);
+    int smallItems = 0;
+    for (const auto& message : m_client->jsHeapMessages) {
+        const QQmlProfilerEventType &type = m_client->types[message.typeIndex()];
+        if (type.detailType() == SmallItem)
+            ++smallItems;
+    }
+
+    QVERIFY(smallItems > 5);
+}
+
+static bool hasCompileEvents(const QList<QQmlProfilerEventType> &types)
+{
+    for (const QQmlProfilerEventType &type : types) {
+        if (type.message() == MaximumMessage && type.rangeType() == Compiling)
+            return true;
+    }
+    return false;
+}
+
+void tst_QQmlProfilerService::compile()
+{
+    // Flush interval so that we actually get the events before we stop recording.
+    connectTo(true, "test.qml", true, 100);
+
+    QVERIFY(m_client);
+
+    // We need to check specifically for compile events as we can otherwise stop recording after the
+    // StartTrace has arrived, but before it compiles anything.
+    QTRY_VERIFY(hasCompileEvents(m_client->types));
+    m_client->client->setRecording(false);
+
+    checkTraceReceived();
+    checkJsHeap();
+
+    Message rangeStage = MaximumMessage;
+    for (const auto& message : m_client->qmlMessages) {
+        const QQmlProfilerEventType &type = m_client->types[message.typeIndex()];
+        if (type.rangeType() == Compiling) {
+            switch (rangeStage) {
+            case MaximumMessage:
+                QCOMPARE(message.rangeStage(), RangeStart);
+                break;
+            case RangeStart:
+                QCOMPARE(message.rangeStage(), RangeEnd);
+                break;
+            default:
+                QFAIL("Wrong range stage");
+            }
+            rangeStage = message.rangeStage();
+            QCOMPARE(type.message(), MaximumMessage);
+            QCOMPARE(type.location().filename(), testFileUrl("test.qml").toString());
+            QCOMPARE(type.location().line(), 0);
+            QCOMPARE(type.location().column(), 0);
+        }
+    }
+
+    QCOMPARE(rangeStage, RangeEnd);
+}
+
+void tst_QQmlProfilerService::multiEngine()
+{
+    QCOMPARE(connectTo(true, "quit.qml", true, 0, false, debugJsServerPath("qqmlprofilerservice")),
+             ConnectSuccess);
+
+    QSignalSpy spy(m_client->client, SIGNAL(complete(qint64)));
+
+    checkTraceReceived();
+    checkJsHeap();
+
+    QTRY_COMPARE_WITH_TIMEOUT(m_process->state(), QProcess::NotRunning, 3000);
+    QCOMPARE(m_process->exitStatus(), QProcess::NormalExit);
+
+    QCOMPARE(spy.size(), 1);
+}
+
+void tst_QQmlProfilerService::batchOverflow()
+{
+    // The trace client checks that the events are received in order.
+    QCOMPARE(connectTo(true, "batchOverflow.qml"), ConnectSuccess);
+    checkProcessTerminated();
+    checkTraceReceived();
+    checkJsHeap();
+}
+
+void tst_QQmlProfilerService::noFeatures()
+{
+    QCOMPARE(connectTo(true, "quit.qml", true, 0, true,
+                       QLibraryInfo::path(QLibraryInfo::BinariesPath) + "/qmlscene", 0),
+             ConnectSuccess);
+
+    checkProcessTerminated();
+
+    QVERIFY(m_process->exitStatus() != QProcess::CrashExit);
+    QTRY_VERIFY2(m_client->isComplete, "No trace received in time.");
+
+    // Only StartTrace and EndTrace received
+    QCOMPARE(m_client->numLoadedEvents(), 2);
+    QCOMPARE(m_client->asynchronousMessages.size(), 2);
+
+    // must start with "StartTrace"
+    VERIFY(MessageListAsynchronous, 0, QQmlProfilerEventType(Event, MaximumRangeType, StartTrace),
+           CheckMessageType | CheckDetailType, QList<qint64>());
+
+    // must end with "EndTrace"
+    VERIFY(MessageListAsynchronous, 1, QQmlProfilerEventType(Event, MaximumRangeType, EndTrace),
+           CheckMessageType | CheckDetailType, QList<qint64>());
+}
+
+QTEST_MAIN(tst_QQmlProfilerService)
+
+#include "tst_qqmlprofilerservice.moc"

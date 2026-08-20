@@ -1,0 +1,26 @@
+project = ProxyPage
+productname = Qt
+
+sources.fileextensions = "*.qml *.cpp *.qdoc"
+headers.fileextensions = "*.h"
+
+# images
+imagedirs = ./src/images
+
+# zero warning policy
+warninglimit = 0
+warninglimit.enabled = true
+
+# don't write host system-specific paths to index files
+locationinfo = false
+
+includepaths += ./src
+{sourcedirs,headerdirs} = ./src
+
+moduleheader = proxy.h
+
+outputformats                       = HTML DocBook
+{HTML.nosubdirs,DocBook.nosubdirs}  = true
+HTML.outputsubdir                   = html
+DocBook.outputsubdir                = docbook
+

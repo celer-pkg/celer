@@ -1,0 +1,91 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*! \example modbus/client
+    \title Modbus Client
+    \ingroup qtserialbus-examples
+    \examplecategory Connectivity
+
+    \brief The example implements a Modbus client application.
+
+    The example acts as Modbus client sending Modbus request via serial line
+    or TCP. The shown dialog allows the definition of standard requests and
+    displays incoming responses.
+
+    The example must be used in conjunction with the
+    \l {modbus/server}{Modbus Server example} or another Modbus device which is
+    either connected via TCP or Serial Port.
+
+    Key classes used in this example:
+
+    \list
+        \li \l QModbusClient
+        \li \l QModbusDataUnit
+        \li \l QModbusReply
+    \endlist
+
+    \image ../images/modbusclient.png
+
+    \section1 Creating a QModbusClient
+
+    An instance of \l QModbusClient is required to perform any communication.
+    Depending on the specified connection type, the example can instantiate
+    a \l QModbusRtuSerialClient (for serial communication), or a
+    \l QModbusTcpClient (for TCP-based communication).
+
+    \snippet modbus/client/mainwindow.cpp create_client_0
+
+    Once the client is created, use the
+    \l {QModbusClient::}{setConnectionParameter()} method to specify the
+    connection parameters. The parameters vary depending on the communication
+    type:
+
+    \snippet modbus/client/mainwindow.cpp create_client_1
+
+    After the client is created and all the parameters are specified, use
+    \l {QModbusClient::connectDevice()} to connect to Modbus network.
+
+    \section1 Reading Data
+
+    To read data from Modbus server, the client needs to specify a
+    server address and the parameters of objects that it wants to read:
+    \list
+        \li \l {QModbusDataUnit::}{RegisterType}
+        \li \l {QModbusDataUnit::startAddress}{start address}
+        \li \l {QModbusDataUnit::valueCount}{number of entries to read}
+    \endlist
+
+    The object parameters are represented by the \l QModbusDataUnit class:
+
+    \snippet modbus/client/mainwindow.cpp read_data_0
+
+    Once the parameters are collected, the
+    \l {QModbusClient::}{sendReadRequest()} method is used to send the actual
+    request. The method returns a \l QModbusReply which should be processed
+    in an asynchronous way, so the \l QModbusReply::finished() signal is used
+    to check when the reply is ready.
+
+    \snippet modbus/client/mainwindow.cpp read_data_1
+
+    Once the \l QModbusReply::finished() signal is received, the reply object
+    can be used to get the data or to check for read errors:
+
+    \snippet modbus/client/mainwindow.cpp read_data_2
+
+    \section1 Writing Data
+
+    To write the data to the Modbus server, the client needs to specify the
+    server address, and the parameters of objects that it wants to write.
+    As with reading the data, the \l QModbusDataUnit class is used to represent
+    the information about the data to be written. This time the data also
+    includes the desired \l {QModbusDataUnit::}{values}.
+    The \l {QModbusClient::}{sendWriteRequest()} method is used to write the
+    desired data:
+
+    \snippet modbus/client/mainwindow.cpp write_data_0
+
+    Like with reading the data, the returned \l QModbusReply object is used
+    to check for write errors.
+
+    \include examples-run.qdocinc
+*/

@@ -1,0 +1,16 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example contextsensitivehelp
+    \ingroup examples-qthelp
+    \title Context-Sensitive Help Example
+    \examplecategory {User Interface Components}
+
+    \brief Using the QHelpEngineCore class to implement context-sensitive help
+    for applications.
+
+    \image ../images/context-sensitive-help-example.png {Screenshot of a
+           Watering Configuration dialog window, showing options to
+           configure automated plant watering}
+*/

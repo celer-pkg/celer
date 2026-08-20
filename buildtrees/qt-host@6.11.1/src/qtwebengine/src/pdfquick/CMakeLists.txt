@@ -1,0 +1,50 @@
+# Copyright (C) 2022 The Qt Company Ltd.
+# SPDX-License-Identifier: BSD-3-Clause
+
+find_package(Qt6 ${PROJECT_VERSION} CONFIG REQUIRED COMPONENTS Core Gui Qml Quick)
+
+set(qml_files
+    "+Material/PdfStyle.qml"
+    "+Universal/PdfStyle.qml"
+    "PdfLinkDelegate.qml"
+    "PdfMultiPageView.qml"
+    "PdfPageView.qml"
+    "PdfScrollablePageView.qml"
+    "PdfStyle.qml"
+)
+
+if(QT_KNOWN_POLICY_QTP0004)
+    qt_policy(SET QTP0004 OLD)
+endif()
+
+qt_internal_add_qml_module(PdfQuick
+    URI "QtQuick.Pdf"
+    VERSION "${PROJECT_VERSION}"
+    PAST_MAJOR_VERSIONS 5
+    QML_FILES ${qml_files}
+    DEPENDENCIES QtQuick/auto
+    SOURCES
+        qquickpdfbookmarkmodel.cpp qquickpdfbookmarkmodel_p.h
+        qquickpdfdocument.cpp qquickpdfdocument_p.h
+        qquickpdflinkmodel.cpp qquickpdflinkmodel_p.h
+        qquickpdfpagenavigator.cpp qquickpdfpagenavigator_p.h
+        qquickpdfpageimage.cpp qquickpdfpageimage_p.h
+        qquickpdfsearchmodel.cpp qquickpdfsearchmodel_p.h
+        qquickpdfselection.cpp qquickpdfselection_p.h
+        qtpdfquickglobal_p.h
+    INCLUDE_DIRECTORIES
+        ../3rdparty/chromium
+    LIBRARIES
+        Qt::PdfPrivate
+        Qt::QuickPrivate
+    PRIVATE_MODULE_INTERFACE
+        Qt::PdfPrivate
+        Qt::QuickPrivate
+    PUBLIC_LIBRARIES
+        Qt::Core
+        Qt::Gui
+        Qt::Pdf
+        Qt::Qml
+        Qt::Quick
+    NO_GENERATE_CPP_EXPORTS
+)

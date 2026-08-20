@@ -1,0 +1,137 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  args: {
+    VIDEO_SELECTOR: video:not(.ad-showing video):not(.unstarted-mode video):not(.buffering-mode video)
+  }
+  unbound_args: [
+    PAGE_URL
+    RESOLUTION_TEXT
+    CHANGE_SCREEN_INPUT
+  ]
+  template: {
+    actions: [
+      {
+        action: get
+        url: $[PAGE_URL]
+        ready_state: complete
+        timeout: 2m
+      }
+      // Monitor page changes and close all pop-up windows in real time
+      // The popup might appear in the middle of the test, so we make the observer running in background to hide it
+      {
+        action: wait_for_element
+        selector: ytd-popup-container
+      }
+      {
+        action: js
+        path: ./scripts/dismiss-popup.js
+      }
+      {
+        action: wait_for_element
+        selector: div.html5-video-player
+        timeout: 2m
+      }
+      {
+        action: js
+        timeout: 5m
+        path: ./scripts/skip-ad.js
+        replacements: {
+          VIDEO_SELECTOR: $[VIDEO_SELECTOR]
+        }
+      }
+      // Switch resolution
+      // Here we need to detect whether it is the target video
+      // Pause here to bring up the drop-down box
+      {
+        action: wait_for_element
+        selector: $[VIDEO_SELECTOR]
+        timeout: 2m
+      }
+      {
+        action: js
+        script:
+          '''
+          const video = document.querySelector("$[VIDEO_SELECTOR]")
+          if (!video.paused) {
+              video.currentTime = 0
+              video.pause()
+          }
+          '''
+      }
+      {
+        action: click
+        pos: {
+          selector: button[title='Settings']
+          required: true
+          wait: true
+        }
+        source: touch
+        verify: xpath///div[@class='ytp-menuitem']//div[@class='ytp-menuitem-label' and text() = 'Quality']
+      }
+      // Wait for the element to finish animating.
+      {
+        action: wait
+        duration: 0.5s
+      }
+      {
+        action: click
+        pos: {
+          selector: xpath///div[@class='ytp-menuitem']//div[@class='ytp-menuitem-label' and text() = 'Quality']
+          required: true
+          wait: true
+        }
+        source: touch
+        verify: xpath///div[@class='ytp-panel ytp-quality-menu']//span[text() = '$[RESOLUTION_TEXT]']
+      }
+      // Wait for the element to finish animating.
+      {
+        action: wait
+        duration: 0.5s
+      }
+      {
+        action: js
+        path: ./scripts/video-marks.js
+      }
+      {
+        action: click
+        pos: {
+          selector: xpath///div[@class='ytp-panel ytp-quality-menu']//span[text() = '$[RESOLUTION_TEXT]']
+          required: true
+          wait: true
+        }
+        source: touch
+        verify: $[VIDEO_SELECTOR]
+      }
+      {
+        action: js
+        script:
+          '''
+          performance.mark("switch-resolution-end")
+          performance.measure("switch-resolution-duration", "switch-resolution-start", "switch-resolution-end")
+          '''
+      }
+      {
+        action: text_input
+        text: $[CHANGE_SCREEN_INPUT]
+        duration: 0.5s
+        source: keyboard
+      }
+      // Need to detect whether the video tag already exists
+      {
+        action: wait_for_element
+        selector: $[VIDEO_SELECTOR]
+        timeout: 2m
+      }
+      {
+        action: js
+        path: ./scripts/watch-video.js
+        replacements: {
+          VIDEO_SELECTOR: $[VIDEO_SELECTOR]
+          VIDEO_TIME: 120
+        }
+      }
+    ]
+  }
+}

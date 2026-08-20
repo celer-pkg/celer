@@ -1,0 +1,113 @@
+<svg width="400" height="500" viewBox="0 0 80 100" xmlns="http://www.w3.org/2000/svg">
+
+  <symbol id="myDot11" width="10" height="20" viewBox="0 0 2 2" overflow="hidden" preserveAspectRatio="none">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+  <symbol id="myDot12" width="10" height="20" viewBox="0 0 2 2" overflow="hidden" preserveAspectRatio="xMidYMid slice">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+  <symbol id="myDot13" width="10" height="20" viewBox="0 0 2 2" overflow="hidden" preserveAspectRatio="xMidYMid meet">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+  <symbol id="myDot14" width="10" height="20" viewBox="0 0 2 2" overflow="hidden" preserveAspectRatio="xMinYMin slice">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+  <symbol id="myDot15" width="10" height="20" viewBox="0 0 2 2" overflow="hidden" preserveAspectRatio="xMinYMin slice">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+
+
+  <symbol id="myDot21" width="10" height="20" refX="10" refY="10" viewBox="0 0 2 2" overflow="hidden" preserveAspectRatio="none">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+  <symbol id="myDot22" width="10" height="20" refX="left" refY="top" viewBox="0 0 2 2" overflow="hidden" preserveAspectRatio="xMidYMid slice">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+  <symbol id="myDot23" width="10" height="20" refX="center" refY="top" viewBox="0 0 2 2" overflow="hidden" preserveAspectRatio="xMidYMid meet">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+  <symbol id="myDot24" width="10" height="20" refX="center" refY="center" viewBox="0 0 2 2" overflow="hidden" preserveAspectRatio="xMinYMin slice">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+  <symbol id="myDot25" width="10" height="20" refX="bottom" refY="right" viewBox="0 0 2 2" overflow="hidden" preserveAspectRatio="xMinYMin slice">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+
+    <symbol id="myDot31" width="10" height="20" viewBox="0 0 2 1" overflow="hidden" preserveAspectRatio="none">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+  <symbol id="myDot32" width="10" height="20" viewBox="0 0 2 1" overflow="hidden" preserveAspectRatio="xMidYMid slice">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+  <symbol id="myDot33" width="10" height="20" viewBox="0 0 2 1" overflow="hidden" preserveAspectRatio="xMidYMid meet">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+  <symbol id="myDot34" width="10" height="20" viewBox="0 0 2 1" overflow="hidden" preserveAspectRatio="xMinYMin slice">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+  <symbol id="myDot35" width="10" height="20" viewBox="0 0 2 1" overflow="hidden" preserveAspectRatio="xMinYMin slice">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+
+
+  <symbol id="myDot41" transform="scale(0.5 0.5)" width="10" height="20" viewBox="0 0 2 1" overflow="hidden" preserveAspectRatio="none">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+  <symbol id="myDot42" width="10" height="20" viewBox="0 0 2 1" overflow="hidden" preserveAspectRatio="xMidYMid slice">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+  <symbol id="myDot43" width="10" height="20" viewBox="0 0 2 1" overflow="hidden" preserveAspectRatio="xMidYMid meet">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+  <symbol id="myDot44" width="10" height="20" viewBox="0 0 2 1" overflow="hidden" preserveAspectRatio="xMinYMin slice">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+  <symbol id="myDot45" width="10" height="20" viewBox="0 0 2 1" overflow="hidden" preserveAspectRatio="xMinYMin slice">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+
+  <path
+    d="M0,10 h80 M10,0 v20 M25,0 v20 M40,0 v20 M55,0 v20 M70,0 v20"
+    fill="none"
+    stroke="pink" />
+
+  <path transform="translate(0, 25)"
+    d="M0,10 h80 M10,0 v20 M25,0 v20 M40,0 v20 M55,0 v20 M70,0 v20"
+    fill="none"
+    stroke="pink" />
+
+  <path transform="translate(0, 50)"
+    d="M0,10 h80 M10,0 v20 M25,0 v20 M40,0 v20 M55,0 v20 M70,0 v20"
+    fill="none"
+    stroke="pink" />
+
+  <path transform="translate(0, 75)"
+    d="M0,10 h80 M10,0 v20 M25,0 v20 M40,0 v20 M55,0 v20 M70,0 v20"
+    fill="none"
+    stroke="pink" />
+  
+  <use href="#myDot11" x="5" y="0"  style="opacity:0.8" />
+  <use href="#myDot12" x="20" y="0" style="opacity:0.8" />
+  <use href="#myDot13" x="35" y="0" style="opacity:0.8" />
+  <use href="#myDot14" x="50" y="0" style="opacity:0.8" />
+  <use href="#myDot15" x="65" y="0" style="opacity:0.8" />
+
+  <use href="#myDot21" x="5" y="25"  style="opacity:0.8" />
+  <use href="#myDot22" x="20" y="25" style="opacity:0.8" />
+  <use href="#myDot23" x="35" y="25" style="opacity:0.8" />
+  <use href="#myDot24" x="50" y="25" style="opacity:0.8" />
+  <use href="#myDot25" x="65" y="25" style="opacity:0.8" />
+
+  <use href="#myDot31" x="5" y="50"  style="opacity:0.8" />
+  <use href="#myDot32" x="20" y="50" style="opacity:0.8" />
+  <use href="#myDot33" x="35" y="50" style="opacity:0.8" />
+  <use href="#myDot34" x="50" y="50" style="opacity:0.8" />
+  <use href="#myDot35" x="65" y="50" style="opacity:0.8" />
+
+  <use href="#myDot41" x="5" y="75"  style="opacity:0.8" />
+  <use href="#myDot42" transform="scale(0.4 0.4)" x="20" y="75" style="opacity:0.8" />
+  <use href="#myDot43" x="35" y="75" style="opacity:0.8" />
+  <use href="#myDot44" x="50" y="75" style="opacity:0.8" />
+  <use href="#myDot45" x="65" y="75" style="opacity:0.8" />
+
+</svg>

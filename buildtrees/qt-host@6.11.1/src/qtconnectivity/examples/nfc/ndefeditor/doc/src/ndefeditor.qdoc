@@ -1,0 +1,25 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\example ndefeditor
+\title NDEF Editor
+\examplecategory {Connectivity}
+\meta tags {nfc, ndef}
+\brief Reads and writes NFC Data Exchange Format (NDEF) messages to NFC Forum Tags.
+
+The NDEF Editor example uses \l{Qt NFC} to read and write NFC Data Exchange Format
+(NDEF) messages to NFC Forum Tags. NDEF messages can be composed by
+adding text and URI records. Records can be deleted by swiping them to the left.
+
+Press \b {Write to Tag} to write the records to an NFC tag.
+
+Press \b {Read Tag} to read the contents of an NFC tag. A successful read of an
+NFC tag replaces the manually added records with the NDEF message from the tag.
+If the read operation was cancelled or failed, the NDEF message remains
+unchanged.
+
+\image {ndefeditor.png} {NDEF editor interface}
+
+\sa {Qt NFC}
+*/

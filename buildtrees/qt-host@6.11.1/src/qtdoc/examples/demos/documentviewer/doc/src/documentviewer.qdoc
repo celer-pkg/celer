@@ -1,0 +1,529 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Document Viewer
+    \ingroup examples-widgets
+    \example demos/documentviewer
+    \examplecategory {Application Examples}
+    \meta {tag} {demo,widgets,mainwindow}
+    \brief A Widgets application to display and print JSON, text, and PDF files.
+
+    \image documentviewer_open.png
+           {Document viewer UI showing a 'Select Open Mode' pop-up}
+
+    \e{Document Viewer} demonstrates how to use a QMainWindow with static
+    and dynamic toolbars, menus, and actions. Additionally, it demonstrates
+    the following features in widget-based applications:
+
+    \list
+        \li Using QSettings to query and save user preferences,
+            and managing previously opened file history.
+        \li Controlling cursor behavior when hovering over widgets.
+        \li Creating dynamically loaded plugins.
+        \li Localizing the UI to different languages.
+    \endlist
+
+    \include examples-run.qdocinc
+
+    \section1 Creating an application and the main window
+
+    The application and its main window is constructed in \c main.cpp.
+    The main() function uses QCommandLineParser to process command line
+    arguments -- \e help, \e version, and an optional positional
+    argument, \e file. If the user provided a path to a file when
+    launching the application, the main window opens it:
+
+    \quotefromfile demos/documentviewer/app/main.cpp
+    \skipto int main
+    \printuntil exec
+    \printline }
+
+    \section1 MainWindow class
+
+    The \c MainWindow class provides an application screen with menus,
+    actions, and a toolbar. It can open a file, automatically detecting its
+    content type. It also maintains a list of previously opened files, using
+    QSettings to store and reload settings when launched. The MainWindow
+    creates a suitable \e viewer for the opened file, based on its content type,
+    and provides support for printing a document.
+
+    MainWindow's constructor initializes the user interface created in Qt
+    Designer. The \c mainwindow.ui file provides a QTabWidget on the left,
+    showing bookmarks and thumbnails. On the right, there is a QScrollArea for
+    viewing file content.
+
+    \section1 ViewerFactory class
+
+    The \c ViewerFactory class manages viewers for known file types. These viewers
+    are implemented as plugins. When an instance of a ViewerFactory is created,
+    pointers to the view area and the main window are passed to the constructor:
+
+    \code
+    m_factory.reset(new ViewerFactory(ui->viewArea, this));
+    \endcode
+
+    ViewerFactory loads all available plugins on construction. It provides
+    a public API to query the loaded plugins, their names, and supported MIME
+    types:
+
+    \quotefromfile demos/documentviewer/app/viewerfactory.h
+    \skipto ViewerList
+    \printuntil QStringList supportedMimeTypes() const;
+
+    The \c viewer() function returns a pointer to the plugin suitable to open
+    the QFile passed as an argument:
+
+    \code
+    m_viewer = m_factory->viewer(file);
+    \endcode
+
+    If the application settings contain a section for the viewer, it's passed
+    to the viewer's virtual \c restoreState() function:
+
+    \quotefromfile demos/documentviewer/app/mainwindow.cpp
+    \skipto MainWindow::restoreViewerSettings
+    \printuntil restoreState
+    \printline }
+
+    Then, the standard UI assets are passed to the viewer and the main scroll
+    area is set to show the viewer's display widget:
+
+    \quotefromfile demos/documentviewer/app/mainwindow.cpp
+    \skipuntil bool MainWindow::openFile
+    \skipto m_viewer->initViewer
+    \printuntil }
+
+    \section1 AbstractViewer class
+
+    \c AbstractViewer provides a generalized API to view, save, and print a
+    document. Properties of both the document and the viewer can be queried:
+
+    \list
+        \li Does the document have content?
+        \li Has it been modified?
+        \li Is an overview (thumbnails or bookmarks) supported?
+    \endlist
+
+    AbstractViewer provides protected methods for derived classes to create
+    actions and menus on the main window. In order to display these
+    assets on the main window, they are parented to it. AbstractViewer is
+    responsible for removing and destroying the UI assets it creates. It
+    inherits from QObject to implement signals and slots.
+
+    \section2 Signals
+
+    \c {void uiInitialized();}
+
+    This signal is emitted after a viewer receives all necessary information
+    about UI assets on the main window.
+
+    \c {void printingEnabledChanged(bool enabled);}
+
+    This signal is emitted when document printing is either enabled or
+    disabled. This happens after a new document was successfully loaded,
+    or, for example, all content was removed.
+
+    \c {void showMessage(const QString &message, int timeout = 8000);}
+
+    This signal is emitted to display a status message to the user.
+
+    \c {void documentLoaded(const QString &fileName);}
+
+    This signal notifies the application that a document was successfully
+    loaded.
+
+    \section1 TxtViewer class
+
+    \c TxtViewer is a simple text viewer, inheriting from AbstractViewer.
+    It supports editing text files, copy/cut and paste, printing, and
+    saving changes.
+
+    \section2 Class Definition
+
+    \snippet demos/documentviewer/plugins/txtviewer/txtviewer.h interfacing
+
+    The class definition starts with the \c Q_OBJECT macro, which handles
+    signals and slots. It is followed by the \c Q_PLUGIN_METADATA and
+    \c Q_INTERFACES macros which are necessary to register the plugin.
+
+    The class inherits from \c ViewerInterface, which inherits from
+    \c AbstractViewer. The \c ViewerInterface class is used to provide an
+    interface between the main window application and the plugin.
+
+    \c QPluginLoader also requires the file txtviewer.json, which has to contain
+    the plugin's key:
+    \code
+    { "Keys": [ "txtviewer" ] }
+    \endcode
+
+    The class defines no constructor, which means that only a standard
+    constructor without arguments is available. All other functions, including
+    the destructor, re-implement virtual functions of \c ViewerInterface. They
+    are used to exchange data, information, and instructions with the main
+    application.
+
+    \snippet demos/documentviewer/plugins/txtviewer/txtviewer.h classDefinition
+
+    \section2 TxtViewer Class Implementation
+
+    \snippet demos/documentviewer/plugins/txtviewer/txtviewer.cpp init
+
+    We start by including the header files necessary to access all classes used
+    by \c TxtViewer. We also include \c txtviewer.h.
+
+    \c QPrinter and \c QPrintDialog are only included if print support is
+    enabled on the compilation system.
+
+    Note that these headers are not included directly in \c mainwindow.h.
+    Including large headers in other header files can impact build performance.
+    In this case, it would not cause issues, but it is best practice to include
+    only the necessary headers to keep dependencies minimal.
+
+    The implementation starts with an empty destructor. It could be completely
+    omitted. It's good practice to implement it empty in order to point out to
+    code readers that nothing needs to be done in the destructor.
+
+    The destructor is followed by an initialization function, taking three
+    arguments:
+
+    \list
+    \li \c file, the pointer to the file to be opened and displayed.
+    \li \c parent, pointing to the \c QWidget inside which the editor shall be placed.
+    \li \c mainWindow, pointing to the application's main window, where menus and menu bars
+    are handled.
+    \endlist
+
+    The function calls the base init function of \c AbstractViewer. A new
+    QPlainTextEdit widget is created, which will display the file's contents.
+    Then, \c TxtViewer's setup function is connected to the base class'
+    \c uiInitialized signal.
+
+    The next function returns the list of mime types, which the text viewer
+    supports. Only plain text is supported.
+
+    The last initialization function adds viewer specific UI components like
+    menus, icons, buttons, and tooltips. It uses functionality provided by
+    \c AbstractViewer to make sure that these components are removed from the
+    application's main window, once another file is displayed with another
+    viewer plugin.
+
+    \snippet demos/documentviewer/plugins/txtviewer/txtviewer.cpp open
+
+    \c openFile opens a file, transfers its contents into the QPlainTextEdit,
+    and prints a status message for the user, depending on whether or not the
+    opening was successful.
+
+    \snippet demos/documentviewer/plugins/txtviewer/txtviewer.cpp infoPrintAndSave
+
+    The next re-implemented function tells the main application whether or not
+    the viewer plugin is actually displaying content.
+
+    If printing is supported on the compiling system, the next section
+    implements it.
+
+    The last two re-implementations provide functionality to save the current
+    file or to save it under a new name.
+
+    \section1 ImageViewer class
+
+    \c ImageViewer displays images as supported by QImageReader, using
+    a QLabel.
+
+    In the constructor, we increase the allocation limit of QImageReader to
+    allow for larger photos:
+
+    \snippet demos/documentviewer/plugins/imageviewer/imageviewer.cpp init
+
+    In the openFile() function, we load the image and determine its size.
+    If it is larger than the screen, we downscale it to screen size,
+    maintaining the aspect ratio. This calculation has to be done in native
+    pixels, and the device pixel ratio needs to be set on the resulting pixmap
+    for it to appear crisp:
+
+    \snippet demos/documentviewer/plugins/imageviewer/imageviewer.cpp open
+
+    \section1 JsonViewer class
+
+    \c JsonViewer displays a JSON file in a QTreeView. Internally, it loads
+    the contents of a file into a QJsonDocument and uses it to populate a
+    custom tree model with \c JsonItemModel.
+
+    The JSON viewer plugin demonstrates how to implement a custom item model
+    inherited from QAbstractItemModel. The \c JsonTreeItem class provides a
+    basic API for manipulating JSON data and propagating it back to the
+    underlying QJsonDocument.
+
+    JsonViewer uses the top-level objects of the document as bookmarks for
+    navigation. Other nodes (keys and values) can be added as additional
+    bookmarks, or removed from the bookmark list.
+
+    \section1 PdfViewer class
+
+    The \c PdfViewer class (and plugin) is a fork of the \l {PDF Viewer
+    Widget Example}. It demonstrates the use of QScroller to smoothly
+    flick through a document.
+
+    \section1 Other relevant classes
+
+    \section2 HoverWatcher class
+
+    The \c HoverWatcher class sets an override cursor when hovering the
+    mouse over a widget, restoring it upon departure. To prevent multiple
+    HoverWatcher instances being created for the same widget, it is
+    implemented as a singleton per widget.
+
+    HoverWatcher inherits from QObject and takes the QWidget it watches
+    as the instance's parent. It installs an event filter to intercept hover
+    events without consuming them:
+
+    \quotefromfile demos/documentviewer/plugins/pdfviewer/hoverwatcher.cpp
+    \skipto HoverWatcher::HoverWatcher
+    \printuntil }
+
+    The \c HoverAction enum lists the actions that HoverWatcher reacts to:
+
+    \quotefromfile demos/documentviewer/plugins/pdfviewer/hoverwatcher.h
+    \skipto enum HoverAction
+    \printuntil };
+
+    Static functions create watchers, check their existence for a specific
+    QWidget, or dismiss a watcher:
+
+    \quotefromfile demos/documentviewer/plugins/pdfviewer/hoverwatcher.h
+    \skipto static HoverWatcher
+    \printuntil static void dismiss
+
+    A cursor shape can be set or unset for each HoverAction. If there is
+    no associated cursor shape, the application's override cursor is
+    restored when the action is triggered.
+
+    \quotefromfile demos/documentviewer/plugins/pdfviewer/hoverwatcher.h
+    \skipto public slots
+    \printuntil void unSetCursorShape
+
+    The \c mouseButtons property holds the mouse buttons to consider for a
+    \c MousePress action:
+
+    \quotefromfile demos/documentviewer/plugins/pdfviewer/hoverwatcher.h
+    \skipuntil public slots
+    \skipto setMouseButtons
+    \printuntil setMouseButton(
+
+    Action-specific signals are emitted after processing an action:
+
+    \quotefromfile demos/documentviewer/plugins/pdfviewer/hoverwatcher.h
+    \skipto signals
+    \printuntil left();
+
+    A general signal is emitted which passes the processed action as an
+    argument:
+
+    \code
+    void hoverAction(HoverAction action);
+    \endcode
+
+    \section2 RecentFiles class
+
+    \c RecentFiles is a QStringList that is specialized to manage a list of
+    recently opened files.
+
+    RecentFiles has slots to add either a single file or multiple files in one
+    go. An entry is added to the list of recent files if the path points to a
+    file that exists and can be opened. If a file is already in the list, it
+    is removed from its original position and added to the top.
+
+    \quotefromfile demos/documentviewer/app/recentfiles.h
+    \skipto public slots
+    \printuntil addFiles
+
+    Files are removed from the list either by name or by index:
+
+    \quotefromfile demos/documentviewer/app/recentfiles.h
+    \skipuntil public slots
+    \skipto removeFile
+    \printuntil qsizetype index
+
+    Slots that implement saving and restoring from QSettings:
+
+    \quotefromfile demos/documentviewer/app/recentfiles.h
+    \skipuntil public slots
+    \skipto saveSettings
+    \printuntil restoreFromSettings
+
+    When restoring settings, nonexistent files are ignored. The \c maxFiles
+    property holds the maximum amount of recent files to store (default is
+    10).
+
+    \code
+    qsizetype maxFiles();
+    void setMaxFiles(qsizetype maxFiles);
+    \endcode
+
+    \c {RecentFiles} verifies that a file can be read before
+    accepting it.
+
+    \section2 RecentFileMenu class
+
+    \c {RecentFileMenu} is a QMenu, specialized to display a
+    \l{RecentFiles class}{RecentFiles} object as a submenu.
+
+    Its constructor takes a pointer to a parent QObject and a pointer to a
+    RecentFiles object, the content of which it will visualize.
+    Its \c fileOpened() signal, triggered when the user selects a recent file
+    from the list, passes the absolute path to the file as an argument.
+
+    \note \c {RecentFileMenu} is destroyed either by its parent widget, or by the
+          \c {RecentFiles} object passed to its constructor.
+
+    \quotefromfile demos/documentviewer/app/recentfilemenu.h
+    \skipto class RecentFileMenu
+    \printuntil void fileOpened
+    \dots
+    \skipuntil RecentFiles
+    \printline }
+
+    \section1 Translations
+
+    The application's user interface is available in English and German.
+    The default language is auto-selected by Qt: German if the system
+    language is German; otherwise, English. Also, the user can switch
+    the language in the \uicontrol Help > \uicontrol Language menu.
+    Each plugin, as well as the main application, is independently
+    responsible for loading its own translations during runtime.
+
+    \section2 CMake integration
+
+    The top-level CMakeLists.txt declares the shipped languages.
+
+    \quotefromfile demos/documentviewer/CMakeLists.txt
+    \skipto qt_standard_project_setup
+    \printuntil )
+
+    The \c documentviewer target defines the main application. It
+    stores and loads the localized strings for the target in
+    docviewer_de.ts and docviewer_en.ts files. Furthermore,
+    it merges the respective \c{qtbase translations} provided by
+    Qt into the generated translation files, so that
+    also Qt dialogs like the print dialog are properly translated:
+
+    \quotefromfile demos/documentviewer/app/CMakeLists.txt
+    \skipto qt_add_translations(documentviewer
+    \printuntil )
+
+    Each plugin level \c CMakeLists.txt invokes \c qt_add_translations only
+    on that plugin's source files (\c SOURCE_TARGETS).
+    Scoping the translation files to the plugin target prevents re-scanning
+    and retranslating the sources of the main application and other plugins:
+
+    \quotefromfile demos/documentviewer/plugins/txtviewer/CMakeLists.txt
+    \skipto qt_add_translations(txtviewer
+    \printuntil )
+
+    \section2 Translator class
+
+    The \c Translator class is a wrapper around Qt's \l QTranslator that manages
+    internationalization for both the main application and each plugin. Each
+    component (main application and plugins) has its own Translator instance,
+    enabling coordinated language switching across the entire application.
+    At startup or when the user selects a new language, \c Translator::install()
+    is called. This method uses \l QTranslator::load() to load translation files
+    based on the QLocale::uiLanguages() and the basename in the Qt resource system.
+    If no matching translation is found, it falls back to English.
+
+    \quotefromfile demos/documentviewer/app/translator.cpp
+    \skipto void Translator::install
+    \printuntil /^\}/
+
+    \section2 Plugin support
+
+    The \c AbstractViewer base class provides translation support so each plugin
+    can manage its own translations autonomously:
+
+    \list
+    \li \c AbstractViewer::setTranslationBaseName(): initializes a \c Translator
+    object, sets its basename, and installs it to load the default translations.
+
+    \quotefromfile demos/documentviewer/app/abstractviewer.cpp
+    \skipto setTranslationBaseName
+    \printuntil }
+
+    \li \c AbstractViewer::eventFilter(): installed on the main window in
+    \c init(), this method listens for \l QEvent::LanguageChange events. When the
+    locale has changed, it reinstalls the plugin's translator for the new language
+    and calls \c retranslate() to refresh all text.
+
+    \quotefromfile demos/documentviewer/app/abstractviewer.cpp
+    \skipto eventFilter
+    \printuntil /^\}/
+
+    \li \c AbstractViewer::retranslate(): a virtual method that each plugin implements
+    to retranslate its own UI texts. For instance, as reimplemented in ImageViewer:
+
+    \quotefromfile demos/documentviewer/plugins/imageviewer/imageviewer.cpp
+    \skipto retranslate
+    \printuntil }
+
+    \endlist
+
+    Widgets that are owned by a plugin and contain translatable strings can
+    handle \l QEvent::LanguageChange directly. For example, \c ZoomSelector
+    overrides \c changeEvent() to retranslate its combo box items:
+
+    \quotefromfile demos/documentviewer/plugins/pdfviewer/zoomselector.cpp
+    \skipto ZoomSelector::changeEvent
+    \printuntil /^\}/
+
+    \section2 Application startup
+
+    \list
+    \li \e{Main application}: in \c main.cpp we load the application's translation
+    before showing the window:
+
+    \quotefromfile demos/documentviewer/app/main.cpp
+    \skipto Translator mainTranslator;
+    \printuntil mainTranslator.install();
+
+    \li \e Plugins: each plugin calls \c AbstractViewer::setTranslationBaseName()
+    in its \c init() function to initialize a \l{Translator class}{Translator} with
+    their translation file name and install the translations of the current language.
+
+    \quotefromfile demos/documentviewer/plugins/imageviewer/imageviewer.cpp
+    \skipto ImageViewer::init(
+    \printuntil init
+    \dots
+    \skipto setTranslation
+    \printline setTranslation
+    \dots
+
+    \endlist
+
+    \section2 Runtime language switching
+
+    Runtime language switching can be triggered in two ways:
+    \list 1
+    \li Switching the language of the whole system at runtime:
+        The operating system sends a \l QEvent::LocaleChange event to the
+        application.
+    \li Using the menu \uicontrol Help > \uicontrol Language:
+        Clicking on the \c QMenu item triggers \c MainWindow::onActionSwitchLanguage(),
+        which sets the default locale and posts a \l QEvent::LocaleChange event,
+        to enter the same flow as a system locale change:
+        \quotefromfile demos/documentviewer/app/mainwindow.cpp
+        \skipto void MainWindow::onActionSwitchLanguage
+        \printuntil }
+    \endlist
+
+    In both cases, \c MainWindow::changeEvent() handles the events.
+    \l QEvent::LocaleChange installs the new translator, and the resulting
+    \l QEvent::LanguageChange retranslates the main window UI.
+    Plugins react via their event filters.
+
+    \quotefromfile demos/documentviewer/app/mainwindow.cpp
+    \skipto void MainWindow::changeEvent
+    \printuntil /^\}/
+
+    \section1 Source files
+
+    \sa {All Qt examples}
+*/

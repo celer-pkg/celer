@@ -1,0 +1,22 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#include "principledMaterialFresnel.glsllib"
+
+// See https://disney-animation.s3.amazonaws.com/library/s2012_pbs_disney_brdf_notes_v2.pdf
+vec4 qt_diffuseBurleyBSDF(in vec3 normal, in vec3 lightDirection, in vec3 viewVector, in vec3 lightDiffuse, in float roughness)
+{
+    vec3 H = normalize(viewVector + lightDirection);
+    float cLdotH = max(0.0, dot(lightDirection, H));
+    float cNdotV = max(0.0, dot(normal, viewVector));
+    float cNdotL = max(0.0, dot(normal, lightDirection));
+
+    float fLight = qt_schlick(cNdotL);
+    float fView = qt_schlick(cNdotV);
+    float fDiffuse90 = 0.5 + 2.0 * cLdotH * cLdotH * roughness;
+    float fDiffuse = mix(1.0, fDiffuse90, fLight) * mix(1.0, fDiffuse90, fView);
+
+    float factor = fDiffuse * cNdotL;
+
+    return vec4(factor * lightDiffuse, 1.0);
+}

@@ -1,0 +1,205 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#ifndef TONEMAPPPING_GLSLIB
+#define TONEMAPPPING_GLSLIB 1
+
+// This file is also included from the static shader skybox.frag, therefore pay
+// attention that it should be suitable both as a generator-included and as a
+// static-shader-included snippet. It may also be included from post-processing
+// effect fragment shaders.
+
+// Any changes to the calculations must be reflected in qssgcputonemapper_p.h.
+
+#ifndef QSSG_ENABLE_LINEAR_TONEMAPPING
+#define QSSG_ENABLE_LINEAR_TONEMAPPING 0
+#endif
+#ifndef QSSG_ENABLE_ACES_TONEMAPPING
+#define QSSG_ENABLE_ACES_TONEMAPPING 0
+#endif
+#ifndef QSSG_ENABLE_HEJLDAWSON_TONEMAPPING
+#define QSSG_ENABLE_HEJLDAWSON_TONEMAPPING 0
+#endif
+#ifndef QSSG_ENABLE_FILMIC_TONEMAPPING
+#define QSSG_ENABLE_FILMIC_TONEMAPPING 0
+#endif
+#ifndef QSSG_FORCE_IBL_EXPOSURE
+#define QSSG_FORCE_IBL_EXPOSURE 0
+#endif
+
+// The following methods are described in this article:
+// http://chilliant.blogspot.com/2012/08/srgb-approximations-for-hlsl.html
+
+// The following 4 methods are the most accurate approximations
+vec3 qt_linearTosRGB(vec3 color)
+{
+    vec3 S1 = sqrt(color);
+    vec3 S2 = sqrt(S1);
+    vec3 S3 = sqrt(S2);
+    return 0.585122381 * S1 + 0.783140355 * S2 - 0.368262736 * S3;
+}
+
+vec3 qt_sRGBToLinear(vec3 srgbIn)
+{
+    return srgbIn * (srgbIn * (srgbIn * 0.305306011 + 0.682171111) + 0.012522878);
+}
+
+vec4 qt_linearTosRGB(vec4 color)
+{
+    return vec4(qt_linearTosRGB(color.rgb), color.a);
+}
+
+vec4 qt_sRGBToLinear(vec4 srgbIn)
+{
+    return vec4(qt_sRGBToLinear(srgbIn.rgb), srgbIn.a);
+}
+
+const float GAMMA = 2.2;
+const float INV_GAMMA = 1.0 / GAMMA;
+
+// The following 4 methods are the fastest, but less accurate
+
+vec3 qt_linearTosRGBFast(vec3 color)
+{
+    return pow(color, vec3(INV_GAMMA));
+}
+
+vec3 qt_sRGBToLinearFast(vec3 srgbIn)
+{
+    return vec3(pow(srgbIn.xyz, vec3(GAMMA)));
+}
+
+vec4 qt_linearTosRGBFast(vec4 color)
+{
+    return vec4(pow(color.rgb, vec3(INV_GAMMA)), color.a);
+}
+
+vec4 qt_sRGBToLinearFast(vec4 srgbIn)
+{
+    return vec4(pow(srgbIn.rgb, vec3(GAMMA)), srgbIn.a);
+}
+
+#if QSSG_ENABLE_ACES_TONEMAPPING
+vec3 qt_toneMapACES(vec3 color)
+{
+    const float A = 2.51;
+    const float B = 0.03;
+    const float C = 2.43;
+    const float D = 0.59;
+    const float E = 0.14;
+    return qt_linearTosRGB(clamp((color * (A * color + B)) / (color * (C * color + D) + E), 0.0, 1.0));
+}
+#endif
+
+#if QSSG_ENABLE_HEJLDAWSON_TONEMAPPING
+vec3 qt_tonemapHejlDawson(vec3 color)
+{
+    color = max(vec3(0.0), color - vec3(0.004));
+    return (color * (6.2 * color + 0.5)) / (color * (6.2 * color + 1.7) + 0.06);
+}
+#endif
+
+#if QSSG_ENABLE_FILMIC_TONEMAPPING
+vec3 qt_toneMapFilmicSub(vec3 color)
+{
+    const float A = 0.15;
+    const float B = 0.50;
+    const float C = 0.10;
+    const float D = 0.20;
+    const float E = 0.02;
+    const float F = 0.30;
+    return ((color * ( A * color + C * B) + D * E) / (color * (A * color + B) + D * F)) - E / F;
+}
+
+vec3 qt_toneMapFilmic(vec3 color)
+{
+    color = qt_toneMapFilmicSub(color * 2.0);
+    vec3 whiteScale = 1.0 / qt_toneMapFilmicSub(vec3(11.2, 11.2, 11.2));
+    return qt_linearTosRGB(color * whiteScale);
+}
+#endif
+
+// Call this method to perform tonemapping with the correct tonemapper
+vec3 qt_tonemap(vec3 color)
+{
+    // ACES
+#if QSSG_ENABLE_ACES_TONEMAPPING
+    return qt_toneMapACES(color);
+#endif
+    // Hejl-Dawson
+#if QSSG_ENABLE_HEJLDAWSON_TONEMAPPING
+    return qt_tonemapHejlDawson(color);
+#endif
+
+    // Filmic
+#if QSSG_ENABLE_FILMIC_TONEMAPPING
+    return qt_toneMapFilmic(color);
+#endif
+
+    // Linear
+#if QSSG_ENABLE_LINEAR_TONEMAPPING
+    return qt_linearTosRGB(color);
+#endif
+
+    return color;
+}
+
+vec4 qt_tonemap(vec4 color)
+{
+    return vec4(qt_tonemap(color.rgb), color.a);
+}
+
+#ifdef QSSG_RUNTIME_TONEMAPPING
+
+// This overload chooses the correct tonemapper at runtime
+vec3 qt_tonemap(vec3 color, bool sRgbsource, uint tonemap_mode)
+{
+    const int LINEAR = 1;
+    const int ACES = 2;
+    const int HEJLDAWSON = 3;
+    const int FILMIC = 4;
+
+    if (sRgbsource && tonemap_mode == LINEAR)
+        return color;
+
+    vec3 linear_color = sRgbsource ? qt_sRGBToLinear(color) : color;
+
+    switch (tonemap_mode) {
+#if QSSG_ENABLE_LINEAR_TONEMAPPING
+        case LINEAR:
+            return qt_linearTosRGB(linear_color);
+#endif
+#if QSSG_ENABLE_ACES_TONEMAPPING
+        case ACES:
+            return qt_toneMapACES(linear_color);
+#endif
+#if QSSG_ENABLE_HEJLDAWSON_TONEMAPPING
+        case HEJLDAWSON:
+            return qt_tonemapHejlDawson(linear_color);
+#endif
+#if QSSG_ENABLE_FILMIC_TONEMAPPING
+        case FILMIC:
+            return qt_toneMapFilmic(linear_color);
+#endif
+        default:
+            return linear_color;
+    }
+}
+
+vec4 qt_tonemap(vec4 color, bool sRgbsource, uint tonemap_mode)
+{
+    return vec4(qt_tonemap(color.rgb, sRgbsource, tonemap_mode), color.a);
+}
+
+#endif
+
+vec3 qt_exposure(vec3 color, float exposure)
+{
+#if QSSG_ENABLE_ACES_TONEMAPPING || QSSG_ENABLE_HEJLDAWSON_TONEMAPPING || QSSG_ENABLE_FILMIC_TONEMAPPING || QSSG_ENABLE_LINEAR_TONEMAPPING || QSSG_FORCE_IBL_EXPOSURE
+    return vec3(vec3(1.0) - exp(-color * exposure));
+#else
+    return color;
+#endif
+}
+
+#endif // TONEMAPPPING_GLSLIB

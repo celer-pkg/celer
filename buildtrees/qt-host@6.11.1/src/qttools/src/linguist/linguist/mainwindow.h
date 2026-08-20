@@ -1,0 +1,270 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
+
+#include "phrase.h"
+#include "ui_mainwindow.h"
+#include "recentfiles.h"
+#include "messagemodel.h"
+#include "finddialog.h"
+
+#include <QtCore/private/qconfig_p.h>
+
+#include <QtCore/QHash>
+#include <QtCore/QMap>
+#include <QtCore/QLocale>
+
+#include <QtWidgets/QMainWindow>
+
+QT_BEGIN_NAMESPACE
+
+class QPixmap;
+class QAction;
+class QDialog;
+class QLabel;
+class QMenu;
+class QPrinter;
+class QIcon;
+class QSortFilterProxyModel;
+class QStackedWidget;
+class QTableView;
+class QTreeView;
+
+class BatchTranslationDialog;
+class ErrorsView;
+class FocusWatcher;
+class HelpClient;
+class UiFormPreviewView;
+class QmlFormPreviewView;
+class MessageEditor;
+class PhraseView;
+class SourceCodeView;
+class Statistics;
+class TranslateDialog;
+class TranslationSettingsDialog;
+class SortedGroupsModel;
+class MachineTranslationDialog;
+
+enum class HelpClientType : quint8;
+
+class MainWindow : public QMainWindow
+{
+    Q_OBJECT
+public:
+    enum {PhraseCloseMenu, PhraseEditMenu, PhrasePrintMenu};
+    enum FindDirection {FindNext, FindPrev};
+
+    explicit MainWindow(HelpClientType helpClientType);
+    ~MainWindow();
+
+    bool openFiles(const QStringList &names);
+
+    static QString description();
+
+protected:
+    void readConfig();
+    void writeConfig();
+    void closeEvent(QCloseEvent *) override;
+    bool eventFilter(QObject *object, QEvent *event) override;
+
+private slots:
+    void done();
+    void doneAndNext();
+    void prev();
+    void next();
+    void recentFileActivated(QAction *action);
+    void setupRecentFilesMenu();
+    void open();
+    void openAux();
+    void saveAll();
+    void save();
+    void saveAs();
+    void releaseAll();
+    void release();
+    void releaseAs();
+    void closeFile();
+    bool closeAll();
+    void showTranslateDialog();
+    void showBatchTranslateDialog();
+    void showTranslationSettings();
+    void updateTranslateHit(bool &hit);
+    void translate(int mode);
+    void newPhraseBook();
+    void openPhraseBook();
+    void closePhraseBook(QAction *action);
+    void editPhraseBook(QAction *action);
+    void addToPhraseBook();
+    void manual();
+    void resetSorting();
+    void about();
+    void aboutQt();
+
+    void fileAboutToShow();
+    void editAboutToShow();
+
+    void showContextDock();
+    void showMessagesDock();
+    void showPhrasesDock();
+    void showSourceCodeDock();
+    void showErrorDock();
+
+    void setupPhrase();
+    bool maybeSaveAll();
+    bool maybeSave(int model);
+    void updateProgress();
+    void maybeUpdateStatistics(const MultiDataIndex &);
+    void translationChanged(const MultiDataIndex &);
+    void updateCaption();
+    void updateLatestModel(const QModelIndex &index);
+    void selectedContextChanged(const QModelIndex &sortedIndex, const QModelIndex &oldIndex);
+    void selectedLabelChanged(const QModelIndex &sortedIndex, const QModelIndex &oldIndex);
+    void selectedMessageChanged(const QModelIndex &sortedIndex, const QModelIndex &oldIndex);
+    void setCurrentMessageFromGuess(int modelIndex, const Candidate &tm);
+    void contextAndLabelTabChanged();
+
+    // To synchronize from the message editor to the model ...
+    void updateTranslation(const QStringList &translations);
+    void updateTranslatorComment(const QString &comment);
+
+    void updateVisibleColumns();
+    void updateActiveModel(int);
+    void refreshItemViews();
+    void toggleFinished(const QModelIndex &index);
+    void openMachineTranslateDialog();
+    void prevUnfinished();
+    void nextUnfinished();
+    void findNext(const QString &text, DataModel::FindLocation where,
+                  FindDialog::FindOptions options, int statusFilter);
+    void revalidate();
+    void showStatistics();
+    void toggleQmlPreview();
+    void toggleVisualizeWhitespace();
+    void onWhatsThis();
+    void updatePhraseDicts();
+    void updatePhraseDict(int model);
+
+#if QT_CONFIG(printsupport)
+    void print();
+    void printPhraseBook(QAction *action);
+#endif
+
+private:
+
+    friend class SortedGroupsModel;
+    QModelIndex nextGroup(const QModelIndex &index) const;
+    QModelIndex prevGroup(const QModelIndex &index) const;
+    QModelIndex firstMessage() const;
+    QModelIndex nextMessage(const QModelIndex &currentIndex, bool checkUnfinished = false) const;
+    QModelIndex prevMessage(const QModelIndex &currentIndex, bool checkUnfinished = false) const;
+    bool doNext(bool checkUnfinished);
+    bool doPrev(bool checkUnfinished);
+    void findAgain(FindDirection direction = FindNext);
+
+    void updateStatistics();
+    void initViewHeaders();
+    void modelCountChanged();
+    void setupMenuBar();
+    void setupToolBars();
+    void setCurrentMessage(const QModelIndex &index);
+    void setCurrentMessage(const QModelIndex &index, int model);
+    QModelIndex setMessageViewRoot(const QModelIndex &index);
+    QModelIndex currentMessageIndex() const;
+    PhraseBook *doOpenPhraseBook(const QString &name);
+    bool isPhraseBookOpen(const QString &name);
+    bool savePhraseBook(QString *name, PhraseBook &pb);
+    bool maybeSavePhraseBook(PhraseBook *phraseBook);
+    bool maybeSavePhraseBooks();
+    void pickTranslationFiles();
+    void doShowTranslationSettings(int model);
+    void doUpdateLatestModel(int model);
+    void updateSourceView(int model, MessageItem *item);
+    void updatePhraseBookActions();
+    void updatePhraseDictInternal(int model);
+    void releaseInternal(int model);
+    void saveInternal(int model);
+
+#if QT_CONFIG(printsupport)
+    QPrinter *printer();
+#endif
+
+    // FIXME: move to DataModel
+    void updateDanger(const MultiDataIndex &index, bool verbose);
+    void updateIcons();
+    bool searchItem(DataModel::FindLocation where, const QString &searchWhat);
+
+    std::unique_ptr<HelpClient> m_helpClient;
+
+    QTreeView *m_contextView;
+    QTreeView *m_labelView;
+    QTreeView *m_messageView;
+    MultiDataModel *m_dataModel;
+    MessageModel *m_idBasedMessageModel;
+    MessageModel *m_textBasedMessageModel;
+    MessageModel *m_activeMessageModel;
+    QSortFilterProxyModel *m_sortedContextsModel;
+    QSortFilterProxyModel *m_sortedLabelsModel;
+    QSortFilterProxyModel *m_activeSortedGroupsModel;
+    QSortFilterProxyModel *m_sortedIdBasedMessagesModel;
+    QSortFilterProxyModel *m_sortedTextBasedMessagesModel;
+    QSortFilterProxyModel *m_activeSortedMessagesModel;
+    MessageEditor *m_messageEditor;
+    PhraseView *m_phraseView;
+    QStackedWidget *m_sourceAndFormView;
+    QTabWidget *m_contextAndLabelView;
+    SourceCodeView *m_sourceCodeView;
+    UiFormPreviewView *m_uiFormPreviewView;
+    QmlFormPreviewView *m_qmlFormPreviewView;
+    ErrorsView *m_errorsView;
+    QLabel *m_progressLabel;
+    QLabel *m_modifiedLabel;
+    FocusWatcher *m_focusWatcher;
+    QString m_phraseBookDir;
+    // model : keyword -> list of appropriate phrases in the phrasebooks
+    QList<QHash<QString, QList<Phrase *> > > m_phraseDict;
+    QList<PhraseBook *> m_phraseBooks;
+    QMap<QAction *, PhraseBook *> m_phraseBookMenu[3];
+#if QT_CONFIG(printsupport)
+    QPrinter *m_printer = nullptr;
+#endif
+
+    FindDialog *m_findDialog;
+    QString m_findText;
+    FindDialog::FindOptions m_findOptions;
+    int m_findStatusFilter = -1;
+    DataModel::FindLocation m_findWhere;
+
+    TranslateDialog *m_translateDialog;
+    QString m_latestFindText;
+    int m_latestCaseSensitivity;
+    QModelIndex m_searchIndex;
+    int m_hitCount;
+
+    BatchTranslationDialog *m_batchTranslateDialog;
+    TranslationSettingsDialog *m_translationSettingsDialog;
+
+    bool m_settingCurrentMessage;
+    std::optional<TranslationType> m_activeTranslationType;
+    int m_fileActiveModel;
+    int m_editActiveModel;
+    MultiDataIndex m_currentIndex;
+    QDockWidget *m_contextAndLabelDock;
+    QDockWidget *m_messagesDock;
+    QDockWidget *m_phrasesDock;
+    QDockWidget *m_sourceAndFormDock;
+    QDockWidget *m_errorsDock;
+
+    Ui::MainWindow m_ui;    // menus and actions
+    Statistics *m_statistics;
+    RecentFiles m_recentFiles;
+    MachineTranslationDialog *m_machineTranslationDialog = 0;
+    bool m_globalReadWrite = true;
+#ifdef Q_OS_WASM
+    QMap<QString, QString> m_wasmFileMap;
+#endif // Q_OS_WASM
+};
+
+QT_END_NAMESPACE
+
+#endif

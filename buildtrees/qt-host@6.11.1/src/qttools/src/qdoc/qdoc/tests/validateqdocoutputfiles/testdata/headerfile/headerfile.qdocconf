@@ -1,0 +1,27 @@
+project = HeaderFile
+productname = Qt
+
+sources.fileextensions = "*.qml *.cpp *.qdoc"
+headers.fileextensions = "*.h"
+
+# images
+imagedirs = ./src/images
+
+# zero warning policy
+warninglimit = 0
+warninglimit.enabled = true
+
+# don't write host system-specific paths to index files
+locationinfo = false
+
+moduleheader = .src/testheader.h
+
+{includepaths,sourcedirs,headerdirs} += ./src
+
+outputformats = HTML WebXML DocBook
+HTML.nosubdirs = true
+HTML.outputsubdir = html
+WebXML.nosubdirs = true
+WebXML.outputsubdir = webxml
+DocBook.nosubdirs = true
+DocBook.outputsubdir = docbook

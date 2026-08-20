@@ -1,0 +1,19 @@
+{
+    "Id": "yoga",
+    "Name": "Yoga",
+    "QDocModule": "qtquick",
+    "QtUsage": "Used in QtQuick.Layouts",
+    "Homepage": "https://www.yogalayout.dev/",
+    "Version": "2.0.1",
+    "DownloadLocation": "https://github.com/facebook/yoga/tree/v2.0.1",
+    "Description": "Facebook's Yoga is an open-source layout engine written in C/C++ that implements a subset of CSS Flexbox. It's designed to be embedded into various frameworks and platforms, providing a fast and efficient way to manage user interface layouts across different environments.",
+    "PURL": [
+        "pkg:github/facebook/yoga@v$<VERSION>"
+    ],
+    "Comment": "No relevant CPE found",
+    "License": "MIT License",
+    "LicenseId": "MIT",
+    "LicenseFile": "LICENSE",
+    "Copyright": ["Copyright (c) Facebook, Inc. and its affiliates.",
+    "Copyright (c) Meta Platforms, Inc. and affiliates."]
+}

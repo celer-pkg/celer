@@ -1,0 +1,77 @@
+# Copyright 2025 The Chromium Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# TODO(chinglinyu) in the included module, there are several perfetto macros
+# that transforms the results in table "uma_histogram_summaries" table lookup
+# to convert enum values to string representations. The macros are called from
+# templated probe configs. We need to figure out how to emit those metrics.
+query {
+  id: "uma_histogram_summaries_query"
+  table {
+    table_name: "uma_histogram_summaries"
+    module_name: "sql_packages.queries.uma_histogram_summaries"
+    column_names: "hist_name"
+    column_names: "enum_name"
+    column_names: "avg"
+    column_names: "count"
+    column_names: "total"
+    column_names: "max"
+    column_names: "p90"
+    column_names: "p50"
+  }
+}
+
+metric_spec: {
+  id: "cuj.uma_histogram_summaries.avg"
+  dimensions: "hist_name"
+  value: "avg"
+  query: {
+    inner_query_id: "uma_histogram_summaries_query"
+  }
+}
+
+metric_spec: {
+  id: "cuj.uma_histogram_summaries.count"
+  dimensions: "hist_name"
+  value: "count"
+  query: {
+    inner_query_id: "uma_histogram_summaries_query"
+  }
+}
+
+metric_spec: {
+  id: "cuj.uma_histogram_summaries.total"
+  dimensions: "hist_name"
+  value: "total"
+  query: {
+    inner_query_id: "uma_histogram_summaries_query"
+  }
+}
+
+metric_spec: {
+  id: "cuj.uma_histogram_summaries.max"
+  dimensions: "hist_name"
+  value: "max"
+  query: {
+    inner_query_id: "uma_histogram_summaries_query"
+  }
+}
+
+metric_spec: {
+  id: "cuj.uma_histogram_summaries.p90"
+  dimensions: "hist_name"
+  value: "p90"
+  query: {
+    inner_query_id: "uma_histogram_summaries_query"
+  }
+}
+
+metric_spec: {
+  id: "cuj.uma_histogram_summaries.p50"
+  dimensions: "hist_name"
+  value: "p50"
+  query: {
+    inner_query_id: "uma_histogram_summaries_query"
+  }
+}

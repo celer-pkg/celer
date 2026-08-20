@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<protocol name="example_shell">
+    <copyright>
+ Copyright (C) 2021 The Qt Company Ltd.
+ SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+    </copyright>
+
+  <interface name="qt_example_shell_surface" version="1">
+    <request name="destroy" type="destructor">
+    </request>
+
+    <request name="set_window_title">
+        <arg name="window_title" type="string" />
+    </request>
+
+    <request name="set_minimized">
+        <arg name="minimized" type="uint" />
+    </request>
+    <event name="minimize">
+      <arg name="minimized" type="uint"/>
+    </event>
+  </interface>
+
+  <interface name="qt_example_shell" version="1">
+    <request name="surface_create">
+      <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="id" type="new_id" interface="qt_example_shell_surface"/>
+    </request>
+    <enum name="error">
+      <entry name="role" value="0" summary="wl_surface already has a different role"/>
+    </enum>
+  </interface>
+
+</protocol>

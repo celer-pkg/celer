@@ -1,0 +1,34 @@
+<svg viewBox="-10 -10 340 220" xmlns="http://www.w3.org/2000/svg">
+  <mask x="10%" y="10%" width="20%" height="90%" maskUnits="objectBoundingBox" id="myMask">
+    <g>
+        <rect x="0" y="0" width="340" height="120" fill="white" />
+        <path
+          d="M10,35 A20,20,0,0,1,50,35 A20,20,0,0,1,90,35 Q90,65,50,95 Q10,65,10,35 Z"
+          fill="black" />
+    </g>
+  </mask>
+  
+  <mask x="10%" y="10%" width="70%" height="90%" maskUnits="userSpaceOnUse" id="myMask2">
+    <g>
+        <rect x="0" y="0" width="340" height="120" fill="white" />
+        <path
+          d="M10,35 A20,20,0,0,1,50,35 A20,20,0,0,1,90,35 Q90,65,50,95 Q10,65,10,35 Z"
+          fill="black" />
+    </g>
+  </mask>
+  
+  
+  <polygon points="-10,110 110,110 110,-10" fill="orange" />
+  <polygon transform="translate(110, 0)" points="-10,110 110,110 110,-10" fill="orange" />
+  <polygon transform="translate(220, 0)" points="-10,110 110,110 110,-10" fill="orange" />
+  
+  <rect transform="translate(0, 0)" x="0" y="0" width="100" height="100" opacity="0.5" mask="url(#myMask)" />
+  <rect transform="translate(110, 0) scale(1.2 1.5) rotate(50 50 45)" x="0" y="0" width="100" height="100" opacity="0.5" fill="blue" mask="url(#myMask2)" />
+  
+  <rect transform="translate(110, 0) scale(1.2 1.5) rotate(50 50 45)" x="0" y="0" width="100" height="100" opacity="0.5" mask="url(#myMask)" />
+  <rect transform="translate(0, 0)" x="0" y="0" width="100" height="100" opacity="0.5" fill="blue" mask="url(#myMask2)" />
+  
+  <rect transform="translate(0, 0)" x="220" y="0" width="100" height="100" opacity="0.5" mask="url(#myMask)" />
+  <rect transform="translate(0, 0)" x="220" y="0" width="100" height="100" opacity="0.5" fill="blue" mask="url(#myMask2)" />
+  
+</svg>

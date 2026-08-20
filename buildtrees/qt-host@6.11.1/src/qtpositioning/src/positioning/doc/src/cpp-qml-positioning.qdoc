@@ -1,0 +1,90 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page positioning-cpp-qml.html
+\title Interfaces between C++ and QML Code in Qt Positioning
+
+\brief Describes the methods used to exchange position data between C++ and QML
+code.
+
+\section1 Overview
+
+Qt Positioning utilizes two methods to simplify exchange of position data
+between C++ and QML code.
+
+
+\target Cpp_value_integration_positioning
+
+\section1 Direct mapping
+
+Qt Positioning allow you to pass the following value types from QML to C++, and
+vice versa:
+
+ \table
+ \header
+ \li C++ Class
+ \li QML Value Type
+ \row
+ \li \l[C++]QGeoCircle
+ \li \l[QML]geoCircle
+ \row
+ \li \l[C++]QGeoCoordinate
+ \li \l[QML]geoCoordinate
+ \row
+ \li \l[C++]QGeoPath
+ \li \l[QML]geoPath
+ \row
+ \li \l[C++]QGeoPolygon
+ \li \l[QML]geoPolygon
+ \row
+ \li \l[C++]QGeoRectangle
+ \li \l[QML]geoRectangle
+ \row
+ \li \l[C++]QGeoSatelliteInfo
+ \li \l[QML]geoSatelliteInfo
+ \row
+ \li \l[C++]QGeoShape
+ \li \l[QML]geoShape
+\endtable
+
+\section1 QVariant Based integration
+
+This section provides information on how to integrate QGeoAddress and
+QGeoLocation.
+
+\section2 Address - QGeoAddress
+
+The \l {QtPositioning::Address::address} {Address.address} property is used to
+provide an interface between C++ and QML code.  First a pointer to an
+\l {QtPositioning::}{Address} object must be obtained from C++, then the
+\l {QObject::}{property()} and \l {QObject::}{setProperty()} functions must be
+used to get and set the \c address property.
+
+The following piece of code gets the \l QGeoAddress object from C++:
+
+\snippet cpp/cppqml.cpp Address get
+
+The following piece of code sets the address property of the QML object based
+on a \l QGeoAddress object from C++:
+
+\snippet cpp/cppqml.cpp Address set
+
+
+\section2 Location - QGeoLocation
+The \l {Location::location} {Location.location} property is used to provide an
+interface between C++ and QML code.  First a pointer to a \l Location object
+must be obtained from C++, then the \l {QObject::}{property()} and
+\l {QObject::}{setProperty()} functions must be used to get and set the
+\c location property.
+
+The following piece of code gets the \l QGeoLocation object from C++:
+
+\snippet cpp/cppqml.cpp Location get
+
+The following piece of code sets the location property of the QML object based
+on a \l QGeoLocation object from C++:
+
+\snippet cpp/cppqml.cpp Location set
+
+*/

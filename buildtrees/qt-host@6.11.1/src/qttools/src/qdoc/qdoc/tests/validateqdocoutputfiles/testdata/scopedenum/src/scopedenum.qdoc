@@ -1,0 +1,43 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \enum TestQDoc::Test::ClassicEnum
+
+    \value Yee
+    \value Haw
+    \value Howdy
+    \value Partner
+*/
+
+/*!
+    \enum TestQDoc::Test::ScopedEnum
+    \brief This enum has a brief to trigger a bug in CMD_BRIEF.
+    \omitvalue UselessValue
+    \value This Something
+    \value That Something else
+    \omitvalue OmittedValue \omit Unused -
+               This decription is omitted \endomit
+    \value [since 2.0] All  Everything
+    \omitvalue VeryLastValue
+               Nothing here
+
+    A scoped enum.
+*/
+
+/*!
+    \page scoped-enum-linking.html
+    \title Enum Linking
+
+    Linking to \l {TestQDoc::Test::ScopedEnum::}{All}.
+
+    TestQDoc::Test::ClassicEnum::Howdy links,
+    and TestQDoc::Test::Howdy might also link.
+*/
+
+/*!
+    \page whatsnew.html
+    \title New Classes and Functions
+    \brief New classes documentation
+    \sincelist 2.0
+*/

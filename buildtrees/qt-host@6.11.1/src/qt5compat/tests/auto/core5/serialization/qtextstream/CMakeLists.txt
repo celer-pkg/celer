@@ -1,0 +1,23 @@
+# Copyright (C) 2022 The Qt Company Ltd.
+# SPDX-License-Identifier: BSD-3-Clause
+
+# Generated from qtextstream.pro.
+
+#####################################################################
+## tst_qtextstream Test:
+#####################################################################
+
+if(NOT QT_BUILD_STANDALONE_TESTS AND NOT QT_BUILDING_QT)
+    cmake_minimum_required(VERSION 3.16)
+    project(tst_qt5compat_qtextstream LANGUAGES CXX)
+    find_package(Qt6BuildInternals REQUIRED COMPONENTS STANDALONE_TEST)
+endif()
+
+# special case begin
+qt_internal_add_test(tst_qt5compat_qtextstream
+# special case end
+    SOURCES
+        tst_qtextstream.cpp
+    LIBRARIES
+        Qt::Core5Compat
+)

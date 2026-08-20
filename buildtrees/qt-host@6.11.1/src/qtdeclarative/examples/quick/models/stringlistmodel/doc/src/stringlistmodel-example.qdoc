@@ -1,0 +1,11 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example models/stringlistmodel
+    \title Models and Views: String ListModel Example
+    \brief Shows how to use a QStringList as a model in QML.
+    \examplecategory {User Interface Components}
+
+    \image qml-stringlistmodel-example.png
+*/

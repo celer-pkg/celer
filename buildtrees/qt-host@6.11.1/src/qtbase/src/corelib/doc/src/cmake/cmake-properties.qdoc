@@ -1,0 +1,853 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\group cmake-target-properties-qtcore
+\title CMake Target Properties in Qt6 Core
+\brief Lists CMake target properties known to Qt6::Core.
+
+\l{CMake Commands in Qt6 Core}{CMake Commands} know about the following CMake
+target properties:
+
+\sa{CMake Property Reference}
+*/
+
+/*!
+\page cmake-target-property-qt-android-deployment-dependencies.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+\ingroup cmake-android-build-properties
+
+\title QT_ANDROID_DEPLOYMENT_DEPENDENCIES
+\target cmake-target-property-QT_ANDROID_DEPLOYMENT_DEPENDENCIES
+
+\brief Overrides the Qt dependencies added to the target's deployment.
+
+\cmakepropertysince 6.0
+\preliminarycmakeproperty
+\cmakepropertyandroidonly
+
+By default, \l androiddeployqt will detect the dependencies of your
+application. However, since run-time usage of plugins cannot be detected,
+there could be false positives, as your application might depend on any
+plugin that is a potential dependency. If you want to minimize the size of
+your \c APK, it's possible to override the automatic detection using this
+property. This should contain a list of all Qt files which need to be
+included, with paths relative to the Qt install root.
+
+\note Only the Qt files specified with this variable are included. Failing
+to include all the correct files can result in crashes. It's also important
+to make sure the files are listed in the correct loading order. This variable
+provides a way to override the automatic detection entirely, so if a library
+is listed before its dependencies, it will fail to load on some devices.
+
+\sa{qt6_android_generate_deployment_settings}{qt_android_generate_deployment_settings()}
+*/
+
+/*!
+\page cmake-target-property-qt-android-extra-libs.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+\ingroup cmake-android-build-properties
+
+\title QT_ANDROID_EXTRA_LIBS
+\target cmake-target-property-QT_ANDROID_EXTRA_LIBS
+
+\summary {Extra libraries to deploy with the target.}
+
+\cmakepropertysince 6.0
+\cmakepropertyandroidonly
+
+A list of external libraries that will be copied into your application's
+\c libs folder and loaded on start-up. This can be used, for instance,
+to enable OpenSSL in your application. For more information, see
+\l{Adding OpenSSL Support for Android}.
+
+When adding extra libraries from the build tree of your project, it's also
+necessary to add dependency relations between library and the application
+target. Using the following project structure may cause an issue, when deploying
+an apk:
+\badcode
+qt_add_executable(MyApp main.cpp)
+
+set_target_properties(MyApp PROPERTIES
+    QT_ANDROID_EXTRA_LIBS
+        ${CMAKE_CURRENT_BINARY_DIR}/libMyService_${ANDROID_ABI}.so
+)
+
+# MyService library doesn't have any relations with MyApp
+qt_add_library(MyService service.cpp)
+\endcode
+
+This leads to uncertainty whether MyService library will be available before
+the deployment of MyApp or not. The easiest solution is adding MyService
+library to the MyApp dependencies:
+\badcode
+add_dependencies(MyApp MyService)
+\endcode
+
+When adding per-architecture libraries to a multi-abi project,
+list all their paths explicitly, rather than rely on variables like
+\c CMAKE_ANDROID_ARCH_ABI to dynamically compute the paths.
+
+Prefer:
+
+\badcode
+set(libs
+    ${CMAKE_CURRENT_BINARY_DIR}/libA_x86so
+    ${CMAKE_CURRENT_BINARY_DIR}/libA_x86_64.so
+    ${CMAKE_CURRENT_BINARY_DIR}/libA_arm64-v8a.so
+    ${CMAKE_CURRENT_BINARY_DIR}/libA_armeabi-v7a.so
+)
+set_target_properties(MyApp PROPERTIES QT_ANDROID_EXTRA_LIBS ${libs})
+
+# When targeting precompiled libs
+target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC libA_${ANDROID_ABI})
+\endcode
+
+over:
+
+\badcode
+set_target_properties(MyApp PROPERTIES
+    QT_ANDROID_EXTRA_LIBS
+        ${CMAKE_CURRENT_BINARY_DIR}/libA_${CMAKE_ANDROID_ARCH_ABI}.so)
+\endcode
+
+\sa{qt6_android_generate_deployment_settings}{qt_android_generate_deployment_settings()}
+*/
+
+/*!
+\page cmake-target-property-qt-android-extra-plugins.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+\ingroup cmake-android-build-properties
+
+\title QT_ANDROID_EXTRA_PLUGINS
+\target cmake-target-property-QT_ANDROID_EXTRA_PLUGINS
+
+\summary {Extra Qt plugins to deploy with the target.}
+
+\cmakepropertysince 6.0
+\cmakepropertyandroidonly
+
+Specifies a path to C++ plugins or resources that your application has to bundle
+but that cannot be delivered through the assets system, such as QML plugins.
+With this variable, \l androiddeployqt will make sure everything is packaged
+and deployed properly.
+
+\c QT_ANDROID_EXTRA_PLUGINS must point to the directory where the extra plugin(s)
+are built. In addition, the build directory structure must follow a naming
+convention similar to Qt plugins, that is, \e {plugins/<plugin name>}.
+\c QT_ANDROID_EXTRA_PLUGINS should point to the \e {plugins} part of that path.
+
+The plugins libraries should have the name format
+\e {libplugins_<type>_<name>_<abi>.so}. This will ensure that the correct name
+mangling is applied to the plugin library.
+
+\sa{qt6_android_generate_deployment_settings}{qt_android_generate_deployment_settings()}
+*/
+
+/*!
+\page cmake-target-property-qt-android-min-sdk-version.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+\ingroup cmake-android-build-properties
+
+\title QT_ANDROID_MIN_SDK_VERSION
+\target cmake-target-property-QT_ANDROID_MIN_SDK_VERSION
+
+\summary {Minimum Android SDK version.}
+
+\cmakepropertysince 6.1
+\cmakepropertyandroidonly
+
+Specifies the minimum Android API level for the target.
+
+\sa{qt6_android_generate_deployment_settings}{qt_android_generate_deployment_settings()}
+*/
+
+/*!
+\page cmake-target-property-qt-android-package-source-dir.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+\ingroup cmake-android-build-properties
+
+\title QT_ANDROID_PACKAGE_SOURCE_DIR
+\target cmake-target-property-QT_ANDROID_PACKAGE_SOURCE_DIR
+
+\summary {Path to a custom Android package template.}
+
+\cmakepropertysince 6.0
+\cmakepropertyandroidonly
+
+Specifies the path for a custom Android package template. The Android package
+template contains:
+\list
+    \li AndroidManifest.xml file
+    \li build.gradle file and other Gradle scripts
+    \li res/values/libs.xml file
+\endlist
+
+The path specified by this variable can contain custom Java classes under
+\c src directory. By default, the \l androiddeployqt tool copies the
+application template from the \Q4A installation path into your
+project's build directory, then it copies the contents of the path specified
+by this variable on top of that, overwriting any existing files. For
+instance, you can make a custom \c {AndroidManifest.xml} for your application,
+then place this directly into the directory specified by this variable.
+
+\sa{qt6_android_generate_deployment_settings}{qt_android_generate_deployment_settings()}
+*/
+
+/*!
+\page cmake-target-property-qt-android-target-sdk-version.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+\ingroup cmake-android-build-properties
+
+\title QT_ANDROID_TARGET_SDK_VERSION
+\target cmake-target-property-QT_ANDROID_TARGET_SDK_VERSION
+
+\summary {Android target SDK version.}
+
+\cmakepropertysince 6.1
+\cmakepropertyandroidonly
+
+Specifies the target Android API level for the target.
+
+\sa{qt6_android_generate_deployment_settings}{qt_android_generate_deployment_settings()}
+*/
+
+/*!
+\page cmake-target-property-qt-android-compile-sdk-version.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+\ingroup cmake-android-build-properties
+
+\title QT_ANDROID_COMPILE_SDK_VERSION
+\target cmake-target-property-QT_ANDROID_COMPILE_SDK_VERSION
+
+\summary {Android target SDK version.}
+
+\cmakepropertysince 6.9
+\cmakepropertyandroidonly
+
+Specifies the version of the Android SDK against which your application is compiled.
+This is propagated to \c {build.gradle} as \c compileSdkVersion. This value can be
+provided via \l {androiddeployqt}'s \c {--android-platform} parameter which takes
+precedence over this CMake property.
+
+\badcode
+set_target_properties(${target} PROPERTIES
+    QT_ANDROID_COMPILE_SDK_VERSION 36
+)
+\endcode
+
+The following format also works:
+
+\badcode
+set_target_properties(${target} PROPERTIES
+ QT_ANDROID_COMPILE_SDK_VERSION "android-36"
+)
+\endcode
+
+\sa{qt6_android_generate_deployment_settings}{qt_android_generate_deployment_settings()}
+\sa QT_ANDROID_TARGET_SDK_VERSION
+*/
+
+/*!
+\page cmake-target-property-qt-android-sdk-build-tools-revision.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+\ingroup cmake-android-build-properties
+
+\title QT_ANDROID_SDK_BUILD_TOOLS_REVISION
+\target cmake-target-property-QT_ANDROID_SDK_BUILD_TOOLS_REVISION
+
+\summary {Revision of Android build tools to use.}
+
+\cmakepropertysince 6.0
+\cmakepropertyandroidonly
+
+Specifies the Android SDK build tools revision to use. If this is not set then
+CMake will attempt to use the latest installed version.
+
+\sa{qt6_android_generate_deployment_settings}{qt_android_generate_deployment_settings()}
+*/
+
+/*!
+\page cmake-target-property-qt-android-package-name.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+\ingroup cmake-android-build-properties
+
+\title QT_ANDROID_PACKAGE_NAME
+\target cmake-target-property-QT_ANDROID_PACKAGE_NAME
+
+\summary {The app's package name.}
+
+\cmakepropertysince 6.8
+\cmakepropertyandroidonly
+
+Specifies the app's package name. This is usually a unique dot separated
+name for the app, that will be used to identify the app on devices or in
+the Play Store. For example, "org.qtproject.gallery".
+
+\badcode
+set_target_properties(${target} PROPERTIES
+    QT_ANDROID_PACKAGE_NAME "org.qtproject.gallery"
+)
+\endcode
+
+The package name set by this property is passed to the \c build.gradle file
+as a \c namespace property, instead of \c AndroidManifest.xml, since the
+latter is deprecated since Android Gradle Plugin 7.4.
+
+The package name considers some words or characters as illegal and the build
+will clean such names if any is encountered. An underscore (\c _) either replaces
+illegal characters or is appended to illegal words.
+
+\list
+    \li Allowed characters: alphanumeric, an underscore or a dot [a-zA-Z0-9_.].
+    \li Illegal words: abstract, continue, for, new, switch, assert, default,
+        if, package, synchronized, boolean, do, goto, private, this, break,
+        double, implements, protected, throw, byte, else, import, public,
+        throws, case, enum, instanceof, return, transient, catch, extends,
+        int, short, try, char, final, interface, static, void, class, finally,
+        long, strictfp, volatile, const, float, native, super, while.
+\endlist
+
+The default package name for \Q4A apps is \c org.qtproject.example.<target_name>.
+
+\note Setting the package name manually in \c build.gradle (via
+\c namespace property) takes precedence over \c AndroidManifest.xml
+(via \c package attribute), and the latter also takes precedence over
+this property.
+
+For more information, see Android's
+\l{Android: Configure the app module}{configure the app module}.
+
+\sa{qt6_android_generate_deployment_settings}{qt_android_generate_deployment_settings()}
+*/
+
+/*!
+\page cmake-target-property-qt-android-app-name.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+
+\title QT_ANDROID_APP_NAME
+\target cmake-target-property-QT_ANDROID_APP_NAME
+\ingroup cmake-android-manifest-properties
+
+\summary {The Android app's name.}
+
+\cmakepropertysince 6.9
+\cmakepropertyandroidonly
+
+Specifies the app's name that's shown in the launcher. This is human readable name
+of the app, and it is different from the \l {QT_ANDROID_PACKAGE_NAME}{package name}
+of the app. This doesn't do anything if the name is set explicitly in the
+\c {AndroidManifest.xml}.
+
+\badcode
+set_target_properties(${target} PROPERTIES
+    QT_ANDROID_APP_NAME "Gallery"
+)
+\endcode
+
+\sa{qt6_android_generate_deployment_settings}{qt_android_generate_deployment_settings()}
+\sa {QT_ANDROID_PACKAGE_NAME}
+*/
+
+/*!
+\page cmake-target-property-qt-android-app-icon.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+
+\title QT_ANDROID_APP_ICON
+\target cmake-target-property-QT_ANDROID_APP_ICON
+\ingroup cmake-android-manifest-properties
+
+\summary {The Android app's icon resource name.}
+
+\cmakepropertysince 6.9
+\cmakepropertyandroidonly
+
+Specifies the app's icon name as an Android drawable or mipmap reference.
+This only works if the \c {AndroidManifest.xml} file contains the placeholder
+or when the \c {AndroidManifest.xml} is managed by Qt.
+
+\badcode
+<application
+    ...
+    android:icon="-- %%INSERT_APP_ICON%% --"
+    ...
+>
+\endcode
+
+You can use this property as follows:
+
+\badcode
+set_target_properties(${target} PROPERTIES
+    QT_ANDROID_APP_ICON "@mipmap/ic_launcher"
+)
+\endcode
+
+Or using drawables:
+
+\badcode
+set_target_properties(${target} PROPERTIES
+    QT_ANDROID_APP_ICON "@drawable/ic_launcher"
+)
+\endcode
+
+\sa{qt6_android_generate_deployment_settings}{qt_android_generate_deployment_settings()}
+*/
+
+/*!
+\page cmake-target-property-qt-android-legacy-packaging.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+
+\title QT_ANDROID_LEGACY_PACKAGING
+\target cmake-target-property-QT_ANDROID_LEGACY_PACKAGING
+
+\summary {The Android app legacy packaging.}
+
+\cmakepropertysince 6.11
+\cmakepropertyandroidonly
+
+Specifies whether the app uses legacy packaging. When legacy packaging is set to
+\c TRUE, the app APK will store compressed libraries that are extracted on the
+device during installation, and the app would load those libraries. Otherwise,
+when set to \c FALSE, the libraries will remain uncompressed and the app can load
+them directly from the APK package and the libraries are mapped to memory when
+used.
+
+\badcode
+set_target_properties(${target} PROPERTIES
+    QT_ANDROID_LEGACY_PACKAGING TRUE
+)
+\endcode
+
+\note Using the Address Sanitizer require this to be set to \c TRUE.
+
+\sa{qt6_android_generate_deployment_settings}{qt_android_generate_deployment_settings()}
+*/
+
+/*!
+\page cmake-target-property-qt-android-version-code.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+
+\title QT_ANDROID_VERSION_CODE
+\target cmake-target-property-QT_ANDROID_VERSION_CODE
+\ingroup cmake-android-manifest-properties
+
+\summary {Internal Android app version.}
+
+\cmakepropertysince 6.1
+\cmakepropertyandroidonly
+
+Specifies the app's version number. This is usually a number that
+increments monotonically with each release of your project.
+
+For more information, see \l{Android: App Versioning}{Android App Versioning}.
+
+\sa{qt6_android_generate_deployment_settings}{qt_android_generate_deployment_settings()}
+*/
+
+/*!
+\page cmake-target-property-qt-android-version-name.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+
+\title QT_ANDROID_VERSION_NAME
+\target cmake-target-property-QT_ANDROID_VERSION_NAME
+\ingroup cmake-android-manifest-properties
+
+\summary {Human-readable Android app version.}
+
+\cmakepropertysince 6.1
+\cmakepropertyandroidonly
+
+Specifies the app's version as a human readable string, usually three
+numbers, separated by dots.
+
+For more information, see \l{Android: App Versioning}{Android App Versioning}.
+
+\sa{qt6_android_generate_deployment_settings}{qt_android_generate_deployment_settings()}
+*/
+
+/*!
+\page cmake-target-property-qt-android-abis.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+\ingroup cmake-android-build-properties
+
+\title QT_ANDROID_ABIS
+\target cmake-target-property-QT_ANDROID_ABIS
+
+\summary {List of ABIs that packages of a single target are built for.}
+
+\cmakepropertysince 6.3
+\cmakepropertyandroidonly
+
+By setting the \c{QT_ANDROID_ABIS} property for a target, it's possible to control
+the list of ABIs that the single target packages are supposed to be built for.
+\include cmake-android-supported-abis.qdocinc
+The property only affects targets created with
+\l{qt6_add_executable}{qt_add_executable()}.
+
+\sa{cmake-variable-QT_ANDROID_ABIS}{QT_ANDROID_ABIS}, {QT_ANDROID_BUILD_ALL_ABIS}
+*/
+
+/*!
+\page cmake-target-property-qt-qml-root-path.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+
+\title QT_QML_ROOT_PATH
+\target cmake-target-property-QT_QML_ROOT_PATH
+
+\summary {Overrides the location of the application's qml directory.}
+
+\cmakepropertysince 6.1
+\preliminarycmakeproperty
+
+This property is currently only used when generating a deployment settings file
+for Android. If the property is set, it specifies the path to the application's
+\c{qml} directory. If it is not set, the \c{SOURCE_DIR} property of the target
+will be used instead.
+
+\sa{qt6_android_generate_deployment_settings}{qt_android_generate_deployment_settings()}
+*/
+
+/*!
+\page cmake-target-property-qt-qml-import-path.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+
+\title QT_QML_IMPORT_PATH
+\target cmake-target-property-QT_QML_IMPORT_PATH
+
+\summary {Specifies a list of directories to search for QML imports.}
+
+\cmakepropertysince 6.0
+\preliminarycmakeproperty
+
+This property is currently only used when generating a deployment settings file
+for Android. It typically contains just the path to Qt's \c{qml} directory, but
+it can be a list that contains other locations to be searched as well.
+For application-specific QML imports, use
+\l{cmake-target-property-QT_QML_ROOT_PATH}{QT_QML_ROOT_PATH} instead.
+
+\sa{qt6_android_generate_deployment_settings}{qt_android_generate_deployment_settings()}
+*/
+
+/*!
+\page cmake-target-property-qt-android-deployment-settings-file.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+\ingroup cmake-android-build-properties
+
+\title QT_ANDROID_DEPLOYMENT_SETTINGS_FILE
+\target cmake-target-property-QT_ANDROID_DEPLOYMENT_SETTINGS_FILE
+
+\summary {Specifies the location of a target's generated deployment settings file.}
+
+\cmakepropertysince 6.0
+\preliminarycmakeproperty
+\cmakepropertyandroidonly
+
+This property will be set by
+\l{qt6_android_generate_deployment_settings}{qt_android_generate_deployment_settings()}.
+Projects should not try to set this property themselves, as it will be ignored
+and overwritten by that command.
+*/
+
+/*!
+\page cmake-target-property-qt-android-system-libs-prefix.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+\ingroup cmake-android-build-properties
+
+\title QT_ANDROID_SYSTEM_LIBS_PREFIX
+\target cmake-target-property-QT_ANDROID_SYSTEM_LIBS_PREFIX
+
+\summary {Specifies the location of Qt libraries on the target device.}
+
+\cmakepropertysince 6.4
+\cmakepropertyandroidonly
+
+This property can be set to provide a path to Qt libraries on the target device,
+when those libraries are installed outside app's native (JNI) library directory.
+*/
+
+/*!
+\page cmake-target-property-qt-android-no-deploy-qt-libs.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+\ingroup cmake-android-build-properties
+
+\title QT_ANDROID_NO_DEPLOY_QT_LIBS
+\target cmake-target-property-QT_ANDROID_NO_DEPLOY_QT_LIBS
+
+\summary {Whether Qt shared libraries are packaged in the APK on Android.}
+
+\cmakepropertysince 6.4
+\cmakepropertyandroidonly
+
+This property can be set to not package Qt shared libraries inside the APK when
+deploying the target. Use
+\l{cmake-target-property-QT_ANDROID_SYSTEM_LIBS_PREFIX}{QT_ANDROID_SYSTEM_LIBS_PREFIX}
+to provide a path to where those libraries will be located on the target device
+instead.
+
+\note Only supported when deploying as an APK.
+*/
+
+/*!
+\page cmake-target-property-qt-no-entrypoint.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+
+\title qt_no_entrypoint
+\target cmake-target-property-qt_no_entrypoint
+
+\summary {Specifies to inhibit linking against Qt's entrypoint lib.}
+
+\cmakepropertysince 6.1
+\preliminarycmakeproperty
+
+On certain platforms, Qt applications link against Qt's entrypoint lib by default.
+That library provides implementations of main (or WinMain).
+
+On targets that must provide their own entry point, set the property \c qt_no_entrypoint to inhibit linking against Qt's entrypoint library.
+*/
+
+/*!
+\page cmake-target-property-qt-no-utf8-source.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+
+\title QT_NO_UTF8_SOURCE
+\target cmake-target-property-QT_NO_UTF8_SOURCE
+
+\summary {Prevents forcing source files to be treated as UTF-8 for Windows.}
+
+\cmakepropertysince 6.0
+
+When building with some compilers for Windows, targets that link to a Qt library
+will use flags that force the compiler to treat its source files as UTF-8. This
+is currently implemented for Visual Studio and Intel compilers. You can disable
+this behavior on a per-target basis by setting the property to \c TRUE:
+\badcode
+set_property(TARGET target_name PROPERTY QT_NO_UTF8_SOURCE TRUE)
+\endcode
+
+\note This does not change the runtime behavior of classes like
+\l QString (its constructor from \c{const char *} requires properly encoded
+UTF-8 input). Use the \l QT_NO_CAST_FROM_ASCII and
+\c QT_RESTRICTED_CAST_FROM_ASCII macros to help identify such code.
+
+\sa {qt6_disable_unicode_defines}{qt_disable_unicode_defines()}{qt6_allow_non_utf8_sources()}
+*/
+
+/*!
+\page cmake-target-property-qt-resource-prefix.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+
+\title QT_RESOURCE_PREFIX
+\target cmake-target-property-QT_RESOURCE_PREFIX
+
+\summary {Specifies the default Qt resource prefix.}
+
+\cmakepropertysince 6.0
+\preliminarycmakeproperty
+
+When using \l{qt6_add_resources}{qt_add_resources} without a \c PREFIX
+argument, then the value of this target property will be used as
+resource prefix.
+*/
+
+/*!
+\group cmake-source-file-properties-qtcore
+\title CMake Source File Properties in Qt6 Core
+\brief Lists CMake file properties used in Qt6::Core.
+
+\l{CMake Commands in Qt6 Core}{CMake Commands} know about the following CMake
+source file properties:
+
+\sa{CMake Property Reference}
+*/
+
+/*!
+\page cmake-source-file-property-qt-resource-alias.html
+\ingroup cmake-source-file-properties-qtcore
+
+\title QT_RESOURCE_ALIAS
+\target cmake-source-file-property-QT_RESOURCE_ALIAS
+
+\summary {Specifies the Qt resource alias for a file in a resource.}
+
+\cmakepropertysince 6.0
+
+When using the target-based variant of \l{qt6_add_resources}{qt_add_resources}
+the property value overrides the runtime path where the resource file is found.
+
+\sa{The Qt Resource System}
+*/
+
+/*!
+\page cmake-source-file-property-qt-discard-file-contents.html
+\ingroup cmake-source-file-properties-qtcore
+
+\title QT_DISCARD_FILE_CONTENTS
+\target cmake-source-file-property-QT_DISCARD_FILE_CONTENTS
+
+\summary {Specifies that the given files should be empty in the resource file system}
+
+\cmakepropertysince 6.6
+\preliminarycmakeproperty
+
+When using the target-based variant of \l{qt6_add_resources}{qt_add_resources}
+or \l{qt_add_qml_module}, setting this property to \c TRUE causes the file
+contents to be omitted when creating the resource file system. The file name is
+retained.
+
+This is useful if you want to strip QML source code from the binary.
+
+\note If you omit the QML source code from the binary, the QML engine has to
+rely on the compilation units created by \l{qmlcachegen} or \l{qmlsc}.
+Those are tied to the specific version of Qt they were built with. If you change
+the version of Qt your application uses, they can't be loaded anymore.
+
+\sa{The Qt Resource System}
+*/
+
+/*!
+\page cmake-target-property-qt-wasm-pthread-pool-size.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+
+\title QT_WASM_PTHREAD_POOL_SIZE
+\target cmake-target-property-QT_WASM_PTHREAD_POOL_SIZE
+
+\summary {Internal WebAssembly thread pool size.}
+
+\cmakepropertysince 6.2.4
+\preliminarycmakeproperty
+\cmakepropertywebassemblyonly
+
+Specifies the number of web workers (threads) to create at application startup.
+Qt allocates a pool size of 4 by default. This means the app can use
+4 additional threads besides the main thread, without the additional overhead
+of creating a new web worker, which may deadlock if the main thread created it
+and join()s the thread without returning control to the event loop first.
+Translates into the Emscripten compiler setting of PTHREAD_POOL_SIZE.
+
+For more information, see \l{https://emscripten.org/docs/porting/pthreads.html}{Pthreads support}.
+*/
+
+/*!
+\group cmake-global-properties-qtcore
+\title CMake Global Properties in Qt6 Core
+\brief Lists CMake global properties used or defined in Qt6::Core.
+
+\l{CMake Commands in Qt6 Core}{CMake Commands} know about the following global
+CMake properties:
+
+\sa{CMake Property Reference}
+*/
+
+/*!
+\page cmake-global-property-qt-targets-folder.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-global-properties-qtcore
+
+\title QT_TARGETS_FOLDER
+\target cmake-global-property-QT_TARGETS_FOLDER
+
+\brief Sets the FOLDER property for Qt-internal targets.
+
+\cmakepropertysince 6.5
+\preliminarycmakeproperty
+
+Name of the \l FOLDER for internal targets that are added by Qt's CMake
+commands.
+
+By default, this property is not set.
+
+This property only has an effect if CMake's \l USE_FOLDERS property is \c{ON}.
+
+You can use the \l{qt6_standard_project_setup}{qt_standard_project_setup}
+function to enable folder support and initialize the \c{QT_TARGETS_FOLDER}.
+
+\sa{qt6_standard_project_setup}{qt_standard_project_setup}
+*/
+
+/*!
+\page cmake-target-property-qt-wasm-initial-memory.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+
+\title QT_WASM_INITIAL_MEMORY
+\target cmake-target-property-QT_WASM_INITIAL_MEMORY
+
+\summary {Internal WebAssembly initial memory.}
+
+\cmakepropertysince 6.2.4
+\preliminarycmakeproperty
+\cmakepropertywebassemblyonly
+
+Specifies the initial amount of memory to use, in bytes. Using more will cause the
+browser to copy the old heap into a new one. Translates into the
+Emscripten compiler setting of INITIAL_MEMORY.
+QT_WASM_INITIAL_MEMORY must be a multiple of 65536 bytes.
+
+For more information, see \l{https://github.com/emscripten-core/emscripten/blob/main/src/settings.js}{Emscripten compiler settings}.
+*/
+
+/*!
+\page cmake-target-property-qt-wasm-maximum-memory.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+
+\title QT_WASM_MAXIMUM_MEMORY
+\target cmake-target-property-QT_WASM_MAXIMUM_MEMORY
+
+\summary {Internal WebAssembly maximum memory.}
+
+\cmakepropertysince 6.7
+\preliminarycmakeproperty
+\cmakepropertywebassemblyonly
+
+Specifies the maximum amount of memory the application can use. Translates into
+the Emscripten compiler setting of \c MAXIMUM_MEMORY. The default value
+is 4GB, which is the maximum for 32-bit WebAssembly.
+
+For more information, see the \l{https://github.com/emscripten-core/emscripten/blob/3319a313d3b589624d342b650884caaf8cd9ef30/src/settings.js#L187}{Emscripten compiler settings}.
+*/
+
+
+
+/*!
+\page cmake-target-property-qt-ios-launch-screen.html
+\ingroup cmake-properties-qtcore
+\ingroup cmake-target-properties-qtcore
+
+\title QT_IOS_LAUNCH_SCREEN
+\target cmake-target-property-QT_IOS_LAUNCH_SCREEN
+
+\summary {Path to iOS launch screen storyboard}
+
+\cmakepropertysince 6.4
+\preliminarycmakeproperty
+\cmakepropertyiosonly
+
+Specifies the path to an iOS launch screen storyboard file.
+
+\sa {Launch Screens and Launch Images}
+*/

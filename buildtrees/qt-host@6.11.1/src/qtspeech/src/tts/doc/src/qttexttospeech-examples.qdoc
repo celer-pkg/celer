@@ -1,0 +1,13 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \group qttexttospeech_examples
+    \title Qt TextToSpeech Examples
+    \brief Demonstrates the text-to-speech functionality provided by Qt.
+
+    The \l{Qt TextToSpeech} module provides cross-platform text-to-speech capabilities
+    for Qt based applications.
+
+    The examples listed below show some typical use cases in both C++ and QML.
+*/

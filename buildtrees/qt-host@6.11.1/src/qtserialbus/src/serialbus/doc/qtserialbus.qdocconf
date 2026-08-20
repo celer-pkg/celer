@@ -1,0 +1,65 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/config/exampleurl-qtserialbus.qdocconf)
+
+project                 = QtSerialBus
+description             = Qt Serial Bus Reference Documentation
+version                 = $QT_VERSION
+
+examplesinstallpath     = serialbus
+
+# Path to the root of qtserialbus (for automatic linking to source code)
+url.sources.rootdir     = ../../..
+
+qhp.projects            = QtSerialBus
+
+qhp.QtSerialBus.file         = qtserialbus.qhp
+qhp.QtSerialBus.namespace           = org.qt-project.qtserialbus.$QT_VERSION_TAG
+qhp.QtSerialBus.virtualFolder       = qtserialbus
+qhp.QtSerialBus.indexTitle          = Qt Serial Bus
+qhp.QtSerialBus.indexRoot           =
+
+qhp.QtSerialBus.subprojects = manual examples classes
+
+qhp.QtSerialBus.subprojects.classes.title = C++ Classes
+qhp.QtSerialBus.subprojects.classes.indexTitle = Qt Serial Bus C++ Classes
+qhp.QtSerialBus.subprojects.classes.selectors = class fake:headerfile
+qhp.QtSerialBus.subprojects.classes.sortPages = true
+
+qhp.QtSerialBus.subprojects.examples.title = Examples
+qhp.QtSerialBus.subprojects.examples.indexTitle = Qt SerialBus Examples
+qhp.QtSerialBus.subprojects.examples.selectors = example
+
+qhp.QtSerialBus.subprojects.manual.title = Qt Serial Bus
+qhp.QtSerialBus.subprojects.manual.indexTitle = Qt Serial Bus module topics
+qhp.QtSerialBus.subprojects.manual.type = manual
+
+tagfile                 = ../../../doc/qtserialbus/qtserialbus.tags
+
+depends += \
+    qtcore \
+    qtdoc \
+    qtserialport
+
+headerdirs  += ..
+
+sourcedirs  += ..
+
+exampledirs += ../../../examples/serialbus \
+               snippets/ \
+               ../../plugins/canbus/socketcan
+
+imagedirs   += images
+
+manifestmeta.highlighted.names = \
+    "QtSerialBus/CAN Bus Manager" \
+    "QtSerialBus/Modbus Client" \
+    "QtSerialBus/Modbus Server"
+
+navigation.landingpage = "Qt Serial Bus"
+navigation.cppclassespage = "Qt Serial Bus C++ Classes"
+# Auto-generate navigation linking based on "Qt Serial Bus module topics":
+navigation.toctitles = "Qt Serial Bus module topics"
+navigation.toctitles.inclusive = false
+
+# Allow zero warnings when testing documentation in CI
+warninglimit = 0

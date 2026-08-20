@@ -1,0 +1,8 @@
+add_subdirectory(EV_SportsCar_low)
+add_subdirectory(InteriorShadow)
+add_subdirectory(LightDecal)
+add_subdirectory(Pebbles)
+add_subdirectory(ShadowPlane)
+add_subdirectory(Venodhb_LOD0)
+add_subdirectory(Ventdee_LOD0)
+add_subdirectory(Snow)

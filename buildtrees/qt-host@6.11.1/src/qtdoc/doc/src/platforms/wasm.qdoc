@@ -1,0 +1,1216 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page wasm.html
+\title Qt for WebAssembly
+\brief Runs Qt applications in a secure sandbox in the browser.
+
+Qt for Webassembly lets you to run Qt applications on the web.
+
+WebAssembly (abbreviated Wasm) is a binary instruction format intended to
+be executed in a virtual machine, for example in a web browser.
+
+With Qt for WebAssembly, you can distribute your application as a web
+application that runs in a browser sandbox. This approach is suitable for
+web distributed applications that do not require full access to host device
+capabilities.
+
+\note Qt for WebAssembly is a supported platform, but some modules are not
+yet supported or are in Tech Preview. See \l[QtDoc] {Supported Qt Modules}.
+
+\ingroup supportedplatform
+
+\section1 Getting Started with Qt for WebAssembly
+
+Building Qt applications for WebAssembly is similar to building Qt for other platforms. You
+need to install an SDK (Emscripten), install Qt (or build Qt from source), and finally, build
+the application. Some differences exist, for example, Qt for WebAssembly supports fewer modules
+and less features than other Qt builds.
+
+\section2 Installing Emscripten
+
+\l{https://emscripten.org/docs/introducing_emscripten/index.html}{Emscripten}
+is a toolchain for compiling to WebAssembly. It lets you run Qt on the web at
+near-native speed without browser plugins.
+
+Each minor version of Qt targets a specific Emscripten version, which remains unchanged
+in patch releases. Qt's binary packages are built using the target Emscripten version.
+Applications should use the same version since Emscripten does not guarantee
+\l{https://github.com/emscripten-core/emscripten/blob/main/ChangeLog.md}{ABI compatibility}
+between versions.
+
+The supported version of Emscripten for \QtVersion is Emscripten 4.0.7.
+
+Refer to the \l{https://emscripten.org/docs/getting_started/index.html}
+{Emscripten documentation} for more information about installing the
+Emscripten SDK.
+
+Use \c emsdk to install specific \c Emscripten versions. For example, to install
+it for \QtVersion enter:
+\list
+    \li ./emsdk install 4.0.7
+    \li ./emsdk activate 4.0.7
+\endlist
+
+After installation, you should have the Emscripten compiler in your path.
+Check this with the following command:
+\badcode
+    em++ --version
+\endcode
+
+On Windows, Emscripten is in your path after installation. On macOS or Linux
+you need to add it to your path, like this:
+
+\badcode
+    source /path/to/emsdk/emsdk_env.sh
+\endcode
+
+Check this with the following command:
+
+\badcode
+    em++ --version
+\endcode
+
+You can build Qt from source if you require more flexibility when selecting the Emscripten
+version. In this case the versions above are minimum versions. Later versions are
+expected to work but may introduce behavior changes which require making changes to Qt.
+
+\section2 Installing Qt
+
+Download Qt from the Downloads section of your Qt account. We provide builds
+for Linux, macOS, and Windows as development platforms.
+
+The binary builds are designed to run on as many browsers as possible, and come
+in single-threaded and multi-threaded versions. Non-standard features such as \c {Wasm
+SIMD} and \c {Wasm exceptions} are not supported by the binary builds.
+
+\target wasm-building-qt-from-source
+\section2 Building Qt from Source
+
+Building from source lets you set Qt configuration options such as thread
+support, OpenGL ES level, or SIMD support. Download the Qt sources from the
+Downloads section of your Qt account.
+
+Configure Qt as a cross-compile build for the \c wasm-emscripten platform.
+This sets the \c -static, \c -no-feature-thread, and \c{-no-make examples}
+configure options. You can enable thread support with the \c -feature-thread,
+configure option. Shared library builds are not supported.
+
+You need a \l{Cross-compiling Qt}{host build of the same version of Qt}. Also,
+set the path to the host build in the \e QT_HOST_PATH CMake variable or by using
+the \c -qt-host-path configure argument.
+
+\badcode
+    ./configure -qt-host-path /path/to/Qt -platform wasm-emscripten -prefix $PWD/qtbase
+\endcode
+
+\include use-ninja-note.qdocinc ninja-note
+
+On Windows, make sure you have Mingw-w64 in your \c PATH
+and configure with the following:
+
+\badcode
+    configure -qt-host-path C:\Path\to\Qt -no-warnings-are-errors -platform wasm-emscripten -prefix %CD%\qtbase
+\endcode
+
+Then build the required modules:
+
+\badcode
+    cmake --build . -t qtbase -t qtdeclarative [-t another_module]
+\endcode
+
+\section2 Building Applications on the Command Line
+
+Qt for WebAssembly supports building applications using qmake and make, or CMake with ninja or make.
+
+\badcode
+   $ /path/to/qt-wasm/qtbase/bin/qt-cmake .
+   $ cmake --build .
+\endcode
+
+\note When using vanilla \c CMake (as opposed to \c{qt-cmake} on Linux or
+\c{qt-cmake.bat} on Windows) remember to specify a toolchain file
+with "-DCMAKE_TOOLCHAIN_FILE", as for any other cross-platform build.
+For details see here: \l{Getting started with CMake}.
+
+Building the application generates several output files, including a .wasm file that contains
+the application and Qt code (statically linked), a .html file that can be opened in the browser
+to run the application.
+
+\note Emscripten produces relatively large .wasm files at the "-g" debug level. Consider
+linking with "-g2" for debug builds.
+
+\section2 Running Applications
+
+Running the application requires a web server. The build output files are all
+static content, so any web server will do. Some use cases might require special
+server configuration, such as providing https certificates or setting http headers
+required to enable multithreading support.
+
+\section3 Emrun
+
+Emscripten provides the \e emrun utility for test-running applications. Emrun
+starts a web server, launches a browser, and will also capture and forward
+stdout/stderr (which will normally go to the JavaScript console).
+
+\badcode
+    /path/to/emscripten/emrun --browser=firefox appname.html
+\endcode
+
+\section3 Python http.server
+
+Another option is to start a development web server and then launch the web
+browser separately. One of the simplest options is http.server from Python:
+
+\badcode
+    python -m http.server
+\endcode
+
+Note that this is only a simple webserver and does not support SharedArrayBuffer required for
+threading, as the required COOP and COED headers mentioned below are not sent.
+
+\section3 qtwasmserver
+
+Qt provides a developer web server which uses \l{https://github.com/FiloSottile/mkcert}{mkcert}
+to generate https certificates. This allows testing web features which require
+a \l{https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts}{secure context}.
+Note that delivery over http://localhost is also considered secure, without requiring a
+certificate.
+
+The web server also sets the \l{https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy}{COOP}
+and \l{https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Embedder-Policy}{COEP}
+headers to values which enables support for \l{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer}{SharedArrayBuffer}
+and multi-threading.
+
+The qtwasmserver script starts one server which binds to localhost by default. You may
+add additional addresses using the \e -a command-line argument, or use \e --all to bind
+to all available addresses.
+
+The qtwasmserver script lives in the sources at
+\code
+    qtbase/util/wasm/qtwasmserver/qtwasmserver.py
+\endcode
+
+or can be installed using pip:
+\code
+    pip install qtwasmserver
+\endcode
+
+For more information on qtwasmserver \l{https://pypi.org/project/qtwasmserver/}{qtwasmserver}
+
+Using qtwasmserver:
+\badcode
+    python /path/to/qtbase/util/wasm/qtwasmserver/qtwasmserver.py --all
+\endcode
+
+\section2 Building Applications using \QC
+
+    \l{\QC: Build applications for the Web}.
+
+\section2 Deploying Applications on the web
+
+Building an application generates several files (substitute "app" with
+the application name in the following table).
+
+\table
+    \header
+        \li Generated file
+        \li Brief Description
+    \row
+        \li app.html
+        \li HTML container
+    \row
+        \li qtloader.js
+        \li JavaScript API for loading Qt applications
+    \row
+        \li app.js
+        \li JavaScript runtime generated by Emscripten
+    \row
+        \li app.wasm
+        \li app binary
+\endtable
+
+You can deploy \e {app.html} as-is, or discard it in favor of a custom HTML
+file. Smaller adjustments, such as changing the splash screen image from the Qt
+logo to the app logo, is also possible. In both cases, \e {qtloader.js} provides
+a JavaScript API for loading the application.
+
+Compress the Wasm file using either \c gzip or \c brotli before deploying,
+as they offer better compression ratio than the other tools.
+See \l{Minimizing the size of binaries} for more information.
+
+Enabling certain features, such as multi-threading and SIMD, produces .wasm binaries
+that are incompatible with browsers that do not support the enabled feature. It is
+possible to work around this limitation by building multiple .wasm files and then
+use JavaScript feature detection to select the correct one, but note that Qt does
+not provide any functionality for doing this.
+
+\section2 Using qtloader
+
+Qt provides a JavaScript API for downloading, compiling, and instantiating
+Qt for WebAssembly applications. This loading API wraps loading functionality
+provided by Emscripten, and provides additional features useful for Qt-based
+applications. It is implemented in the qtloader.js file. A copy of this file is
+written to the build directory at build time.
+
+Typical usage looks like the following:
+
+\code *
+const app_container_element = ...;
+const instance = await qtLoad({
+    qt: {
+        containerElements: [ app_container_element ],
+        onLoaded: () => { /\1 handle application load completed \1/  },
+        onExit: () => {  /\1 handle application exit \1/ },
+    }
+});
+\endcode
+
+The code calls the qtLoad() loader function with a configuration object.
+This configuration object can contain any emscripten configuration options,
+as well as a special "qt" configuration object. The qt configuration object
+supports the following properties:
+
+\table
+    \header
+        \li Property
+        \li Brief Description
+    \row
+        \li containerElements
+        \li Array of HTML container elements. The application sees these as QScreens.
+    \row
+        \li onLoaded
+        \li Callback for when the application has completed loading.
+    \row
+        \li onExit
+        \li Callback for when the application exits.
+\endtable
+
+The containerElements array is the main interface between Qt and the web page, where the
+html elements in this array (typically <div> elements) specify the location of the
+application content on the web page.
+
+The application sees each container element as a QScreen instance, and can place application
+windows on the screen instances as usual. Windows with the Qt::WindowFullScreen state set
+use the entire screen area, while non-"fullscreen" windows get window decorations.
+
+The qtLoad() function returns a promise, which yelds an Emscripten instance when
+awaited. The instance provides access to Embind exported functions. Qt exports
+several such functions, and these functions make up the instance API.
+
+\section2 Using the Qt instance API
+
+Qt provides several instance functions. Currently, these support adding and removing
+container elements at runtime.
+
+\table
+    \header
+        \li Property
+        \li Brief Description
+    \row
+        \li qtAddContainerElement
+        \li Add a container element. Adding an element will add a new QScreen.
+    \row
+        \li qtRemoveContainerElement
+        \li Remove a container element, and its corresponding screen.
+    \row
+        \li qtSetContainerElements
+        \li Sets all container elements
+    \row
+        \li qtResizeContainerElement
+        \li Make Qt pick up changes to container element size.
+\endtable
+
+\section2 Porting to the Qt 6.6 qtloader
+
+Qt 6.6 includes a new qtloader with a simplified implementation and a smaller scope.
+This includes API changes which may require porting application JavaScript code.
+Qt provides a compatibility API to ease the transition. Depending use case there
+are several ways forward:
+
+\list
+    \li If you are using the generated \c {app.html} file directly then this file will
+        be updated as well at build time. No action is needed.
+    \li If you are using the basic qtloader feature set then you may use the compatibility
+        API included in Qt 6.6 as a temporary maesure. This API will be removed in a future
+        release; you should plan on updating to use the new qtloader. Porting step 1 below
+        is needed.
+    \li If you are using advanced features (such as adding container elements at runtime),
+        then porting to the new loader or instance API  required. Porting steps 1 and 2
+        below are needed.
+\endlist
+
+\b {Porting steps}
+
+\list 1
+    \li Include the \c {app.js} (JavaScript runtime generated by Emscripten) from the
+        loading html file.
+
+        \badcode
+        <script src="app.js"></script>
+        \endcode
+
+        Before Qt 6.6, qtloader would load and evaluate this JavaScript file. This is no
+        longer done, and the file must be included using a <script> tag.
+
+    \li Port to using the new JavaScript and instance API.
+\endlist
+
+See documentation sections above.
+
+\section1 Supported Browsers
+\section2 Desktop
+
+Qt for WebAssembly is developed and tested on the following browsers:
+
+\list
+    \li Chrome
+    \li Firefox
+    \li Safari
+    \li Edge
+\endlist
+
+Qt should run if the browser supports WebAssembly. Qt has a fixed WebGL
+requirement, even if the application itself does not use hardware accelerated
+graphics. Browsers that support WebAssembly often support WebGL, though
+some browsers blacklist older or unsupported GPUs. s/\e {qtloader.js}
+provides APIs to check if WebGL is available.
+
+Qt does not make direct use of operating system features and it makes
+no difference if, for example, FireFox runs on Windows or macOS. Qt
+does use some operating system adaptations, for example for ctrl/cmd
+key handling on macOS.
+
+\section2 Mobile
+
+Qt for WebAssembly applications runs on mobile browsers such as mobile
+Safari and Android Chrome.
+
+\target supported modules
+\section1 Supported Qt Modules
+
+Qt for WebAssembly supports a subset of the Qt modules and features. Tested
+modules are listed below, other modules may or may not work.
+
+\list
+    \li \l {Qt Core}
+    \li \l {Qt GUI}
+    \li \l {Qt Network}
+    \li \l {Qt Widgets}
+    \li \l {Qt Qml}
+    \li \l {Qt Quick}
+    \li \l {Qt Quick Controls}
+    \li \l {Qt Quick Layouts}
+    \li \l {Qt 5 Core Compatibility APIs}
+    \li \l {Qt Image Formats}
+    \li \l {Qt OpenGL}
+    \li \l {Qt SVG}
+    \li \l {Qt WebSockets}
+    \li \l {Qt Concurrent}
+    \li \l {Qt Charts}
+    \li \l {Qt Graphs}
+    \li \l {Qt Quick 3D}
+\endlist
+
+The following modules are in Technology Preview. They may have limited functionality or may change
+significantly in future releases.
+
+\list
+    \li \l {Qt Multimedia}
+\endlist
+
+In all cases, module support may not be complete and there may be
+additional limitations, either due to the browser sandbox or due to
+incompleteness of the Qt platform port. See \l {Developing with Qt for WebAssembly}
+for further info.
+
+\section1 Developing with Qt for WebAssembly
+\section2 Building with CMake
+
+If there is a need for Emscripten-specific configuration in CMake,
+the following code can be utilized:
+
+\badcode
+    if(EMSCRIPTEN)
+        # WebAssembly specific code
+    else()
+        # other platforms
+    endif()
+\endcode
+
+This code allows for the accommodation of Emscripten-specific configurations
+while ensuring compatibility with other platforms.
+
+\section2 OpenGL and WebGL
+
+Qt for WebAssembly supports hardware accelerated rendering using
+\l {https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API} WebGL.
+
+WebGL closely conforms to OpenGL ES, with the following version mapping:
+
+\table
+    \header
+        \li OpenGL
+        \li WebGL
+    \row
+        \li OpengL ES 2.0
+        \li WebGL 1
+    \row
+        \li OpengL ES 3.0
+        \li WebGL 2
+\endtable
+
+Qt uses the highest available WebGL version. This is typically WebGL 2 on
+today's browsers, but might be WebGL 1 if limited by hardware. We recommend
+targeting devices which support WebGL 2 with Qt for WebAssembly.
+
+Web and Desktop OpenGL differences are documented in
+\l {https://www.khronos.org/registry/webgl/specs/latest/1.0/#6}
+{WebGL and OpenGL Differences}.
+There are additional differences between WebGL 1.0 and WebGL 2.0,
+documented in the \l {https://www.khronos.org/registry/webgl/specs/latest/2.0}
+{WebGL 2.0 Specification}.
+
+A WebGL-friendly subset of ES2 (and ES3) is used by default. If you need to use
+\c glDrawArrays and \c glDrawElements without bound buffers, you can enable full
+ES2 support by adding
+
+\badcode
+    target_link_options(<your target> PRIVATE -s FULL_ES2=1)
+\endcode
+
+and/or full ES3 emulation by adding
+
+\badcode
+    target_link_options(<your target> PRIVATE -s FULL_ES3=1)
+\endcode
+
+to your project's \c {CMakeLists.txt}.
+
+For more information regarding Emscripten's OpenGL support visit
+\l{https://emscripten.org/docs/porting/multimedia_and_graphics/OpenGL-support.html}
+
+\section3 OpenGL Context Limitations
+
+WebGL does not support multiple contexts per surface. This has implications for
+applications that use QOpenGLContext either directly or indirectly via other
+classes such as QOpenGLWidget.
+
+Each QOpenGLContext instance should be used with a single surface only. In practice,
+the context gets associated with the surface on the first makeCurrent() call. Calling
+makeCurrent() on a different surface afterward, or from a different QOpenGLContext with
+the same surface, is not supported.
+
+OpenGL context sharing is not supported. Calling QOpenGLContext::setShareContext() has
+no effect, and QOpenGLContext::shareContext() always returns nullptr.
+
+Destroying a surface (for example, a QWindow) causes context loss for the associated context.
+The application should handle this by recreating the context.
+
+QOpenGLWidget and other classes which uses context sharing internally are not
+supported.
+
+\section2 Multithreading
+
+Qt for WebAssembly supports multithreading using Emscripten's \l{https://emscripten.org/docs/porting/pthreads.html}
+{Pthreads support}, where each thread is backed by a \l{https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API}{web worker}.
+Enable multithreading by installing the "WebAssembly (multi-threaded)" component from \QMT,
+or by building Qt from source and passing the "-feature-thread" flag to configure.
+
+Existing threading code can generally be reused, but may need to be modified to work around
+\l{https://emscripten.org/docs/porting/pthreads.html#special-considerations}{specifics} of the
+pthread implementation. Some Emscripten and Qt features are not supported, this includes
+the \l {https://emscripten.org/docs/porting/pthreads.html#proxying}{thread proxying} feature and
+the Qt Quick threaded render loop.
+
+Be aware that it is especially important to \l{https://emscripten.org/docs/porting/pthreads.html#blocking-on-the-main-browser-thread}
+{not block the main thread} on Qt for WebAssembly, since the main thread might be required to service
+requests from secondary threads. For example, all timers in Qt are scheduled on the main thread, and
+will not fire if the main thread is blocked. Another example is that creating a new web worker (for
+a thread) can only be done from the main thread.
+
+Emscripten provides some mitigations for this. Short-term waits such as acquiring a mutex lock is
+supported by busy-waiting and processing events while waiting for the lock. Longer waits on the main
+thread should be avoided. In particular, the common practice of calling QThread::wait()
+or pthread_join() to wait for a secondary thread will not work, unless the application can guarantee
+that the thread (and web worker) has already been started, and will be able to complete without assistance
+from the main thread at the time that the wait() or join() call is made.
+
+The multithreading feature requires browser support for the \l{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer}
+{SharedArrayBuffer} API. (Normally, Emscripten stores the heap in an ArrayBuffer object. For
+multithreading, the heap must be shared with web workers and a SharedArrayBuffer is needed) This API
+is generally available in all modern browsers, but may be disabled if certain security requirements
+are not met. WebAssembly binaries with thread support enabled will then fail to run, also if the
+binary does not actually start a thread.
+
+Enabling SharedArrayBuffer requires a secure browsing context (where the page is served over https://
+or http://localhost), and that the page is in cross-origin isolated mode. The latter can be done by
+setting the so called COOP and COEP headers on the web server:
+
+\list
+\li Cross-Origin-Opener-Policy: same-origin
+\li Cross-Origin-Embedder-Policy: require-corp
+\endlist
+
+\section2 SIMD
+
+Emscripten supports \l{https://emscripten.org/docs/porting/simd.html}{WebAssembly SIMD}, which
+provides 128-bit SIMD types and operations for WebAssembly.
+
+Build Qt from source and configure with the -feature-wasm-simd128 flag to enable; this will pass the
+-msimd128 flag at compile and link time. Note that Qt does not contain wasm-simd optimized
+code paths at this point, however enabling wasm-simd will enable compiler auto-vectorization
+where the compiler can use the SIMD instructions.
+
+You can target WebAssembly SIMD directly using either GCC/Clang SIMD Vector Extensions or WASM
+SIMD128 intrinsics. For more information, see the Emscripten
+\l{https://emscripten.org/docs/porting/simd.html}{ SIMD documentation }.
+
+In addition, Emscripten supports emulating/translating x86 SSE instructions to Wasm SIMD instructions.
+Qt does not use this emulation, as the use of SSE SIMD instructions that have no native Wasm SIMD
+equivalent may cause reduced performance.
+
+Note that SIMD-enabled binaries are incompatible with browsers that do not support WebAssembly SIMD,
+also if the SIMD code paths are not called at run-time. SIMD support may need to be enabled
+in the browsers advanced configurations, such as 'about:config' or 'chrome:flags'
+
+\section2 Networking
+
+Qt provides limited support for networking. In general, network protocols which are
+already in use on the web can be use also from Qt, while others are not directly
+available due to the web sandbox.
+
+The following protocols are supported:
+
+\list
+\li QNetworkAccessManager http requests to the web page origin server, or to a
+server which supports CORS. This includes XMLHttpRequest from QML.
+\li QWebSocket connections to any host. Note that web pages served over the secure https protocol
+allows websockets connections over secure wss protocol only.
+\li Emulated POSIX TCP Sockets over WebSockets, using functionality provided by
+\l{https://emscripten.org/docs/porting/networking.html#emulated-posix-tcp-sockets-over-websockets}
+{Emscripten}. Note that this requires running a \l{https://github.com/novnc/websockify}
+{forwarding server} which handles socket translation.
+\endlist
+
+All other network protocols are not supported.
+
+\note QWebSocketServer is not supported due to browser limitations. Browsers restrict server-side
+socket functionality to ensure security within the web sandbox. Consequently, any functionality
+relying on QWebSocketServer for accepting incoming network connections cannot be utilized within
+the web environment.
+
+\note QtMqtt and QtRemoteObjects modules can be used with QtWebSockets as transports.
+They are not officially supported and may or may not work, or have missing functionality.
+See \l QMqttClient::connectToHostWebSocket and the \l {QtRemoteObjects WebSockets Applications} example.
+
+\section3 Cross-Origin Resource Sharing (CORS) and Policy (CORP)
+
+WebAssembly apps that use networking may require Cross-Origin Resource Sharing
+(CORS) and Cross-Origin Resource Policy (CORP) response headers to be set by the
+server. These restrict HTTP requests that originate from different domains,
+which present a security risk.
+
+Using QHttpServer, the following is an example for setting these headers:
+\code
+    auto headers = response.headers();
+    headers.append("Access-Control-Allow-Origin", "*");
+    headers.append("Access-Control-Allow-Origin", "localhost");
+    headers.append("Access-Control-Allow-Methods", "POST", "GET","OPTIONS");
+
+    headers.append("Cross-Origin-Opener-Policy", "same-origin");
+    headers.append("Cross-Origin-Embedder-Policy", "require-corp");
+    headers.append("Cross-Origin-Resource-Policy", "cross-origin");
+\endcode
+Other well known servers have their own way to configure sending these headers.
+
+The use of a wildcard "*" for Access-Control-Allow-Origin, will result in an error,
+if used with Access-Control-Allow-Credentials.
+
+The included utility script qtwasmserver.py will set these headers if the
+--cross-origin-isolation option is used.
+
+\sa {https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS}
+\sa {https://developer.mozilla.org/en-US/docs/Web/HTTP/Cross-Origin_Resource_Policy}
+
+\section2 Local File Access
+
+File system access is sandboxed on the web, and this has implications for how the
+application works with files. The Web platform provides APIs for accessing the local
+file system in a way which is under user control, as well as APIs for accessing
+persistent storage. Emscripten and Qt wraps these features and provides APIs which
+are easier to use from C++ and Qt-based applications.
+
+The web platform provides features for accessing local files and persistent storage:
+\list
+\li <input type="file"> for showing a native open-file dialog where the user can pick a file.
+\li IndexedDB provides persistent local storage (not accessible outside the browser)
+\endlist
+
+Emscripten provides several file systems with a POSIX like API. These include:
+\list
+\li the MEMFS ephemeral file system which stores files in-memory
+\li the IDBFS persistent file system which stores files using IndexedDB
+\endlist
+
+Emscripten mounts a temporary MEMFS filesystem to "/" at app startup. This means
+that QFile can be used, and will read and write files to memory by default. It is
+not preserved over a browser reload.
+
+Since web pages do not have direct access to the local filesystem, Qt provides
+a QFileDialog API for use with Qt for WebAssembly.
+
+\list
+\li \l {https://doc.qt.io/qt-5/qfiledialog.html#getOpenFileContent}{QFileDialog::getOpenFileContent() }
+opens a native file dialog where the user can pick a file
+\li \l {https://doc.qt.io/qt-5/qfiledialog.html#saveFileContent}{QFileDialog::saveFileContent()}
+saves a file to the local file system via file download
+\endlist
+
+\section2 Clipboard Access
+
+Qt supports copying and pasting text, urls, known file types and images with
+the system clipboard, with some differences due to the web sandbox. It does not
+support arbitrary application/octet-stream binary data. In general clipboard access
+require user permission, which can be obtained by handling an input event
+(e.g. CTRL+c), or by using the
+\l{https://developer.mozilla.org/en-US/docs/Web/API/Clipboard_API}{Clipboard API}.
+
+Browsers that support the Clipboard API are preferred. Note that a requirement for this API
+is that the web page is served over a secure connection (e.g. https), and that some browsers
+my require changing configuration flags.
+
+\list
+    \li Chrome version 66 and Safari version 13.1 support the Clipboard API
+    \li Firefox version 90 supports the Clipboard API if you enable the
+        following flags in 'about:config':
+\badcode
+        dom.events.asyncClipboard.read
+        dom.events.asyncClipboard.clipboardItem
+\endcode
+\endlist
+
+\section2 Fonts
+
+The Qt WASM module contains 3 embedded fonts: "Bitstream Vera Sans" (fallback font), "DejaVu Sans", "DejaVu Sans Mono".
+
+These fonts provide a limited character set. Qt provides several options for adding additional fonts:
+
+One is using FontLoader in QML,
+which can either fetch a font by URL or using
+\l{The Qt Resource System}
+(the same way the usual desktop apps work).
+
+The other way to use font is to add it via
+\l{QFontDatabase::addApplicationFontFromData}.
+
+\section2 Accessibility and Screen Readers
+
+Qt for WebAssembly provides basic support for screen readers. Simple UI elements such
+as buttons and check boxes work, while more complex UI elments such as table or tree
+views may have missing support. Both Qt Widgets and Qt Quick are supported.
+
+The following screen reader / browsers configurations are tested and are known to be
+functional. Other browsers and screen readers may work.
+
+\list
+  \li VoiceOver with Safari on macOS
+  \li VoiceOver with Chrome on macOS
+\endlist
+
+The accessibility implementation works by creating "shadow" html elements which
+provides the accessiblity information for the Qt UI elements. This functionality
+is disabled by default. The end user can activate it by selecting an "activate
+screen reader" button using the screen reader. When activated this will populate
+the web page with accessibility elements.
+
+\section2 Application Startup and the Event Loop
+
+Qt for WebAssembly supports the standard Qt startup approach, where the application
+creates a QApplication object and calls the exec function:
+
+\code
+int main(int argc, char **argv)
+{
+    QApplication app(argc, argv);
+
+    QWindow appWindow;
+
+    return app.exec();
+}
+\endcode
+
+The exec() call above normally blocks and processes events until application
+shutdown. Unfortunately this is not possible on the web platform where blocking
+the main thread is not allowed. Instead, control must be returned to the browser's
+event loop after processing each event.
+
+Qt works around this by making exec() return main thread control to the browser,
+while preserving the stack. From the point of view of application code, the exec()
+function is entered and event processing happens as usual. However, the exec() call
+never returns, also not on application exit.
+
+This behavior is usually acceptable since the browser will free up application memory
+at app shutdown time. It does mean that shutdown code does not run, since the application
+object is leaked and its destructor does not run.
+
+You can avoid this by rewriting main() to be asynchronous, which is possible
+since Emscripten does not exit the runtime when main() returns. Application code
+then omits making the exec() call, and can shut down Qt cleanly by deleting
+the top-level window and application objects.
+
+\code
+QApplication *g_app = nullptr;
+AppWindow *g_appWindow = nullptr;
+
+int main(int argc, char **argv)
+{
+    g_app = new QApplication(argc, argv);
+    g_appWindow = new AppWindow();
+    return 0;
+}
+\endcode
+
+\section3 Asyncify and JSPI
+
+The default Qt build for WebAssembly does not support reentering the event loop, such as 
+by calling QEventLoop::exec() or QDialog::exec(), due to web platform restrictions that
+prevent synchronous C++ code from invoking asynchronous JavaScript APIs.
+
+Features that require asyncify/JSPI include:
+\list
+    \li QDialogs, QMessageBoxes with return values.
+    \li Drag and drop (specifically drag).
+    \li Nested/secondary event loops exec().
+\endlist
+
+Emscripten provides support for working around these limitations using the
+\l{https://emscripten.org/docs/porting/asyncify.html}{Asyncify} feature. This feature
+is available in two versions:
+
+\list
+    \li Asyncify, implemented via a WebAssembly code post-processing step.
+    \li JSPI, implemented using the WebAssembly \l{https://webassembly.org/features/}{JS Promise Integration} feature.
+\endlist
+
+See the sections below for details on how to enable each option and the trade-offs involved. In brief,
+Asyncify is available today but introduces overhead in the form of longer build times, larger binary sizes,
+and runtime performance costs. JSPI has minimal or no overhead, but it is not yet supported by all browsers.
+
+\section3 Asyncify
+
+Enable asyncify by adding the "-sASYNCIFY -Os" flags to the linker options:
+
+CMake:
+\badcode
+    target_link_options(<your target> PUBLIC -sASYNCIFY -Os)
+\endcode
+
+qmake:
+\badcode
+QMAKE_LFLAGS += -sASYNCIFY -Os
+\endcode
+
+Enabling asyncify adds overhead in the form of increased binary sizes and increased CPU
+usage. Build with optimizations enabled to minimize the overhead.
+
+\section3 JSPI (JS Promise Integration)
+
+Unlike Asyncify, using JSPI requires building Qt from source. Pass the
+-feature-wasm-jspi -feature-wasm-exceptions flags to the Qt configure script to enable it.
+(JSPI is not compatible with the default Emscripten emulated exceptions.)
+
+Then, enable JSPI for your application by adding the -sJSPI flag to the linker options:
+
+CMake:
+\badcode
+    target_link_options(<your target> PUBLIC -sJSPI)
+\endcode
+
+qmake:
+\badcode
+    QMAKE_LFLAGS += -sJSPI
+\endcode
+
+\section2 Debugging and Profiling
+
+Wasm debugging is done on the browser JavaScript console. Debugging applications on Wasm
+directly within \QC is not possible.
+
+\list
+\li Qt debug and logging output is printed on the JavaScript console, which can be
+accessed via browser "Developer Tools" or similar.
+\li Source maps for stepping through code, can be created by re-configuring Qt with
+the --device-option QT_WASM_SOURCE_MAP=1, and building a debug build.
+\list
+    \li \l {https://developer.mozilla.org/en-US/docs/Tools/Debugger/How_to/Use_a_source_map}
+    \li \l {https://developers.google.com/web/tools/chrome-devtools/javascript/source-maps#source_maps_in_devtools_sources_panel}
+\endlist
+\li Debug symbols via DWARF are also enabled if the program is linked with the -g flag (tested with Chrome)
+    \li This will require this extension: \l {https://goo.gle/wasm-debugging-extension}
+    \li See also \l {https://developer.chrome.com/blog/wasm-debugging-2020/}
+\li Mobile browsers can use remote debugging
+\list
+    \li \l {https://developer.mozilla.org/en-US/docs/Tools/Remote_Debugging}
+    \li \l {https://developers.google.com/web/tools/chrome-devtools/remote-debugging}
+    \li \l {https://developer.apple.com/safari/tools/}
+\endlist
+\li To stop execution on a certain line and popup the browser debugger
+programmatically, you can add the function emscripten_debugger(); to the application
+source code.
+\li Profiling can be accomplished by using a debug build and the JavaScript console
+profiling features. Qt adds --profiling-funcs to the linker arguments in debug builds,
+which preserve function names in profiling
+\endlist
+
+You can add more verbosity to help debug using Emscripten linker arguments:
+
+\list
+    \li -s LIBRARY_DEBUG=1 (print out library calls)
+    \li -s SYSCALL_DEBUG=1 (print out sys calls)
+    \li -s FS_LOG=1  (print out filesystem operations)
+    \li -s SOCKET_DEBUG (print out socket, network data transfer)
+\endlist
+
+CMake:
+\badcode
+    target_link_options(<your target> PRIVATE -s LIBRARY_DEBUG=1)
+\endcode
+
+qmake:
+\badcode
+    QMAKE_LFLAGS_DEBUG += -s LIBRARY_DEBUG=1
+\endcode
+
+\section2 Optimizing
+
+Qt for WebAssembly uses the Emscripten toolchain to generate binaries,
+and there are many flags that may impact performance and the size of binaries.
+See \l{Emscripten: Optimizing Code} for more information.
+
+You can pass linker and compiler flags just as for normal C++ applications:
+\if defined(onlinedocs)
+    \tab {passing-flags}{tab-cmake}{CMake}{checked}
+    \tab {passing-flags}{tab-qmake}{qmake}{}
+    \tabcontent {tab-cmake}
+\else
+    \section1 Using CMake
+\endif
+    \badcode
+        target_compile_options(<your target> PRIVATE -oz -flto)
+        target_link_options(<your target> PRIVATE -flto)
+    \endcode
+\if defined(onlinedocs)
+    \endtabcontent
+    \tabcontent {tab-qmake}
+\else
+    \section1 Using qmake
+\endif
+    \badcode
+        QMAKE_CXXFLAGS += -oz -flto
+        QMAKE_LFLAGS += -flto
+    \endcode
+\if defined(onlinedocs)
+    \endtabcontent
+\endif
+
+\section3 Minimizing the size of binaries
+
+In order to provide a seamless user experience, it's important to reduce the time
+to download and load WebAssembly applications.
+Smaller application binary is one of the important aspects that enable faster
+download. Use the following alternatives to reduce the binary size:
+
+\list
+\li Make sure to distribute release builds. Debug builds contain debug symbols
+and are much bigger.
+\li Enable compression on a server. The most common algorithms like \c gzip and
+Brotli work well on Wasm binaries and can drastically reduce their size.
+\li Try compiler and linker flags that may results in generating smaller
+binaries (i.e. '-os', '-oz'). Results will vary depending on the particular
+application.
+\li Disable unsued features when compiling Qt for WebAssembly from source (see below).
+\endlist
+
+\section4 Opting out of features
+
+A WebAssembly application by default links statically to the Qt libraries,
+enabling the compiler to eliminate dead code. However, due to Qt's dynamic nature
+it's not always possible for the compiler to perform such optimizations.
+
+If you build Qt for WebAssembly from source, you can disable features to reduce
+the size of Qt binaries, and --- as a result --- the size of .wasm binaries.
+Qt disables some features by default for the WebAssembly platform, but you can
+also disable features that your application does not use.
+See \l{disabled features} for more information.
+
+You can disable the following features to reduce binary size (usually by 10-15%):
+\table
+    \header
+        \li Configure Argument
+        \li Brief Description
+    \row
+        \li -no-feature-cssparser
+        \li Parser for Cascading Style Sheets.
+    \row
+        \li -no-feature-datetimeedit
+        \li Editing dates and times (depends on datetimeparser).
+    \row
+        \li -no-feature-datetimeparser
+        \li Parsing date-time texts.
+    \row
+        \li -no-feature-dockwidget
+        \li Docking widgets inside a QMainWindow or floating them as top-level
+            windows on the desktop.
+    \row
+        \li -no-feature-gestures
+        \li Framework for gestures.
+    \row
+        \li -no-feature-mimetype
+        \li Mimetype handling.
+    \row
+        \li -no-feature-qml-network
+        \li Network transparency.
+    \row
+        \li -no-feature-qml-list-model
+        \li ListModel QML type.
+    \row
+        \li -no-feature-qml-table-model
+        \li TableModel QML type.
+    \row
+        \li -no-feature-quick-canvas
+        \li Canvas item.
+    \row
+        \li -no-feature-quick-path
+        \li Path elements.
+    \row
+        \li -no-feature-quick-pathview
+        \li PathView item.
+    \row
+        \li -no-feature-quick-treeview
+        \li TreeView item.
+    \row
+        \li -no-feature-style-stylesheet
+        \li Widget style which is configurable via CSS.
+    \row
+        \li -no-feature-tableview
+        \li Default model/view implementation of a table view.
+    \row
+        \li -no-feature-texthtmlparser
+        \li Parser for HTML.
+    \row
+        \li -no-feature-textmarkdownreader
+        \li Markdown (CommonMark and GitHub) reader.
+    \row
+        \li -no-feature-textodfwriter
+        \li ODF writer.
+\endtable
+
+\section2 Wasm Exceptions
+
+Qt is built without exception support by default, where throwing an exception will abort
+the program. \l{https://emscripten.org/docs/porting/exceptions.html#webassembly-exception-handling-based-support}
+{WebAssembly exceptions} can be enabled by building from source and passing the -feature-wasm-exceptions
+flag to Qt configure. This will pass the -fwasm-exceptions flag to the compiler at compile and
+link time. Qt does not support enabling Emscripten's support for the earlier JavaScript-based
+exception implementation.
+
+Note that calling QApplication::exec() is not supported when exceptions are enabled, due to
+internal implementation details. Instead, write main() in the form where it returns early and
+does not call exec(), as described in \l{Application Startup and the Event Loop}.
+
+\section2 Shared Libraries and Dynamic Linking (Technology Preview)
+
+Qt for WebAssembly uses static linking by default, where the application is deployed as a single
+WebAssembly file which contains the Qt libraries and application code. Dynamic linking is an alternative
+build mode where each library and plugin is distributed individually.
+
+For instance, an application which uses Qt Quick may make use of the following
+libraries and plugins:
+
+\list
+\li <qtpath>/lib/libQt6Core.so
+\li <qtpath>/lib/libQt6Gui.so
+\li <qtpath>/lib/libQt6Qml.so
+\li <qtpath>/lib/libQt6Quick.so
+\li <qtpath>/plugins/imageformats/libqjpeg.so
+\li <qtpath>/plugins/imageformats/libqjgif.so
+\li <qtpath>/qml/QtQuick/Window/libquickwindowplugin.so
+\endlist
+
+Dynamic linking support in \QtVer is in Technology Preview. The implementation is suitable for prototyping
+and evaluation, but is not suitable for production use. Current limitations and restrictions include:
+
+\list
+\li Multithreading is not supported.
+\li Asyncify is not supported.
+\endlist
+
+Qt applications built with dynamic linking require two additional files to be present alongside the binaries:
+qt_plugins.json and qt_qml_imports.json. These files specify a list of shared libraries that will be loaded
+at application startup. There is a helper tool available to generate them: wasmdeployqt.
+To demonstrate how to use this tool, you can run it with the --help flag to get an overview of
+necessary flags needed to run the tool and example usage.
+
+The web server hosting the application must have the Qt shared libraries available.
+This can be accomplished by copying the contents of the Qt installation folder to the web server,
+or by creating a file system link.
+
+\section3 Quick Start
+
+The build and deployment procedure is slightly different than that from static wasm and shared desktop builds.
+Consider starting with a small example before progressing to a full application build.
+
+\list 1
+\li Build Qt from source, pass the “-shared” option to the Qt configure script. Use the '-prefix' option to set the install directory.
+\li Build your application using Qt from step 1.
+\li Create plugin preloading lists by running the deployment tool from your application build directory.
+    \list
+    \li <qtpath>/qtbase/bin/wasmdeployqt --qt-wasm-dir=<Path to the Qt for WebAssembly directory>
+    --qml-root-path=<Root directory for QML files> --qt-host-dir=<Path to the Qt host directory>
+    \endlist
+\endlist
+
+\section3 Shared Libraries Deployment in Depth
+
+The shared libraries build of Qt is deployed in two stages, where the first stage makes the Qt and application
+build available for download from the web server, and the second stage downloads required Qt plugins and Qt Quick
+imports at application startup.
+
+In the first step, make the Qt installation available for download from the web server. Depending
+on the specifics of the web server setup there may be different ways to accomplish this. In common is that
+the Qt loader expects to find the Qt libraries and plugins in a directory name "qt", relative to the html
+file which loads the application.
+
+If you are already copying the application to the web server as a part of deployment, then copying Qt as well
+is a possible option. If you are serving the application directly from its build directory - often the case during
+development phases - then creating a symlink to Qt can work well.
+
+Prepare for the second step by creating preload lists for Qt components such as plugins and Qt Quick imports. Preloading
+ensures that all required Qt components are availabe at application startup. Delayed loading, where components
+are dowloaded on demand, is also possbile but is not covered here.
+
+Preloading is implemented by the Qt JavaScript loader, which downloads files from the web server to the in-memory
+file system provided by Emscripten. Which files to download is specified using json-formatted download lists.
+Qt provides a tool for generating preload lists, see Quick Start section above.
+
+\section2 Known Issues
+
+\list
+\li Nested event loops are not supported. Applications should not call API like QDialog::exec()
+and QEventLoop::exec(). The experimental feature Asyncify could be used.
+\li Printing is not supported.
+\li QDnsLookup lookups and QSsl do not work and are not supported due to the web sandbox.
+The browser handles dns lookups and SSL certificates. DNS over HTTP could be used
+by applications needing dns lookups.
+\li QTcpSockets can be used but not all POSIX sockets functions are proxied. A Websockets
+server proxy like \l{https://github.com/novnc/websockify}{Websockify} needs to be used.
+\li All Q*Server classes are not supported by the platform.
+\li QWebSocket connections are supported by Emscripten only on the main thread.
+\li QWebSockets for WebAssembly does not support sending ping or pong frames, as the API available to
+web pages and browsers does not expose this functionality.
+\li To use QtWebsockets, the subprotocol might need to be set to 'mqtt' for using QtMqtt. Use
+QWebSocketHandshakeOptions when you open the QWebSocket.
+\li Fonts: Wasm sandbox does not allow access to system fonts. Font files must be
+distributed with the application, for example in Qt resources or downloading.
+Qt for WebAssembly itself embeds one such font.
+\li There may be artifacts of uninitialized graphics memory on some
+Qt Quick Controls 2 components, such as checkboxes. This can sometimes
+be seen on HighDPi displays.
+\li Native styles for Windows and macOS are not supported as Wasm as a platform
+is not providing that capability
+\li Link time error such as "wasm-ld: error: initial memory too small", requires adjustment of the
+ initial memory size. Use QT_WASM_INITIAL_MEMORY to set the initial size in kb, which must be a
+ multiple of 64KB (65536). Default is 50 MB. In CMakeLists.txt:
+ set_target_properties(<target> PROPERTIES QT_WASM_INITIAL_MEMORY "150MB")
+\li add_executable in CMakeLists.txt does not produce <target>.html or copy qtloader.js. Use
+ qt_add_executable instead.
+\endlist
+
+\section1 Other Topics
+\section2 Qt Configure Options Reference
+
+The following configure options are relevant when building Qt for WebAssembly from source.
+
+\table
+    \header
+        \li Configure Argument
+        \li Brief Description
+    \row
+        \li -feature-thread
+        \li Multi-threaded Wasm.
+    \row
+        \li -feature-wasm-simd128
+        \li Enable WebAssembly SIMD support.
+    \row
+        \li -feature-wasm-exceptions
+        \li Enable WebAssembly exceptions support.
+    \row
+        \li -device-option QT_EMSCRIPTEN_ASYNCIFY=1
+        \li Enable asyncify support.
+    \row
+        \li -device-option QT_EMSCRIPTEN_ASYNCIFY=2
+        \li Enable asyncify (JSPI) support.
+\endtable
+
+\target disabled features
+Qt disables some features by default for the WebAssembly platform, to reduce the binary size.
+You can explicitly enable a feature when you configure Qt for WebAssembly:
+
+\table
+    \header
+        \li Configure Argument
+        \li Brief Description
+    \row
+        \li -feature-topleveldomain
+        \li Provides support for checking if a domain is a top-level domain.
+\endtable
+
+\section2 Typical Download Sizes
+Expected footprint (download size): Wasm modules as produced by the compiler can be
+large, but compress well:
+
+\table
+\header
+    \li Example
+    \li gzip
+    \li brotli
+\row
+    \li helloglwindow (QtCore + QtGui)
+    \li 2.8M
+    \li 2.1M
+\row
+    \li wiggly widget (QtCore + QtGui + QtWidgets)
+    \li 4.3M
+    \li 3.2M
+\row
+    \li SensorTag (QtCore + QtGui + QtWidgets + \l[QML]{QtQuick} + QtCharts)
+    \li 8.6M
+    \li 6.3M
+\endtable
+
+Compression is typically handled on the web server side, using standard compression
+features: the server compresses automatically or picks up pre-compressed versions of the
+files. There's generally no need to have special handling of Wasm files.
+
+For more information, see \l{Minimizing the size of binaries}.
+
+\section2 Examples
+
+Examples and demos of Qt applications running in a web browser:
+\l{https://www.qt.io/qt-demos}{Qt Demos}
+
+\section1 External resources
+
+\list
+    \li \l {WebAssembly Resource site}
+\endlist
+
+\section1 License
+
+Qt for WebAssembly is available under commercial licenses from \l{The Qt Company}.
+In addition, it is available under the \l{GNU General Public License, version 3}.
+See \l{Qt Licensing} for further details.
+
+*/

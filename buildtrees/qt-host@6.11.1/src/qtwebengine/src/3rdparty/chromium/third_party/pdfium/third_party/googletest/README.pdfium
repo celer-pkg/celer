@@ -1,0 +1,20 @@
+Name: Google Test: Google's C++ Testing Framework
+Short Name: googletest
+URL: https://github.com/google/googletest.git
+Version: N/A
+Revision: DEPS
+License: BSD-3-Clause
+License File: src/LICENSE
+Shipped: no
+Security critical: no
+
+Google Test is imported as-is, to facilitate version bumping. However, the
+file/directory layout of Google Test is not yet considered stable. Therefore,
+until Google Test's layout stabilizes, PDFium code MUST NOT depend on it
+directly. Instead, PDFium code MUST:
+
+* #include the headers in testing/gtest and testing/gmock
+* use //testing/gtest(:gtest_main) and //testing/gmock(:gmock_main) in BUILD.gn
+  deps
+
+This will allow us to adapt to Google Test changes with minimal disruption.

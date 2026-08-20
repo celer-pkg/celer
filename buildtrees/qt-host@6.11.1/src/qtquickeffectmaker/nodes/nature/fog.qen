@@ -1,0 +1,75 @@
+{
+    "QEN": {
+        "description": "Generates fog/clouds/smoke effect.",
+        "fragmentCode": [
+            "@main",
+            "{",
+            "    float time = iTime * 0.5;",
+            "    float coordX = fract((fogMovement.x * time + texCoord.x) * fogTextureScale.x);",
+            "    float coordY = fract((fogMovement.y * time + texCoord.y) * fogTextureScale.y);",
+            "    vec2 fogCoord = vec2(coordX, coordY);",
+            "    vec4 fogTex = texture(fogTexture, fogCoord);",
+            "    float fog =  dot(fogTex.rgb, fogAnimation.xyz);",
+            "    fragColor.rgb = mix(fragColor.rgb, fogColor.rgb * fragColor.a, fog * fogColor.a);",
+            "}"
+        ],
+        "name": "Fog",
+        "properties": [
+            {
+                "defaultValue": "../images/fog.png",
+                "description": "Texture for the fog effect. RGB layers are utilized as a separate fog sprites. This should support seamless tiling.",
+                "name": "fogTexture",
+                "type": "image"
+            },
+            {
+                "defaultValue": "1, 1",
+                "description": "Scaling of the fog texture.",
+                "maxValue": "2, 2",
+                "minValue": "0.1, 0.1",
+                "name": "fogTextureScale",
+                "type": "vec2"
+            },
+            {
+                "defaultValue": "0, 0",
+                "description": "Defines how the fog moves on x and y coordinates while it animates. The default value is (0, 0) so not moving and practical range between (-1.0, -1.0) and (1.0, 1.0).",
+                "maxValue": "1, 1",
+                "minValue": "-1, -1",
+                "name": "fogMovement",
+                "type": "vec2"
+            },
+            {
+                "defaultValue": "0.8, 0.8, 0.8, 1",
+                "description": "Defines the color of the fog. The default value is light gray (0.8, 0.8, 0.8, 1.0).",
+                "name": "fogColor",
+                "type": "color"
+            },
+            {
+                "defaultValue": "1",
+                "description": "Defines the speed how fast the fog frames are animated. The default value is 1.0.",
+                "maxValue": "5",
+                "minValue": "0",
+                "name": "fogAnimationSpeed",
+                "type": "float"
+            }
+        ],
+        "version": 1,
+        "vertexCode": [
+            "@mesh 16, 16",
+            "out vec3 fogAnimation;",
+            "// 1/3 and 2/3 of TAU",
+            "#define TAU_13 2.09439510239",
+            "#define TAU_23 4.18879020478",
+            "@main",
+            "{",
+            "    float time = iTime * fogAnimationSpeed;",
+            "    const float fogBaseOpacity = 0.3;",
+            "    float fogOpacityAnimation = (1.0 - fogBaseOpacity);",
+            "    // Animate fog opacity based on texCoord & time",
+            "    fogOpacityAnimation += 0.8 * sin(texCoord.x * 12.0 + sin(time * 0.2)) * sin(texCoord.y * 7.0 + sin(time * 0.35));",
+            "    // Animate RGB layers of fog texture like a sprite",
+            "    vec3 fogLayersAnimation = vec3(sin(time), sin(time + TAU_13), sin(time + TAU_23));",
+            "    fogAnimation = vec3(fogBaseOpacity) + fogLayersAnimation * fogOpacityAnimation;",
+            "}"
+        ]
+    }
+}

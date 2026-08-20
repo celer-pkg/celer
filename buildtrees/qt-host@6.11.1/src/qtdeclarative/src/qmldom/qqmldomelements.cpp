@@ -1,0 +1,2265 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant
+
+// Suppress GCC 11 warning about maybe-uninitialized copy of
+// another Data. We're not sure if the compiler is actually right,
+// but in this type of warning, it often isn't.
+//#if defined(Q_CC_GNU) && Q_CC_GNU >= 1100
+//QT_WARNING_DISABLE_GCC("-Wmaybe-uninitialized")
+#include "qqmldomconstants_p.h"
+#include "qqmldompath_p.h"
+#if defined(__GNUC__) && __GNUC__ >= 11
+#  pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+
+#include "qqmldomelements_p.h"
+#include "qqmldomcomments_p.h"
+#include "qqmldomastdumper_p.h"
+#include "qqmldommock_p.h"
+#include "qqmldomreformatter_p.h"
+#include "qqmldomoutwriter_p.h"
+#include "qqmldomlinewriter_p.h"
+#include "qqmldomtop_p.h"
+#include "qqmldomexternalitems_p.h"
+
+#include <QtQml/private/qqmljslexer_p.h>
+#include <QtQml/private/qqmljsparser_p.h>
+#include <QtQml/private/qqmljsengine_p.h>
+#include <QtQml/private/qqmljsastvisitor_p.h>
+#include <QtQml/private/qqmljsast_p.h>
+
+#include <QtCore/QScopeGuard>
+#include <QtCore/QRegularExpression>
+#include <QtCore/QDir>
+#include <QtCore/QBasicMutex>
+#include <QtCore/QUrl>
+
+#include <optional>
+#include <limits>
+
+QT_BEGIN_NAMESPACE
+
+using namespace Qt::StringLiterals;
+
+namespace QQmlJS {
+namespace Dom {
+
+namespace Paths {
+
+Path moduleIndexPath(const QString &uri, int majorVersion, const ErrorHandler &errorHandler)
+{
+    QString version = QString::number(majorVersion);
+    if (majorVersion == Version::Latest)
+        version = QLatin1String("Latest");
+    else if (majorVersion == Version::Undefined)
+        version = QString();
+    QRegularExpression moduleRe(QLatin1String(R"(\A\w+(?:\.\w+)*\Z)"));
+    auto m = moduleRe.match(uri);
+    if (!m.isValid())
+        Path::myErrors()
+                .error(Path::tr("Invalid module name in import %1").arg(uri))
+                .handle(errorHandler);
+    return Path::fromRoot(PathRoot::Env).withField(Fields::moduleIndexWithUri).withKey(uri).withKey(version);
+}
+
+Path moduleScopePath(const QString &uri, Version version, const ErrorHandler &)
+{
+    return Path::fromRoot(PathRoot::Env)
+            .withField(Fields::moduleIndexWithUri)
+            .withKey(uri)
+            .withKey(version.majorSymbolicString())
+            .withField(Fields::moduleScope)
+            .withKey(version.minorString());
+}
+
+Path moduleScopePath(const QString &uri, const QString &version, const ErrorHandler &errorHandler)
+{
+    Version v = Version::fromString(version);
+    if (!version.isEmpty() && !(v.isValid() || v.isLatest()))
+        Path::myErrors().error(Path::tr("Invalid Version %1").arg(version)).handle(errorHandler);
+    return moduleScopePath(uri, v, errorHandler);
+}
+
+} // end namespace Paths
+
+static ErrorGroups domParsingErrors()
+{
+    static ErrorGroups res = { { DomItem::domErrorGroup, NewErrorGroup("Parsing") } };
+    return res;
+}
+
+bool CommentableDomElement::iterateDirectSubpaths(const DomItem &self, DirectVisitor visitor) const
+{
+    bool cont = true;
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::comments, m_comments);
+    return cont;
+}
+
+void Component::updatePathFromOwner(const Path &newPath)
+{
+    DomElement::updatePathFromOwner(newPath);
+    updatePathFromOwnerMultiMap(m_enumerations, newPath.withField(Fields::enumerations));
+    updatePathFromOwnerQList(m_objects, newPath.withField(Fields::objects));
+}
+
+Component::Component(const QString &name) : CommentableDomElement(Path()), m_name(name) { }
+
+Component::Component(const Path &pathFromOwner) : CommentableDomElement(pathFromOwner) { }
+
+bool Component::iterateDirectSubpaths(const DomItem &self, DirectVisitor visitor) const
+{
+    bool cont = CommentableDomElement::iterateDirectSubpaths(self, visitor);
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::name), name());
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::enumerations, m_enumerations);
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::objects, m_objects);
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::isSingleton),
+                                         isSingleton());
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::isCreatable),
+                                         isCreatable());
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::isComposite),
+                                         isComposite());
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::attachedTypeName),
+                                         attachedTypeName());
+    cont = cont && self.invokeVisitorOnReference(visitor, Fields::attachedType, attachedTypePath(self));
+    return cont;
+}
+
+DomItem Component::field(const DomItem &self, QStringView name) const
+{
+    if (name == Fields::name)
+        return self.wrap(PathEls::Field(Fields::name), m_name);
+    if (name == Fields::objects)
+        return self.wrap(PathEls::Field(Fields::objects), m_objects);
+
+    return DomBase::field(self, name);
+}
+
+Path Component::addObject(const QmlObject &object, QmlObject **oPtr)
+{
+    return appendUpdatableElementInQList(pathFromOwner().withField(Fields::objects), m_objects, object,
+                                         oPtr);
+}
+
+bool QmlComponent::iterateDirectSubpaths(const DomItem &self, DirectVisitor visitor) const
+{
+    bool cont = Component::iterateDirectSubpaths(self, visitor);
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::ids, m_ids);
+    cont = cont && self.invokeVisitorOnLazyField(visitor, Fields::subComponents, [this, &self]() {
+        return this->subComponents(self);
+    });
+    if (m_nameIdentifiers) {
+        cont = cont && visitor(PathEls::Field(Fields::nameIdentifiers), [this, &self]() {
+                   return self.subScriptElementWrapperItem(m_nameIdentifiers);
+               });
+    }
+    return cont;
+}
+
+void QmlComponent::updatePathFromOwner(const Path &newPath)
+{
+    Component::updatePathFromOwner(newPath);
+    updatePathFromOwnerMultiMap(m_ids, newPath.withField(Fields::annotations));
+}
+
+void QmlComponent::writeOut(const DomItem &self, OutWriter &lw) const
+{
+    if (name().contains(QLatin1Char('.'))) {
+        // inline component
+        const auto fLoc = FileLocations::treeOf(self);
+        lw.ensureNewline()
+                .writeRegion(fLoc, ComponentKeywordRegion)
+                .ensureSpace()
+                .writeRegion(fLoc, IdentifierRegion, name().split(QLatin1Char('.')).last())
+                .writeRegion(fLoc, ColonTokenRegion)
+                .ensureSpace();
+    }
+    self.field(Fields::objects).index(0).writeOut(lw);
+}
+
+QList<QString> QmlComponent::subComponentsNames(const DomItem &self) const
+{
+    DomItem components = self.owner().field(Fields::components);
+    const QSet<QString> cNames = components.keys();
+    QString myNameDot = self.pathFromOwner()[1].headName();
+    if (!myNameDot.isEmpty())
+        myNameDot += QLatin1Char('.');
+    QList<QString> subNames;
+    for (const QString &cName : cNames)
+        if (cName.startsWith(myNameDot)
+            && !QStringView(cName).mid(myNameDot.size()).contains(QLatin1Char('.'))
+            && !cName.isEmpty())
+            subNames.append(cName);
+    std::sort(subNames.begin(), subNames.end());
+    return subNames;
+}
+
+QList<DomItem> QmlComponent::subComponents(const DomItem &self) const
+{
+    DomItem components = self.owner().field(Fields::components);
+    QList<DomItem> res;
+    for (const QString &cName : subComponentsNames(self))
+        for (const DomItem &comp : components.key(cName).values())
+            res.append(comp);
+    return res;
+}
+
+Version Version::fromString(QStringView v)
+{
+    if (v.isEmpty())
+        return Version(Latest, Latest);
+    QRegularExpression r(
+            QRegularExpression::anchoredPattern(QStringLiteral(uR"(([0-9]*)(?:\.([0-9]*))?)")));
+    auto m = r.matchView(v);
+    if (m.hasMatch()) {
+        bool ok;
+        int majorV = m.capturedView(1).toInt(&ok);
+        if (!ok)
+            majorV = Version::Undefined;
+        int minorV = m.capturedView(2).toInt(&ok);
+        if (!ok)
+            minorV = Version::Undefined;
+        return Version(majorV, minorV);
+    }
+    return {};
+}
+
+Version::Version(qint32 majorV, qint32 minorV) : majorVersion(majorV), minorVersion(minorV) { }
+
+bool Version::isLatest() const
+{
+    return majorVersion == Latest && minorVersion == Latest;
+}
+
+bool Version::isValid() const
+{
+    return majorVersion >= 0 && minorVersion >= 0;
+}
+
+QString Version::stringValue() const
+{
+    if (isLatest())
+        return QString();
+    if (minorVersion < 0) {
+        if (majorVersion < 0)
+            return QLatin1String(".");
+        else
+            return QString::number(majorVersion);
+    }
+    if (majorVersion < 0)
+        return QLatin1String(".") + QString::number(minorVersion);
+    return QString::number(majorVersion) + QChar::fromLatin1('.') + QString::number(minorVersion);
+}
+
+bool Version::iterateDirectSubpaths(const DomItem &self, DirectVisitor visitor) const
+{
+    bool cont = true;
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::majorVersion, majorVersion);
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::minorVersion, minorVersion);
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::isLatest), isLatest());
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::isValid), isValid());
+    cont = cont && self.invokeVisitorOnLazyField(visitor, Fields::stringValue, [this]() {
+        return this->stringValue();
+    });
+    return cont;
+}
+
+QRegularExpression Import::importRe()
+{
+    static QRegularExpression res(QRegularExpression::anchoredPattern(QStringLiteral(
+            uR"((?<uri>\w+(?:\.\w+)*)(?:\W+(?<version>[0-9]+(?:\.[0-9]*)?))?(?:\W+as\W+(?<id>\w+))?$)")));
+    return res;
+}
+
+Import Import::fromUriString(
+        const QString &importStr, Version v, const QString &importId, const ErrorHandler &handler)
+{
+    auto m = importRe().match(importStr);
+    if (m.hasMatch()) {
+        if (v.majorVersion == Version::Undefined && v.minorVersion == Version::Undefined)
+            v = Version::fromString(m.captured(2));
+        else if (!m.captured(u"version").isEmpty())
+            domParsingErrors()
+                    .warning(tr("Version %1 in import string '%2' overridden by explicit "
+                                "version %3")
+                                     .arg(m.captured(2), importStr, v.stringValue()))
+                    .handle(handler);
+        QString resolvedImportId;
+        if (importId.isEmpty()) {
+            resolvedImportId = m.captured(u"importId");
+        } else {
+            if (!m.captured(u"importId").isEmpty()) {
+                domParsingErrors()
+                        .warning(tr("namespace %1 in import string '%2' overridden by explicit "
+                                    "importId %3")
+                                         .arg(m.captured(u"importId"), importStr, importId))
+                        .handle(handler);
+            }
+            resolvedImportId = importId;
+        }
+
+        return Import(QmlUri::fromUriString(m.captured(u"uri").trimmed()), v, resolvedImportId);
+    }
+    domParsingErrors()
+            .error(tr("Unexpected URI format in import '%1'").arg(importStr))
+            .handle(handler);
+    return Import();
+}
+
+Import Import::fromFileString(
+        const QString &importStr, const QString &importId, const ErrorHandler &)
+{
+    return Import(QmlUri::fromDirectoryString(importStr), Version(), importId);
+}
+
+bool Import::iterateDirectSubpaths(const DomItem &self, DirectVisitor visitor) const
+{
+    bool cont = true;
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::uri), uri.toString());
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::version, version);
+    if (!importId.isEmpty())
+        cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::importId), importId);
+    if (implicit)
+        cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::implicit), implicit);
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::comments, comments);
+    return cont;
+}
+
+void Import::writeOut(const DomItem &self, OutWriter &ow) const
+{
+    if (implicit)
+        return;
+
+    QString code;
+    const DomItem owner = self.owner();
+    if (std::shared_ptr<QmlFile> qmlFilePtr = self.ownerAs<QmlFile>())
+        code = qmlFilePtr->code();
+
+    // check for an empty line before the import, and preserve it
+    int preNewlines = 0;
+
+    const FileLocations::Tree fLoc = FileLocations::treeOf(self);
+
+    quint32 start = fLoc->info().fullRegion.offset;
+    if (size_t(code.size()) >= start) {
+        while (start != 0) {
+            QChar c = code.at(--start);
+            if (c == u'\n') {
+                if (++preNewlines == 2)
+                    break;
+            } else if (!c.isSpace())
+                break;
+        }
+    }
+    if (preNewlines == 0)
+        ++preNewlines;
+
+    ow.ensureNewline(preNewlines);
+    ow.writeRegion(fLoc, ImportTokenRegion).ensureSpace();
+    ow.writeRegion(fLoc, ImportUriRegion, uri.toString());
+    if (uri.isModule()) {
+        QString vString = version.stringValue();
+        if (!vString.isEmpty())
+            ow.ensureSpace().writeRegion(fLoc, VersionRegion, vString);
+    }
+    if (!importId.isEmpty()) {
+        ow.ensureSpace()
+                .writeRegion(fLoc, AsTokenRegion)
+                .ensureSpace()
+                .writeRegion(fLoc, IdNameRegion, importId);
+    }
+}
+
+Id::Id(const QString &idName, const Path &referredObject) : name(idName), referredObjectPath(referredObject) { }
+
+bool Id::iterateDirectSubpaths(const DomItem &self, DirectVisitor visitor) const
+{
+    bool cont = true;
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::name), name);
+    cont = cont && self.invokeVisitorOnReference(visitor, Fields::referredObject, referredObjectPath);
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::comments, comments);
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::annotations, annotations);
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::value, value);
+    return cont;
+}
+
+void Id::updatePathFromOwner(const Path &newPath)
+{
+    updatePathFromOwnerQList(annotations, newPath.withField(Fields::annotations));
+}
+
+Path Id::addAnnotation(const Path &selfPathFromOwner, const QmlObject &annotation, QmlObject **aPtr)
+{
+    return appendUpdatableElementInQList(selfPathFromOwner.withField(Fields::annotations), annotations,
+                                         annotation, aPtr);
+}
+
+QmlObject::QmlObject(const Path &pathFromOwner) : CommentableDomElement(pathFromOwner) { }
+
+bool QmlObject::iterateBaseDirectSubpaths(const DomItem &self, DirectVisitor visitor) const
+{
+    bool cont = CommentableDomElement::iterateDirectSubpaths(self, visitor);
+    if (!idStr().isEmpty())
+        cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::idStr), idStr());
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::name), name());
+    if (!prototypePaths().isEmpty())
+        cont = cont && self.invokeVisitorOnReferences(visitor, Fields::prototypes, m_prototypePaths);
+    if (nextScopePath())
+        cont = cont && self.invokeVisitorOnReference(visitor, Fields::nextScope, nextScopePath());
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::propertyDefs, m_propertyDefs);
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::bindings, m_bindings);
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::methods, m_methods);
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::children, m_children);
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::annotations, m_annotations);
+    cont = cont && visitor(PathEls::Field(Fields::propertyInfos), [this, &self]() {
+               return self.subMapItem(Map(
+                       pathFromOwner().withField(Fields::propertyInfos),
+                       [&self](const DomItem &map, const QString &k) {
+                           auto pInfo = self.propertyInfoWithName(k);
+                           return map.wrap(PathEls::Key(k), pInfo);
+                       },
+                       [&self](const DomItem &) { return self.propertyInfoNames(); },
+                       QLatin1String("PropertyInfo")));
+           });
+    if (m_nameIdentifiers) {
+        cont = cont && visitor(PathEls::Field(Fields::nameIdentifiers), [this, &self]() {
+                   return self.subScriptElementWrapperItem(m_nameIdentifiers);
+               });
+    }
+    return cont;
+}
+
+QList<QString> QmlObject::fields() const
+{
+    static QList<QString> myFields(
+            { Fields::comments.toString(), Fields::idStr.toString(),
+              Fields::name.toString(), Fields::prototypes.toString(),
+              Fields::nextScope.toString(), Fields::propertyDefs.toString(),
+              Fields::bindings.toString(), Fields::methods.toString(),
+              Fields::children.toString(), Fields::annotations.toString(),
+              Fields::propertyInfos.toString() });
+    return myFields;
+}
+
+bool QmlObject::iterateDirectSubpaths(const DomItem &self, DirectVisitor visitor) const
+{
+    bool cont = iterateBaseDirectSubpaths(self, visitor);
+    cont = cont && self.invokeVisitorOnLazyField(visitor, Fields::defaultPropertyName,
+                                             [this, &self]() { return defaultPropertyName(self); });
+    return cont;
+}
+
+DomItem QmlObject::field(const DomItem &self, QStringView name) const
+{
+    if (name == Fields::name)
+        return self.subDataItem(PathEls::Field(Fields::name), this->name());
+    if (name == Fields::idStr) {
+        if (idStr().isEmpty())
+            return DomItem();
+        return self.subDataItem(PathEls::Field(Fields::idStr), idStr());
+    }
+    if (name == Fields::methods)
+        return self.wrap(PathEls::Field(Fields::methods), m_methods);
+    if (name == Fields::bindings)
+        return self.wrap(PathEls::Field(Fields::bindings), m_bindings);
+    if (name == Fields::comments)
+        return CommentableDomElement::field(self, name);
+    if (name == Fields::children)
+        return self.wrap(PathEls::Field(Fields::children), m_children);
+
+    if (name == Fields::nextScope) {
+        if (nextScopePath())
+            return self.subReferenceItem(PathEls::Field(Fields::nextScope), nextScopePath());
+        else
+            return DomItem();
+    }
+    if (name == Fields::prototypes) {
+        if (prototypePaths().isEmpty())
+            return DomItem();
+        return self.subReferencesItem(PathEls::Field(Fields::prototypes), m_prototypePaths);
+    }
+    if (name == Fields::annotations)
+        return self.wrap(PathEls::Field(Fields::annotations), m_annotations);
+    if (name == Fields::propertyDefs)
+        return self.wrap(PathEls::Field(Fields::propertyDefs), m_propertyDefs);
+    if (name == Fields::propertyInfos) {
+        // Need to explicitly copy self here since we might store this and call it later.
+        return self.subMapItem(Map(
+                pathFromOwner().withField(Fields::propertyInfos),
+                [copiedSelf = self](const DomItem &map, const QString &k) {
+                    return map.wrap(PathEls::Key(k), copiedSelf.propertyInfoWithName(k));
+                },
+                [copiedSelf = self](const DomItem &) { return copiedSelf.propertyInfoNames(); },
+                QLatin1String("PropertyInfo")));
+    }
+    if (name == Fields::nameIdentifiers && m_nameIdentifiers) {
+        return self.subScriptElementWrapperItem(m_nameIdentifiers);
+    }
+    if (name == Fields::defaultPropertyName) {
+        return self.subDataItem(PathEls::Field(Fields::defaultPropertyName),
+                                defaultPropertyName(self));
+    }
+    static QStringList knownLookups({ Fields::fileLocationsTree.toString() });
+    if (!knownLookups.contains(name)) {
+        qCWarning(domLog()) << "Asked non existing field " << name << " in QmlObject "
+                            << pathFromOwner();
+    }
+    return DomItem();
+}
+
+void QmlObject::updatePathFromOwner(const Path &newPath)
+{
+    DomElement::updatePathFromOwner(newPath);
+    updatePathFromOwnerMultiMap(m_propertyDefs, newPath.withField(Fields::propertyDefs));
+    updatePathFromOwnerMultiMap(m_bindings, newPath.withField(Fields::bindings));
+    updatePathFromOwnerMultiMap(m_methods, newPath.withField(Fields::methods));
+    updatePathFromOwnerQList(m_children, newPath.withField(Fields::children));
+    updatePathFromOwnerQList(m_annotations, newPath.withField(Fields::annotations));
+}
+
+QString QmlObject::localDefaultPropertyName() const
+{
+    if (!m_defaultPropertyName.isEmpty())
+        return m_defaultPropertyName;
+    for (const PropertyDefinition &pDef : m_propertyDefs)
+        if (pDef.isDefaultMember)
+            return pDef.name;
+    return QString();
+}
+
+QString QmlObject::defaultPropertyName(const DomItem &self) const
+{
+    QString dProp = localDefaultPropertyName();
+    if (!dProp.isEmpty())
+        return dProp;
+    QString res = QStringLiteral(u"data");
+    self.visitPrototypeChain(
+            [&res](const DomItem &obj) {
+                if (const QmlObject *objPtr = obj.as<QmlObject>()) {
+                    QString dProp = objPtr->localDefaultPropertyName();
+                    if (!dProp.isEmpty()) {
+                        res = dProp;
+                        return false;
+                    }
+                }
+                return true;
+            },
+            VisitPrototypesOption::SkipFirst);
+    return res;
+}
+
+bool QmlObject::iterateSubOwners(const DomItem &self, function_ref<bool(const DomItem &)> visitor) const
+{
+    bool cont = self.field(Fields::bindings).visitKeys([visitor](const QString &, const DomItem &bs) {
+        return bs.visitIndexes([visitor](const DomItem &b) {
+            DomItem v = b.field(Fields::value);
+            if (std::shared_ptr<ScriptExpression> vPtr = v.ownerAs<ScriptExpression>()) {
+                if (!visitor(v))
+                    return false;
+                return v.iterateSubOwners(visitor); // currently not needed, avoid?
+            }
+            return true;
+        });
+    });
+    cont = cont && self.field(Fields::children).visitIndexes([visitor](const DomItem &qmlObj) {
+        if (const QmlObject *qmlObjPtr = qmlObj.as<QmlObject>()) {
+            return qmlObjPtr->iterateSubOwners(qmlObj, visitor);
+        }
+        Q_ASSERT(false);
+        return true;
+    });
+    return cont;
+}
+
+static QStringList dotExpressionToList(const std::shared_ptr<ScriptExpression> &expr)
+{
+    QStringList res;
+    AST::Node *node = (expr ? expr->ast() : nullptr);
+    while (node) {
+        switch (node->kind) {
+        case AST::Node::Kind_IdentifierExpression: {
+            AST::IdentifierExpression *id = AST::cast<AST::IdentifierExpression *>(node);
+            res.prepend(id->name.toString());
+            return res;
+        }
+        case AST::Node::Kind_FieldMemberExpression: {
+            AST::FieldMemberExpression *id = AST::cast<AST::FieldMemberExpression *>(node);
+            res.prepend(id->name.toString());
+            node = id->base;
+            break;
+        }
+        default:
+            qCDebug(writeOutLog).noquote() << "Could not convert dot expression to list for:\n"
+                                           << expr->astRelocatableDump();
+            return QStringList();
+        }
+    }
+    return res;
+}
+
+LocallyResolvedAlias QmlObject::resolveAlias(const DomItem &self,
+                                             std::shared_ptr<ScriptExpression> accessSequence) const
+{
+    QStringList accessSequenceList = dotExpressionToList(accessSequence);
+    return resolveAlias(self, accessSequenceList);
+}
+
+LocallyResolvedAlias QmlObject::resolveAlias(const DomItem &self, const QStringList &accessSequence) const
+{
+    LocallyResolvedAlias res;
+    QSet<QString> visitedAlias;
+    if (accessSequence.isEmpty()) {
+        return res;
+    } else if (accessSequence.size() > 3) {
+        res.status = LocallyResolvedAlias::Status::TooDeep;
+        return res;
+    }
+    QString idName = accessSequence.first();
+    DomItem idTarget = self.component()
+                               .field(Fields::ids)
+                               .key(idName)
+                               .index(0)
+                               .field(Fields::referredObject)
+                               .get();
+    if (!idTarget)
+        return res;
+    res.baseObject = idTarget;
+    res.accessedPath = accessSequence.mid(1);
+    res.typeName = idTarget.name();
+    res.status = LocallyResolvedAlias::Status::ResolvedObject;
+    // check if it refers to locally defined props/objs
+    while (!res.accessedPath.isEmpty()) {
+        QString pNow = res.accessedPath.first();
+        DomItem defNow = res.baseObject.propertyDefs().key(pNow).index(0);
+        if (const PropertyDefinition *defNowPtr = defNow.as<PropertyDefinition>()) {
+            if (defNowPtr->isAlias()) {
+                res.typeName = QString();
+                ++res.nAliases;
+                QString aliasPath = defNow.canonicalPath().toString();
+                if (visitedAlias.contains(aliasPath)) {
+                    res.status = LocallyResolvedAlias::Status::Loop;
+                    return res;
+                }
+                visitedAlias.insert(aliasPath);
+                DomItem valNow = res.baseObject.bindings().key(pNow).index(0);
+                if (std::shared_ptr<ScriptExpression> exp =
+                            valNow.field(Fields::value).ownerAs<ScriptExpression>()) {
+                    QStringList expList = dotExpressionToList(exp);
+                    if (expList.isEmpty()) {
+                        res.status = LocallyResolvedAlias::Status::Invalid;
+                        return res;
+                    } else if (expList.size() > 3) {
+                        res.status = LocallyResolvedAlias::Status::TooDeep;
+                        return res;
+                    }
+                    idName = expList.first();
+                    idTarget = self.component()
+                                       .field(Fields::ids)
+                                       .key(idName)
+                                       .index(0)
+                                       .field(Fields::referredObject)
+                                       .get();
+                    res.baseObject = idTarget;
+                    res.accessedPath = expList.mid(1) + res.accessedPath.mid(1);
+                    if (!idTarget) {
+                        res.status = LocallyResolvedAlias::Status::Invalid;
+                        return res;
+                    }
+                    res.status = LocallyResolvedAlias::Status::ResolvedObject;
+                    res.typeName = idTarget.name();
+                } else {
+                    res.status = LocallyResolvedAlias::Status::Invalid;
+                    return res;
+                }
+            } else {
+                res.localPropertyDef = defNow;
+                res.typeName = defNowPtr->typeName;
+                res.accessedPath = res.accessedPath.mid(1);
+                DomItem valNow = res.baseObject.bindings().key(pNow).index(0).field(Fields::value);
+                if (valNow.internalKind() == DomType::QmlObject) {
+                    res.baseObject = valNow;
+                    res.typeName = valNow.name();
+                    res.status = LocallyResolvedAlias::Status::ResolvedObject;
+                } else {
+                    res.status = LocallyResolvedAlias::Status::ResolvedProperty;
+                    return res;
+                }
+            }
+        } else {
+            return res;
+        }
+    }
+    return res;
+}
+
+MutableDomItem QmlObject::addPropertyDef(
+        MutableDomItem &self, const PropertyDefinition &propertyDef, AddOption option)
+{
+    Path p = addPropertyDef(propertyDef, option);
+    if (p.last().headIndex(0) > 1)
+        self.owningItemPtr()->addErrorLocal(domParsingErrors().error(
+                tr("Repeated PropertyDefinition with name %1").arg(propertyDef.name)));
+    return self.owner().path(p);
+}
+
+MutableDomItem QmlObject::addBinding(MutableDomItem &self, const Binding &binding, AddOption option)
+{
+    Path p = addBinding(binding, option);
+    if (p && p.last().headIndex(0) > 1)
+        self.owningItemPtr()->addErrorLocal(
+                domParsingErrors().error(tr("Repeated binding with name %1").arg(binding.name())));
+    return self.owner().path(p);
+}
+
+MutableDomItem QmlObject::addMethod(
+        MutableDomItem &self, const MethodInfo &functionDef, AddOption option)
+{
+    Path p = addMethod(functionDef, option);
+    if (p.last().headIndex(0) > 1)
+        self.owningItemPtr()->addErrorLocal(
+                domParsingErrors().error(tr("Repeated Method with name %1").arg(functionDef.name)));
+    return self.owner().path(p);
+}
+
+void QmlObject::writeOutId(const DomItem &self, OutWriter &ow) const
+{
+    if (!idStr().isEmpty()) { // *always* put id first
+        DomItem myId = self.component().field(Fields::ids).key(idStr()).index(0);
+        myId.writeOutPre(ow);
+        const auto fLoc = FileLocations::treeOf(myId);
+        ow.ensureNewline()
+                .writeRegion(fLoc, IdTokenRegion)
+                .writeRegion(fLoc, IdColonTokenRegion)
+                .ensureSpace()
+                .writeRegion(fLoc, IdNameRegion, idStr());
+        if (myId) {
+            myId.writeOutPost(ow);
+            ow.ensureNewline(1);
+        }
+    }
+}
+
+QList<std::pair<SourceLocation, DomItem>> QmlObject::orderOfAttributes(const DomItem &self,
+                                                                   const DomItem &component) const
+{
+    auto startLoc = [&](const FileLocations::Tree &l) {
+        if (l)
+            return l->info().fullRegion;
+        return SourceLocation(posOfNewElements, 0, 0, 0);
+    };
+
+    QList<std::pair<SourceLocation, DomItem>> attribs;
+    const auto objLocPtr = FileLocations::treeOf(self);
+    FileLocations::Tree componentLoc;
+    if (component && objLocPtr)
+        componentLoc = objLocPtr->parent()->parent();
+    auto addMMap = [&attribs, &startLoc](const DomItem &base, const FileLocations::Tree &baseLoc) {
+        if (!base)
+            return;
+        const auto values = base.values();
+        for (const auto &els : values) {
+            FileLocations::Tree elsLoc = FileLocations::find(baseLoc, els.pathFromOwner().last());
+            const auto elsValues = els.values();
+            for (const auto &el : elsValues) {
+                FileLocations::Tree elLoc = FileLocations::find(elsLoc, el.pathFromOwner().last());
+                attribs.append(std::make_pair(startLoc(elLoc), el));
+            }
+        }
+    };
+    auto addMyMMap = [this, &objLocPtr, &self, &addMMap](QStringView fieldName) {
+        DomItem base = this->field(self, fieldName);
+        addMMap(base, FileLocations::find(objLocPtr, base.pathFromOwner().last()));
+    };
+    auto addSingleLevel = [&attribs, &startLoc](const DomItem &base,
+                                                const FileLocations::Tree &baseLoc) {
+        if (!base)
+            return;
+        const auto baseValues = base.values();
+        for (const auto &el : baseValues) {
+            FileLocations::Tree elLoc = FileLocations::find(baseLoc, el.pathFromOwner().last());
+            attribs.append(std::make_pair(startLoc(elLoc), el));
+        }
+    };
+    if (component) {
+        DomItem enums = component.field(Fields::enumerations);
+        addMMap(enums, FileLocations::find(componentLoc, enums.pathFromOwner().last()));
+    }
+    addMyMMap(Fields::propertyDefs);
+    addMyMMap(Fields::bindings);
+    addMyMMap(Fields::methods);
+    DomItem children = field(self, Fields::children);
+    addSingleLevel(children, FileLocations::find(objLocPtr, children.pathFromOwner().last()));
+    if (component) {
+        DomItem subCs = component.field(Fields::subComponents);
+        for (const DomItem &c : subCs.values()) {
+            const auto subLocPtr = FileLocations::treeOf(c);
+            Q_ASSERT(subLocPtr);
+            attribs.append(std::make_pair(startLoc(subLocPtr), c));
+        }
+    }
+    std::stable_sort(attribs.begin(), attribs.end(),
+                     [](const std::pair<SourceLocation, DomItem> &el1,
+                        const std::pair<SourceLocation, DomItem> &el2) {
+                         if (el1.first.offset < el2.first.offset)
+                             return true;
+                         if (el1.first.offset > el2.first.offset)
+                             return false;
+                         int i = int(el1.second.internalKind()) - int(el2.second.internalKind());
+                         return i < 0;
+                     });
+    return attribs;
+}
+
+void QmlObject::writeOutAttributes(OutWriter &ow, const Attributes &attribs,
+                                   const QString &code) const
+{
+    qsizetype iAttr = 0;
+    while (iAttr != attribs.size()) {
+        auto &el = attribs[iAttr++];
+        // check for an empty line before the current element, and preserve it
+        int preNewlines = 0;
+        quint32 start = el.first.offset;
+        if (start != posOfNewElements && size_t(code.size()) >= start) {
+            while (start != 0) {
+                QChar c = code.at(--start);
+                if (c == u'\n') {
+                    if (++preNewlines == 2)
+                        break;
+                } else if (!c.isSpace())
+                    break;
+            }
+        }
+        if (preNewlines == 0)
+            ++preNewlines;
+        ow.ensureNewline(preNewlines);
+        if (el.second.internalKind() == DomType::PropertyDefinition && iAttr != attribs.size()
+            && el.first.offset != ~quint32(0)) {
+            DomItem b;
+            auto &bPair = attribs[iAttr];
+            if (bPair.second.internalKind() == DomType::Binding
+                && bPair.first.begin() < el.first.end()
+                && bPair.second.name() == el.second.name()) {
+                b = bPair.second;
+                ++iAttr;
+                b.writeOutPre(ow);
+            }
+            el.second.writeOut(ow);
+            if (b) {
+                const auto fLoc = FileLocations::treeOf(b);
+                ow.writeRegion(fLoc, ColonTokenRegion);
+                ow.ensureSpace();
+                if (const Binding *bPtr = b.as<Binding>())
+                    bPtr->writeOutValue(b, ow);
+                else {
+                    qWarning() << "Internal error casting binding to Binding in"
+                               << b.canonicalPath();
+                    ow.writeRegion(fLoc, LeftBraceRegion).writeRegion(fLoc, RightBraceRegion);
+                }
+                b.writeOutPost(ow);
+            }
+        } else {
+            el.second.writeOut(ow);
+        }
+        ow.ensureNewline();
+    }
+}
+
+static QStringList keepKeysOrder(const QList<std::pair<SourceLocation, DomItem>> &attribs,
+                                 const QStringList &keys)
+{
+    QStringList originalOrderedKeys;
+    for (const auto &attrib : attribs) {
+        QString defName = attrib.second.name();
+        if (keys.contains(defName) && !originalOrderedKeys.contains(defName))
+            originalOrderedKeys.append(std::move(defName));
+    }
+    return originalOrderedKeys;
+}
+
+static QList<DomItem> keepDomItemsOrder(const QList<std::pair<SourceLocation, DomItem>> &attribs,
+                                        const QStringView &field, const DomItem &refItem)
+{
+    DomItem item = refItem.field(field);
+    QStringList keys = keepKeysOrder(attribs, item.sortedKeys());
+    QList<DomItem> values = item.values();
+
+    QList<DomItem> originalValuesOrder;
+    for (const auto &attrib : attribs) {
+        DomItem itemValue = item.key(attrib.second.name());
+        if (values.contains(itemValue) && !originalValuesOrder.contains(itemValue))
+            originalValuesOrder.append(std::move(itemValue));
+    }
+    return originalValuesOrder;
+}
+
+void QmlObject::writeOutSortedEnumerations(const QList<DomItem> &descs, OutWriter &ow) const
+{
+    for (const auto &enumDescs : descs) {
+        const auto values = enumDescs.values();
+        for (const auto &enumDesc : values) {
+            ow.ensureNewline(1);
+            enumDesc.writeOut(ow);
+            ow.ensureNewline(1);
+        }
+    }
+}
+
+void QmlObject::writeOutSortedPropertyDefinition(const DomItem &self, OutWriter &ow,
+                                                 QSet<QString> &mergedDefBinding,
+                                                 const QStringList &keys) const
+{
+    DomItem propertyDefs = field(self, Fields::propertyDefs);
+    DomItem bindings = field(self, Fields::bindings);
+
+    for (const QString &defName : keys) {
+        const auto pDefs = propertyDefs.key(defName).values();
+        for (const auto &pDef : pDefs) {
+            const PropertyDefinition *pDefPtr = pDef.as<PropertyDefinition>();
+            Q_ASSERT(pDefPtr);
+            DomItem b;
+            bool uniqueDeclarationWithThisName = pDefs.size() == 1;
+            if (uniqueDeclarationWithThisName && !pDefPtr->isRequired)
+                bindings.key(pDef.name()).visitIndexes([&b, pDefPtr](const DomItem &el) {
+                    const Binding *elPtr = el.as<Binding>();
+                    if (elPtr && elPtr->bindingType() == BindingType::Normal) {
+                        switch (elPtr->valueKind()) {
+                        case BindingValueKind::ScriptExpression:
+                            b = el;
+                            break;
+                        case BindingValueKind::Array:
+                            if (!pDefPtr->isDefaultMember && pDefPtr->isParametricType())
+                                b = el;
+                            break;
+                        case BindingValueKind::Object:
+                            if (!pDefPtr->isDefaultMember && !pDefPtr->isParametricType())
+                                b = el;
+                            break;
+                        case BindingValueKind::Empty:
+                            break;
+                        }
+                        return false;
+                    }
+                    return true;
+                });
+            if (b) {
+                mergedDefBinding.insert(defName);
+                b.writeOutPre(ow);
+            }
+            pDef.writeOut(ow);
+            if (b) {
+                const auto fLoc = FileLocations::treeOf(b);
+                ow.writeRegion(fLoc, ColonTokenRegion);
+                ow.ensureSpace();
+                if (const Binding *bPtr = b.as<Binding>())
+                    bPtr->writeOutValue(b, ow);
+                else {
+                    qWarning() << "Internal error casting binding to Binding in"
+                               << b.canonicalPath();
+                    ow.writeRegion(fLoc, LeftBraceRegion).writeRegion(fLoc, RightBraceRegion);
+                }
+                b.writeOutPost(ow);
+            }
+        }
+    }
+}
+
+static std::pair<QList<DomItem>, QList<DomItem>>
+splitSignalsAndMethods(const QList<DomItem> &fields)
+{
+    QList<DomItem> signalList, methodList;
+    for (const auto &ms : fields) {
+        const auto values = ms.values();
+        for (const auto &m : values) {
+            const MethodInfo *mPtr = m.as<MethodInfo>();
+            if (mPtr && mPtr->methodType == MethodInfo::MethodType::Signal)
+                signalList.append(m);
+            else
+                methodList.append(m);
+        }
+    }
+    return std::make_pair(signalList, methodList);
+}
+
+static std::tuple<QList<DomItem>, QList<DomItem>, QList<DomItem>>
+splitBindings(const DomItem &bindings, const QSet<QString> &mergedDefBinding,
+              const QStringList &keys)
+{
+
+    QList<DomItem> normalBindings, signalHandlers, delayedBindings;
+    for (const auto &bName : keys) {
+        bool skipFirstNormal = mergedDefBinding.contains(bName);
+        const auto values = bindings.key(bName).values();
+        for (const auto &b : values) {
+            const Binding *bPtr = b.as<Binding>();
+            if (skipFirstNormal) {
+                if (bPtr && bPtr->bindingType() == BindingType::Normal) {
+                    skipFirstNormal = false;
+                    continue;
+                }
+            }
+            if (bPtr->valueKind() == BindingValueKind::Array
+                || bPtr->valueKind() == BindingValueKind::Object)
+                delayedBindings.append(b);
+            else if (b.field(Fields::isSignalHandler).value().toBool(false))
+                signalHandlers.append(b);
+            else
+                normalBindings.append(b);
+        }
+    }
+    return std::make_tuple(normalBindings, signalHandlers, delayedBindings);
+}
+
+void QmlObject::writeOutSortedAttributes(const DomItem &self, OutWriter &ow,
+                                         const DomItem &component, const Attributes &attribs) const
+{
+    int spacerId = 0;
+    quint32 counter = ow.counter();
+
+    if (component)
+        writeOutSortedEnumerations(
+                ow.lineWriter.options().groupAttributesTogether
+                        ? keepDomItemsOrder(attribs, Fields::enumerations, component)
+                        : component.field(Fields::enumerations).values(),
+                ow);
+
+    if (counter != ow.counter() || !idStr().isEmpty())
+        spacerId = ow.addNewlinesAutospacerCallback(2);
+
+    QSet<QString> mergedDefBinding;
+    QStringList propertyDefsKeys = field(self, Fields::propertyDefs).sortedKeys();
+    writeOutSortedPropertyDefinition(self, ow, mergedDefBinding,
+                                     ow.lineWriter.options().groupAttributesTogether
+                                             ? keepKeysOrder(attribs, propertyDefsKeys)
+                                             : propertyDefsKeys);
+
+    ow.removeTextAddCallback(spacerId);
+    if (counter != ow.counter())
+        spacerId = ow.addNewlinesAutospacerCallback(2);
+
+    const auto [signalList, methodList] =
+            splitSignalsAndMethods(ow.lineWriter.options().groupAttributesTogether
+                                           ? keepDomItemsOrder(attribs, Fields::methods, self)
+                                           : field(self, Fields::methods).values());
+    for (const auto &sig : std::as_const(signalList)) {
+        ow.ensureNewline();
+        sig.writeOut(ow);
+        ow.ensureNewline();
+    }
+
+    ow.removeTextAddCallback(spacerId);
+    if (counter != ow.counter())
+        spacerId = ow.addNewlinesAutospacerCallback(2);
+
+    bool first = true;
+    for (const auto &method : std::as_const(methodList)) {
+        if (!first && ow.lineWriter.options().functionsSpacing) {
+            ow.newline();
+        }
+        ow.ensureNewline();
+        first = false;
+        method.writeOut(ow);
+        ow.ensureNewline();
+    }
+    ow.removeTextAddCallback(spacerId);
+
+    DomItem bindings = field(self, Fields::bindings);
+    QStringList bindingsKeys = bindings.sortedKeys();
+    const auto [normalBindings, signalHandlers, delayedBindings] = splitBindings(
+            bindings, mergedDefBinding,
+            ow.lineWriter.options().groupAttributesTogether ? keepKeysOrder(attribs, bindingsKeys)
+                                                            : bindingsKeys);
+
+    if (counter != ow.counter())
+        spacerId = ow.addNewlinesAutospacerCallback(2);
+    for (const auto &b : std::as_const(normalBindings))
+        b.writeOut(ow);
+    ow.removeTextAddCallback(spacerId);
+
+    if (counter != ow.counter())
+        spacerId = ow.addNewlinesAutospacerCallback(2);
+    for (const auto &b : std::as_const(delayedBindings))
+        b.writeOut(ow);
+    ow.removeTextAddCallback(spacerId);
+
+    if (counter != ow.counter())
+        spacerId = ow.addNewlinesAutospacerCallback(2);
+    for (const auto &b : std::as_const(signalHandlers))
+        b.writeOut(ow);
+    ow.removeTextAddCallback(spacerId);
+
+    if (counter != ow.counter())
+        spacerId = ow.addNewlinesAutospacerCallback(2);
+    first = true;
+
+    const auto values = field(self, Fields::children).values();
+    for (const auto &c : values) {
+        if (!first && ow.lineWriter.options().objectsSpacing) {
+            ow.newline().newline();
+        }
+        first = false;
+        ow.ensureNewline();
+        c.writeOut(ow);
+    }
+    ow.removeTextAddCallback(spacerId);
+
+    if (component) {
+        // we are a root object, possibly add components
+        DomItem subComps = component.field(Fields::subComponents);
+        if (counter != ow.counter())
+            spacerId = ow.addNewlinesAutospacerCallback(2);
+        const auto values = subComps.values();
+        for (const auto &subC : values) {
+            ow.ensureNewline();
+            subC.writeOut(ow);
+        }
+        ow.removeTextAddCallback(spacerId);
+    }
+    if (counter != ow.counter() || !ow.lineWriter.options().singleLineEmptyObjects)
+        ow.ensureNewline();
+}
+
+void QmlObject::writeOut(const DomItem &self, OutWriter &ow, const QString &onTarget) const
+{
+    bool isRootObject = pathFromOwner().length() == 5
+            && pathFromOwner()[0] == Path::fromField(Fields::components)
+            && pathFromOwner()[3] == Path::fromField(Fields::objects);
+    const auto fLoc = FileLocations::treeOf(self);
+    ow.writeRegion(fLoc, IdentifierRegion, name());
+    if (!onTarget.isEmpty()) {
+        ow.ensureSpace()
+                .writeRegion(fLoc, OnTokenRegion)
+                .ensureSpace()
+                .writeRegion(fLoc, OnTargetRegion, onTarget);
+    }
+    ow.ensureSpace();
+    ow.writeRegion(fLoc, LeftBraceRegion);
+
+    DomItem component;
+    if (isRootObject)
+        component = self.containingObject();
+    const Attributes attributes = orderOfAttributes(self, component);
+
+    // *always* put id first
+    writeOutId(self, ow);
+
+    if (!idStr().isEmpty() && ow.lineWriter.options().attributesSequence
+                == LineWriterOptions::AttributesSequence::Normalize) {
+        ow.ensureNewline(attributes.empty() ? 1 : 2);
+    }
+
+    if (ow.lineWriter.options().attributesSequence
+        == LineWriterOptions::AttributesSequence::Preserve) {
+        QString code;
+        if (std::shared_ptr<QmlFile> qmlFilePtr = self.ownerAs<QmlFile>())
+            code = qmlFilePtr->code();
+        writeOutAttributes(ow, attributes, code);
+    } else {
+        writeOutSortedAttributes(self, ow, component, attributes);
+    }
+    ow.writeRegion(fLoc, RightBraceRegion);
+}
+
+Binding::Binding(const QString &name) : Binding(name, std::unique_ptr<BindingValue>()) { }
+
+Binding::Binding(const QString &name, std::unique_ptr<BindingValue> &&value,
+                 BindingType bindingType)
+    : m_bindingType(bindingType), m_name(name), m_value(std::move(value))
+{
+}
+
+Binding::Binding(
+        const QString &name, const std::shared_ptr<ScriptExpression> &value,
+        BindingType bindingType)
+    : Binding(name, std::make_unique<BindingValue>(value), bindingType)
+{
+}
+
+Binding::Binding(const QString &name, const QString &scriptCode, BindingType bindingType)
+    : Binding(name,
+              std::make_unique<BindingValue>(std::make_shared<ScriptExpression>(
+                      scriptCode, ScriptExpression::ExpressionType::BindingExpression)),
+              bindingType)
+{
+}
+
+Binding::Binding(const QString &name, const QmlObject &value, BindingType bindingType)
+    : Binding(name, std::make_unique<BindingValue>(value), bindingType)
+{
+}
+
+Binding::Binding(const QString &name, const QList<QmlObject> &value, BindingType bindingType)
+    : Binding(name, std::make_unique<BindingValue>(value), bindingType)
+{
+}
+
+Binding::Binding(const Binding &o)
+    : m_bindingType(o.m_bindingType),
+      m_name(o.m_name),
+      m_annotations(o.m_annotations),
+      m_comments(o.m_comments),
+      m_bindingIdentifiers(o.m_bindingIdentifiers)
+{
+    if (o.m_value) {
+        m_value = std::make_unique<BindingValue>(*o.m_value);
+    }
+}
+
+Binding::~Binding() { }
+
+Binding &Binding::operator=(const Binding &o)
+{
+    m_name = o.m_name;
+    m_bindingType = o.m_bindingType;
+    m_annotations = o.m_annotations;
+    m_comments = o.m_comments;
+    m_bindingIdentifiers = o.m_bindingIdentifiers;
+    if (o.m_value) {
+        if (!m_value)
+            m_value = std::make_unique<BindingValue>(*o.m_value);
+        else
+            *m_value = *o.m_value;
+    } else {
+        m_value.reset();
+    }
+    return *this;
+}
+
+bool Binding::iterateDirectSubpaths(const DomItem &self, DirectVisitor visitor) const
+{
+    bool cont = true;
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::name), m_name);
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::isSignalHandler),
+                                         isSignalHandler());
+    if (!m_value)
+        cont = cont && visitor(PathEls::Field(Fields::value), []() { return DomItem(); });
+    else
+        cont = cont && visitor(PathEls::Field(Fields::value), [this, &self]() {
+                   return m_value->value(self);
+               });
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::bindingType),
+                                         int(m_bindingType));
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::comments, m_comments);
+    cont = cont && self.invokeVisitorOnLazyField(visitor, Fields::preCode, [this]() {
+        return this->preCode();
+    });
+    cont = cont && self.invokeVisitorOnLazyField(visitor, Fields::postCode, [this]() {
+        return this->postCode();
+    });
+    if (m_bindingIdentifiers) {
+        cont = cont && visitor(PathEls::Field(Fields::bindingIdentifiers), [this, &self]() {
+                   return self.subScriptElementWrapperItem(m_bindingIdentifiers);
+               });
+    }
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::annotations, m_annotations);
+    return cont;
+}
+
+DomItem Binding::valueItem(const DomItem &self) const
+{
+    if (!m_value)
+        return DomItem();
+    return m_value->value(self);
+}
+
+BindingValueKind Binding::valueKind() const
+{
+    if (!m_value)
+        return BindingValueKind::Empty;
+    return m_value->kind;
+}
+
+QmlObject const *Binding::objectValue() const
+{
+    if (valueKind() == BindingValueKind::Object)
+        return &(m_value->object);
+    return nullptr;
+}
+
+QmlObject *Binding::objectValue()
+{
+    if (valueKind() == BindingValueKind::Object)
+        return &(m_value->object);
+    return nullptr;
+}
+
+QList<QmlObject> const *Binding::arrayValue() const
+{
+    if (valueKind() == BindingValueKind::Array)
+        return &(m_value->array);
+    return nullptr;
+}
+
+QList<QmlObject> *Binding::arrayValue()
+{
+    if (valueKind() == BindingValueKind::Array)
+        return &(m_value->array);
+    return nullptr;
+}
+
+std::shared_ptr<ScriptExpression> Binding::scriptExpressionValue() const
+{
+    if (valueKind() == BindingValueKind::ScriptExpression)
+        return m_value->scriptExpression;
+    return nullptr;
+}
+
+std::shared_ptr<ScriptExpression> Binding::scriptExpressionValue()
+{
+    if (valueKind() == BindingValueKind::ScriptExpression)
+        return m_value->scriptExpression;
+    return nullptr;
+}
+
+void Binding::setValue(std::unique_ptr<BindingValue> &&value)
+{
+    m_value = std::move(value);
+}
+
+Path Binding::addAnnotation(const Path &selfPathFromOwner, const QmlObject &annotation, QmlObject **aPtr)
+{
+    return appendUpdatableElementInQList(selfPathFromOwner.withField(Fields::annotations),
+                                         m_annotations, annotation, aPtr);
+}
+
+void Binding::updatePathFromOwner(const Path &newPath)
+{
+    Path base = newPath.withField(Fields::annotations);
+    if (m_value)
+        m_value->updatePathFromOwner(newPath.withField(Fields::value));
+    updatePathFromOwnerQList(m_annotations, newPath.withField(Fields::annotations));
+}
+
+void Binding::writeOut(const DomItem &self, OutWriter &lw) const
+{
+    const auto fLoc = FileLocations::treeOf(self);
+    lw.ensureNewline();
+    if (m_bindingType == BindingType::Normal) {
+        lw.writeRegion(fLoc, IdentifierRegion, name());
+        lw.writeRegion(fLoc, ColonTokenRegion).ensureSpace();
+        writeOutValue(self, lw);
+    } else {
+        DomItem v = valueItem(self);
+        if (const QmlObject *vPtr = v.as<QmlObject>()) {
+            v.writeOutPre(lw);
+            vPtr->writeOut(v, lw, name());
+            v.writeOutPost(lw);
+        } else {
+            qCWarning(writeOutLog()) << "On Binding requires an QmlObject Value, not "
+                                     << v.internalKindStr() << " at " << self.canonicalPath();
+        }
+    }
+}
+
+void Binding::writeOutValue(const DomItem &self, OutWriter &lw) const
+{
+    DomItem v = valueItem(self);
+    const auto fLoc = FileLocations::treeOf(v);
+    switch (valueKind()) {
+    case BindingValueKind::Empty:
+        qCWarning(writeOutLog()) << "Writing of empty binding " << name();
+        lw.writeRegion(fLoc, LeftBraceRegion);
+        lw.writeRegion(fLoc, RightBraceRegion);
+        break;
+    case BindingValueKind::Array:
+        if (const List *vPtr = v.as<List>()) {
+            v.writeOutPre(lw);
+            vPtr->writeOut(v, lw, false);
+            v.writeOutPost(lw);
+        }
+        break;
+    case BindingValueKind::Object:
+    case BindingValueKind::ScriptExpression:
+        v.writeOut(lw);
+        break;
+    }
+}
+
+bool QmltypesComponent::iterateDirectSubpaths(const DomItem &self, DirectVisitor visitor) const
+{
+    bool cont = Component::iterateDirectSubpaths(self, visitor);
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::exports, m_exports);
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::metaRevisions),
+                                         m_metaRevisions);
+    if (!fileName().isEmpty()) {
+        cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::fileName),
+                                             fileName()); // remove?
+    }
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::interfaceNames),
+                                         m_interfaceNames);
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::hasCustomParser),
+                                         m_hasCustomParser);
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::elementTypeName),
+                                         m_elementTypeName);
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::extensionTypeName),
+                                         m_extensionTypeName);
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::accessSemantics),
+                                         int(m_accessSemantics));
+    return cont;
+}
+
+Export Export::fromString(
+        const Path &source, QStringView exp, const Path &typePath, const ErrorHandler &h)
+{
+    Export res;
+    res.exportSourcePath = source;
+    res.typePath = typePath;
+    int slashIdx = exp.indexOf(QLatin1Char('/'));
+    int spaceIdx = exp.indexOf(QLatin1Char(' '));
+    if (spaceIdx == -1)
+        spaceIdx = exp.size();
+    else
+        res.version = Version::fromString(exp.mid(spaceIdx + 1));
+    if (!res.version.isValid())
+        domParsingErrors()
+                .error(tr("Expected string literal to contain 'Package/Name major.minor' "
+                          "or 'Name major.minor' not '%1'.")
+                               .arg(exp))
+                .handle(h);
+    if (slashIdx != -1)
+        res.uri = exp.left(slashIdx).toString();
+    res.typeName = exp.mid(slashIdx + 1, spaceIdx - (slashIdx + 1)).toString();
+    return res;
+}
+
+bool AttributeInfo::iterateDirectSubpaths(const DomItem &self, DirectVisitor visitor) const
+{
+    bool cont = true;
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::name), name);
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::access), int(access));
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::typeName), typeName);
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::isReadonly), isReadonly);
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::isList), isList);
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::comments, comments);
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::annotations, annotations);
+    return cont;
+}
+
+Path AttributeInfo::addAnnotation(const Path &selfPathFromOwner, const QmlObject &annotation,
+                                  QmlObject **aPtr)
+{
+    return appendUpdatableElementInQList(selfPathFromOwner.withField(Fields::annotations), annotations,
+                                         annotation, aPtr);
+}
+
+void AttributeInfo::updatePathFromOwner(const Path &newPath)
+{
+    Path base = newPath.withField(Fields::annotations);
+    updatePathFromOwnerQList(annotations, newPath.withField(Fields::annotations));
+}
+
+bool EnumDecl::iterateDirectSubpaths(const DomItem &self, DirectVisitor visitor) const
+{
+    bool cont = CommentableDomElement::iterateDirectSubpaths(self, visitor);
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::name), name());
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::values, m_values);
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::annotations, m_annotations);
+    return cont;
+}
+
+void EnumDecl::updatePathFromOwner(const Path &newPath)
+{
+    DomElement::updatePathFromOwner(newPath);
+    updatePathFromOwnerQList(m_annotations, newPath.withField(Fields::annotations));
+}
+
+void EnumDecl::setAnnotations(const QList<QmlObject> &annotations)
+{
+    m_annotations = annotations;
+}
+
+Path EnumDecl::addAnnotation(const QmlObject &annotation, QmlObject **aPtr)
+{
+    return appendUpdatableElementInQList(pathFromOwner().withField(Fields::annotations), m_annotations,
+                                         annotation, aPtr);
+}
+
+void EnumDecl::writeOut(const DomItem &self, OutWriter &ow) const
+{
+    const auto fLoc = FileLocations::treeOf(self);
+    ow.writeRegion(fLoc, EnumKeywordRegion)
+            .ensureSpace()
+            .writeRegion(fLoc, IdentifierRegion, name())
+            .ensureSpace()
+            .writeRegion(fLoc, LeftBraceRegion);
+    const auto values = self.field(Fields::values).values();
+    for (const auto &value : values)
+        value.writeOut(ow);
+    ow.ensureNewline().writeRegion(fLoc, RightBraceRegion);
+}
+
+QList<Path> ImportScope::allSources(const DomItem &self) const
+{
+    DomItem top = self.top();
+    DomItem env = top.environment();
+    Path selfPath = self.canonicalPath().withField(Fields::allSources);
+    RefCacheEntry cached = (env ? RefCacheEntry::forPath(env, selfPath) : RefCacheEntry());
+    if (cached.cached == RefCacheEntry::Cached::All)
+        return cached.canonicalPaths;
+    QList<Path> res;
+    QSet<Path> knownPaths;
+    QList<Path> toDo(m_importSourcePaths.rbegin(), m_importSourcePaths.rend());
+    while (!toDo.isEmpty()) {
+        Path pNow = toDo.takeLast();
+        if (knownPaths.contains(pNow))
+            continue;
+        knownPaths.insert(pNow);
+        res.append(pNow);
+        DomItem sourceBase = top.path(pNow);
+        for (const DomItem &autoExp : sourceBase.field(Fields::autoExports).values()) {
+            if (const ModuleAutoExport *autoExpPtr = autoExp.as<ModuleAutoExport>()) {
+                Path newSource;
+                if (autoExpPtr->inheritVersion) {
+                    Version v = autoExpPtr->import.version;
+                    DomItem sourceVersion = sourceBase.field(Fields::version);
+                    if (const Version *sourceVersionPtr = sourceVersion.as<Version>()) {
+                        if (v.majorVersion < 0)
+                            v.majorVersion = sourceVersionPtr->majorVersion;
+                        if (v.minorVersion < 0)
+                            v.minorVersion = sourceVersionPtr->minorVersion;
+                    } else {
+                        qWarning() << "autoExport with inherited version " << autoExp
+                                   << " but missing version in source" << pNow;
+                    }
+                    Import toImport(autoExpPtr->import.uri, v);
+                    newSource = toImport.importedPath();
+                } else {
+                    newSource = autoExpPtr->import.importedPath();
+                }
+                if (newSource && !knownPaths.contains(newSource))
+                    toDo.append(newSource);
+            } else {
+                qWarning() << "expected ModuleAutoExport not " << autoExp.internalKindStr()
+                           << "looking up autoExports of" << sourceBase;
+                Q_ASSERT(false);
+            }
+        }
+    }
+    if (env)
+        RefCacheEntry::addForPath(env, selfPath, RefCacheEntry { RefCacheEntry::Cached::All, res });
+    return res;
+}
+
+bool ImportScope::iterateDirectSubpaths(const DomItem &self, DirectVisitor visitor) const
+{
+    bool cont = true;
+    cont = cont && self.invokeVisitorOnReferences(visitor, Fields::importSources, m_importSourcePaths);
+    cont = cont && visitor(PathEls::Field(Fields::allSources), [this, &self]() -> DomItem {
+                   return self.subListItem(List::fromQList<Path>(
+                           self.pathFromOwner().withField(Fields::allSources), allSources(self),
+                           [](const DomItem &list, const PathEls::PathComponent &p,
+                              const Path &el) { return list.subDataItem(p, el.toString()); }));
+               });
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::qualifiedImports, m_subImports);
+    cont = cont && visitor(PathEls::Field(Fields::imported), [this, &self]() -> DomItem {
+                   return self.subMapItem(Map(
+                           self.pathFromOwner().withField(Fields::imported),
+                           [this, &self](const DomItem &map, const QString &key) {
+                               return map.subListItem(List::fromQList<DomItem>(
+                                       map.pathFromOwner().withKey(key),
+                                       importedItemsWithName(self, key),
+                                       [](const DomItem &, const PathEls::PathComponent &,
+                                          const DomItem &el) { return el; }));
+                           },
+                           [this, &self](const DomItem &) { return this->importedNames(self); },
+                           QLatin1String("List<Export>")));
+               });
+    return cont;
+}
+
+bool PropertyInfo::iterateDirectSubpaths(const DomItem &self, DirectVisitor visitor) const
+{
+    bool cont = true;
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::propertyDefs),
+                                         propertyDefs);
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::bindings), bindings);
+    return cont;
+}
+
+BindingValue::BindingValue() : kind(BindingValueKind::Empty) { }
+
+BindingValue::BindingValue(const QmlObject &o) : kind(BindingValueKind::Object)
+{
+    new (&object) QmlObject(o);
+}
+
+BindingValue::BindingValue(const std::shared_ptr<ScriptExpression> &o)
+    : kind(BindingValueKind::ScriptExpression)
+{
+    new (&scriptExpression) std::shared_ptr<ScriptExpression>(o);
+}
+
+BindingValue::BindingValue(const QList<QmlObject> &l) : kind(BindingValueKind::Array)
+{
+    new (&array) QList<QmlObject>(l);
+}
+
+BindingValue::~BindingValue()
+{
+    clearValue();
+}
+
+BindingValue::BindingValue(const BindingValue &o) : kind(o.kind)
+{
+    switch (o.kind) {
+    case BindingValueKind::Empty:
+        break;
+    case BindingValueKind::Object:
+        new (&object) QmlObject(o.object);
+        break;
+    case BindingValueKind::ScriptExpression:
+        new (&scriptExpression) std::shared_ptr<ScriptExpression>(o.scriptExpression);
+        break;
+    case BindingValueKind::Array:
+        new (&array) QList<QmlObject>(o.array);
+    }
+}
+
+BindingValue &BindingValue::operator=(const BindingValue &o)
+{
+    clearValue();
+    kind = o.kind;
+    switch (o.kind) {
+    case BindingValueKind::Empty:
+        break;
+    case BindingValueKind::Object:
+        new (&object) QmlObject(o.object);
+        break;
+    case BindingValueKind::ScriptExpression:
+        new (&scriptExpression) std::shared_ptr<ScriptExpression>(o.scriptExpression);
+        break;
+    case BindingValueKind::Array:
+        new (&array) QList<QmlObject>(o.array);
+    }
+    return *this;
+}
+
+DomItem BindingValue::value(const DomItem &binding) const
+{
+    switch (kind) {
+    case BindingValueKind::Empty:
+        break;
+    case BindingValueKind::Object:
+        return binding.copy(&object);
+    case BindingValueKind::ScriptExpression:
+        return binding.subOwnerItem(PathEls::Field(Fields::value), scriptExpression);
+    case BindingValueKind::Array:
+        return binding.subListItem(List::fromQListRef<QmlObject>(
+                binding.pathFromOwner().withField(u"value"), array,
+                [](const DomItem &self, const PathEls::PathComponent &, const QmlObject &obj) {
+                    return self.copy(&obj);
+                }));
+    }
+    return DomItem();
+}
+
+void BindingValue::updatePathFromOwner(const Path &newPath)
+{
+    switch (kind) {
+    case BindingValueKind::Empty:
+        break;
+    case BindingValueKind::Object:
+        object.updatePathFromOwner(newPath);
+        break;
+    case BindingValueKind::ScriptExpression:
+        break;
+    case BindingValueKind::Array:
+        updatePathFromOwnerQList(array, newPath);
+        break;
+    }
+}
+
+void BindingValue::clearValue()
+{
+    switch (kind) {
+    case BindingValueKind::Empty:
+        break;
+    case BindingValueKind::Object:
+        object.~QmlObject();
+        break;
+    case BindingValueKind::ScriptExpression:
+        scriptExpression.~shared_ptr();
+        break;
+    case BindingValueKind::Array:
+        array.~QList<QmlObject>();
+        break;
+    }
+    kind = BindingValueKind::Empty;
+}
+
+ScriptExpression::ScriptExpression(QStringView code, const std::shared_ptr<QQmlJS::Engine> &engine,
+                                   AST::Node *ast, const std::shared_ptr<AstComments> &comments,
+                                   ExpressionType expressionType, const SourceLocation &localOffset)
+    : OwningItem(),
+      m_expressionType(expressionType),
+      m_code(code),
+      m_engine(engine),
+      m_ast(ast),
+      m_astComments(comments),
+      m_localOffset(localOffset)
+{
+    if (m_expressionType == ExpressionType::BindingExpression)
+        if (AST::ExpressionStatement *exp = AST::cast<AST::ExpressionStatement *>(m_ast))
+            m_ast = exp->expression;
+    Q_ASSERT(m_astComments);
+}
+
+ScriptExpression::ScriptExpression(const ScriptExpression &e) : OwningItem(e)
+{
+    QMutexLocker l(mutex());
+    m_expressionType = e.m_expressionType;
+    m_engine = e.m_engine;
+    m_ast = e.m_ast;
+    if (m_codeStr.isEmpty()) {
+        m_code = e.m_code;
+    } else {
+        m_codeStr = e.m_codeStr;
+        m_code = m_codeStr;
+    }
+    m_localOffset = e.m_localOffset;
+    m_astComments = e.m_astComments;
+}
+
+bool ScriptExpression::iterateDirectSubpaths(const DomItem &self, DirectVisitor visitor) const
+{
+    bool cont = OwningItem::iterateDirectSubpaths(self, visitor);
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::code), code());
+    cont = cont && self.invokeVisitorOnLazyField(
+                    visitor, Fields::localOffset,
+                    [this]() { return sourceLocationToQCborValue(localOffset()); },
+                    ConstantData::Options::MapIsMap);
+    cont = cont && self.invokeVisitorOnLazyField(visitor, Fields::astRelocatableDump, [this]() {
+        return astRelocatableDump();
+    });
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::expressionType),
+                                         int(expressionType()));
+    if (m_element) {
+        cont = cont && visitor(PathEls::Field(Fields::scriptElement), [this, &self]() {
+                   return self.subScriptElementWrapperItem(m_element);
+               });
+    }
+    return cont;
+}
+
+class FirstNodeVisitor : public VisitAll
+{
+public:
+    qsizetype minStart = 0;
+    qsizetype maxEnd = std::numeric_limits<qint32>::max(); // see also Lexer::checkFileLength().
+    AST::Node *firstNodeInRange = nullptr;
+
+    FirstNodeVisitor(qsizetype minStart, qsizetype maxEnd) : minStart(minStart), maxEnd(maxEnd) { }
+
+    bool preVisit(AST::Node *n) override
+    {
+        if (!VisitAll::uiKinds().contains(n->kind)) {
+            qsizetype start = n->firstSourceLocation().begin();
+            qsizetype end = n->lastSourceLocation().end();
+            if (!firstNodeInRange && minStart <= start && end <= maxEnd && start < end)
+                firstNodeInRange = n;
+        }
+        return !firstNodeInRange;
+    }
+};
+
+AST::Node *firstNodeInRange(AST::Node *n, qsizetype minStart = 0, qsizetype maxEnd = std::numeric_limits<qint32>::max())
+{
+    FirstNodeVisitor visitor(minStart, maxEnd);
+    AST::Node::accept(n, &visitor);
+    return visitor.firstNodeInRange;
+}
+
+void ScriptExpression::setCode(const QString &code)
+{
+    // TODO QTBUG-121933
+    if (code.isEmpty()) {
+        return;
+    }
+    m_codeStr = code;
+    m_code = QStringView(m_codeStr);
+
+    m_localOffset = SourceLocation();
+    m_localOffset.length = m_code.size();
+
+    m_engine = std::make_shared<QQmlJS::Engine>();
+    m_astComments = std::make_shared<AstComments>(m_engine);
+    m_ast = parse();
+
+    if (AST::Program *programPtr = AST::cast<AST::Program *>(m_ast)) {
+        m_ast = programPtr->statements;
+    }
+
+    if (auto *sList = AST::cast<AST::FormalParameterList *>(m_ast)) {
+        m_ast = sList->element;
+    }
+    if (m_expressionType != ExpressionType::FunctionBody) {
+        if (AST::StatementList *sList = AST::cast<AST::StatementList *>(m_ast)) {
+            if (!sList->next)
+                m_ast = sList->statement;
+        }
+    }
+    if (m_expressionType == ExpressionType::BindingExpression)
+        if (AST::ExpressionStatement *exp = AST::cast<AST::ExpressionStatement *>(m_ast))
+            m_ast = exp->expression;
+
+    CommentCollector collector;
+    collector.collectComments(m_engine, m_ast, m_astComments);
+}
+
+AST::Node *ScriptExpression::parse()
+{
+    QQmlJS::Lexer lexer(m_engine.get());
+    // qmlMode enables QML specific things that plain JS doesn't have, for example type annotations.
+    const bool qmlMode = m_expressionType != ExpressionType::ESMCode
+            && m_expressionType != ExpressionType::JSCode;
+    lexer.setCode(m_codeStr, /*lineno = */ 1, qmlMode);
+    QQmlJS::Parser parser(m_engine.get());
+    const bool parserSucceeded = m_expressionType == ExpressionType::ESMCode ? parser.parseModule()
+                                                                             : parser.parseScript();
+    if (!parserSucceeded) {
+        addErrorLocal(domParsingErrors().error(tr("Parsing of code failed")));
+    }
+    const auto messages = parser.diagnosticMessages();
+    for (const DiagnosticMessage &msg : messages) {
+        ErrorMessage err = domParsingErrors().errorMessage(msg);
+        err.location.offset -= m_localOffset.offset;
+        err.location.startLine -= m_localOffset.startLine;
+        if (err.location.startLine == 1)
+            err.location.startColumn -= m_localOffset.startColumn;
+        addErrorLocal(std::move(err));
+    }
+    return parser.rootNode();
+}
+
+void ScriptExpression::astDumper(const Sink &s, AstDumperOptions options) const
+{
+    astNodeDumper(s, ast(), options, 1, 0, [this](SourceLocation astL) {
+        SourceLocation l = this->locationToLocal(astL);
+        return this->code().mid(l.offset, l.length);
+    });
+}
+
+QString ScriptExpression::astRelocatableDump() const
+{
+    return dumperToString([this](const Sink &s) {
+        this->astDumper(s, AstDumperOption::NoLocations | AstDumperOption::SloppyCompare);
+    });
+}
+
+void ScriptExpression::writeOut(const DomItem &, OutWriter &lw) const
+{
+    reformatAst(lw, this);
+}
+
+QStringView ScriptExpression::loc2Str(const SourceLocation &astL) const
+{
+    SourceLocation l = this->locationToLocal(astL); // use engine->code() instead?
+    return this->code().mid(l.offset, l.length);
+}
+
+SourceLocation ScriptExpression::globalLocation(const DomItem &self) const
+{
+    if (const FileLocations::Tree tree = FileLocations::treeOf(self)) {
+        return FileLocations::region(tree, MainRegion);
+    }
+    return SourceLocation();
+}
+
+bool PropertyDefinition::isParametricType() const
+{
+    return typeName.contains(QChar(u'<'));
+}
+
+void PropertyDefinition::writeOut(const DomItem &self, OutWriter &lw) const
+{
+    lw.ensureNewline();
+    const auto fLoc = FileLocations::treeOf(self);
+    if (isDefaultMember)
+        lw.writeRegion(fLoc, DefaultKeywordRegion).ensureSpace();
+    if (isVirtual)
+        lw.writeRegion(fLoc, VirtualKeywordRegion).ensureSpace();
+    if (isOverride)
+        lw.writeRegion(fLoc, OverrideKeywordRegion).ensureSpace();
+    if (isFinal)
+        lw.writeRegion(fLoc, FinalKeywordRegion).ensureSpace();
+    if (isRequired)
+        lw.writeRegion(fLoc, RequiredKeywordRegion).ensureSpace();
+    if (isReadonly)
+        lw.writeRegion(fLoc, ReadonlyKeywordRegion).ensureSpace();
+    if (!typeName.isEmpty()) {
+        lw.writeRegion(fLoc, PropertyKeywordRegion).ensureSpace();
+        lw.writeRegion(fLoc, TypeIdentifierRegion, typeName).ensureSpace();
+    }
+    lw.writeRegion(fLoc, IdentifierRegion, name);
+}
+
+bool MethodInfo::iterateDirectSubpaths(const DomItem &self, DirectVisitor visitor) const
+{
+    bool cont = AttributeInfo::iterateDirectSubpaths(self, visitor);
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::parameters, parameters);
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::methodType),
+                                         int(methodType));
+    if (!typeName.isEmpty())
+        cont = cont && self.invokeVisitorOnReference(visitor, Fields::type, typePath(self));
+    if (methodType == MethodType::Method) {
+        cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::isConstructor),
+                                             isConstructor);
+    }
+    if (returnType)
+        cont = cont && visitor(PathEls::Field(Fields::returnType), [this, &self]() {
+                   return self.subOwnerItem(PathEls::Field(Fields::returnType), returnType);
+               });
+    if (body)
+        cont = cont && visitor(PathEls::Field(Fields::body), [this, &self]() {
+                   return self.subOwnerItem(PathEls::Field(Fields::body), body);
+               });
+    return cont;
+}
+
+void MethodInfo::writeOutArguments(const DomItem &self, OutWriter &ow) const
+{
+    if (parameters.isEmpty() && methodType == MethodType::Signal)
+        return;
+
+    const auto fLoc = FileLocations::treeOf(self);
+    ow.writeRegion(fLoc, LeftParenthesisRegion);
+    bool first = true;
+    for (const DomItem &arg : self.field(Fields::parameters).values()) {
+        if (first) {
+            first = false;
+        } else {
+            const auto fLocArg = FileLocations::treeOf(arg);
+            ow.writeRegion(fLocArg, CommaTokenRegion).ensureSpace();
+        }
+        arg.writeOut(ow);
+    }
+    ow.writeRegion(fLoc, RightParenthesisRegion);
+}
+
+void MethodInfo::writeOutReturnType(const DomItem &self, OutWriter &ow) const
+{
+    if (typeName.isEmpty())
+        return;
+
+    const auto fLoc = FileLocations::treeOf(self);
+    ow.writeRegion(fLoc, ColonTokenRegion);
+    ow.ensureSpace();
+    ow.writeRegion(fLoc, TypeIdentifierRegion, typeName);
+}
+
+void MethodInfo::writeOutBody(const DomItem &self, OutWriter &ow) const
+{
+    const auto fLoc = FileLocations::treeOf(self);
+    ow.ensureSpace().writeRegion(fLoc, LeftBraceRegion);
+    if (DomItem b = self.field(Fields::body)) {
+        ow.ensureNewline();
+        b.writeOut(ow);
+    }
+    ow.ensureNewline().writeRegion(fLoc, RightBraceRegion);
+}
+
+void MethodInfo::writeOut(const DomItem &self, OutWriter &ow) const
+{
+    const auto fLoc = FileLocations::treeOf(self);
+    if (methodType == MethodType::Signal) {
+        ow.writeRegion(fLoc, SignalKeywordRegion).ensureSpace();
+    } else {
+        ow.writeRegion(fLoc, FunctionKeywordRegion);
+        if (isGenerator)
+            ow.writeRegion(fLoc, StarTokenRegion);
+        ow.ensureSpace();
+    }
+    ow.writeRegion(fLoc, IdentifierRegion, name);
+    writeOutArguments(self, ow);
+    if (methodType == MethodType::Signal) {
+        // signal doesn't have returnType or body
+        return;
+    }
+    writeOutReturnType(self, ow);
+    writeOutBody(self, ow);
+}
+
+QString MethodInfo::signature(const DomItem &self) const
+{
+    QString resultStr;
+    QTextStream res(&resultStr);
+    LineWriter lw([&res](QStringView s) { res << s; }, QLatin1String("*testStream*"));
+    OutWriter ow(lw);
+    ow.indentNextlines = true;
+    ow.skipComments = true;
+
+    writeOutArguments(self, ow);
+    writeOutReturnType(self, ow);
+
+    lw.eof(false);
+    res.flush();
+    return resultStr.simplified();
+}
+
+bool MethodParameter::iterateDirectSubpaths(const DomItem &self, DirectVisitor visitor) const
+{
+    bool cont = true;
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::name), name);
+    if (!typeName.isEmpty()) {
+        cont = cont && self.invokeVisitorOnReference(visitor, Fields::type,
+                                                 Paths::lookupTypePath(typeName));
+        cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::typeName), typeName);
+    }
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::isPointer), isPointer);
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::isReadonly), isReadonly);
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::isList), isList);
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::defaultValue, defaultValue);
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::value, value);
+
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::preCode),
+                                         u"function f("_s);
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::postCode), u") {}"_s);
+
+    if (!annotations.isEmpty())
+        cont = cont && self.invokeVisitorOnField(visitor, Fields::annotations, annotations);
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::comments, comments);
+    return cont;
+}
+
+void MethodParameter::writeOut(const DomItem &self, OutWriter &ow) const
+{
+    if (typeAnnotationStyle == MethodParameter::TypeAnnotationStyle::Prefix) {
+        writeOutSignal(self, ow);
+        return;
+    }
+
+    if (!name.isEmpty()) {
+        const auto fLoc = FileLocations::treeOf(self);
+        if (isRestElement)
+            ow.writeRegion(fLoc, EllipsisTokenRegion);
+        ow.writeRegion(fLoc, IdentifierRegion, name);
+        if (!typeName.isEmpty())
+            ow.writeRegion(fLoc, ColonTokenRegion)
+                    .ensureSpace()
+                    .writeRegion(fLoc, TypeIdentifierRegion, typeName);
+        if (defaultValue) {
+            ow.ensureSpace().writeRegion(fLoc, EqualTokenRegion).ensureSpace();
+            self.subOwnerItem(PathEls::Field(Fields::defaultValue), defaultValue).writeOut(ow);
+        }
+    } else {
+        if (value) {
+            self.subOwnerItem(PathEls::Field(Fields::value), value).writeOut(ow);
+        }
+    }
+}
+
+void MethodParameter::writeOutSignal(const DomItem &self, OutWriter &ow) const
+{
+    self.writeOutPre(ow);
+    const auto fLoc = FileLocations::treeOf(self);
+    if (!typeName.isEmpty())
+        ow.writeRegion(fLoc, TypeIdentifierRegion, typeName).ensureSpace();
+    ow.writeRegion(fLoc, IdentifierRegion, name);
+    self.writeOutPost(ow);
+}
+
+void Pragma::writeOut(const DomItem &self, OutWriter &ow) const
+{
+    const auto fLoc = FileLocations::treeOf(self);
+    ow.ensureNewline();
+    ow.writeRegion(fLoc, PragmaKeywordRegion)
+            .ensureSpace()
+            .writeRegion(fLoc, IdentifierRegion, name);
+
+    bool isFirst = true;
+    for (const auto &value : values) {
+        if (isFirst) {
+            isFirst = false;
+            ow.writeRegion(fLoc, ColonTokenRegion).ensureSpace();
+            ow.writeRegion(fLoc, PragmaValuesRegion, value);
+            continue;
+        }
+
+        ow.writeRegion(fLoc, CommaTokenRegion).ensureSpace();
+        ow.writeRegion(fLoc, PragmaValuesRegion, value);
+    }
+    ow.ensureNewline();
+}
+
+bool EnumItem::iterateDirectSubpaths(const DomItem &self, DirectVisitor visitor) const
+{
+    bool cont = true;
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::name), name());
+    cont = cont && self.invokeVisitorOnValue(visitor, PathEls::Field(Fields::value), value());
+    cont = cont && self.invokeVisitorOnField(visitor, Fields::comments, m_comments);
+    return cont;
+}
+
+void EnumItem::writeOut(const DomItem &self, OutWriter &ow) const
+{
+    const auto fLoc = FileLocations::treeOf(self);
+    index_type myIndex = self.pathFromOwner().last().headIndex();
+    if (myIndex != 0)
+        ow.writeRegion(fLoc, CommaTokenRegion);
+    ow.ensureNewline();
+    ow.writeRegion(fLoc, IdentifierRegion, name());
+    if (m_valueKind == ValueKind::ExplicitValue) {
+        QString v = QString::number(value(), 'f', 0);
+        if (abs(value() - v.toDouble()) > 1.e-10)
+            v = QString::number(value());
+        ow.ensureSpace()
+                .writeRegion(fLoc, EqualTokenRegion)
+                .ensureSpace()
+                .writeRegion(fLoc, EnumValueRegion, v);
+    }
+}
+
+QmlUri QmlUri::fromString(const QString &str)
+{
+    if (str.startsWith(u'"'))
+        return fromDirectoryString(str.mid(1, str.size() - 2)
+                                           .replace(u"\\\""_s, u"\""_s)
+                                           .replace(u"\\\\"_s, u"\\"_s));
+    else
+        return fromUriString(str);
+}
+
+QmlUri QmlUri::fromUriString(const QString &str)
+{
+    QRegularExpression moduleUriRe(QLatin1String(R"(\A\w+(?:\.\w+)*\Z)"));
+    return QmlUri((moduleUriRe.match(str).hasMatch() ? Kind::ModuleUri : Kind::Invalid), str);
+}
+
+QmlUri QmlUri::fromDirectoryString(const QString &str)
+{
+    QUrl url(str);
+    if (url.isValid() && url.scheme().size() > 1)
+        return QmlUri(url);
+    if (!str.isEmpty()) {
+        QFileInfo path(str);
+        return QmlUri((path.isRelative() ? Kind::RelativePath : Kind::AbsolutePath), str);
+    }
+    return {};
+}
+
+bool QmlUri::isValid() const
+{
+    return m_kind != Kind::Invalid;
+}
+
+bool QmlUri::isDirectory() const
+{
+    switch (m_kind) {
+    case Kind::Invalid:
+    case Kind::ModuleUri:
+        break;
+    case Kind::DirectoryUrl:
+    case Kind::RelativePath:
+    case Kind::AbsolutePath:
+        return true;
+    }
+    return false;
+}
+
+bool QmlUri::isModule() const
+{
+    return m_kind == Kind::ModuleUri;
+}
+
+QString QmlUri::moduleUri() const
+{
+    if (m_kind == Kind::ModuleUri)
+        return std::get<QString>(m_value);
+    return QString();
+}
+
+QString QmlUri::localPath() const
+{
+    switch (m_kind) {
+    case Kind::Invalid:
+    case Kind::ModuleUri:
+        break;
+    case Kind::DirectoryUrl: {
+        const QUrl &url = std::get<QUrl>(m_value);
+        if (url.scheme().compare(u"file", Qt::CaseInsensitive) == 0)
+            return url.path();
+        break;
+    }
+    case Kind::RelativePath:
+    case Kind::AbsolutePath:
+        return std::get<QString>(m_value);
+    }
+    return QString();
+}
+
+QString QmlUri::absoluteLocalPath(const QString &basePath) const
+{
+    switch (m_kind) {
+    case Kind::Invalid:
+    case Kind::ModuleUri:
+        break;
+    case Kind::DirectoryUrl: {
+        const QUrl &url = std::get<QUrl>(m_value);
+        if (url.scheme().compare(u"file", Qt::CaseInsensitive) == 0)
+            return url.path();
+        break;
+    }
+    case Kind::RelativePath: {
+        if (!basePath.isEmpty())
+            return QDir(basePath).filePath(std::get<QString>(m_value));
+        break;
+    }
+    case Kind::AbsolutePath:
+        return std::get<QString>(m_value);
+    }
+    return QString();
+}
+
+QUrl QmlUri::directoryUrl() const
+{
+    if (m_kind == Kind::DirectoryUrl)
+        return std::get<QUrl>(m_value);
+    return QUrl {};
+}
+
+QString QmlUri::directoryString() const
+{
+    switch (m_kind) {
+    case Kind::Invalid:
+    case Kind::ModuleUri:
+        break;
+    case Kind::DirectoryUrl:
+        return std::get<QUrl>(m_value).toString(); // set formatting? options?
+    case Kind::RelativePath:
+    case Kind::AbsolutePath:
+        return std::get<QString>(m_value);
+    }
+    return QString();
+}
+
+QString QmlUri::toString() const
+{
+    switch (m_kind) {
+    case Kind::Invalid:
+        break;
+    case Kind::ModuleUri:
+        return std::get<QString>(m_value);
+    case Kind::DirectoryUrl:
+    case Kind::RelativePath:
+    case Kind::AbsolutePath:
+        return u"\""_s + directoryString().replace(u'\\', u"\\\\"_s).replace(u'"', u"\\\""_s)
+                + u"\""_s;
+    }
+    return QString();
+}
+
+QmlUri::Kind QmlUri::kind() const
+{
+    return m_kind;
+}
+
+void ScriptExpression::setScriptElement(const ScriptElementVariant &p)
+{
+    m_element = p;
+}
+
+} // end namespace Dom
+} // end namespace QQmlJS
+
+QT_END_NAMESPACE
+
+#include "moc_qqmldomelements_p.cpp"

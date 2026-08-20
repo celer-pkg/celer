@@ -1,0 +1,14 @@
+{
+    "Id": "shadow_angular_material",
+    "Name": "Shadow values from Angular Material",
+    "QDocModule": "qtquickcontrols",
+    "QtUsage": "Used in the Material Style of Qt Quick Controls.",
+    "Files": "impl/ElevationEffect.qml",
+    "Description": "Shadow values for the elevation effect.",
+    "Homepage": "https://angularjs.org/",
+    "Comment": "no relevant PURL or CPE set, because the dependency is a single file",
+    "License": "MIT License",
+    "LicenseId": "MIT",
+    "LicenseFile": "LICENSE.ANGULARJS.txt",
+    "Copyright": "Copyright (c) 2014-2016 Google, Inc"
+}

@@ -1,0 +1,109 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qthttpserver-index.html
+    \since 6.4
+    \title Qt HTTP Server
+    \brief Provides a lightweight server implementing the HTTP protocol.
+
+    Qt HTTP Server supports building HTTP server functionality into an application.
+    Common use cases are exposing the application's functionality through
+    REST APIs, or making devices in a trusted environment configurable also via HTTP.
+    The limitations are described in \l{Limitations and Security}.
+
+    \section1 Overview
+
+    Qt HTTP Server provides building blocks for embedding a lightweight
+    \l{RFC 9110}{HTTP} server supporting \l{RFC 9113}{HTTP/2},
+    \l{RFC 9112}{HTTP/1.1}, and \l{RFC 1945}{HTTP/1.0} in an application.
+    There are classes for the messages sent and received, and for the various
+    parts of an HTTP server.
+
+    The QHttpServer class has a \l{QHttpServer::}{route()} function to bind
+    callables to different incoming URLs. These callables can take as arguments
+    an \l{QHttpServerRouter::addConverter}{extensible} collection of different
+    copyable types that are parsed from the URL. Types supported are most numeric
+    types, QString, QByteArray, and QUrl. Optionally the callables can also take
+    QHttpServerRequest and QHttpServerResponder objects as arguments. The
+    QHttpServerRequest class contains all the information of an incoming request,
+    and is needed to get the \l{QHttpServerRequest::}{body()} from a POST HTTP
+    request. The callables either return a QHttpServerResponse object or respond
+    using the QHttpServerResponder argument. The QHttpServerResponse class
+    contains a complete response and has numerous constructors for different types,
+    while the QHttpServerResponder has various methods for writing back to the
+    client.
+
+    The QHttpServer class also has an \l{QHttpServer::}{addAfterRequestHandler()}
+    function to process a QHttpServerResponse further, and a
+    \l{QHttpServer::}{setMissingHandler()} function to override the default
+    behavior of returning \c{404 Not Found} when no routes are matched. From
+    the QAbstractHttpServer class it inherits a \l{QAbstractHttpServer::}{bind()}
+    function to bind to a listening QTcpServer, QSslServer, or QLocalServer.
+
+    An HTTP server can also be created by subclassing the QAbstractHttpServer
+    class and overriding the \l{QAbstractHttpServer::}{handleRequest()} and
+    \l{QAbstractHttpServer::}{missingHandler()} functions.
+
+    Runtime logging can be configured as described \l{qthttpserver-logging.html}{here}.
+
+    \section1 Limitations and Security
+
+    Qt HTTP Server does not have many of the more advanced features and optimizations
+    that general-purpose HTTP servers have. It also has not seen
+    the same scrutiny regarding various attack vectors over the network.
+    Use Qt HTTP Server, therefore, only for local connections
+    or in a trusted network, and do not expose the ports to the internet.
+
+    You can add HTTPS support as a basic security measure, though. If Qt is compiled
+    with support for TLS, you can bind the HTTP server to a QSslServer object,
+    providing Transport Layer Security handling.
+
+    The \l{QSslSocket::SupportedFeature::ServerSideAlpn} feature from the
+    active TLS backend is needed for HTTP/2 support. To check if a backend
+    supports this, use \l{QSslSocket::isFeatureSupported}.
+
+    \section1 Using the Module
+
+    Using a Qt module requires linking against the module library, either
+    directly or through other dependencies. Several build tools have dedicated
+    support for this, including CMake and qmake.
+
+    \section2 Building with CMake
+
+    Use the \c find_package() command to locate the needed module components in
+    the Qt6 package:
+
+    \badcode
+    find_package(Qt6 REQUIRED COMPONENTS HttpServer)
+    target_link_libraries(mytarget PRIVATE Qt6::HttpServer)
+    \endcode
+
+    See also the \l{Build with CMake} overview.
+
+    \section2 Building with qmake
+
+    To configure the module for building with qmake, add the module as a value
+    of the QT variable in the project's .pro file:
+
+    \badcode
+    QT += httpserver
+    \endcode
+
+    \section1 Licenses
+
+    Qt HTTP Server is available under commercial licenses from \l{The Qt Company}.
+    In addition, it is available under the \l {GNU General Public License, version 3}.
+    See \l{Qt Licensing} for further details.
+
+    \section1 Reference
+    \list
+    \li \l{Qt HTTP Server Logging}
+    \li \l{Qt HTTP Server C++ Classes}{C++ Classes}
+    \endlist
+
+    \section1 Examples
+
+    The module provides the following \l{Qt HTTP Server Examples}{Examples} as a guide to using
+    the API.
+*/

@@ -1,0 +1,12 @@
+<svg viewBox="0 0 300 500" xmlns="http://www.w3.org/2000/svg">
+  <style>
+  #circle1, #circle3 {
+    fill: gold;
+    stroke: black;
+    stroke-width: 25;
+  }
+  </style>
+  <circle id="circle1" cx="150" cy="100" r="50" fill="red" stroke="blue"/>
+  <circle id="circle2" cx="150" cy="250" r="50" style="fill: cyan; stroke: orange; stroke-width: 25"/>
+  <circle id="circle3" cx="150" cy="400" r="50" fill="white" stroke="white" stroke-width="6" style="fill: cyan; stroke: orange; stroke-width: 25"/>
+</svg>

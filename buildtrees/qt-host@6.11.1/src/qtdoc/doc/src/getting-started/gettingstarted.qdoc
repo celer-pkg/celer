@@ -1,0 +1,68 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page gettingstarted.html
+
+    \title Getting Started with Qt
+    \brief Finding your way around Qt.
+
+    Hello and welcome to \l {Explore Qt} {Qt}!
+
+    To get you started with Qt, we'll need to know what you'd like to do.
+
+    \table
+    \row
+        \li \inlineimage front-ui.png
+        \li \inlineimage front-coding.png
+    \row
+        \li \b {Design UIs}
+            \list
+                \li \l {Tools for Qt Quick UIs}
+                       {I want to learn more about designing Qt Quick UIs}
+                \li \l {Qt Design Studio: Installation}
+                       {I just want Qt Design Studio}
+                \li \l {Get and Install Qt}{I want to install Qt}
+                \li \l {Create Your First Applications}
+                       {I've already installed everything and I want to create my first application}
+                \li \l {Qt for Education}
+                       {I want to install Qt Design Studio with Educational License}
+                \li \l {Supported Platforms}
+                       {I want to learn more about supported platforms}
+            \endlist
+        \li \b {Develop applications}
+            \list
+                \li \l {Get and Install Qt}{I want to install Qt}
+                \li \l {Qt for Education}
+                       {I want to install Qt with Educational License}
+                \li \l {Create Your First Applications}
+                       {I've already installed everything and I want to create my first application}
+                \li \l {Solutions for Developers}
+                       {I want to learn more about the options for application development}
+                \li \l {Supported Platforms}
+                       {I want to learn more about supported platforms}
+            \endlist
+    \endtable
+
+    For visual learning, take the courses in Qt Academy:
+    \table
+        \row
+            \li \b {Qt Academy Courses}
+                \list
+                    \li \l {https://www.qt.io/academy/course-catalog#how-to-install-qt}
+                       {How to Install Qt}
+                    \li \l {https://www.qt.io/academy/course-catalog?q=intro#introduction-to-qt-quick}
+                       {Introduction to Qt Quick}
+                    \li \l {https://www.qt.io/academy/course-catalog?q=qt+quick+app#creating-a-simple-qt-quick-application}
+                       {Create a Simple Qt Quick App}
+                    \li \l {https://www.qt.io/academy/course-catalog#getting-started-with-qt-design-studio}
+                       {Install Qt Design Studio}
+                    \li \l {https://www.qt.io/academy/course-catalog#creating-your-first-app-with-qt-design-studio}
+                       {Create Your First App with Qt Design Studio}
+                    \li \l {https://www.qt.io/academy/course-catalog#the-must-knows-of-ui-design}
+                       {Must-knows of UI Design}
+                \endlist
+    \endtable
+
+    Use \l {Qt Widgets} if you want to use the C++ API to create UIs.
+*/

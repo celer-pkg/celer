@@ -1,0 +1,211 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+
+\title Exporting from Blender
+\page quick3d-asset-conditioning-export-blender
+
+It is possible to export meshes, lights, cameras, transform animations (scale/rotation/location),
+UV layouts, pivot points, object hierarchy, and material slots from Blender.
+
+\section1 Exporting Models
+
+\section2 Create Material Slots
+
+Material slots must be created and assigned in Blender before exporting. If this is not done,
+one default material slot is used for the object.
+
+\note Only material slots that have a material, and that are assigned to a mesh on the exported
+object, will be imported.
+
+To create material slots, follow the steps below.
+
+\list 1
+  \li In the properties panel, select the \uicontrol material tab.
+  \li Press the \uicontrol + to add a new material slot.
+  \li Press the \uicontrol{New} button.
+  \image export-blender1.png
+         {Blender material properties panel with New button highlighted}
+  \li Repeat steps 2 to 4 for each material slot to create.
+\endlist
+
+By default, the first material slot will be assigned to the object.
+
+To assign a different material slot to the object, or to assign several material slots to the
+same object, follow the steps below.
+
+\list 1
+  \li In edit mode, select the desired faces.
+  (\e{Shift + Right Mouse Click} to multi select, \e{A} to select all faces).
+  \li In the properties panel, select the material tab.
+  \li In the material slots list, select the desired material slot.
+  \li Press the \uicontrol{Assign} button to assign the selected material slot to selected faces.
+  \image export-blender3.png
+         {Blender viewport showing green cube with material properties panel}
+\endlist
+
+\section2 UV Unwrap Models
+
+UV unwrapping your model will create a UV layout. Without a UV layout you will not be able to
+render any textures on your model in Qt Quick 3D.
+
+There are many different ways and techniques to unwrap 3D meshes. The most basic way to do it in
+Blender is described below.
+
+\list 1
+  \li In edit mode, press \e A to select the whole mesh.
+  \li Press the \e U key and select \uicontrol{Unwrap} from the context menu.
+  \image export-blender2.png
+         {Blender UV Mapping menu with Unwrap option selected}
+\endlist
+
+\section2 Triangulate
+
+\list 1
+  \li In object mode, select the object.
+  \li In the properties panel, select the modifiers tab.
+  \li In the drop down list, select \uicontrol{Triangulate}.
+  \image export-blender4.png
+         {Blender Add Modifier menu with Triangulate option highlighted}
+  \li Press \uicontrol{Apply}.
+\endlist
+
+\note When exporting as COLLADA, it is possible to do the triangulation in the actual export step.
+
+\section2 Bake Actions for Animations
+
+\note This step is necessary only if you are exporting animations that are using custom curves
+or object constraints to control the animation.
+
+Actions are data-blocks containing animation data. If you are exporting animations you need to
+bake actions.
+
+\list 1
+  \li Press the \e{space bar} key.
+  \li Type \e{bake actions}.
+  \li Press the \e Enter key.
+\endlist
+
+\section2 Apply Location, Rotation, and Scale
+
+\note This should not be done when exporting animations.
+
+Applying transform values resets the object's location, rotation, and scale values. Location and
+rotation values are changed to 0 while scale values are changed to 1. The object itself does not
+visually change.
+
+\list 1
+  \li In object mode, select the object.
+  \li Press the \e{Ctrl + A} keys.
+  \li Select \uicontrol {Location}.
+  \li From the check box in the panel, check also \uicontrol Rotation and \uicontrol {Scale}.
+  \image export-blender5.png {Blender Apply menu showing Location option}
+\endlist
+
+\note Applying Location will also reset the object's origin (pivot point).
+
+\section1 Exporting Lights
+
+You can export lights of any type from Blender to use in Qt Quick 3D.
+
+The following properties are imported:
+\list
+  \li Position, rotation, scale
+  \li Brightness
+  \li Light color
+  \li Cast shadows
+\endlist
+
+Light type is imported (and converted if needed).
+
+\table
+  \header
+    \li
+      Light type in Blender
+    \li
+      Will import to Qt Quick 3D as...
+  \row
+    \li
+      Point
+    \li
+      Point
+  \row
+    \li
+      Area
+    \li
+      Area
+  \row
+    \li
+      Sun
+    \li
+      Directional
+  \row
+    \li
+      Spot
+    \li
+      Directional
+  \row
+    \li
+      Hemi
+    \li
+      Directional
+\endtable
+
+\section1 Exporting Cameras
+
+You can export perspective and orthographic cameras from Blender to use in Qt Quick 3D.
+
+The following properties are imported:
+\list
+  \li Position, rotation, scale
+  \li Clipping start/end
+  \li Focal Length (perspective camera only).
+\endlist
+
+\section1 Exporting COLLADA from Blender
+
+\list 1
+  \li From the file menu, select \uicontrol {File > Export > Collada (.dae)}.
+  \li Ensure that \uicontrol Triangulation is checked on, unless you already have
+  triangulated all meshes.
+  \li Select the \uicontrol {Export COLLADA} button.
+\endlist
+
+\section1 Exporting FBX from Blender
+
+In order to export as FBX, you must have the FBX export add-on installed and enabled
+in Blender. With the default installation of Blender, the \c {Import-Export: FBX format} should be
+installed. If you do not have the option to export as FBX avaialble, ensure that the add-on is
+enabled by following the steps:
+
+\list 1
+  \li
+  Select \uicontrol {File > User Preferences}.
+  \li
+  Select \uicontrol{Add-ons} from the top menu bar.
+  \li
+  Search for \e{fbx}.
+  \li
+  The add-on should now be visible, enable it by selecting the checkbox next to its name.
+\endlist
+
+\image export-blender-enable-fbx-addon.png
+       {Blender User Preferences showing FBX format addon enabled}
+
+Next, to export as FBX, follow these steps:
+
+\list 1
+  \li Select \uicontrol {File > Export > FBX (.fbx)}.
+  \li Under the \uicontrol Main tab, set \uicontrol Forward to \c{Y Forward} and \uicontrol Up
+  to \c{Z Up}.
+  \image export-blender-fbx-axis.png
+         {Blender FBX export axis settings showing Y Forward and Z Up}
+  \li For animations, ensure that the \uicontrol{Baked Animation} option is checked in the
+  \uicontrol Animation tab.
+  \image export-blender6.png
+         {Blender FBX export settings with Baked Animation option checked}
+  \li Select the \uicontrol {Export FBX} button.
+\endlist
+
+*/

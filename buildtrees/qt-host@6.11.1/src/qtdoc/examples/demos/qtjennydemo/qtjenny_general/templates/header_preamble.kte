@@ -1,0 +1,53 @@
+<%--
+    Copyright (C) 2024 The Qt Company Ltd.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied
+    See the License for the specific language governing permissions and
+    limitations under the License.
+--%>
+
+@import org.qtproject.qt.qtjenny.JteData
+@import org.qtproject.qt.qtjenny.Constants
+
+@param jteData: JteData
+
+${Constants.AUTO_GENERATE_NOTICE}
+#ifndef ${jteData.namespaceHelper.fileNamePrefix}${jteData.className}_H
+#define ${jteData.namespaceHelper.fileNamePrefix}${jteData.className}_H
+
+#include <QJniObject>
+#include <cmath>
+
+${jteData.namespaceHelper.beginNamespace()}
+class ${jteData.className} {
+private:
+    QJniObject m_jniObject;
+    static constexpr double NaN = NAN;
+public:
+    static constexpr auto qt_FULL_CLASS_NAME = "${jteData.slashClassName}";
+    QJniObject qt_getJniObject() const {return m_jniObject;}
+    const QJniObject* operator->() const {return &m_jniObject;}
+    template <class T> operator T() {return m_jniObject.object<T>();}
+    ${jteData.className}() {}
+    ${jteData.className}(const QJniObject& jniObject) {
+        m_jniObject = jniObject;
+    }
+    ${jteData.className}(jobject globalRef) {
+        m_jniObject = QJniObject(globalRef);
+    }
+    static ${jteData.className} qt_fromLocalRef(jobject localRef) {
+        ${jteData.className} res;
+        res.m_jniObject = QJniObject::fromLocalRef(localRef);
+        return res;
+    }
+
+    jobject qt_asGlobalRef() {
+        QJniEnvironment env;
+        return env->NewGlobalRef(m_jniObject.object());
+    }

@@ -1,0 +1,33 @@
+# Copyright 2021 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("../../../scripts/build/typescript/typescript.gni")
+
+template("devtools_module") {
+  ts_library(target_name) {
+    forward_variables_from(invoker,
+                           [
+                             "deps",
+                             "public_deps",
+                             "sources",
+                             "data",
+                           ])
+
+    # To make sure that this target can be depended upon by other TypeScript targets,
+    # we have to name it the `target_name`. However, we can't name this `ts_library` the
+    # `target_name`, as the buildgraph requires the `copy_gen__to_resources` to happen *after*
+    # `ts_library` is finished.
+    typescript_config_name = invoker.target_name
+
+    reset_timestamps = true
+
+    visibility += [ ":*" ]
+  }
+}
+
+set_defaults("devtools_module") {
+  visibility = []
+  data = []
+  public_deps = []
+}

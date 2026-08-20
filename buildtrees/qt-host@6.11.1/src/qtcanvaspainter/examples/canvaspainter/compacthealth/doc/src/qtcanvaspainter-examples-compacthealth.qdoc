@@ -1,0 +1,106 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example compacthealth
+    \ingroup canvaspainter-examples
+    \title Qt Canvas Painter - Compact Health Example
+    \examplecategory {Graphics}
+    \brief Demonstrates the use of QCanvasPainter in a QWindow.
+
+    \image compacthealth-example.webp
+
+    This example demonstrates using \l{Qt Canvas Painter} in a pure \l QWindow
+    application. The \l{Qt Quick} and \l{Qt Widgets} stacks are not used.
+
+    The application renders all content through \l QRhi backends with
+    \l QCanvasPainter. Rendering and \l{QCanvasPainter}'s integration with
+    \l QRhi are managed via \l QCanvasRhiPaintDriver. This means hardware
+    acceleration is used where available for the selected backend.
+
+    \note \l QRhi is part of \l{Qt Gui Private}. As such, it offers limited
+    compatibility guarantees. There are no source or binary compatibility
+    guarantees for these classes, meaning the API is only guaranteed to work
+    with the Qt version the application was developed against.
+
+    \section1 What This Example Demonstrates
+
+    \list
+    \li Rendering a full custom UI in a \l QWindow.
+    \li Creating and managing \l QRhi, a swapchain, and depth-stencil resources.
+    \li Recording draw commands through \l QCanvasPainter and
+        \l QCanvasRhiPaintDriver.
+    \li Driving continuous animation with \l{QWindow::requestUpdate()}.
+    \endlist
+
+    \section1 Walkthrough
+
+    The application chooses a rendering API based on the platform by default.
+    You can also request a specific backend with command-line arguments:
+
+    \list
+    \li \c --null
+    \li \c --opengl
+    \li \c --vulkan
+    \li \c --d3d11
+    \li \c --d3d12
+    \li \c --metal
+    \endlist
+
+    If backend creation fails, the example attempts to fall back to OpenGL ES 2
+    when available.
+
+    \snippet compacthealth/main.cpp main
+
+    \c MainWindow is a subclass of \c PainterWindow, which is a \l QWindow.
+    \c PainterWindow implements a window that shows content rendered via \l QRhi,
+    Qt's graphics abstraction. It initializes a \l QRhi instance when the window
+    is exposed, manages a swapchain and depth-stencil buffer, handles resize
+    events, and invokes a virtual \c{paint()} function implemented by
+    \c MainWindow.
+
+    For a better understanding of the \c PainterWindow implementation, it is
+    recommended to check out the \l{RHI Window Example}, since in essence it is
+    very similar to the \c RhiWindow class in that example.
+
+    One \l{QCanvasPainter}-specific step is to retrieve a
+    \l QCanvasPainterFactory instance after \l QRhi has been initialized:
+
+    \snippet compacthealth/painterwindow.cpp painterfactory
+
+    Rendering a new frame happens in the \c{render()} function, which is invoked
+    when the window is shown, resized, and in response to update requests
+    scheduled via \l{QWindow::}{requestUpdate()}.
+
+    Unlike in the \l{RHI Window Example}, we will not create vertex and uniform
+    buffers or graphics pipelines via the \l QRhi API, and issue draw calls
+    directly. Instead, \l QCanvasRhiPaintDriver is used to record a render pass with
+    the QCanvasPainter-generated rendering.
+
+    \snippet compacthealth/painterwindow.cpp renderloop
+
+    MainWindow's \c{paint()} implementation uses the QCanvasPainter API and does
+    not need to handle low-level \l QRhi details directly.
+
+    First, it loads and registers images if not yet done:
+
+    \snippet compacthealth/mainwindow.cpp paint-1
+
+    This is followed by the actual drawing, involving the filling and stroking
+    of paths, rendering text, and drawing images. For example:
+
+    \snippet compacthealth/mainwindow.cpp paint-2
+
+    QCanvasPainter drawing commands prepare geometry, state, and QRhi draw work
+    internally. The command stream is flushed when
+    \l{QCanvasRhiPaintDriver::}{endPaint()} is called in
+    \c{PainterWindow::render()}. That is where a render pass is recorded on the
+    associated \l QRhiCommandBuffer.
+
+    Before returning, \c{MainWindow::paint()} calls
+    \l{QWindow::}{requestUpdate()}, a \l QWindow function that requests a new
+    frame synchronized with the display's presentation rate. This keeps the
+    content continuously updating for animation.
+
+    See the full example source code for implementation details.
+*/

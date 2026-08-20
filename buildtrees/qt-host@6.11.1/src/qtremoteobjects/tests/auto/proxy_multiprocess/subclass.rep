@@ -1,0 +1,50 @@
+#include <QPoint>
+#include "../namespace.h"
+
+USE_ENUM(Qt::DateFormat)
+USE_ENUM(NS::NamespaceEnum)
+USE_ENUM(NS2::NamespaceEnum)
+
+POD MyPOD{
+    ENUM class Position : unsigned short {position1=1, position2=2, position3=4}
+    FLAG (ActivePositions  Position)
+    ActivePositions positions, float f, QString s
+}
+POD VariantPOD(int i, int j)
+
+class SubClass
+{
+    PROP(MyPOD myPOD)
+    PROP(int i)
+}
+
+class ParentClass
+{
+    ENUM MyEnum {foo=1, bar=3, foobar=6}
+    ENUM class Position : unsigned short {position1=1, position2=2, position3=4}
+    FLAG (ActivePositions  Position)
+    PROP(bool started = false)
+    PROP(MyEnum myEnum=foo)
+    PROP(QVariant variant)
+    PROP(Qt::DateFormat date = Qt::ISODate)
+    PROP(NS::NamespaceEnum nsEnum = NS::Alpha)
+    PROP(NS2::NamespaceEnum ns2Enum = NS2::NamespaceEnum::Alpha)
+    PROP(QList<QString> simpleList)
+    PROP(QList<MyPOD> podList)
+    PROP(QMap<int, MyPOD> intMap)
+    PROP(QMap<ActivePositions, MyPOD> enumMap)
+    PROP(QHash<NS2::NamespaceEnum, MyPOD> podHash)
+
+    SLOT(bool start())
+    SLOT(bool quit())
+    SIGNAL(advance())
+    SIGNAL(enum2(MyEnum myEnum1, MyEnum myEnum2))
+    SLOT(MyEnum enumSlot(QPoint point, MyEnum myEnum))
+
+    SIGNAL(updateDate(Qt::DateFormat date1, Qt::DateFormat date2))
+    SLOT(Qt::DateFormat dateSlot(Qt::DateFormat date))
+
+    CLASS subClass(SubClass)
+    MODEL tracks(display)
+}
+

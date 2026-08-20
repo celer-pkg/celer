@@ -1,0 +1,18 @@
+{
+    "QEN": {
+        "description": "The effect is similar to what happens when a colorized glass is put on top of a grayscale image. The color for the overlay is given in the RGBA format.",
+        "fragmentCode": [
+            "fragColor = vec4(mix(fragColor.rgb/max(fragColor.a, 0.00390625), colorOverlayColor.rgb/max(colorOverlayColor.a, 0.00390625), colorOverlayColor.a) * fragColor.a, fragColor.a);"
+        ],
+        "name": "ColorOverlay",
+        "properties": [
+            {
+                "defaultValue": "0, 0, 0, 0",
+                "description": "This property defines the color value which is used to colorize the source.\n\nBy default, the property is set to \\c \"transparent\".",
+                "name": "colorOverlayColor",
+                "type": "color"
+            }
+        ],
+        "version": 1
+    }
+}

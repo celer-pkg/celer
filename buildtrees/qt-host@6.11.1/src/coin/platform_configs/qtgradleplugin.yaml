@@ -1,0 +1,18 @@
+Version: 2
+Include: []
+Configurations:
+-
+    Id: 'qtgp-on-linux-rhel_9_6'
+    Template: 'qtci-linux-RHEL-9.6-x86_64-51'
+    Compiler: 'GCC'
+    Features: ['TestOnly']
+-
+    Id: 'qtgp-on-macos'
+    Template: 'qtci-macos-14-arm-106'
+    Compiler: 'Clang'
+    Features: ['TestOnly']
+-
+    Id: 'qtgp-on-windows-24h2'
+    Template: 'qtci-windows-11_24H2-x86_64-71'
+    Compiler: 'MSVC2022'
+    Features: ['TestOnly']

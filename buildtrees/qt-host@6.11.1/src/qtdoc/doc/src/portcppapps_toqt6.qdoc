@@ -1,0 +1,137 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page porting-to-qt6-using-clazy.html
+\title Porting C++ Applications to Qt 6 using Clazy checks
+
+    We've implemented some checks and fixits within the Clazy framework to
+    help you port your applications from Qt 5 to Qt 6.
+    In their own words: "Clazy is a compiler plugin which allows clang to
+    understand Qt semantics". Get Clazy (\l{https://invent.kde.org/sdk/clazy})
+    and read on to make porting to Qt 6 smoother.
+
+    Clazy checks can be run as a plugin during compilation or over a JSON
+    compilation database using \c clazy-standalone.
+    The fixes are applied later, using \c clang-apply-replacements.
+
+    \section1 Clazy checks dedicated to Qt 6 porting
+
+    The following checks are dedicated to ease the port from Qt 5 to Qt 6.
+    \list
+        \li \c qt6-deprecated-api-fixes
+        \li \c qt6-header-fixes
+        \li \c qt6-qhash-signature
+        \li \c qt6-fwd-fixes
+        \li \c missing-qobject-macro
+    \endlist
+
+    The checks have to be run against Qt 5. The fixed code is only going to
+    compile against Qt 6. For this reason the above mentioned checks have to be
+    run in one go. Clazy recommends running one test at a time to avoid
+    conflict when applying fixes, but this is not an option when running those
+    checks as a plugin.
+
+    \section1 How to apply Clazy checks
+
+    How to set up your project to run with Clazy and how to select and apply
+    the checks is fully explained here:
+    \l {https://invent.kde.org/sdk/clazy#setting-up-your-project-to-build-with-clazy}.
+
+    If you don't want to run the checks as a plugin but rather over a JSON
+    compilation database, you need to use \c clazy-standalone. Please see
+    \l {https://invent.kde.org/sdk/clazy#clazy-standalone-and-json-database-support}
+    for instructions.
+
+    In a nutshell, assuming you have an up to date Clazy version installed, what needs
+    to be done to run the checks as a plugin is explained below.
+
+    Set up your project to run with Clazy.
+    \section2 If using qmake
+    Add the following lines to your qmake command, as appropriate for your OS:
+    \code
+    -spec linux-clang QMAKE_CXX="clazy"
+    -spec macx-clang QMAKE_CXX="clazy"
+    \endcode
+    For Windows with MSVC add \c QMAKE_CXX="clazy-cl.bat".
+
+    Run qmake.
+
+    \section2 If using CMake
+    Add: \c -DCMAKE_CXX_COMPILER=clazy to the cmake command.
+
+    Run cmake.
+
+    Select the checks:
+    \code
+    export CLAZY_CHECKS="qt6-deprecated-api-fixes,qt6-header-fixes,
+    qt6-qhash-signature,qt6-qlatin1stringchar-to-u,qt6-fwd-fixes,missing-qobject-macro"
+    \endcode
+
+    Enable the fixits:
+    \code
+    export CLAZY_EXPORT_FIXES=ON
+    \endcode
+
+    Set the directories to be ignored by Clazy:
+    \code
+    export CLAZY_IGNORE_DIRS=.*lib_dir.*
+    \endcode
+    This will prevent Clazy checks from running on the libraries' files.
+    This is necessary if the libraries' paths are included
+    with \c -I and \c -F instead of \c -isystem and \c -framework.
+    This is also necessary to avoid warnings from \c qt-header-fixes check,
+    if the headers triggering the check are included in the included
+    libraries' files.
+
+    Compile your code.
+
+    During compilation \c {.yaml} files are created next to the source files.
+
+    To apply the fixits, run:
+    \code
+    clang-apply-replacements <path_to_yaml_files>
+    \endcode
+    This will modify the source files, consider backing up your code.
+
+    If there are some conflicts between the fixits, you will be notified and no
+    file will be changed.
+
+    Not all porting can be done with automatic fixits. Please look carefully at
+    the warnings during compilation for the code that will have to be changed
+    manually.
+
+    \section1 How to apply Clazy checks within \QC
+
+    You can access Clazy checks within \QC by selecting \uicontrol Tools >
+    \uicontrol Options > \uicontrol Analyzer (or \uicontrol {\QC} >
+    \uicontrol Preferences > \uicontrol Analyzer on macOS).
+
+    You must create your own configuration and select the Clazy checks dedicated
+    to porting that you can find under Level 2 and Manual Level sections in
+    \QC version 4.14.1, or later. You can use the \e qt6 filter to locate
+    most of the checks. Be careful to select only the checks present in the above
+    given list.
+
+    \image qtcreator-clazy-checks-for-porting-to-qt6.png "Filtering Qt 6 checks"
+
+    \note We recommend that you deselect all other checks, except the porting
+    checks, to make it easier to apply fixits and to avoid unnecessary
+    conflicts.
+
+    To run the checks, select \uicontrol Analyze > \uicontrol {Clang-Tidy and Clazy}.
+
+    For more information about configuring and running Clazy checks, see
+    \l{\QC: Clang Tools}.
+
+    \section2 A word of caution
+
+    Within \QC, conflicts between fixits are not being warned against.
+    If there is more than one fixit on the same line, be careful when applying
+    the fixits.
+
+    Once a fixit has been applied, running the checks again will fail, because
+    the new code will only compile against Qt 6.
+
+*/
+

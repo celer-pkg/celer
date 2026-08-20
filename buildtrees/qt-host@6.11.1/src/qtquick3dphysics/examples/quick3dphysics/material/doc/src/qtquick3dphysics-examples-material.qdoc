@@ -1,0 +1,31 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example material
+    \ingroup quick3dphysics-examples
+    \title Qt Quick 3D Physics - Material Example
+    \examplecategory {3D}
+    \brief Demonstrates using physical materials.
+    \image material-example.jpg {A 3D simulation showing a red box on a tilted green surface, with a control
+           panel on the left containing sliders for static friction, dynamic friction, and restitution, and
+           a "Reset box" button}
+
+    The \e {Material} example demonstrates how to control the material properties of a physical body.
+    The scene contains the usual boilerplate of a View3D, PhysicsWorld, PerspectiveCamera and DirectionalLight.
+    In addition to this the scene contains two physical bodies, namely a slightly tilted plane and a box.
+    Every physical body has a \l {PhysicsBody::} {physicsMaterial} property containing a PhysicsMaterial node.
+    PhysicsMaterial contains these three material properties; \l {PhysicsMaterial::} {staticFriction}, \l {PhysicsMaterial::} {dynamicFriction} and \l {PhysicsMaterial::} {restitution} and these are used to define how the body will act when colliding with and sliding against other bodies.
+    There is a simple user interface that allows to interactively tweak the material of the box so you can see how it interacts depending on its material properties.
+
+    This is the QML code for the material:
+
+    \snippet material/main.qml material
+
+    The material is simply referencing the values of the user interface's sliders.
+    This same material is then used for both the box and the floor:
+
+    \snippet material/main.qml box
+
+    \snippet material/main.qml floor
+*/

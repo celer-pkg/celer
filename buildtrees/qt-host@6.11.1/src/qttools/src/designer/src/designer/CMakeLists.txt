@@ -1,0 +1,179 @@
+# Copyright (C) 2022 The Qt Company Ltd.
+# SPDX-License-Identifier: BSD-3-Clause
+
+
+#####################################################################
+## designer App:
+#####################################################################
+
+qt_internal_add_app(designer
+    SOURCES
+        ../../../shared/fontpanel/fontpanel.cpp ../../../shared/fontpanel/fontpanel_p.h
+        ../../../shared/qttoolbardialog/qttoolbardialog.cpp ../../../shared/qttoolbardialog/qttoolbardialog_p.h ../../../shared/qttoolbardialog/qttoolbardialog.ui
+        ../../../shared/helpclient/assistantclient.cpp ../../../shared/helpclient/assistantclient.h
+        ../../../shared/helpclient/helpclient.cpp ../../../shared/helpclient/helpclient.h
+        appfontdialog.cpp appfontdialog.h
+        designer_enums.h
+        main.cpp
+        mainwindow.cpp mainwindow.h
+        newform.cpp newform.h
+        preferencesdialog.cpp preferencesdialog.h preferencesdialog.ui
+        qdesigner.cpp qdesigner.h
+        qdesigner_actions.cpp qdesigner_actions.h
+        qdesigner_appearanceoptions.cpp qdesigner_appearanceoptions.h qdesigner_appearanceoptions.ui
+        qdesigner_formwindow.cpp qdesigner_formwindow.h
+        qdesigner_server.cpp qdesigner_server.h
+        qdesigner_settings.cpp qdesigner_settings.h
+        qdesigner_toolwindow.cpp qdesigner_toolwindow.h
+        qdesigner_workbench.cpp qdesigner_workbench.h
+        saveformastemplate.cpp saveformastemplate.h saveformastemplate.ui
+        versiondialog.cpp versiondialog.h
+    INCLUDE_DIRECTORIES
+        ../../../shared/fontpanel
+        ../../../shared/helpclient
+        ../../../shared/qttoolbardialog
+        ../lib/extension
+        ../lib/sdk
+        ../lib/shared
+        extra
+    LIBRARIES
+        Qt::CorePrivate
+        Qt::DesignerComponentsPrivate
+        Qt::DesignerPrivate
+        Qt::Gui
+        Qt::Network
+        Qt::Widgets
+        Qt::Xml
+    DEFINES
+        "QT_ENABLE_STRICT_MODE_UP_TO=QT_VERSION_CHECK(6,11,0)"
+    ENABLE_AUTOGEN_TOOLS
+        uic
+    PRECOMPILED_HEADER
+        "qdesigner_pch.h"
+)
+
+# Due to QTBUG-110369, don't add designer as dependency to External Project examples.
+qt_internal_skip_dependency_for_examples(designer)
+
+# Resources:
+set(designer_resource_files
+    "images/designer.png"
+)
+
+qt_internal_add_resource(designer "designer"
+    PREFIX
+        "/qt-project.org/designer"
+    FILES
+        ${designer_resource_files}
+)
+set(qttoolbardialog_resource_files
+    "../../../shared/qttoolbardialog/images/back.png"
+    "../../../shared/qttoolbardialog/images/down.png"
+    "../../../shared/qttoolbardialog/images/forward.png"
+    "../../../shared/qttoolbardialog/images/minus.png"
+    "../../../shared/qttoolbardialog/images/plus.png"
+    "../../../shared/qttoolbardialog/images/up.png"
+)
+
+qt_internal_add_resource(designer "qttoolbardialog"
+    PREFIX
+        "/qt-project.org/qttoolbardialog"
+    BASE
+        "../../../shared/qttoolbardialog"
+    FILES
+        ${qttoolbardialog_resource_files}
+)
+
+set_target_properties(designer PROPERTIES
+    QT_TARGET_DESCRIPTION "Qt Widgets Designer"
+)
+
+## Scopes:
+#####################################################################
+
+qt_internal_extend_target(designer CONDITION TARGET Qt::PrintSupport
+    PUBLIC_LIBRARIES
+        Qt::PrintSupport
+)
+
+qt_internal_extend_target(designer CONDITION NOT QT_BUILD_SHARED_LIBS
+    DEFINES
+        QT_DESIGNER_STATIC
+)
+
+if(WIN32)
+    set_target_properties(designer PROPERTIES
+        QT_TARGET_RC_ICONS "${CMAKE_CURRENT_SOURCE_DIR}/designer.ico"
+    )
+endif()
+
+if(WIN32)
+    set_target_properties(designer PROPERTIES
+        QT_TARGET_VERSION "${PROJECT_VERSION}.0"
+    )
+endif()
+
+if(UNIX)
+    set_target_properties(designer PROPERTIES
+        QT_TARGET_VERSION "${PROJECT_VERSION}"
+    )
+endif()
+
+if(QT_INSTALL_XDG_DESKTOP_ENTRIES)
+    if(UNIX AND NOT APPLE)
+        qt_path_join(xdg_install_dir ${QT_INSTALL_DIR} ${CMAKE_INSTALL_DATAROOTDIR})
+
+        qt_install(FILES designer.desktop
+            DESTINATION "${xdg_install_dir}/applications"
+        )
+        qt_install(FILES designer.metainfo.xml
+            RENAME io.qt.Designer.metainfo.xml
+            DESTINATION "${xdg_install_dir}/metainfo"
+        )
+        qt_install(FILES images/designer.png
+            DESTINATION "${xdg_install_dir}/icons/hicolor/128x128/apps"
+        )
+    endif()
+endif()
+
+if(APPLE)
+    set_target_properties(designer PROPERTIES
+        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info_mac.plist"
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_ICON_FILE "designer.icns"
+        OUTPUT_NAME "Designer"
+    )
+    set_source_files_properties(designer.icns PROPERTIES
+        MACOSX_PACKAGE_LOCATION Resources
+    )
+    target_sources(designer PRIVATE
+        designer.icns
+    )
+    # special case end
+    # Set values to be replaced in the custom Info_mac.plist.
+    # Also package the uifile.icns.
+    set(ICON "designer.icns")
+    set(EXECUTABLE "Designer")
+    set_source_files_properties(uifile.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    target_sources(designer PRIVATE uifile.icns)
+    # special case end
+
+    # Bundle the entitlements file in the installed bundle Resources subdirectory, so that the
+    # post-CI signing process uses it to ensure 3rd party widget plugins can also be loaded.
+    target_sources(designer PRIVATE Designer.entitlements)
+    set_source_files_properties(Designer.entitlements PROPERTIES
+        MACOSX_PACKAGE_LOCATION Resources
+    )
+endif()
+
+# FILETYPES.files = "uifile.icns"
+# FILETYPES.path = "Contents/Resources"
+# QMAKE_BUNDLE_DATA = "FILETYPES"
+
+qt_internal_extend_target(designer CONDITION UNIX AND NOT HAIKU AND NOT MACOS
+    PUBLIC_LIBRARIES
+        m
+)
+qt_internal_add_docs(designer
+    doc/qtdesigner.qdocconf
+)

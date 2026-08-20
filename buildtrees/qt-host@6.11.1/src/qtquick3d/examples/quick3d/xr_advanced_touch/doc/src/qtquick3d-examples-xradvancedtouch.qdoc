@@ -1,0 +1,130 @@
+// Copyright (C) 2026 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example xr_advanced_touch
+    \ingroup quick3d-examples
+    \ingroup qt3dxr-examples
+    \title Qt Quick 3D - XR Advanced Touch
+    \examplecategory {3D}
+    \brief Demonstrates touch on curved displays and 3D model touch handling.
+    \image {xr_touch_advanced.webp} {Example showing curved UI panel and paintable 3D objects}
+
+    This example builds on the \l{Qt Quick 3D - XR Simple Touch Example}{XR Simple Touch Example}
+    to demonstrate more advanced touch interaction techniques in \qxr:
+
+    \list
+        \li Touch interaction with 2D UI elements rendered on a curved 3D surface.
+        \li Direct touch handling on 3D models using UV coordinates.
+        \li Grabbing and manipulating 3D objects using pinch gestures.
+        \li Creating procedural curved meshes for immersive displays.
+        \li Building custom paintable textures with C++.
+    \endlist
+
+    \section1 Curved Display with Source Item
+
+    One of the key features of this example is displaying a 2D user interface on a curved surface.
+    We create a custom procedural mesh component, \c CurvedMesh, that generates a curved plane:
+
+    \quotefile xr_advanced_touch/CurvedMesh.qml
+
+    The \c CurvedMesh inherits from \l ProceduralMesh and generates vertices, normals, and UV coordinates
+    for a curved surface. The curvature is controlled by the \c radius property, which determines how much
+    the surface bends. The mesh is divided into \c partitions segments to create a smooth curve.
+
+    We then apply this curved geometry to a \l Model with a \l PrincipledMaterial that uses a \c sourceItem
+    to render 2D content:
+
+    \snippet xr_advanced_touch/Scene.qml curved screen
+
+    The \c sourceItem property contains a standard Qt Quick \l Rectangle with a complex UI including color swatches,
+    sliders, and a drawing canvas. This 2D content is automatically projected onto the curved 3D surface.
+    Touch events on the curved surface are mapped back to 2D coordinates and delivered to the appropriate
+    Qt Quick elements.
+
+    \note The \c emissiveMap and \c emissiveFactor are used to make the screen appear self-lit, improving visibility
+    in different lighting conditions. The slight transparency (opacity: 0.99) enables alpha blending.
+
+    \section1 Custom Paintable Texture
+
+    The drawing canvas in the UI uses a custom C++ class, \c TextureItem, which extends \l QQuickPaintedItem
+    to provide a paintable texture that can be used in 3D materials:
+
+    \quotefromfile xr_advanced_touch/textureitem.h
+    \skipto class TextureItem
+    \printuntil };
+
+    The \c TextureItem maintains an internal \l QImage that can be drawn on using \l QPainter. The image data
+    is then exposed as a \l QQuick3DTextureData that can be used in material textures. This allows us to create
+    dynamic, user-modified textures that update in real-time.
+
+    The key method is \c setUv(), which handles touch input in UV coordinate space:
+
+    \quotefromfile xr_advanced_touch/textureitem.cpp
+    \skipto void TextureItem::setUv
+    \printuntil }
+
+    This method implements several sophisticated features:
+    \list
+        \li Temporal smoothing with adaptive filtering to reduce jitter.
+        \li Detection and handling of UV coordinate wrapping (when drawing crosses texture boundaries).
+        \li Per-touch-point state tracking for multi-touch support.
+    \endlist
+
+    \section1 Touch Handling on 3D Models
+
+    The example demonstrates direct touch interaction with 3D models through the enhanced \c XrGadget component.
+    When a hand touches a 3D model, the touch position is converted to UV coordinates and forwarded to the model:
+
+    \snippet xr_shared/TouchHand.qml touch handling
+
+    The \c XrGadget component receives these touch events through its \c handleTouch function:
+
+    \snippet xr_advanced_touch/Scene.qml gadget touch
+
+    When the user is not grabbing the model, touch events are forwarded to the \c TextureItem, which draws on the
+    model's texture. This allows users to paint directly on the 3D object's surface.
+
+    \section1 Grabbing and Manipulating 3D Objects
+
+    The example also implements grab-and-move functionality using the pinch gesture:
+
+    \snippet xr_advanced_touch/Scene.qml grab action
+
+    When the user performs a pinch gesture with their right hand, the system captures the offset and rotation
+    between the hand and the selected object:
+
+    \snippet xr_advanced_touch/Scene.qml grab controller
+
+    As the hand moves, the object follows while maintaining the original offset and relative rotation. This creates
+    a natural and intuitive way to position 3D objects in space.
+
+    \section1 Color Selection and Multi Touch
+
+    The color palette on the curved display demonstrates multi-touch interaction. Each hand can independently
+    select a color by tapping a color swatch:
+
+    \snippet xr_advanced_touch/Scene.qml color swatch
+
+    The \c TapHandler responds to taps from different touch points (identified by \c pt.id), allowing each hand
+    to have its own color. When a color is selected, it updates both the hand color and the drawing color for
+    that touch ID through the \c colorChange signal:
+
+    \snippet xr_advanced_touch/Main.qml color change
+
+    This demonstrates how to build multi-user or multi-hand interfaces where different touch points can have
+    independent state and behavior.
+
+    \section1 UI Controls and Model Customization
+
+    The example includes a complete control panel that allows users to:
+    \list
+        \li Select different geometric primitives (torus, cube, sphere, cylinder, and cone).
+        \li Adjust the scale of the 3D model.
+        \li Change the pen width for drawing.
+        \li Clear the drawing canvas by long-pressing a color swatch.
+    \endlist
+
+    These controls demonstrate how to build full-featured spatial interfaces that combine 2D UI paradigms
+    with 3D interaction in an XR environment.
+*/

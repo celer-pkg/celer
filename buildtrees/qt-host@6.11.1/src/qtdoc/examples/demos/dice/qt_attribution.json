@@ -1,0 +1,49 @@
+[
+    {
+        "Id": "dice-roundcarpet",
+        "Name": "Round carpet",
+        "QDocModule": "qtdoc",
+        "QtUsage": "Used in the Dice example",
+        "QtParts": [
+            "examples"
+        ],
+        "Files": [
+            "maps/carpet_texture_baseColor.jpeg",
+            "meshes/object_2.mesh",
+            "meshes/object_3.mesh"
+        ],
+        "Description": "Texture and mesh of a round carpet",
+        "Homepage": "https://resources.blogscopia.com/category/models/",
+        "DownloadLocation":
+                "https://sketchfab.com/3d-models/round-carpet-b78ec509a3824dab91ac6752151ad687",
+        "Version": "b78ec509a3824dab91ac6752151ad687",
+        "LicenseId": "CC-BY-SA-4.0",
+        "License": "Creative Commons Attribution Share Alike 4.0 International",
+        "LicenseFile": "license_carpet.txt",
+        "Copyright": "1-3D.com"
+    },
+    {
+        "Id": "dice-table",
+        "Name": "Wenge Wood Side Table - Low Poly",
+        "QDocModule": "qtdoc",
+        "QtUsage": "Used in the Dice example",
+        "QtParts": [
+            "examples"
+        ],
+        "Files": [
+            "maps/M_Side_Table_Natural_Wenge_Wood_4K_baseColor_small.jpg",
+            "maps/M_Side_Table_Natural_Wenge_Wood_4K_metallicRoughness_small.png",
+            "maps/M_Side_Table_Natural_Wenge_Wood_4K_normal_small.png",
+            "meshes/side_Table_Pine_LOD0_M_Side_Table_Natural_Wenge_Wood_4K_0.mesh"
+        ],
+        "Description": "Texture and mesh of a round table",
+        "Homepage": "https://sketchfab.com/intermittentart",
+        "DownloadLocation":
+                "https://sketchfab.com/3d-models/wenge-wood-side-table-low-poly-87586ee0beeb435688e32c47f4141e12",
+        "Version": "87586ee0beeb435688e32c47f4141e12",
+        "LicenseId": "CC-BY-4.0",
+        "License": "Creative Commons Attribution 4.0 International (CC BY 4.0) ",
+        "LicenseFile": "license_table.txt",
+        "Copyright": "Intermittent Art"
+    }
+]

@@ -1,0 +1,42 @@
+project = TestCPP
+productname = Qt
+
+sources.fileextensions = "*.qml *.cpp *.qdoc"
+headers.fileextensions = "*.h"
+
+# images
+imagedirs = ./src/images
+
+# zero warning policy
+warninglimit = 0
+warninglimit.enabled = true
+
+# don't write host system-specific paths to index files
+locationinfo = false
+
+includepaths += -I./src
+
+headerdirs = ./src
+sources = ./src/testcpp.cpp \
+          ./src/classlists.qdoc \
+          ./src/scopedenum.qdoc
+exampledirs = snippets
+
+macro.CMDFN = \\\\fn
+macro.nothing = \\dontdocument ()
+macro.testnoautolist = \\if defined(test_noautolist)\n\\noautolist\n\\endif
+
+navigation.cppclassespage = "QDoc Test C++ Classes"
+
+defines += test_scopedenum
+
+outputformats = HTML WebXML DocBook
+
+{HTML.nosubdirs,DocBook.nosubdirs}  = true
+HTML.outputsubdir                   = html
+WebXML.nosubdirs                    = true
+WebXML.outputsubdir                 = webxml
+DocBook.outputsubdir                = docbook
+
+# allow a single warning for self-referencing \sa documentation
+warninglimit += 1

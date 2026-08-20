@@ -1,0 +1,40 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example trafficlight-widgets-static
+    \title SCXML Traffic Light (Static, Widgets)
+    \examplecategory {Data Processing & I/O}
+    \ingroup examples-qtscxml
+
+    \brief A widget-based application that uses a compiled state machine to
+    implement a traffic light.
+
+    \image trafficlight.png {Traffic light with green light illuminated}
+
+    \e{Traffic Light Example (Static)} demonstrates how to connect to the
+    active properties of a state in a state machine that is compiled to a class.
+
+    The UI is created using Qt Widgets.
+
+    \include examples-run.qdocinc
+
+    \include trafficlight-compiling.qdocinc
+
+    \section1 Instantiating the State Machine
+
+    We instantiate the generated \c TrafficLightStateMachine class in the
+    \e trafficlight-widgets-static.cpp file, as follows:
+
+    \quotefromfile trafficlight-widgets-static/trafficlight-widgets-static.cpp
+    \skipto #include
+    \printuntil }
+
+    \include trafficlight-state-machine.qdocinc
+
+    We connect to the states as follows:
+
+    \quotefromfile trafficlight-common/trafficlight.cpp
+    \skipto connectToState
+    \printuntil greenLight
+*/

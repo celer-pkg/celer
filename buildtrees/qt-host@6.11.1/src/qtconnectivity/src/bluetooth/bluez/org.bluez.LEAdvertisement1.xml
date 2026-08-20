@@ -1,0 +1,29 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+    "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+    <interface name="org.bluez.LEAdvertisement1">
+        <method name="Release">
+            <annotation name="org.freedesktop.DBus.Method.NoReply" value="true"/>
+        </method>
+        <property name="Type" type="s" access="readwrite"/>
+        <property name="ServiceUUIDs" type="as" access="readwrite"/>
+        <property name="ManufacturerData" type="a{qv}" access="readwrite">
+            <annotation name="org.qtproject.QtDBus.QtTypeName" value="ManufacturerDataList"/>
+        </property>
+        <!-- SolicitUUIDs -->
+        <!-- ServiceData -->
+        <!-- Data experimental -->
+        <property name="Discoverable" type="b" access="readwrite"/>
+        <!-- DiscoverableTimeout experimental -->
+        <property name="Includes" type="as" access="readwrite"/>
+        <property name="LocalName" type="s" access="readwrite"/>
+        <!-- Appearance -->
+        <!-- Duration -->
+        <!-- Timeout -->
+        <!-- SecondaryChannel experimental -->
+        <!-- min max intervals are experimental -->
+        <property name="MinInterval" type="u" access="readwrite"/>
+        <property name="MaxInterval" type="u" access="readwrite"/>
+        <!-- TxPower experimental -->
+    </interface>
+</node>

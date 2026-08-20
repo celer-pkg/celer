@@ -1,0 +1,54 @@
+<style>
+.button-group {
+  display: flex;
+  gap: 10px; /* Minimum distance between buttons */
+}
+
+.button-group button {
+  background-color: white; /* Green background */
+  border: 1px solid black; /* Green border */
+  color: black; /* White text */
+  padding: 10px 24px; /* Some padding */
+  cursor: pointer; /* Pointer/hand icon */
+  float: left; /* Float the buttons side by side */
+  border-radius: 12px;
+}
+
+/* Clear floats (clearfix hack) */
+.button-group:after {
+  content: "";
+  display: table;
+}
+
+/* Add a background color on hover */
+.button-group button:hover {
+  background-color: grey;
+}
+</style>
+<template is="dom-if" if="[[!isLoading]]">
+<div style="display:grid;grid-template-columns: 1fr 1fr;gap:10px;margin-top:10px">
+  <template is="dom-repeat" items="[[extensionsInfo]]">
+    <div style="display:flex;flex-direction:column;gap:10px;border:1px solid #000;border-radius:8px;padding:8px;">
+        <div style="display:flex;gap:10px">
+            <div>[[item.name]]</div>
+            <span>[[item.version]]</span>
+        </div>
+
+        <div>
+            [[item.description]]
+        </div>
+        <div>
+            ID: [[item.id]]
+        </div>
+        <div>
+            State: [[isEnabled_(item.isEnabled)]]
+        </div>
+        <div class="button-group">
+          <button id="uninstallButton" data-id$="[[item.id]]" on-click="onUninstallClick_" hidden=[[hideUninstallButton_(item.isInstalled)]]>Uninstall</button>
+          <button id="unloadButton" data-id$="[[item.id]]" on-click="onUnloadClick_" >Unload</button>
+          <button id="enableDisableButton" data-id$="[[item.id]]" data-enabled$="[[isEnabled_(item.isEnabled)]]" on-click="onEnableDisableClick_" >[[enableDisableButton_(item.isEnabled)]]</button>
+        </div>
+    </div>
+  </template>
+  </div>
+</template>

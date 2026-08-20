@@ -1,0 +1,13 @@
+source_set("pdf") {
+  defines = [ "CONTENT_IMPLEMENTATION" ]
+  sources = [
+    "pdf_extension_util.cc",
+    "pdf_extension_util.h",
+  ]
+
+  deps = [
+    "//content/public/browser",
+    "//chrome/app:generated_resources",
+    "//rlz/buildflags",
+  ]
+}

@@ -1,0 +1,88 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+
+   \page qtpurchasing-googleplay.html
+   \title Registering Products in Google Play
+   \brief A short guide to registering in-app products in Google Play Store.
+
+   The Google Play market place allows you to register your application, as well
+   as the in-app products you want to make available to it, without publishing
+   it. The following \l{https://developer.android.com/studio/publish}{this guide} gives a brief introduction on uploading your
+   application to Google Play and registering products.
+
+   \section1 Preparing your application for submission
+
+   Before you can upload your application to Google Play, you must prepare it
+   for submission.
+
+   \section2 Adding a Manifest XML
+
+   The default \c AndroidManifest.xml generated for applications by Qt is
+   suitable for development testing, but cannot be used when submitting the
+   application to Google Play.
+
+   Create your own manifest by clicking the
+   \uicontrol{Create Templates} button in \QC. You can find the
+   button under \uicontrol{Projects} > \uicontrol{Build} tab. Expand
+   \uicontrol{Build Android APK} to see it.
+
+   Once the manifest is added to your project, you can modify it. The most
+   important parts are the \c{application name} and the \c{package name}. The
+   package name must be unique, and it is recommended to follow the
+   \b {com.mycompany.myappname} naming convention. The "com.mycompany"
+   namespace is based on the internet domain ownership to avoid naming
+   collisions with other applications.
+
+   Other important parts of the manifest include the \c{versionCode}, which must
+   be incremented every time you upload a new version of the application. Other
+   properties will decide how your application package
+   is presented in the store listing, such as the \c{application name} and the \c{version name}.
+
+   For more information on the \c AndroidManifest.xml, see the
+   \l{https://developer.android.com/guide/topics/manifest/manifest-intro}{Android documentation}.
+
+   For more information, refer to the
+   \l{Third-party Android Libraries}.
+
+   \section2 Signing the application
+
+   Qt uses the default debug key to sign your application to enable running the
+   application on a device. Same key cannot be used to sign the Android Application Bundles
+   that is meant to be published on Google Play.
+
+   See \l{https://doc.qt.io/qtcreator/creator-deploying-android.html#signing-android-packages}{Signing Android Packages}
+
+   \section1 Registering your application
+
+   Once the application is prepared for publishing, you can create a listing for
+   it in Google Play.
+
+   The first step is to get a publisher account, if you do not already have one.
+   Go to \l{https://play.google.com/apps/publish/}{the Google Play developer console},
+   log in with the Google account of your choice, and follow the steps as
+   directed.
+
+   When you have set up your account, click on \uicontrol{Add new application}
+   in Google Play's developer console.
+
+   Fill out as much information as you want in the store listing, and also the
+   \uicontrol{Pricing and distribution} page.
+
+   \section2 Publishing your application
+
+   In order to test in-app purchases in your application, you first have to
+   publish it.
+
+   See \l{https://developer.android.com/studio/publish}{Publish your app}
+
+   \section2 Adding in-app products
+
+   In order to access in-app products from your application, you must register
+   them in Google Play.
+
+   See \l{https://developer.android.com/google/play/billing/getting-ready#products}{Create and configure your products}
+
+*/
+

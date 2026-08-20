@@ -1,0 +1,13 @@
+# Copyright (C) 2023 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+
+module CustomControls
+AmPmButton 1.0 AmPmButton.qml
+CustomLabel 1.0 CustomLabel.qml
+CustomTextArea 1.0 CustomTextArea.qml
+CustomTextField 1.0 CustomTextField.qml
+CustomButton 1.0 CustomButton.qml
+SwipeDelegateContent 1.0 SwipeDelegateContent.qml
+TasksListDelegate 1.0 TasksListDelegate.qml
+TimeInput 1.0 TimeInput.qml
+TimeTextField 1.0 TimeTextField.qml

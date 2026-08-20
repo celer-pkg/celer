@@ -1,0 +1,38 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qmllint-warnings-and-errors-duplicate-enum-entries.html
+\ingroup qmllint-warnings-and-errors
+
+\title Duplicate enum entries
+\brief [duplicate-enum-entries] Enum key X has already been declared.
+
+\qmllintwarningcategory duplicate-enum-entries
+
+\section1 Enum key X has already been declared
+
+\section2 What happened?
+An enum contains two identical entries.
+
+\section2 Why is that bad?
+The same key is associated with multiple values. It isn't clear which one will
+be used.
+
+\section2 Example
+\qml
+import QtQuick
+
+Item {
+    enum E { A = 0, B = 1, C = 2, A = 3 }
+}
+\endqml
+To fix this warning, remove or rename duplicate enum entries:
+\qml
+import QtQuick
+
+Item {
+    enum E { A = 0, B = 1, C = 2, D = 3 }
+}
+\endqml
+*/

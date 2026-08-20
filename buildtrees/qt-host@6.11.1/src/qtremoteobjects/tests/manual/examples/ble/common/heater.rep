@@ -1,0 +1,7 @@
+#include <QtCore>
+
+class Heater
+{
+    PROP(bool heaterPoweredOn=true);
+    PROP(int currentTemperature=20 SOURCEONLYSETTER);
+};

@@ -1,0 +1,358 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#include "qdoc/config.h"
+
+#include <QtCore/qdir.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qhash.h>
+#include <QtCore/qstringlist.h>
+#include <QtTest/QtTest>
+
+class tst_Config : public QObject
+{
+    Q_OBJECT
+
+private slots:
+    void classMembersInitializeToFalseOrEmpty();
+    void includePathsFromCommandLine();
+    void variables();
+    void paths();
+    void includepaths();
+    void getExampleProjectFile();
+    void expandVars();
+    void sourceLink();
+    void showInternalPrecedence();
+    void internalFilePatterns();
+    void internalFilePatternsMatching();
+    void internalFilePatternsPathMatching();
+    void internalFilePatternsWildcards();
+
+private:
+    Config &initConfig(const QStringList &args = QStringList(),
+                       const char *qdocconf = nullptr);
+    Config &initConfig(const char *qdocconf)
+    {
+        return initConfig(QStringList(), qdocconf);
+    }
+};
+
+/*
+  Initializes the Config with optional arguments and a .qdocconf file
+  to load, and  returns a reference to it.
+*/
+Config &tst_Config::initConfig(const QStringList &args, const char *qdocconf)
+{
+    QStringList fullArgs = { QStringLiteral("./qdoc") };
+    fullArgs << args;
+    Config::instance().init("QDoc Test", fullArgs);
+
+    if (qdocconf) {
+        const auto configFile = QFINDTESTDATA(qdocconf);
+        if (!configFile.isEmpty())
+            Config::instance().load(configFile);
+    }
+
+    return Config::instance();
+}
+
+void tst_Config::classMembersInitializeToFalseOrEmpty()
+{
+    auto &config = initConfig();
+    QCOMPARE(config.showInternal(), false);
+    QCOMPARE(config.singleExec(), false);
+
+    QVERIFY(config.defines().isEmpty());
+    QVERIFY(config.includePaths().isEmpty());
+    QVERIFY(config.dependModules().isEmpty());
+    QVERIFY(config.indexDirs().isEmpty());
+    QVERIFY(config.currentDir().isEmpty());
+    QVERIFY(config.previousCurrentDir().isEmpty());
+}
+
+void tst_Config::includePathsFromCommandLine()
+{
+    const auto mockIncludePath1 = QString("-I" + QDir().absoluteFilePath("/qt5/qtdoc/doc/."));
+    const auto mockIncludePath2 = QString("-I" + QDir().absoluteFilePath("/qt5/qtbase/mkspecs/linux-g++"));
+    const QStringList commandLineArgs = { mockIncludePath1, mockIncludePath2 };
+    auto &config = initConfig(commandLineArgs);
+
+    const QStringList expected = { mockIncludePath1, mockIncludePath2 };
+    const QStringList actual = config.includePaths();
+
+    QCOMPARE(actual, expected);
+}
+
+// Tests different types of variables; string, string list, bool, int,
+// empty and undefined variables, and subvariables.
+void tst_Config::variables()
+{
+    auto &config = initConfig("/testdata/configs/vars.qdocconf");
+
+    const QStringList list = { "testing", "line", "by\n", "line" };
+    QCOMPARE(config.get("list").asStringList(), list);
+    QCOMPARE(config.get("list").asString(), "testing line by\nline");
+    QCOMPARE(config.get("true").asBool(), true);
+    QCOMPARE(config.get("untrue").asBool(), false);
+    QCOMPARE(config.get("int").asInt(), 2);
+    QCOMPARE(config.get("void").asString(), QString());
+    QVERIFY(!config.get("void").asString().isNull());
+    QCOMPARE(config.get("void").asString("undefined"), QString());
+    QCOMPARE(config.get("undefined").asString("undefined"), "undefined");
+    QVERIFY(config.get("undefined").asString().isNull());
+
+    QSet<QString> subVars = { "thing", "where", "time" };
+    QCOMPARE(config.subVars("some"), subVars);
+}
+
+// Tests whether paths or variables are resolved correctly.
+void tst_Config::paths()
+{
+    auto &config = initConfig();
+    const auto docConfig = QFINDTESTDATA("/testdata/configs/paths.qdocconf");
+    if (!docConfig.isEmpty())
+        config.load(docConfig);
+
+    auto rootDir = QFileInfo(docConfig).dir();
+    QVERIFY(rootDir.cdUp());
+
+    const auto paths = config.getCanonicalPathList("sourcedirs");
+    QVERIFY(paths.size() == 3);
+
+    QCOMPARE(paths[0], rootDir.absoluteFilePath("paths/includes"));
+    QCOMPARE(paths[1], rootDir.absoluteFilePath("configs"));
+    QCOMPARE(paths[2], rootDir.absoluteFilePath("configs/includes"));
+}
+
+// Tests whether includepaths are resolved correctly
+void tst_Config::includepaths()
+{
+    auto &config = initConfig();
+    const auto docConfig = QFINDTESTDATA("/testdata/configs/includepaths.qdocconf");
+    if (!docConfig.isEmpty())
+        config.load(docConfig);
+
+    auto rootDir = QFileInfo(docConfig).dir();
+    QVERIFY(rootDir.cdUp());
+
+    const auto paths = config.getCanonicalPathList("includepaths",
+                                                   Config::IncludePaths);
+    QVERIFY(paths.size() == 5);
+
+    QCOMPARE(paths[0], "-I" + rootDir.absoluteFilePath("includepaths/include"));
+    QCOMPARE(paths[0], paths[1]);
+    QCOMPARE(paths[2], "-I" + rootDir.absoluteFilePath("includepaths/include/more"));
+    QCOMPARE(paths[3], "-F" + rootDir.absoluteFilePath("includepaths/include/framework"));
+    QCOMPARE(paths[4], "-isystem" + rootDir.absoluteFilePath("includepaths/include/system"));
+}
+
+void::tst_Config::getExampleProjectFile()
+{
+    auto &config = initConfig();
+    const auto docConfig = QFINDTESTDATA("/testdata/configs/exampletest.qdocconf");
+    if (!docConfig.isEmpty())
+        config.load(docConfig);
+
+    auto rootDir = QFileInfo(docConfig).dir();
+    QVERIFY(rootDir.cd("../exampletest/examples/test"));
+
+    QVERIFY(config.getExampleProjectFile("invalid").isEmpty());
+    QVERIFY(config.getExampleProjectFile("test/empty").isEmpty());
+
+    QCOMPARE(config.getExampleProjectFile("test/example1"),
+             rootDir.absoluteFilePath("example1/example1.pro"));
+    QCOMPARE(config.getExampleProjectFile("test/example2"),
+             rootDir.absoluteFilePath("example2/example2.qmlproject"));
+    QCOMPARE(config.getExampleProjectFile("test/example3"),
+             rootDir.absoluteFilePath("example3/example3.pyproject"));
+    QCOMPARE(config.getExampleProjectFile("test/example4"),
+             rootDir.absoluteFilePath("example4/CMakeLists.txt"));
+}
+
+void::tst_Config::expandVars()
+{
+    qputenv("QDOC_TSTCONFIG_LIST", QByteArray("a b c"));
+    auto &config = initConfig("/testdata/configs/expandvars.qdocconf");
+
+    QCOMPARE(config.get("expanded1").asString(), "foo");
+    QCOMPARE(config.get("expanded2").asString(), "foo,bar");
+    QCOMPARE(config.get("expanded3").asString(), "foobar foobar baz");
+    QCOMPARE(config.get("literally").asString(), "$data ${data}");
+    QCOMPARE(config.get("csvlist").asString(), "a,b,c");
+}
+
+void::tst_Config::sourceLink()
+{
+    auto &config = initConfig();
+    const auto docConfig = QFINDTESTDATA("/testdata/configs/sourcelink.qdocconf");
+    if (!docConfig.isEmpty())
+        config.load(docConfig);
+
+    auto dir = QFileInfo(docConfig).dir();
+    QCOMPARE(config.getSourceLink().rootPath, dir.absolutePath());
+    QCOMPARE(config.getSourceLink().baseUrl, "http://localhost/");
+    QCOMPARE(config.getSourceLink().linkText, "link");
+    QCOMPARE(config.getSourceLink().enabled, false);
+}
+
+void::tst_Config::showInternalPrecedence()
+{
+    // Test 1: Config file sets showinternal=false, no command line option
+    {
+        auto &config = initConfig();
+        const auto docConfig = QFINDTESTDATA("/testdata/configs/showinternal_false.qdocconf");
+        if (!docConfig.isEmpty())
+            config.load(docConfig);
+
+        QCOMPARE(config.showInternal(), false);
+        QCOMPARE(config.get(CONFIG_SHOWINTERNAL).asBool(), false);
+    }
+
+    // Test 2: Config file sets showinternal=true, no command line option
+    {
+        auto &config = initConfig();
+        const auto docConfig = QFINDTESTDATA("/testdata/configs/showinternal_true.qdocconf");
+        if (!docConfig.isEmpty())
+            config.load(docConfig);
+
+        QCOMPARE(config.showInternal(), true);
+        QCOMPARE(config.get(CONFIG_SHOWINTERNAL).asBool(), true);
+    }
+
+    // Test 3: Config file sets showinternal=false, command line has -showinternal
+    {
+        const QStringList args = { "-showinternal" };
+        auto &config = initConfig(args);
+        const auto docConfig = QFINDTESTDATA("/testdata/configs/showinternal_false.qdocconf");
+        if (!docConfig.isEmpty())
+            config.load(docConfig);
+
+        // Command line should override config file
+        QCOMPARE(config.showInternal(), true);
+        // Config variable should still reflect what's in the file
+        QCOMPARE(config.get(CONFIG_SHOWINTERNAL).asBool(), false);
+    }
+
+    // Test 4: Config file sets showinternal=true, command line has -showinternal
+    {
+        const QStringList args = { "-showinternal" };
+        auto &config = initConfig(args);
+        const auto docConfig = QFINDTESTDATA("/testdata/configs/showinternal_true.qdocconf");
+        if (!docConfig.isEmpty())
+            config.load(docConfig);
+
+        // Both should be true
+        QCOMPARE(config.showInternal(), true);
+        QCOMPARE(config.get(CONFIG_SHOWINTERNAL).asBool(), true);
+    }
+
+    // Test 5: No config file, command line has -showinternal
+    {
+        const QStringList args = { "-showinternal" };
+        auto &config = initConfig(args);
+
+        QCOMPARE(config.showInternal(), true);
+        QCOMPARE(config.get(CONFIG_SHOWINTERNAL).asBool(), true);
+    }
+}
+
+void tst_Config::internalFilePatterns()
+{
+    auto &config = initConfig("/testdata/configs/internalpatterns.qdocconf");
+
+    const QStringList expected = {"*_p.h", "*_p_p.h"};
+    const QSet<QString> expectedSet(expected.cbegin(), expected.cend());
+
+    QCOMPARE(config.getInternalFilePatterns(), expectedSet);
+}
+
+void tst_Config::internalFilePatternsMatching()
+{
+    auto &config = initConfig("/testdata/configs/internalpatterns.qdocconf");
+    const Config::InternalFilePatterns &patterns = config.getInternalFilePatternsCompiled();
+
+    // Should match - testing path/filename matching
+    QVERIFY(Config::matchesInternalFilePattern("myclass_p.h", patterns));
+    QVERIFY(Config::matchesInternalFilePattern("foo_p_p.h", patterns));
+
+    // Should not match
+    QVERIFY(!Config::matchesInternalFilePattern("myclass.h", patterns));
+    QVERIFY(!Config::matchesInternalFilePattern("public.h", patterns));
+}
+
+void tst_Config::internalFilePatternsPathMatching()
+{
+    // Create a config with path-based patterns
+    initConfig();
+    Config::InternalFilePatterns patterns;
+
+    // Add a pattern that includes directory structure using regex
+    // Regex patterns match against the full path
+    QRegularExpression re(R"(.*/internal/.*\.h)");
+    re.optimize();
+    patterns.regexPatterns.append(re);
+
+    // Should match - patterns with 'internal' directory followed by .h file
+    QVERIFY(Config::matchesInternalFilePattern("foo/internal/widget.h", patterns));
+    QVERIFY(Config::matchesInternalFilePattern("src/internal/helper.h", patterns));
+    QVERIFY(Config::matchesInternalFilePattern("/absolute/path/internal/file.h", patterns));
+
+    // Should match - Windows-style backslash paths (testing normalization)
+    // First verify that forward slash version works
+    QVERIFY(Config::matchesInternalFilePattern("src/internal/helper.h", patterns));
+
+    // Now test backslash versions
+    QVERIFY(Config::matchesInternalFilePattern(R"(src\internal\helper.h)", patterns));
+    QVERIFY(Config::matchesInternalFilePattern(R"(C:\project\internal\widget.h)", patterns));
+    QVERIFY(Config::matchesInternalFilePattern(R"(foo\bar\internal\file.h)", patterns));
+
+    // Should not match - 'internal' not in path or wrong position
+    QVERIFY(!Config::matchesInternalFilePattern("foo/public/widget.h", patterns));
+    QVERIFY(!Config::matchesInternalFilePattern("internal.h", patterns));
+    QVERIFY(!Config::matchesInternalFilePattern("internal/widget.cpp", patterns)); // .cpp not .h
+    QVERIFY(!Config::matchesInternalFilePattern("foo/internal_dir/widget.h", patterns)); // not exact 'internal'
+    QVERIFY(!Config::matchesInternalFilePattern(R"(src\public\file.h)", patterns)); // Windows path, but 'public' not 'internal'
+}
+
+void tst_Config::internalFilePatternsWildcards()
+{
+    initConfig();
+    Config::InternalFilePatterns patterns;
+
+    // Test single character wildcard '?'
+    QRegularExpression re1(QRegularExpression::wildcardToRegularExpression("test?.h"));
+    re1.optimize();
+    patterns.globPatterns.append(re1);
+
+    // Test multi-pattern matching
+    QRegularExpression re2(QRegularExpression::wildcardToRegularExpression("*_impl.h"));
+    re2.optimize();
+    patterns.globPatterns.append(re2);
+
+    // Add exact match for comparison
+    patterns.exactMatches.insert("exact.h");
+
+    // Test '?' wildcard - matches single character (glob patterns match filename only)
+    QVERIFY(Config::matchesInternalFilePattern("test1.h", patterns));
+    QVERIFY(Config::matchesInternalFilePattern("testX.h", patterns));
+    QVERIFY(Config::matchesInternalFilePattern("/path/to/test1.h", patterns)); // glob matches filename
+    QVERIFY(Config::matchesInternalFilePattern("/path/to/testX.h", patterns));
+    QVERIFY(!Config::matchesInternalFilePattern("test.h", patterns));
+    QVERIFY(!Config::matchesInternalFilePattern("test12.h", patterns));
+
+    // Test '*' wildcard - matches multiple characters (glob patterns match filename only)
+    QVERIFY(Config::matchesInternalFilePattern("widget_impl.h", patterns));
+    QVERIFY(Config::matchesInternalFilePattern("foo_impl.h", patterns));
+    QVERIFY(Config::matchesInternalFilePattern("/some/path/widget_impl.h", patterns)); // glob matches filename
+    QVERIFY(!Config::matchesInternalFilePattern("widget.h", patterns));
+
+    // Test exact match (exact matches check full path)
+    QVERIFY(Config::matchesInternalFilePattern("exact.h", patterns));
+    QVERIFY(!Config::matchesInternalFilePattern("exact_x.h", patterns));
+    QVERIFY(!Config::matchesInternalFilePattern("/path/exact.h", patterns)); // exact match requires full path match
+}
+
+QTEST_APPLESS_MAIN(tst_Config)
+
+#include "tst_config.moc"
+

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" binding="early" xmlns:qt="http://www.qt.io/2015/02/scxml-ext" name="StateChart" qt:editorversion="11.0.1">
+    <state id="Initial">
+        <transition type="external" event="crash" target="Final_1">
+            <script>
+            </script>
+        </transition>
+    </state>
+    <final id="Final_1">
+    </final>
+</scxml>
+

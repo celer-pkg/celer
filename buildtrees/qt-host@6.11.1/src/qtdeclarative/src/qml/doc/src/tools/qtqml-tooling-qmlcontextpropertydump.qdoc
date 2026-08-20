@@ -1,0 +1,21 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtqml-tooling-qmlcontextpropertydump.html
+\title qmlcontextpropertydump
+\brief A tool that searches for context property definitions in C++ code.
+\ingroup qtqml-tooling
+\ingroup qtqml-tooling-devtools
+
+\e qmlcontextpropertydump scans a C++ source folder for potential
+context property definitions, and stores them in a format readable by \l qmllint
+and \l {\QMLLS}.
+
+\e qmlcontextpropertydump is best used via the \l{qmllint-auto}{CMake API}: \l qt_add_qml_module
+creates a global \c dump_qml_context_properties target that invokes \c qmlcontextpropertydump with
+the right arguments. Note that \c dump_qml_context_properties does nothing when a
+dump file already exists. Use the \c clean_qml_context_properties target to delete the
+context property dump. The context property dump file is located in the build folder at
+\c{<build>/.qt/contextPropertyDump.ini}.
+*/

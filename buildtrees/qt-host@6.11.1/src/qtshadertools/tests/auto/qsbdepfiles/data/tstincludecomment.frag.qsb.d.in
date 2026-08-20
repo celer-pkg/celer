@@ -1,0 +1,4 @@
+@CMAKE_CURRENT_BINARY_DIR@/.qsb/shaders/tstincludecomment.frag.qsb: \
+  @CMAKE_CURRENT_SOURCE_DIR@/shaders/tstincludecomment.frag \
+  @CMAKE_CURRENT_SOURCE_DIR@/shaders/common.glsl \
+  @CMAKE_CURRENT_SOURCE_DIR@/shaders/inner/common2.glsl

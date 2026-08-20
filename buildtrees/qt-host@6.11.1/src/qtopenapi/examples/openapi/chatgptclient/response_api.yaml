@@ -1,0 +1,198 @@
+# The MIT License
+# Copyright (c) OpenAI (https://openai.com)
+# Copyright (C) 2026 The Qt Company Ltd.
+# SPDX-License-Identifier: MIT
+
+openapi: 3.1.0
+info:
+  title: OpenAI API
+  description: The OpenAI REST API. Please see https://platform.openai.com/docs/api-reference for more details.
+  version: 1.0.0
+  termsOfService: https://openai.com/policies/terms-of-use
+  contact:
+    name: OpenAI Support
+    url: https://help.openai.com/
+  license:
+    name: MIT
+    url: https://github.com/openai/openai-openapi/blob/master/LICENSE
+servers:
+  - url: https://api.openai.com/v1
+security:
+  - ApiKeyAuth: []
+tags:
+  - name: Responses
+    description: use Responses API
+paths:
+  /models:
+    get:
+      operationId: listModels
+      tags:
+        - Models
+      summary: Lists the currently available models, and provides basic information about each one such as the owner and availability.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListModelsResponse"
+  /responses:
+    post:
+      operationId: createResponse
+      tags:
+        - Responses
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateResponse"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
+components:
+  schemas:
+    GenerateResponse:
+      type: object
+      properties:
+        model:
+          description: The name of AI model
+          type: string
+        store:
+          description: To store responses
+          type: boolean
+        instructions:
+          description: Instructions for assistant
+          type: string
+        input:
+          description: User input
+          type: string
+        previous_response_id:
+          description: User input
+          type: string
+    Response:
+      title: The response object
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        status:
+          type: string
+        output:
+          type: array
+          items:
+            $ref: "#/components/schemas/OutputMessage"
+    OutputMessage:
+      type: object
+      title: Output message
+      description: |
+        An output message from the model.
+      properties:
+        id:
+          type: string
+          description: |
+            The unique ID of the output message.
+        type:
+          type: string
+          description: |
+            The type of the output message. Always `message`.
+          enum:
+            - message
+          x-stainless-const: true
+        role:
+          type: string
+          description: |
+            The role of the output message. Always `assistant`.
+          enum:
+            - assistant
+          x-stainless-const: true
+        content:
+          type: array
+          description: |
+            The content of the output message.
+          items:
+            $ref: "#/components/schemas/OutputTextContent"
+        status:
+          type: string
+          description: >
+            The status of the message input. One of `in_progress`, `completed`,
+            or
+
+            `incomplete`. Populated when input items are returned via API.
+          enum:
+            - in_progress
+            - completed
+            - incomplete
+      required:
+        - id
+        - type
+        - role
+        - content
+        - status
+    OutputTextContent:
+      properties:
+        type:
+          type: string
+          enum:
+            - output_text
+          description: The type of the output text. Always `output_text`.
+          default: output_text
+          x-stainless-const: true
+        text:
+          type: string
+          description: The text output from the model.
+      type: object
+      required:
+        - type
+        - text
+      title: Output text
+      description: A text output from the model.
+    ListModelsResponse:
+      type: object
+      properties:
+        object:
+          type: string
+          enum:
+            - list
+          x-stainless-const: true
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Model"
+      required:
+        - object
+        - data
+    Model:
+      title: Model
+      description: Describes an OpenAI model offering that can be used with the API.
+      properties:
+        id:
+          type: string
+          description: The model identifier, which can be referenced in the API endpoints.
+        created:
+          type: integer
+          description: The Unix timestamp (in seconds) when the model was created.
+        object:
+          type: string
+          description: The object type, which is always "model".
+          enum:
+            - model
+          x-stainless-const: true
+        owned_by:
+          type: string
+          description: The organization that owns the model.
+      required:
+        - id
+        - object
+        - created
+        - owned_by
+  securitySchemes:
+    ApiKeyAuth:
+      type: http
+      scheme: bearer

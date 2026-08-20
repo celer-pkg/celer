@@ -1,0 +1,44 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [11]
+\badcode \QtVersion
+cd /tmp
+tar xf ~/Downloads/qt-everywhere-src-\1.tar.xz
+\endcode
+//! [11]
+
+
+//! [12]
+\badcode \QtVersion
+mkdir -p ~/dev/qt-build
+cd ~/dev/qt-build
+/tmp/qt-everywhere-src-\1/configure
+\endcode
+//! [12]
+
+
+//! [13]
+cmake --build . --parallel
+//! [13]
+
+
+//! [14]
+cmake --install .
+//! [14]
+
+
+//! [15]
+PATH               - to locate qmake, moc and other Qt tools
+//! [15]
+
+
+//! [16]
+PATH=/usr/local/Qt-%VERSION%/bin:$PATH
+export PATH
+//! [16]
+
+
+//! [17]
+setenv PATH /usr/local/Qt-%VERSION%/bin:$PATH
+//! [17]

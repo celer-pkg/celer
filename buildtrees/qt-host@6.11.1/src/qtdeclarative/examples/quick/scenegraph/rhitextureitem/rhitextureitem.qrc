@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/scenegraph/rhitextureitem">
+        <file>main.qml</file>
+        <file alias="shaders/color.vert.qsb">prebuilts_for_qmake/color.vert.qsb</file>
+        <file alias="shaders/color.frag.qsb">prebuilts_for_qmake/color.frag.qsb</file>
+        <file alias="shaders/checker.frag.qsb">prebuilts_for_qmake/checker.frag.qsb</file>
+    </qresource>
+</RCC>

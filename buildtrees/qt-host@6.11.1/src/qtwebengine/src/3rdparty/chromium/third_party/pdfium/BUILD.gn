@@ -1,0 +1,474 @@
+# Copyright 2016 The PDFium Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/config/clang/clang.gni")
+import("//build/config/gclient_args.gni")
+import("//testing/test.gni")
+import("pdfium.gni")
+
+group("default") {
+  testonly = true
+  deps = [ ":pdfium" ]
+  if (pdf_is_standalone) {
+    deps += [ ":pdfium_all" ]
+  }
+}
+
+group("freetype_common") {
+  public_deps = []
+  if (pdf_bundle_freetype) {
+    public_deps += [ "third_party:fx_freetype" ]
+  } else {
+    public_deps += [ "//build/config/freetype" ]
+  }
+}
+
+config("pdfium_common_config") {
+  cflags = []
+  cflags_cc = []
+  ldflags = []
+  include_dirs = [ "." ]
+  defines = []
+
+  if (!use_system_libopenjpeg2) {
+    defines += [ "OPJ_STATIC" ]
+  }
+
+  if (pdf_enable_click_logging) {
+    defines += [ "PDF_ENABLE_CLICK_LOGGING" ]
+  }
+
+  if (pdf_use_skia && pdf_enable_fontations) {
+    defines += [ "PDF_ENABLE_FONTATIONS" ]
+  }
+
+  if (pdf_use_partition_alloc) {
+    defines += [ "PDF_USE_PARTITION_ALLOC" ]
+  }
+
+  if (is_win && !is_mingw) {
+    # Assume UTF-8 by default to avoid code page dependencies.
+    cflags += [ "/utf-8" ]
+  }
+
+  if (is_ios) {
+    defines += [ "MEMORY_TOOL_REPLACES_ALLOCATOR" ]
+  }
+
+  if (is_clang) {
+    # Override -Wno-c++11-narrowing.
+    cflags += [ "-Wc++11-narrowing" ]
+
+    # May flag some issues when converting int to size_t.
+    cflags += [ "-Wtautological-unsigned-zero-compare" ]
+  }
+
+  if (!is_win && !is_clang) {
+    cflags += [
+      # Override -Wno-narrowing for GCC.
+      "-Wnarrowing",
+
+      # GCC assumes that control can get past an exhaustive switch and then
+      # warns if there's no return there.
+      "-Wno-return-type",
+    ]
+  }
+
+  if (clang_use_chrome_plugins) {
+    # Catch misuse of C-style pointers.
+    # TODO(crbug.com/1320670): enable for non-debug builds once this stops
+    # interfering with code generation.
+    # TODO(tsepez): enable for windows, too.
+    if (is_debug && !is_win) {
+      cflags += [
+        "-Xclang",
+        "-plugin-arg-raw-ptr-plugin",
+        "-Xclang",
+        "check-raw-ptr-fields",
+
+        "-Xclang",
+        "-plugin-arg-raw-ptr-plugin",
+        "-Xclang",
+        "raw-ptr-exclude-path=public",
+
+        "-Xclang",
+        "-plugin-arg-raw-ptr-plugin",
+        "-Xclang",
+        "raw-ptr-exclude-path=test",
+
+        # TODO(tsepez): enforce raw_ref<> as well.
+        # "-Xclang",
+        # "-plugin-arg-raw-ptr-plugin",
+        # "-Xclang",
+        # "check-raw-ref-fields",
+      ]
+      defines += [ "PDF_ENABLE_UNOWNED_PTR_EXCLUSION" ]
+    }
+
+    # Catch misuse of cppgc in XFA.
+    if (pdf_enable_xfa) {
+      cflags += [
+        "-Xclang",
+        "-add-plugin",
+        "-Xclang",
+        "blink-gc-plugin",
+      ]
+
+      # Disable GC plugin forbidding off-heap collections of GCed:
+      cflags += [
+        "-Xclang",
+        "-plugin-arg-blink-gc-plugin",
+        "-Xclang",
+        "disable-off-heap-collections-of-gced-check",
+      ]
+    }
+  }
+}
+
+config("pdfium_implementation_config") {
+  defines = [ "FPDF_IMPLEMENTATION" ]
+  visibility = [ ":pdfium_public_headers" ]
+}
+
+config("pdfium_public_config") {
+  defines = []
+
+  if (pdf_enable_v8) {
+    defines += [ "PDF_ENABLE_V8" ]
+
+    if (pdf_enable_xfa) {
+      defines += [ "PDF_ENABLE_XFA" ]
+      if (pdf_enable_xfa_bmp) {
+        defines += [ "PDF_ENABLE_XFA_BMP" ]
+      }
+      if (pdf_enable_xfa_gif) {
+        defines += [ "PDF_ENABLE_XFA_GIF" ]
+      }
+      if (pdf_enable_xfa_png) {
+        defines += [ "PDF_ENABLE_XFA_PNG" ]
+      }
+      if (pdf_enable_xfa_tiff) {
+        defines += [ "PDF_ENABLE_XFA_TIFF" ]
+      }
+    }
+  }
+
+  if (pdf_use_skia) {
+    defines += [ "PDF_USE_SKIA" ]
+  }
+}
+
+config("pdfium_core_config") {
+  cflags = []
+  configs = [
+    ":pdfium_common_config",
+    ":pdfium_public_config",
+    "//build/config/compiler:noshadowing",
+  ]
+  defines = []
+  if (is_win && !is_clang && !is_gcc && !is_mingw) {
+    cflags += [
+      "/wd4324",
+      "/wd4577",
+    ]
+  }
+  if (is_clang) {
+    cflags += [ "-Wcovered-switch-default" ]
+  }
+}
+
+config("pdfium_strict_config") {
+  configs = [
+    ":pdfium_core_config",
+    "//build/config/compiler:wexit_time_destructors",
+    "//build/config/compiler:wglobal_constructors",
+  ]
+}
+
+config("pdfium_noshorten_config") {
+  cflags = []
+  if (is_clang) {
+    cflags += [ "-Wshorten-64-to-32" ]
+  }
+}
+
+source_set("pdfium_public_headers_impl") {
+  sources = [
+    "public/cpp/fpdf_deleters.h",
+    "public/cpp/fpdf_scopers.h",
+    "public/fpdf_annot.h",
+    "public/fpdf_attachment.h",
+    "public/fpdf_catalog.h",
+    "public/fpdf_dataavail.h",
+    "public/fpdf_doc.h",
+    "public/fpdf_edit.h",
+    "public/fpdf_ext.h",
+    "public/fpdf_flatten.h",
+    "public/fpdf_formfill.h",
+    "public/fpdf_fwlevent.h",
+    "public/fpdf_javascript.h",
+    "public/fpdf_ppo.h",
+    "public/fpdf_progressive.h",
+    "public/fpdf_save.h",
+    "public/fpdf_searchex.h",
+    "public/fpdf_signature.h",
+    "public/fpdf_structtree.h",
+    "public/fpdf_sysfontinfo.h",
+    "public/fpdf_text.h",
+    "public/fpdf_transformpage.h",
+    "public/fpdfview.h",
+  ]
+}
+
+group("pdfium_public_headers") {
+  public_deps = [ ":pdfium_public_headers_impl" ]
+  public_configs = [
+    ":pdfium_public_config",
+    ":pdfium_implementation_config",
+  ]
+}
+
+component("pdfium") {
+  output_name = "pdfium"
+  libs = []
+  configs += [ ":pdfium_strict_config" ]
+  public_configs = [ ":pdfium_public_config" ]
+
+  deps = [
+    "constants",
+    "core/fpdfapi/page",
+    "core/fpdfapi/parser",
+    "core/fpdfdoc",
+    "core/fxcodec",
+    "core/fxcrt",
+    "core/fxge",
+    "fpdfsdk",
+    "fpdfsdk/formfiller",
+    "fxjs",
+  ]
+
+  public_deps = [
+    ":pdfium_public_headers_impl",
+    "core/fxcrt",
+  ]
+
+  if (pdf_enable_xfa) {
+    deps += [
+      "fpdfsdk/fpdfxfa",
+      "xfa/fxfa",
+      "xfa/fxfa/parser",
+    ]
+  }
+
+  if (is_win && !is_mingw) {
+    libs += [
+      "advapi32.lib",
+      "gdi32.lib",
+      "user32.lib",
+    ]
+  }
+  if (is_mingw) {
+    libs += [
+      "advapi32",
+      "gdi32",
+      "user32",
+    ]
+  }
+
+  if (is_mac) {
+    frameworks = [
+      "AppKit.framework",
+      "CoreFoundation.framework",
+    ]
+  }
+
+  if (pdf_is_complete_lib) {
+    static_component_type = "static_library"
+    complete_static_lib = true
+    configs -= [ "//build/config/compiler:thin_archive" ]
+  }
+}
+
+# Targets below this are only visible within this file.
+visibility = [ ":*" ]
+
+group("pdfium_unittest_deps") {
+  testonly = true
+  public_deps = [
+    "core/fxcrt",
+    "testing:unit_test_support",
+    "//testing/gmock",
+    "//testing/gtest",
+  ]
+  visibility += [
+    "core/*",
+    "fpdfsdk/*",
+    "fxbarcode/*",
+    "fxjs/*",
+    "xfa/*",
+  ]
+}
+
+test("pdfium_unittests") {
+  testonly = true
+  sources = [ "testing/unit_test_main.cpp" ]
+  deps = [
+    "core/fdrm:unittests",
+    "core/fpdfapi/edit:unittests",
+    "core/fpdfapi/font:unittests",
+    "core/fpdfapi/page:unittests",
+    "core/fpdfapi/parser:unittests",
+    "core/fpdfapi/render:unittests",
+    "core/fpdfdoc:unittests",
+    "core/fpdftext:unittests",
+    "core/fxcodec:unittests",
+    "core/fxcrt",
+    "core/fxcrt:unittests",
+    "core/fxge:unittests",
+    "fpdfsdk:unittests",
+    "testing:unit_test_support",
+    "//testing/gmock",
+    "//testing/gtest",
+  ]
+  configs += [ ":pdfium_core_config" ]
+  if (is_android) {
+    use_raw_android_executable = true
+  }
+  if (pdf_enable_v8) {
+    configs += [ "//v8:external_startup_data" ]
+    deps += [
+      "fxjs:unittests",
+      "//v8",
+    ]
+    if (pdf_enable_xfa) {
+      deps += [
+        "core/fxcrt/css:unittests",
+        "fxbarcode:unittests",
+        "xfa/fde:unittests",
+        "xfa/fgas/crt:unittests",
+        "xfa/fgas/font:unittests",
+        "xfa/fgas/layout:unittests",
+        "xfa/fxfa:unittests",
+        "xfa/fxfa/formcalc:unittests",
+        "xfa/fxfa/parser:unittests",
+      ]
+    }
+  }
+}
+
+group("pdfium_embeddertest_deps") {
+  testonly = true
+  public_deps = [
+    ":pdfium_public_headers",
+    "core/fxcrt",
+    "testing:embedder_test_support",
+    "//testing/gmock",
+    "//testing/gtest",
+  ]
+  visibility += [
+    "core/*",
+    "fpdfsdk/*",
+    "fxjs/*",
+    "xfa/*",
+  ]
+}
+
+test("pdfium_embeddertests") {
+  testonly = true
+  sources = [ "testing/embedder_test_main.cpp" ]
+  deps = [
+    ":pdfium_embeddertest_deps",
+    "core/fpdfapi/edit:embeddertests",
+    "core/fpdfapi/parser:embeddertests",
+    "core/fpdfapi/render:embeddertests",
+    "core/fxcodec:embeddertests",
+    "core/fxcrt",
+    "core/fxge:embeddertests",
+    "fpdfsdk:embeddertests",
+    "fpdfsdk/formfiller:embeddertests",
+    "fpdfsdk/pwl:embeddertests",
+    "testing/image_diff",
+    "//testing/gmock",
+    "//testing/gtest",
+  ]
+  include_dirs = [ "testing/gmock/include" ]
+  configs += [ ":pdfium_core_config" ]
+
+  if (is_android) {
+    ignore_all_data_deps = true
+    use_raw_android_executable = true
+  }
+
+  if (pdf_enable_v8) {
+    deps += [
+      "fxjs:embeddertests",
+      "//v8",
+    ]
+    configs += [ "//v8:external_startup_data" ]
+  }
+
+  if (pdf_enable_xfa) {
+    deps += [
+      "fpdfsdk/fpdfxfa:embeddertests",
+      "xfa/fwl:embeddertests",
+      "xfa/fxfa/layout:embeddertests",
+      "xfa/fxfa/parser:embeddertests",
+    ]
+  }
+}
+
+executable("pdfium_diff") {
+  visibility += [ "testing/tools:test_runner_py" ]
+  testonly = true
+  sources = [ "testing/image_diff/image_diff.cpp" ]
+  deps = [
+    "core/fxcrt",
+    "testing:path_service",
+    "testing/image_diff",
+    "//build/win:default_exe_manifest",
+  ]
+  configs += [ ":pdfium_strict_config" ]
+}
+
+group("pdfium_all") {
+  testonly = true
+  deps = [
+    ":pdfium_diff",
+    ":pdfium_embeddertests",
+    ":pdfium_unittests",
+    "testing:pdfium_test",
+    "testing/fuzzers",
+  ]
+
+  if (pdf_is_standalone) {
+    deps += [ "testing/tools:test_runner_py" ]
+  }
+}
+
+# Makes additional targets reachable only for "gn check". These are not always
+# built by the "all" Ninja target, which uses the "default" group, which in turn
+# depends on the "pdfium_all" group.
+group("gn_check") {
+  deps = []
+
+  # TODO(crbug.com/pdfium/1832): Remove !is_android when //third_party/expat is
+  # available.
+  if (defined(checkout_skia) && checkout_skia && !is_android) {
+    deps += [ "//skia" ]
+  }
+}
+
+# GN evaluates each .gn file once per toolchain, so restricting to default
+# toolchain will ensure write_file() is called only once.
+if (current_toolchain == default_toolchain) {
+  import("//build/gn_logs.gni")
+
+  # Write debug logs to gn_logs.txt.
+  _lines = [
+             "Generated during 'gn gen' by //BUILD.gn.",
+             "",
+           ] + build_gn_logs
+
+  write_file("$root_build_dir/gn_logs.txt", _lines)
+}

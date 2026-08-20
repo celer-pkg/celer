@@ -1,0 +1,79 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+// Forward Declarations for custom material functions
+// This is necessary since they are typically defined near main
+
+#if QSSG_CUSTOM_MATERIAL_SPECULAR_PROCESSOR
+void qt_specularLightProcessor(inout vec3 SPECULAR,
+                               in vec3 LIGHT_COLOR,
+                               in float LIGHT_ATTENUATION,
+                               in float SHADOW_CONTRIB,
+                               in vec3 FRESNEL_CONTRIB,
+                               in vec3 TO_LIGHT_DIR,
+                               in vec3 NORMAL,
+                               in vec4 BASE_COLOR,
+                               in float METALNESS,
+                               in float ROUGHNESS,
+                               in float SPECULAR_AMOUNT,
+                               in vec3 VIEW_VECTOR
+# if QSSG_CUSTOM_MATERIAL_SHARED_VARIABLES
+                             , inout QT_SHARED_VARS qt_customShared);
+# else
+                               );
+# endif
+#endif // QSSG_CUSTOM_MATERIAL_SPECULAR_PROCESSOR
+
+#if QSSG_CUSTOM_MATERIAL_DIRECTIONAL_LIGHT_PROCESSOR
+void qt_directionalLightProcessor(inout vec3 DIFFUSE,
+                                  in vec3 LIGHT_COLOR,
+                                  in float SHADOW_CONTRIB,
+                                  in vec3 TO_LIGHT_DIR,
+                                  in vec3 NORMAL,
+                                  in vec4 BASE_COLOR,
+                                  in float METALNESS,
+                                  in float ROUGHNESS,
+                                  in vec3 VIEW_VECTOR
+# if QSSG_CUSTOM_MATERIAL_SHARED_VARIABLES
+                                , inout QT_SHARED_VARS qt_customShared);
+# else
+                                 );
+# endif
+#endif // QSSG_CUSTOM_MATERIAL_DIRECTIONAL_LIGHT_PROCESSOR
+
+#if QSSG_CUSTOM_MATERIAL_POINT_LIGHT_PROCESSOR
+void qt_pointLightProcessor(inout vec3 DIFFUSE,
+                            in vec3 LIGHT_COLOR,
+                            in float LIGHT_ATTENUATION,
+                            in float SHADOW_CONTRIB,
+                            in vec3 TO_LIGHT_DIR,
+                            in vec3 NORMAL,
+                            in vec4 BASE_COLOR,
+                            in float METALNESS,
+                            in float ROUGHNESS,
+                            in vec3 VIEW_VECTOR
+# if QSSG_CUSTOM_MATERIAL_SHARED_VARIABLES
+                          , inout QT_SHARED_VARS qt_customShared);
+# else
+                            );
+# endif
+#endif // QSSG_CUSTOM_MATERIAL_POINT_LIGHT_PROCESSOR
+
+#if QSSG_CUSTOM_MATERIAL_SPOT_LIGHT_PROCESSOR
+void qt_spotLightProcessor(inout vec3 DIFFUSE,
+                           in vec3 LIGHT_COLOR,
+                           in float LIGHT_ATTENUATION,
+                           float SPOT_FACTOR,
+                           in float SHADOW_CONTRIB,
+                           in vec3 TO_LIGHT_DIR,
+                           in vec3 NORMAL,
+                           in vec4 BASE_COLOR,
+                           in float METALNESS,
+                           in float ROUGHNESS,
+                           in vec3 VIEW_VECTOR
+# if QSSG_CUSTOM_MATERIAL_SHARED_VARIABLES
+                         , inout QT_SHARED_VARS qt_customShared);
+# else
+                           );
+# endif
+#endif // QSSG_CUSTOM_MATERIAL_SPOT_LIGHT_PROCESSOR

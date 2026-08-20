@@ -1,0 +1,183 @@
+/*
+ * Copyright 2023 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-size: inherit;
+}
+
+*:focus,
+*:focus-visible {
+  outline: none;
+}
+
+:host {
+  overflow-x: auto;
+}
+
+:host,
+devtools-create-recording-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.header {
+  background-color: var(--sys-color-cdt-base-container);
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+  border-bottom: 1px solid var(--sys-color-divider);
+  padding: 0 5px;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.separator {
+  background-color: var(--sys-color-divider);
+  width: 1px;
+  height: 17px;
+  margin: 0;
+}
+
+select {
+  appearance: none;
+  user-select: none;
+  border: none;
+  border-radius: var(--sys-shape-corner-extra-small);
+  height: var(--sys-size-9);
+  max-width: 140px;
+  min-width: 140px;
+  padding: 0 var(--sys-size-6) 0 var(--sys-size-5);
+  position: relative;
+  color: var(--sys-color-on-surface);
+  background-color: transparent;
+  text-overflow: ellipsis;
+  background-image: var(--combobox-dropdown-arrow);
+  background-position: right center;
+  background-repeat: no-repeat;
+
+  &:hover {
+    background-color: var(--sys-color-state-hover-on-subtle);
+  }
+
+  &:active {
+    background-color: var(--sys-color-state-ripple-neutral-on-subtle);
+  }
+
+  &:hover:active {
+    background: var(--combobox-dropdown-arrow),
+      linear-gradient(
+        var(--sys-color-state-hover-on-subtle),
+        var(--sys-color-state-hover-on-subtle)
+      ),
+      linear-gradient(
+        var(--sys-color-state-ripple-neutral-on-subtle),
+        var(--sys-color-state-ripple-neutral-on-subtle)
+      );
+    background-position: right center;
+    background-repeat: no-repeat;
+  }
+
+  &:disabled {
+    pointer-events: none;
+    color: var(--sys-color-state-disabled);
+    background-color: var(--sys-color-state-disabled-container);
+  }
+
+  &:focus-visible {
+    outline: var(--sys-size-2) solid var(--sys-color-state-focus-ring);
+  }
+}
+
+select option {
+  background-color: var(--sys-color-cdt-base-container);
+  color: var(--sys-color-on-surface);
+}
+
+devtools-menu {
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+devtools-recording-list-view {
+  overflow: auto;
+}
+
+.error {
+  color: var(--sys-color-error);
+  border: 1px solid var(--sys-color-error);
+  background-color: var(--sys-color-error-container);
+  padding: 4px;
+}
+
+.feedback {
+  margin-left: auto;
+  margin-right: 4px;
+}
+
+.feedback .x-link {
+  letter-spacing: 0.03em;
+  text-decoration-line: underline;
+  font-size: var(--sys-typescale-body4-size);
+  line-height: 16px;
+  color: var(--sys-color-primary);
+  outline-offset: 3px;
+}
+
+.feedback .x-link:focus-visible,
+.empty-state-description .x-link:focus-visible {
+  outline: -webkit-focus-ring-color auto 1px;
+}
+
+.empty-state {
+  margin: var(--sys-size-5);
+  display: flex;
+  flex-grow: 1;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  min-height: fit-content;
+  min-width: fit-content;
+
+  > * {
+    max-width: var(--sys-size-29);
+  }
+
+  .empty-state-header {
+    font: var(--sys-typescale-headline5);
+    margin-bottom: var(--sys-size-3);
+  }
+
+  .empty-state-description {
+    font: var(--sys-typescale-body4-regular);
+    color: var(--sys-color-on-surface-subtle);
+
+    > x-link {
+      white-space: nowrap;
+      margin-left: var(--sys-size-3);
+      cursor: pointer;
+      text-decoration: underline;
+      color: var(--sys-color-primary);
+      outline-offset: var(--sys-size-2);
+    }
+  }
+
+  > devtools-button {
+    margin-top: var(--sys-size-7);
+  }
+}

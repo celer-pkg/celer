@@ -1,0 +1,6 @@
+# Copyright (C) 2025 Menlo Systems GmbH; author Arno Rehn <a.rehn@menlosystems.com>
+# SPDX-License-Identifier: BSD-3-Clause
+
+@PACKAGE_INIT@
+
+set(QT_QWEBCHANNEL_JS_PATH "@PACKAGE_INSTALL_WEBCHANNEL_SHAREDIR@/qwebchannel.js")

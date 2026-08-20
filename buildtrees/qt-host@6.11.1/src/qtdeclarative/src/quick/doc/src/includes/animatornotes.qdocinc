@@ -1,0 +1,10 @@
+\note Animator types have no benefit when a \l {Non-threaded Render Loop
+('basic')}{non-threaded render loop} is used.
+
+\note It is recommended that applications consider designs based on
+multi-threaded, asynchronous principles, rather than relying on Animators to
+show animated content while doing expensive, blocking work on the main (GUI)
+thread. Instead of long, blocking operations, prefer using \l WorkerScript and
+\l{QtQuick::Image::asynchronous}{asynchronous image loading} in QML, and worker
+threads, parallel algorithms, \l{Qt Concurrent}, and coroutines in C++, thus
+keeping the entire application and UI responsive all the time.

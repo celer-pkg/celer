@@ -1,0 +1,100 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \externalpage https://www.ecma-international.org/publications-and-standards/standards/ecma-262/
+    \title ECMA-262
+*/
+
+/*!
+    \externalpage https://www.w3schools.com/jsref/default.asp
+    \title W3Schools JavaScript Reference
+*/
+
+/*!
+    \externalpage https://tc39.es/ecma262/#sec-date-objects
+    \title ECMAScript Specification of Date
+*/
+
+/*!
+    \externalpage https://www.qt.io/product/testing-tools#squish
+    \title Squish GUI Test Automation Tool
+*/
+/*!
+    \externalpage https://docs.kdab.com/gammaray-manual/latest/
+    \title GammaRay Manual
+*/
+/*!
+    \externalpage https://doc.qt.io/QtQmlLive
+    \title QmlLive Manual
+*/
+/*!
+    \externalpage https://felgo.com/qml-hot-reload
+    \title Felgo QML Hot Reload Tool
+*/
+/*!
+    \externalpage https://fontawesome.com/
+    \title Font Awesome
+*/
+/*!
+    \externalpage https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing_operator
+    \title Nullish Coalescing
+*/
+/*!
+    \externalpage https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining
+    \title Optional Chaining
+*/
+
+/*!
+    \externalpage https://cmake.org/cmake/help/latest/command/install.html#files
+    \title install(FILES)
+*/
+/*!
+    \externalpage https://developer.android.com/reference/android/view/View
+    \title Android: View
+*/
+/*!
+    \externalpage https://developer.android.com/reference/java/security/InvalidParameterException
+    \title Android: InvalidParameterException
+*/
+/*!
+    \externalpage https://developer.android.com/reference/java/lang/ClassCastException
+    \title Android: ClassCastException
+*/
+/*!
+    \externalpage https://developer.android.com/topic/libraries/view-binding
+    \title Android: View binding
+*/
+/*!
+    \externalpage https://developer.android.com/reference/android/Manifest.permission#SYSTEM_ALERT_WINDOW
+    \title Android: SYSTEM_ALERT_WINDOW
+*/
+/*!
+    \externalpage https://developer.android.com/reference/android/app/Activity
+    \title Android: Activity
+*/
+/*!
+    \externalpage https://developer.android.com/reference/android/view/View#event-handling-and-threading
+    \title Android: Event Handling and Threading
+*/
+/*!
+    \externalpage https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/
+    \title Kotlin: Int
+*/
+/*!
+    \externalpage https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/
+    \title Kotlin: String
+*/
+/*!
+    \externalpage https://developer.android.com/reference/android/view/View#event-handling-and-threading
+    \title Android: Event Handling and Threading
+*/
+/*!
+    \externalpage https://developer.android.com/reference/android/widget/FrameLayout
+    \title Android: FrameLayout
+*/
+/*!
+    \externalpage https://developer.android.com/reference/android/widget/FrameLayout.LayoutParams
+    \title Android: FrameLayout.LayoutParams
+*/
+

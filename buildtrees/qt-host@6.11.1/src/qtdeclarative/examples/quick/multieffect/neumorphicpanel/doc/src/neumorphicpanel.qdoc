@@ -1,0 +1,17 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+    \title Qt Quick Examples - RectangularShadow NeumorphicPanel
+    \example multieffect/neumorphicpanel
+    \image qml-neumorphicpanel-example.jpg
+    \brief Demonstrates RectangularShadow usage.
+    \ingroup qtquickexamples
+    \examplecategory {Graphics}
+
+    This example demonstrates the RectangularShadow type, which offers an
+    efficient solution for applying rounded rectangle shadows and glows.
+    The API of the RectangularShadow matches to CSS box-shadow element,
+    with some additions.
+
+    \include examples-run.qdocinc
+*/

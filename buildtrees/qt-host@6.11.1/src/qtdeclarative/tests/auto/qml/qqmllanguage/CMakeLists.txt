@@ -1,0 +1,80 @@
+# Copyright (C) 2022 The Qt Company Ltd.
+# SPDX-License-Identifier: BSD-3-Clause
+
+# Generated from qqmllanguage.pro.
+
+#####################################################################
+## tst_qqmllanguage Test:
+#####################################################################
+
+if(NOT QT_BUILD_STANDALONE_TESTS AND NOT QT_BUILDING_QT)
+    cmake_minimum_required(VERSION 3.16)
+    project(tst_qqmllanguage LANGUAGES CXX)
+    find_package(Qt6BuildInternals REQUIRED COMPONENTS STANDALONE_TEST)
+endif()
+
+# Collect test data
+file(GLOB_RECURSE test_data_glob
+    RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+    data/*)
+list(APPEND test_data ${test_data_glob})
+
+qt_internal_add_test(tst_qqmllanguage
+    SOURCES
+        testtypes.cpp testtypes.h
+        tst_qqmllanguage.cpp
+    LIBRARIES
+        Qt::CorePrivate
+        Qt::Gui
+        Qt::GuiPrivate
+        Qt::Network
+        Qt::Qml
+        Qt::QmlPrivate
+        Qt::QuickTestUtilsPrivate
+    TESTDATA ${test_data}
+)
+
+add_subdirectory(testhelper)
+
+if(ANDROID)
+    # Resources:
+    set_source_files_properties("data/I18nType30.qml"
+        PROPERTIES QT_RESOURCE_ALIAS "data/I18nTypeÁâãäå.qml"
+    )
+    set(qqmllanguage_resource_files
+        "data/I18nType30.qml"
+    )
+
+    qt_internal_add_resource(tst_qqmllanguage "qqmllanguage"
+        PREFIX
+            "/"
+        FILES
+            ${qqmllanguage_resource_files}
+    )
+endif()
+
+qt_internal_extend_target(tst_qqmllanguage CONDITION ANDROID OR IOS
+    DEFINES
+        QT_QMLTEST_DATADIR=":/data"
+)
+
+qt_internal_extend_target(tst_qqmllanguage CONDITION NOT ANDROID AND NOT IOS
+    DEFINES
+        QT_QMLTEST_DATADIR="${CMAKE_CURRENT_SOURCE_DIR}/data"
+)
+
+qt6_add_qml_module(tst_qqmllanguage
+    URI StaticTest
+    VERSION 1.0
+    QML_FILES
+        data/InnerObject.qml
+        data/ObjectWithProperty.qml
+        data/outerObject.qml
+        data/testlib.js
+    RESOURCE_PREFIX "/"
+    NO_GENERATE_EXTRA_QMLDIRS
+)
+
+add_subdirectory(OtherModuleTest)
+target_link_libraries(tst_qqmllanguage PUBLIC other_module)
+target_link_libraries(tst_qqmllanguage PUBLIC other_moduleplugin)

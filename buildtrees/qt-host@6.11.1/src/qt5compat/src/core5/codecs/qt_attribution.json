@@ -1,0 +1,107 @@
+[
+    {
+        "Id": "qbig5codecs",
+        "Name": "Text Codecs: Big5, Big5-HKSCS",
+        "QDocModule": "qtcore5compat",
+        "QtUsage": "Used in Qt Core if ICU is not used. Configure with -icu to avoid.",
+        "Files": "qbig5codec.cpp",
+
+        "Description": "Treat as final version; no upstream known",
+        "Description": "The Big5 codecs (QBig5Codec, QBig5hkscsCodec)\nprovide conversion to and from the Big5 encodings.",
+        "Comment": "no relevant PURL or CPE set, because the upstream is unknown",
+        "License": "BSD 2-clause \"Simplified\" License",
+        "LicenseId": "BSD-2-Clause",
+        "LicenseFile": "LICENSE.QBIG5CODEC.txt",
+        "Copyright": "Copyright (C) 2000  Ming-Che Chuang\nCopyright (C) 2001, 2002  James Su, Turbolinux Inc.\nCopyright (C) 2002  WU Yi, HancomLinux Inc.\nCopyright (C) 2001, 2002  Anthony Fok, ThizLinux Laboratory Ltd."
+},
+    {
+        "Id": "qeucjpcodec",
+        "Name": "Text Codec: EUC-JP",
+        "QDocModule": "qtcore5compat",
+        "QtUsage": "Used in Qt Core if ICU is not used. Configure with -icu to avoid.",
+        "Files": "qeucjpcodec.cpp",
+
+        "Description": "Treat as final version; no upstream known",
+        "Description": "The EUC-JP text codec provides conversion to and from EUC-JP,\nthe main legacy encoding for Unix machines in Japan.",
+        "Comment": "no relevant PURL or CPE set, because the upstream is unknown",
+        "License": "BSD 2-clause \"Simplified\" License",
+        "LicenseId": "BSD-2-Clause",
+        "LicenseFile": "LICENSE.QEUCJPCODEC.txt",
+        "Copyright": "Copyright (C) 1999 Serika Kurusugawa."
+    },
+    {
+        "Id": "qeuckrcodec",
+        "Name": "Text Codec: EUC-KR",
+        "QDocModule": "qtcore5compat",
+        "QtUsage": "Used in Qt Core if ICU is not used. Configure with -icu to avoid.",
+        "Files": "qeuckrcodec.cpp",
+
+        "Description": "Treat as final version; no upstream known",
+        "Description": "The EUC-KR text codec provides conversion to and from EUC-KR, KR,\nthe main legacy encoding for Unix machines in Korea.",
+        "Comment": "no relevant PURL or CPE set, because the upstream is unknown",
+        "License": "BSD 2-clause \"Simplified\" License",
+        "LicenseId": "BSD-2-Clause",
+        "LicenseFile": "LICENSE.QEUCKRCODEC.txt",
+        "Copyright": "Copyright (C) 1999-2000 Mizi Research Inc."
+    },
+    {
+        "Id": "qjiscodec",
+        "Name": "Text Codec: ISO 2022-JP (JIS)",
+        "QDocModule": "qtcore5compat",
+        "QtUsage": "Used in Qt Core if ICU is not used. Configure with -icu to avoid.",
+        "Files": "qjiscodec.cpp",
+
+        "Description": "Treat as final version; no upstream known",
+        "Description": "The ISO 2022-JP (JIS) text codec provides conversion to and from ISO 2022-JP.",
+        "Comment": "no relevant PURL or CPE set, because the upstream is unknown",
+        "License": "BSD 2-clause \"Simplified\" License",
+        "LicenseId": "BSD-2-Clause",
+        "LicenseFile": "LICENSE.QJISCODEC.txt",
+        "Copyright": "Copyright (C) 1999 Serika Kurusugawa."
+    },
+    {
+        "Id": "qsjiscodec",
+        "Name": "Text Codec: Shift-JIS",
+        "QDocModule": "qtcore5compat",
+        "QtUsage": "Used in Qt Core if ICU is not used. Configure with -icu to avoid.",
+        "Files": "qsjiscodec.cpp",
+
+        "Description": "Treat as final version; no upstream known",
+        "Description": "The Shift-JIS text codec provides conversion to and from Shift-JIS.",
+        "Comment": "no relevant PURL or CPE set, because the upstream is unknown",
+        "License": "BSD 2-clause \"Simplified\" License",
+        "LicenseId": "BSD-2-Clause",
+        "LicenseFile": "LICENSE.QSJISCODEC.txt",
+        "Copyright": "Copyright (C) 1999 Serika Kurusugawa."
+    },
+    {
+        "Id": "qtsciicodec",
+        "Name": "Text Codec: TSCII",
+        "QDocModule": "qtcore5compat",
+        "QtUsage": "Used in Qt Core.",
+        "Files": "qtsciicodec.cpp",
+
+        "Description": "Treat as final version; no upstream known",
+        "Description": "The TSCII text codec provides conversion to and from the Tamil TSCII\nencoding.",
+        "Comment": "no relevant PURL or CPE set, because the upstream is unknown",
+        "License": "BSD 2-clause \"Simplified\" License",
+        "LicenseId": "BSD-2-Clause",
+        "LicenseFile": "LICENSE.QTSCIICODEC.txt",
+        "Copyright": "Copyright (C) 2000 Hans Petter Bieker."
+    },
+    {
+        "Id": "qbkcodec",
+        "Name": "Text Codec: GBK",
+        "QDocModule": "qtcore5compat",
+        "QtUsage": "Used in Qt Core if ICU is not used. Configure with -icu to avoid.",
+        "Files": "qgb18030codec.cpp",
+
+        "Description": "Treat as final version; no upstream known",
+        "Description": "The GBK codec provides conversion to and from the Chinese\nGB18030/GBK/GB2312 encoding.",
+        "Comment": "no relevant PURL or CPE set, because the upstream is unknown",
+        "License": "BSD 2-clause \"Simplified\" License",
+        "LicenseId": "BSD-2-Clause",
+        "LicenseFile": "LICENSE.QBKCODEC.txt",
+        "Copyright": "Copyright (C) 2000 TurboLinux, Inc.  Written by Justin Yu and Sean Chen.\nCopyright (C) 2001, 2002 Turbolinux, Inc.  Written by James Su.\nCopyright (C) 2001, 2002 ThizLinux Laboratory Ltd.  Written by Anthony Fok."
+    }
+]

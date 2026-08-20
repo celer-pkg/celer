@@ -1,0 +1,32 @@
+<svg width="400" height="100" viewBox="0 0 80 20" xmlns="http://www.w3.org/2000/svg">
+  <!-- Our symbol in its own coordinate system -->
+  <symbol id="myDot1" width="10" height="20" viewBox="0 0 2 2" preserveAspectRatio="xMinYMin meet">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+  <symbol id="myDot2" width="10" height="20" viewBox="0 0 2 2" preserveAspectRatio="xMaxYMin slice">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+  <symbol id="myDot3" width="10" height="20" viewBox="0 0 2 2" preserveAspectRatio="xMinYMax slice">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+  <symbol id="myDot4" width="10" height="20" viewBox="0 0 2 2" preserveAspectRatio="xMaxYMax slice">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+  <symbol id="myDot5" width="10" height="20" viewBox="0 0 2 2" preserveAspectRatio="xMinYMin slice">
+    <circle cx="1" cy="1" r="1" />
+  </symbol>
+  
+
+  <!-- A grid to materialize our symbol positioning -->
+  <path
+    d="M0,10 h80 M10,0 v20 M25,0 v20 M40,0 v20 M55,0 v20 M70,0 v20"
+    fill="none"
+    stroke="pink" />
+
+  <!-- All instances of our symbol -->
+  <use href="#myDot1" x="5" y="5" style="opacity:1.0" />
+  <use href="#myDot2" x="20" y="5" style="opacity:0.8" />
+  <use href="#myDot3" x="35" y="5" style="opacity:0.6" />
+  <use href="#myDot4" x="50" y="5" style="opacity:0.4" />
+  <use href="#myDot5" x="65" y="5" style="opacity:0.2" />
+</svg>

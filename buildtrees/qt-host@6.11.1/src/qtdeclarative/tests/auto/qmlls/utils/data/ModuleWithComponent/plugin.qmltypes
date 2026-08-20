@@ -1,0 +1,96 @@
+import QtQuick.tooling 1.2
+
+Module {
+    Component {
+        file: "mycomponentfromcppheader.h"
+        lineNumber: 42
+        name: "MyComponentFromCpp"
+        accessSemantics: "reference"
+        prototype: "QObject"
+        exports: ["ModuleWithComponent/MyComponentFromCpp 254.0"]
+        Property {
+            name: "myValue"
+            type: "int"
+        }
+        Property {
+            name: "myProperty"
+            type: "int"
+            read: "myProperty"
+            write: "setMyProperty"
+            notify: "myPropertyChanged"
+            lineNumber: 12
+            index: 0
+        }
+        Signal { name: "myPropertyChanged" }
+        Property {
+            name: "gadget"
+            type: "myGadget"
+            read: "gadget"
+            write: "setGadget"
+            notify: "gadgetChanged"
+            lineNumber: 13
+            index: 1
+        }
+        Signal { name: "myPropertyChanged" }
+        Signal { name: "gadgetChanged" }
+        Signal { name: "someSignal"; lineNumber: 654321 }
+        Method { name: "mySlot"; type: "int"; lineNumber: 29 }
+        Method { name: "myInvokable"; type: "int"; lineNumber: 23 }
+
+        Enum {
+            name: "MyEnum"
+            lineNumber: 150
+            values: ["HelloWorld", "HelloEnum", "HelloSun"]
+        }
+        Enum {
+            name: "MyFlags"
+            alias: "MyFlag"
+            isFlag: true
+            lineNumber: 555
+            values: ["HelloFlag", "RedFlag", "GreenFlag"]
+        }
+    }
+    Component {
+        file: "mycomponentfromcppheader.h"
+        lineNumber: 32
+        name: "myGadget"
+        accessSemantics: "value"
+        exports: ["ModuleWithComponent/MyGadget 1.0"]
+        isCreatable: false
+        exportMetaObjectRevisions: [256]
+        Property {
+            name: "myProperty"
+            type: "int"
+            read: "myProperty"
+            write: "setMyProperty"
+            index: 0
+            lineNumber: 37
+        }
+        Property {
+            name: "myProperty2"
+            type: "int"
+            read: "myProperty2"
+            write: "setMyProperty2"
+            index: 1
+            lineNumber: 38
+        }
+    }
+    Component {
+        file: "mycomponentfromnoncppheader.java"
+        lineNumber: 42
+        name: "MyComponentFromNonCpp"
+        accessSemantics: "reference"
+        prototype: "QObject"
+        exports: ["ModuleWithComponent/MyComponentFromNonCpp 254.0"]
+        Property {
+            name: "myProperty"
+            type: "int"
+            read: "myProperty"
+            write: "setMyProperty"
+            notify: "myPropertyChanged"
+            lineNumber: 12
+            index: 0
+        }
+        Signal { name: "myPropertyChanged" }
+    }
+}

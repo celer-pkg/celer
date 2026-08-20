@@ -1,0 +1,11 @@
+{
+  "extends": "../config/typescript/tsconfig.base.json",
+  "compilerOptions": {
+    "moduleResolution": "nodenext",
+    "module": "NodeNext",
+    "target": "ESNext",
+    "outDir": "ignored",
+    "noImplicitAny": false,
+    "erasableSyntaxOnly": true
+  }
+}

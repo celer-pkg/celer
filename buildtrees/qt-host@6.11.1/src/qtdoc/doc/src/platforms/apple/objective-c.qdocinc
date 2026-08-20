@@ -1,0 +1,36 @@
+\section2 Using Objective-C Code in Qt Applications
+
+Clang, the compiler used for applications on Apple Platforms, allows mixing
+C++ and Objective-C code. To enable this mode use the \c .mm extension for
+the relevant source files and add them to your project as usual.
+
+With CMake:
+
+\badcode
+    target_sources(myapp PRIVATE objc_code.mm)
+\endcode
+
+With qmake:
+
+\badcode
+    SOURCES += objc_code.mm
+\endcode
+
+You can then use Objective-C frameworks from Apple's Developer Library
+in your Qt applications.
+
+To expose functionality to the rest of your application, without having
+to rename all your source files, declare helper functions in a header,
+and implement the functionality in an Objective-C++ source file:
+
+\code
+    // objc_code.h
+    QString localizedHostName();
+
+    // objc_code.mm
+    #include <Foundation/NSHost.h>
+    QString localizedHostName()
+    {
+        return QString::fromNSString(NSHost.currentHost.localizedName);
+    }
+\endcode

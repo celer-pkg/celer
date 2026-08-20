@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Qt Assistant
+GenericName=Documentation viewer
+Comment=View documentation in Qt help file format
+Exec=assistant6
+Icon=assistant
+Terminal=false
+Type=Application
+Categories=Qt;Development;Documentation;

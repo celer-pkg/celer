@@ -1,0 +1,34 @@
+The Lancelot system is an extension of the QTest unit test framework.
+Its purpose is to help catch rendering regressions. It facilitates
+rendering a suite of test scenes, and comparing the produced output
+images with the images produced from a previous rendering run.
+
+Here are instructions for running lancelot tests locally on your PC:
+
+1. Install baselineserver :
+- clone git.qt.io:playground/lancelot.git
+- check [lancelot]/baselineserver/install/install.txt for installation guide
+
+2. Start lancelot baselineserver and leave it running.
+
+3. Build QtQuick3D with QT_BUILD_TESTS flag ON
+
+4. In Creator Project Settings, set an environmental variable
+"QT_LANCELOT_SERVER" to "127.0.0.1".
+
+5. Run tst_Quick3D for the first time and you should see many
+"Baseline not found on server. New baseline uploaded." lines.
+Baseline PNG images will be stored into path like:
+C:\var\www\Other\tst_Quick3D\baselines\testRendering\
+
+6. Apply your changes, fixes etc. and run tst_Quick3D test again.
+If rendering output doesn't change to better or worse, you should see
+something like:
+...
+PASS   : tst_Quick3D::testRendering(view3d/RenderModeOverlay.qml)
+PASS   : tst_Quick3D::testRendering(view3d/RenderModeRenderNode.qml)
+PASS   : tst_Quick3D::testRendering(view3d/RenderModeTexture.qml)
+PASS   : tst_Quick3D::testRendering(view3d/RenderModeUnderlay.qml)
+PASS   : tst_Quick3D::cleanupTestCase()
+Totals: 80 passed, 0 failed, 0 skipped, 0 blacklisted, 122662ms
+********* Finished testing of tst_Quick3D *********

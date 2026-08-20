@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>res/OpenfootageNET_lowerAustria01-1024.hdr</file>
+        <file>res/snowflake.png</file>
+        <file>res/icon_settings.png</file>
+    </qresource>
+</RCC>

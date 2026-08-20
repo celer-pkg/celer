@@ -1,0 +1,25 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [disconnect-all]
+\note Disconnecting all signal-slot connections will also disconnect the
+\l QObject::destroyed() signal if it is connected. Doing so can adversely
+affect classes that rely on this signal for cleaning up resources. It is
+recommended to disconnect only the specific signals that were connected by
+application code.
+//! [disconnect-all]
+
+//! [disconnect-mismatch]
+\note Use the the same syntax, pointer-to-member-function or string-based using
+the \c SIGNAL and \c SLOT macros, in connect() and corresponding disconnect()
+calls.
+
+To avoid mismatches, store the connection handle returned by connect(), and use
+it in the call to \l{disconnect(const QMetaObject::Connection &connection)}{disconnect()}.
+//! [disconnect-mismatch]
+
+//! [disconnect-queued]
+\note If a \l{Qt::QueuedConnection}{queued connection} is disconnected,
+already scheduled events may still be delivered, causing the receiver to
+be called after the connection is disconnected.
+//! [disconnect-queued]

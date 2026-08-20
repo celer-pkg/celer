@@ -1,0 +1,8 @@
+{
+  type: "wpr",
+  url: "gs://chrome-partner-telemetry/loading_benchmark/archive_tablet_deterministic.wprgo",
+  persist_server: true,
+  run_on_device: true,
+  // deterministic.js is already injected into archived responses
+  skip_injection: true,
+}

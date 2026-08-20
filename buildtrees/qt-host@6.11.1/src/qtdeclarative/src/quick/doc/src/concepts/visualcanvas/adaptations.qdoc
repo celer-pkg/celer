@@ -1,0 +1,212 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\title Scene Graph Adaptations
+\page qtquick-visualcanvas-adaptations.html
+
+\section1 Scene Graph Adaptations in Qt Quick
+
+In Qt 5.0, Qt Quick always relied on OpenGL (OpenGL ES 2.0 or OpenGL 2.0) to
+parse the scene graph and render the results to a render target.
+
+From Qt 5.8 onwards, Qt Quick also supports rendering in software, and with
+OpenVG.  This is realized by having additional scene graph adaptations, either
+in form of plugins (openvg) or built-in to the Qt Quick library
+(software). The default adaptation continues to rely directly on OpenGL.
+
+From Qt 5.14 onwards, the default adaptation gains the option of rendering via
+a graphics abstraction layer, the Qt Rendering Hardware Interface (RHI),
+provided by the \l [QtGui]{Qt GUI} module. When enabled, no direct OpenGL calls are made.
+Rather, the scene graph renders by using the APIs provided by the abstraction
+layer, which is then translated into OpenGL, Vulkan, Metal, or Direct 3D calls.
+Shader handling is also unified by writing shader code once, compiling to
+\l{https://www.khronos.org/spir/}{SPIR-V}, and then translating to the language
+appropriate for the various graphics APIs.
+
+Starting with Qt 6.0, the RHI-based rendering model is the default, and there is
+no option to fall back to directly using OpenGL.
+
+\target Switching Between the Adaptation Used by the Application
+\section1 Switch Between Adaptations in Your Application
+
+Unlike \c software, the RHI-based renderer is not an additional adaptation, and
+is always built-in. As of Qt 6.0 it is always enabled. On platforms where
+multiple graphics APIs are available, the scenegraph makes a platform-specific
+choice. If this is not desired, applications can force a specified graphics API
+by setting the environment variable \c{QSG_RHI_BACKEND} or via \l
+QQuickWindow::setGraphicsApi() in combination with \l
+QSGRendererInterface::GraphicsApi.
+
+Switching to a different adaptation can be achieved in two ways:
+
+\list
+    \li Use an environment variable - Set the \c{QT_QUICK_BACKEND} or the legacy
+        \c{QMLSCENE_DEVICE} environment variable before launching applications.
+    \li Use a C++ API - Call QQuickWindow::setSceneGraphBackend() early on in the application's
+        main() function.
+\endlist
+
+The following backends are supported:
+
+\list
+    \li Default - Request with the \c{"rhi"} string or a QSGRendererInterface::GraphicsApi enum value
+        different than the ones listed below.
+    \li Software - Request with the \c{"software"} string or the QSGRendererInterface::Software
+        enum value.
+    \li OpenVG - Request with the \c{"openvg"} string or the QSGRendererInterface::OpenVG enum
+        value.
+\endlist
+
+To find out which backend is in use, you can enable basic scene graph information logging via the
+\c{QSG_INFO} environment variable or the \c{qt.scenegraph.general} logging category. This results
+in some information being printed onto the debug output, during application startup.
+
+\note In Qt builds with both OpenGL and Vulkan disabled, the default adaptation
+is \c software. This does not apply to Windows or \macos however, because these
+platforms always have Direct 3D or Metal support, respectively, enabled.
+
+\note Typically, adaptations other than the default one come with a set of
+limitations as they are unlikely to provide a feature set that's 100%
+compatible with OpenGL. However, these adaptations may provide their own
+specific advantages in certain areas. For more information on the various
+adaptations, refer to the sections below.
+
+\section1 Default Adaptation
+
+When using OpenGL directly, the default adaptation is capable of providing the
+full Qt Quick 2 feature set. For more details, see
+\l{qtquick-visualcanvas-scenegraph-renderer.html}{Default Adaptation}.
+
+\section1 Software Adaptation
+
+The Software adaptation is an alternative renderer for \l{Qt Quick} 2 that uses the raster paint
+engine to render the contents of the scene graph. For more details, see
+\l{qtquick-visualcanvas-adaptations-software.html}{Software Adaptation}.
+
+\section1 OpenVG
+
+The OpenVG adaptation is an alternative renderer for \l{Qt Quick} 2 that renders the contents of
+the scene graph using OpenVG commands to provide hardware-accelerated 2D vector and raster
+graphics. For more details, see
+\l{qtquick-visualcanvas-adaptations-openvg.html}{OpenVG Adaptation}.
+*/
+
+
+/*!
+\title Qt Quick Software Adaptation
+\page qtquick-visualcanvas-adaptations-software.html
+
+The Software adaptation is an alternative renderer for \l {Qt Quick} 2 that uses the Raster paint
+engine to render the contents of the scene graph, instead of a hardware-accelerated 3D graphics API.
+Consequently, some features and optimizations are not available. Most Qt Quick 2 applications can run
+without any modification, but any attempts to use unsupported features are ignored.
+By using the Software adaptation, it is possible to run Qt Quick 2 applications on hardware and
+platforms that do not have \l{topics-graphics}{hardware-accelerated 3D graphics API} support.
+
+The Software adaptation was previously known as the Qt Quick 2D Renderer. However, unlike the 2D
+Renderer, this new, integrated version supports partial updates. This means that a full update
+of the window or screen contents is now avoided; only the changed areas are flushed. Partial
+updates can significantly improve performance for many applications. It is also possible to disable
+this partial update behavior by setting the environment variable
+\c{QSG_SOFTWARE_RENDERER_FORCE_PARTIAL_UPDATES=0}, though doing so will have a negative impact on
+performance.
+
+\section2 Shader Effects
+
+ShaderEffect components in QtQuick 2 cannot be rendered by the Software adaptation.
+
+\section2 Particle Effects
+
+It is not possible to render particle effects with the Software adaptation. Whenever possible,
+remove particles completely from the scene. Otherwise, they will still require some processing,
+even though they are not visible.
+
+\section2 Rendering Text
+
+The text rendering with the Software adaptation is based on software rasterization and does not
+respond as well to transformations such as scaling, compared to when using a hardware-accelerated
+3D graphics API. The quality is similar to choosing \l [QML] {Text::renderType}{Text.NativeRendering}
+with \l [QML] {Text} items.
+
+
+\section2 High DPI
+
+The Software adaptation supports high DPI displays, but it does not support performing partial updates
+when the using fractional scaling. This means that when using a non-integer scaling factor, the partial
+update optimization is disabled, and the entire window is redrawn on every frame. This can be overridden
+by setting an environment variable to \c{QSG_SOFTWARE_RENDERER_FORCE_PARTIAL_UPDATES=1} which forces
+the Software adaptation to use partial updates even when fractional scaling is in use. However, this
+may result in artifacts when scaling is not an integer value, and it is not recommended to use this
+without thorough testing.
+
+*/
+
+
+/*!
+\title Qt Quick OpenVG Adaptation
+\page qtquick-visualcanvas-adaptations-openvg.html
+
+The OpenVG adaptation is an alternative renderer for \l{Qt Quick} 2 that renders the contents of
+the scene graph using OpenVG commands to provide hardware accelerated 2D vector and raster
+graphics. Much like the \l{qtquick-visualcanvas-adaptations-software.html}{Software Adaptation},
+some features and optimizations are no longer available. Most Qt Quick 2 applications will run
+without modification though any attempts to use unsupported features will be ignored.
+
+\section2 EGL Requirement
+
+Unlike the default OpenGL Renderer, there is no built-in support to acquire an OpenVG context.
+This means that the renderer is responsible for requesting and managing the the current context.
+To do this, you use EGL directly in the OpenVG renderer. Consequently, the OpenVG renderer can only
+be used with platform plugins that support creating QWindows with support for
+QSurfaceFormat::OpenVG. From this window, the renderer can get an EGLSurface which can then be used
+with an EGLContext to render OpenVG content.
+
+\section2 Renderer
+
+The OpenVG Renderer uses the OpenVG API to send commands and data to a Vector GPU that renders the
+scene graph in an accelerated manner, offloading graphics rendering from the CPU. Many operations
+like the rendering of rectangles and font glyphs are ideal for OpenVG because they can be
+represented as paths which are stroked and filled. Rendering scene graph items that would typically
+involve textures are handled in the OpenVG renderer using VGImage. Additionally, when you render
+to offscreen surfaces (like with Layers), the scene subtree is rendered to a VGImage which can be
+reused in the scene.
+
+\section2 Render Loop
+
+The OpenVG Renderer mirrors the behavior of the Basic render loop and it runs all OpenVG commands
+in a single thread.
+
+For more information on render loops, see
+\l{qtquick-visualcanvas-scenegraph.html}{Qt Quick Scene Graph}.
+
+\section2 Shader Effects
+
+ShaderEffect components in QtQuick 2 can't be rendered by the OpenVG adaptation. While it's
+possible to use ShaderEffectSource and QML Item Layers (which are both offscreen surfaces), it's
+not possible to apply shader effects to them via the ShaderEffect item. This is because OpenVG
+lacks an API for applying per vertex and per fragment shader operations. However, you may be able
+to take advantage of Image Filter operations in the OpenVG API to get effects that are similar to
+what ShaderEffects provides in custom items. To integrate custom OpenVG rendering, use
+QSGRenderNode in combination with QSGRendererInterface.
+
+\section2 Particle Effects
+
+It's not possible to render particle effects with the OpenVG adaptation. Whenever possible, remove
+particles completely from the scene. Otherwise they'll still require some processing, even though
+they are not visible.
+
+\section2 Rendering Text
+
+Text rendering with the OpenVG adaptation is based on rendering the glyph paths, and doesn't use
+the distance fields technique, unlike with the OpenGL backend.
+
+\section2 Perspective Transforms
+
+The OpenVG API doesn't allow paths to be transformed with non-affine transforms, but it's
+possible with Qt Quick. Consquently, when you render components using paths like Rectangles and
+Text while applying perspective transforms, the OpenVG backend first renders to a VGImage before
+applying transformations. This behavior uses more memory at runtime and takes more time; avoid it
+if possible.
+
+*/

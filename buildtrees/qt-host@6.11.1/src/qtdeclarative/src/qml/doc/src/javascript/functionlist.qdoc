@@ -1,0 +1,432 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+    \page qtqml-javascript-functionlist.html
+    \title List of JavaScript Objects and Functions
+    \brief A list of objects, functions, and properties supported in QML.
+
+    This reference contains a list of objects, functions and
+    properties supported by the \l{QJSEngine}{JavaScript engine} in Qt.
+    For a detailed description, see the \l{ECMA-262} specification.
+
+    \section1 The Global Object
+
+    \section2 Value Properties
+
+    \list
+    \li \c NaN
+    \li \c Infinity
+    \li \c undefined
+    \endlist
+
+    \section2 Function Properties
+
+    \list
+    \li \c {eval(x)}
+    \li \c {parseInt(string, radix)}
+    \li \c {parseFloat(string)}
+    \li \c {isNaN(number)}
+    \li \c {isFinite(number)}
+    \li \c {decodeURI(encodedURI)}
+    \li \c {decodeURIComponent(encodedURIComponent)}
+    \li \c {encodeURI(uri)}
+    \li \c {encodeURIComponent(uriComponent)}
+    \li \c {escape(string)}
+    \li \c {unescape(string)}
+    \endlist
+
+    \section2 Constructor Properties
+
+    \list
+    \li \c Object
+    \li \c Function
+    \li \c Array
+    \li \c ArrayBuffer
+    \li \c String
+    \li \c Boolean
+    \li \c Number
+    \li \c DataView
+    \li \c Date
+    \li \c Promise
+    \li \c RegExp
+    \li \c Map
+    \li \c WeakMap
+    \li \c Set
+    \li \c WeakSet
+    \li \c SharedArrayBuffer
+    \li \c Symbol
+    \li \c Error
+    \li \c EvalError
+    \li \c RangeError
+    \li \c ReferenceError
+    \li \c SyntaxError
+    \li \c TypeError
+    \li \c URIError
+    \endlist
+
+    \section2 Other Properties
+
+    \list
+    \li \c Atomics
+    \li \c Math
+    \li \c JSON
+    \li \c Reflect
+    \li \c Proxy
+    \endlist
+
+    \section1 The Object Object
+
+    \section2 Object Constructor
+
+    \section3 Function Properties
+
+    \list
+    \li \c {getPrototypeOf(O)}
+    \li \c {setPrototypeOf(O, P)}
+    \li \c {getOwnPropertyDescriptor(O, P)}
+    \li \c {getOwnPropertyDescriptors(O)}
+    \li \c {getOwnPropertyNames(O)}
+    \li \c {getOwnPropertySymbols(O)}
+    \li \c {assign(O [, Properties])}
+    \li \c {create(O [, Properties])}
+    \li \c {defineProperty(O, P, Attributes)}
+    \li \c {defineProperties(O, Properties)}
+    \li \c {entries(O)}
+    \li \c {is(V1, V2)}
+    \li \c {keys(O)}
+    \li \c {values(O)}
+    \li \c {seal(O)}
+    \li \c {isSealed(O)}
+    \li \c {freeze(O)}
+    \li \c {isFrozen(O)}
+    \li \c {preventExtensions(O)}
+    \li \c {isExtensible(O)}
+    \endlist
+
+    \section2 Object Prototype
+
+    \section3 Function Properties
+
+    \list
+    \li \c {toString()}
+    \li \c {toLocaleString()}
+    \li \c {valueOf()}
+    \li \c {hasOwnProperty(V)}
+    \li \c {isPrototypeOf(V)}
+    \li \c {propertyIsEnumerable(V)}
+    \li \c {__defineGetter__(P, F)}
+    \li \c {__defineSetter__(P, F)}
+    \endlist
+
+    \section1 Function Objects
+
+    \section2 Function Prototype
+
+    \section3 Function Properties
+
+    \list
+    \li \c {toString()}
+    \li \c {apply(thisArg, argArray)}
+    \li \c {call(thisArg [, arg1 [, arg2, ...]])}
+    \li \c {bind((thisArg [, arg1 [, arg2, …]])}
+    \li \c {[Symbol.hasInstance](O)}
+    \endlist
+
+    \section1 Array Objects
+
+    \section2 Array Prototype Object
+
+    \section3 Function Properties
+
+    \list
+    \li \c {toString()}
+    \li \c {toLocaleString()}
+    \li \c {concat([item1 [, item2 [, ...]]])}
+    \li \c {copyWithin([item1 [, item2 [, ...]]])}
+    \li \c {entries()}
+    \li \c {fill(item [, index1 [, index2]])}
+    \li \c {join(separator)}
+    \li \c {find(callbackfn [, thisArg])} // ECMAScript 6: Added in Qt 5.9
+    \li \c {findIndex(callbackfn [, thisArg])} // ECMAScript 6: Added in Qt 5.9
+    \li \c {includes(item)}
+    \li \c {keys()}
+    \li \c {pop()}
+    \li \c {push([item1 [, item2 [, ...]]])}
+    \li \c {reverse()}
+    \li \c {shift()}
+    \li \c {slice(start, end)}
+    \li \c {sort(comparefn)}
+    \li \c {splice(start, deleteCount[, item1 [, item2 [, ...]]])}
+    \li \c {unshift([item1 [, item2 [, ...]]])}
+    \li \c {indexOf(searchElement [, fromIndex])}
+    \li \c {lastIndexOf(searchElement [, fromIndex])}
+    \li \c {every(callbackfn [, thisArg])}
+    \li \c {some(callbackfn [, thisArg])}
+    \li \c {forEach(callbackfn [, thisArg])}
+    \li \c {map(callbackfn [, thisArg])}
+    \li \c {filter(callbackfn [, thisArg])}
+    \li \c {reduce(callbackfn [, initialValue])}
+    \li \c {reduceRight(callbackfn [, initialValue])}
+    \li \c {values()}
+    \li \c {[Symbol.iterator]()}
+    \endlist
+
+    \section1 String Objects
+
+    \section2 String Prototype Object
+
+    \section3 Function Properties
+
+    \list
+    \li \c {toString()}
+    \li \c {valueOf()}
+    \li \c {charAt(pos)}
+    \li \c {charCodeAt(pos)}
+    \li \c {codePointAt(pos)}
+    \li \c {concat([string1 [, string2 [, ...]]])}
+    \li \c {endsWith(searchString [, endPosition ])} // ECMAScript 6: Added in Qt 5.8
+    \li \c {includes(searchString [, position ])} // ECMAScript 6: Added in 5.8
+    \li \c {indexOf(searchString ,position)}
+    \li \c {lastIndexOf(searchString, position)}
+    \li \c {localeCompare(that)}
+    \li \c {match(regexp)}
+    \li \c {normalize()}
+    \li \c {padEnd(length [, string])}
+    \li \c {padStart(length [, string])}
+    \li \c {repeat(count)} // ECMAScript 6: Added in Qt 5.9
+    \li \c {replace(searchValue, replaceValue)}
+    \li \c {search(regexp)}
+    \li \c {slice(start, end)}
+    \li \c {split(separator, limit)}
+    \li \c {startsWith(searchString [, position ])} // ECMAScript 6: Added in Qt 5.8
+    \li \c {substr(start, length)}
+    \li \c {substring(start, end)}
+    \li \c {toLowerCase()}
+    \li \c {toLocaleLowerCase()}
+    \li \c {toUpperCase()}
+    \li \c {toLocaleUpperCase()}
+    \li \c {trim()}
+    \li \c {[Symbol.iterator]()}
+    \endlist
+
+    Additionally, the QML engine adds the following functions to the \c String prototype:
+    \list
+    \li \l {string}{string::arg()}
+    \endlist
+
+
+    \section1 Boolean Objects
+
+    \section2 Boolean Prototype Object
+
+    \section3 Function Properties
+
+    \list
+    \li \c {toString()}
+    \li \c {valueOf()}
+    \endlist
+
+    \section1 Number Objects
+
+    \section2 Number Prototype Object
+
+    \section3 Function Properties
+
+    \list
+    \li \c {toString(radix)}
+    \li \c {toLocaleString()}
+    \li \c {valueOf()}
+    \li \c {toFixed(fractionDigits)}
+    \li \c {toExponential(fractionDigits)}
+    \li \c {toPrecision(precision)}
+    \endlist
+
+    Additionally, the QML engine adds the following functions to the \l Number prototype:
+    \list
+    \li \l {string Number::fromLocaleString(locale, number)}{fromLocaleString(locale, number)}
+    \li \l {string Number::toLocaleCurrencyString(locale, symbol)}{toLocaleCurrencyString(locale, symbol)}
+    \li \l {string Number::toLocaleString(locale, format, precision)}{toLocaleString(locale, format, precision)}
+    \endlist
+
+    \section2 The Number Object
+
+    \section3 Value Properties
+
+    \list
+    \li \c {NaN}
+    \li \c {NEGATIVE_INFINITY}
+    \li \c {POSITIVE_INFINITY}
+    \li \c {MAX_VALUE}
+    \li \c {MIN_VALUE}
+    \li \c {EPSILON} // ECMAScript 6: Added in Qt 5.8
+    \li \c {MAX_SAFE_INTEGER}
+    \li \c {MIN_SAFE_INTEGER}
+    \endlist
+
+    \section3 Function Properties
+
+    \list
+    \li \c {isFinite(x)} // ECMAScript 6: Added in Qt 5.8
+    \li \c {isInteger(x)}
+    \li \c {isSafeInteger(x)}
+    \li \c {isNaN(x)} // ECMAScript 6: Added in Qt 5.8
+    \endlist
+
+    \section1 The Math Object
+
+    \section2 Value Properties
+
+    \list
+    \li \c {E}
+    \li \c {LN10}
+    \li \c {LN2}
+    \li \c {LOG2E}
+    \li \c {LOG10E}
+    \li \c {PI}
+    \li \c {SQRT1_2}
+    \li \c {SQRT2}
+    \endlist
+
+    \section2 Function Properties
+
+    \list
+    \li \c {abs(x)}
+    \li \c {acos(x)}
+    \li \c {acosh(x)}
+    \li \c {asin(x)}
+    \li \c {asinh(x)}
+    \li \c {atan(x)}
+    \li \c {atanh(x)}
+    \li \c {atan2(y, x)}
+    \li \c {cbrt(x)}
+    \li \c {ceil(x)}
+    \li \c {clz32(x)}
+    \li \c {cos(x)}
+    \li \c {cosh(x)}
+    \li \c {exp(x)}
+    \li \c {expm1(x)}
+    \li \c {floor(x)}
+    \li \c {fround(x)}
+    \li \c {hypot(x, y)}
+    \li \c {imul(x, y)}
+    \li \c {log(x)}
+    \li \c {log10(x)}
+    \li \c {log1p(x)}
+    \li \c {log2(x)}
+    \li \c {max([value1 [, value2 [, ...]]])}
+    \li \c {min([value1 [, value2 [, ...]]])}
+    \li \c {pow(x, y)}
+    \li \c {random()}
+    \li \c {round(x)}
+    \li \c {sign(x)} // ECMAScript 6: Added in Qt 5.8
+    \li \c {sin(x)}
+    \li \c {sinh(x)}
+    \li \c {sqrt(x)}
+    \li \c {tan(x)}
+    \li \c {tanh(x)}
+    \li \c {trunc(x)}
+    \endlist
+
+    \section1 Date Objects
+
+    \section2 Date Prototype Object
+
+    \section3 Function Properties
+
+    \list
+    \li \c {toString()}
+    \li \c {toDateString()}
+    \li \c {toTimeString()}
+    \li \c {toLocaleString()}
+    \li \c {toLocaleDateString()}
+    \li \c {toLocaleTimeString()}
+    \li \c {valueOf()}
+    \li \c {getTime()}
+    \li \c {getFullYear()}
+    \li \c {getUTCFullYear()}
+    \li \c {getMonth()}
+    \li \c {getUTCMonth()}
+    \li \c {getDate()}
+    \li \c {getUTCDate()}
+    \li \c {getDay()}
+    \li \c {getUTCDay()}
+    \li \c {getHours()}
+    \li \c {getUTCHours()}
+    \li \c {getMinutes()}
+    \li \c {getUTCMinutes()}
+    \li \c {getSeconds()}
+    \li \c {getUTCSeconds()}
+    \li \c {getMilliseconds()}
+    \li \c {getUTCMilliseconds()}
+    \li \c {getTimeZoneOffset()}
+    \li \c {setTime(time)}
+    \li \c {setMilliseconds(ms)}
+    \li \c {setUTCMilliseconds(ms)}
+    \li \c {setSeconds(sec [, ms])}
+    \li \c {setUTCSeconds(sec [, ms])}
+    \li \c {setMinutes(min [, sec [, ms]])}
+    \li \c {setUTCMinutes(min [, sec [, ms]])}
+    \li \c {setHours(hour [, min [, sec [, ms]]])}
+    \li \c {setUTCHours(hour [, min [, sec [, ms]]])}
+    \li \c {setDate(date)}
+    \li \c {setUTCDate(date)}
+    \li \c {setMonth(month [, date])}
+    \li \c {setUTCMonth(month [, date])}
+    \li \c {setYear(year)}
+    \li \c {setFullYear(year [, month [, date]])}
+    \li \c {setUTCFullYear(year [, month [, date]])}
+    \li \c {toUTCString()}
+    \li \c {toGMTString()}
+    \li \c {toISOString()}
+    \li \c {toJSON()}
+    \li \c {[Symbol.toPrimitive](hint)}
+    \endlist
+
+    Additionally, the QML engine adds the following functions to the
+    \l{The Date JavaScript Object}{Date} prototype:
+    \list
+    \li \l {string Date::timeZoneUpdated()}{timeZoneUpdated()}
+    \li \l {string Date::toLocaleDateString(locale, format)}{toLocaleDateString(locale, format)}
+    \li \l {string Date::toLocaleString(locale, format)}{toLocaleString(locale, format)}
+    \li \l {string Date::toLocaleTimeString(locale, format)}{toLocaleTimeString(locale, format)}
+    \endlist
+
+    \section1 RegExp Objects
+
+    \section2 RegExp Prototype Object
+
+    \section3 Function Properties
+
+    \list
+    \li \c {exec(string)}
+    \li \c {test(string)}
+    \li \c {toString()}
+    \endlist
+
+    \section1 Error Objects
+
+    \section2 Error Prototype Object
+
+    \section3 Value Properties
+
+    \list
+    \li \c name
+    \li \c message
+    \endlist
+
+    \section3 Function Properties
+
+    \list
+    \li \c {toString()}
+    \endlist
+
+    \section1 The JSON Object
+
+    \section2 Function Properties
+
+    \list
+    \li \c {parse(text [, reviver])}
+    \li \c {stringify(value [, replacer [, space]])}
+    \endlist
+
+*/

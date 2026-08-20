@@ -1,0 +1,5 @@
+BO_ 1234 Test : 4 Vector__XXX
+ SG_ s0 : 0|8@1+ (1,0) [0|0] "unit"   Rcv_1
+ SG_ s1 : 8|8@1+ (1,0) [0|0] "unit" Rcv2, otherRcv
+ SG_ s2 : 16|8@1+ (1,0) [0|0] "unit"  RCV_3 , other_RCV,  one_moreRcv
+ SG_ s3 : 24|8@1+ (1,0) [0|0] "unit" rcv4,otherRcv,yetAnotherRcv,one_more_rcv

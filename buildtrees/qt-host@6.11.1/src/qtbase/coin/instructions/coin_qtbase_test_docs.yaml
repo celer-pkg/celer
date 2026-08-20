@@ -1,0 +1,20 @@
+type: Group
+instructions:
+  - type: EnvironmentVariable
+    variableName: COIN_TEST_DOCS_CALL_QTBASE_CONFIGURE
+    variableValue: "1"
+  - type: EnvironmentVariable
+    variableName: COIN_TEST_DOCS_CONFIGURE_EXTRA_CMAKE_ARGS
+    # Use unix separators even on Windows, to avoid escaping issues in the configure script.
+    variableValue: "-DCMAKE_INSTALL_PREFIX:PATH={{unixPathSeparators .InstallDir}}"
+
+  - !include "{{qt/qtbase}}/coin_test_docs_common.yaml"
+enable_if:
+  condition: and
+  conditions:
+  - condition: property
+    property: features
+    contains_value: "TestDocs"
+  - condition: property
+    property: host.os
+    equals_property: target.os

@@ -1,0 +1,74 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example xr_input
+    \ingroup quick3d-examples
+    \ingroup qt3dxr-examples
+    \title Qt Quick 3D - XR Simple Input Example
+    \examplecategory {3D}
+    \brief Demonstrates controller input in Qt Quick 3D XR.
+    \image xrinput-example.jpg
+           {Teapot with XR controller ray pointing at UI panel with color buttons}
+
+    This example shows how to use the low-level input APIs in Qt Quick 3D XR to
+    interact with 2D and 3D objects in the scene. It follows the basic structure of
+    the \l{Qt Quick 3D - XR Simple Example}{xr_simple} example.
+
+    \section1 Controller Input
+
+    In this example, we do \l{XrView::rayPick}{ray picking} from the position of the XrController:
+
+    \snippet xr_input/main.qml picking
+
+    This performs the following functions:
+    \list
+        \li If we hit anything, we change the length of the \c pickRay to so it touches the
+            thing we hit. The \c pickRay is a semi-transparent cone (a tapered cylinder)
+            that shows where the user is aiming. We also move \c cursorSphere to the point
+            where the ray hits. (\c cursorSphere is a semi-transparent sphere which is a child of the XrView).
+        \li We set the property \c hitObject to the object that we hit.
+    \endlist
+    We also use a black cylinder as a generic representation of the controller.
+
+    For this example, we have made a simple 3D push button in the file \c ExampleButton.qml.
+    (The details of how the button works are not explained here.) We create an XrInputAction
+    to react to trigger presses:
+
+    \snippet xr_input/main.qml trigger input
+
+    The \c rightTrigger action reacts to several different IDs in order to support both hand tracking
+    and different types of controllers. When the action is triggered, it checks if the \c hitObject
+    we set above is of the type \c ExampleButton. In that case, the button is activated.
+
+    To allow a 3D controller to interact with 2D content, we need to add an \l XrVirtualMouse to map between them:
+
+    \snippet xr_input/main.qml mouse input
+
+    First we add two more actions to detect horizontal and vertical thumbstick position. Then we create
+    an XrVirtualMouse, using the XrController as a position source. We use the \c rightTrigger action
+    we made earlier to generate mouse presses/releases and use the thumbstick actions to generate
+    mouse wheel events.
+
+    Finally, we add some haptic feedback when the \c pickRay hits an object:
+
+    \snippet xr_input/main.qml haptics
+
+    The haptic effect will trigger each time the \c pickRay.hit property goes from \c false to \c true.
+
+    \section1 XrItem
+
+    The normal way to \l{Qt Quick 3D Scenes with 2D Content}{embed 2D user interfaces in 3D scenes}
+    also works in XR, but since the unit size is one centimeter, those user interfaces will
+    have to be scaled to be useful. The \l XrItem type provides a convenient way to do the scaling
+    automatically by setting the physical size of the 3D item and the logical size of the 2D surface.
+
+    \snippet xr_input/main.qml xritem start
+    \dots
+    \snippet xr_input/main.qml xritem end
+
+    We position the XrItem in three dimensions and set it to be 75 cm wide and 100 cm tall. Then add
+    a rectangle as a content item, and set it to be 300 x 400 units. The rest of the Qt Quick UI elements
+    are added as children of the rectangle in the normal way and are not shown here. The 2D content is
+    automatically scaled so it fills the XrItem.
+*/

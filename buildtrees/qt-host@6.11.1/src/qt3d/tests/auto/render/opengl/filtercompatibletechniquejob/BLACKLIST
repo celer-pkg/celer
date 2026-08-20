@@ -1,0 +1,6 @@
+#[checkRunRendererRunning]
+windows-7
+windows-7sp1
+#QTBUG-64271
+# Offscreen platform does not support OpenGL context creation
+b2qt

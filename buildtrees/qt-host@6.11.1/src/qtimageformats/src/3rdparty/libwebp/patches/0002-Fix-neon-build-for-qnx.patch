@@ -1,0 +1,22 @@
+diff --git a/src/3rdparty/libwebp/src/dsp/neon.h b/src/3rdparty/libwebp/src/dsp/neon.h
+index 14acb40..46d743e 100644
+--- a/src/3rdparty/libwebp/src/dsp/neon.h
++++ b/src/3rdparty/libwebp/src/dsp/neon.h
+@@ -82,6 +82,17 @@ static WEBP_INLINE int32x4x4_t Transpose4x4_NEON(const int32x4x4_t rows) {
+   }
+ }
+ 
++#if defined(__GNUC__) && __GNUC__ <= 9 && !defined(__clang__)
++WEBP_INLINE uint8x16x4_t vld1q_u8_x4(const uint8_t *p) {
++  uint8x16x4_t ret;
++  ret.val[0] = vld1q_u8(p + 0);
++  ret.val[1] = vld1q_u8(p + 16);
++  ret.val[2] = vld1q_u8(p + 32);
++  ret.val[3] = vld1q_u8(p + 48);
++  return ret;
++}
++#endif
++
+ #if 0     // Useful debug macro.
+ #include <stdio.h>
+ #define PRINT_REG(REG, SIZE) do {                       \

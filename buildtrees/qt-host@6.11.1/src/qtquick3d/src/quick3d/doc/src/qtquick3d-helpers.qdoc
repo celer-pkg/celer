@@ -1,0 +1,1467 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \qmlmodule QtQuick3D.Helpers
+    \title Qt Quick 3D Helpers QML Types
+    \brief Module containing helpers for creating applications using Qt Quick 3D.
+
+    This module provides helper types that make it easier to develop applications
+    using \l{Qt Quick 3D}.
+*/
+
+/*!
+    \qmltype AxisHelper
+    \inqmlmodule QtQuick3D.Helpers
+    \inherits Node
+    \brief Visual helper for showing the 3 axes and a grid in a 3D scene.
+
+    \image axishelper.jpg {Sphere with RGB axis lines showing coordinate system}
+
+    The X axis is red, the Y axis is green, and the Z axis is blue.
+
+    The example scene here has a Sphere at position \c{(0, 0, 0)} and an
+    AxisHelper object. With the WasdController helper one can conveniently
+    navigate the scene.
+
+    \badcode
+        View3D {
+            anchors.fill: parent
+            camera: camera
+
+            PerspectiveCamera {
+                id: camera
+                position: Qt.vector3d(0, 0, 600)
+            }
+
+            DirectionalLight {
+                position: Qt.vector3d(-500, 500, -100)
+                color: Qt.rgba(0.4, 0.2, 0.6, 1.0)
+                ambientColor: Qt.rgba(0.1, 0.1, 0.1, 1.0)
+            }
+
+            Model {
+                source: "#Sphere"
+                materials: [ PrincipledMaterial { } ]
+            }
+
+            AxisHelper {
+            }
+        }
+
+        WasdController {
+            controlledObject: camera
+        }
+   \endcode
+*/
+
+/*! \qmlproperty color AxisHelper::gridColor
+    \default Qt.rgba(0.8, 0.8, 0.8, 1)
+    Specifies the color of the grid.
+*/
+/*! \qmlproperty real AxisHelper::gridOpacity
+    \default 0.5
+    Specifies the opacity of the grid.
+*/
+/*! \qmlproperty bool AxisHelper::enableXZGrid
+    /default true
+    Enables the grid on XZ plane.
+*/
+/*! \qmlproperty bool AxisHelper::enableXYGrid
+    \default false
+    Enables the grid on XY plane.
+*/
+/*! \qmlproperty bool AxisHelper::enableYZGrid
+    \default false
+    Enables the grid on YZ plane.
+*/
+/*! \qmlproperty bool AxisHelper::enableAxisLines
+    \default true
+    Enables showing the axis lines.
+*/
+
+/*!
+    \qmltype WasdController
+    \inqmlmodule QtQuick3D.Helpers
+    \inherits Item
+    \brief Control node position and orientation with keys and mouse.
+
+    This helper allows the user to control a node using W, A, S, D, the arrow
+    keys, and the mouse. Usually the controlled node is a Camera, specified in
+    the controlledObject property.
+
+    Adding a WasdController can be highly useful both in applications that wish
+    to provide a standard way of navigating the scene, and also as a temporary
+    measure during development and troubleshooting, as it allows inspecting the
+    scene at run time via familiar keyboard and mouse navigation.
+
+    The key bindings are as follows:
+
+    \list
+    \li \c W or \c up - go forward
+    \li \c S or \c down - go backward
+    \li \c A or \c left - strafe left
+    \li \c D or \c right - strafe right
+    \li \c R or \c {page up} - move up
+    \li \c F or \c {page down} - move down
+    \li \c shift together with other keys - move faster, depending on \l shiftSpeed
+    \endlist
+
+    The following snippet shows how a WasdController object can be added. By
+    default both key and mouse based navigation is active, so in most cases
+    there is no further configuration needed:
+
+    \badcode
+        View3D {
+            anchors.fill: parent
+            camera: camera
+            PerspectiveCamera {
+                id: camera
+                position: Qt.vector3d(0, 0, 600)
+            }
+            ...
+        }
+
+        WasdController {
+            controlledObject: camera
+        }
+    \endcode
+*/
+
+/*! \qmlproperty QtQuick3D::Node WasdController::controlledObject
+    Specifies the node to control. This is typically a Camera object.
+*/
+/*! \qmlproperty real WasdController::speed
+    \default 1
+    Specifies the speed of navigation.
+*/
+/*! \qmlproperty real WasdController::shiftSpeed
+    \default 3
+    Specifies the speed multiplier that is active when the shift key is pressed.
+*/
+/*! \qmlproperty real WasdController::forwardSpeed
+    \default 5
+    Specifies the speed of navigation when the forward key is pressed.
+*/
+/*! \qmlproperty real WasdController::backSpeed
+    \default 5
+    Specifies the speed of navigation when the back key is pressed.
+*/
+/*! \qmlproperty real WasdController::rightSpeed
+    \default 5
+    Specifies the speed of navigation when the right key is pressed.
+*/
+/*! \qmlproperty real WasdController::leftSpeed
+    \default 5
+    Specifies the speed of navigation when the left key is pressed.
+*/
+/*! \qmlproperty real WasdController::upSpeed
+    \default 5
+    Specifies the speed of navigation when the up key is pressed.
+*/
+/*! \qmlproperty real WasdController::downSpeed
+    \default 5
+    Specifies the speed of navigation when the down key is pressed.
+*/
+/*! \qmlproperty real WasdController::xSpeed
+    \default 0.1
+    Specifies the speed of navigation when the mouse is moved along the X axis.
+*/
+/*! \qmlproperty real WasdController::ySpeed
+    \default 0.1
+    Specifies the speed of navigation when the mouse is moved along the Y axis.
+*/
+/*! \qmlproperty bool WasdController::xInvert
+    \default false
+    Inverts the x-axis controls.
+*/
+/*! \qmlproperty bool WasdController::yInvert
+    \default true
+    Inverts the y-axis controls.
+*/
+/*! \qmlproperty bool WasdController::mouseEnabled
+    \default true
+    Enables mouse controls.
+*/
+/*! \qmlproperty bool WasdController::keysEnabled
+    \default true
+    Enables key controls.
+*/
+/*! \qmlproperty bool WasdController::inputsNeedProcessing
+    This property is true when there are inputs needing processing.
+    \readonly
+*/
+/*! \qmlproperty enumeration WasdController::acceptedButtons
+    \default Qt.LeftButton
+    Specifies the buttons accepted by the controller.
+    \sa DragHandler, MultiPointHandler
+*/
+
+/*!
+    \qmltype DebugView
+    \inqmlmodule QtQuick3D.Helpers
+    \inherits Rectangle
+    \brief View to show rendering statistics and perform debug and developer actions.
+
+    This helper allows viewing render performance statistics of a View3D. It
+    shows the FPS, sync and render times. In addition, it can also show
+    detailed statistics about draw calls, render passes, and the textures and
+    meshes used by the scene's assets. The showing of such extended information
+    is controlled by the resourceDetailsVisible property, which defaults to
+    false.
+
+    For example, the following snippet shows how a DebugView can be added that
+    shows its information in the top-left corner of the Qt Quick scene:
+
+    \badcode
+        View3D {
+            id: v3d
+            anchors.fill: parent
+            camera: camera
+            PerspectiveCamera {
+                id: camera
+                position: Qt.vector3d(0, 0, 600)
+            }
+            ...
+        }
+        DebugView {
+            source: v3d
+            resourceDetailsVisible: true
+        }
+    \endcode
+
+    In addition, the \c Tools section allows performing actions such as turning
+    on wireframe rendering, or visualizing various aspects of the material.
+*/
+
+/*! \qmlproperty var DebugView::source
+    Specifies the source View3D to show the statistics from.
+*/
+
+/*! \qmlproperty bool DebugView::resourceDetailsVisible
+    \default false
+
+    Indicates whether the additional fields with detailed render pass, mesh,
+    texture, and other resource statistics should be shown by default.
+
+    The default value is false, which means only CPU timings from the last
+    rendered frame will be shown, unless the user interactively enables
+    additional data via the on-screen checkbox. Change the value to true to make
+    more information visible by default. This includes render pass details and
+    the active assets for the last rendered frame.
+*/
+
+/*!
+    \qmltype OrbitCameraController
+    \inqmlmodule QtQuick3D.Helpers
+    \inherits Item
+    \brief Camera Controller which rotates around an origin.
+
+    This helper provides a way to rotate a camera around an origin. To function
+    OrbitCameraController accepts a Node as the origin, and a Camera object
+    which should be a child of the originNode to control. By only adjusting the z
+    position of the child camera relative to the parent origin it has the effect
+    of moving the camera nearer or farther from the target origin. By applying
+    a rotation to the origin node, the child camera will be orbited around the
+    origin node.
+
+    The OrbitCameraController item itself is a 2D item that accepts input events
+    so whatever it's size and position will be where input events are accepted.
+    To zoom either use the scroll wheel of the mouse or perform a pinch gesture.
+    To rotate click or touch and drag the area. To pan, hold control and drag
+    the area. Panning will change the position of the origin node. It is also
+    possible to perform a panning gesture by performing a two finger drag.
+
+    \badcode
+        View3D {
+            camera: cameraNode
+            Node {
+                id: originNode
+                PerspectiveCamera {
+                    id: cameraNode
+                    z: 100
+                }
+            }
+            OrbitCameraController {
+                anchors.fill: parent
+                origin: originNode
+                camera: cameraNode
+            }
+            ...
+        }
+    \endcode
+*/
+
+/*! \qmlproperty QtQuick3D::Node OrbitCameraController::origin
+    Specifies the origin node to control. This is a required property and should
+    be the parent of the \l camera
+*/
+/*! \qmlproperty QtQuick3D::Camera OrbitCameraController::camera
+    Specifies the camera node to control. This is a required property and should
+    be a child of the \l origin node.
+*/
+/*! \qmlproperty real OrbitCameraController::xSpeed
+    \default 0.1
+    Specifies the speed of navigation when the mouse is moved along the X axis.
+*/
+/*! \qmlproperty real OrbitCameraController::ySpeed
+    \default 0.1
+    Specifies the speed of navigation when the mouse is moved along the Y axis.
+*/
+/*! \qmlproperty bool OrbitCameraController::xInvert
+    \default false
+    Inverts the x-axis controls.
+*/
+/*! \qmlproperty bool OrbitCameraController::yInvert
+    \default true
+    Inverts the y-axis controls.
+*/
+/*! \qmlproperty bool OrbitCameraController::mouseEnabled
+    \default true
+    Enables mouse controls.
+*/
+/*! \qmlproperty bool OrbitCameraController::panEnabled
+    \default true
+    Enables panning controls.
+*/
+/*! \qmlproperty bool OrbitCameraController::automaticClipping
+    \since 6.9
+    \default true
+
+    Enables automatic updating of the \l{Camera}{camera}'s
+    \l{PerspectiveCamera::}{clipNear} and l\{PerspectiveCamera::}{clipFar}
+    properties based on the camera's z position.
+*/
+/*! \qmlproperty Qt::MouseButtons OrbitCameraController::acceptedButtons
+    \since 6.9
+    \default Qt.LeftButton
+    Specifies the mouse button that controls the camera.
+*/
+
+
+/*!
+    \qmltype LodManager
+    \inqmlmodule QtQuick3D.Helpers
+    \inherits Node
+    \brief Manager that handles level of detail visibility changes.
+
+    This helper provides a way to handle level of detail changes. It works
+    by changing the visibility of its child nodes based on the distance
+    to the camera. The thresholds are determined by the user using the
+    distances list. The first distance is the threshold when the manager
+    changes from showing the first child and the second child etc. The first
+    child should be the most detailed one as it is shown when the camera is
+    close. If fadeDistance is set, the manager cross-fades between models by
+    changing their opacity. Fading only works with model nodes.
+
+    \badcode
+        View3D {
+            LodManager {
+                camera: camera
+                distances: [50, 100]
+                fadeDistance: 10
+
+                Model { ... }
+                Model { ... }
+                Model { ... }
+            }
+        }
+    \endcode
+*/
+
+/*! \qmlproperty QtQuick3D::Camera LodManager::camera
+    Specifies the camera from which the distance to the child nodes is calculated.
+*/
+
+/*! \qmlproperty list LodManager::distances
+    Specifies the thresholds when the detail level changes. The first number
+    is the distance when the first node changes to the second one, etc.
+*/
+
+/*! \qmlproperty real LodManager::fadeDistance
+    Specifies the distance at which the cross-fade between the detail levels
+    starts.
+*/
+
+/*!
+    \qmltype ExtendedSceneEnvironment
+    \inqmlmodule QtQuick3D.Helpers
+    \inherits SceneEnvironment
+    \brief A SceneEnvironment providing commonly used rendering effects.
+    \since 6.5
+
+    The \c ExtendedSceneEnvironment is an extension of QtQuick3D's \l
+    SceneEnvironment type that comes with a collection of commonly used effects
+    built-in. The effects are exposed through a set of properties that are
+    prefixed with the name of the effect they control.
+
+    When enabling one or more of these effects, the result is similar to
+    manually adding post-processing effects to the SceneEnvironment's
+    \l{SceneEnvironment::effects}{effects} list. ExtendedSceneEnvironment
+    provides however effects that are not available in standalone form, and
+    more importantly, \b{it efficiently combines the effects that are enabled,
+    reducing the number of additional render passes needed, which can lead to
+    significantly better performance than applying individual post-processing
+    effects} to the scene. ExtendedSceneEnvironment also plays well with
+    tonemapping, even for the more complicated multiple pass effects, and also
+    when multiple effects are enabled and combined together. This was not
+    always the case with standalone effects.
+
+    \note If additional post-processing effects are added to the
+    \l{SceneEnvironment::effects}{effects} list of \l SceneEnvironment, then
+    those effects will be applied \e before the effects provided by the \l
+    ExtendedSceneEnvironment type.
+
+    Certain features of SceneEnvironment, such as the tonemapping, are
+    inherited and extended with additional properties in
+    ExtendedSceneEnvironment. For example, SceneEnvironment offers the
+    \l{SceneEnvironment::tonemapMode}{tonemapMode} property, whereas
+    ExtendedSceneEnvironment adds control over the exposure, white point,
+    sharpening, and dithering settings of the tonemapper as well. The
+    \l{SceneEnvironment::tonemapMode}{tonemapMode} property is not duplicated
+    however since ExtendedSceneEnvironment inherits everything from
+    SceneEnvironment, so the base setting of the tonemapping mode is usable
+    regardless of which type of environment is associated with a View3D, but
+    the additional properties are available only when using
+    ExtendedSceneEnvironment. Other effects, such as screen space ambient
+    occlusion (SSAO) or fog are fully part of SceneEnvironment and are usable
+    with both types of environments.
+
+    \section1 Getting Started with ExtendedSceneEnvironment
+
+    To use the additional features offered by ExtendedSceneEnvironment,
+    associate the View3D with an instance of it. Do not forget to import the
+    \c{QtQuick3D.Helpers} module.
+
+    \qml
+        import QtQuick3D
+        import QtQuick3D.Helpers
+
+        View3D {
+            environment: ExtendedSceneEnvironment {
+                tonemapMode: SceneEnvironment.Filmic
+                vignetteEnabled: true
+                // ...
+            }
+        }
+    \endqml
+
+    \note Experimenting with the effect parameters and tuning the values to
+    achieve the desired visual results can often be more productive when done
+    visually, with controls such as sliders that give instant feedback in the
+    rendered scene when a value is changed. Using a designer tool such as Qt
+    Design Studio, or a test bed similar to the \l{Qt Quick 3D - Scene Effects
+    Example} is therefore often recommendable when aiming to set up a high
+    quality scene that looks visually appealing.
+
+    \note Switching SceneEnvironment to ExtendedSceneEnvironment automatically
+    implies at least one additional render pass, just as if an Effect with a
+    single pass was added to the
+    \l{SceneEnvironment::effects}{SceneEnvironment's effect list}.
+    This is true regardless of how many of the individual post-processing steps
+    are enabled. (the more complex effects may involve more than one additional
+    render pass)
+
+    \section1 Available Effects
+
+    Below is an overview of the effects and related features provided by
+    ExtendedSceneEnvironment, including features inherited from
+    SceneEnvironment.
+
+    \list
+
+    \li \l{SceneEnvironment::tonemapMode}{Tonemapping} - Controls how colors
+    are tonemapped from high definition range to the 0-1 range before being
+    displayed. ExtendedSceneEnvironment adds additional controls over the
+    exposure, white point, sharpening, and dithering.
+
+    Controlled by the properties \l tonemapMode, \l exposure, \l whitePoint, \l
+    ditheringEnabled.
+
+    \image extendedsceneenvironment_tonemap.jpg
+           {Scene demonstrating tonemapping}
+
+    \li \l{colorAdjustmentsEnabled}{Color adjustments} - Brightness, contrast,
+    saturation adjustment.
+
+    Controlled by the properties \l colorAdjustmentsEnabled, \l
+    adjustmentBrightness, \l adjustmentContrast, \l adjustmentSaturation.
+
+    \image extendedsceneenvironment_coloradj.jpg
+           {Scene demonstrating color adjustments}
+
+    \li \l{lutEnabled}{Color grading} via lookup table (LUT) textures.
+
+    Controlled by the properties \l lutEnabled, \l lutSize, \l lutFilterAlpha.
+
+    \image extendedsceneenvironment_colorgrade.jpg
+           {Scene demonstrating color grading with lookup table}
+
+    \li \l{depthOfFieldEnabled}{Depth of field}
+
+    Controlled by the properties \l depthOfFieldEnabled, \l
+    depthOfFieldFocusDistance, \l depthOfFieldFocusRange, \l
+    depthOfFieldBlurAmount.
+
+    \image extendedsceneenvironment_dof.jpg
+           {Scene demonstrating depth of field effect}
+
+    \li \l{glowEnabled}{Glow and bloom}
+
+    Controlled by the properties \l glowEnabled, \l glowQualityHigh, \l
+    glowUseBicubicUpscale, \l glowStrength, \l glowIntensity, \l glowBloom, \l
+    glowBlendMode, \l glowHDRMaximumValue, \l glowHDRMinimumValue, \l
+    glowHDRScale.
+
+    \image extendedsceneenvironment_glow.jpg {Scene demonstrating glow effect}
+
+    \li \l{vignetteEnabled}{Vignette}
+
+    Controlled by the properties \l vignetteEnabled, \l vignetteStrength, \l
+    vignetteColor, \l vignetteRadius.
+
+    \image extendedsceneenvironment_vignette.jpg
+           {Scene demonstrating vignette effect}
+
+    \li \l{lensFlareEnabled}{Lens flare}
+
+    Controlled by the properties \l lensFlareEnabled, \l lensFlareBloomBias, \l
+    lensFlareGhostDispersal, \l lensFlareGhostCount, \l lensFlareHaloWidth, \l
+    lensFlareStretchToAspect, \l lensFlareDistortion, \l lensFlareBlurAmount,
+    \l lensFlareApplyDirtTexture, \l lensFlareApplyStarburstTexture, \l
+    lensFlareCameraDirection, \l lensFlareLensColorTexture, \l
+    lensFlareLensDirtTexture, \l lensFlareLensStarburstTexture.
+
+    \image extendedsceneenvironment_lensflare.jpg
+           {Scene demonstrating lens flare effect}
+
+    \li \l{SceneEnvironment::aoStrength}{Screen space ambient occlusion} -
+    Provided by \l SceneEnvironment. Note that \l{ssgiEnabled}{SSGI} also
+    provides ambient occlusion, and it will often give better quality results in
+    practice. Avoid enabling both SceneEnvironment's ambient occlusion and
+    ExtendedSceneEnvironment's screen-space global illumination, since it is
+    unnecessary and wasteful to perform both. Controlled by
+    \l{SceneEnvironment::aoEnabled}, \l{SceneEnvironment::aoStrength},
+    \l{SceneEnvironment::aoDistance}, \l{SceneEnvironment::aoSoftness},
+    \l{SceneEnvironment::aoDither}, \l{SceneEnvironment::aoSampleRate},
+    \l{SceneEnvironment::aoBias}.
+
+    \image extendedsceneenvironment_ssao.jpg
+           {Scene demonstrating screen space ambient occlusion}
+
+    \li \l{SceneEnvironment::fog}{Fog} - Provided by \l SceneEnvironment. This
+    is not a post-processing type of effect, but is rather applied to the
+    materials of the renderable objects in the scene.
+
+    Controlled by the \l{QtQuick3D::Fog}{Fog} object associated with the
+    \l{SceneEnvironment::fog} property.
+
+    \image extendedsceneenvironment_fog.jpg {Scene demonstrating fog effect}
+
+    \li \l{SceneEnvironment::antialiasingMode}{Antialiasing} - Multisampling,
+    supersampling, progressive antialiasing, specular antialiasing, temporal
+    antialiasing are provided by \l SceneEnvironment. \l
+    ExtendedSceneEnvironment adds the option for using \l{fxaaEnabled}{a form
+    of FXAA}.
+
+    FXAA is controlled by \l fxaaEnabled. Other antialiasing modes are
+    controlled by \l{SceneEnvironment::antialiasingMode},
+    \l{SceneEnvironment::temporalAAEnabled},
+    \l{SceneEnvironment::temporalAAStrength}, and
+    \l{SceneEnvironment::specularAAEnabled}.
+
+    \image extendedsceneenvironment_aa.jpg {Scene demonstrating antialiasing}
+
+    \li \l{ssgiEnabled}{Screen-space global illumination} Provides ambient
+    occlusion and indirect lighting. Note that enabling this effect may have a
+    big impact on GPU load and performance. Controlled by the properties \l
+    ssgiEnabled, \l ssgiIndirectLightEnabled, \l ssgiIndirectLightBoost, \l
+    ssgiBufferSizeFactor, \l ssgiSimulatedBounceEnabled, \l
+    ssgiSimulatedBounceFactor, \l ssgiSampleCount, \l ssgiSampleRadius, \l
+    ssgiSliceCount, \l ssgiHitThickness
+
+    \image extendedsceneenvironment_ssgi.jpg
+           {City with buildings, red awnings, and outdoor cafe seating}
+
+    \endlist
+
+    \sa SceneEnvironment, {Qt Quick 3D - Scene Effects Example}
+*/
+
+// Depth of Field Effect
+/*! \qmlproperty bool ExtendedSceneEnvironment::depthOfFieldEnabled
+    Enables the depth of field blur effect.
+
+    \default false
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::depthOfFieldFocusDistance
+    Sets the distance from the camera at which objects are in focus.
+
+    \default 600
+
+    Here the
+    \l{https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/Sponza}{Sponza}
+    scene has a scale of \c 100 applied in order to have a suitably big range
+    to get blur applied to the back and the front of the view. The picture
+    below is taken with a focus distance of 753 and a focus range of 482.
+
+    \image extendedsceneenvironment_dof.jpg
+           {Scene demonstrating depth of field effect}
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::depthOfFieldFocusRange
+    The distance around the \l
+    {ExtendedSceneEnvironment::depthOfFieldFocusDistance}{depthOfFieldFocusDistance}
+    where items are fully in focus. The focus then fades away to fully blurred
+    by the same distance on both the near and far sides.
+
+    \default 100
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::depthOfFieldBlurAmount
+    Sets the amount of blur applied to objects outside the focus range.
+    Sensible values are in the range \b 0 to \b 10. A value of 0 applies
+    no additional blur.
+
+    \default 4.0
+
+    \table
+    \header
+    \li Blur amount of 0
+    \li Blur amount of 15
+    \row
+    \li \image extendedsceneenvironment_dof_no_blur.jpg
+               {Scene without depth of field blur}
+    \li \image extendedsceneenvironment_dof_15_blur.jpg
+               {Scene with depth of field blur at 15}
+    \endtable
+*/
+// Tonemapper
+/*!
+    \qmlproperty enumeration ExtendedSceneEnvironment::tonemapMode
+    \default SceneEnvironment.TonemapModeLinear
+
+    This property defines how colors are tonemapped before rendering. All
+    rendering in Qt Quick 3D is performed in linear color space and can in
+    many cases lead to generating color values that are not displayable. The
+    tonemapMode determines the technique that is used to remap colors into a
+    displayable range.
+
+    The default value is \c SceneEnvironment.TonemapModeLinear
+
+    \value SceneEnvironment.TonemapModeNone
+        All Tonemapping is bypassed. This mode is useful when performing post
+        processing effects.
+    \value SceneEnvironment.TonemapModeLinear
+        Linear tonemapping is applied. Colors are gamma corrected and returned
+        in sRGB color space.
+    \value SceneEnvironment.TonemapModeAces
+        Academy Color Encoding System tonemapping is applied.
+    \value SceneEnvironment.TonemapModeHejlDawson
+        Hejl-Dawson tonemapping is applied.
+    \value SceneEnvironment.TonemapModeFilmic
+        Filmic tonemapping is applied.
+
+    \note When using post-processing effects, many effects expect untonemapped
+    linear color data. It is important to bypass the built-in tonemapping in
+    this case by using the \c SceneEnvironment.TonemapModeNone value. This does
+    not apply to the built-in effects of ExtendedSceneEnvironment because those
+    automatically take care of proper tonemapping.
+
+    \table
+    \header
+    \li Tonemap mode
+    \li Example
+    \row
+    \li None
+    \li \image extendedsceneenvironment_tonemap_none.jpg
+               {Scene with no tonemapping}
+    \row
+    \li Linear
+    \li \image extendedsceneenvironment_tonemap_linear.jpg
+               {Scene with linear tonemapping}
+    \row
+    \li Aces
+    \li \image extendedsceneenvironment_tonemap_aces.jpg
+               {Scene with ACES tonemapping}
+    \row
+    \li HejlDawson
+    \li \image extendedsceneenvironment_tonemap_hejldawson.jpg
+               {Scene with Hejl-Dawson tonemapping}
+    \row
+    \li Filmic
+    \li \image extendedsceneenvironment_tonemap_filmic.jpg
+               {Scene with filmic tonemapping}
+    \endtable
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::exposure
+    Exposure level used by the tonemapper.
+
+    \default 1.0
+
+    \table
+    \header
+    \li Filmic tonmapping with exposure 8
+    \li Filmic tonmapping with exposure set to 0.5
+    \row
+    \li \image extendedsceneenvironment_tonemap_exposure_8.jpg
+               {Scene with exposure value 8}
+    \li \image extendedsceneenvironment_tonemap_exposure_05.jpg
+               {Scene with exposure value 0.5}
+    \endtable
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::whitePoint
+
+    Reference value for \e white when tonemapping is enabled. The value must be
+    larger than 0.
+
+    \note This value is ignored when using \l{SceneEnvironment::tonemapMode}{SceneEnvironment.TonemapModeLinear}.
+
+    \default 1
+
+    \table
+    \header
+    \li Filmic tonmapping with white point set to 0.1
+    \li Filmic tonmapping with white point set to 1
+    \row
+    \li \image extendedsceneenvironment_tonemap_whitepoint_01.jpg
+               {Stone hallway with brighter film tonemapping, white point 0.1}
+    \li \image extendedsceneenvironment_tonemap_whitepoint_1.jpg
+               {Stone hallway with darker film tonemapping, white point 1}
+    \endtable
+*/
+/*! \qmlproperty bool ExtendedSceneEnvironment::ditheringEnabled
+    Enables dithering to reduce banding artifacts.
+
+    \default false
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::sharpnessAmount
+    Set the sharpening amount. Valid values are from \c 0.0 (off) to \c 1.0 (full).
+
+    \default 0.0
+
+    \table
+    \header
+    \li Filmic tonmapping with sharpness set to 0
+    \li Filmic tonmapping with sharpness set to 1
+    \row
+    \li \image extendedsceneenvironment_tonemap_sharpness_0.jpg
+               {Stone hallway with sharpness set to 0}
+    \li \image extendedsceneenvironment_tonemap_sharpness_1.jpg
+               {Stone hallway with sharpness set to 1}
+    \endtable
+*/
+// FXAA
+/*! \qmlproperty bool ExtendedSceneEnvironment::fxaaEnabled
+    Enables fast approximate antialiasing (FXAA).
+
+    \table
+    \header
+    \li FXAA disabled
+    \li FXAA enabled
+    \row
+    \li \image extendedsceneenvironment_without_fxaa.jpg {Stone hallway
+               without antialiasing}
+    \li \image extendedsceneenvironment_with_fxaa.jpg {Stone hallway with
+               fast approximate antialiasing}
+    \endtable
+
+    \default false
+*/
+// Adjustments
+/*! \qmlproperty bool ExtendedSceneEnvironment::colorAdjustmentsEnabled
+
+    Enables color adjustments.
+
+    \default false
+    \sa {ExtendedSceneEnvironment::colorAdjustmentsEnabled}{colorAdjustmentsEnabled}
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::adjustmentBrightness
+    Adjusts the brightness of the scene.
+
+    \table
+    \header
+    \li Brightness of 1
+    \li Brightness of 4
+    \row
+    \li \image extendedsceneenvironment_brightness_contrast_saturation_at_1.jpg
+               {Stone hallway with default brightness level}
+    \li \image extendedsceneenvironment_brightness_at_4.jpg
+               {Stone hallway with brightness increased to 4}
+    \endtable
+
+    \default 1
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::adjustmentContrast
+    Adjusts the contrast of the scene.
+
+    \table
+    \header
+    \li Contrast of 1
+    \li Contrast of 4
+    \row
+    \li \image extendedsceneenvironment_brightness_contrast_saturation_at_1.jpg
+               {Stone hallway with default brightness level}
+    \li \image extendedsceneenvironment_contrast_at_4.jpg
+               {Stone hallway with contrast increased to 4}
+    \endtable
+
+    \default 1
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::adjustmentSaturation
+    Adjusts the saturation of the scene.
+
+    \table
+    \header
+    \li Saturation of 1
+    \li Saturation of 4
+    \row
+    \li \image extendedsceneenvironment_brightness_contrast_saturation_at_1.jpg
+               {Stone hallway with default brightness level}
+    \li \image extendedsceneenvironment_saturation_at_4.jpg
+               {Stone hallway with saturation increased to 4}
+    \endtable
+
+    \default 1
+*/
+// Color Grading Effect
+/*! \qmlproperty bool ExtendedSceneEnvironment::lutEnabled
+    Enables color grading with look-up tables (LUTs).
+    The look-up table is given as a texture.
+
+    \default false
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::lutSize
+    Sets the size of the LUT texture. The texture should have the dimensions:
+
+    \c {width = lutSize * lutSize}
+    and
+    \c {height = lutSize}
+
+    \default 16
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::lutFilterAlpha
+    Sets the amount of color grading to mix with the scene.
+    The value is expected to be between \b 0 and \b 1.
+
+    \default 1
+*/
+/*! \qmlproperty Texture ExtendedSceneEnvironment::lutTexture
+    Source of look-up texture. If no texture is set a built-in identity
+    table is used.
+
+    Pictured below is an example texture with a size of 256x16, matching the
+    default \l lutSize of 16.
+
+    \image extendedsceneenvironment_lut_texture_used_for_invert.jpg
+           {Horizontal gradient strip showing LUT color mapping for inversion}
+
+    The result of this effect:
+
+    \image extendedsceneenvironment_lut_invert.jpg
+           {Stone hallway with inverted colors using LUT}
+*/
+// Glow Effect
+/*! \qmlproperty bool ExtendedSceneEnvironment::glowEnabled
+    Enables the glow effect. It can also provide bloom, when the value of \l
+    glowBloom is larger than 0.
+
+    \default false
+*/
+/*! \qmlproperty bool ExtendedSceneEnvironment::glowQualityHigh
+    Increases the samples used for the glow when downsampling to improve the
+    quality of the glow effect.
+
+    \default false
+
+    \note Enabling this is a trade off between rendering quality and performance. Consider if
+    \l {ExtendedSceneEnvironment::ditheringEnabled}{dithering} can be used instead.
+*/
+/*! \qmlproperty bool ExtendedSceneEnvironment::glowUseBicubicUpscale
+    Reduces the aliasing artifacts and boxing in the glow effect.
+
+    \default false
+
+    \note Using bi-cubic up-scaling will come at the cost of performance.  Consider if
+    \l {ExtendedSceneEnvironment::ditheringEnabled}{dithering} can be used instead.
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::glowStrength
+    Glow strength. Acceptable values are from \b 0 to \b 2.
+
+    The strength is effectively a scale factor (multiplier) that is applied
+    per-level. This means the the more levels are enabled in \l glowLevel, the
+    more pronounced effect a larger glowStrength has.
+
+    In practice the values for \l glowStrength, \l glowIntensity, and \l
+    glowBloom will often be tuned together to achieve the desired results.
+
+    \default 1
+
+    For example, with a glowIntensity of 1.0, glowBloom of 0.25, and the
+    first four levels enabled:
+
+    \table
+    \header
+    \li glowStrength of 0.5
+    \li glowStrength of 1.5
+    \row
+    \li \image extendedsceneenvironment_glow_strength_05.jpg
+               {Scene with glow strength 0.5}
+    \li \image extendedsceneenvironment_glow_strength_15.jpg
+               {Scene with glow strength 1.5}
+    \endtable
+
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::glowIntensity
+    Glow intensity. Expected values are in the range \b 0 to \b 8.
+
+    The intensity is effectively a scale factor (multiplier) for the
+    accumulated glow color (including all levels).
+
+    In practice the values for \l glowStrength, \l glowIntensity, and \l
+    glowBloom will often be tuned together to achieve the desired results.
+
+    \default 1
+
+    For example, with a glowStrength of 1.0 and glowBloom of 0.25:
+
+    \table
+    \header
+    \li glowIntensity of 0.25
+    \li glowIntensity of 1.25
+    \row
+    \li \image extendedsceneenvironment_glow_intensity_025.jpg
+               {Stone courtyard with glow intensity 0.25}
+    \li \image extendedsceneenvironment_glow_intensity_125.jpg
+               {Stone courtyard with glow intensity 1.25}
+    \endtable
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::glowBloom
+    Sets the amount of bloom applied to the glow effect.
+    Values from \b 0 to \b 1 are expected.
+
+    The \l glowHDRMinimumValue, \l glowHDRMaximumValue, \l glowHDRScale, and \l
+    glowBloom values together control the amount of \c{luminance feedback}
+    generated by the glow/bloom effect.
+
+    \default 0
+
+    In practice the values for \l glowStrength, \l glowIntensity, and \l
+    glowBloom will often be tuned together to achieve the desired results.
+
+    For example, with four glow levels enabled, a strength of 1.5, and an
+    intensity of 1:
+
+    \table
+    \header
+    \li glowBloom set to 0
+    \li glowBloom set to 0.5
+    \row
+    \li \image extendedsceneenvironment_glow_level4_strength15_intensity1_bloom0.jpg
+               {Stone hallway with glow bloom set to 0}
+    \li \image extendedsceneenvironment_glow_level4_strength15_intensity1_bloom05.jpg
+               {Stone hallway with glow bloom set to 0.5}
+    \endtable
+*/
+/*! \qmlproperty int ExtendedSceneEnvironment::glowBlendMode
+    Blending mode for the glow effect.
+
+    Available modes are:
+     \list
+      \li ExtendedSceneEnvironment.GlowBlendMode.Additive
+      \li ExtendedSceneEnvironment.GlowBlendMode.Screen
+      \li ExtendedSceneEnvironment.GlowBlendMode.SoftLight
+      \li ExtendedSceneEnvironment.GlowBlendMode.Replace
+    \endlist
+
+    \default ExtendedSceneEnvironment.GlowBlendMode.SoftLight
+
+    \c Additive is often recommendable for outdoor scenes, where a sky or sun
+    is visible, whereas the default \c SoftLight may work better for in-door
+    environments.
+
+    \c Replace does not perform any blending, but rather results in displaying
+    only the contribution the glow/bloom effect would blend with the actual
+    content. In practice this can be useful for experimenting and
+    troubleshooting when setting up the parameters of a glow/bloom effect.
+
+    \table
+    \header
+    \li Blend mode
+    \li Example
+    \row
+    \li Glow disabled
+    \li \image extendedsceneenvironment_glow_disabled.jpg
+               {Stone hallway without glow effect}
+    \row
+    \li Additive
+    \li \image extendedsceneenvironment_glow_additive.jpg
+               {Scene with glow additive blend mode}
+    \row
+    \li Screen
+    \li \image extendedsceneenvironment_glow_screen.jpg
+               {Scene with glow screen blend mode}
+    \row
+    \li SoftLight
+    \li \image extendedsceneenvironment_glow_softlight.jpg
+               {Stone hallway with glow using soft light blend mode}
+    \row
+    \li Replace
+    \li \image extendedsceneenvironment_glow_replace.jpg
+               {Scene with glow replace blend mode}
+    \endtable
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::glowHDRMaximumValue
+    Sets the maximum brightness of the glow, in high dynamic range.
+    Value range is from \b 0 to \b 256.
+
+    The \l glowHDRMinimumValue, \l glowHDRMaximumValue, \l glowHDRScale, and \l
+    glowBloom values together control the amount of \c{luminance feedback}
+    generated by the glow/bloom effect.
+
+    \default 12.0
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::glowHDRMinimumValue
+    Sets the minimum brightness of the glow, in high dynamic range.
+    Expected values are in the range \b 0 to \b 4.
+
+    The \l glowHDRMinimumValue, \l glowHDRMaximumValue, \l glowHDRScale, and \l
+    glowBloom values together control the amount of \c{luminance feedback}
+    generated by the glow/bloom effect.
+
+    \default 1.0
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::glowHDRScale
+    The bleed scale of the HDR glow.
+    Expected values are in the range \b 0 to \b 8.
+
+    The \l glowHDRMinimumValue, \l glowHDRMaximumValue, \l glowHDRScale, and \l
+    glowBloom values together control the amount of \c{luminance feedback}
+    generated by the glow/bloom effect.
+
+    \default 2.0
+*/
+/*! \qmlproperty int ExtendedSceneEnvironment::glowLevel
+    Sets which of the blur passes get applied to the glow effect. There are a
+    total of 7 levels available.
+
+    Not having any levels set means that the glow will have no visual effect.
+
+    For example, to enable Glow Level \e One and \e Six we just OR the two enums together:
+    \badcode
+        glowLevel = (ExtendedSceneEnvironment.GlowLevel.One | ExtendedSceneEnvironment.GlowLevel.Six)
+    \endcode
+
+    \default 1
+
+    \table
+    \header
+    \li glowLevel value
+    \li Example
+    \row
+    \li One
+    \li \image extendedsceneenvironment_glow_levels_1.jpg
+               {Stone courtyard with glow at level 1}
+    \row
+    \li One | Two
+    \li \image extendedsceneenvironment_glow_levels_1_2.jpg
+               {Stone courtyard with glow at levels 1 and 2}
+    \row
+    \li One | Two | Three
+    \li \image extendedsceneenvironment_glow_levels_1_2_3.jpg
+               {Stone courtyard with glow at levels 1, 2, and 3}
+    \row
+    \li One | Two | Three | Four
+    \li \image extendedsceneenvironment_glow_levels_1_2_3_4.jpg
+               {Scene showing glow at 1, 2, 3, and 4 levels}
+    \endtable
+*/
+
+*/
+// Vignette
+/*! \qmlproperty bool ExtendedSceneEnvironment::vignetteEnabled
+    Enables the vignette effect.
+
+    \default false
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::vignetteStrength
+    Sets the strength of the vignette effect. Ranges from \b 0 to \b 15.
+
+    \default 15
+
+    \table
+    \header
+    \li Strength of 15
+    \li Strength of 10
+    \row
+    \li \image extendedsceneenvironment_vignette_strength_15.jpg
+               {Stone hallway with vignette strength set to 15}
+    \li \image extendedsceneenvironment_vignette_strength_10.jpg
+               {Stone hallway with vignette strength set to 10}
+    \endtable
+*/
+/*! \qmlproperty color ExtendedSceneEnvironment::vignetteColor
+    Sets the color of the vignette effect.
+
+    \default "gray"
+
+    For example, changing the color to red, pictured here with radius 4 and
+    strength 15:
+
+    \image extendedsceneenvironment_vignette_red.jpg
+           {Stone hallway with red vignette effect}
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::vignetteRadius
+    Sets the radius of the vignette effect. Ranges from \b 0 to \b 5.
+
+    \default 0.35
+
+    \table
+    \header
+    \li Radius of 0.35
+    \li Radius of 5.0
+    \row
+    \li \image extendedsceneenvironment_vignette_radius_default.jpg
+               {Stone hallway with vignette radius set to 0.35}
+    \li \image extendedsceneenvironment_vignette_radius_5.jpg
+               {Stone hallway with vignette radius set to 5.0}
+    \endtable
+*/
+// Lens Flare
+/*! \qmlproperty bool ExtendedSceneEnvironment::lensFlareEnabled
+    Enables the lens flare effect.
+
+    Once enabled, the first property to tune is typically \l
+    lensFlareBloomBias.
+
+    \default false
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::lensFlareBloomScale
+    Sets the scale of the lens flare bloom effect. Expected scale value ranges
+    from \b 0 to \b 20.
+
+    In practice this acts as a multiplier for the zero-clamped color value with
+    the \l lensFlareBloomBias subtracted.
+
+    \default 10
+
+    \table
+    \header
+    \li Scale 2, bias 0.81
+    \li Scale 20, bias 0.81
+    \row
+    \li \image extendedsceneenvironment_lensflare_scale_2_bias_081.jpg
+               {Stone hallway with lens flare scale 2}
+    \li \image extendedsceneenvironment_lensflare_scale_20_bias_081.jpg
+               {Stone hallway with lens flare scale 20}
+    \endtable
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::lensFlareBloomBias
+    Sets the level at which the lens flare bloom starts.
+
+    The bias value is subtracted from the high dynamic range color value, with
+    the result clamped to 0. This means that, depending on the scene, it may
+    sometimes need be set to a quite low value, e.g. below 1, in order to make
+    the lens flare obvious. Hence the default of 0.95. Whereas when having a
+    higher range of colors, a bigger value may make more sense.
+
+    \default 0.95
+
+    \table
+    \header
+    \li Bias of 0.81
+    \li Bias of 0.31
+    \row
+    \li \image extendedsceneenvironment_lensflare_bias_081.jpg
+               {Stone courtyard with subtle lens flare, bias 0.81}
+    \li \image extendedsceneenvironment_lensflare_bias_031.jpg
+               {Stone courtyard with prominent lens flare, bias 0.31}
+    \endtable
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::lensFlareGhostDispersal
+    Sets the distance between the lens flare ghosts. Expected values are
+    between \b 0 and \b 5. The value should be larger than 0.
+
+    \default 0.5
+
+    \table
+    \header
+    \li Ghost dispersal of 0.25
+    \li Ghost dispersal of 0.90
+    \row
+    \li \image extendedsceneenvironment_lensflare_ghostdispersal_025.jpg
+               {Stone courtyard with closely spaced lens flare ghosts}
+    \li \image extendedsceneenvironment_lensflare_ghostdispersal_090.jpg
+               {Stone courtyard with widely spaced lens flare ghosts}
+    \endtable
+*/
+/*! \qmlproperty int ExtendedSceneEnvironment::lensFlareGhostCount
+    Sets the amount of lens flare ghosts. Expected values are from \b 0 to \b 20.
+
+    \default 4
+
+    \table
+    \header
+    \li Ghost count of 2
+    \li Ghost count of 16
+    \row
+    \li \image extendedsceneenvironment_lensflare_ghostcount_2.jpg
+               {Stone courtyard with 2 lens flare ghosts}
+    \li \image extendedsceneenvironment_lensflare_ghostcount_16.jpg
+               {Stone courtyard with 16 lens flare ghosts}
+    \endtable
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::lensFlareHaloWidth
+    Sets the size of the lens flare halo. Ranges from \b 0 to \b 1.
+
+    \default 0.25
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::lensFlareStretchToAspect
+    Set correction factor for roundness of the lens flare halo.
+
+    \default 0.5 [0, 1]
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::lensFlareDistortion
+    Set amount of chromatic aberration in the lens flare. Expected values
+    ranges from \b 0 to \b 20.
+
+    \default 5
+
+    \table
+    \header
+    \li Distortion set to 0
+    \li Distortion set to 15
+    \row
+    \li \image extendedsceneenvironment_lensflare_distortion_0.jpg
+               {Stone courtyard with lens flare, no chromatic aberration}
+    \li \image extendedsceneenvironment_lensflare_distortion_15.jpg
+               {Stone courtyard with lens flare showing chromatic aberration}
+    \endtable
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::lensFlareBlurAmount
+    Set amount of blur to apply to the lens flare. Ranges from \b 0 to \b 50.
+
+    \default 3
+
+    \table
+    \header
+    \li Blur amount set to 0
+    \li Blur amount set to 30
+    \row
+    \li \image extendedsceneenvironment_lensflare_0_blur.jpg
+               {Stone courtyard with sharp lens flare}
+    \li \image extendedsceneenvironment_lensflare_30_blur.jpg
+               {Stone courtyard with blurred lens flare}
+    \endtable
+
+*/
+/*! \qmlproperty bool ExtendedSceneEnvironment::lensFlareApplyDirtTexture
+    Set whether to apply a dirt texture to the lens flare.
+
+    \default false
+
+    \table
+    \header
+    \li Dirt texture disabled
+    \li Default dirty texture enabled
+    \row
+    \li \image extendedsceneenvironment_lensflare_dirt_off.jpg
+               {Stone courtyard with clean lens flare}
+    \li \image extendedsceneenvironment_lensflare_dirt_on.jpg
+               {Stone courtyard with lens flare showing dirt texture}
+    \endtable
+
+    \sa {ExtendedSceneEnvironment::lensFlareLensDirtTexture}{lensFlareLensDirtTexture}
+*/
+/*! \qmlproperty bool ExtendedSceneEnvironment::lensFlareApplyStarburstTexture
+    Set whether to apply a starburst texture to the lens flare.
+
+    \default false
+
+    \table
+    \header
+    \li Starburst texture disabled
+    \li Default starburst texture enabled
+    \row
+    \li \image extendedsceneenvironment_lensflare_starburst_off.jpg
+               {Stone courtyard with lens flare, no starburst}
+    \li \image extendedsceneenvironment_lensflare_starburst_on.jpg
+               {Stone courtyard with lens flare showing starburst pattern}
+    \endtable
+
+    \sa {ExtendedSceneEnvironment::lensFlareLensStarburstTexture}{lensFlareLensStarburstTexture}
+*/
+/*! \qmlproperty vector3d ExtendedSceneEnvironment::lensFlareCameraDirection
+    Sets the direction of the camera in the scene.
+
+    \default Qt.vector3d(0, 0, -1)
+*/
+/*! \qmlproperty Texture ExtendedSceneEnvironment::lensFlareLensColorTexture
+    A gradient image used for the lens flare lens color.
+
+    By default a built-in 256x256 texture is used:
+
+    \image extendedsceneenvironment_lensflare_default_texture.jpg
+           {Horizontal gradient from yellow through pink to magenta}
+ */
+/*! \qmlproperty Texture ExtendedSceneEnvironment::lensFlareLensDirtTexture
+    An image that is used to simulate inperfections on the lens.
+
+    Has an effect only when \l lensFlareApplyDirtTexture is enabled.
+
+    By default a built-in dirty texture is used:
+
+    \image extendedsceneenvironment_lensflare_default_dirt.jpg
+           {Grayscale texture with scattered bright spots on dark background}
+ */
+/*! \qmlproperty Texture ExtendedSceneEnvironment::lensFlareLensStarburstTexture
+    A noise image to augment the starburst effect of the lens flare.
+    Has an effect only when \l lensFlareApplyStarburstTexture is enabled.
+
+    By default a built-in noise texture is used:
+
+    \image extendedsceneenvironment_lensflare_default_noise.jpg
+           {Grayscale noise texture with irregular light and dark patterns}
+*/
+
+// SSGI
+/*! \qmlproperty bool ExtendedSceneEnvironment::ssgiEnabled
+    Enables screen-space global illumination. This effect increases realism
+    by adding ambient occlusion and indirect light to the scene.
+
+    \default false
+    \since 6.11
+
+    \table
+    \header
+    \li SSGI disabled
+    \li SSGI enabled
+    \row
+    \li \image extendedsceneenvironment_ssgi_without.jpg
+               {Medieval hall without screen-space global illumination}
+    \li \image extendedsceneenvironment_ssgi_with.jpg
+               {Medieval hall with screen-space global illumination enabled}
+    \endtable
+
+    \sa {Qt Quick 3D - SSGI Lightmap Example}
+*/
+/*! \qmlproperty bool ExtendedSceneEnvironment::ssgiIndirectLightEnabled
+
+    Controls whether indirect light is included in the result, or only ambient
+    occlusion. By default both are enabled.
+
+    \default true
+    \since 6.11
+
+    Setting the value to false provides a direct alternative to
+    SceneEnvironment's \l{SceneEnvironment::aoEnabled}{ambient occlusion}. The
+    AO results provided by SSGI are expected to be higher quality and require
+    little or no tuning. This comes at the expense of potentially higher GPU
+    load.
+
+    \table
+    \header
+    \li SSGI disabled
+    \li AO-only SSGI
+    \row
+    \li \image extendedsceneenvironment_ssgi_ao_without.jpg
+               {Lion sculpture without ambient occlusion}
+    \li \image extendedsceneenvironment_ssgi_ao_with.jpg
+               {Lion sculpture with ambient occlusion from SSGI}
+    \endtable
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::ssgiIndirectLightBoost
+
+    \default 4.0
+    \since 6.11
+
+    Multiplier for the indirect light results. Increasing the value makes the
+    indirect light contribution more prominent. The suggested range is 1 to
+    100. The appropriate value always depends on the scene and how it is lit.
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::ssgiBufferSizeFactor
+
+    Controls the size of the color buffers the SSGI effect works on. Performing
+    everything with render targets matching the input and output dimensions
+    (i.e., the View3D's pixel size) can be too costly which many GPUs and
+    devices cannot afford in practice. Therefore, the SSGI effect operates on a
+    reduced size for intermediate textures. By default this is 0.5, meaning half
+    the size of the input and output textures. Increasing the value towards 1
+    increases the quality of the results, at the expense of a heavily growing
+    GPU load.
+
+    \default 0.5
+    \since 6.11
+*/
+/*! \qmlproperty bool ExtendedSceneEnvironment::ssgiSimulatedBounceEnabled
+
+    Controls whether additional light bouncing is simulated by sampling the
+    previous frame's texture.
+
+    \default false
+    \since 6.11
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::ssgiSimulatedBounceFactor
+
+    Multiplier for the result from the simulated bounce calculation. Only has an
+    effect when \l ssgiSimulatedBounceEnabled is \c true. This value may need to
+    be tuned together with \l ssgiIndirectLightBoost. Depending on the scene and
+    how it is lit, higher values for these properties can lead to overly
+    exaggerated indirect light contribution, and even a feedback loop where the
+    indirect light grows excessively between frames.
+
+    \default 0.5
+    \since 6.11
+*/
+/*! \qmlproperty int ExtendedSceneEnvironment::ssgiSampleCount
+
+    Configures the global illumination algorithm. A higher sample count will give
+    better results at the expense of increased GPU load.
+
+    The suggested range is 1 to 16.
+
+    \default 4
+    \since 6.11
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::ssgiSampleRadius
+
+    Configures the global illumination algorithm.
+
+    The suggested range is 0.001 to 4.0.
+
+    \default 0.1
+    \since 6.11
+*/
+/*! \qmlproperty int ExtendedSceneEnvironment::ssgiSliceCount
+
+    Configures the global illumination algorithm.
+
+    The suggested range is 1 to 8.
+
+    \default 4
+    \since 6.11
+*/
+/*! \qmlproperty real ExtendedSceneEnvironment::ssgiHitThickness
+
+    Configures the global illumination algorithm.
+
+    The suggested range is 0.001 to 4.0.
+
+    \default 0.5
+    \since 6.11
+*/
+
+// SSR
+/*! \qmlproperty bool ExtendedSceneEnvironment::ssrEnabled
+    Enables screen-space reflections, a post-processing technique that creates
+    reflections by using data rendered on the screen.
+
+   \default false
+   \since 6.11
+   \table
+   \header
+   \li SSR disabled
+   \li SSR enabled
+   \row
+   \li \image extendedsceneenvironment_ssr_without.webp
+   \li \image extendedsceneenvironment_ssr_with.webp
+   \endtable
+*/

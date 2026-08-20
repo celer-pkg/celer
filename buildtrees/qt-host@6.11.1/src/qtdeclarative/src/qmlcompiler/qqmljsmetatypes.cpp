@@ -1,0 +1,119 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+// Qt-Security score:significant
+
+#include "qqmljsmetatypes_p.h"
+#include "qqmljstyperesolver_p.h"
+
+#include "QtQml/private/qqmltranslation_p.h"
+
+QT_BEGIN_NAMESPACE
+
+/*!
+    \class QQmlJSMetaPropertyBinding
+    \inmodule QtQmlCompiler
+    \internal
+
+    Represents a single QML binding of a specific type. Typically, when you
+    create a new binding, you know all the details of it already, so you should
+    just set all the data at once.
+*/
+
+/*!
+    A binding is valid when it has both a target (m_propertyName is set)
+    and some content set (m_bindingType != Invalid).
+*/
+bool QQmlJSMetaPropertyBinding::isValid() const
+{
+    return !m_propertyName.isEmpty() && bindingType() != QQmlSA::BindingType::Invalid;
+}
+
+bool QQmlJSMetaPropertyBinding::boolValue() const
+{
+    if (auto boolLit = std::get_if<Content::BoolLiteral>(&m_bindingContent))
+        return boolLit->value;
+    // warn
+    return false;
+}
+
+double QQmlJSMetaPropertyBinding::numberValue() const
+{
+    if (auto numberLit = std::get_if<Content::NumberLiteral>(&m_bindingContent))
+        return numberLit->value;
+    // warn
+    return 0;
+}
+
+QString QQmlJSMetaPropertyBinding::stringValue() const
+{
+    if (auto stringLiteral = std::get_if<Content::StringLiteral>(&m_bindingContent))
+        return stringLiteral->value;
+    // warn
+    return {};
+}
+
+QString QQmlJSMetaPropertyBinding::regExpValue() const
+{
+    if (auto regexpLiteral = std::get_if<Content::RegexpLiteral>(&m_bindingContent))
+        return regexpLiteral->value;
+    // warn
+    return {};
+}
+
+ /*!
+ *  Extracts the information about translations from a binding.
+ *  An additional context string is needed for text based translation (e.g. with qsTr())
+ *  and can be obtained from the name of the qml file.
+ *
+ *  \sa QQmlTranslation
+ */
+QQmlTranslation QQmlJSMetaPropertyBinding::translationDataValue(QString qmlFileNameForContext) const
+{
+    QQmlTranslation::Data data;
+    if (auto translation = std::get_if<Content::TranslationById>(&m_bindingContent)) {
+        data = QQmlTranslation::QsTrIdData(translation->id, translation->number);
+    } else if (auto translation = std::get_if<Content::TranslationString>(&m_bindingContent)) {
+        const QString context = translation->context.isEmpty()
+                ? QQmlTranslation::contextFromQmlFilename(qmlFileNameForContext)
+                : translation->context;
+        data = QQmlTranslation::QsTrData(context, translation->text, translation->comment,
+                                         translation->number);
+    }
+    return QQmlTranslation(data);
+}
+
+/*!
+    Uses \a resolver to return the correct type for the stored literal
+    and a null scope pointer if the binding does not contain a literal
+ */
+QSharedPointer<const QQmlJSScope> QQmlJSMetaPropertyBinding::literalType(const QQmlJSTypeResolver *resolver) const
+{
+    Q_ASSERT(resolver);
+    switch (bindingType()) {
+    case BindingType::BoolLiteral:
+        return resolver->boolType();
+    case BindingType::NumberLiteral:
+        return resolver->realType();
+    case BindingType::Translation: // translations are strings
+    case BindingType::TranslationById:
+    case BindingType::StringLiteral:
+        return resolver->stringType();
+    case BindingType::RegExpLiteral:
+        return resolver->regexpType();
+    case BindingType::Null:
+        return resolver->nullType();
+    case BindingType::Invalid:
+    case BindingType::Script:
+    case BindingType::Object:
+    case BindingType::Interceptor:
+    case BindingType::ValueSource:
+    case BindingType::AttachedProperty:
+    case BindingType::GroupProperty:
+        return {};
+    }
+    Q_UNREACHABLE_RETURN({});
+}
+
+QQmlJSMetaPropertyBinding::QQmlJSMetaPropertyBinding() = default;
+
+QT_END_NAMESPACE

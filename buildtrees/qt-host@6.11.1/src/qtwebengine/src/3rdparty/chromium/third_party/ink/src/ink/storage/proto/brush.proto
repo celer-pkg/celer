@@ -1,0 +1,72 @@
+// Copyright 2024-2025 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// Proto definitions for Brush and related messages for use in Ink Strokes API.
+
+syntax = "proto2";
+
+package ink.proto;
+
+import "ink/storage/proto/brush_family.proto";
+import "ink/storage/proto/color.proto";
+
+// Defines a specific instance of a particular `BrushFamily`. In addition to
+// the `BrushFamily`, the Brush specifies the `color`, `size`, and `epsilon`
+// used to generate and render the `Stroke`.
+message Brush {
+  // The `color` of the stroke.  This is essentially a parameter to the
+  // `BrushPaint`; it can be updated independently of the `BrushFamily`, but
+  // its exact meaning (e.g. how it interacts with the texture/shader) will
+  // depend on which `BrushPaint` is used.  However, notably, updating this
+  // color field *doesn't* require regenerating the stroke mesh (since it only
+  // affects rendering, not geometry).
+  optional Color color = 1;
+
+  // The `size` of the brush, as measured in stroke-space units.  Brush tip
+  // shapes are defined in terms of percentages of this size.  For a simple
+  // circular brush tip, this size will be the diameter of the circle, and hence
+  // the width of the stroke.  For more complicated brushes (such as
+  // non-circular brushes, or brushes with velocity-dependent widths), the exact
+  // relationship is at the discretion of the brush designer, and should
+  // generally be whatever usually "feels right" when substituting that brush in
+  // place of a simple circular brush with the same size field.
+  //
+  // Updating this size field requires regenerating the stroke mesh (since the
+  // mesh geometry will change).
+  //
+  // Client apps will typically want to provide a "size picker" UI that
+  // effectively allows the user to update this field.
+  optional float size_stroke_space = 2;
+
+  // The visual fidelity parameter used for the stroke in stroke space.
+  // This value represents the smallest distance between two points to still be
+  // considered distinct from each other; a lower value will result in a
+  // smoother curvature for a zoomed in stroke at the cost of higher memory
+  // usage.
+  //
+  // Updating the epsilon value requires regenerating the stroke mesh (since the
+  // mesh geometry will change).
+  optional float epsilon_stroke_space = 3;
+
+  // The `BrushFamily` specifies the `BrushTip` and the `BrushPaint` for a given
+  // `brush`.
+  //
+  // Updating the family will result in regenerating the stroke mesh if the
+  // `BrushTip` has changed, but not if only the paint has changed.
+  //
+  // Client apps will typically want to provide a "brush picker" UI that
+  // effectively allows the user to update this field.
+  optional BrushFamily brush_family = 4;
+  reserved 5;  // was brush_family_uri
+}

@@ -1,0 +1,136 @@
+version = 1
+
+[[annotations]]
+path = ["tests/manual/planets-qml/android/AndroidManifest.xml",
+        "tests/manual/planets-qml/planets-watchos/PlanetsClient**",
+        "tests/auto/quick3d/dynamicnodecreation/data/*.qml",
+        "tests/auto/quick3d/quick3dnodeinstantiator/data/*.qml",
+        "tests/auto/render/ddstextures/data/*.dds",
+        "tests/auto/render/ddstextures/data/*.pkm",
+        "tests/auto/render/gltfplugins/*",
+        "tests/auto/render/ktxtextures/data/*",
+        "tests/auto/geometryloaders/objgeometryloader/invalid_vertex_position.obj",
+        "tests/auto/render/qshaderprogram/*",
+        "tests/auto/render/shaderbuilder/*",
+        "tests/manual/advancedcustommaterial/*",
+        "tests/manual/anim-viewer/assets/*",
+        "tests/manual/audio-visualizer-qml/images/*",
+        "tests/manual/audio-visualizer-qml/music/*",
+        "tests/manual/bigscene-instanced-qml/*",
+        "tests/manual/clip-planes-qml/*",
+        "tests/manual/compressed_textures/data/*",
+        "tests/manual/compute-manual/*",
+        "tests/manual/compute-particles/shaders/gl43/*",
+        "tests/manual/deferred-renderer-cpp/*",
+        "tests/manual/exampleresources/assets/cubemaps/default/*",
+        "tests/manual/exampleresources/assets/cubemaps/miramar/*",
+        "tests/manual/exampleresources/assets/envmaps/cedar-bridge/*",
+        "tests/manual/exampleresources/assets/gltf/2.0/RiggedFigure/*",
+        "tests/manual/exampleresources/assets/obj/*",
+        "tests/manual/exampleresources/assets/textures/aluminium_random_brushed/*",
+        "tests/manual/exampleresources/assets/textures/american_walnut_crown_cut/*",
+        "tests/manual/exampleresources/assets/textures/ceramic_small_diamond/*",
+        "tests/manual/exampleresources/assets/textures/ceramic_tiles_brown_tomato/*",
+        "tests/manual/exampleresources/assets/textures/copper_brushed/*",
+        "tests/manual/exampleresources/assets/textures/gold_leaf_waste/*",
+        "tests/manual/advancedcustommaterial/shaders/es2/*",
+        "tests/manual/advancedcustommaterial/shaders/gl3/*",
+        "tests/manual/advancedcustommaterial/shaders/rhi/*",
+        "tests/manual/advancedcustommaterial/textures/*",
+        "tests/manual/compute-particles/shaders/gl45/*",
+        "tests/manual/deferred-renderer-qml/*",
+        "tests/manual/exampleresources/assets/gltf/2.0/RiggedSimple/*",
+        "tests/manual/planets-qml/android/res/drawable-*dpi/*",
+        "tests/manual/planets-qml/images/*",
+        "tests/manual/planets-qml/meshes/*",
+        "tests/manual/plasma/*",
+        "tests/manual/qtbug-76766/shaders/shader.*",
+        "tests/manual/qtbug-76766/expected_output.png",
+        "tests/manual/raycasting-qml/shaders/es2/simpleColor.*",
+        "tests/manual/raycasting-qml/shaders/gl3/simpleColor.*",
+        "tests/manual/render-qml-to-texture/shaders/es2/texturing.*",
+        "tests/manual/render-qml-to-texture/shaders/gl3/texturing.*",
+        "tests/manual/shadow-map-qml/shaders/es3/*",
+        "tests/manual/simple-shaders-qml/simple-shader.*",
+        "tests/manual/skinned-mesh/*",
+        "tests/manual/tessellation-modes/shaders/*",
+        "tests/manual/texture_property_updates/*",
+        "tests/manual/wave/shaders/*",
+        "tests/manual/spritegrid/spritegrid.png",
+        "tests/manual/shared_texture_image/image.png",
+        "tests/manual/rhi/simple-rhi-cpp/qtlogo.png",
+        "tests/manual/shader-image-qml/image_512x512.jpg",
+        "tests/manual/advancedcustommaterial/models/waterPlane.obj",
+        "tests/manual/exampleresources/assets/textures/no-ao.png",
+        "tests/manual/exampleresources/assets/test_scene.dae",
+        "tests/auto/render/gltexture/image.jpg",
+        "tests/**.json"]
+precedence = "closest"
+comment = "test"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GPL-3.0-only"
+
+[[annotations]]
+path = ["tests/auto/render/geometryloaders/cube*"]
+precedence = "closest"
+comment = "not sure"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GPL-3.0-only"
+
+[[annotations]]
+path = ["src/extras/shaders/**",
+        "src/quick3d/imports/**",
+        "src/quick3d/quick3dscene3d/shaders/*",
+        "src/core/doc/Qt3DDoc",
+        "tools/utils/qtcreator/templates/wizards/classes/qt3d/*",
+        "src/**.json"]
+precedence = "closest"
+comment = "module and plugin"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only"
+
+[[annotations]]
+path = ["**.pro", "**.qrc", "**CMakeLists.txt", ".cmake.conf", "**.yaml", ".tag",
+        "**.cfg", "**/qt_cmdline.cmake", "**/BLACKLIST", "**/Info.plist", "**.pri",
+        "**ci_config_linux.json", "**configure.json"]
+precedence = "closest"
+comment = "build system"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
+path = [".clang-format", "**/.gitattributes", "**.gitignore", "**/.gitreview", ".gitmodules"]
+precedence = "closest"
+comment = "version control system. Infrastructure"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
+
+[[annotations]]
+path = ["examples/**", "**/doc/snippets/**"]
+comment = "this must be after the build system table because example and snippets take precedence over build system"
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
+
+[[annotations]]
+path = ["**/doc/images/*", "doc/src/images/**", "**/README*", "**.qdocconf", "**.patch", "**/readme.txt",
+        ".qt-license-check.exclude", "config_help.txt", "**.qdocinc"]
+comment = "documentation"
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only"
+
+[[annotations]]
+path = ["**.toml", "licenseRule.json"]
+comment = "infrastructure"
+precedence = "override"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
+
+[[annotations]]
+path = ["**/qt_attribution.json"]
+comment = "documentation"
+precedence = "override"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only"
+

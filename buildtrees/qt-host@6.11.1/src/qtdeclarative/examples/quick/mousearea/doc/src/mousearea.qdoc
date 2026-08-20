@@ -1,0 +1,32 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+    \title Qt Quick Examples - MouseArea
+    \example mousearea
+    \brief This is an example of the MouseArea type in QML.
+    \image qml-mousearea-example.png
+    \ingroup qtquickexamples
+    \examplecategory {Graphics}
+
+    \e MouseArea example shows how to respond to clicks and drags with a
+    \l MouseArea. For more information, visit
+    \l{Important Concepts In Qt Quick - User Input}.
+
+    \include examples-run.qdocinc
+
+    \section1 MouseArea Behavior
+
+    When you click inside the red square, the \l Text type will list several
+    properties of that click which are available to QML. The opacity of the
+    red square will be reduced while the mouse is pressed and remains inside
+    the MouseArea.
+
+    Signals are emitted by the MouseArea when clicks or other discrete
+    operations occur within it.
+    \snippet mousearea/mousearea.qml clicks
+
+    \l MouseArea can also be used to drag items around. By setting the
+    parameters of the drag property, the target item will be dragged around if
+    the user starts to drag within the mouse area boundary.
+    \snippet mousearea/mousearea.qml drag
+*/

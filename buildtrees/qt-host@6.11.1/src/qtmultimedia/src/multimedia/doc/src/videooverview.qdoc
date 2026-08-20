@@ -1,0 +1,124 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+
+\page videooverview.html
+\title Video Overview
+\brief Video playback
+\ingroup explanations-graphicsandmultimedia
+
+\section1 Video Features
+
+Qt Multimedia offers both high and low level C++ classes for playing and
+manipulating video data, and QML types for playback and recording. Some
+of the classes presented here overlap with what is presented in the \l {Camera Overview} and
+\l {Audio Overview}.
+
+\section1 Video Implementation Details
+
+\target multimedia-playing-video
+\section2 Playing Video in C++
+
+You can use the \l QMediaPlayer class to decode a video file, and display
+it using \l QVideoWidget, \l QGraphicsVideoItem, or a custom class.
+
+Here's an example of using QVideoWidget:
+    \snippet multimedia-snippets/video.cpp Video widget
+
+And an example with QGraphicsVideoItem:
+    \snippet multimedia-snippets/video.cpp Video graphics item
+
+\section2 Playing Video in QML
+
+You can use \l VideoOutput to render content that is provided by
+either a \l MediaPlayer or a \l Camera. The VideoOutput is a visual
+component that can be embedded into a QQuickScene or \l Window, while
+all media decoding and playback control is handled by the \l MediaPlayer
+or \l CaptureSession. A \l Video element has been provided for convenience.
+It combines MediaPlayer, VideoOutput and AudioOutput elements in one item.
+
+\section2 Working with Low Level Video Frames
+
+Qt Multimedia offers a number of low level classes to make handling
+video frames a bit easier. These classes are primarily used when
+writing code that processes video or camera frames (for example,
+detecting barcodes, or applying a fancy vignette effect), or needs
+to display video in a special way that is otherwise unsupported.
+
+The \l QVideoFrame class encapsulates a video frame and allows the
+contents to be mapped into system memory for manipulation or
+processing. Using your own QVideoSink
+allows you to receive these frames from \l QMediaPlayer and
+\l QCamera.
+
+\section2 Recording Video
+The central class for any type of capturing or recording of audio and video is QMediaCaptureSession
+(or the CaptureSession QML type). You can connect a QCamera (Camera in QML) and a QMediaRecorder
+(MediaRecorder)to the session and then ask the media recorder to start recording.
+
+\section1 Supported Media Formats
+
+What media formats are supported ultimately depends on the configuration of the
+target system.
+
+\section2 Windows
+By default what is available on a MS Windows target depends on the version of
+\l{Windows Media Player} that was packaged with the OS. See the
+\l{Windows Media Player documentation} for official information.
+
+Independent of Windows Media Player, there are of course numerous codec packs
+that could be installed. See the \l{codec guide} site for some examples.
+
+\section2 Android
+See \l{Android supported media formats} for this information.
+
+\section2 Linux
+On Linux this is about installing the correct \l{GStreamer} plugins.
+
+\section3 Minimum Required GStreamer Plugins
+\list
+\li gstreamer1.0-plugins-base
+\li gstreamer1.0-plugins-good
+\li gstreamer1.0-plugins-pulseaudio
+\endlist
+
+For a Linux desktop target, it is strongly recommended to have \c gstreamer1.0-libav
+for good codec coverage and \c gstreamer1.0-vaapi to get hardware acceleration.
+
+On embedded Linux, the required set of plugins could be somewhat different.
+
+\section2 Determining Supported Media Formats at Runtime
+You can determine what formats are available on a target system at runtime using
+the static QMediaFormat API.
+
+\list
+\li Use \l QMediaFormat::isSupported() on a QMediaFormat::ConversionMode to query a
+    specific format.
+\li Use \l QMediaFormat::supportedFileFormats() on a default constructed QMediaFormat
+    to get all the supported file formats.
+\endlist
+
+\section1 Examples
+
+There are both C++ and QML examples available.
+
+\section2 C++ Examples
+
+\annotatedlist video_examples
+
+\section2 QML Examples
+
+\annotatedlist video_examples_qml
+
+\section1 Reference Documentation
+
+\section2 C++ Classes
+
+\annotatedlist multimedia_video
+
+\section2 QML Types
+
+\annotatedlist multimedia_video_qml
+
+*/

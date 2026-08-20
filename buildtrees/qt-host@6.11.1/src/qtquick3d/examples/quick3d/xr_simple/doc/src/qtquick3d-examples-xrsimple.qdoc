@@ -1,0 +1,37 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example xr_simple
+    \ingroup quick3d-examples
+    \ingroup qt3dxr-examples
+    \title Qt Quick 3D - XR Simple Example
+    \examplecategory {3D}
+    \brief Demonstrates setting up a simple VR scene with Qt Quick 3D XR.
+    \image xrsimple-example.jpg
+           {VR scene with text Qt 6 in VR and three colored cubes}
+
+    This example gives an introductory overview of the basic \qxr features.
+
+    The main difference when writing an XR application is that the root item of
+    our main.qml is an \l XrView instead of a Window with a View3D:
+
+    \snippet xr_simple/main.qml XrView
+
+    The XrView contains the 3D scene, just like a View3D. In this example we add an
+    \l XrErrorDialog that will show an error dialog if we get an error initializing the
+    VR headset when streaming from a desktop PC. We also specify that the reference frame
+    for this application is measured from the floor of the room where the user is located.
+    That is, the floor will be at \c {y = 0}.
+
+    The origin of the reference frame is defined by the \l XrOrigin:
+
+    \snippet xr_simple/main.qml XrOrigin
+
+    In this example we add two \l XrController items, one for each hand. They will track
+    the position and orientation of the user's hands. Since XrController is a \l Node, any
+    children will automatically follow the hand movements. In this case, we use a simple
+    model of a cube to visualize the controller's position.
+
+    The rest of main.qml is a normal Qt Quick 3D scene.
+*/

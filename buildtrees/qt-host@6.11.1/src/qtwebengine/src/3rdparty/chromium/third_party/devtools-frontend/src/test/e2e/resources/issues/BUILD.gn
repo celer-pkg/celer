@@ -1,0 +1,33 @@
+# Copyright 2020 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("../../../../scripts/build/ninja/copy.gni")
+
+copy_to_gen("issues") {
+  sources = [
+    "acac-invalid.rawresponse",
+    "acao-mismatch.rawresponse",
+    "client-hint-issue-DelegateCH-MetaTagAllowListInvalidOrigin.html",
+    "client-hint-issue-DelegateCH-MetaTagModifiedHTML.html",
+    "cookie-domain-non-ascii.rawresponse",
+    "corp-frame.rawresponse",
+    "cors-issue-2.html",
+    "cors-issue.html",
+    "credentialed-redirect.rawresponse",
+    "invalid-response-code.rawresponse",
+    "method-disallowed.rawresponse",
+    "origin-wildcard.rawresponse",
+    "redirect.rawresponse",
+    "sab-issue.rawresponse",
+    "select-element-accessibility-issue-DisallowedOptGroupChild.html",
+    "select-element-accessibility-issue-DisallowedSelectChild.html",
+    "select-element-accessibility-issue-InteractiveAttributesSelectDescendant.html",
+    "select-element-accessibility-issue-InteractiveContentLegendChild.html",
+    "select-element-accessibility-issue-InteractiveContentOptionChild.html",
+    "select-element-accessibility-issue-NonPhrasingContentOptionChild.html",
+    "summary-element-accessibility-issue-InteractiveContentSummaryDescendant.html",
+    "wasm-co-iframe.html",
+    "wasm-co-sharing.html",
+  ]
+}

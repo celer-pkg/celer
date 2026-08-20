@@ -1,0 +1,25 @@
+# Copyright (C) 2022 The Qt Company Ltd.
+# SPDX-License-Identifier: BSD-3-Clause
+
+
+add_subdirectory(scxmlcoutput)
+if(TARGET Qt::Gui AND TARGET Qt::Qml)
+    if(TARGET Qt::Scxml)
+        add_subdirectory(compiled)
+        add_subdirectory(dynamicmetaobject)
+        add_subdirectory(parser)
+        add_subdirectory(scion)
+        add_subdirectory(statemachine)
+        add_subdirectory(statemachineinfo)
+        if(NOT (WIN32 AND CMAKE_CROSSCOMPILING))
+            add_subdirectory(cmake)
+        endif()
+    endif()
+    add_subdirectory(qml)
+    if(TARGET Qt::QuickTest)
+        add_subdirectory(qmltest)
+    endif()
+endif()
+if(NOT UIKIT AND TARGET Qt::StateMachine)
+    add_subdirectory(qstatemachine)
+endif()

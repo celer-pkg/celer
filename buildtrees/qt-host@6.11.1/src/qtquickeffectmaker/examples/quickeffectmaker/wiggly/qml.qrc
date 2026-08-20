@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/wiggly">
+        <file>main.qml</file>
+        <file>injekuta_bl.otf</file>
+        <file>WigglyEffect/WigglyEffect.qml</file>
+        <file>WigglyEffect/wigglyeffect.vert.qsb</file>
+        <file>WigglyEffect/wigglyeffect.frag.qsb</file>
+    </qresource>
+</RCC>

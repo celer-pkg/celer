@@ -1,0 +1,559 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtprotobuf-index.html
+    \title Qt Protobuf
+    \ingroup frameworks-technologies
+
+    The Qt Protobuf \l {The qtprotobufgen Tool}{generator plugin} generates
+    Qt-based classes from \c{.proto} files. You can use the classes to
+    serialize and deserialize their associated protobuf messages.
+
+    \section1 Overview
+
+    \section2 What are protocol buffers?
+    Protocol buffers are a language-neutral, platform-neutral, and extensible
+    mechanism for serializing structured data, which is compact and easy
+    to use:
+    \list
+        \li A user defines the structure of data in \c{.proto} files.
+        \li Proto compiler is invoked at build time on \c{.proto} files to
+            generate code in various programming languages.
+    \endlist
+    The provided format is suitable for network traffic or long-term data
+    storage.
+
+    \section2 Which problems do protocol buffers solve?
+    Protocol buffers provide a serialization format for typed and structured data
+    packets up to a few megabytes in size. It allows for the extension with new
+    information without invalidating existing data or requiring code to be updated.
+    For more information, see
+    \l {https://protobuf.dev/}{Protocol Buffers Overview}.
+
+    \section2 Benefits of using Qt Protobuf
+    You can use a Protocol buffers mechanism in any Qt-based project:
+    \list
+        \li Without the need to call a protocol buffer compiler explicitly.
+        \li Without manually integrating generated code into the project tree.
+        \li To access the serialization and deserialization API.
+        \li For integrated properties mechanism for generated protobuf messages.
+        \li For integrated gRPC-client support, see \l {Qt GRPC}{Qt GRPC module}.
+        \li For integrated \l{Qt Protobuf QML Types} {QML-types} support for
+            generated protobuf messages.
+        \li For using enabled \l {Protobuf Qt Core Types Module} {Qt Core} and
+            \l {Protobuf Qt GUI types module} {Qt GUI} types as a part
+            of *.proto schema.
+    \endlist
+
+    \section1 Using the Module
+    Google protocol buffers provide a generator called \c protoc that
+    supports extensions. \l {The qtprotobufgen Tool} is an extension
+    for \c protoc and requires that you install \c protoc on your host system.
+    For more information about the installation, see
+    \l {https://grpc.io/docs/protoc-installation/}{Protoc Installation}.
+
+    \section3
+    \list
+        \li Example of installation for Linux, using \e {apt}:
+            \badcode
+                apt install -y protobuf-compiler
+                protoc --version  # Ensure compiler version is 3+
+            \endcode
+        \li \l {Example of installation for Windows using vcpkg}
+    \endlist
+
+    \section2 QML API
+    The QML types of the module are available through the QML and QML_URI
+    options in the \l{qt_add_protobuf} macro.
+    The import name is equal to the \c.proto package name or defined by
+    QML_URI option in the \l{qt_add_protobuf} macro.
+    To use the types, add the following import statement to your .qml file:
+    \code
+        import my.proto.package.uri
+    \endcode
+
+    \section2 C++ API
+
+    \include {module-use.qdocinc} {using the c++ api}
+
+    \section3 Building with CMake
+
+    \include {module-use.qdocinc} {building with cmake} {Protobuf}
+
+    \section1 Articles and Guides
+    \list
+        \li \l {CMake Commands in Qt6 Protobuf}
+        \li \l {Protobuf Qt Core Types Module} {Protobuf Qt Core Types}
+        \li \l {Protobuf Qt GUI Types Module} {Protobuf Qt GUI Types}
+        \li \l {Qt Protobuf Well-Known Types C++ Classes} {Qt Protobuf Well-Known types}
+        \li \l {Qt Protobuf Mutable Getters} {Qt Protobuf Mutable Getters}
+    \endlist
+
+    \section1 References
+    \list
+        \li \l {Qt Protobuf C++ Classes}{Qt Protobuf C++ Classes}
+        \li \l {Qt Protobuf QML Types}
+    \endlist
+
+    \section1 Examples
+    \list
+        \li \l {Qt Protobuf Examples}
+    \endlist
+
+    \section1 Licenses and Attributions
+
+    The Qt Protobuf module is available under commercial licenses from \l{The Qt Company}.
+    In addition, it is available under free software licenses:
+    The \l{GNU Lesser General Public License, version 3}, or
+    the \l{GNU General Public License, version 2}, or
+    the \l{GNU General Public License, version 3}.
+    See \l{Qt Licensing} for further details.
+
+    Furthermore, the \c qtprotobufgen tool in Qt \QtVersion may contain third
+    party modules under the following permissive licenses:
+
+    \annotatedlist attributions-qtprotobuf-tools
+*/
+
+/*!
+    \module QtProtobuf
+    \title Qt Protobuf C++ Classes
+    \qtcmakepackage Protobuf
+    \since 6.5
+    \brief Provides protocol buffers support in Qt.
+*/
+
+/*!
+    \group qtprotobuf-examples
+    \title Qt Protobuf Examples
+    \brief A collection describes existing QML-types support for \l {Qt Protobuf}
+
+    These examples demonstrate how to generate code using the protobuf schema
+    and use it in your projects.
+*/
+
+/*!
+    \page qtprotobuf-installation-windows-vcpkg.html
+    \title Example of installation for Windows using vcpkg
+    \brief Installing instructions for Protobuf and \gRPC on Windows.
+
+    You can install Protobuf and \gRPC packages on Windows using
+    \e vcpkg.
+    \note As an alternative solution, you can build Protobuf and \gRPC
+    packages manually. Build instructions can be found for
+    \l {https://github.com/protocolbuffers/protobuf/blob/main/cmake/README.md#windows-builds}{Protobuf}
+    and \l{https://github.com/grpc/grpc/blob/v1.60.0/BUILDING.md#windows}{gRPC}
+    respectively.
+
+    Windows installation prerequisites:
+    \list
+        \li \l {https://vcpkg.io/en/getting-started.html}
+            {The vcpkg package manager}
+        \li \l {https://visualstudio.microsoft.com/vs/features/cplusplus/}
+               {Microsoft Visual C++ compiler}
+        \li \l {Get and Install Qt}
+            {Qt 6.6 or later, including \e {Additional libraries}:
+            \l {Qt Protobuf} and \l {Qt GRPC}}
+    \endlist
+
+    The \c vcpkg is a cross-platform C/C++ package manager.
+    You can use the \c vcpkg for Protobuf, \gRPC and its dependencies
+    installation:
+    \badcode
+        .\vcpkg.exe install protobuf protobuf:x64-windows
+        .\vcpkg.exe install grpc:x64-windows
+    \endcode
+    \note We recommend using Manifest mode. This mode uses declarative JSON files
+    to describe metadata about the project. Manifest files are required to have
+    the vcpkg.json name.
+
+    Finally, you can build and execute Qt-based projects with
+    Protobuf and \gRPC support.
+    For instance, run \l {Magic 8 Ball} from your installed version
+    of Qt.
+    The example requires both packages to be installed, since \c {Magic 8 Ball}
+    uses native C++ source code generator plugin for the server part
+    of application.
+    Following steps are required to start \c {Magic 8 Ball} example:
+    \list
+        \li Find \l {Magic 8 Ball} in \c Examples section:
+            \image qt-creator.webp {Screenshot showing the Qt Creator home
+                   menu, in examples section with "magic" typed in the
+                   search bar and shows the examples with this name}
+        \li Choose MSVC-based building kit from Qt-creator configuration
+            settings:
+            \image msvc-kit.webp {Screenshot showing the msvc kit that
+                   built the project}
+        \li Add the paths to the installed Protobuf and \gRPC packages
+            to the \c CMAKE_PREFIX_PATH environment variable inside
+            \c {Initial Configuration} settings block:
+            \image path-env-variable.webp {Screenshot showing the build
+                   options from qt creator with the msvc kit}
+        \li Build and Run.
+    \endlist
+*/
+
+/*!
+    \page qtprotobuf-qml-types.html
+    \title Qt Protobuf QML Types
+    \brief A collection of examples for \l {Qt Protobuf}
+
+    With the \l{The qtprotobufgen Tool}{generator plugin}, you can register
+    protobuf messages in the QML. To register the type, use the
+    \c QML and \c QML_URI generation keys. See API details in
+    \l{qt_add_protobuf}{qt_add_protobuf} command and
+    API usage example \l{QML extended protobuf example}{QML extended protobuf}.
+
+    Registered protobuf messages are available in the QML,
+    like built-in \l{Q_GADGET} types. The registration is done via the QML
+    module.
+
+    \section1 Using protobuf messages in QML
+    Use the \l{The qtprotobufgen Tool}{generator plugin} to generate libraries
+    of protobuf messages that you can access from Qt Quick applications. The
+    \l{CMake Commands in Qt6 Protobuf}{Qt Protobuf CMake API} has respective
+    options that control the QML module creation.
+
+    For example, you have the \c userdb.proto protobuf schema that contains the
+    \c User message:
+    \badcode
+        syntax = "proto3";
+
+        package userdb;
+
+        message User {
+            enum Type {
+                Admin = 0;
+                Manager = 1;
+                Account = 2;
+                Director = 3;
+            }
+            Type type = 1;
+            string name = 2;
+            string email = 3;
+        }
+    \endcode
+
+    To expose the \c User message in QML, use the protobuf schema and the
+    \l{qt_add_protobuf} command with the \c QML argument:
+    \badcode
+        qt_add_executable(appuserdb
+            ...
+        )
+
+        qt_add_qml_module(appuserdb
+            URI userdb
+            VERSION 1.0
+            QML_FILES
+                ...
+            SOURCES
+                ...
+        )
+
+        qt_add_protobuf(userdb_gen
+            QML
+            QML_URI "userdb.pb"
+            PROTO_FILES
+                userdb.proto
+        )
+
+        target_link_libraries(appuserdb PRIVATE userdb_gen)
+    \endcode
+
+    The \l{qt_add_protobuf} function will generate a library called
+    \c userdb_gen, containing the protobuf messages from \c userdb.proto with
+    QML support. To use the messages in QML, import the generated QML module
+    using the URI specified in the \c QML_URI argument of the \c qt_add_protobuf
+    call:
+    \code
+    import userdb.pb
+    \endcode
+
+    All protobuf messages are registered as \l{QML Value Types}. To use them in
+    QML, define the \l{Property attributes}{property attribute} for some QML
+    item:
+    \code
+        Window {
+            id: userAddForm
+            property user newUser
+            ...
+        }
+    \endcode
+
+    To change the \c type, \c name, or \c email fields of the \c newUser
+    property, use QML signal callbacks. For example:
+    \code
+        TextField {
+            id: userNameField
+            onTextChanged: {
+                userAddForm.newUser.name = userNameField.text
+            }
+        }
+        ...
+        TextField {
+            id: userEmailField
+            onTextChanged: {
+                userAddForm.newUser.email = userEmailField.text
+            }
+        }
+    \endcode
+
+    The \c User.Type enum values are also accessible from QML. The below example
+    shows how to create a \l ComboBox item using the enum values:
+    \code
+        ComboBox {
+            id: userTypeField
+            textRole: "key"
+            model: ListModel {
+                id: userTypeModel
+                ListElement { key: "Admin"; value: User.Admin }
+                ListElement { key: "Second"; value: User.Manager }
+                ListElement { key: "Account"; value: User.Account }
+                ListElement { key: "Director"; value: User.Director }
+            }
+            onActivated: function(index) {
+                userAddForm.newUser.type = userTypeModel.get(index).value
+            }
+        }
+    \endcode
+
+    \section1 Integrating QML and C++
+
+    C++ classes registered in QML may use the messages created in QML in both
+    properties and invocable methods.
+
+    The singleton QML object \c UserDBEngine exposes the \c lastAddedUser
+    property and the invocable method \c addUser to QML:
+    \code
+        class UserDBEngine : public QObject
+        {
+            Q_OBJECT
+            QML_ELEMENT
+            QML_SINGLETON
+
+            Q_PROPERTY(userdb::User lastAddedUser READ lastAddedUser WRITE setLastAddedUser NOTIFY lastAddedUserChanged FINAL)
+        public:
+            ...
+            Q_INVOKABLE void addUser(const userdb::User &newUser);
+            ...
+        }
+    \endcode
+
+    The \c lastAddedUser property has the \c userdb::User type generated from
+    the \c userdb.proto schema from the previous section. The invocable
+    \c addUser method accepts constant reference to an object of
+    \c userdb::User type. Both property and method can be used from QML:
+    \code
+        Button {
+            text: "Add"
+            onClicked: {
+                // Use the property created in the previous section
+                UserDBEngine.addUser(userAddForm.newUser)
+            }
+        }
+        ...
+        Text {
+            // The text will be updated automatically when lastAddedUser is changed
+            text: "Last added user: " + UserDBEngine.lastAddedUser.name
+        }
+    \endcode
+
+    \section1 Protobuf message duplicates
+    You should avoid declaration of protobuf message duplicates in your
+    \c *.proto files or do it wisely. If your application uses several identical
+    protobuf message names declared inside different protobuf packages, they
+    might contradict each other in auto-generated code.
+    In the example below, two different proto packages, \c qtprotobufnamespace
+    and \c qtprotobufnamespace1.nested, use the same proto message
+    \c NestedFieldMessage.
+    The file \c nested.proto:
+    \badcode
+        syntax = "proto3";
+
+        package qtprotobufnamespace;
+        import "externalpackage.proto";
+
+        message NestedFieldMessage {
+            sint32 testFieldInt = 1;
+        }
+    \endcode
+    The file \c nestedspace1.proto:
+    \badcode
+        syntax = "proto3";
+
+        package qtprotobufnamespace1.nested;
+
+        message NestedFieldMessage {
+            message NestedMessage {
+                sint32 field = 1;
+            }
+            NestedMessage nested = 1;
+        }
+    \endcode
+    In case there is no possibility to avoid name duplicates among
+    packages, then put duplicated messages in different QML modules
+    and use a <Qualifier> for each QML module import,
+    see \l{Module (Namespace) Imports}.
+    Below the example how to add protobuf packages into different
+    QML modules:
+    \badcode
+        # qtprotobufnamespace QML module
+        qt_add_protobuf(nestedtypes_qtprotobuf_qml
+            PROTO_FILES
+                nested.proto
+            QML
+            QML_URI
+                qtprotobufnamespace
+            OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/qt_protobuf_gen1"
+        )
+
+        ...
+
+        # qtprotobufnamespace1.nested QML module
+        qt_add_protobuf(nestedspace_qml
+            PROTO_FILES
+                nestedspace1.proto
+            QML
+            QML_URI
+                qtprotobufnamespace1.nested
+            OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/qt_protobuf_gen2"
+        )
+    \endcode
+    The <Qualifier> usage example:
+    \badcode
+        import qtprotobufnamespace as NestedFieldMessages
+        import qtprotobufnamespace1.nested as FieldMessages_Nested1
+
+        ...
+
+        property NestedFieldMessages.nestedFieldMessage fieldMsg1;
+        property FieldMessages_Nested1.nestedFieldMessage fieldMsg2;
+    \endcode
+    \note The usage of duplicates will trigger a warning at compilation time.
+
+    \section1 QML types duplicates
+    If your application uses protobuf messages with names that
+    are already reserved in QML as QML types, then the correct behavior
+    cannot be guaranteed, and \c {Element is not creatable} error
+    would be triggered. To prevent an overlapping of QML Types,
+    use a <Qualifier> for QML module import, see
+    \l{Module (Namespace) Imports}.
+    For example, the following protobuf messages would be clashing
+    with the \l Text and \l Item QML types when imported into the
+    global namespace:
+    \badcode
+        syntax = "proto3";
+        package test.example;
+
+        message Text {
+            string text = 1;
+        }
+
+        message Item {
+            sint32 width = 1;
+            sint32 height = 2;
+        }
+    \endcode
+    Use the \l qt_add_protobuf macro with the \c QML option to
+    enable QML types generation from the above protobuf messages.
+    See the example below:
+    \badcode
+        qt_add_protobuf(example
+            PROTO_FILES
+                test.proto
+            QML
+            QML_URI
+                test.example
+        )
+    \endcode
+    Clashes with the QML types will be triggered if protobuf
+    messages are imported into a global namespace after the QtQuick
+    import. See the example below:
+    \badcode
+        import QtQuick
+        import test.example
+
+        Item {
+           id: root
+           ...
+           property ProtobufMessages.item itemData
+       }
+    \endcode
+    To avoid clashes with the QML types, use a \c <Qualifier>
+    to import the generated QML module into a local namespace.
+    See the example below:
+    \badcode
+        // No qualifier - global namespace
+        import QtQuick
+        // ProtobufMessages - a qualifier of local namespace.
+        import test.example as ProtobufMessages
+
+        Item {
+            id: root
+            ...
+            property ProtobufMessages.item itemData
+        }
+    \endcode
+    \section2 QML keywords handling
+    Pay attention to the keywords that are reserved in QML or
+    JavaScript context, but not reserved in *.proto context.
+    Fields with names that are reserved by QML
+    will be silently extended by \c _proto suffix by the
+    \l {The qtprotobufgen Tool}{generator plugin}.
+    For example, \c id, \c property, and \c import are reserved keywords.
+    They will be replaced by \c id_proto, \c property_proto,
+    \c import_proto:
+    \badcode
+        message MessageUpperCaseReserved {
+            sint32 Import = 1;
+            sint32 Property = 2;
+            sint32 Id = 3;
+        }
+    \endcode
+    Generated code output:
+    \code
+        Q_PROPERTY(QtProtobuf::sint32 import_proto READ import_proto ...)
+        Q_PROPERTY(QtProtobuf::sint32 property_proto READ property_proto ...)
+        Q_PROPERTY(QtProtobuf::sint32 id_proto READ id_proto ...)
+    \endcode
+    Also, enum values cannot begin with a lower case letter.
+    The \l {The qtprotobufgen Tool}{generator plugin} will capitalize
+    the first letter in code output. See the \c *.proto example below:
+    \badcode
+        enum LowerCaseEnum {
+            enumValue0 = 0;
+            enumValue1 = 1;
+            enumValue2 = 2;
+        }
+    \endcode
+    Generated code output:
+    \code
+        enum LowerCaseEnum {
+            EnumValue0 = 0,
+            EnumValue1 = 1,
+            EnumValue2 = 2,
+        };
+        Q_ENUM(LowerCaseEnum)
+    \endcode
+    Also, enum fields cannot begin with an underscore symbol.
+    Such fields will be generated as is, but will be undefined in
+    the QML, unless the QML engine will allow registering
+    them in the future. See the \c *.proto example below:
+    \badcode
+        enum UnderScoreEnum {
+            _enumUnderscoreValue0 = 0;
+            _EnumUnderscoreValue1 = 1;
+        }
+    \endcode
+    Generated output:
+    \code
+        enum UnderScoreEnum {
+            _enumUnderscoreValue0 = 0,
+            _EnumUnderscoreValue1 = 1,
+        };
+        Q_ENUM(UnderScoreEnum)
+    \endcode
+    For more information about the QML properties syntax, check
+    \l {Defining Property Attributes}.
+*/

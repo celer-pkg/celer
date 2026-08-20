@@ -1,0 +1,6 @@
+version = 1
+
+[[annotations]]
+path = ["*"]
+precedence = "closest"
+SPDX-License-Identifier = "Apache-2.0 OR MIT"

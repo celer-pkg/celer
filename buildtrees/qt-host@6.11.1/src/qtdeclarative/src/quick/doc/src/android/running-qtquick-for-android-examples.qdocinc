@@ -1,0 +1,13 @@
+    \section1 Qt Quick for Android API examples are Android Studio Projects
+
+    The Qt Quick for Android API examples are provided as Android Studio projects.
+    The project folders are found in your Qt install location.
+
+    For example, under the default Windows install path, they are found here:
+
+    \badcode
+        C:\Qt\Examples\Qt-<patch-release-number>\platforms\android\<example-name>
+    \endcode
+
+    These projects are already configured to use a version of the
+    \l{Qt Gradle Plugin} compatible with this Qt version.

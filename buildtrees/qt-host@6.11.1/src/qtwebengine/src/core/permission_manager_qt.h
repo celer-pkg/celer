@@ -1,0 +1,143 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
+
+#ifndef PERMISSION_MANAGER_QT_H
+#define PERMISSION_MANAGER_QT_H
+
+#include "base/functional/callback.h"
+#include "content/public/browser/global_routing_id.h"
+#include "content/public/browser/media_stream_request.h"
+#include "content/public/browser/permission_controller_delegate.h"
+#include "content/public/browser/render_frame_host.h"
+
+#include <QtWebEngineCore/qwebenginepermission.h>
+#include "profile_adapter.h"
+#include "web_contents_adapter_client.h"
+
+#include <map>
+#include <tuple>
+
+class PrefService;
+
+namespace QtWebEngineCore {
+
+class PermissionManagerQt : public content::PermissionControllerDelegate
+{
+public:
+    PermissionManagerQt(ProfileAdapter *adapter);
+    ~PermissionManagerQt();
+
+    static content::GlobalRenderFrameHostToken deserializeToken(int childId, const std::string &serializedToken);
+
+    void setPermission(
+        const QUrl &origin,
+        const QWebEnginePermission::PermissionType permissionType,
+        const QWebEnginePermission::State state,
+        const content::GlobalRenderFrameHostToken &frameToken);
+
+    void setPermission(
+        const QUrl &origin,
+        const QWebEnginePermission::PermissionType permissionType,
+        const QWebEnginePermission::State state,
+        int childId, const std::string &serializedToken);
+
+    QWebEnginePermission::State getPermissionState(const QUrl &origin, const QWebEnginePermission::PermissionType permissionType,
+        const content::GlobalRenderFrameHostToken &frameToken);
+    QList<QWebEnginePermission> listPermissions(const QUrl &origin, const QWebEnginePermission::PermissionType permissionType);
+
+    void requestMediaPermissions(
+            content::RenderFrameHost *render_frame_host,
+            const WebContentsAdapterClient::MediaRequestFlags flags,
+            base::OnceCallback<void(WebContentsAdapterClient::MediaRequestFlags authorizationFlags)> callback);
+
+    void onCrossOriginNavigation(content::RenderFrameHost *render_frame_host);
+
+    void commit();
+
+    // content::PermissionManager implementation:
+    blink::mojom::PermissionStatus GetPermissionStatus(
+        const blink::mojom::PermissionDescriptorPtr &permission,
+        const GURL& requesting_origin,
+        const GURL& embedding_origin) override;
+
+    content::PermissionStatus GetPermissionStatusForCurrentDocument(const blink::mojom::PermissionDescriptorPtr&, content::RenderFrameHost*, bool) override;
+
+    blink::mojom::PermissionStatus GetPermissionStatusForWorker(const blink::mojom::PermissionDescriptorPtr&, content::RenderProcessHost *, const GURL &) override;
+
+    blink::mojom::PermissionStatus GetPermissionStatusForEmbeddedRequester(const blink::mojom::PermissionDescriptorPtr&, content::RenderFrameHost*, const url::Origin&) override;
+
+    content::PermissionResult GetPermissionResultForOriginWithoutContext(const blink::mojom::PermissionDescriptorPtr&, const url::Origin&, const url::Origin&) override;
+
+    void ResetPermission(
+        blink::PermissionType permission,
+        const GURL& requesting_origin,
+        const GURL& embedding_origin) override;
+
+    void RequestPermissions(
+            content::RenderFrameHost *render_frame_host,
+            const content::PermissionRequestDescription &request_description,
+            base::OnceCallback<void(const std::vector<blink::mojom::PermissionStatus>&)> callback) override;
+
+    void RequestPermissionsFromCurrentDocument(
+            content::RenderFrameHost *render_frame_host,
+            const content::PermissionRequestDescription &request_description,
+            base::OnceCallback<void(const std::vector<blink::mojom::PermissionStatus> &)> callback) override;
+
+private:
+    struct Request {
+        int id;
+        QWebEnginePermission::PermissionType type;
+        QUrl origin;
+        base::OnceCallback<void(blink::mojom::PermissionStatus)> callback;
+    };
+    struct MultiRequest {
+        int id;
+        std::vector<blink::PermissionType> types;
+        QUrl origin;
+        base::OnceCallback<void(const std::vector<blink::mojom::PermissionStatus>&)> callback;
+    };
+    struct Subscription {
+        QWebEnginePermission::PermissionType type;
+        QUrl origin;
+        base::RepeatingCallback<void(blink::mojom::PermissionStatus)> callback;
+    };
+
+    void setPermissionImpl(
+        const QUrl &origin,
+        const QWebEnginePermission::PermissionType permissionType,
+        const QWebEnginePermission::State state,
+        const content::GlobalRenderFrameHostToken &frameToken);
+
+    blink::mojom::PermissionStatus getTransientPermissionStatus(blink::PermissionType permission,
+        const GURL& requesting_origin,
+        content::GlobalRenderFrameHostToken token);
+
+    void setPersistentPermission(blink::PermissionType permission,
+        const GURL& requesting_origin,
+        bool granted);
+
+    void setTransientPermission(blink::PermissionType permission,
+        const GURL& requesting_origin,
+        bool granted,
+        content::GlobalRenderFrameHostToken token);
+
+    void resetTransientPermission(blink::PermissionType permission,
+        const GURL& requesting_origin,
+        content::GlobalRenderFrameHostToken token);
+
+    std::vector<Request> m_requests;
+    std::vector<MultiRequest> m_multiRequests;
+    std::vector<QWebEnginePermission::PermissionType> m_permissionTypes;
+    std::map<content::GlobalRenderFrameHostToken,
+        QList<std::tuple<GURL, blink::PermissionType, bool>>> m_transientPermissions;
+    int m_requestIdCount;
+    int m_transientWriteCount;
+    std::unique_ptr<PrefService> m_prefService;
+    QPointer<QtWebEngineCore::ProfileAdapter> m_profileAdapter;
+    bool m_persistence;
+};
+
+} // namespace QtWebEngineCore
+
+#endif // PERMISSION_MANAGER_QT_H

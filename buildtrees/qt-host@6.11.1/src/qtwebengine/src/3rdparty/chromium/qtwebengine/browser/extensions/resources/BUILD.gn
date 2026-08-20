@@ -1,0 +1,36 @@
+# Copyright (C) 2025 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+
+import("//ui/webui/resources/tools/build_webui.gni")
+
+build_webui("build") {
+  grd_prefix = "extensions_ui_qt"
+
+  static_files = [
+    "extensions_ui_qt.html",
+    "extensions_ui_qt.css",
+  ]
+
+  web_component_files = [
+    "extensions_list.ts",
+    "toolbar.ts",
+  ]
+
+  # You will add these files in the next step:
+  ts_files = [
+    "extensions_ui_browser_proxy.ts",
+  ]
+
+  ts_deps = [
+    "//ui/webui/resources/mojo:build_ts",
+    "//third_party/polymer/v3_0:library"
+  ]
+  mojo_files_deps =
+      [ "//qtwebengine/browser/extensions/webui:mojo_bindings_ts__generator" ]
+  mojo_files = [ "$root_gen_dir/qtwebengine/browser/extensions/webui/extensions_ui_qt.mojom-webui.ts" ]
+
+  grit_output_dir = "$root_gen_dir/qtwebengine/browser/extensions/resources"
+
+  webui_context_type = "trusted"
+  enable_type_aware_eslint_checks = false
+}

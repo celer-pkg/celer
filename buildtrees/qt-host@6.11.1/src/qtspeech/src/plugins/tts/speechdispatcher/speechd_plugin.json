@@ -1,0 +1,10 @@
+{
+    "Keys": ["speechd"],
+    "Provider": "speechd",
+    "Version": 100,
+    "Priority": 80,
+    "Capabilities": [
+        "Speak",
+        "PauseResume"
+    ]
+}

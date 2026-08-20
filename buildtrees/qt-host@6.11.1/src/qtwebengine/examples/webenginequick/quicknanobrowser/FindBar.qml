@@ -1,0 +1,110 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+
+import QtQuick
+import QtQuick.Controls.Fusion
+import QtQuick.Layouts
+
+Rectangle {
+    id: root
+
+    property int numberOfMatches: 0
+    property int activeMatch: 0
+    property alias text: findTextField.text
+
+    function reset() {
+        numberOfMatches = 0;
+        activeMatch = 0;
+        visible = false;
+    }
+
+    signal findNext()
+    signal findPrevious()
+
+    width: 250
+    height: 35
+    radius: 2
+
+    border.width: 1
+    border.color: "black"
+    color: "white"
+
+    onVisibleChanged: {
+        if (visible)
+            findTextField.forceActiveFocus();
+    }
+
+
+    RowLayout {
+        anchors.fill: parent
+        anchors.topMargin: 5
+        anchors.bottomMargin: 5
+        anchors.leftMargin: 10
+        anchors.rightMargin: 10
+
+        spacing: 5
+
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+
+            TextField {
+                id: findTextField
+                anchors.fill: parent
+                color: "black"
+                background: Rectangle {
+                    color: "transparent"
+                }
+
+                onAccepted: root.findNext()
+                onTextChanged: root.findNext()
+                onActiveFocusChanged: activeFocus ? selectAll() : deselect()
+            }
+        }
+
+        Label {
+            text: root.activeMatch + "/" + root.numberOfMatches
+            visible: findTextField.text !== ""
+            color: "black"
+        }
+
+        Rectangle {
+            border.width: 1
+            border.color: "#dddddd"
+            Layout.preferredWidth: 2
+            Layout.preferredHeight: parent.height
+        }
+
+        ToolButton {
+            id: findBtnLeft
+            text: "<"
+            enabled: root.numberOfMatches > 0
+            onClicked: root.findPrevious()
+            contentItem: Text {
+                color: "black"
+                text: findBtnLeft.text
+            }
+        }
+
+        ToolButton {
+            id: findBtnRight
+            text: ">"
+            enabled: root.numberOfMatches > 0
+            onClicked: root.findNext()
+            contentItem: Text {
+                color: "black"
+                text: findBtnRight.text
+            }
+        }
+
+        ToolButton {
+            id: findBtnClose
+            text: "x"
+            onClicked: root.visible = false
+            contentItem: Text {
+                color: "black"
+                text: findBtnClose.text
+            }
+        }
+    }
+}

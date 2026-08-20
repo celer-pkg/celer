@@ -1,0 +1,667 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example 3d/widgetgraphgallery
+    \meta tags {Graphs, Bar Graph, Custom Proxy, Scatter Graph, Custom Input Handler, Surface Graph, QCustom3DItem, Textured Surface}
+    \examplecategory {Data Visualization}
+    \title Graph Gallery
+    \ingroup qtgraphs_examples_3D
+    \brief Gallery of Bar, Scatter, and Surface graphs.
+
+    \e {Graph Gallery} demonstrates all three graph types and some of their special features.
+    The graphs have their own tabs in the application.
+
+    \image widgetgraphgallery-example.png
+
+    \include examples-run.qdocinc
+
+    \section1 Bar Graph
+
+    In the \uicontrol {Bar Graph} tab, create a 3D bar graph using Q3DBarWidgetItem and combine
+    the use of widgets to adjust various bar graph qualities. The example shows how to:
+
+    \list
+        \li Create an application with Q3DBarWidgetItem and some control widgets
+        \li Use QBar3DSeries and QBarDataProxy to set data to the graph
+        \li Adjust some graph and series properties using widget controls
+        \li Select a row or a column by clicking an axis label
+        \li Create a custom proxy to use with Q3DBarWidgetItem
+    \endlist
+
+    For information about interacting with the graph, see
+    \l{Qt Graphs Interacting with Data in 3D}{this page}.
+
+    \section2 Creating the Application
+
+    \list 1
+
+        \li In \c{bargraph.cpp}, instantiate QQuickWidget and Q3DBarsWidgetItem,
+        and set the QQuickWidget instance as the widget for Q3DBarsWidgetItem:
+
+            \snippet 3d/widgetgraphgallery/bargraph.cpp creation
+
+        \li Create a container widget, and horizontal and vertical layouts. Add
+        the graph and the vertical layout to the horizontal one:
+
+            \snippet 3d/widgetgraphgallery/bargraph.cpp adding to layout
+
+        \li Create another class to handle the data addition and other
+        interaction with the graph:
+
+            \snippet 3d/widgetgraphgallery/bargraph.cpp create the data handler
+    \endlist
+
+    \section2 Setting up the Bar Graph
+
+    \list 1
+        \li Set up the graph in the constructor of the \c GraphModifier class:
+
+            \snippet 3d/widgetgraphgallery/graphmodifier.cpp set up the graph
+
+        \li Create the axes and the series into member variables to support
+        changing them:
+
+            \snippet 3d/widgetgraphgallery/graphmodifier.cpp set up axes
+
+        \li Set some visual qualities for the graph:
+
+            \snippet 3d/widgetgraphgallery/graphmodifier.cpp adjust visuals
+
+        \li Set up the axes and make them the active axes of the graph:
+
+            \snippet 3d/widgetgraphgallery/graphmodifier.cpp activate axes
+
+        \li Give axis labels a small autorotation angle:
+
+            \snippet 3d/widgetgraphgallery/graphmodifier.cpp auto angle
+
+            This is done to make them orient slightly toward the camera, which
+            improves axis label readability at extreme camera angles.
+
+        \li Initialize the visual properties of the series. Note that the second
+        series is initially not visible:
+
+            \snippet 3d/widgetgraphgallery/graphmodifier.cpp initialize series visuals
+
+        \li Add the series to the graph:
+
+            \snippet 3d/widgetgraphgallery/graphmodifier.cpp add series
+
+        \li Set the camera angle by calling the same method the camera angle
+        change button in the UI uses to cycle through various camera angles:
+
+            \snippet 3d/widgetgraphgallery/graphmodifier.cpp invoke camera preset
+
+        \li The new camera preset is set to the graph:
+
+            \snippet 3d/widgetgraphgallery/graphmodifier.cpp change the preset
+    \endlist
+
+    \section2 Adding Data to the Graph
+
+    At the end of the constructor, call a method that sets up the data:
+
+    \snippet 3d/widgetgraphgallery/graphmodifier.cpp invoke data reset
+
+    This method adds data to the relevant series using proxies of the two series:
+
+    \snippet 3d/widgetgraphgallery/graphmodifier.cpp set up data
+    \dots 0
+    \snippet 3d/widgetgraphgallery/graphmodifier.cpp populate series vie proxies
+
+    \section2 Using Widgets to Control the Graph
+
+    Continue by adding some widgets in \c{bargraph.cpp}.
+
+    \list 1
+    \li Add a slider:
+
+        \snippet 3d/widgetgraphgallery/bargraph.cpp creating a slider
+
+    \li Use the slider to rotate the graph instead of just using a mouse or
+        touch. Add it to the vertical layout:
+
+        \snippet 3d/widgetgraphgallery/bargraph.cpp adding the slider
+
+    \li Connect it to a method in \c GraphModifier:
+
+        \snippet 3d/widgetgraphgallery/bargraph.cpp connecting the slider
+
+    \li Create a slot in \c GraphModifier for the signal connection. Specify the
+        actual camera position along the orbit around the center point, instead
+        of specifying a preset camera angle:
+
+        \snippet 3d/widgetgraphgallery/graphmodifier.cpp rotate camera
+    \endlist
+
+    You can now use the slider to rotate the graph.
+
+    Add more widgets to the vertical layout to control:
+
+    \list
+        \li Graph rotation
+        \li Label style
+        \li Camera preset
+        \li Background visibility
+        \li Grid visibility
+        \li Bar shading smoothness
+        \li Visibility of the second bar series
+        \li Value axis direction
+        \li Axis title visibility and rotation
+        \li Data range to be shown
+        \li Bar style
+        \li Selection mode
+        \li Theme
+        \li Shadow quality
+        \li Font
+        \li Font size
+        \li Axis label rotation
+        \li Data mode
+    \endlist
+
+    Some widget controls are intentionally disabled when in the \uicontrol {Custom Proxy Data}
+    data mode.
+
+    \section2 Selecting a Row or Column by Clicking an Axis Label
+
+    Selection by axis label is default functionality for bar graphs. For example,
+    you can select rows by clicking an axis label in the following way:
+
+    \list 1
+        \li Change selection mode to \c Row
+        \li Click a year label
+        \li The row with the clicked year is selected
+    \endlist
+
+    The same method works with \c Slice and \c Item flags, as long as
+    either \c Row or \c Column is set as well.
+
+    \section2 Zooming to Selection
+
+    As an example of adjusting the camera target, implement an animation of zooming to
+    selection via a button press. Animation initializations are done in the constructor:
+
+    \snippet 3d/widgetgraphgallery/graphmodifier.cpp animation setup
+
+    Function \c{GraphModifier::zoomToSelectedBar()} contains the zooming functionality.
+    QPropertyAnimation \c m_animationCameraTarget targets
+    \l {Q3DGraphsWidgetItem::cameraTargetPosition}{cameraTargetPosition} property,
+    which takes a value normalized to the range (-1, 1).
+
+    Figure out where the selected bar is relative to axes, and use that as the end value for
+    \c{m_animationCameraTarget}:
+
+    \snippet 3d/widgetgraphgallery/graphmodifier.cpp calculate target
+    \dots 0
+    \snippet 3d/widgetgraphgallery/graphmodifier.cpp set target
+
+    Then, rotate the camera so that it always points approximately to the center of
+    the graph at the end of the animation:
+
+    \snippet 3d/widgetgraphgallery/graphmodifier.cpp center camera
+
+    \section2 Model Proxy for Data
+
+    When you toggle \uicontrol {Model Proxy Data} data mode on, the graph in
+    the example uses an item model based dataset and the corresponding proxy.
+
+    \section3 RainfallData
+
+    Class \c RainfallData sets up a QItemModelBarDataProxy along with the series
+    and axes.
+
+    \list 1
+    \li We use a \c{std::array<double, 12>} to store the values of a year
+        indexed by month. The static \c readData() helper function reads
+        the data, returning a QList of them indexed by year:
+
+     \snippet 3d/widgetgraphgallery/rainfalldata.cpp 1
+     \dots
+
+    \li The QList represents a two dimensional array indexed by year and month,
+        respectively. From this, we populate a QRangeModel and pass it to
+        a QItemModelBarDataProxy() in the \c RainfallData class:
+
+        \snippet 3d/widgetgraphgallery/rainfalldata.cpp 0
+
+    \li Finally, add a function for getting the created series for displaying:
+
+        \snippet 3d/widgetgraphgallery/rainfalldata.h 0
+
+    \endlist
+
+    \section1 Scatter Graph
+
+    In the \uicontrol {Scatter Graph} tab, create a 3D scatter graph using
+    Q3DScatterWidgetItem. The example shows how to:
+
+    \list
+        \li Set up Q3DScatterWidgetItem graph
+        \li Use QScatterDataProxy to set data to the graph
+        \li Create and add a custom input handler
+    \endlist
+
+    For basic application creation, see \l {Bar Graph}.
+
+    \section2 Setting up the Scatter Graph
+
+    \list 1
+
+    \li Set up some visual qualities for the graph in the constructor of the
+        \c ScatterDataModifier:
+
+        \snippet 3d/widgetgraphgallery/scatterdatamodifier.cpp 0
+
+        None of these settings are mandatory, but they serve to override graph
+        defaults. To observe the appearance with the preset defaults, the block
+        above can be commented out.
+
+    \li Create a QScatterDataProxy and the associated QScatter3DSeries. Set a
+    custom label format and mesh smoothing for the series and add it to the graph:
+
+        \snippet 3d/widgetgraphgallery/scatterdatamodifier.cpp 1
+
+    \endlist
+
+    \section2 Adding Scatter Data
+
+    \list 1
+
+    \li In the \c ScatterDataModifier constructor, add data to the graph:
+
+        \snippet 3d/widgetgraphgallery/scatterdatamodifier.cpp 2
+
+    \li The actual data addition is done in \c addData() method. First, configure the axes:
+
+        \snippet 3d/widgetgraphgallery/scatterdatamodifier.cpp 3
+
+        You could do this also in the constructor of \c {ScatterDataModifier}. Doing it here
+        keeps the constructor simpler and the axes' configuration near the data.
+
+    \li Create a data array and populate it:
+
+        \snippet 3d/widgetgraphgallery/scatterdatamodifier.cpp 4
+        \dots
+        \snippet 3d/widgetgraphgallery/scatterdatamodifier.cpp 5
+
+    \li Finally, tell the proxy to start using the data we gave it:
+
+        \snippet 3d/widgetgraphgallery/scatterdatamodifier.cpp 6
+
+    \endlist
+
+    Now, the graph has the data and is ready for use. For information about adding widgets
+    to control the graph, see \l {Using Widgets to Control the Graph}.
+
+    \section2 Replacing Default Input Handling
+
+    To replace the default input handling mechanism, set the new input handlers of
+    Q3DScatterWidgetItem, which implements the custom behavior:
+
+    \snippet 3d/widgetgraphgallery/scatterdatamodifier.cpp 8
+
+    \section2 Extending Mouse Event Handling
+
+    Implement a new \c{drag} event handler. It provides a mouse movement distance
+    for the axis dragging calculation (see
+    \l {Implementing Axis Dragging} for details):
+
+    \snippet 3d/widgetgraphgallery/scatterdatamodifier.cpp 8
+
+    \section2 Implementing Axis Dragging
+
+    \list 1
+    \li Start listening to the selection signal from the graph. Do that in the
+        constructor, and connect it to the \c handleElementSelected method:
+
+        \snippet 3d/widgetgraphgallery/scatterdatamodifier.cpp 8
+
+    \li In \c {handleElementSelected}, check the type of the selection, and set
+        the internal state based on it:
+
+        \snippet 3d/widgetgraphgallery/scatterdatamodifier.cpp 9
+
+    \li The actual dragging logic is implemented in the \c handleAxisDragging
+        method, which is called from \c {drag} event:
+
+        \snippet 3d/widgetgraphgallery/scatterdatamodifier.cpp 10
+
+    \li In \c {handleAxisDragging}, first get the scene orientation from the
+        active camera:
+
+        \snippet 3d/widgetgraphgallery/scatterdatamodifier.cpp 11
+
+    \li Calculate the modifiers for mouse movement direction based on the
+        orientation:
+
+        \snippet 3d/widgetgraphgallery/scatterdatamodifier.cpp 12
+
+    \li Calculate the mouse movement, and modify it based on the y rotation of
+        the camera:
+
+        \snippet 3d/widgetgraphgallery/scatterdatamodifier.cpp 13
+
+    \li Apply the moved distance to the correct axis:
+
+        \snippet 3d/widgetgraphgallery/scatterdatamodifier.cpp 14
+
+    \endlist
+
+    \section1 Surface Graph
+
+    In the \uicontrol {Surface Graph} tab, create a 3D surface graph using
+    Q3DSurfaceWidgetItem. The example shows how to:
+
+    \list
+        \li Set up a basic QSurfaceDataProxy and set data for it.
+        \li Use QHeightMapSurfaceDataProxy for showing 3D height maps.
+        \li Use topographic data to create 3D height maps.
+        \li Use three different selection modes for studying the graph.
+        \li Use axis ranges to display selected portions of the graph.
+        \li Set a custom surface gradient.
+        \li Add custom items and labels with QCustom3DItem and QCustom3DLabel.
+        \li Use custom input handler to enable zooming and panning.
+        \li Highlight an area of the surface.
+    \endlist
+
+    For basic application creation, see \l {Bar Graph}.
+
+    \section2 Simple Surface with Generated Data
+
+    \list 1
+
+    \li First, instantiate a new QSurfaceDataProxy and attach it to a new QSurface3DSeries:
+
+        \snippet 3d/widgetgraphgallery/surfacegraphmodifier.cpp 0
+
+    \li Fill the proxy with a simple square root and sine wave data. Create a
+        \c QSurfaceDataArray instance and add \c QSurfaceDataRow elements to it.
+        Set the created \c QSurfaceDataArray as the data array for the
+        QSurfaceDataProxy by calling \c{resetArray()}.
+
+        \snippet 3d/widgetgraphgallery/surfacegraphmodifier.cpp 1
+    \endlist
+
+    \section2 Multiseries Height Map Data
+
+    Create the height map by instantiating a QHeightMapSurfaceDataProxy with a
+    QImage containing the height data. Use QHeightMapSurfaceDataProxy::setValueRanges()
+    to define the value range of the map. In the example, the map is from an
+    imaginary position of 34.0\unicode 0x00B0 N - 40.0\unicode 0x00B0 N and
+    18.0\unicode 0x00B0 E - 24.0\unicode 0x00B0 E. These values are used to
+    position the map on the axes.
+
+    \snippet 3d/widgetgraphgallery/surfacegraphmodifier.cpp 2
+
+    Add the other surface layers the same way, by creating a proxy and a series
+    for them using height map images.
+-
+    \section2 Topographic Map Data
+
+    The topographic data is obtained from the National Land Survey of Finland.
+    It provides a product called \c{Elevation Model 2 m}, which is suitable for
+    this example.
+
+    The topography data is from Levi fell. The accuracy of the data is well
+    beyond the need, and therefore it is compressed and encoded into a PNG file.
+    The height value of the original ASCII data is encoded into RGB format using
+    a multiplier, as demonstrated in the code sample below. The multiplier is
+    calculated by dividing the largest 24-bit value with the highest point in
+    Finland.
+
+    QHeightMapSurfaceDataProxy converts only one-byte values. To utilize the
+    higher accuracy of the data from the National Land Survey of Finland, read
+    the data from the PNG file and decode it into a QSurface3DSeries.
+
+    \list 1
+    \li Define the encoding multiplier:
+
+        \snippet 3d/widgetgraphgallery/topographicseries.cpp 0
+
+    \li Perform the actual decoding:
+
+        \snippet 3d/widgetgraphgallery/topographicseries.cpp 1
+    \endlist
+
+    Now, a Surface Graph can consume the data via the proxy.
+
+    \section2 Selecting the Data Set
+
+    To demonstrate different proxies, the \uicontrol {Surface Graph} has three
+    radio buttons to switch between the series.
+
+    With \uicontrol {Sqrt & Sin}, the simple generated series is activated.
+
+    \list 1
+        \li Set the decorative features, such as enabling the grid for the
+            surface, and selecting the flat shading mode.
+        \li Define the axis label format and value ranges. Set automatic label
+            rotation to improve label readability at low camera angles.
+        \li Make sure the correct series is added to the graph and the others
+            are not.
+    \endlist
+
+    \snippet 3d/widgetgraphgallery/surfacegraphmodifier.cpp 3
+
+    With \uicontrol {Multiseries Height Map}, the height map series are
+    activated and others are disabled. Auto-adjusting the Y-axis range works
+    well for the height map surface, so ensure it is set.
+
+    \snippet 3d/widgetgraphgallery/surfacegraphmodifier.cpp 4
+
+    With \uicontrol {Textured Topography}, the topographic series is activated
+    and others are disabled. Activate a custom input handler for this series,
+    to be able to highlight areas on it:
+
+    \snippet 3d/widgetgraphgallery/surfacegraphmodifier.cpp 5
+
+    See \l {Use Custom Input Handler to Enable Zooming and Panning} for
+    information about the custom input handler for this data set.
+
+    \section2 Selection Modes
+
+    The three selection modes supported by Q3DSurfaceWidgetItem can be used with
+    radio buttons. To activate the selected mode or to clear it, add the
+    following inline methods:
+
+    \snippet 3d/widgetgraphgallery/surfacegraphmodifier.h 0
+
+    To support doing a slice selection to all visible series
+    in the graph simultaneously, add \c{QtGraphs3D::SelectionFlag::Slice} and
+    \c{QtGraphs3D::SelectionFlag::MultiSeries} flags for the row and column
+    selection modes.
+
+    \section2 Axis Ranges for Studying the Graph
+
+    The example has four slider controls for adjusting the min and max values
+    for the X and Z axes. When selecting the proxy, these sliders are adjusted
+    to match the axis ranges of the current data set:
+
+    \snippet 3d/widgetgraphgallery/surfacegraphmodifier.cpp 6
+
+    To add support for setting the X range from the widget controls to the
+    graph, add:
+
+    \snippet 3d/widgetgraphgallery/surfacegraphmodifier.cpp 7
+
+    Add the support for Z range the same way.
+
+    \section2 Custom Surface Gradients
+
+    With the \uicontrol {Sqrt & Sin} data set, custom surface gradients can be
+    taken into use with two push buttons. Define the gradient with
+    QLinearGradient, where the desired colors are set. Also, change the color
+    style to Q3DTheme::ColorStyle::RangeGradient to use the gradient.
+
+    \snippet 3d/widgetgraphgallery/surfacegraphmodifier.cpp 8
+
+    \section2 Adding Custom Meshes to the Application
+
+    To add custom meshes tp the application:
+
+    \list
+    \li \b{For a cmake build}. Add the mesh files to \c{CMakeLists.txt}:
+
+        \badcode
+        set(graphgallery_resource_files
+            ...
+            "data/oilrig.mesh"
+            "data/pipe.mesh"
+            "data/refinery.mesh"
+            ...
+        )
+
+        qt6_add_resources(widgetgraphgallery "widgetgraphgallery"
+            PREFIX
+                "/"
+            FILES
+                ${graphgallery_resource_files}
+        )
+        \endcode
+
+    \li \b{For a qmake build}. Add the mesh files in the qrc resource file:
+
+        \badcode
+        <RCC>
+            <qresource prefix="/">
+                ...
+                <file>data/refinery.mesh</file>
+                <file>data/oilrig.mesh</file>
+                <file>data/pipe.mesh</file>
+                ...
+            </qresource>
+        </RCC>
+        \endcode
+    \endlist
+
+    \section2 Adding Custom Item to a Graph
+
+    With the \uicontrol {Multiseries Height Map} data set, custom items are
+    inserted into the graph and can be toggled on or off using checkboxes. Other
+    visual changes can also be controlled with another set of checkboxes,
+    including see-through for the two top layers, and a highlight for the bottom
+    layer.
+
+    \list
+    \li Creating a small QImage. Fill it with a single color to use as the color for the
+        custom object:
+
+        \snippet 3d/widgetgraphgallery/surfacegraphmodifier.cpp 9
+
+    \li Specify the position of the item in a variable. The position can then
+    be used for removing the correct item from the graph:
+
+        \snippet 3d/widgetgraphgallery/surfacegraphmodifier.cpp 10
+
+    \li Create a new QCustom3DItem with all the parameters:
+
+        \snippet 3d/widgetgraphgallery/surfacegraphmodifier.cpp 11
+
+    \li Add the item to the graph:
+
+        \snippet 3d/widgetgraphgallery/surfacegraphmodifier.cpp 12
+    \endlist
+
+    \section2 Adding Custom Label to a Graph
+
+    Adding a custom label is very similar to adding a custom item. For the
+    label, a custom mesh is not needed, but just a QCustom3DLabel instance:
+
+    \snippet 3d/widgetgraphgallery/surfacegraphmodifier.cpp 13
+
+    \section2 Removing Custom Item from a Graph
+
+    To remove a specific item from the graph, call \c removeCustomItemAt() with
+    the position of the item:
+
+    \snippet 3d/widgetgraphgallery/surfacegraphmodifier.cpp 14
+
+    \note Removing a custom item from the graph also deletes the object. To
+    preserve the item, use the \c releaseCustomItem() method instead.
+
+    \section2 Texture to a Surface Series
+
+    With the \uicontrol {Textured Topography} data set, create a map texture to
+    be used with the topographic height map.
+
+    Set an image to be used as the texture on a surface with
+    QSurface3DSeries::setTextureFile(). Add a check box to control if the
+    texture is set or not, and a handler to react to the checkbox state:
+
+    \snippet 3d/widgetgraphgallery/surfacegraphmodifier.cpp 15
+
+    The image in this example is read from a JPG file. Setting an empty file
+    with the method clears the texture, and the surface uses the gradients or
+    colors from the theme.
+
+    \section2 Use Custom Input Handler to Enable Zooming and Panning
+
+    With the \uicontrol {Textured Topography} data set, create a custom input
+    handler to highlight the selection on the graph and allow panning the graph.
+
+    The panning implementation is similar to the one shown in
+    \l{Implementing Axis Dragging}. The difference is that, in this example, you
+    only follow the X and Z axes and don't allow dragging the surface outside
+    the graph. To limit the dragging, follow the limits of the axes and do
+    nothing if going outside the graph:
+
+    \snippet 3d/widgetgraphgallery/surfacegraphmodifier.cpp 17
+
+    For zooming, catch the \c wheelEvent and adjust the X and Y axis ranges
+    according to the delta value on QWheelEvent. Adjust the Y axis so that the
+    aspect ratio between the Y axis and the XZ plane stays the same. This
+    prevents getting a graph in which the height is exaggerated:
+
+    \snippet 3d/widgetgraphgallery/surfacegraphmodifier.cpp 18
+
+    Next, add some limits to the zoom level, so that it won't get too near to or
+    far from the surface. For instance, if the value for the X axis gets below
+    the allowed limit, that is, zooming gets too far, the value is set to the
+    minimum allowed value. If the range is going to below the range minimum,
+    both ends of the axis are adjusted so that the range stays at the limit:
+
+    \snippet 3d/widgetgraphgallery/surfacegraphmodifier.cpp 19
+
+    \section2 Highlight an Area of the Surface
+
+    To implement a highlight to be displayed on the surface, create a copy of
+    the series and add some offset to the y value. In this example, the class
+    \c HighlightSeries implements the creation of the copy in its
+    \c handlePositionChange method.
+
+    First, give \c HighlightSeries the pointer to the original series, and then
+    start listening to the QSurface3DSeries::selectedPointChanged signal:
+
+    \snippet 3d/widgetgraphgallery/highlightseries.cpp 0
+
+    When the signal triggers, check that the position is valid. Then, calculate
+    he ranges for the copied area, and check that they stay within the bounds.
+    Finally, fill the data array of the highlight series with the range from the
+    data array of the topography series:
+
+    \snippet 3d/widgetgraphgallery/highlightseries.cpp 1
+
+    \section2 A Gradient to the Highlight Series
+
+    Since the \c HighlightSeries is a QSurface3DSeries, all the decoration
+    methods a series can have are available. In this example, add a gradient to
+    emphasize the elevation. Because the suitable gradient style depends on the
+    range of the Y axis and we change the range when zooming, the gradient color
+    positions need to be adjusted as the range changes. Do this by
+    defining proportional values for the gradient color positions:
+
+    \snippet 3d/widgetgraphgallery/highlightseries.cpp 2
+
+    The gradient modification is done in the \c handleGradientChange method, so
+    connect it to react to changes on the Y axis:
+
+    \snippet 3d/widgetgraphgallery/surfacegraphmodifier.cpp 16
+
+    When a change in the Y axis max value happens, calculate the new gradient
+    color positions:
+
+    \snippet 3d/widgetgraphgallery/highlightseries.cpp 3
+
+    \section1 Example Contents
+*/

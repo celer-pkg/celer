@@ -1,0 +1,185 @@
+From bfee256dd1e620194b5a5ffe4b7873d7e8832ae9 Mon Sep 17 00:00:00 2001
+From: Jonas Karlsson <jonas.karlsson@qt.io>
+Date: Fri, 20 May 2022 16:57:16 +0200
+Subject: [PATCH] Various fixes for passing CI
+
+- Move code into Qt namespace
+- Support all integer types in hash method
+- Remove compile time checks for pack validation
+- Disable SIMD on mips, arm and wasm
+- Remove CmMathUtils from build
+- Add more platforms to serialization
+- Add empty PxLoadPhysxGPUModule method for unsupported architectures
+- Disable physicsscene test
+
+Change-Id: Ie78b1dc716a46dc0e60a40dc72891db8bfc1db9a
+---
+ .../include/foundation/PxPreprocessor.h       | 36 ++++---------------
+ .../PhysX/source/foundation/include/PsHash.h  | 18 +++++-----
+ .../physx/src/gpu/PxPhysXGpuModuleLoader.cpp  |  5 +++
+ .../src/serialization/SnSerialUtils.cpp       | 12 +++++--
+ 4 files changed, 29 insertions(+), 42 deletions(-)
+
+diff --git a/src/3rdparty/PhysX/pxshared/include/foundation/PxPreprocessor.h b/src/3rdparty/PhysX/pxshared/include/foundation/PxPreprocessor.h
+index 3aea54e..14ed950 100644
+--- a/src/3rdparty/PhysX/pxshared/include/foundation/PxPreprocessor.h
++++ b/src/3rdparty/PhysX/pxshared/include/foundation/PxPreprocessor.h
+@@ -125,6 +125,8 @@ Architecture defines, see http://sourceforge.net/p/predef/wiki/Architectures/
+ #define PX_ARM 1
+ #elif defined(__ppc__) || defined(_M_PPC) || defined(__CELLOS_LV2__)
+ #define PX_PPC 1
++#elif defined(__mips__)
++#define PX_X64 1
+ #else
+ #error "Unknown architecture"
+ #endif
+@@ -144,6 +146,11 @@ SIMD defines
+ #endif
+ #endif
+ 
++/** Disable SIMD for webassembly, mips and arm64 */
++#if defined(__EMSCRIPTEN__) || defined(__mips__) || defined(_M_ARM64) || defined(_M_ARM)
++#define PX_SIMD_DISABLED 1
++#endif
++
+ /**
+ define anything not defined on this platform to 0
+ */
+@@ -467,35 +474,6 @@ PX_CUDA_CALLABLE PX_INLINE void PX_UNUSED(T const&)
+ {
+ }
+ 
+-// Ensure that the application hasn't tweaked the pack value to less than 8, which would break
+-// matching between the API headers and the binaries
+-// This assert works on win32/win64, but may need further specialization on other platforms.
+-// Some GCC compilers need the compiler flag -malign-double to be set.
+-// Apparently the apple-clang-llvm compiler doesn't support malign-double.
+-#if PX_PS4 || PX_APPLE_FAMILY || (PX_CLANG && !PX_ARM)
+-struct PxPackValidation
+-{
+-	char _;
+-	long a;
+-};
+-#elif PX_ANDROID || (PX_CLANG && PX_ARM)
+-struct PxPackValidation
+-{
+-	char _;
+-	double a;
+-};
+-#else
+-struct PxPackValidation
+-{
+-	char _;
+-	long long a;
+-};
+-#endif
+-// clang (as of version 3.9) cannot align doubles on 8 byte boundary  when compiling for Intel 32 bit target
+-#if !PX_APPLE_FAMILY && !PX_EMSCRIPTEN && !(PX_CLANG && PX_X86)
+-PX_COMPILE_TIME_ASSERT(PX_OFFSET_OF(PxPackValidation, a) == 8);
+-#endif
+-
+ // use in a cpp file to suppress LNK4221
+ #if PX_VC
+ #define PX_DUMMY_SYMBOL                                                                                                \
+diff --git a/src/3rdparty/PhysX/source/foundation/include/PsHash.h b/src/3rdparty/PhysX/source/foundation/include/PsHash.h
+index a0fe56b..b5f8a33 100644
+--- a/src/3rdparty/PhysX/source/foundation/include/PsHash.h
++++ b/src/3rdparty/PhysX/source/foundation/include/PsHash.h
+@@ -73,7 +73,7 @@ PX_FORCE_INLINE uint32_t hash(const int32_t key)
+ 
+ // Thomas Wang's 64 bit mix
+ // http://www.cris.com/~Ttwang/tech/inthash.htm
+-PX_FORCE_INLINE uint32_t hash(const uint64_t key)
++PX_FORCE_INLINE uint32_t hash(const unsigned long key)
+ {
+ 	uint64_t k = key;
+ 	k += ~(k << 32);
+@@ -87,17 +87,15 @@ PX_FORCE_INLINE uint32_t hash(const uint64_t key)
+ 	return uint32_t(UINT32_MAX & k);
+ }
+ 
+-#if PX_APPLE_FAMILY
+-// hash for size_t, to make gcc happy
+-PX_INLINE uint32_t hash(const size_t key)
++PX_FORCE_INLINE uint32_t hash(const unsigned long long key)
+ {
+-#if PX_P64_FAMILY
+-	return hash(uint64_t(key));
+-#else
+-	return hash(uint32_t(key));
+-#endif
++    return hash(uint64_t(key));
++}
++
++PX_FORCE_INLINE uint32_t hash(const int64_t key)
++{
++    return hash(uint64_t(key));
+ }
+-#endif
+ 
+ // Hash function for pointers
+ PX_INLINE uint32_t hash(const void* ptr)
+diff --git a/src/3rdparty/PhysX/source/physx/src/gpu/PxPhysXGpuModuleLoader.cpp b/src/3rdparty/PhysX/source/physx/src/gpu/PxPhysXGpuModuleLoader.cpp
+index 94105ef..d74f7ae 100644
+--- a/src/3rdparty/PhysX/source/physx/src/gpu/PxPhysXGpuModuleLoader.cpp
++++ b/src/3rdparty/PhysX/source/physx/src/gpu/PxPhysXGpuModuleLoader.cpp
+@@ -175,6 +175,11 @@ namespace physx
+ 		}
+ 	}
+ 
++#else
++	void PxLoadPhysxGPUModule(const char*)
++	{
++        Ps::getFoundation().error(PxErrorCode::eINTERNAL_ERROR, __FILE__, __LINE__, "GPU module disabled");
++	}
+ #endif // PX_LINUX
+ 
+ } // end physx namespace
+diff --git a/src/3rdparty/PhysX/source/physxextensions/src/serialization/SnSerialUtils.cpp b/src/3rdparty/PhysX/source/physxextensions/src/serialization/SnSerialUtils.cpp
+index 20b0102..aa53797 100644
+--- a/src/3rdparty/PhysX/source/physxextensions/src/serialization/SnSerialUtils.cpp
++++ b/src/3rdparty/PhysX/source/physxextensions/src/serialization/SnSerialUtils.cpp
+@@ -39,7 +39,7 @@ using namespace physx;
+ namespace
+ {
+ 
+-#define SN_NUM_BINARY_PLATFORMS 17
++#define SN_NUM_BINARY_PLATFORMS 19
+ const PxU32 sBinaryPlatformTags[SN_NUM_BINARY_PLATFORMS] =
+ {
+ 	PX_MAKE_FOURCC('W','_','3','2'),
+@@ -58,6 +58,8 @@ const PxU32 sBinaryPlatformTags[SN_NUM_BINARY_PLATFORMS] =
+ 	PX_MAKE_FOURCC('L','A','6','4'),
+ 	PX_MAKE_FOURCC('W','A','3','2'),
+ 	PX_MAKE_FOURCC('W','A','6','4'),
++	PX_MAKE_FOURCC('L','A','3','2'),
++	PX_MAKE_FOURCC('U','N','K','_'),
+ };
+ 
+ const char* sBinaryPlatformNames[SN_NUM_BINARY_PLATFORMS] =
+@@ -78,7 +80,9 @@ const char* sBinaryPlatformNames[SN_NUM_BINARY_PLATFORMS] =
+ 	"linuxaarch64",
+ 	"uwparm",
+ 	"uwparm64",
+-	"macarm"
++	"macarm",
++	"linuxarm",
++	"unknown",
+ };
+ 
+ }
+@@ -121,8 +125,10 @@ PxU32 getBinaryPlatformTag()
+ 	return sBinaryPlatformTags[15];
+ #elif PX_OSX && PX_A64
+     return sBinaryPlatformTags[16];
++#elif PX_LINUX && PX_ARM
++	return sBinaryPlatformTags[17];
+ #else
+-	#error Unknown binary platform
++	return sBinaryPlatformTags[18];
+ #endif
+ }
+ 
+-- 
+2.36.1
+

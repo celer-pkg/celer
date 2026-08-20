@@ -1,0 +1,11 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \group examples-qtnetworkauth
+    \title Qt Network Authorization Examples
+    \brief Example projects demonstrating the functionality in Qt Network
+           Authorization.
+
+    Qt Network Authorization has the following examples:
+*/

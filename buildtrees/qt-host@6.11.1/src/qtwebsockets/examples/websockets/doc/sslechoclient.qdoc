@@ -1,0 +1,25 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example sslechoclient
+    \title Secure WebSocket Echo Client
+    \examplecategory {Networking}
+    \ingroup qtwebsockets-examples
+    \brief A simple client application using secure WebSockets (wss).
+
+    The Secure WebSocket Echo Client example shows how to use the
+    \l {Qt WebSockets}{WebSocket} class to implement an echo client over
+    a secure connection (wss). It connects to a server and sends a message,
+    and when it receives a message back, it prints it out and exits. SSL
+    support is required for this example to work.
+
+    This example connects by default to localhost at port 1234 using a secure
+    connection. It trusts the certificates signed by the CA certificates
+    configured in the SSL backend, and in addition trusts the certificate
+    used by \l {Secure WebSocket Echo Server}.
+
+    \image echoclient-console-example.webp Secure WebSocket Echo Console Client
+
+    \sa {WebSocket Echo Client}, {Secure WebSocket Echo Server}
+*/

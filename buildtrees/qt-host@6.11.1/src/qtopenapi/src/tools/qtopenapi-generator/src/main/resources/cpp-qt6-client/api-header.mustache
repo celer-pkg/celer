@@ -1,0 +1,52 @@
+{{>licenseInfo}}
+#ifndef {{classname}}_H
+#define {{classname}}_H
+
+#include "{{prefixLowerCase}}baseapi.h"
+#include "{{packageNameLowerCase}}exports.h"
+#include <QtNetwork/qrestreply.h>{{#enableQmlCode}}
+#include <QtQmlIntegration/qqmlintegration.h>{{/enableQmlCode}}
+
+{{#imports}}{{{import}}}
+{{/imports}}
+
+{{#cppNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppNamespaceDeclarations}}
+
+{{#cppCommonNamespaceDeclarations}}
+using namespace {{this}};
+{{/cppCommonNamespaceDeclarations}}
+
+class {{packageNameUpperCase}}_EXPORT {{classname}} : public {{cppCommonNamespace}}::{{prefix}}BaseApi {
+    Q_OBJECT{{#enableQmlCode}}
+    QML_ELEMENT{{/enableQmlCode}}
+public:
+    {{classname}}() : {{classname}}(nullptr) {}
+    explicit {{classname}}(QObject *parent);
+    ~{{classname}}() override;
+
+    void initializeServerConfigs();
+{{#operations}}{{#operation}}
+    /**
+    * \internal
+    * The auto-generated API:
+    * void {{nickname}}({{#hasParams}}{{#allParams}}const {{#required}}{{{dataType}}} &{{/required}}{{^required}}{{cppCommonNamespace}}::OptionalParameter<{{{dataType}}}> &{{/required}}{{paramName}}{{^-last}}, {{/-last}}{{/allParams}}{{/hasParams}});
+    * void {{nickname}}({{#hasParams}}{{#allParams}}const {{#required}}{{{dataType}}} &{{/required}}{{^required}}{{cppCommonNamespace}}::OptionalParameter<{{{dataType}}}> &{{/required}}{{paramName}}, {{/allParams}}{{/hasParams}}QObject *object, [&](const QRestReply &reply{{#returnType}}, const {{{.}}} &summary{{/returnType}}){});
+    * \endinternal
+    */
+    {{#hasParams}}{{^returnType}}{{prefix}}_ADD_OPERATION_WITH_NO_RESPONSE_IMPL{{/returnType}}{{#returnType}}{{prefix}}_ADD_OPERATION_IMPL{{/returnType}}{{/hasParams}}{{^hasParams}}{{^returnType}}{{prefix}}_ADD_EMPTY_OPERATION_IMPL{{/returnType}}{{#returnType}}{{prefix}}_ADD_NO_PARAMS_OPERATION_WITH_RESPONSE_IMPL{{/returnType}}{{/hasParams}}({{nickname}}{{#hasParams}}, ({{#allParams}}const {{#required}}{{{dataType}}}{{/required}}{{^required}}{{cppCommonNamespace}}::OptionalParameter<{{{dataType}}}>{{/required}} &{{paramName}}{{^required}} = {{cppCommonNamespace}}::OptionalParameter<{{{dataType}}}>(){{/required}}{{^-last}}, {{/-last}}{{/allParams}}), ({{#allParams}}{{paramName}}{{^-last}}, {{/-last}}{{/allParams}}){{/hasParams}}{{#returnType}}, (const {{{.}}} &){{/returnType}}{{#isDeprecated}}, Q_DECL_DEPRECATED{{/isDeprecated}}{{^isDeprecated}}, /* non-deprecated */{{/isDeprecated}})
+{{/operation}}{{/operations}}
+Q_SIGNALS:{{#operations}}{{#operation}}
+    /** Signal is emitted, if {{nickname}}() request completed successfully.{{#returnType}} The \a summary contains a serialized server response.{{/returnType}} */
+    void {{nickname}}Finished({{#returnType}}{{^isPrimitiveType}}const {{/isPrimitiveType}}{{{.}}} {{^isPrimitiveType}}&{{/isPrimitiveType}}summary{{/returnType}});{{#addDownloadProgress}}
+    void {{nickname}}Progress(qint64 bytesReceived, qint64 bytesTotal);{{/addDownloadProgress}}
+    /** Signal is emitted, if {{nickname}}() request completed with an error. \a errorType and \a errorStr contain an information about the error. */
+    void {{nickname}}ErrorOccurred(QNetworkReply::NetworkError errorType, const QString &errorStr);{{/operation}}{{/operations}}
+
+};
+
+{{#cppNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppNamespaceDeclarations}}
+#endif

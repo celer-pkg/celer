@@ -1,0 +1,63 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/config/exampleurl-qtsensors.qdocconf)
+
+project                 = QtSensors
+description             = Qt Sensors Reference Documentation
+version                 = $QT_VERSION
+
+qhp.projects            = QtSensors
+
+qhp.QtSensors.file                = qtsensors.qhp
+qhp.QtSensors.namespace           = org.qt-project.qtsensors.$QT_VERSION_TAG
+qhp.QtSensors.virtualFolder       = qtsensors
+qhp.QtSensors.indexTitle          = Qt Sensors
+qhp.QtSensors.indexRoot           =
+
+qhp.QtSensors.subprojects = manual examples classes qmltypes
+
+qhp.QtSensors.subprojects.classes.title = C++ Classes
+qhp.QtSensors.subprojects.classes.indexTitle = Qt Sensors C++ Classes
+qhp.QtSensors.subprojects.classes.selectors = class headerfile
+qhp.QtSensors.subprojects.classes.sortPages = true
+
+qhp.QtSensors.subprojects.qmltypes.title = QML Types
+qhp.QtSensors.subprojects.qmltypes.indexTitle = Qt Sensors QML Types
+qhp.QtSensors.subprojects.qmltypes.selectors = qmltype
+qhp.QtSensors.subprojects.qmltypes.sortPages = true
+
+qhp.QtSensors.subprojects.examples.title = Examples
+qhp.QtSensors.subprojects.examples.indexTitle = Qt Sensors Examples
+qhp.QtSensors.subprojects.examples.selectors = example
+
+qhp.QtSensors.subprojects.manual.title = Qt Sensors
+qhp.QtSensors.subprojects.manual.indexTitle = Qt Sensors module topics
+qhp.QtSensors.subprojects.manual.type = manual
+
+tagfile                 = ../../../doc/qtsensors/qtsensors.tags
+
+{headerdirs,sourcedirs} += .. \
+                ../../sensorsquick \
+                ../../plugins/sensors
+
+exampledirs += ../../../examples/sensors \
+               snippets/
+
+# Specify the install path under QT_INSTALL_EXAMPLES
+examplesinstallpath = sensors
+
+# Path to the root of qtsensors (for automatic linking to source code)
+url.sources.rootdir     = ../../..
+
+imagedirs   += images
+
+depends += qtcore qtdoc qtgui qtquick qtcmake
+
+# Highlighted examples
+manifestmeta.highlighted.names = "QtSensors/Sensors Showcase"
+
+navigation.landingpage = "Qt Sensors"
+navigation.cppclassespage = "Qt Sensors C++ Classes"
+navigation.qmltypespage = "Qt Sensors QML Types"
+# Auto-generate navigation linking based on "Qt Sensors module topics":
+navigation.toctitles = "Qt Sensors module topics"
+navigation.toctitles.inclusive = false

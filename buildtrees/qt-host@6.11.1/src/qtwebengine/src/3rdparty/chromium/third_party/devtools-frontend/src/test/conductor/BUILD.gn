@@ -1,0 +1,38 @@
+# Copyright 2020 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("../../scripts/build/typescript/typescript.gni")
+
+group("conductor") {
+  deps = [
+    ":implementation",
+    "../../scripts/component_server",
+    "../../scripts/hosted_mode",
+  ]
+}
+
+node_ts_library("implementation") {
+  sources = [
+    "async-scope.ts",
+    "commandline.ts",
+    "custom-query-handlers.ts",
+    "events.ts",
+    "frontend_tab.ts",
+    "hooks.ts",
+    "karma-resultsdb-reporter.ts",
+    "mocha-interface-helpers.ts",
+    "mocha-interface.ts",
+    "mocha_hooks.ts",
+    "paths.ts",
+    "platform.ts",
+    "pool.ts",
+    "puppeteer-state.ts",
+    "resultsdb.ts",
+    "screenshot-error.ts",
+    "server_port.ts",
+    "target_tab.ts",
+    "test_config.ts",
+    "test_server.ts",
+  ]
+}

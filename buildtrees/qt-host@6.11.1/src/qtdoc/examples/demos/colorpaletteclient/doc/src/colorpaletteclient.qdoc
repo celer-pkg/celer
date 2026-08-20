@@ -1,0 +1,98 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\ingroup qtquickdemos
+\example demos/colorpaletteclient
+\examplecategory {Networking}
+\meta tags {quick, network, http}
+\title Qt Quick Demo - RESTful API client
+\brief Example of how to create a RESTful API QML client.
+\image {colorpalette_listing.png} {A color palette service GUI}
+
+This example shows how to create a basic QML RESTful API client with an
+imaginary color palette service. The application uses RESTful communication with
+the selected server to request and send data. The REST service is provided as a
+QML element whose child elements wrap the individual JSON data APIs provided by
+the server.
+
+\include examples-run.qdocinc
+
+\section1 Application functionality
+
+The example provides the following basic functionalities:
+\list
+    \li Select the server to communicate with
+    \li List users and colors
+    \li Login and logout users
+    \li Modify and create new colors
+\endlist
+
+\section2 Server selection
+
+At startup, the application presents predefined options that the color palette
+server can communicate with:
+\list
+    \li \l {https://reqres.in}{reqres.in}, a publicly available REST API test service
+    \li \l {RESTful API Server} {Qt-based REST API server example} in \l QtHttpServer
+\endlist
+Once selected, the RESTful API client issues a test HTTP GET to the color API to check if the service is
+accessible.
+
+\image {colorpalette_urlselection.png} {A GUI that shows two servers to choose from}
+
+One major difference between the two predefined API options is that the \l
+{RESTful API Server}{Qt-based REST API server example} is a stateful application
+that lets you modify the colors, whereas the \c reqres.in is a stateless API
+testing service. In other words, when using the \c reqres.in backend, modifying
+the colors has no lasting impact.
+
+\section2 List users and colors
+
+The users and colors are paginated resources on the server-side. This means that the server
+provides the data in chunks called \e pages. The UI listing reflects this pagination and views the
+data on pages.
+
+Viewing the data on UI is done with standard QML views:
+\snippet demos/colorpaletteclient/ColorPalette/ColorView.qml View and model
+Where the model is a list of JSON data received from the server.
+
+\section2 Logging in
+
+Logging in happens via the login function provided by the login popup:
+\snippet demos/colorpaletteclient/ColorPalette/UserMenu.qml Login
+Under the hood, the login sends a HTTP POST request. Upon receiving a successful
+response, the authorization token is extracted from the response, which is then used in
+subsequent HTTP requests that require the token.
+
+\image {colorpalette_userlisting.png} {A GUI that lists the users}
+
+\section2 Editing colors
+
+Editing and adding new colors is done in a popup:
+\image {colorpalette_editing.png} {A GUI for editing a color}
+Note that uploading the color changes to the server requires that a user has logged in.
+
+\section1 REST implementation
+
+The example illustrates one way to compose a REST service from individual resource elements. In
+this example, the resources are the paginated \c user and \c color resources plus the login service.
+The resource elements are bound together by the base URL (server URL) and the shared network access
+manager.
+
+The basis of the REST service is the \c RestService element whose children items compose the actual
+service:
+\snippet demos/colorpaletteclient/ColorPalette/Main.qml RestService QML element
+
+Upon instantiation, the \c RestService element loops its children elements and sets them up
+to use the same network access manager. This way the individual resources share the same access
+details, such as the server URL and authorization token.
+
+The actual communication is done with a rest access manager that implements some
+convenience functionality to deal specifically with HTTP REST APIs and effectively deals
+with sending and receiving the \l QNetworkRequest and \l QNetworkReply as needed.
+
+\section1 Source files
+
+\sa {All Qt Examples}, {Qt Quick Examples and Tutorials}
+*/

@@ -1,0 +1,115 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  "page-open-$[INDEX_PREFIX]0": {
+    template: ./page-open.hjson
+    args: {
+      PAGE_URL: https://www.amazon.com/Pampers-Sensitive-Water-Based-Diaper-Pop-Top/dp/B01C3H4ZTY/
+      TARGET: _new_tab
+      TAB_INDEX: $[INDEX_PREFIX]0
+    }
+    unbound_args: [
+      INDEX_PREFIX
+    ]
+  }
+  "page-open-$[INDEX_PREFIX]1": {
+    template: ./page-open.hjson
+    args: {
+      PAGE_URL: https://www.amazon.com/deals?ref_=nav_cs_gb
+      TARGET: _new_tab
+      TAB_INDEX: $[INDEX_PREFIX]1
+    }
+    unbound_args: [
+      INDEX_PREFIX
+    ]
+  }
+  "page-open-$[INDEX_PREFIX]2": {
+    template: ./page-open.hjson
+    args: {
+      PAGE_URL: https://www.apple.com/
+      TARGET: _new_tab
+      TAB_INDEX: $[INDEX_PREFIX]2
+    }
+    unbound_args: [
+      INDEX_PREFIX
+    ]
+  }
+  "page-open-$[INDEX_PREFIX]3": {
+    template: ./page-open.hjson
+    args: {
+      PAGE_URL: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/ebay.html
+      TARGET: _new_tab
+      TAB_INDEX: $[INDEX_PREFIX]3
+    }
+    unbound_args: [
+      INDEX_PREFIX
+    ]
+  }
+  "page-open-$[INDEX_PREFIX]4": {
+    template: ./page-open.hjson
+    args: {
+      PAGE_URL: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/google.html
+      TARGET: _new_tab
+      TAB_INDEX: $[INDEX_PREFIX]4
+    }
+    unbound_args: [
+      INDEX_PREFIX
+    ]
+  }
+  "page-open-$[INDEX_PREFIX]5": {
+    template: ./page-open.hjson
+    args: {
+      PAGE_URL: https://www.wattpad.com/1064082391-king-of-dust-chapter-01
+      TARGET: _new_tab
+      TAB_INDEX: $[INDEX_PREFIX]5
+    }
+    unbound_args: [
+      INDEX_PREFIX
+    ]
+  }
+  "page-open-$[INDEX_PREFIX]6": {
+    template: ./page-open.hjson
+    args: {
+      PAGE_URL: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/bbc.html
+      TARGET: _new_tab
+      TAB_INDEX: $[INDEX_PREFIX]6
+    }
+    unbound_args: [
+      INDEX_PREFIX
+    ]
+  }
+  "page-open-$[INDEX_PREFIX]7": {
+    template: ./page-open.hjson
+    args: {
+      PAGE_URL: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/yahoo.html
+      TARGET: _new_tab
+      TAB_INDEX: $[INDEX_PREFIX]7
+    }
+    unbound_args: [
+      INDEX_PREFIX
+    ]
+  }
+  "page-open-$[INDEX_PREFIX]8": {
+    template: ./page-open.hjson
+    args: {
+      PAGE_URL: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/stackoverflow.html
+      TARGET: _new_tab
+      TAB_INDEX: $[INDEX_PREFIX]8
+    }
+    unbound_args: [
+      INDEX_PREFIX
+    ]
+  }
+  "page-open-$[INDEX_PREFIX]9": {
+    template: ./page-open.hjson
+    args: {
+      PAGE_URL: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/wikipedia.html
+      TARGET: _new_tab
+      TAB_INDEX: $[INDEX_PREFIX]9
+    }
+    unbound_args: [
+      INDEX_PREFIX
+    ]
+  }
+}

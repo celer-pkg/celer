@@ -1,0 +1,62 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page position-plugin-geoclue2.html
+\title Qt Positioning GeoClue v2 plugin
+\ingroup QtPositioning-plugins
+
+\brief Uses the GeoClue v2 library to provide positioning updates
+
+\section1 Overview
+
+This plugin is an interface to the \l {GeoClue service}{GeoClue v2} library.
+It requires this library to be installed on the system to function.
+
+The plugin uses D-Bus to establish communication with the GeoClue v2 D-Bus
+service and to provide positioning information.
+
+The plugin can be used to receive only the positioning information.
+It \e {does not} provide satellite information.
+
+The plugin can be loaded by using the provider name \b geoclue2.
+
+\section1 Parameters
+
+The following table lists parameters that \e can be passed to the geoclue2
+plugin.
+
+\table
+\header
+    \li Parameter
+    \li Description
+\row
+    \li desktopId
+    \li The \l {GeoClue DesktopId property}{Desktop Id} property used by the
+        D-Bus service. If the parameter is not specified, the desktop file name
+        provided by \l QGuiApplication::desktopFileName() will be used.
+\endtable
+
+\section1 Examples
+
+The following examples show how to create a \b geoclue2 PositionSource from
+C++ and QML.
+
+\section2 QML
+
+\code
+PositionSource {
+    name: "geoclue2"
+    PluginParameter { name: "desktopId"; value: "SomeIdentifierString" }
+}
+\endcode
+
+\section2 C++
+
+\code
+QVariantMap params;
+params["desktopId"] = "SomeIdentifierString";
+QGeoPositionInfoSource *positionSource = QGeoPositionInfoSource::createSource("geoclue2", params, this);
+\endcode
+
+*/

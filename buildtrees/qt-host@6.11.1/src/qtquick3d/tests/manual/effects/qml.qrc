@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>EffectBox.qml</file>
+        <file>EffectSlider.qml</file>
+        <file>cork.jpg</file>
+        <file>texture.png</file>
+        <file>CustomEffect.qml</file>
+        <file>EffectColor.qml</file>
+        <file>SettingsGroup.qml</file>
+        <file>FileEffect.qml</file>
+    </qresource>
+</RCC>

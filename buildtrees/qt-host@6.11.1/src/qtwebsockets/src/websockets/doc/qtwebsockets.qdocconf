@@ -1,0 +1,76 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/config/exampleurl-qtwebsockets.qdocconf)
+
+project                                             = QtWebSockets
+description                                         = Qt WebSockets Reference Documentation
+version                                             = $QT_VERSION
+
+examplesinstallpath                                 = websockets
+
+# Path to the root of qtwebsockets (for automatic linking to source code)
+url.sources.rootdir                                 = ../../..
+
+qhp.projects                                        = QtWebSockets
+
+qhp.QtWebSockets.file                               = qtwebsockets.qhp
+qhp.QtWebSockets.namespace                          = org.qt-project.qtwebsockets.$QT_VERSION_TAG
+qhp.QtWebSockets.virtualFolder                      = qtwebsockets
+qhp.QtWebSockets.indexTitle                         = Qt WebSockets
+qhp.QtWebSockets.indexRoot                          =
+
+qhp.QtWebSockets.subprojects = manual examples classes qml
+
+qhp.QtWebSockets.subprojects.classes.title          = C++ Classes
+qhp.QtWebSockets.subprojects.classes.indexTitle     = Qt WebSockets C++ Classes
+qhp.QtWebSockets.subprojects.classes.selectors      = class headerfile
+qhp.QtWebSockets.subprojects.classes.sortPages      = true
+
+qhp.QtWebSockets.subprojects.qml.title              = QML Types
+qhp.QtWebSockets.subprojects.qml.indexTitle         = Qt WebSockets QML Types
+qhp.QtWebSockets.subprojects.qml.selectors          = qmltype
+qhp.QtWebSockets.subprojects.qml.sortPages          = true
+
+qhp.QtWebSockets.subprojects.examples.title         = Examples
+qhp.QtWebSockets.subprojects.examples.indexTitle    = Qt WebSockets Examples
+qhp.QtWebSockets.subprojects.examples.selectors     = example
+qhp.QtWebSockets.subprojects.examples.sortPages     = true
+
+qhp.QtWebSockets.subprojects.manual.title = Qt WebSockets
+qhp.QtWebSockets.subprojects.manual.indexTitle = Qt WebSockets module topics
+qhp.QtWebSockets.subprojects.manual.type = manual
+
+tagfile                                             = ../../../doc/qtwebsockets/qtwebsockets.tags
+
+depends                                             += qtcore qtnetwork qtdoc qmake qtcmake
+
+headerdirs                                          += .. \
+                                                       ../../imports
+
+sourcedirs                                          += .. \
+                                                       src \
+                                                       ../../imports \
+                                                       ../../../tests/doc
+
+
+exampledirs                                         += ../../../examples/websockets \
+                                                       snippets
+
+examples.fileextensions                             += "*.html"
+
+imagedirs                                           += ../../../examples/websockets/doc/images \
+                                                       images
+
+#add generic thumbnail images for example documentation that does not have an image.
+manifestmeta.thumbnail.names                        += "QtWebSockets/Echo Client*" \
+                                                       "QtWebSockets/QML*" \
+                                                       "QtWebSockets/SSL*" \
+                                                       "QtWebSockets/Simple*"
+
+manifestmeta.highlighted.names = "QtWebSockets/Simple WebSocket Chat"
+
+navigation.landingpage                              = "Qt WebSockets"
+navigation.cppclassespage                           = "Qt WebSockets C++ Classes"
+navigation.qmltypespage                             = "Qt WebSockets QML Types"
+# Auto-generate navigation linking based on "Qt WebSockets module topics":
+navigation.toctitles = "Qt WebSockets module topics"
+navigation.toctitles.inclusive = false

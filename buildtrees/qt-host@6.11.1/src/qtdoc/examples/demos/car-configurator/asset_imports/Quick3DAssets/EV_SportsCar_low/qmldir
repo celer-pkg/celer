@@ -1,0 +1,6 @@
+module Quick3DAssets.EV_SportsCar_low
+MyDoorRight 1.0 MyDoorRight.qml
+Ev_SportsCar_low 1.0 Ev_SportsCar_low.qml
+Hood 1.0 Hood.qml
+MyDoorLeft 1.0 MyDoorLeft.qml
+TrunkLid 1.0 TrunkLid.qml

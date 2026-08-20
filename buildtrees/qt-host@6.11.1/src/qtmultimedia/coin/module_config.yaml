@@ -1,0 +1,24 @@
+version: 2
+accept_configuration:
+  condition: property
+  property: features
+  not_contains_value: Disable
+
+instructions:
+  Build:
+    # In Qt Multimedia we want CI to always build manual tests to avoid bitrot.
+    - type: AppendToEnvironmentVariable
+      variableName: COMMON_TEST_CMAKE_ARGS
+      variableValue: " -DQT_BUILD_MANUAL_TESTS=ON"
+
+    - !include "{{qt/qtmultimedia}}/configure_tests_environment_for_ffmpeg_backend.yaml"
+    - type: EnvironmentVariable
+      variableName: VERIFY_SOURCE_SBOM
+      variableValue: "ON"
+    - !include "{{qt/qtbase}}/coin_module_build_template_v2.yaml"
+
+  Test:
+    - !include "{{qt/qtmultimedia}}/configure_tests_environment_for_ffmpeg_backend.yaml"
+    - !include "{{qt/qtmultimedia}}/run_ffmpeg_backend_tests.yaml"
+    - !include "{{qt/qtmultimedia}}/run_darwin_backend_tests.yaml"
+    - !include "{{qt/qtbase}}/coin_module_test_docs.yaml"

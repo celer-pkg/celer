@@ -1,0 +1,7 @@
+version = 1
+
+[[annotations]]
+path = ["poly2tri.h", "sweep/*", "common/*"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (c) 2009-2010, Poly2Tri Contributors"
+SPDX-License-Identifier = "BSD-3-Clause"

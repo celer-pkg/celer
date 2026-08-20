@@ -1,0 +1,78 @@
+{
+    "module": "texttospeech",
+    "depends": [
+        "gui"
+    ],
+
+    "commandline": {
+        "options": {
+            "flite": "boolean",
+            "flite-alsa": { "type": "boolean", "name": "flite_alsa" },
+            "speechd": "boolean"
+        }
+    },
+
+    "libraries": {
+        "flite": {
+            "label": "Flite",
+            "test": {
+                "include": "flite/flite.h",
+                "tail": [
+                    "static int fliteAudioCb(const cst_wave *, int, int, int, cst_audio_streaming_info *)",
+                    "{ return CST_AUDIO_STREAM_STOP; }"
+                ],
+                "main": [
+                    "cst_audio_streaming_info *asi = new_audio_streaming_info();",
+                    "asi->asc = fliteAudioCb; // This fails for old Flite",
+                    "new_audio_streaming_info();"
+                ]
+            },
+            "sources": [
+                "-lflite_cmu_us_kal16 -lflite_usenglish -lflite_cmulex -lflite"
+            ]
+        },
+        "speechd": {
+            "label": "Speech Dispatcher",
+            "test": {
+                "include": "libspeechd.h",
+                "main": [
+                    "spd_close(spd_open(\"QtConfigTest\", \"main\", 0, SPD_MODE_THREADED));"
+                ]
+            },
+            "sources": [
+                { "type": "pkgConfig", "args": "speech-dispatcher" },
+                "-lspeechd"
+            ]
+        }
+    },
+
+    "features": {
+        "flite": {
+            "label": "Flite",
+            "condition": "libs.flite",
+            "output": [ "privateFeature" ]
+        },
+        "flite_alsa": {
+            "label": "Flite with ALSA",
+            "condition": "libs.flite && libs.flite_alsa",
+            "output": [ "privateFeature" ]
+        },
+        "speechd": {
+            "label": "Speech Dispatcher",
+            "autoDetect": "config.unix",
+            "condition": "libs.speechd",
+            "output": [ "publicFeature" ]
+        }
+    },
+
+    "summary": [
+        {
+            "section": "Qt TextToSpeech",
+            "entries": [
+                "flite",
+                "flite_alsa",
+                "speechd"
+            ]
+        }
+    ]
+}

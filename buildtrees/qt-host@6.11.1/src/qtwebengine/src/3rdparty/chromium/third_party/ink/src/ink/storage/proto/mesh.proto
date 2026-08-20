@@ -1,0 +1,164 @@
+// Copyright 2024-2025 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// Proto definitions for delta-coded storage of Ink strokes.
+
+syntax = "proto2";
+
+package ink.proto;
+
+import "ink/storage/proto/coded_numeric_run.proto";
+
+// A 2D mesh, compressed lossily using delta coding.
+message CodedMesh {
+  // The format that the decoded mesh attributes should be stored in. If this
+  // field is absent, the default mesh format (i.e. only an unpacked position
+  // attribute) will be assumed by default.
+  optional MeshFormat format = 9;
+
+  // A list of vertex indices for mesh triangles.  The first three indices
+  // indicate the vertices for the first triangle, then the next three for the
+  // second triangle, and so on.  The length of this list must be a multiple of
+  // three.
+  //
+  // This list is non-negative-integer-only (scale=1, offset=0).  However, it
+  // turns out that delta-coding is still a (small) win here post-gzip, so we
+  // still use CodedNumericRun.
+  optional CodedNumericRun triangle_index = 1;
+
+  // Was `outline_index`, use `CodedModeledShape.outlines` instead.
+  reserved 2;
+
+  // Mesh vertex positions, in stroke space.  These two lists must be the same
+  // length.  The vertices should generally be in whatever order is ideal for
+  // rendering performance (e.g. maximizing GPU cache efficiency for triangle
+  // data).
+  //
+  // Typically, a CodedMesh will be stored along with a transformation matrix
+  // that maps from the mesh's local coordinate space to the coordinate space of
+  // its parent document or grouping.
+  optional CodedNumericRun x_stroke_space = 3;
+  optional CodedNumericRun y_stroke_space = 4;
+
+  reserved 5 to 8;  // Were legacy unused fields for color shift data.
+
+  // Mesh attribute data for non-position attributes in this mesh's
+  // format. There should be exactly one CodedNumericRun for each component of
+  // each non-position attribute in the format, in the order that those
+  // attributes appear in the format. Each of these CodedNumericRuns must have
+  // length equal to the number of vertices in the mesh.
+  repeated CodedNumericRun other_attribute_components = 10;
+}
+
+// A complete shape, consisting of potentially multiple meshes as well as
+// optional outline(s), compressed lossily using delta coding.
+message CodedModeledShape {
+  // Was `format`, use `group_*` fields instead.
+  reserved 1;
+
+  // The meshes that collectively make up this modeled shape. The
+  // `CodedMesh.format` field should be omitted from each of these; the
+  // `CodedModeledShape.group_formats` field below will be used instead for all
+  // meshes in each render group.
+  repeated CodedMesh meshes = 2;
+
+  // An optional set of one or more outlines for the shape (which can be used
+  // for e.g. path-based rendering). Each outline is encoded as a
+  // non-negative-integer-only (scale=1, offset=0) list of 32-bit integers,
+  // where the upper 16 bits is an index into the list of meshes for the render
+  // group to which the outline belongs, and the lower 16 bits is an index into
+  // the vertices of that mesh. (This encoding was chosen so as to make the
+  // CodedNumericRun's delta-coding efficient, since most pairs of adjacent
+  // outline points will be in the same mesh, and therefore most of the delta
+  // integers will be small.)
+  repeated CodedNumericRun outlines = 3;
+
+  // The mesh format for each render group in the modeled shape. The number of
+  // elements here determines the number of render groups in the shape.
+  repeated MeshFormat group_formats = 4;
+
+  // The index into the `meshes` field above for the first mesh in each render
+  // group. This must have the same number of elements as the `group_formats`
+  // field above.
+  repeated uint32 group_first_mesh_indices = 5 [packed = true];
+
+  // The index into the `outlines` field above for the first outline in each
+  // render group. This must have the same number of elements as the
+  // `group_formats` field above.
+  repeated uint32 group_first_outline_indices = 6 [packed = true];
+}
+
+// A format specification for mesh data.
+message MeshFormat {
+  // LINT.IfChange(attribute_types)
+  enum AttributeType {
+    ATTR_TYPE_UNSPECIFIED = 0;
+    ATTR_TYPE_FLOAT1_UNPACKED = 1;
+    ATTR_TYPE_FLOAT2_UNPACKED = 2;
+    ATTR_TYPE_FLOAT2_PACKED_IN_ONE_FLOAT = 3;
+    ATTR_TYPE_FLOAT3_UNPACKED = 4;
+    ATTR_TYPE_FLOAT3_PACKED_IN_ONE_FLOAT = 5;
+    ATTR_TYPE_FLOAT3_PACKED_IN_TWO_FLOATS = 6;
+    ATTR_TYPE_FLOAT4_UNPACKED = 7;
+    ATTR_TYPE_FLOAT4_PACKED_IN_ONE_FLOAT = 8;
+    ATTR_TYPE_FLOAT4_PACKED_IN_TWO_FLOATS = 9;
+    ATTR_TYPE_FLOAT4_PACKED_IN_THREE_FLOATS = 10;
+    ATTR_TYPE_FLOAT2_PACKED_IN_THREE_BYTES_XY12 = 11;
+    ATTR_TYPE_FLOAT2_PACKED_IN_FOUR_BYTES_X12_Y20 = 12;
+    ATTR_TYPE_FLOAT1_PACKED_IN_ONE_BYTE = 13;
+    ATTR_TYPE_FLOAT3_PACKED_IN_FOUR_BYTES_XYZ10 = 14;
+  }
+  // LINT.ThenChange(../../geometry/mesh_format.h:attribute_types)
+
+  // LINT.IfChange(attribute_id)
+  enum AttributeId {
+    ATTR_ID_UNSPECIFIED = 0;
+    ATTR_ID_POSITION = 1;
+    ATTR_ID_COLOR_SHIFT_HSL = 2;
+    ATTR_ID_TEXTURE = 3;
+    ATTR_ID_SIDE_DERIVATIVE = 4;
+    ATTR_ID_SIDE_LABEL = 5;
+    ATTR_ID_FORWARD_DERIVATIVE = 6;
+    ATTR_ID_FORWARD_LABEL = 7;
+    ATTR_ID_OPACITY_SHIFT = 8;
+    ATTR_ID_SURFACE_UV = 9;
+    ATTR_ID_ANIMATION_OFFSET = 10;
+    reserved 11 to 63;  // Reserved for future standard attribute IDs.
+
+    // Values 64-127 are reserved for custom attribute IDs.  (Note that keeping
+    // enum values <= 127 ensures that they will require only one varint byte
+    // each in a serialized proto.)
+    ATTR_ID_CUSTOM0 = 64;
+    ATTR_ID_CUSTOM1 = 65;
+    ATTR_ID_CUSTOM2 = 66;
+    ATTR_ID_CUSTOM3 = 67;
+    ATTR_ID_CUSTOM4 = 68;
+    ATTR_ID_CUSTOM5 = 69;
+    ATTR_ID_CUSTOM6 = 70;
+    ATTR_ID_CUSTOM7 = 71;
+    ATTR_ID_CUSTOM8 = 72;
+    ATTR_ID_CUSTOM9 = 73;
+    reserved 74 to 127;  // Reserved for future custom attribute IDs.
+  }
+  // LINT.ThenChange(../../geometry/mesh_format.h:attribute_id)
+
+  // The size/type of each vertex attribute. This must, at the very least,
+  // include a 2-component position attribute.
+  repeated AttributeType attribute_types = 1 [packed = true];
+
+  // The ID of each vertex attribute.  This array must be the same length as the
+  // attribute_types field. For details on how these values are interpreted, see
+  // ../../geometry/mesh_format.h
+  repeated AttributeId attribute_ids = 2 [packed = true];
+}

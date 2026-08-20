@@ -1,0 +1,70 @@
+diff --git a/src/3rdparty/PhysX/source/foundation/src/unix/PsUnixThread.cpp b/src/3rdparty/PhysX/source/foundation/src/unix/PsUnixThread.cpp
+index 9389b4d..0fb6851 100644
+--- a/src/3rdparty/PhysX/source/foundation/src/unix/PsUnixThread.cpp
++++ b/src/3rdparty/PhysX/source/foundation/src/unix/PsUnixThread.cpp
+@@ -97,8 +97,7 @@ class _ThreadImpl
+ 	volatile int32_t state;
+ 
+ 	pthread_t thread;
+-	pid_t tid;
+-
++	pid_t tid;	// Not used for PX_EMSCRIPTEN
+ 	uint32_t affinityMask;
+ 	const char* name;
+ };
+@@ -116,7 +115,7 @@ static void setTid(_ThreadImpl& threadImpl)
+ #elif PX_APPLE_FAMILY
+ 	threadImpl.tid = syscall(SYS_gettid);
+ #elif PX_EMSCRIPTEN
+-	threadImpl.tid = pthread_self();
++	// No thread id for emscripten
+ #else
+ 	threadImpl.tid = syscall(__NR_gettid);
+ #endif
+@@ -128,11 +127,16 @@ static void setTid(_ThreadImpl& threadImpl)
+ void* PxThreadStart(void* arg)
+ {
+ 	_ThreadImpl* impl = getThread(reinterpret_cast<ThreadImpl*>(arg));
++#ifndef PX_EMSCRIPTEN
+ 	impl->state = _PxThreadStarted;
++#endif
+ 
++#ifdef PX_EMSCRIPTEN
++	while(atomicCompareExchange(&(impl->threadStarted), 1, 1) == 0)
++		sched_yield();
++#endif
+ 	// run setTid in thread's context
+ 	setTid(*impl);
+-
+ 	// then run either the passed in function or execute from the derived class (Runnable).
+ 	if(impl->fn)
+ 		(*impl->fn)(impl->arg);
+@@ -202,7 +206,9 @@ void ThreadImpl::start(uint32_t stackSize, Runnable* runnable)
+ 		stackSize = PTHREAD_STACK_MIN;
+ 	}
+ #endif
+-
++#ifdef PX_EMSCRIPTEN
++	getThread(this)->state = _PxThreadStarted;
++#endif
+ 	if(runnable && !getThread(this)->arg && !getThread(this)->fn)
+ 		getThread(this)->arg = runnable;
+ 
+@@ -220,10 +226,17 @@ void ThreadImpl::start(uint32_t stackSize, Runnable* runnable)
+ #endif
+ 	PX_ASSERT(!status);
+ 
++#ifdef PX_EMSCRIPTEN
++	// The waiting is reversed, the started thread wait for us to
++	// reach this point. We do this because waiting for the started
++	// thread to signal us might deadlock wasm.
++	atomicCompareExchange(&(getThread(this)->threadStarted), 1, 0);
++#else
+ 	// wait for thread to startup and write out TID
+ 	// otherwise TID dependent calls like setAffinity will fail.
+ 	while(atomicCompareExchange(&(getThread(this)->threadStarted), 1, 1) == 0)
+ 		yield();
++#endif
+ 
+ 	// here we are sure that getThread(this)->state >= _PxThreadStarted
+ 

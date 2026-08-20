@@ -1,0 +1,20 @@
+// Copyright 2016 The PDFium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+// Original code copyright 2014 Foxit Software Inc. http://www.foxitsoftware.com
+
+#include "xfa/fwl/cfwl_eventscroll.h"
+
+namespace pdfium {
+
+CFWL_EventScroll::CFWL_EventScroll(CFWL_Widget* pSrcTarget,
+                                   Code code,
+                                   float pos)
+    : CFWL_Event(CFWL_Event::Type::Scroll, pSrcTarget),
+      scroll_code_(code),
+      pos_(pos) {}
+
+CFWL_EventScroll::~CFWL_EventScroll() = default;
+
+}  // namespace pdfium

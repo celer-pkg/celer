@@ -1,0 +1,8 @@
+Version: 2
+Include: []
+Configurations:
+-
+    Id: 'qttas-on-linux'
+    Template: 'qtci-linux-RHEL-9.6-x86_64-51'
+    Compiler: 'GCC'
+    Features: ['UseConfigure', 'Packaging', 'DisableTests']

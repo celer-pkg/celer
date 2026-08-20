@@ -1,0 +1,54 @@
+Qt 5.14 introduces many new features and improvements as well as bugfixes
+over the 5.13.x series. For more details, refer to the online documentation
+included in this distribution. The documentation is also available online:
+
+https://doc.qt.io/qt-5/index.html
+
+The Qt version 5.14 series is binary compatible with the 5.13.x series.
+Applications compiled for 5.13 will continue to run with 5.14.
+
+Some of the changes listed in this file include issue tracking numbers
+corresponding to tasks in the Qt Bug Tracker:
+
+https://bugreports.qt.io/
+
+Each of these identifiers can be entered in the bug tracker to obtain more
+information about a particular change.
+
+****************************************************************************
+*                            Qt 5.14.0 Changes                             *
+****************************************************************************
+
+QtSerialBus
+-----------
+
+ - QCanBusDevice:
+   * [QTBUG-54943] Added the function resetController() to reset a CAN
+     controller from bus off state, as far as supported by the various
+     plugins.
+   * [QTBUG-70766] Added the function busStatus() to query the CAN bus
+     status from the CAN bus device.
+   * [QTBUG-70449] Added the QCanBusDevice::OperationError and
+     QCanBusDevice::TimeoutError codes to signal wrong operation
+     respectively timeout errors.
+   * [QTBUG-72979] Added operators to compare QCanBusDevice::Filter
+     for equality or inequality.
+
+ - CAN Plugins
+   * PeakCAN: Added support for PCAN-USB devices on macOS by using the
+     MacCAN library (http://www.mac-can.com)
+   * SocketCAN:
+     * [QTBUG-54296] If libsocketcan is available, the CAN bus bitrate
+       can be get and set at runtime.
+     * [QTBUG-75204] Added the configuration parameter
+       QCanBusDevice::ProtocolKey to use another protocol inside the
+       protocol family PF_CAN.
+   * VirtualCAN: Fixed that the plugin stayed forever in closing state
+     after disconnect and subsequent connect calls always failed.
+
+ - Modbus
+   * [QTBUG-75405][QTBUG-76232] Expose the underling QIODevice used
+     for Modbus communication, e.g. for setting the serial port
+     hardware flow control (RTS/CTS).
+   * The UserParameter enum value of QModbusDevice::ConnectionParameter
+     has been deprecated in favor of using the underlying QIODevice.

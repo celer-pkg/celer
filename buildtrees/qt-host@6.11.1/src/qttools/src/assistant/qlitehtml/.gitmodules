@@ -1,0 +1,3 @@
+[submodule "src/3rdparty/litehtml"]
+	path = src/3rdparty/litehtml
+	url = ../../qt/qttools-litehtml.git

@@ -1,0 +1,24 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtquick3d-tool-instancer.html
+\title Instancer Tool
+\brief Command line tool for converting instance data from XML to binary.
+
+The instancer tool is a command line application that reads an instancing table in the XML format defined by
+\l[QML]{FileInstancing}{FileInstancing}, and converts it to a format that can be directly mapped to memory.
+
+\section1 Usage
+
+To convert the file \e{instances.xml} and save the result in \e{instances.xml.bin}:
+\badcode
+$ instancer instances.xml
+\endcode
+
+To convert the file \e{infile.xml} and save the result in \e{outfile.bin}:
+\badcode
+$ instancer infile.xml outfile.bin
+\endcode
+
+*/

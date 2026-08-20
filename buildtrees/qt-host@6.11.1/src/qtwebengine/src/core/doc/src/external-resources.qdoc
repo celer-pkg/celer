@@ -1,0 +1,133 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \externalpage http://www.chromium.org
+    \title Chromium Project
+*/
+
+/*!
+    \externalpage https://developers.google.com/web/tools/chrome-devtools
+    \title Chrome DevTools
+*/
+
+/*!
+    \externalpage https://developer.chrome.com/docs/devtools/console/
+    \title Chrome console API
+*/
+
+/*!
+    \externalpage http://ffmpeg.org/
+    \title FFmpeg
+*/
+
+/*!
+    \externalpage http://www.openh264.org/
+    \title OpenH264 Project Homepage
+*/
+
+/*!
+    \externalpage http://html5demos.com/drag
+    \title HTML5 Demos - Drag and Drop
+*/
+
+/*!
+    \externalpage http://html5demos.com/drag-anything
+    \title HTML5 Demos - Simple Drag and Drop
+*/
+
+/*!
+    \externalpage http://html5demos.com/dnd-upload
+    \title HTML5 Demos - Drag and Drop, Automatic Upload
+*/
+
+/*!
+    \externalpage http://html5demos.com/file-api
+    \title HTML5 Demos - File API
+*/
+
+/*!
+    \externalpage http://www.widevine.com
+    \title Widevine CDM
+*/
+
+/*!
+    \externalpage http://demo.castlabs.com/
+    \title castLabs
+*/
+
+/*!
+    \externalpage https://bitmovin.com/demos/drm
+    \title Bitmovin Player
+*/
+
+/*!
+    \externalpage https://sourceforge.net/projects/hunspell/
+    \title Hunspell Project
+*/
+
+/*!
+    \externalpage https://www.w3.org/Protocols/rfc2616/rfc2616-sec19.html#sec19.5.1
+    \title RFC 2616 section 19.5.1
+*/
+
+/*!
+  \externalpage https://www.iana.org/assignments/uri-schemes/prov/view-source
+  \title view-source URI scheme
+*/
+
+/*!
+    \externalpage https://wiki.greasespot.net/Metadata_Block
+    \title Greasemonkey
+*/
+
+/*!
+    \externalpage https://http2.github.io/
+    \title HTTP/2
+*/
+
+/*!
+    \externalpage https://http2.akamai.com/demo
+    \title Akamai HTTP/2 Demo
+*/
+
+/*!
+    \externalpage https://www.chromium.org/developers/design-documents/user-scripts
+    \title User Scripts
+*/
+
+/*!
+    \externalpage https://wiki.greasespot.net/Metadata_Block#.40name
+    \title Metadata Block
+*/
+
+/*!
+    \externalpage https://developer.mozilla.org/en-US/docs/Web/API/Navigator/registerProtocolHandler
+    \title registerProtocolHandler
+*/
+
+/*!
+    \externalpage https://www.w3.org/TR/notifications
+    \title Web Notifications API
+*/
+
+/*!
+    \externalpage https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
+    \title Autoplay Policy Changes
+*/
+
+// Workarounds for broken links introduced by README.chromium license files
+/*!
+    \externalpage #
+    \title This is the canonical public repository
+*/
+
+/*!
+    \externalpage #
+    \title NA
+*/
+
+/*!
+    \externalpage https://source.chromium.org/chromium/chromium/src/+/master:v8/src/base/ieee754.cc
+    \title source.chromium.org/chromium/chromium/src/+/master:v8/src/base/ieee754.cc
+*/

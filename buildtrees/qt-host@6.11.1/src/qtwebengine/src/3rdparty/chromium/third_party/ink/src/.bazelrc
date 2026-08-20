@@ -1,0 +1,16 @@
+# Set up to use C++20.
+build --cxxopt=-std=c++20
+
+# Enable Bzlmod for all Bazel commands.
+common --enable_bzlmod
+
+# To create this file, please run:
+#  bazel run @com_google_fuzztest//bazel:setup_configs > fuzztest.bazelrc
+try-import %workspace%/fuzztest.bazelrc
+
+# Android builds.
+build:android-common --extra_toolchains=@androidndk//:all
+build:android-x86 --config=android-common --platforms=//:android-x86
+build:android-x86_64 --config=android-common --platforms=//:android-x86_64
+build:android-armeabi-v7a --config=android-common --platforms=//:android-arm
+build:android-arm64-v8a --config=android-common --platforms=//:android-arm64

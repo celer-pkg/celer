@@ -1,0 +1,36 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+
+\title Exporting from Modo
+\page quick3d-asset-conditioning-export-modo
+
+\section1 Exporting COLLADA from Modo
+
+\list 1
+    \li With the mesh object selected, triangulate the mesh by pressing \e Shift+T.
+    \image export-colladaModo01.png {Modo viewport showing wireframe cube}
+    \li Next, select \uicontrol{System > Preferences} from the menu bar to configure the COLLADA
+    exporter.
+    \li In the preferences dialog box, locate the \uicontrol{Collada I/O} section under
+    \uicontrol{File I/O}. Ensure that the  \uicontrol{Save Triangles as Triangles} option is
+    checked.
+    \image export-colladaModo02.png
+           {Modo COLLADA Export preferences with Save Triangles as Triangles}
+    \li Close the preferences dialog box.
+    \li From the menu bar, select \uicontrol{File > Export As}.
+    \li Select \b Collada in the \uicontrol{Save as Type} drop-down list.
+    \li Press \uicontrol{Save}.
+\endlist
+
+\section1 Exporting FBX from Modo
+
+\list 1
+    \li With the mesh object selected, triangulate the mesh by pressing \e Shift+T.
+    \image export-colladaModo01.png {Modo viewport showing wireframe cube}
+    \li From the menu bar, select \uicontrol{File > Export As}.
+    \li Select \b FBX in the \uicontrol{Save as Type} drop-down list.
+    \li Select \uicontrol{Save}.
+\endlist
+*/

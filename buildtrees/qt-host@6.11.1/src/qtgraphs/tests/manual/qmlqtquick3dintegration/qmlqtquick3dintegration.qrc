@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/qmlqtquick3dintegration/Axes.qml</file>
+        <file>qml/qmlqtquick3dintegration/Data.qml</file>
+        <file>qml/qmlqtquick3dintegration/main.qml</file>
+        <file>video/video.mp4</file>
+    </qresource>
+</RCC>

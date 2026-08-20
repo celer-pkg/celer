@@ -1,0 +1,18 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtstatemachine-toc.html
+    \title Qt State Machine module topics
+
+    The following list has links to all the individual topics (HTML files)
+    in the Qt State Machine module.
+
+    \list
+    \li \l {Qt State Machine Overview}{Overview}
+    \li \l {Qt State Machine C++ Guide}{C++ Guide}
+    \li \l {Qt State Machine QML Guide}{QML Guide}
+    \li \l {Changes to Qt State Machine}{Upgrading from Qt 5}
+    \endlist
+
+*/

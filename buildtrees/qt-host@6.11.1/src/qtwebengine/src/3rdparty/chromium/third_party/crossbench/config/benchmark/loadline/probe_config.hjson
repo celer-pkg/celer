@@ -1,0 +1,45 @@
+{
+  probes: {
+    // Uncomment the following line to record a WPR archive.
+    // wpr: {},
+    trace_processor: {
+      queries: [
+        "loadline/benchmark_score",
+        "loadline/breakdown",
+      ],
+      batch: false,
+    },
+    perfetto: {
+      textproto: '''
+        buffers {
+          size_kb: 300000
+          fill_policy: DISCARD
+        }
+        data_sources {
+          config {
+            name: "org.chromium.trace_metadata"
+          }
+        }
+        data_sources {
+          config {
+            name: "track_event"
+            track_event_config {
+              disabled_categories: "*"
+              enabled_categories: "benchmark"
+              enabled_categories: "blink.user_timing"
+              enabled_categories: "devtools.timeline"
+              enabled_categories: "disabled-by-default-devtools.timeline"
+              enabled_categories: "loading"
+              enabled_categories: "v8"
+              enabled_categories: "__metadata"
+              timestamp_unit_multiplier: 1000
+              enable_thread_time_sampling: true
+              filter_debug_annotations: false
+              filter_dynamic_event_names: false
+            }
+          }
+        }
+      '''
+    }
+  }
+}

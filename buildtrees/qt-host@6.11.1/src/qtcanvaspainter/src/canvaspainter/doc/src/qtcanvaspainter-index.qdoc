@@ -1,0 +1,53 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\title Qt Canvas Painter
+\page qtcanvaspainter-index.html
+\brief Provides hardware-accelerated painting API on QRhi.
+
+The Qt Canvas Painter module provides classes for hardware-accelerated
+imperative 2D painting. This painting API is available for both Qt Quick
+and Qt Widgets, and can also be used directly with QRhi. The API design
+generally follows HTML canvas 2d context, with some reductions and some
+additions.
+
+Compared to QPainter, the Qt Canvas Painter is more compact and has fewer
+abstractions, aiming to perform optimally on QRhi. Qt Canvas Painter is
+designed for GPU rendering and does not have a CPU backend as QPainter
+does.
+
+\note Qt Canvas Painter in \QtVer is in \e{Technology Preview}, excluding its
+API from \l[QtDoc]{Compatibility promises}{Qt's compatibility promises}.
+
+\section1 Using the Module
+
+\section2 C++ API
+
+\include {module-use.qdocinc} {using the c++ api}
+
+\section3 Building with CMake
+
+\include {module-use.qdocinc} {building with cmake} {CanvasPainter}
+
+\section1 Class Reference
+
+\l{Qt Canvas Painter C++ Classes}
+
+\section1 Examples
+
+\l{Qt Canvas Painter Examples and Tutorials}{All examples}
+
+\section1 Licenses and Attributions
+
+Qt Canvas Painter runtime library is available under commercial licenses from
+\l{The Qt Company}. In addition, it is available under the \l {GNU General
+Public License, version 3}.
+
+See \l{Qt Licensing} for further details.
+
+Furthermore, Qt Canvas Painter in \QtVersion may contain third party
+modules under the following permissive licenses:
+
+\annotatedlist attributions-qtcanvaspainter
+*/

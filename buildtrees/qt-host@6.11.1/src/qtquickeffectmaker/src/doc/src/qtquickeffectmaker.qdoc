@@ -1,0 +1,76 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+    \page qtquickeffectmaker-index.html
+    \title \QQEM
+
+    \QQEM is a tool for creating shader effects for
+    Qt Quick with high productivity and performance. You can run \QQEM
+    as a standalone tool but it is also included in
+    \l{https://doc.qt.io/qtdesignstudio/}{Qt Design Studio}.
+
+    \image qqem-start.webp
+           {Qt Quick Effect Maker with node editor on left and preview pane on right}
+
+    \section1 Feature overview
+
+    The main features of \QQEM:
+
+    \list
+      \li \b {Live preview}: When you work with effects, you can see most changes instantly in the
+      live preview.
+      \li \b {Node view}: In the node view, you build effects without coding. There are
+      over 30 nodes, including most of the Qt Graphical Effects.
+      \li \b {Code view}: In the code view, you can edit the code of all effect node shaders. The
+      code editor features include GLSL syntax highlighting, auto indent, search, and more.
+      \li \b {Combined effects}: For increased performance, \QQEM combines all the
+      effects in one shader.
+      \li \b {JSON file format}: \QQEM stores project and node files in JSON format,
+      making it easy to share files for increased productivity.
+      \li \b {Shadertoy compatibility}: Variable naming in \QQEM is in most cases
+      compatible with \l{http://www.shadertoy.com}{Shadertoy}, making it easy to port Shadertoy
+      shaders to \QQEM and the other way around. Most Shadertoy features and some
+      extra features, such as vertex shaders, custom textures, and properties, are supported.
+      \li \b {Pure Qt Quick}: \QQEM is implemented with Qt Quick and
+      Qt Quick Controls. The work flow is designed for Qt Quick and Qt RHI.
+    \endlist
+
+    \section1 Getting started
+
+    \list
+      \li \l{Installing \QQEM}
+    \endlist
+
+    \section1 How-to's
+
+    \list
+      \li \l{Creating a blur effect}
+      \li \l{Porting Shadertoy effects to \QQEM}
+    \endlist
+
+    \section1 Examples
+
+    \list
+      \li \l{Wiggly}: Demonstrates how to use an effect created with \QQEM.
+    \endlist
+*/
+
+/*!
+    \group quickeffectmaker-examples
+    \title \QQEM examples
+    \brief Example usage of \QQEM.
+
+*/
+
+/*!
+    \page qqem-toc.html
+    \title Qt Quick Effect Maker topics
+
+    \list
+        \li \l{Installing \QQEM}
+        \li \l{Creating a blur effect}
+        \li \l{Porting Shadertoy effects to \QQEM}
+        \li \l{Wiggly}{Example: Wiggly}
+    \endlist
+
+*/

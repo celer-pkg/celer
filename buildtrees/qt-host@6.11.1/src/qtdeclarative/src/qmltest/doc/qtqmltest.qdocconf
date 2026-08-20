@@ -1,0 +1,44 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/config/exampleurl-qtdeclarative.qdocconf)
+
+project                 = QtQmlTest
+description             = Qt Quick Test Reference Documentation
+version                 = $QT_VERSION
+moduleheader            = QtQuickTest
+qhp.projects            = QtQmlTest
+
+qhp.QtQmlTest.file                = qtqmltest.qhp
+qhp.QtQmlTest.namespace           = org.qt-project.qtqmltest.$QT_VERSION_TAG
+qhp.QtQmlTest.virtualFolder       = qtqmltest
+qhp.QtQmlTest.indexTitle          = Qt Quick Test
+qhp.QtQmlTest.indexRoot           =
+
+qhp.QtQmlTest.subprojects         = qmltypes classes concepts
+qhp.QtQmlTest.subprojects.classes.title = C++ API
+qhp.QtQmlTest.subprojects.classes.indexTitle = Qt Quick Test C++ API
+qhp.QtQmlTest.subprojects.classes.selectors = class namespace doc:headerfile
+qhp.QtQmlTest.subprojects.classes.sortPages = true
+qhp.QtQmlTest.subprojects.qmltypes.title = QML Types
+qhp.QtQmlTest.subprojects.qmltypes.indexTitle = Qt Quick Test QML Types
+qhp.QtQmlTest.subprojects.qmltypes.selectors = qmlclass
+qhp.QtQmlTest.subprojects.qmltypes.sortPages = true
+qhp.QtQmlTest.subprojects.concepts.title = Upgrading from Qt 5
+qhp.QtQmlTest.subprojects.concepts.indexTitle = Changes to Qt Quick Test
+qhp.QtQmlTest.subprojects.concepts.selectors = group:none
+
+tagfile      = qtqmltest.tags
+
+depends += qtcore qtgui qttestlib qtqml qtquick qtdoc qmake qtcmake
+
+headerdirs  += ..
+
+sourcedirs  += ..
+
+exampledirs += snippets
+
+navigation.landingpage = "Qt Quick Test"
+navigation.cppclassespage = "Qt Quick Test C++ API"
+navigation.qmltypespage = "Qt Quick Test QML Types"
+
+# Enforce zero documentation warnings
+warninglimit = 0

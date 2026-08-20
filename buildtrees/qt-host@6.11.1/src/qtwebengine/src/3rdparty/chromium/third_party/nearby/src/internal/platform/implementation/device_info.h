@@ -1,0 +1,72 @@
+// Copyright 2022 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#ifndef PLATFORM_API_DEVICE_INFO_H_
+#define PLATFORM_API_DEVICE_INFO_H_
+
+#include <functional>
+#include <optional>
+#include <string>
+
+#include "absl/strings/string_view.h"
+#include "internal/base/file_path.h"
+
+namespace nearby {
+namespace api {
+
+class DeviceInfo {
+ public:
+  enum class ScreenStatus { kUndetermined = 0, kLocked, kUnlocked };
+  enum class DeviceType { kUnknown = 0, kPhone, kTablet, kLaptop };
+  enum class OsType {
+    kUnknown = 0,
+    kAndroid,
+    kChromeOs,
+    kIos,
+    kWindows,
+    kMacOS
+  };
+
+  virtual ~DeviceInfo() = default;
+
+  // Gets device name.
+  virtual std::optional<std::string> GetOsDeviceName() const = 0;
+  virtual DeviceType GetDeviceType() const = 0;
+  virtual OsType GetOsType() const = 0;
+
+  // Gets known paths of current user.
+  virtual std::optional<FilePath> GetDownloadPath() const = 0;
+  virtual std::optional<FilePath> GetLocalAppDataPath() const = 0;
+  virtual std::optional<FilePath> GetCommonAppDataPath() const = 0;
+  virtual std::optional<FilePath> GetTemporaryPath() const = 0;
+  virtual std::optional<FilePath> GetLogPath() const = 0;
+  virtual std::optional<FilePath> GetCrashDumpPath() const = 0;
+
+  // Monitor screen status
+  virtual bool IsScreenLocked() const = 0;
+  virtual void RegisterScreenLockedListener(
+      absl::string_view listener_name,
+      std::function<void(ScreenStatus)> callback) = 0;
+  virtual void UnregisterScreenLockedListener(
+      absl::string_view listener_name) = 0;
+
+  // Control device sleep
+  virtual bool PreventSleep() = 0;
+  virtual bool AllowSleep() = 0;
+};
+
+}  // namespace api
+}  // namespace nearby
+
+#endif  // PLATFORM_API_DEVICE_INFO_H_

@@ -1,0 +1,76 @@
+version = 1
+
+[[annotations]]
+path = "util/unicode/codecs/big5/BIG5"
+precedence = "closest"
+comment = "tools and utils"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0"
+
+[[annotations]]
+path = "src/imports/graphicaleffects5/**"
+precedence = "closest"
+comment = "module and plugin"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only"
+
+[[annotations]]
+path = ["tests/auto/core5/serialization/json/invalidBinaryData/*.bjson",
+        "tests/auto/core5/sax/qxmlsimplereader/xmldocs/**.xml.ref",
+        "tests/auto/core5/sax/qxmlsimplereader/xmldocs/**.xml",
+        "tests/auto/core5/sax/qxmlsimplereader/xmldocs/**.ent",
+        "tests/auto/core5/codecs/qtextcodec/*.txt",
+        "tests/benchmarks/core5/codecs/qtextcodec/utf-8.txt",
+        "tests/auto/core5/sax/qxml**.xml",
+        "tests/auto/core5/serialization/json/test.bjson",
+        "tests/auto/core5/text/qregexp/data/qdatastream*.bin",
+        "tests/**.json"]
+precedence = "closest"
+comment = "test"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GPL-3.0-only"
+
+[[annotations]]
+path = ["**.pro", "**.qrc", "**CMakeLists.txt", ".cmake.conf", "**.yaml",
+        "**ci_config_linux.json", ".tag"]
+precedence = "closest"
+comment = "build system"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
+path = ["**/.gitattributes", "**.gitignore", "**.gitreview"]
+precedence = "closest"
+comment = "infrastructure"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
+
+[[annotations]]
+path = ["examples/core5/widgets/tools/codecs/encodedfiles/*.txt",
+        "examples/core5/widgets/tools/codecs/images/editcopy.png", "examples/**"]
+comment = "this must be after the build system table because example and snippets take precedence over build system"
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
+
+[[annotations]]
+path = ["**/doc/images/**", "**.qdocconf"]
+comment = "documentation"
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only"
+
+[[annotations]]
+path = ["**.toml", "licenseRule.json"]
+comment = "infrastructure"
+precedence = "override"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
+
+[[annotations]]
+path = ["**/qt_attribution.json"]
+comment = "documentation"
+precedence = "override"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only"
+

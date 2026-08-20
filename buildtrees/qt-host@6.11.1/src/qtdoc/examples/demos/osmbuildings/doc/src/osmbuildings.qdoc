@@ -1,0 +1,144 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title OSM Buildings
+    \examplecategory {3D}
+    \ingroup qtquickdemos
+    \example demos/osmbuildings
+    \brief A 3D building viewer of OSM (OpenStreetMap) buildings map data.
+    \meta {tag} {demo,quick,3d}
+    \meta {docdependencies} {QtQuick3D,QtPositioning}
+    \borderedimage osmbuildings.jpg
+
+    \section1 Overview
+
+    This application demonstrates how to create 3D building geometry for display on a map using data
+    from OpenStreetMap (OSM) servers or a locally limited data set when the server is unavailable.
+
+    \section2 Queue handling
+
+    The application uses a queue to handle concurrent requests to boost up the loading process of
+    maps and building data.
+
+    \quotefromfile demos/osmbuildings/request.cpp
+    \skipto OSMRequest::OSMRequest
+    \printuntil m_queuesTimer.setInterval(0);
+
+   \section2 Fetching and parsing data
+
+    A custom request handler class is implemented for fetching the data from the OSM building
+    and map servers.
+
+    \quotefromfile demos/osmbuildings/request.cpp
+    \skipto OSMRequest::getBuildingsData
+    \printuntil } );
+    \skipto OSMRequest::getMapsData
+    \printuntil } );
+
+    The application parses the online data to convert it to a \l{QVariant} list of keys and values
+    in geo formats such as \l{QGeoPolygon}.
+
+    \quotefromfile demos/osmbuildings/request.cpp
+    \skipto importGeoJson(QJsonDocument::fromJson
+    \printuntil --m_buildingsNumberOfRequestsInFlight;
+
+    The parsed building data is sent to a custom geometry item to convert the geo coordinates to 3D
+    coordinates.
+
+    \quotefromfile demos/osmbuildings/geometry.cpp
+    \skipto convertGeoCoordToVertexPosition
+    \printuntil }
+
+    The required data for the index and vertex buffers, such as position, normals, tangents,
+    and UV coordinates, is generated.
+
+    \quotefromfile demos/osmbuildings/geometry.cpp
+    \skipto for ( const QVariant &baseData : geoVariantsList )
+        \printuntil for ( const QGeoCoordinate &buildingPoint : buildingCoords )
+        \dots 3
+        \skipto std::vector<PolygonVertices> roofPolygonsVertices
+    \printuntil clear()
+
+    The downloaded PNG data is sent to a custom QQuick3DTextureData item to convert the PNG format
+    to a texture for map tiles.
+
+    \quotefromfile demos/osmbuildings/manager.cpp
+    \skipto CustomTextureData::setImageData
+    \printuntil }
+
+    The application uses camera position, orientation, zoom level, and tilt to find the nearest
+    tiles in the view.
+
+    \quotefromfile demos/osmbuildings/manager.cpp
+    \skipto OSMManager::setCameraProperties
+    \printuntil ->getMapsData( queue );
+
+    Generates the tiles request queue.
+
+    \quotefromfile demos/osmbuildings/manager.cpp
+    \skipto OSMManager::addBuildingRequestToQueue
+    \printuntil }
+
+    \section2 Controls
+
+    When you run the application, use the following controls for navigation.
+
+    \table
+      \header
+         \li
+         \li Windows
+         \li Android
+      \row
+        \li Pan
+        \li Left mouse button + drag
+        \li Drag
+      \row
+        \li Zoom
+        \li Mouse wheel
+        \li Pinch
+      \row
+        \li Rotate
+        \li Right mouse button + drag
+        \li n/a
+    \endtable
+
+    \quotefromfile demos/osmbuildings/Main.qml
+    \skipto OSMCameraController
+    \printuntil }
+
+    \section2 Rendering
+
+    Every chunk of the map tile consists of a QML model (the 3D geometry) and a custom material
+    which uses a rectangle as a base to render the tilemap texture.
+
+    \quotefromfile demos/osmbuildings/Main.qml
+    \skipto id: chunkModelMap
+    \dots 8
+    \skipto Model
+    \printuntil }
+    \printuntil ]
+    \printuntil }
+
+    The application uses custom geometry to render tile buildings.
+
+    \quotefromfile demos/osmbuildings/Main.qml
+    \skipto id: chunkModelBuilding
+    \dots 8
+    \skipto Model
+    \printuntil }
+    \printuntil ]
+    \printuntil }
+
+    To render building parts such as rooftops with one draw call,
+    a custom shader is used.
+
+    \quotefromfile demos/osmbuildings/customshaderbuildings.frag
+    \skipto SPDX-License-Identifier
+    \printuntil }
+    \printuntil }
+
+    \include examples-run.qdocinc
+
+    \sa {QML Applications}
+*/

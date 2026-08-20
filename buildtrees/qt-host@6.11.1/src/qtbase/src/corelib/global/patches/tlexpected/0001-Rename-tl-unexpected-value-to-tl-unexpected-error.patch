@@ -1,0 +1,280 @@
+From 14c70a678a76457562a1be33d1809463dd3bf6e8 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?J=C3=B8ger=20Hanseg=C3=A5rd?= <joger.hansegard@qt.io>
+Date: Wed, 19 Feb 2025 12:12:29 +0100
+Subject: [PATCH 1/3] Rename tl::unexpected::value() to tl::unexpected::error()
+
+Fixes #149
+---
+ include/tl/expected.hpp | 52 ++++++++++++++++++++---------------------
+ tests/constructors.cpp  | 20 ++++++++++++++++
+ tests/issues.cpp        |  2 +-
+ tests/observers.cpp     | 12 ++++++++++
+ tests/relops.cpp        | 25 ++++++++++++++++++++
+ 5 files changed, 84 insertions(+), 27 deletions(-)
+
+diff --git a/include/tl/expected.hpp b/include/tl/expected.hpp
+index 3c22c5c..9d3a5e1 100644
+--- a/include/tl/expected.hpp
++++ b/include/tl/expected.hpp
+@@ -165,10 +165,10 @@ public:
+   constexpr explicit unexpected(std::initializer_list<U> l, Args &&...args)
+       : m_val(l, std::forward<Args>(args)...) {}
+ 
+-  constexpr const E &value() const & { return m_val; }
+-  TL_EXPECTED_11_CONSTEXPR E &value() & { return m_val; }
+-  TL_EXPECTED_11_CONSTEXPR E &&value() && { return std::move(m_val); }
+-  constexpr const E &&value() const && { return std::move(m_val); }
++  constexpr const E &error() const & { return m_val; }
++  TL_EXPECTED_11_CONSTEXPR E &error() & { return m_val; }
++  TL_EXPECTED_11_CONSTEXPR E &&error() && { return std::move(m_val); }
++  constexpr const E &&error() const && { return std::move(m_val); }
+ 
+ private:
+   E m_val;
+@@ -180,27 +180,27 @@ template <class E> unexpected(E) -> unexpected<E>;
+ 
+ template <class E>
+ constexpr bool operator==(const unexpected<E> &lhs, const unexpected<E> &rhs) {
+-  return lhs.value() == rhs.value();
++  return lhs.error() == rhs.error();
+ }
+ template <class E>
+ constexpr bool operator!=(const unexpected<E> &lhs, const unexpected<E> &rhs) {
+-  return lhs.value() != rhs.value();
++  return lhs.error() != rhs.error();
+ }
+ template <class E>
+ constexpr bool operator<(const unexpected<E> &lhs, const unexpected<E> &rhs) {
+-  return lhs.value() < rhs.value();
++  return lhs.error() < rhs.error();
+ }
+ template <class E>
+ constexpr bool operator<=(const unexpected<E> &lhs, const unexpected<E> &rhs) {
+-  return lhs.value() <= rhs.value();
++  return lhs.error() <= rhs.error();
+ }
+ template <class E>
+ constexpr bool operator>(const unexpected<E> &lhs, const unexpected<E> &rhs) {
+-  return lhs.value() > rhs.value();
++  return lhs.error() > rhs.error();
+ }
+ template <class E>
+ constexpr bool operator>=(const unexpected<E> &lhs, const unexpected<E> &rhs) {
+-  return lhs.value() >= rhs.value();
++  return lhs.error() >= rhs.error();
+ }
+ 
+ template <class E>
+@@ -1582,7 +1582,7 @@ public:
+             detail::enable_if_t<!std::is_convertible<const G &, E>::value> * =
+                 nullptr>
+   explicit constexpr expected(const unexpected<G> &e)
+-      : impl_base(unexpect, e.value()),
++      : impl_base(unexpect, e.error()),
+         ctor_base(detail::default_constructor_tag{}) {}
+ 
+   template <
+@@ -1591,7 +1591,7 @@ public:
+           nullptr,
+       detail::enable_if_t<std::is_convertible<const G &, E>::value> * = nullptr>
+   constexpr expected(unexpected<G> const &e)
+-      : impl_base(unexpect, e.value()),
++      : impl_base(unexpect, e.error()),
+         ctor_base(detail::default_constructor_tag{}) {}
+ 
+   template <
+@@ -1600,7 +1600,7 @@ public:
+       detail::enable_if_t<!std::is_convertible<G &&, E>::value> * = nullptr>
+   explicit constexpr expected(unexpected<G> &&e) noexcept(
+       std::is_nothrow_constructible<E, G &&>::value)
+-      : impl_base(unexpect, std::move(e.value())),
++      : impl_base(unexpect, std::move(e.error())),
+         ctor_base(detail::default_constructor_tag{}) {}
+ 
+   template <
+@@ -1609,7 +1609,7 @@ public:
+       detail::enable_if_t<std::is_convertible<G &&, E>::value> * = nullptr>
+   constexpr expected(unexpected<G> &&e) noexcept(
+       std::is_nothrow_constructible<E, G &&>::value)
+-      : impl_base(unexpect, std::move(e.value())),
++      : impl_base(unexpect, std::move(e.error())),
+         ctor_base(detail::default_constructor_tag{}) {}
+ 
+   template <class... Args,
+@@ -2017,46 +2017,46 @@ public:
+             detail::enable_if_t<!std::is_void<U>::value> * = nullptr>
+   TL_EXPECTED_11_CONSTEXPR const U &value() const & {
+     if (!has_value())
+-      detail::throw_exception(bad_expected_access<E>(err().value()));
++      detail::throw_exception(bad_expected_access<E>(err().error()));
+     return val();
+   }
+   template <class U = T,
+             detail::enable_if_t<!std::is_void<U>::value> * = nullptr>
+   TL_EXPECTED_11_CONSTEXPR U &value() & {
+     if (!has_value())
+-      detail::throw_exception(bad_expected_access<E>(err().value()));
++      detail::throw_exception(bad_expected_access<E>(err().error()));
+     return val();
+   }
+   template <class U = T,
+             detail::enable_if_t<!std::is_void<U>::value> * = nullptr>
+   TL_EXPECTED_11_CONSTEXPR const U &&value() const && {
+     if (!has_value())
+-      detail::throw_exception(bad_expected_access<E>(std::move(err()).value()));
++      detail::throw_exception(bad_expected_access<E>(std::move(err()).error()));
+     return std::move(val());
+   }
+   template <class U = T,
+             detail::enable_if_t<!std::is_void<U>::value> * = nullptr>
+   TL_EXPECTED_11_CONSTEXPR U &&value() && {
+     if (!has_value())
+-      detail::throw_exception(bad_expected_access<E>(std::move(err()).value()));
++      detail::throw_exception(bad_expected_access<E>(std::move(err()).error()));
+     return std::move(val());
+   }
+ 
+   constexpr const E &error() const & {
+     TL_ASSERT(!has_value());
+-    return err().value();
++    return err().error();
+   }
+   TL_EXPECTED_11_CONSTEXPR E &error() & {
+     TL_ASSERT(!has_value());
+-    return err().value();
++    return err().error();
+   }
+   constexpr const E &&error() const && {
+     TL_ASSERT(!has_value());
+-    return std::move(err().value());
++    return std::move(err().error());
+   }
+   TL_EXPECTED_11_CONSTEXPR E &&error() && {
+     TL_ASSERT(!has_value());
+-    return std::move(err().value());
++    return std::move(err().error());
+   }
+ 
+   template <class U> constexpr T value_or(U &&v) const & {
+@@ -2446,19 +2446,19 @@ constexpr bool operator!=(const U &v, const expected<T, E> &x) {
+ 
+ template <class T, class E>
+ constexpr bool operator==(const expected<T, E> &x, const unexpected<E> &e) {
+-  return x.has_value() ? false : x.error() == e.value();
++  return x.has_value() ? false : x.error() == e.error();
+ }
+ template <class T, class E>
+ constexpr bool operator==(const unexpected<E> &e, const expected<T, E> &x) {
+-  return x.has_value() ? false : x.error() == e.value();
++  return x.has_value() ? false : x.error() == e.error();
+ }
+ template <class T, class E>
+ constexpr bool operator!=(const expected<T, E> &x, const unexpected<E> &e) {
+-  return x.has_value() ? true : x.error() != e.value();
++  return x.has_value() ? true : x.error() != e.error();
+ }
+ template <class T, class E>
+ constexpr bool operator!=(const unexpected<E> &e, const expected<T, E> &x) {
+-  return x.has_value() ? true : x.error() != e.value();
++  return x.has_value() ? true : x.error() != e.error();
+ }
+ 
+ template <class T, class E,
+diff --git a/tests/constructors.cpp b/tests/constructors.cpp
+index df168ba..10b96de 100644
+--- a/tests/constructors.cpp
++++ b/tests/constructors.cpp
+@@ -131,4 +131,24 @@ TEST_CASE("Constructors", "[constructors]") {
+         REQUIRE(!e);
+         REQUIRE(e.error() == 42);
+     }
++
++    {
++        constexpr tl::unexpected<char> u('s');
++        tl::expected<int, int> e(u);
++        REQUIRE(e.error() == 's');
++    }
++
++    {
++        struct value {
++            constexpr explicit value(char v) : val(v) {}
++            char val;
++        };
++
++        constexpr tl::unexpected<char> u('s');
++        tl::expected<int, value> e1(u);
++        REQUIRE(e1.error().val == 's');
++
++        tl::expected<int, value> e2(tl::unexpected<char>('s'));
++        REQUIRE(e2.error().val == 's');
++    }
+ }
+diff --git a/tests/issues.cpp b/tests/issues.cpp
+index f929099..9efe14b 100644
+--- a/tests/issues.cpp
++++ b/tests/issues.cpp
+@@ -166,7 +166,7 @@ TEST_CASE("Issue 122", "[issues.122]") {
+ #ifdef __cpp_deduction_guides
+ TEST_CASE("Issue 89", "[issues.89]") { 
+     auto s = tl::unexpected("Some string");
+-    REQUIRE(s.value() == std::string("Some string"));
++    REQUIRE(s.error() == std::string("Some string"));
+ }
+ #endif
+ 
+diff --git a/tests/observers.cpp b/tests/observers.cpp
+index 5d8473c..cff3e9f 100644
+--- a/tests/observers.cpp
++++ b/tests/observers.cpp
+@@ -34,3 +34,15 @@ TEST_CASE("Observers", "[observers]") {
+   REQUIRE(o4->been_moved);
+   REQUIRE(!o5.been_moved);
+ }
++
++#ifdef TL_EXPECTED_EXCEPTIONS_ENABLED
++TEST_CASE("Observers invalid access", "[observers]") {
++  tl::expected<int, char> err(tl::make_unexpected('!'));
++
++  REQUIRE_THROWS_AS(err.value(), tl::bad_expected_access<char>);
++  REQUIRE_THROWS_AS(std::as_const(err).value(), tl::bad_expected_access<char>);
++  REQUIRE_THROWS_AS(std::move(std::as_const(err)).value(),
++                    tl::bad_expected_access<char>);
++  REQUIRE_THROWS_AS(std::move(err).value(), tl::bad_expected_access<char>);
++}
++#endif
+diff --git a/tests/relops.cpp b/tests/relops.cpp
+index 99dee5f..b873b6a 100644
+--- a/tests/relops.cpp
++++ b/tests/relops.cpp
+@@ -15,3 +15,28 @@ TEST_CASE("Relational operators", "[relops]") {
+ 
+   REQUIRE(o6 == o6);
+ }
++
++TEST_CASE("Relational operators unexpected", "[relops]") {
++  tl::unexpected<int> zero(0);
++  tl::unexpected<int> one(1);
++
++  REQUIRE(one == one);
++  REQUIRE(one != zero);
++  REQUIRE(zero < one);
++  REQUIRE(zero <= one);
++  REQUIRE(one <= one);
++  REQUIRE(one > zero);
++  REQUIRE(one >= zero);
++  REQUIRE(one >= one);
++}
++
++TEST_CASE("Relational operators expected vs unexpected", "[relops]") {
++  tl::expected<int, int> ezero(tl::unexpect, 0);
++  tl::unexpected<int> uzero(0);
++  tl::unexpected<int> uone(1);
++
++  REQUIRE(ezero == uzero);
++  REQUIRE(ezero != uone);
++  REQUIRE(uzero == ezero);
++  REQUIRE(uone != ezero);
++}
+-- 
+2.44.0.windows.1
+

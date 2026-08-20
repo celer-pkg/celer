@@ -1,0 +1,49 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qt-edu-mcu.html
+    \title Developing with Qt for MCUs
+
+    With \l {Qt Edu for Developers} package, you can also develop for embedded
+    microcontrollers with Qt for MCUs. Read more about what Qt for MCUs is in \l {Qt for MCUs}.
+    For details on how to use Qt for MCUs, refer to \l {Qt for MCUs documentation}.
+
+    First, complete the \l {Qt Edu for Developers} installation steps before
+    continuing.
+
+    \section1 1. Quick Start Guides for NXP i.MX RT1170 and Renesas EK-RA6M3G
+
+    For more detailed instructions on how to deploy an application to a specific hardware,
+    see \l {Quick start guides}.
+
+    \section1 2. Set up your development host
+
+    You can try out Qt for MCUs by setting up a desktop development host
+    to build and run an example application. Follow the steps in
+    \l {Set up your Development Host}.
+
+    Currently, the following Qt for MCUs hardware is supported under \l {Qt Edu for Developers}
+    license:
+    \list
+        \li STM32F769I-DISCOVERY
+        \li STM32H750B-DISCOVERY
+        \li STM32F469I-DISCOVERY
+        \li Renesas EK-RA6M3G
+        \li NXP MIMXRT1050-EVKB
+        \li NXP MIMXRT1060-EVKB
+        \li NXP MIMXRT1064-EVK
+        \li NXP MIMXRT1170-EVKB
+    \endlist
+
+    \note Windows and Linux are supported as development hosts, but \macos is
+          not supported.
+
+    \section1 3. Develop and deploy on supported hardware
+
+    To get started with supported hardware, go through the Getting started section
+    starting from \l {Prerequisites}.
+
+    You can also get started with a course in Qt Academy: \l {Getting Started: Qt for MCUs}.
+
+*/

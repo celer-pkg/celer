@@ -1,0 +1,34 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtnfc-pcsc.html
+\title PC/SC in Qt NFC
+\ingroup connectivity-nfc
+\inmodule QtNfc
+\since 6.4
+\brief Notes on PC/SC support in Qt Nfc.
+
+PC/SC support is provided using native APIs on macOS and Windows, and using
+\l{https://pcsclite.apdu.fr/}{PCSCLite} library on other platforms. The API
+can be used for accessing both wired and wireless smartcards and storage cards.
+
+\section1 Limitations
+
+\list
+  \li The current API does not provide means to distinguish between separate
+    readers/slots.
+  \li NDEF access is only provided for NFC Type 4 tags.
+  \li Other applications starting transactions on cards may block Qt applications
+    from using Qt Nfc API.
+  \li QNearFieldTarget::sendCommand() used with a PC/SC target starts
+    a transaction that remains active until QNearFieldTarget::disconnect()
+    is called. This transaction prevents other applications from accessing
+    this target.
+  \li The backend is polling for new tags, that means that there
+    may be a delay up to the full polling interval before new tags are reported.
+    The default polling interval is 100 milliseconds. It can be adjusted
+    by setting environment valiable \c{QT_NFC_POLL_INTERVAL_MS} to an integer
+    value in milliseconds.
+\endlist
+*/

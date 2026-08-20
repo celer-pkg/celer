@@ -1,0 +1,12 @@
+<template is="dom-if" if="[[showToolbar_]]" restamp>
+  <div style= "display: flex; gap: 10px;">
+    <button id="loadUnpacked"
+        on-click="onLoadUnpackedClick_">
+      Load unpacked
+    </button>
+    <button id="installExtension"
+        on-click="onInstallExtensionClick_">
+      Install Extension
+    </button>
+  </div>
+</template>

@@ -1,0 +1,56 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/config/exampleurl-qtdatavis3d.qdocconf)
+
+project             = QtDataVis3D
+description         = Qt Data Visualization Reference Documentation
+version             = $QT_VERSION
+buildversion        = Qt Data Visualization | Commercial or GPLv3
+moduleheader        = QtDataVisualization
+
+examplesinstallpath = datavisualization
+exampledirs += ../../../examples/datavisualization \
+               snippets
+
+# Path to the root of qtdatavis3d (for automatic linking to source code)
+url.sources.rootdir     = ../../..
+
+{headerdirs,sourcedirs} += ..
+
+imagedirs  += ../images \
+              images
+
+# Define a custom file name suffix for C++ types as Qt Graphs
+# module declares identically-named, documented types.
+outputsuffixes      = CPP
+outputsuffixes.CPP  = -qtdatavis
+
+depends = qtcore qtgui qtqml qtquick qtdoc qtcmake qtwidgets qtgraphs
+
+qhp.projects                            = QtDataVis3D
+
+qhp.QtDataVis3D.file            = qtdatavis3d.qhp
+qhp.QtDataVis3D.namespace       = org.qt-project.qtdatavisualization.$QT_VERSION_TAG
+qhp.QtDataVis3D.virtualFolder   = qtdatavisualization
+qhp.QtDataVis3D.indexTitle      = Qt Data Visualization
+qhp.QtDataVis3D.indexRoot       =
+
+qhp.QtDataVis3D.subprojects                             = examples classes types
+qhp.QtDataVis3D.subprojects.examples.title              = Examples
+qhp.QtDataVis3D.subprojects.examples.indexTitle         = Qt Data Visualization Examples
+qhp.QtDataVis3D.subprojects.examples.selectors          = doc:example
+qhp.QtDataVis3D.subprojects.examples.sortPages          = true
+qhp.QtDataVis3D.subprojects.classes.title               = C++ Classes
+qhp.QtDataVis3D.subprojects.classes.indexTitle          = Qt Data Visualization C++ Classes
+qhp.QtDataVis3D.subprojects.classes.selectors           = class
+qhp.QtDataVis3D.subprojects.classes.sortPages           = true
+qhp.QtDataVis3D.subprojects.types.title                 = QML Types
+qhp.QtDataVis3D.subprojects.types.indexTitle            = Qt Data Visualization QML Types
+qhp.QtDataVis3D.subprojects.types.selectors             = qmlclass
+qhp.QtDataVis3D.subprojects.types.sortPages             = true
+
+navigation.landingpage = Qt Data Visualization
+navigation.cppclassespage = Qt Data Visualization C++ Classes
+navigation.qmltypespage = Qt Data Visualization QML Types
+
+# Allow zero warnings when testing documentation in CI
+warninglimit = 0

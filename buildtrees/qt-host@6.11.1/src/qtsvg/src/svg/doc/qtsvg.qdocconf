@@ -1,0 +1,65 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/config/exampleurl-qtsvg.qdocconf)
+
+project                 = QtSvg
+description             = Qt SVG Reference Documentation
+version                 = $QT_VERSION
+
+qhp.projects            = QtSvg
+
+qhp.QtSvg.file                = qtsvg.qhp
+qhp.QtSvg.namespace           = org.qt-project.qtsvg.$QT_VERSION_TAG
+qhp.QtSvg.virtualFolder       = qtsvg
+qhp.QtSvg.indexTitle          = Qt SVG
+qhp.QtSvg.indexRoot           =
+
+qhp.QtSvg.subprojects = manual classes
+
+qhp.QtSvg.subprojects.classes.title = C++ Classes
+qhp.QtSvg.subprojects.classes.indexTitle = Qt SVG C++ Classes
+qhp.QtSvg.subprojects.classes.selectors = class fake:headerfile
+qhp.QtSvg.subprojects.classes.sortPages = true
+
+qhp.QtSvg.subprojects.manual.title = Qt SVG
+qhp.QtSvg.subprojects.manual.indexTitle = Qt SVG module topics
+qhp.QtSvg.subprojects.manual.type = manual
+
+depends += qtcore \
+           qtwidgets \
+           qtquick\
+           qtgui \
+           qtdesigner \
+           qtdoc \
+           qmake \
+           qtcmake
+
+tagfile                 = ../../../doc/qtsvg/qtsvg.tags
+
+headerdirs  += .. \
+                ../../plugins/imageformats \
+                ../../plugins/iconengines \
+                ../../svgwidgets
+
+sourcedirs  += .. \
+               ../../plugins/imageformats \
+               ../../plugins/iconengines \
+               ../../svgwidgets
+
+exampledirs += ../../../examples/svg \
+               snippets
+
+examplesinstallpath = svg
+
+# Path to the root of qtsvg (for automatic linking to source code)
+url.sources.rootdir     = ../../..
+
+imagedirs   += images
+
+navigation.landingpage = "Qt SVG"
+navigation.cppclassespage = "Qt SVG C++ Classes"
+# Auto-generate navigation linking based on "Qt SVG module topics":
+navigation.toctitles = "Qt SVG module topics"
+navigation.toctitles.inclusive = false
+
+# Fail the documentation build if there are more warnings than the limit
+warninglimit = 0

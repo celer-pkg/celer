@@ -1,0 +1,3 @@
+import MyStaticModule
+
+SomeComponent {}

@@ -1,0 +1,65 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example customshapes
+    \ingroup quick3dphysics-examples
+    \title Qt Quick 3D Physics - Custom Shapes Example
+    \examplecategory {3D}
+    \brief Demonstrates using different shapes.
+    \image customshapes-example.jpg {Screenshot of a 3D scene showing a transparent rectangular structure containing solid
+           geometric shapes, placed on a green terrain with a small multicolored object in a pot next to it}
+
+    This example demonstrates loading and spawning several rigid body meshes as well as animating them.
+    The scene consists of a dice tower, a tablecloth, a cup and a handful of dice. The cup is animated to collect spawning
+    dice and put them in the dice tower. The dice will then roll down and out on the tablecloth.
+
+    \section1 Environment
+    As usual we have a PhysicsWorld and a View3D. In the View3D we have our environment which sets up a lightprobe:
+
+    \snippet customshapes/main.qml environment
+
+    \section1 Textures
+    We define four textures which will be used for the skybox, the tablecloth and the numbers on the dice:
+
+    \snippet customshapes/main.qml textures
+
+    \section1 Scene
+    We have a Node which contains our scene with the camera and a directional light:
+
+    \snippet customshapes/main.qml scene
+
+    \section1 Tablecloth
+    We add the tablecloth which is a StaticRigidBody consisting of a model with a weave texture and a HeightFieldShape for collision.
+
+    \snippet customshapes/main.qml cloth
+
+    \section1 Cup
+    We define the cup as a DynamicRigidBody with a Model and a TriangleMeshShape as the collision shape. It has a Behavior on the \c eulerRotation
+    and \c position properties as these are part of an animation.
+
+    \snippet customshapes/main.qml cup
+
+    \section1 Tower
+    The tower is just a StaticRigidBody with a Model and a TriangleMeshShape for collision.
+
+    \snippet customshapes/main.qml tower
+
+    \section1 Dice
+    To generate the dice we use a Component and a Repeater3D. The Component contains a DynamicRigidBody with a ConvexMeshShape and a Model.
+    The position, color, scale and mesh source are randomly generated for each die.
+
+    \snippet customshapes/main.qml dice
+
+    \section1 Animation
+    To make the dice move from the cup to the dice tower we animate the cup and move it up and then tip it over.
+    To make sure that the animation stays in sync with the physical simulation we use an AnimationController which we connect
+    to the \c onFrameDone signal on the \l PhysicsWorld. After every simulated frame we progress the animation with the elapsed timestep.
+
+    \snippet customshapes/main.qml animation
+
+    \section1 Controller
+    Finally a WasdController is added to be able to control the camera using a keyboard:
+
+    \snippet customshapes/main.qml controller
+*/

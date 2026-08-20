@@ -1,0 +1,286 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page android-how-it-works.html
+\title How Qt for Android Works
+\brief An overview of how a Qt for Android app works under the hood and its architecture.
+\ingroup explanations-platforms
+\previouspage android-getting-started.html
+\nextpage android-building.html
+
+If you're a developer looking for a high-level overview of how Qt supports the
+Android platform, this page is for you.
+
+\section1 Starting the Qt Application
+
+Similar to native Android apps, Qt main Activity's \l {Android: Activity onCreate()}{onCreate()}
+is called early on when the app is started and the Activity is created. That's
+where most of the initialization of the Android \l {Qt Platform Abstraction} (QPA)
+takes place. The most important parts are:
+
+\list
+    \li Loading Qt and the main application's libraries.
+    \li Initializing the delegates which takes care of initializing the rendering
+    surfaces and the top level layout, as well as registering various listeners
+    like input, display, touch handlers, among others.
+\endlist
+
+When loading the Qt libraries, the JavaVM is cached while \l QtCore is first loaded.
+This is done under the \l {Android: JNI_OnLoad()}{JNI_OnLoad()} function, which is
+called synchronously when a library is loaded using \l {Android: System load()}{System.load()}
+call. Every Qt module might have an implementation for this function to do some
+module-specific initialization, like registering native JNI methods.
+
+Once all Qt modules libraries are loaded, Qt loads the Android QPA plugin and the
+main application library. After the top level \c QtLayout layout has finished
+inflating its content, the Qt application's \c {main()} handle is located and
+invoked. That will start the C++ Qt application and usually start the main event loop.
+
+\section1 The Android QPA
+
+The \l {Qt Platform Abstraction}{Android QPA} is responsible for gluing the Android
+(Java/Kotlin) side with the native Qt (C++) side. It handles the various event
+and signal propagation both to and from Qt to Android. That responsibility spans
+signal handling, touch events, UI elements, and rendering, etc. This layer is also
+responsible for app startup initialization and cleanup upon app exit or destruction.
+
+\section2 Threads
+
+With Qt for Android apps, Qt usually has two threads of interest. The first is the
+\c QtThread that Qt starts. The second one is the Android UI thread.
+
+\section3 QtThread
+
+This thread is implemented and started by the Qt app first before, for example,
+loading the libraries. This thread is called \c qtMainLoopThread. All the following
+operations are executed under this thread:
+
+\list
+    \li Qt library loading.
+    \li Operations done inside \l {Android: JNI_OnLoad()}{JNI_OnLoad()}.
+    \li Starting the native application.
+    \li The execution of \c {main()}.
+\endlist
+
+\section3 Android UI Thread
+
+Similar to Android apps, operations that affect the UI are expected to run in the UI
+thread. Qt does that under the hood for any internal calls that are expected
+to run in the UI. Also, Qt offers an API
+\l {QNativeInterface::QAndroidApplication::runOnAndroidMainThread()}{runOnAndroidMainThread()}
+to run operations under this thread from C++ code. Using this API, Qt manages when
+the calls are directly posted to the thread if the app is active, or queued if the app
+is paused or in the background.
+
+\section2 Architecture
+
+//! The diagram is designed using https://www.drawio.com.
+//! To modify it import this svg file and edit on top of it.
+\image qt-android-architecture.drawio.svg "An overview Qt for Android's Architecture"
+
+
+\section1 Qt Classes
+
+These next sections go through the various Qt for Android classes and their functionality
+and role in Qt applications.
+
+\section2 The Public Java Bindings
+
+These classes are public classes that wrap the internal implementation details of the
+user-facing classes like \l {Android: Activity}{Activity}, \l {Android: Service}{Service}
+and \l {Android: Application}{Application}. These classes are used by default for Qt
+Android apps and referred to in the Android manifest file. The build system and
+deployment tools take care of including them in the build.
+
+Users can use these classes to change or extend the default behavior. For example, QtActivity
+extends \c Activity and implements the logic needed to load the Qt libraries or handle events
+and native calls between Android and Qt.
+
+Extending \c QtActivity is generally needed if you need to have Qt's implementation for
+various events and calls between Qt and Android. Otherwise, extending \c Activity should work.
+
+To add custom user-defined logic under \l {Android: Activity onCreate()}{onCreate()},
+you can use the following:
+
+\code
+public class MyActivity extends QtActivity
+{
+    @Override
+    protected void onCreate(Bundle bundle)
+    {
+        // code before Qt is initialized
+        super.onCreate(bundle);
+        // code after Qt is initialized
+    }
+}
+\endcode
+
+\note You must edit the \l {Qt for Android Manifest File Configuration}{AndroidManifest.xml}
+file to use your custom \l {Android: Activity}{Activity} or binding class,
+otherwise, the default one will still be used.
+
+\section3 Setting a Theme
+
+When extending \l{The Public Java Bindings}{QtActivity}, you can set a specific Android theme using
+\l {Android: Activity setTheme()}{setTheme()}. However, that call must precede
+the call to the parent class's \l {Android: Activity onCreate()}{onCreate()} for
+it to take effect since Qt sets the theme by default. For example, you can use:
+
+\code
+@Override
+protected void onCreate(Bundle bundle)
+{
+    setTheme(android.R.style.Theme_DeviceDefault_DayNight);
+    super.onCreate(bundle);
+}
+\endcode
+
+By default, for Android 10 and later, Qt sets the theme
+\l {Android: Theme_DeviceDefault_DayNight Style}{Theme_DeviceDefault_DayNight Style},
+and \l {Android: Theme_Holo_Light Style}{Theme_Holo_Light Style} for earlier versions.
+
+\section3 Append an Application Parameter
+
+To append an extra application parameter, that is an argument that's passed to
+the application's \c (main()) function from Java/Kotlin, you can do the following
+after extending \l {The Public Java Bindings}{QtActivity}:
+
+\code
+@Override
+protected void onCreate(Bundle bundle)
+{
+    appendApplicationParameters("--flag value");
+    super.onCreate(bundle);
+}
+\endcode
+
+This is similar to using the CMake variable \l {QT_ANDROID_APPLICATION_ARGUMENTS} directly.
+Parameters passed using either method accept spaces or tabs as separators, and the final
+list of parameters passed to the application are parsed using \l {QProcess::splitCommand}.
+
+\section2 Loading Qt Libraries with QtLoader
+
+Every Qt for Android app needs to ensure every native Qt or 3rd party library is first
+loaded before invoking any functionality from those modules. The build system keeps
+a list of various Qt library dependencies, the QPA plugin, the main app library, and any
+third-party library under the application's \l {Java/Kotlin Code}{libs.xml}
+resource file. Once all the prerequisite steps mentioned in the sections below
+are done, the libraries are loaded using \l {Android: System load()}{System.load()}.
+
+\section3 The Class Loader
+
+The class loader object is set early on by the \c QtLoader before loading Qt libraries
+or initializing the delegates. This is because the class loader is used by \l QJniObject
+to find Java classes and is required to do any JNI call with \l QJniObject.
+
+\section3 Setting Environment Variables and Application Parameters
+
+Before loading the libraries, Qt has to ensure environment variables are passed as metadata
+in the Android manifest to set. This step enables the initialization of some modules
+based on the configuration flags set as manifest meta-data. Some of this meta-data is also
+propagated to the application parameters list that is passed to the application when it's started.
+
+\section3 setActivity(), setContext() and setService()
+
+Various Qt modules might need to do some initialization work from the Java side
+that requires having the context of the \l {Android: Activity}{Activity} or
+\l {Android: Service}{Service}. Those modules then implement a static method
+that takes an \l {Android: Activity}{Activity}, Service or Context as a parameter:
+
+\code
+void setActivity(Activity activity)
+{
+    m_activity = activity;
+    // Other logic
+}
+\endcode
+
+Then, the \c QtLoader invokes these methods with the parent context of the loader
+just before loading the native shared libraries.
+
+\section1 How Qt for Android Handles the Android Activity Life-cycle
+
+Qt for Android does not provide an API to directly handle the Android activity
+life-cycle callbacks such as onCreate(), onStart(), onResume(), onPause(),
+onStop(), and onDestroy(). Instead, it handles these under the hood for the user.
+The behavior is outlined in the following sections.
+
+\note These life-cycle events are translated to the
+\l{QGuiApplication::applicationStateChanged} signal.
+
+\section2 Context Handling
+
+\l {QNativeInterface::QAndroidApplication}{QAndroidApplication} can provide the Android
+\l{Android: Context}{Context} as a \c QJniObject, essential for interacting with the Android
+system. This context can be an Activity or a Service. If there is an Activity, it will be the
+most recently started Activity, regardless of whether there are Services. If there is
+only Services, it will be the most recently started Service.
+
+\note Qt for Android does not support multiple Activites.
+
+\section2 Callbacks
+
+The QtActivityBase class is designed to keep the implementation details of an
+Activity’s various functionalities private within the Qt for Android package.
+This class is a mediator between the Android life-cycle and the Qt framework,
+translating Android life-cycle callbacks into signals and operations to which
+the Qt application can respond.
+
+\section3 onCreate()
+
+When the Activity is created, QtActivityBase initializes the Qt
+environment. This includes loading the Qt libraries, setting up the class loader
+that QJniObject uses, parsing the app’s metadata, and preparing the Qt
+application for execution. It ensures that all necessary initialization specific
+to the Activity is handled.
+
+\section3 onStart()
+
+Calls Android's Activity.OnStart().
+
+\section3 onResume()
+
+When the Activity moves to the foreground, QtActivityBase resumes the Qt
+application. It ensures that paused processes or operations continue and the
+application is again ready for user interaction. It will re-register the display
+manager listener stopped by onPause().
+
+\section3 onPause()
+
+If another activity partially obscures the Activity, QtActivityBase pauses
+the Qt application. It will save the application state or release resources that
+are not needed while the application is not in the foreground.
+
+\section3 onStop()
+
+When the Activity is no longer visible, QtActivityBase stops the Qt
+application, which involves more extensive state saving and resource release,
+preparing the application for potential destruction.
+
+\note The QtThread is suspended at this point.
+
+\section3 onDestroy()
+
+If the Activity is finished or being destroyed by the
+system, QtActivityBase cleans up all resources associated with the
+Qt application. It ensures a proper shutdown and that all necessary cleanup
+operations are performed.
+
+This integration allows developers to focus on building their Qt application
+without worrying about the intricacies of the Android life-cycle, as
+QtActivityBase manages these complexities under the hood.
+
+\section1 Splash Screen Management
+
+\l {QNativeInterface::QAndroidApplication}{QAndroidApplication} can hide the splash screen
+with a fade effect, which can be timed with the application’s startup sequence, typically
+after onCreate().
+
+\section1 More About Qt for Android
+
+The video from the 2021 Qt World Summit gives an overview of Qt for Android.
+
+\youtube nmvurCcsWos "A picture of an agenda that links to a YouTube video"
+
+*/

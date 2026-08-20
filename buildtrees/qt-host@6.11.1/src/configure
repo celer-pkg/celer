@@ -1,0 +1,22 @@
+#! /bin/sh
+# Copyright (C) 2024 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+
+src_path=`dirname $0`
+src_path=`(cd "$src_path"; pwd)`
+
+optfile=config.tl.opt
+opttmpfile=config.tl.opt.in
+
+# Posix compatible way to truncate file
+: > "$optfile"
+: > "$opttmpfile"
+
+# For consistency, use QtWriteArgsFile.cmake to write the optfile like we do on Windows.
+# We do the same with the configure script in qtbase.
+for arg in "$@"; do echo \"$arg\" >> "$opttmpfile"; done
+
+cmake -DIN_FILE="${opttmpfile}" -DOUT_FILE="${optfile}" -P "${src_path}/cmake/QtWriteArgsFile.cmake"
+
+cmake_script_path="$src_path/cmake/QtTopLevelConfigureScript.cmake"
+exec cmake -DTOP_LEVEL_SRC_PATH="$src_path" -DOPTFILE="${optfile}" -P "$cmake_script_path"

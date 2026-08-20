@@ -1,0 +1,95 @@
+//! [valueModified]
+\qmlsignal QtQuick.Controls::\1::valueModified()
+
+This signal is emitted when the spin box value has been interactively
+modified by the user by either touch, mouse, wheel, or keys.
+In the case of interaction via keyboard, the signal is only emitted
+when the text has been accepted; meaning when the enter or return keys
+are pressed, or the input field loses focus.
+//! [valueModified]
+
+//! [from]
+\qmlproperty double QtQuick.Controls::\1::from
+
+This property holds the starting value for the range. The default value is \c \2.
+
+\sa to, value
+//! [from]
+
+//! [to]
+\qmlproperty int QtQuick.Controls::\1::to
+
+This property holds the end value for the range. The default value is \c 2.
+
+\sa from, value
+//! [to]
+
+// https://bugreports.qt.io/browse/QTBUG-141873
+//! [value-prop]
+\qmlproperty \1 QtQuick.Controls::\2::value
+
+This property holds the value in the range \c from - \c to. The default value is \c \3.
+//! [value-prop]
+
+//! [stepSize]
+\qmlproperty double QtQuick.Controls::\1::stepSize
+
+This property holds the step size. The default value is \c \2.
+
+\sa increase(), decrease()
+//! [stepSize]
+
+//! [editable]
+\qmlproperty bool QtQuick.Controls::\1::editable
+
+This property holds whether the spinbox is editable. The default value is \c false.
+
+\sa validator
+//! [editable]
+
+//! [inputMethodHints]
+\since QtQuick.Controls 2.2 (Qt 5.9)
+\qmlproperty flags QtQuick.Controls::\1::inputMethodHints
+
+This property provides hints to the input method about the expected content
+of the spin box and how it should operate.
+
+The default value is \c Qt.ImhDigitsOnly.
+
+\include inputmethodhints.qdocinc
+//! [inputMethodHints]
+
+//! [inputMethodComposing]
+\qmlproperty bool QtQuick.Controls::\1::inputMethodComposing
+\readonly
+
+This property holds whether an editable spin box has partial text input from an input method.
+
+While it is composing, an input method may rely on mouse or key events from the spin box to
+edit or commit the partial text. This property can be used to determine when to disable event
+handlers that may interfere with the correct operation of an input method.
+//! [inputMethodComposing]
+
+//! [wrap]
+\qmlproperty bool QtQuick.Controls::\1::wrap
+
+This property holds whether the spinbox wraps. The default value is \c false.
+
+If wrap is \c true, stepping past \l to changes the value to \l from and vice versa.
+//! [wrap]
+
+//! [increase]
+\qmlmethod void QtQuick.Controls::\1::increase()
+
+Increases the value by \l stepSize, or \c 1 if stepSize is not defined.
+
+\sa stepSize
+//! [increase]
+
+//! [decrease]
+\qmlmethod void QtQuick.Controls::\1::decrease()
+
+Decreases the value by \l stepSize, or \c 1 if stepSize is not defined.
+
+\sa stepSize
+//! [decrease]

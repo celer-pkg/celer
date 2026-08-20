@@ -1,0 +1,17 @@
+Version: 2
+Include: [
+    cmake_platforms.yaml,
+    cmake_platforms_static_tests.yaml,
+    integrity.yaml,
+    ios-tests.yaml,
+    address_sanitizer_platforms.yaml,
+    linux_android_tests_multi_abi.yaml,
+    wasm_qtbase_tests.yaml,
+    cmake_platforms_qemu_vxworks_buildtest_static.yaml,
+    cmake_platforms_qemu_vxworks_tests_static.yaml,
+    qtlite.yaml,
+    qtbase_new_compiler_testing.yaml,
+    quick-minimal.yaml,
+    quick-bridges.yaml
+]
+Configurations: []

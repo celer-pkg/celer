@@ -1,0 +1,60 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qmllint-warnings-and-errors-redundant-optional-chaining.html
+\ingroup qmllint-warnings-and-errors
+
+\title Redundant Optional Chaining
+\brief [redundant-optional-chaining] Some optional chaining lookups could be non-optional
+
+\qmllintwarningcategory redundant-optional-chaining
+
+\section1 Redundant Optional Chaining
+
+\section2 What happened?
+Some lookups use optional chaining when it isn't necessary. This can happen when looking up enum
+values or when performing a lookup on a base that cannot be \c{null} or \c{undefined}.
+
+\section2 Why is this bad?
+An optional lookup needs to perform a runtime check that a regular lookup doesn't. These extra
+instructions cannot always be determined to be redundant and optimized out by the tooling. They
+then add an extra runtime performance cost and bloat the program unnecessarily.
+
+Additionally, the warning may hint that the optional lookup was performed on the wrong base in the
+chain. See the next section for a more concrete example.
+
+\section2 Example
+\qml
+// Main.qml
+import QtQml
+
+QtObject {
+    // Main will either be resolved and always work, or throw an exception or fail to compile
+    enum E { A, B, C }
+    property int i: Main?.A
+
+    // A url cannot be null or undefined
+    property url u: ""
+    property string s: u?.toString()
+
+    // Did you mean to make the second lookup optional?
+    property int i: Safe?.Unsafe.i
+}
+\endqml
+To fix these warnings, replace the redundant optional lookups with non-optional ones:
+\qml
+// Main.qml
+import QtQml
+
+QtObject {
+    enum E { A, B, C }
+    property int i: Main.A
+
+    property url u: ""
+    property string s: u.toString()
+
+    property int i: Safe.Unsafe?.i
+}
+\endqml
+*/

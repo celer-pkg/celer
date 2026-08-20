@@ -1,0 +1,78 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example compoundshapes
+    \ingroup quick3dphysics-examples
+    \title Qt Quick 3D Physics - Compound Shapes Example
+    \examplecategory {3D}
+    \brief Demonstrates using complex collision shapes.
+    \image compoundshapes-example.jpg {Screenshot of a landscape and multiple square frames and rings chained together}
+
+    This example demonstrates how to use more than one collision shape to create complex objects for collision detection.
+    The scene consists of a green static plane and a series of links connected to each other.
+    At the beginning, the simulation is disabled. After some time or when the user press the space key, the simulation will
+    start. An animation will start that causes the leftmost and rightmost links to move horizontally back and forth.
+
+    \section1 Setup
+
+    As usual we need to add our PhysicsWorld:
+
+    \snippet compoundshapes/main.qml world
+
+    We do the usual setup where we have an environment, camera and lights:
+
+    \snippet compoundshapes/main.qml environment
+
+    \section1 Physical objects
+
+    We have our regular static plane:
+
+    \snippet compoundshapes/main.qml plane
+
+    Then we make instances of our links.
+
+    \snippet compoundshapes/main.qml link
+
+    The first link which is on the left has its \l {DynamicRigidBody::} {isKinematic}
+    property set to \c true so that we can control it via animation. Since it is a kinematic object we need to set the
+    \l {DynamicRigidBody::} {kinematicPosition} and \l {DynamicRigidBody::} {kinematicRotation} properties. We animate
+    it by animating the \l {DynamicRigidBody::} {kinematicPosition} property. The other links are instanced with some
+    spacing between them.
+
+    To get a smooth animation that follows the physical simulation exactly we use an AnimationController which we connect
+    to the \c onFrameDone signal on the \l PhysicsWorld. This way, if there were to be any frame drops slowing down the
+    simulation the animation will slow down accordingly. We use a SequentialAnimation with four NumberAnimation to move
+    the leftmost and rightmost rings back and forth. This is the QML code for the animation:
+
+    \snippet compoundshapes/main.qml animation
+
+    The interesting part is what is happening inside the Mesh and Capsule Links files. Let's take a look at each
+    one of them.
+
+    \section1 Mesh Link
+    \snippet compoundshapes/MeshLink.qml meshlink
+
+    The Mesh Link is a Dynamic Rigid Body with a model and a material. The model loads the mesh from a mesh file.
+    We also have a list of collision shapes that together are combined and form a compound shape for collision detection.
+    Each shape is a Convex Mesh shape which loads the mesh from a source file.
+    A convex shape is basically a shape where the line between any two points within the shape is always inside the shape.
+
+    If we take a closer look when the debug mode is enabled, this is how the collision shapes form the compound
+    collision shape:
+
+    \image compoundshapes-example-meshlink.jpg
+
+    \section1 Capsule Link
+    \snippet compoundshapes/CapsuleLink.qml capsulelink
+
+    The Capsule Link is a Dynamic Rigid Body with some models that share the same material. This link is formed from
+    several cylinders and spheres.
+    Like the Mesh Link we have a list of collision shapes. This time each shape is a Capsule Shape.
+
+    If we take a closer look when the debug mode is enabled, this is how the collision shapes form the compound
+    collision shape.
+
+    \image compoundshapes-example-capsulelink.jpg {Screenshot of a 3D rendering showing two rings connected through
+           a square frame and their rigid bodies}
+*/

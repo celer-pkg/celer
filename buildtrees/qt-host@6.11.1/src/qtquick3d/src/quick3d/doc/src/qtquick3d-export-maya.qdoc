@@ -1,0 +1,40 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+
+\title Exporting from Maya
+\page quick3d-asset-conditioning-export-maya
+
+\section1 Exporting OpenCOLLADA from Maya
+
+In order for the OpenCOLLADA exporter to be active, some options must be enabled or disabled in the
+\c {Plug-in Manager}. To find it, go to \uicontrol{Window > Settings/Preferences > Plug-in Manager}.
+
+The \e fbxmaya.mll plug-in must be unchecked. The \e COLLADAMaya.mll must be checked as
+both \c Loaded and \c {Auto Load}.
+
+\image export-colladaMaya01.png
+       {Maya Plug-in Manager window showing COLLADA plugin loaded}
+
+Next, select \uicontrol{File > Export Selection} and open the dialog box.
+
+\image export-colladaMaya02.png
+       {Maya File menu with Export Selection option highlighted}
+
+Under \uicontrol{General Options}, be sure that \b OpenCOLLADA exporter is selected and
+set as the default file extension. Under \uicontrol{General export options}, check
+that the following options are active.
+
+\image export-colladaMaya03.png
+       {Maya Export Selection Options dialog with Triangulate checked}
+
+The \b triangulate option must be checked before exporting.
+
+Finally, choose the location for the COLLADA file to be saved. It is a good practice to keep all
+source art, including COLLADA files, in a folder outside of your project folder.
+
+\image export-colladaMaya04.png
+       {Maya Export Selection file browser with OpenCOLLADA exporter selected}
+
+*/

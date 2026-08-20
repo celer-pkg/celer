@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<!--
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+-->
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="InfoTest">
+    <transition/>
+    <state>
+        <transition target="next" event="step"/>
+    </state>
+    <parallel id="next">
+        <state id="a">
+            <transition target="theEnd" event="step"/>
+        </state>
+        <state id="b">
+            <transition target="theEnd" event="step" type="internal"/>
+        </state>
+    </parallel>
+    <final id="theEnd"/>
+</scxml>

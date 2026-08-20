@@ -1,0 +1,146 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+
+// Gui types
+#include "qbitmap.h"
+#include "qbrush.h"
+#include "qcolor.h"
+#include "qcolorspace.h"
+#include "qcursor.h"
+#include "qfont.h"
+#include "qimage.h"
+#if QT_CONFIG(shortcut)
+#  include "qkeysequence.h"
+#endif
+#include "qtransform.h"
+#include "qpalette.h"
+#include "qpen.h"
+#include "qpixmap.h"
+#include "qpolygon.h"
+#include "qregion.h"
+#include "qtextformat.h"
+#include "qmatrix4x4.h"
+#include "qvector2d.h"
+#include "qvector3d.h"
+#include "qvector4d.h"
+#include "qquaternion.h"
+#include "qicon.h"
+
+// Core types
+#include "qbitarray.h"
+#include "qbytearray.h"
+#include "qdatastream.h"
+#include "qdatetime.h"
+#include "qdebug.h"
+#include "qline.h"
+#include "qlist.h"
+#include "qlocale.h"
+#include "qmap.h"
+#include "qpoint.h"
+#include "qrect.h"
+#include "qsize.h"
+#include "qstring.h"
+#include "qstringlist.h"
+#include "qurl.h"
+#include "quuid.h"
+#include "qvariant.h"
+
+#include <float.h>
+
+#include <private/qmetatype_p.h>
+
+QT_BEGIN_NAMESPACE
+
+namespace {
+struct QVariantGuiHelper : QMetaTypeModuleHelper
+{
+#define QT_IMPL_METATYPEINTERFACE_GUI_TYPES(MetaTypeName, MetaTypeId, RealName) \
+    QT_METATYPE_INTERFACE_INIT(RealName),
+
+    static const QtPrivate::QMetaTypeInterface *interfaceForType(int type)
+    {
+        switch (type) {
+            QT_FOR_EACH_STATIC_GUI_CLASS(QT_METATYPE_CONVERT_ID_TO_TYPE)
+            default: return nullptr;
+        }
+    }
+#undef QT_IMPL_METATYPEINTERFACE_GUI_TYPES
+
+    static bool convert(const void *from, int fromTypeId, void *to, int toTypeId)
+    {
+        Q_ASSERT(fromTypeId != toTypeId);
+
+        bool onlyCheck = (from == nullptr && to == nullptr);
+        // either two nullptrs from canConvert, or two valid pointers
+        Q_ASSERT(onlyCheck || (bool(from) && bool(to)));
+
+#if QT_CONFIG(shortcut)
+        using Int = int;
+#endif
+        switch (makePair(toTypeId, fromTypeId)) {
+        QMETATYPE_CONVERTER(QByteArray, QColor,
+            result = source.name(source.alpha() != 255 ?
+                                 QColor::HexArgb : QColor::HexRgb).toLatin1();
+            return true;
+        );
+        QMETATYPE_CONVERTER(QColor, QByteArray,
+            result = QColor::fromString(QLatin1StringView(source));
+            return result.isValid();
+        );
+        QMETATYPE_CONVERTER(QString, QColor,
+            result = source.name(source.alpha() != 255 ?
+                                 QColor::HexArgb : QColor::HexRgb);
+            return true;
+        );
+        QMETATYPE_CONVERTER(QColor, QString,
+            result = QColor::fromString(source);
+            return result.isValid();
+        );
+#if QT_CONFIG(shortcut)
+        QMETATYPE_CONVERTER(QString, QKeySequence,
+            result = source.toString(QKeySequence::NativeText);
+            return true;
+        );
+        QMETATYPE_CONVERTER(QKeySequence, QString, result = source; return true;);
+        QMETATYPE_CONVERTER(Int, QKeySequence,
+            result = source.isEmpty() ? 0 : source[0].toCombined();
+            return true;
+        );
+        QMETATYPE_CONVERTER(QKeySequence, Int, result = source; return true;);
+#endif
+        QMETATYPE_CONVERTER(QString, QFont, result = source.toString(); return true;);
+        QMETATYPE_CONVERTER(QFont, QString, return result.fromString(source););
+        QMETATYPE_CONVERTER(QPixmap, QImage, result = QPixmap::fromImage(source); return true;);
+        QMETATYPE_CONVERTER(QImage, QPixmap, result = source.toImage(); return true;);
+        QMETATYPE_CONVERTER(QPixmap, QBitmap, result = source; return true;);
+        QMETATYPE_CONVERTER(QBitmap, QPixmap, result = QBitmap::fromPixmap(source); return true;);
+        QMETATYPE_CONVERTER(QImage, QBitmap, result = source.toImage(); return true;);
+        QMETATYPE_CONVERTER(QBitmap, QImage, result = QBitmap::fromImage(source); return true;);
+        QMETATYPE_CONVERTER(QPixmap, QBrush, result = source.texture(); return true;);
+        QMETATYPE_CONVERTER(QBrush, QPixmap, result = source; return true;);
+        QMETATYPE_CONVERTER(QColor, QBrush,
+            if (source.style() == Qt::SolidPattern) {
+                result = source.color();
+                return true;
+            }
+            return false;
+        );
+        QMETATYPE_CONVERTER(QBrush, QColor, result = source; return true;);
+        default:
+            break;
+        }
+        return false;
+    }
+};
+} // namespace used to hide QVariant handler
+
+void qRegisterGuiVariant()
+{
+    qMetaTypeGuiHelper = QMetaTypeModuleHelper{
+        &QVariantGuiHelper::interfaceForType,
+        &QVariantGuiHelper::convert,
+    };
+}
+Q_CONSTRUCTOR_FUNCTION(qRegisterGuiVariant)
+
+QT_END_NAMESPACE

@@ -1,0 +1,7 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+vec2 qt_getTransformedUVCoords( vec3 inCoords, vec3 inUTransform, vec3 inVTransform )
+{
+    return vec2( dot( inUTransform, inCoords ), dot( inVTransform, inCoords ) );
+}

@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>offscreenrendermode.qml</file>
+        <file>SomePointLight.qml</file>
+        <file>qt_logo.png</file>
+        <file alias="teapot.mesh">../shared/teapot.mesh</file>
+    </qresource>
+</RCC>

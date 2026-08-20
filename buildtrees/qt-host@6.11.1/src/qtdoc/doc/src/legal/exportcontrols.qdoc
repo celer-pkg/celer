@@ -1,0 +1,182 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page exportcontrols.html
+    \title Export Control of Qt Framework and Tools
+    \brief Information about export control of Qt framework and various tools
+
+    Many jurisdictions have regulations governing the
+    export of software products and physical products containing software.
+    These regulations vary based on the products classification,
+    origin, and destination.
+
+    The Qt framework and tools are exported from the EU
+    and thus subject to the EU’s export control legislation.
+
+    This page shows how the Qt Group classifies the Qt framework and
+    related tools and extensions in this context, and what restrictions
+    it puts upon exporting to sanctioned parties and destinations.
+
+    As a customer, you might also ship Qt libraries and selected tools
+    as part of your application or product. The page therefore also lists
+    some advice on how Qt is typically handled especially under export control
+    of the US.
+
+    \warning If you are exporting (parts of) Qt yourself: The Qt Group makes the export control
+    information available for informational purposes
+    only, as a courtesy to our customers. The information provided here is provided \e {as is}
+    and Qt does not
+    represent, warrant, or guarantee that the information is complete, accurate, or up to date. It
+    is your obligation as an exporter to verify such information and comply with the current
+    applicable regulations. The information is not intended to constitute legal advice or to be used
+    as a substitute for specific legal advice from a qualified lawyer. You should not act (or
+    refrain from acting) based on information provided without obtaining professional advice
+    regarding your particular facts and circumstances. Please note that any software, including
+    software within physical products, must be separately classified by the exporting party. Any
+    use of the information by you is without recourse to Qt and is at your own risk. In no event
+    shall Qt be liable for any direct, indirect, incidental, special, or consequential damages
+    incurred by you or any third party, whether in an action in contract or tort, arising from your
+    use of the information. If you could not find the needed information here, please contact
+    Qt Group via the \l{https://account.qt.io/support}{Support portal}.
+
+    \section1 Country of origin and country of export
+
+    The Qt framework and tools are mainly developed in the European Union (EU). While the
+    EU sets certain restrictions for exporting software, the Qt framework
+    and the related tools provided by the Qt Group generally do \e{not} contain
+    functionality that would cause them to be under tight regulations.
+
+    The following table provides information often required when assessing
+    export control of Qt framework and tools from the EU.
+
+    \table
+    \header
+        \li Question
+        \li Answer
+        \li Comment
+    \row
+        \li What is the country of manufacture (assembly)?
+        \li Finland (EU)
+        \li Release packages are produced within Finland. Most of the code is developed in Norway,
+            Germany, or Finland.
+    \row
+        \li What is the country of export?
+        \li Ireland (EU)
+        \li Location of commercial distribution master server is Ireland.
+    \endtable
+
+    \section1 Classification per product
+
+    The following table provides classification of different products provided by the Qt Group.
+    Note that the comments on US EAR and
+    \l{https://www.bis.doc.gov/index.php/licensing/commerce-control-list-classification/export-control-classification-number-eccn}{Export Control Classification Number (ECCN)}
+    are only indicative for customers that plan to export parts of Qt themselves from the US.
+    \table
+    \header
+        \li Product Name
+        \li EU Export Classification
+        \li Subject to US EAR \l{us-export-control}{*}
+        \li Indicative ECCN \l{us-export-control}{*}
+        \li Classification Method
+        \li Classification basis
+        \li Dual use system
+        \li Military item
+    \row
+        \li Qt framework libraries
+        \li Not controlled
+        \li No
+        \li Not controlled
+        \li Self-classification
+        \li EU & US classification basis: public domain (EAR § CFR 742.15(b))
+        \li No
+        \li No
+    \row
+        \li Qt Installer and Installer Framework
+        \li Not controlled
+        \li No
+        \li ECCN 5D992.c
+        \li Self-classification
+        \li EU & US classification basis: mass market
+        \li No
+        \li No
+    \row
+        \li Qt Creator
+        \li Not controlled
+        \li No
+        \li ECCN 5D992.c
+        \li Self-classification
+        \li EU & US classification basis: mass market
+        \li No
+        \li No
+    \row
+        \li Qt Design Studio
+        \li Not controlled
+        \li No
+        \li ECCN 5D992.c
+        \li Self-classification
+        \li EU & US classification basis: mass market
+        \li No
+        \li No
+    \row
+        \li Qt Safe Renderer
+        \li Not controlled
+        \li No
+        \li EAR99
+        \li Self-classification
+        \li EU & US classification basis: encryption used for data integrity only
+        \li No
+        \li No
+    \endtable
+
+     \target us-export-control
+     \section1 US export control
+
+     The Qt Group does not export products from the United States (US),
+     and its products are not subject to the \l{https://www.bis.gov/regulations}
+     US {Export Administration Regulations (EAR)}.
+     They are, to the largest extend, not \e{US-origin}. The lines of code that were developed in
+     the US are pursuant to the \e{de minimis} rule. However, if you are a customer who is
+     located in or exports from the US, EAR might apply to you.
+
+     \table
+     \header
+         \li Question
+         \li Answer
+         \li Comment
+     \row
+         \li Is Qt subject to US EAR?
+         \li Only if exported by customer
+         \li The Qt Group does not export products from the US.
+     \row
+         \li Does Qt have a US Harmonized Tariff System Code (HTSC)?
+         \li Not applicable
+         \li If the customer exports the Qt framework libraries from the US,
+             the HTSC depends upon how these are packaged.
+     \row
+         \li Do the products contain items developed in US?
+         \li No
+         \li There are some lines of code developed in the US, but in total, this is clearly under
+             the \e {"de minimis"} rule.
+     \endtable
+
+    \section1 Exporting to sanctioned parties and destinations
+
+    The Qt Group products or related technical data may not be exported, re-exported or transferred,
+    either directly or indirectly,
+    \list
+    \li to any person or entity located, established, or resident in
+    a country or territory subject to a comprehensive trade embargo maintained by the United
+    Nations, the United States, or the European Union (including, but not necessarily limited to,
+    Cuba, Belarus, Iran, North Korea, Russian Federation, Syria and any territories of Ukraine
+    occupied by the Russian Federation, such as Crimea, or
+    \li to or for the benefit of any person
+    or entity subject to sanctions adopted by United Nations, the United States, or the European
+    Union, or of any country with jurisdiction over the business activity, unless specifically
+    authorized to do so under applicable law or a valid license issued by a competent authority.
+    \endlist
+
+    For a list of sanctioned destinations, see for instance the US
+    \l{https://www.bis.doc.gov/index.php/policy-guidance/country-guidance/sanctioned-destinations}
+    {Sanctioned Destinations} list, and the \l{https://www.sanctionsmap.eu/}{EU Sanctions Map}.
+*/

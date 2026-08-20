@@ -1,0 +1,14 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#include <QTest>
+
+#include <QtQml/private/qqmlirbuilder_p.h>
+
+class tst_qqmlpropertycachecreator : public QObject
+{
+    Q_OBJECT
+private slots:
+    void tryCreateQQmlPropertyData_commonType_data();
+    void tryCreateQQmlPropertyData_commonType();
+};

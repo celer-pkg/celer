@@ -1,0 +1,317 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+
+#ifndef NODE_H
+#define NODE_H
+
+#include "access.h"
+#include "comparisoncategory.h"
+#include "doc.h"
+#include "enumitem.h"
+#include "importrec.h"
+#include "inode.h"
+#include "genustypes.h"
+#include "parameters.h"
+#include "relatedclass.h"
+#include "template_declaration.h"
+
+#include <QtCore/qdir.h>
+#include <QtCore/qlist.h>
+#include <QtCore/qmap.h>
+#include <QtCore/qstringlist.h>
+
+#include <optional>
+
+QT_BEGIN_NAMESPACE
+
+class Aggregate;
+class ClassNode;
+class CollectionNode;
+class EnumNode;
+class ExampleNode;
+class FunctionNode;
+class Node;
+struct NodeContext;
+class QDocDatabase;
+class QmlTypeNode;
+class PageNode;
+class PropertyNode;
+class QmlPropertyNode;
+class SharedCommentNode;
+class Tree;
+class TypedefNode;
+
+typedef QList<Node *> NodeList;
+typedef QList<ClassNode *> ClassList;
+typedef QList<Node *> NodeVector;
+typedef QMap<QString, Node *> NodeMap;
+typedef QMap<QString, NodeMap> NodeMapMap;
+typedef QMultiMap<QString, Node *> NodeMultiMap;
+typedef QMap<QString, NodeMultiMap> NodeMultiMapMap;
+typedef QMap<QString, CollectionNode *> CNMap;
+typedef QMultiMap<QString, CollectionNode *> CNMultiMap;
+
+class Node : public INode
+{
+public:
+    enum Status : unsigned char {
+        Deprecated,
+        Preliminary,
+        Active,
+        Internal,
+        DontDocument
+    }; // don't reorder this enum
+
+    enum ThreadSafeness : unsigned char {
+        UnspecifiedSafeness,
+        NonReentrant,
+        Reentrant,
+        ThreadSafe
+    };
+
+    enum SignatureOption : unsigned char {
+        SignaturePlain          = 0x0,
+        SignatureDefaultValues  = 0x1,
+        SignatureReturnType     = 0x2,
+        SignatureTemplateParams = 0x4
+    };
+    Q_DECLARE_FLAGS(SignatureOptions, SignatureOption)
+
+    enum LinkType : unsigned char { StartLink, NextLink, PreviousLink, ContentsLink };
+
+    enum FlagValue { FlagValueDefault = -1, FlagValueFalse = 0, FlagValueTrue = 1 };
+
+    virtual ~Node() = default;
+    virtual Node *clone(Aggregate *) { return nullptr; } // currently only FunctionNode
+    [[nodiscard]] virtual Tree *tree() const;
+    [[nodiscard]] Aggregate *root() const;
+
+    [[nodiscard]] NodeType nodeType() const override { return m_nodeType; }
+    [[nodiscard]] QString nodeTypeString() const;
+
+    [[nodiscard]] Genus genus() const override { return m_genus; }
+    void setGenus(Genus t) { m_genus = t; }
+    static Genus getGenus(NodeType t);
+
+    [[nodiscard]] bool isActive() const { return m_status == Active; }
+    [[nodiscard]] bool isClass() const { return m_nodeType == NodeType::Class; }
+    [[nodiscard]] bool isCppNode() const { return genus() == Genus::CPP; }
+    [[nodiscard]] bool isDontDocument() const { return (m_status == DontDocument); }
+    [[nodiscard]] bool isEnumType() const
+    {
+        return m_nodeType == NodeType::Enum || m_nodeType == NodeType::QmlEnum;
+    }
+    [[nodiscard]] bool isEnumType(Genus g) const { return (genus() == g) && isEnumType(); }
+    [[nodiscard]] bool isExample() const { return m_nodeType == NodeType::Example; }
+    [[nodiscard]] bool isExternalPage() const { return m_nodeType == NodeType::ExternalPage; }
+    [[nodiscard]] bool isFunction(Genus g = Genus::DontCare) const
+    {
+        return m_nodeType == NodeType::Function && (genus() == g || g == Genus::DontCare);
+    }
+    [[nodiscard]] bool isGroup() const { return m_nodeType == NodeType::Group; }
+    [[nodiscard]] bool isHeader() const { return m_nodeType == NodeType::HeaderFile; }
+    [[nodiscard]] bool isIndexNode() const { return m_indexNodeFlag; }
+    [[nodiscard]] bool isModule() const { return m_nodeType == NodeType::Module; }
+    [[nodiscard]] bool isNamespace() const { return m_nodeType == NodeType::Namespace; }
+    [[nodiscard]] bool isPage() const { return m_nodeType == NodeType::Page; }
+    [[nodiscard]] bool isPreliminary() const { return (m_status == Preliminary); }
+    [[nodiscard]] bool isPrivate() const { return m_access == Access::Private; }
+    [[nodiscard]] bool isProperty() const { return m_nodeType == NodeType::Property; }
+    [[nodiscard]] bool isProxyNode() const { return m_nodeType == NodeType::Proxy; }
+    [[nodiscard]] bool isPublic() const { return m_access == Access::Public; }
+    [[nodiscard]] bool isProtected() const { return m_access == Access::Protected; }
+    [[nodiscard]] virtual bool isPureVirtual() const { return false; }
+    [[nodiscard]] bool isQmlBasicType() const { return m_nodeType == NodeType::QmlValueType; }
+    [[nodiscard]] bool isQmlModule() const { return m_nodeType == NodeType::QmlModule; }
+    [[nodiscard]] bool isQmlNode() const { return genus() == Genus::QML; }
+    [[nodiscard]] bool isQmlProperty() const { return m_nodeType == NodeType::QmlProperty; }
+    [[nodiscard]] bool isQmlType() const { return m_nodeType == NodeType::QmlType || m_nodeType == NodeType::QmlValueType; }
+    [[nodiscard]] bool isRelatedNonmember() const { return m_relatedNonmember; }
+    [[nodiscard]] bool isStruct() const { return m_nodeType == NodeType::Struct; }
+    [[nodiscard]] bool isSharedCommentNode() const { return m_nodeType == NodeType::SharedComment; }
+    [[nodiscard]] bool isTypeAlias() const { return m_nodeType == NodeType::TypeAlias; }
+    [[nodiscard]] bool isTypedef() const
+    {
+        return m_nodeType == NodeType::Typedef || m_nodeType == NodeType::TypeAlias;
+    }
+    [[nodiscard]] bool isUnion() const { return m_nodeType == NodeType::Union; }
+    [[nodiscard]] bool isVariable() const { return m_nodeType == NodeType::Variable; }
+    [[nodiscard]] bool isGenericCollection() const { return (m_nodeType == NodeType::Collection); }
+
+    [[nodiscard]] virtual bool isDeprecated() const { return (m_status == Deprecated); }
+    [[nodiscard]] virtual bool isAbstract() const { return false; }
+    [[nodiscard]] virtual bool isAggregate() const { return false; } // means "can have children"
+    [[nodiscard]] virtual bool isFirstClassAggregate() const
+    {
+        return false;
+    } // Aggregate but not proxy or prop group"
+    [[nodiscard]] virtual bool isAlias() const { return false; }
+    [[nodiscard]] virtual bool isAttached() const { return false; }
+    [[nodiscard]] virtual bool isClassNode() const { return false; }
+    [[nodiscard]] virtual bool isCollectionNode() const { return false; }
+    [[nodiscard]] virtual bool isDefault() const { return false; }
+    [[nodiscard]] virtual bool isInternal() const;
+    [[nodiscard]] virtual bool isMacro() const { return false; }
+    [[nodiscard]] virtual bool isPageNode() const { return false; } // means "generates a doc page"
+    [[nodiscard]] virtual bool isRelatableType() const { return false; }
+    [[nodiscard]] virtual bool isMarkedReimp() const { return false; }
+    [[nodiscard]] virtual bool isPropertyGroup() const { return false; }
+    [[nodiscard]] virtual bool isStatic() const { return false; }
+    [[nodiscard]] virtual bool isTextPageNode() const
+    {
+        return false;
+    } // means PageNode but not Aggregate
+    [[nodiscard]] virtual bool isWrapper() const;
+
+    [[nodiscard]] virtual QString plainName() const;
+    QString plainFullName(const Node *relative = nullptr) const;
+    [[nodiscard]] QString plainSignature() const;
+    QString fullName() const override { return fullName(nullptr); }
+    QString fullName(const Node *relative) const;
+    [[nodiscard]] virtual QString signature(Node::SignatureOptions) const { return plainName(); }
+
+    [[nodiscard]] const QString &fileNameBase() const { return m_fileNameBase; }
+    [[nodiscard]] bool hasFileNameBase() const { return !m_fileNameBase.isEmpty(); }
+    void setFileNameBase(const QString &t) { m_fileNameBase = t; }
+
+    void setAccess(Access t) { m_access = t; }
+    void setLocation(const Location &t);
+    void setDoc(const Doc &doc, bool replace = false);
+    void setStatus(Status t);
+    void setThreadSafeness(ThreadSafeness t) { m_safeness = t; }
+    void setSince(const QString &since);
+    void setPhysicalModuleName(const QString &name) { m_physicalModuleName = name; }
+    void setUrl(const QString &url) { m_url = url; }
+    void setTemplateDecl(std::optional<RelaxedTemplateDeclaration> t) { m_templateDecl = t; }
+    void setReconstitutedBrief(const QString &t) { m_reconstitutedBrief = t; }
+    void setParent(Aggregate *n) { m_parent = n; }
+    void setIndexNodeFlag(bool isIndexNode = true) { m_indexNodeFlag = isIndexNode; }
+    void setHadDoc() { m_hadDoc = true; }
+    void setComparisonCategory(const ComparisonCategory &category) { m_comparisonCategory = category; }
+    [[nodiscard]] ComparisonCategory comparisonCategory() const { return m_comparisonCategory; }
+    virtual void setRelatedNonmember(bool b) { m_relatedNonmember = b; }
+    virtual void addMember(Node *) {}
+    [[nodiscard]] virtual bool hasNamespaces() const { return false; }
+    [[nodiscard]] virtual bool hasClasses() const { return false; }
+    virtual void setAbstract(bool) {}
+    virtual void setWrapper() {}
+    virtual void setDataType(const QString &) {}
+    [[nodiscard]] virtual bool wasSeen() const { return false; }
+    virtual void appendGroupName(const QString &) {}
+    [[nodiscard]] virtual QString element() const { return QString(); }
+    [[nodiscard]] virtual bool docMustBeGenerated() const { return false; }
+
+    [[nodiscard]] virtual QString title() const { return name(); }
+    [[nodiscard]] virtual QString subtitle() const { return QString(); }
+    [[nodiscard]] virtual QString fullTitle() const { return name(); }
+    virtual bool setTitle(const QString &) { return false; }
+    virtual bool setSubtitle(const QString &) { return false; }
+
+    void markInternal() { setStatus(Internal); }
+
+    virtual void markDefault() {}
+    virtual void markReadOnly(bool) {}
+
+    [[nodiscard]] Aggregate *parent() const { return m_parent; }
+    [[nodiscard]] const QString &name() const override { return m_name; }
+    [[nodiscard]] QString physicalModuleName() const { return m_physicalModuleName; }
+    [[nodiscard]] QString url() const { return m_url; }
+    virtual void setQtVariable(const QString &) {}
+    [[nodiscard]] virtual QString qtVariable() const { return QString(); }
+    virtual void setCMakePackage(const QString &) {}
+    virtual void setCMakeComponent(const QString &) {}
+    virtual void setCMakeTargetItem(const QString &) {}
+    [[nodiscard]] virtual QString cmakePackage() const { return QString(); }
+    [[nodiscard]] virtual QString cmakeComponent() const { return QString(); }
+    [[nodiscard]] virtual QString cmakeTargetItem() const { return QString(); }
+    [[nodiscard]] virtual bool hasTag(const QString &) const { return false; }
+
+    void setDeprecated(const QString &sinceVersion);
+    [[nodiscard]] const QString &deprecatedSince() const { return m_deprecatedSince; }
+
+    [[nodiscard]] const QMap<LinkType, std::pair<QString, QString>> &links() const { return m_linkMap; }
+    void setLink(LinkType linkType, const QString &link, const QString &desc);
+
+    [[nodiscard]] Access access() const { return m_access; }
+    [[nodiscard]] const Location &declLocation() const { return m_declLocation; }
+    [[nodiscard]] const Location &defLocation() const { return m_defLocation; }
+    [[nodiscard]] const Location &location() const
+    {
+        return (m_defLocation.isEmpty() ? m_declLocation : m_defLocation);
+    }
+    [[nodiscard]] const Doc &doc() const { return m_doc; }
+    [[nodiscard]] virtual bool isInAPI() const;
+    [[nodiscard]] bool hasDoc() const;
+    [[nodiscard]] bool hadDoc() const { return m_hadDoc; }
+    [[nodiscard]] virtual Status status() const { return m_status; }
+    [[nodiscard]] ThreadSafeness threadSafeness() const;
+    [[nodiscard]] ThreadSafeness inheritedThreadSafeness() const;
+    [[nodiscard]] QString since() const { return m_since; }
+    [[nodiscard]] const std::optional<RelaxedTemplateDeclaration>& templateDecl() const { return m_templateDecl; }
+    [[nodiscard]] const QString &reconstitutedBrief() const { return m_reconstitutedBrief; }
+
+    [[nodiscard]] bool isSharingComment() const { return (m_sharedCommentNode != nullptr); }
+    void setSharedCommentNode(SharedCommentNode *t) { m_sharedCommentNode = t; }
+    SharedCommentNode *sharedCommentNode() { return m_sharedCommentNode; }
+
+    [[nodiscard]] QString extractClassName(const QString &string) const;
+    [[nodiscard]] virtual QString qmlTypeName() const { return m_name; }
+    [[nodiscard]] virtual QString qmlFullBaseName() const { return QString(); }
+    [[nodiscard]] virtual QString logicalModuleName() const { return QString(); }
+    [[nodiscard]] virtual QString logicalModuleVersion() const { return QString(); }
+    [[nodiscard]] virtual QString logicalModuleIdentifier() const { return QString(); }
+
+    virtual void setLogicalModuleInfo(const QStringList &) {}
+    [[nodiscard]] virtual CollectionNode *logicalModule() const { return nullptr; }
+    virtual void setQmlModule(CollectionNode *) {}
+    virtual ClassNode *classNode() { return nullptr; }
+    virtual void setClassNode(ClassNode *) {}
+    [[nodiscard]] QString fullDocumentName() const;
+    QString qualifyCppName();
+    QString qualifyQmlName();
+    QString qualifyWithParentName();
+
+    static FlagValue toFlagValue(bool b);
+    static bool fromFlagValue(FlagValue fv, bool defaultValue);
+    static QString nodeTypeString(NodeType t);
+    [[nodiscard]] static bool nodeLessThan(const Node *first, const Node *second);
+    [[nodiscard]] static bool nodeNameLessThan(const Node *first, const Node *second);
+    [[nodiscard]] static bool nodeSortKeyOrNameLessThan(const Node *n1, const Node *n2);
+
+    [[nodiscard]] NodeContext createContext() const;
+
+protected:
+    Node(NodeType type, Aggregate *parent, QString name);
+
+private:
+    NodeType m_nodeType {};
+    Genus m_genus {};
+    Access m_access { Access::Public };
+    ThreadSafeness m_safeness { UnspecifiedSafeness };
+    Status m_status { Active };
+    ComparisonCategory m_comparisonCategory { ComparisonCategory::None };
+    bool m_indexNodeFlag : 1;
+    bool m_relatedNonmember : 1;
+    bool m_hadDoc : 1;
+
+    Aggregate *m_parent { nullptr };
+    SharedCommentNode *m_sharedCommentNode { nullptr };
+    QString m_name {};
+    Location m_declLocation {};
+    Location m_defLocation {};
+    Doc m_doc {};
+    QMap<LinkType, std::pair<QString, QString>> m_linkMap {};
+    QString m_fileNameBase {};
+    QString m_physicalModuleName {};
+    QString m_url {};
+    QString m_since {};
+    std::optional<RelaxedTemplateDeclaration> m_templateDecl{std::nullopt};
+    QString m_reconstitutedBrief {};
+    QString m_deprecatedSince {};
+};
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(Node::SignatureOptions)
+
+QT_END_NAMESPACE
+
+#endif

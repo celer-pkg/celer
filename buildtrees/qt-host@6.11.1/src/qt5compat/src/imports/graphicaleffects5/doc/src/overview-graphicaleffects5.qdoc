@@ -1,0 +1,83 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+    /*!
+    \page qtgraphicaleffects5-index.html
+    \title Qt 5 Compatibility APIs: Graphical Effects
+
+    \brief Effects provided by the Qt Graphical Effects API
+
+    The Qt Graphical Effects module is provided for compatibility with
+    applications written for Qt 5.
+
+    The Qt Graphical Effects module provides a set of QML types for adding
+    visually impressive and configurable effects to user interfaces.
+    Effects are visual items that can be added to Qt Quick user interface as
+    UI components.
+
+    \note Since the Qt Graphical Effects module has performance constraints
+    when effects are stacked, it is primarily included for compatibility with
+    Qt 5 applications. We recommend that new code is written with one of the
+    new solutions for effects that were introduced in Qt 6. For typical UI
+    effects, Qt Quick has the \l{MultiEffect}, which applies multiple effects
+    in one pass. For advanced use cases which are not covered by this
+    component, the \l{Qt Quick Effect Maker} tool can be used to customize and
+    fine-tune exactly the shader effects you need.
+
+    \section1 Using Qt Graphical Effects
+
+    To import the Qt Graphical Effects types, include the
+    Qt Graphical Effects module by adding the following statement to the QML
+    file:
+
+    \qml
+    import Qt5Compat.GraphicalEffects
+    \endqml
+
+    To use the effects, simply add a specific effect declaration to the QML
+    scene and configure the effects properties. Effects have one or more source
+    properties for specifying the visual input for which the effect is applied
+    to. The altered visual output is then presented in the effect item itself.
+    The source item type can be any QML type, even video or another effect.
+    Pipelining multiple effects together is a simple way to create even more
+    impressive output.
+
+    The following list presents the functional division of types that are part
+    of Qt Graphical Effects.
+
+    \note Effects are not available when running with the \c software
+    backend of Qt Quick. For more information on Qt Quick scene graph
+    backends, see \l{qtquick-visualcanvas-adaptations.html}{Scene Graph
+    Adaptations}.
+
+    \note Runtime-generated effects such as GaussianBlur will store the
+    shader-files in temporary storage using QTemporaryFile, thus they
+    require a writable file system.
+
+    \section1 Blend
+    \annotatedlist qtgraphicaleffects-blend
+
+    \section1 Color
+        \annotatedlist qtgraphicaleffects-color
+
+    \section1 Gradient
+        \annotatedlist qtgraphicaleffects-gradient
+
+    \section1 Distortion
+        \annotatedlist qtgraphicaleffects-distortion
+
+    \section1 Drop Shadow
+        \annotatedlist qtgraphicaleffects-drop-shadow
+
+    \section1 Blur
+        \annotatedlist qtgraphicaleffects-blur
+
+    \section1 Motion Blur
+        \annotatedlist qtgraphicaleffects-motion-blur
+
+    \section1 Glow
+        \annotatedlist qtgraphicaleffects-glow
+
+    \section1 Mask
+        \annotatedlist qtgraphicaleffects-mask
+    */

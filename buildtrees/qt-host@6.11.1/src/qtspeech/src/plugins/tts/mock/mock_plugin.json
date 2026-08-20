@@ -1,0 +1,12 @@
+{
+    "Keys": ["mock"],
+    "Provider": "mock",
+    "Version": 100,
+    "Priority": -1,
+    "Capabilities": [
+        "Speak",
+        "PauseResume",
+        "Synthesize",
+        "WordByWordProgress"
+    ]
+}

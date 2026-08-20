@@ -1,0 +1,34 @@
+// Copyright (C) 2017 Research In Motion
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page genericbackend.html
+    \title Generic Backend
+    \brief Information about the generic sensor backend
+
+    The generic sensor backend provides emulation of some of the sensors that are not supported on the
+    platform.
+    For example, on a platform without a rotation sensor but with an accelerometer, the accelerometer
+    is used to calculate the rotation, thus providing an emulated rotation sensor.
+
+    The following generic sensors are supported:
+    \table
+    \header
+        \li Emulated Sensor
+        \li Source Sensor
+    \row
+        \li Ambient Light Sensor
+        \li Light Sensor
+    \row
+        \li Orientation Sensor
+        \li Accelerometer
+    \row
+        \li Rotation Sensor
+        \li Accelerometer
+    \row
+        \li Tilt Sensor
+        \li Accelerometer
+    \endtable
+    If a platform doesn't support the source sensor, then the sensor cannot be emulated.
+*/
+

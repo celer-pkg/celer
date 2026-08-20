@@ -1,0 +1,39 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#ifndef NOEXTHEADER
+#define NOEXTHEADER
+
+#include <QtCore/qobject.h>
+#include <QtQml/qqml.h>
+
+class Noext : public QObject
+{
+    Q_OBJECT
+    QML_ELEMENT
+    Q_PROPERTY(int gagaga READ gagaga WRITE setGagaga NOTIFY gagagaChanged)
+
+public:
+    int gagaga() const
+    {
+        return m_gagaga;
+    }
+
+public slots:
+    void setGagaga(int gagaga)
+    {
+        if (m_gagaga == gagaga)
+            return;
+
+        m_gagaga = gagaga;
+        emit gagagaChanged(m_gagaga);
+    }
+
+signals:
+    void gagagaChanged(int gagaga);
+
+private:
+    int m_gagaga;
+};
+
+#endif // NOEXTHEADER

@@ -1,0 +1,33 @@
+{
+  pages: {
+    amazon_product: [
+      {action: "get", url: "https://www.amazon.co.uk/NIVEA-Suncream-Spray-Protect-Moisture/dp/B001B0OJXM"},
+      {action: "wait_for_element", selector: "input[id=sp-cc-accept]", timeout: "10s"},
+      {action: "click", selector: "input[id=sp-cc-accept]"},
+      {action: "wait", duration: "3s"},
+      {action: "get", url: "about:blank"},
+    ],
+    cnn_article: [
+      {action: "inject_new_document_script", script_path: "cnn_instrumentation.js", timeout: "5s"},
+      {action: "get", url: "https://edition.cnn.com/2024/04/21/china/china-spy-agency-public-profile-intl-hnk/index.html"},
+      {action: "wait", duration: "10s"},
+      {action: "get", url: "about:blank"},
+    ],
+    google_doc: [
+      {action: "get", url: "https://docs.google.com/document/d/13AWeOGqtSkfpPK7meqE_X-GQQggwx4JJ1vc0YGvKg34/edit#heading=h.gjdgxs"},
+      {action: "wait", duration: "3s"},
+      {action: "get", url: "about:blank"},
+    ],
+    google_search_result: [
+      {action: "get", url: "https://www.google.com/search?q=cats"},
+      {action: "wait", duration: "3s"},
+      {action: "get", url: "about:blank"},
+    ],
+    youtube_video: [
+      {action: "inject_new_document_script", script_path: "youtube_instrumentation.js", timeout: "10s"},
+      {action: "get", url: "https://youtube.com/watch?v=WuS9kPNAXHw"},
+      {action: "wait", duration: "10s"},
+      {action: "get", url: "about:blank"},
+    ],
+  },
+}

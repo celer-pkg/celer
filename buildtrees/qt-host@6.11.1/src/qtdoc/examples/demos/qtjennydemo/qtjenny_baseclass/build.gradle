@@ -1,0 +1,89 @@
+plugins {
+    alias(libs.plugins.androidApplication)
+    alias(libs.plugins.jetbrainsKotlinAndroid)
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+
+android {
+    compileSdk 36
+    namespace "org.qtproject.qt.qtjenny_baseclass"
+    defaultConfig {
+        applicationId "org.qtproject.qt.qtjenny_baseclass"
+        minSdkVersion 28
+        targetSdkVersion 36
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility = 17
+        targetCompatibility = 17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    // make sure java compile is executed before ndk compile
+    // because we rely on Jenny generating cpp code
+
+}
+
+import org.jetbrains.kotlin.gradle.internal.KaptTask
+
+tasks.withType(KaptTask) { task ->
+    def suffix = task.name.contains("kaptDebug") ? "_debug" : "_release"
+
+    annotationProcessorOptionProviders.add([new CommandLineArgumentProvider() {
+        @Override
+        Iterable<String> asArguments() {
+            return ["jenny.templateBuildSuffix=" + suffix]
+        }
+    }])
+}
+
+kapt {
+    arguments {
+        // pass arguments to jenny
+        // arg("jenny.threadSafe", "false")
+        //arg("jenny.errorLoggerFunction", "jennySampleErrorLog")
+        arg("jenny.outputDirectory", "$rootDir")
+        arg("jenny.templateDirectory", project.file('templates'))
+        arg("jenny.headerOnlyProxy", "true")
+        arg("jenny.useJniHelper", "false")
+        arg("jenny.useTemplates", "true")
+        // arg("jenny.fusionProxyHeaderName", "JennyFusionProxy.h")
+    }
+}
+
+dependencies {
+    implementation libs.qtjenny.annotation
+    kapt libs.qtjenny.compiler
+}
+
+tasks.register('copyAndRename', Copy) {
+    from "$rootDir/jenny/proxy" // Source directory
+    into "$rootDir/../android/src/org/qtproject/qtjennydemo/" // Destination directory
+
+    include '*_*_*Proxy.h' // Match files with multiple underscores
+
+    rename { String fileName ->
+        fileName.replaceAll(/.*_+/, '') // Remove all prefix parts ending in underscore
+                .replaceAll(/\.h$/, '.java') // Change extension
+    }
+}
+
+afterEvaluate {
+    // copy file to source after jenny generate
+    tasks.kaptReleaseKotlin.finalizedBy copyAndRename
+}

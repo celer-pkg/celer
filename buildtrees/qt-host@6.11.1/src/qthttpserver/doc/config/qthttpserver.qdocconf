@@ -1,0 +1,55 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/global/externalsites.qdocconf)
+
+project                 = QtHttpServer
+description             = Qt Lightweight HTTP Server Reference Documentation
+version                 = $QT_VERSION
+
+depends += qtcore qtnetwork qtwebsockets qtdoc qmake qtcmake
+
+headerdirs  += ../../src/httpserver
+
+sourcedirs  += .. \
+    ../../src/httpserver
+
+exampledirs += \
+    ../../examples/httpserver/ \
+    ../snippets
+
+imagedirs += ../images
+
+examplesinstallpath = httpserver
+
+defines += QT_WEBSOCKETS_LIB
+
+qhp.projects            = QtHttpServer
+
+qhp.QtHttpServer.file           = qthttpserver.qhp
+qhp.QtHttpServer.namespace      = org.qt-project.qthttpserver.$QT_VERSION_TAG
+qhp.QtHttpServer.virtualFolder  = QtHttpServer
+qhp.QtHttpServer.indexTitle     = Qt HTTP Server
+qhp.QtHttpServer.indexRoot      =
+
+qhp.QtHttpServer.subprojects = logging examples classes
+
+qhp.QtHttpServer.subprojects.classes.title = C++ Classes
+qhp.QtHttpServer.subprojects.classes.indexTitle = Qt HTTP Server C++ Classes
+qhp.QtHttpServer.subprojects.classes.selectors = class fake:headerfile
+qhp.QtHttpServer.subprojects.classes.sortPages = true
+
+qhp.QtHttpServer.subprojects.examples.title = Examples
+qhp.QtHttpServer.subprojects.examples.indexTitle = Qt HTTP Server Examples
+qhp.QtHttpServer.subprojects.examples.selectors = example
+qhp.QtHttpServer.subprojects.examples.sortPages = true
+
+qhp.QtHttpServer.subprojects.logging.title = Logging
+qhp.QtHttpServer.subprojects.logging.indexTitle = Qt HTTP Server Logging
+qhp.QtHttpServer.subprojects.logging.selectors = group:none
+
+navigation.cppclassespage = "Qt HTTP Server C++ Classes"
+navigation.landingpage = "Qt HTTP Server"
+
+manifestmeta.highlighted.names = "QtHttpServer/Simple HTTP Server"
+
+# Enforce zero documentation warnings in CI
+warninglimit = 0

@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="390" font-size="25">
+  <!-- SVG allows defining glyph elements with an empty unicode attribute and missing-glyph -->
+  <!-- elements with a non-empty unicode attribute. This file is meant to test for the      -->
+  <!-- confusion that may cause.                                                            -->
+  <!-- If glyph handling works at all, the table will display arrows either facing up or    -->
+  <!-- down. An arrow facing up stands for a passed test, an arrow facing down for a fail.  -->
+  <defs>
+    <font xml:id="missing-glyph-with-unicode-mgf">
+      <font-face font-family="missing-glyph-with-unicode-mgf"/>
+      <missing-glyph unicode="a" d="M0 1000L500 0L1000 1000z"/>
+      <glyph unicode="a" d="M0 0L1000 0L500 1000z"/>
+    </font>
+
+    <font xml:id="missing-glyph-with-unicode-mgl">
+      <font-face font-family="missing-glyph-with-unicode-mgl"/>
+      <glyph unicode="a" d="M0 0L1000 0L500 1000z"/>
+      <missing-glyph unicode="a" d="M0 1000L500 0L1000 1000z"/>
+    </font>
+
+    <font xml:id="glyph-without-unicode-mgf">
+      <font-face font-family="glyph-without-unicode-mgf"/>
+      <missing-glyph d="M0 0L1000 0L500 1000z"/>
+      <glyph d="M0 1000L500 0L1000 1000z"/>
+    </font>
+
+    <font xml:id="glyph-without-unicode-mgl">
+      <font-face font-family="glyph-without-unicode-mgl"/>
+      <glyph d="M0 1000L500 0L1000 1000z"/>
+      <missing-glyph d="M0 0L1000 0L500 1000z"/>
+    </font>
+
+    <font xml:id="glyph-empty-unicode-mgf">
+      <font-face font-family="glyph-empty-unicode-mgf"/>
+      <missing-glyph d="M0 0L1000 0L500 1000z"/>
+      <glyph unicode="" d="M0 1000L500 0L1000 1000z"/>
+    </font>
+
+    <font xml:id="glyph-empty-unicode-mgl">
+      <font-face font-family="glyph-empty-unicode-mgl"/>
+      <glyph unicode="" d="M0 1000L500 0L1000 1000z"/>
+      <missing-glyph d="M0 0L1000 0L500 1000z"/>
+    </font>
+
+    <font xml:id="multiple-missing-glyph-mgf">
+      <font-face font-family="multiple-missing-glyph-mgf"/>
+      <missing-glyph d="M0 0L1000 0L500 1000z"/>
+      <missing-glyph d="M0 1000L500 0L1000 1000z"/>
+      <glyph unicode="a" d="M0 1000L500 0L1000 1000z"/>
+    </font>
+
+    <font xml:id="multiple-missing-glyph-mgl">
+      <font-face font-family="multiple-missing-glyph-mgl"/>
+      <glyph unicode="a" d="M0 1000L500 0L1000 1000z"/>
+      <missing-glyph d="M0 0L1000 0L500 1000z"/>
+      <missing-glyph d="M0 1000L500 0L1000 1000z"/>
+    </font>
+
+    <font xml:id="no-missing-glyph">
+      <font-face font-family="no-missing-glyph"/>
+      <glyph unicode="a" d="M0 1000L500 0L1000 1000z"/>
+    </font>
+  </defs>
+
+  <rect x="0" y="0" width="1000" height="390" fill="white"/>
+  <text x="10" y="30" font-family="Arial">(All arrows should face up)</text>
+  <text x="450" y="30" font-family="Arial">&lt;missing-glyph&gt; first</text>
+  <text x="750" y="30" font-family="Arial">&lt;missing-glyph&gt; last</text>
+
+  <text x="10" y="80" font-family="Arial">&lt;missing-glyph&gt; with unicode attribute:</text>
+  <!-- Should show the <glyph>, not the <missing glyph> with the same unicode -->
+  <text x="550" y="80" font-family="missing-glyph-with-unicode-mgf">a</text>
+  <text x="850" y="80" font-family="missing-glyph-with-unicode-mgl">a</text>
+
+  <text x="10" y="130" font-family="Arial">&lt;glyph&gt; without unicode attribute:</text>
+  <!-- Should show the <missing-glyph>, not the <glyph> without unicode -->
+  <text x="550" y="130" font-family="glyph-without-unicode-mgf">a</text>
+  <text x="850" y="130" font-family="glyph-without-unicode-mgl">a</text>
+
+  <text x="10" y="180" font-family="Arial">&lt;glyph&gt; with empty unicode attribute:</text>
+  <!-- Should show the <missing-glyph>, not the <glyph> with empty unicode -->
+  <text x="550" y="180" font-family="glyph-empty-unicode-mgf">a</text>
+  <text x="850" y="180" font-family="glyph-empty-unicode-mgl">a</text>
+
+  <text x="10" y="230" font-family="Arial">multiple &lt;missing-glyph&gt; elements:</text>
+  <!-- Should show the first <missing-glyph> -->
+  <text x="550" y="230" font-family="multiple-missing-glyph-mgf">b</text>
+  <text x="850" y="230" font-family="multiple-missing-glyph-mgl">b</text>
+
+  <text x="10" y="330" font-family="Arial">(No arrow must be drawn)</text>
+  <text x="10" y="380" font-family="Arial">no &lt;missing-glyph&gt; element:</text>
+  <!-- Should show nothing -->
+  <text x="550" y="380" font-family="no-missing-glyph">b</text>
+</svg>

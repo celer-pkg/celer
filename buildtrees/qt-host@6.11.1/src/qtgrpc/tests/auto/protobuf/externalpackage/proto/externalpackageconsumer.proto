@@ -1,0 +1,19 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+syntax = "proto3";
+
+import "externalpackage.proto";
+
+package qtprotobufnamespace.tests;
+
+message SimpleExternalEnumMessage {
+    qtprotobufnamespace1.externaltests.ExternalTestEnum externalEnum = 1;
+}
+
+message RepeatedExternalComplexMessage {
+    repeated qtprotobufnamespace1.externaltests.ExternalComplexMessage testExternalComplex = 1;
+}
+
+message NestedExternal {
+    qtprotobufnamespace1.externaltests.NestedFieldMessage.NestedMessage externalNested = 1;
+}

@@ -1,0 +1,26 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+syntax = "proto3";
+
+//! [0]
+package qt.examples.sensors;
+
+message Coordinates {
+    double longitude = 1;
+    double latitude = 2;
+    double altitude = 3;
+}
+
+message Temperature {
+    enum Unit {
+        Farenheit = 0;
+        Celsius = 1;
+    }
+    sint32 value = 1;
+    Unit units = 2;
+}
+
+message WarningNotification {
+    string text = 1;
+}
+//! [0]

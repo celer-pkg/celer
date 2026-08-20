@@ -1,0 +1,17 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example offlineshaders
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - Offline Shaders Example
+    \examplecategory {3D}
+    \brief Demonstrates the use of the experimental build-time material processing support.
+    \image offlineshaders-example.jpg
+           {Red circle on gray background}
+
+    This example uses the \l{Shadergen Tool}{build-time infrastructure} to
+    perform shader preparation for materials.
+
+    \note Offline processing of materials is considered experimental.
+*/

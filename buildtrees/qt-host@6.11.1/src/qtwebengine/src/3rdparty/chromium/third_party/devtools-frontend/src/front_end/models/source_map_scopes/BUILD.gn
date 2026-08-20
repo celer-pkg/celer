@@ -1,0 +1,61 @@
+# Copyright 2022 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("../../../scripts/build/ninja/devtools_entrypoint.gni")
+import("../../../scripts/build/ninja/devtools_module.gni")
+import("../../../scripts/build/typescript/typescript.gni")
+import("../visibility.gni")
+
+devtools_module("source_map_scopes") {
+  sources = [
+    "NamesResolver.ts",
+    "ScopeChainModel.ts",
+    "ScopeTreeCache.ts",
+  ]
+
+  deps = [
+    "../../core/common:bundle",
+    "../../core/platform:bundle",
+    "../../core/sdk:bundle",
+    "../../models/bindings:bundle",
+    "../../models/formatter:bundle",
+    "../../models/text_utils:bundle",
+  ]
+}
+
+devtools_entrypoint("bundle") {
+  entrypoint = "source_map_scopes.ts"
+
+  deps = [ ":source_map_scopes" ]
+
+  visibility = [
+    ":*",
+    "../../panels/console/*",
+    "../../panels/sources/*",
+    "../../panels/timeline/*",
+    "../../ui/components/text_editor/*",
+    "../../ui/legacy/components/object_ui/*",
+    "../breakpoints/*",
+  ]
+
+  visibility += devtools_models_visibility
+}
+
+ts_library("unittests") {
+  testonly = true
+  sources = [
+    "NamesResolver.test.ts",
+    "ScopeChainModel.test.ts",
+    "ScopeTreeCache.test.ts",
+  ]
+
+  deps = [
+    ":bundle",
+    "../../core/platform:bundle",
+    "../../core/sdk:bundle",
+    "../../testing",
+    "../formatter:bundle",
+    "../text_utils:bundle",
+  ]
+}

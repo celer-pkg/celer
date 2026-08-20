@@ -1,0 +1,38 @@
+# Copyright 2020 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("../../../scripts/build/ninja/devtools_entrypoint.gni")
+import("../../../scripts/build/ninja/devtools_module.gni")
+import("../../../scripts/build/typescript/typescript.gni")
+import("../visibility.gni")
+
+devtools_module("javascript_metadata") {
+  sources = [
+    "JavaScriptMetadata.ts",
+    "NativeFunctions.js",
+  ]
+
+  deps = [ "../../core/common:bundle" ]
+}
+
+devtools_entrypoint("bundle") {
+  entrypoint = "javascript_metadata.ts"
+
+  deps = [ ":javascript_metadata" ]
+
+  visibility = [
+    ":*",
+    "../../ui/components/text_editor/*",
+    "../../ui/legacy/components/object_ui/*",
+  ]
+
+  visibility += devtools_models_visibility
+}
+
+ts_library("unittests") {
+  testonly = true
+  sources = [ "JavaScriptMetadata.test.ts" ]
+
+  deps = [ ":bundle" ]
+}

@@ -1,0 +1,49 @@
+# Copyright (C) 2022 The Qt Company Ltd.
+# SPDX-License-Identifier: BSD-3-Clause
+
+# Generated from gifs.pro.
+
+if (NOT QT_BUILD_STANDALONE_TESTS AND NOT QT_BUILDING_QT)
+    cmake_minimum_required(VERSION 3.16)
+    project(tst_gifs LANGUAGES C CXX)
+    find_package(Qt6BuildInternals COMPONENTS STANDALONE_TEST)
+endif()
+
+#####################################################################
+## tst_gifs Test:
+#####################################################################
+
+file(GLOB_RECURSE test_data_glob
+    RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/data/*)
+list(APPEND test_data ${test_data_glob})
+
+qt_internal_add_test(tst_gifs
+    SOURCES
+        capturedevent.cpp capturedevent.h
+        eventcapturer.cpp eventcapturer.h
+        gifrecorder.cpp gifrecorder.h
+        tst_gifs.cpp
+    LIBRARIES
+        Qt::Gui
+        Qt::Quick
+        Qt::Test
+    TESTDATA ${test_data}
+)
+
+# Make the QML files available to Creator's locator.
+target_sources(tst_gifs
+    PRIVATE
+        ${test_data}
+)
+
+set_source_files_properties(${test_data}
+    PROPERTIES
+        HEADER_FILE_ONLY ON
+)
+
+#### Keys ignored in scope 1:.:.:gifs.pro:<TRUE>:
+# TEMPLATE = "app"
+
+## Scopes:
+#####################################################################

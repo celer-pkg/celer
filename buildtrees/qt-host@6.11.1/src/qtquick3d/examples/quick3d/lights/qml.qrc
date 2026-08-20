@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>RotatingLogo.qml</file>
+        <file>qtlogo.mesh</file>
+        <file>custom.vert</file>
+        <file>icon_settings.png</file>
+        <file>icon_settings@4x.png</file>
+        <file>icon_settings@2x.png</file>
+        <file>icon_settings@3x.png</file>
+        <file>qtquickcontrols2.conf</file>
+        <file>SettingsDrawer.qml</file>
+        <file>+windows/qtquickcontrols2.conf</file>
+    </qresource>
+</RCC>

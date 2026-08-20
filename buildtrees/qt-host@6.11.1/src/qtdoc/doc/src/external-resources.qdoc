@@ -1,0 +1,981 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \externalpage https://contribute.qt-project.org/contribute
+    \title Contributing to Qt
+*/
+
+/*!
+    \externalpage https://www.chromium.org/Home/
+    \title The Chromium Projects
+*/
+
+/*!
+    \externalpage https://developer.apple.com/xcode/
+    \title Xcode
+*/
+
+/*!
+    \externalpage https://developer.apple.com/programs/
+    \title Apple Developer Program
+*/
+
+/*!
+    \externalpage https://developer.apple.com/documentation/xcode/managing-assets-with-asset-catalogs/
+    \title Managing Assets with Asset Catalogs
+*/
+/*!
+    \externalpage https://developer.apple.com/documentation/xcode/specifying-your-apps-launch-screen
+    \title Specifying Your App's Launch Screen
+*/
+/*!
+    \externalpage https://developer.apple.com/library/content/qa/qa1686/_index.html
+    \title App Icons on iPhone, iPad and Apple Watch
+*/
+
+/*!
+    \externalpage https://help.apple.com/xcode/mac/current/#/dev10510b1f7
+    \title Create asset catalogs and sets
+*/
+
+/*!
+    \externalpage https://spdx.org/licenses/BSD-3-Clause.html
+    \title BSD 3-Clause "New" or "Revised" License
+*/
+
+/*!
+    \externalpage https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+    \title GNU General Public License, version 2
+*/
+
+/*!
+    \externalpage https://www.gnu.org/licenses/gpl-3.0.html
+    \title GNU General Public License, version 3
+*/
+
+/*!
+    \externalpage https://www.gnu.org/licenses/lgpl-3.0.html
+    \title GNU Lesser General Public License, version 3
+*/
+
+
+/*!
+    \externalpage https://spdx.org/licenses/BSD-3-Clause.html
+    \title BSD 3-clause "New" or "Revised" License
+*/
+
+/*!
+    \externalpage https://wiki.qt.io/Technical_FAQ#How_to_compress_data_with_Qt?
+    \title How to compress data with Qt?
+*/
+
+/*!
+    \externalpage https://www.gnu.org/licenses/fdl-1.3.html
+    \title GNU Free Documentation License
+*/
+
+/*!
+    \externalpage https://www.qt.io/terms-conditions/#marketplace
+    \title Qt Marketplace License Agreement
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qbs/index.html
+    \title Qbs Manual
+*/
+
+/*!
+    \externalpage https://play.google.com/apps/publish
+    \title Google Play Developer Console
+*/
+
+/*!
+    \externalpage https://www.qt.io/product/features
+    \title Qt Features
+*/
+/*!
+    \externalpage https://developer.android.com/guide/topics/manifest/manifest-intro
+    \title Android: App Manifest
+*/
+/*!
+    \externalpage https://developer.android.com/guide/topics/manifest/manifest-element
+    \title Android: App Manifest <manifest>
+*/
+/*!
+    \externalpage https://developer.android.com/guide/topics/manifest/application-element
+    \title Android: App Manifest <application>
+*/
+/*!
+    \externalpage https://developer.android.com/guide/topics/manifest/activity-element
+    \title Android: App Manifest <activity>
+*/
+/*!
+    \externalpage https://developer.android.com/guide/topics/manifest/meta-data-element
+    \title Android: App Manifest <meta-data>
+*/
+/*!
+    \externalpage https://developer.android.com/studio/#command-line-tools-only
+    \title Android: Android command line tools
+*/
+/*!
+    \externalpage https://developer.android.com/studio/releases/platforms
+    \title Android: Android SDK Platforms
+*/
+/*!
+    \externalpage https://developer.android.com/studio/releases/platform-tools
+    \title Android: Android SDK Platform Tools
+*/
+/*!
+    \externalpage https://developer.android.com/studio/releases/build-tools
+    \title Android: Android SDK Build Tools
+*/
+/*!
+    \externalpage https://developer.android.com/ndk
+    \title Android: The Android NDK
+*/
+/*!
+    \externalpage https://developer.android.com/studio#android-studio-downloads
+    \title Android: Android Studio
+*/
+/*!
+    \externalpage https://developer.android.com/studio/intro/update#sdk-manager
+    \title Android: Update your tools with the SDK Manager
+*/
+/*!
+    \externalpage https://developer.android.com/studio/command-line/sdkmanager
+    \title Android: sdkmanager
+*/
+/*!
+    \externalpage https://developer.android.com/studio/run/emulator
+    \title Android: Android Emulator
+*/
+/*!
+    \externalpage https://developer.android.com/studio/publish/versioning#appversioning
+    \title Android: App Versioning
+*/
+/*!
+    \externalpage https://developer.android.com/tools/adb
+    \title Android: adb
+*/
+/*!
+    \externalpage https://developer.android.com/reference/android/app/Service
+    \title Android: Service
+*/
+/*!
+    \externalpage https://developer.android.com/reference/android/content/Intent
+    \title Android: Intent
+*/
+/*!
+    \externalpage https://developer.android.com/reference/android/content/Context#startService(android.content.Intent)
+    \title Android: startService()
+*/
+/*!
+    \externalpage https://developer.android.com/reference/android/content/BroadcastReceiver
+    \title Android: BroadcastReceiver
+*/
+/*!
+    \externalpage https://developer.android.com/reference/android/content/Context#sendBroadcast(android.content.Intent)
+    \title Android: sendBroadcast()
+*/
+/*!
+    \externalpage https://developer.android.com/reference/android/os/Binder.html
+    \title Android: Binder
+*/
+/*!
+    \externalpage https://developer.android.com/guide/app-bundle
+    \title Android: App Bundles
+*/
+/*!
+    \externalpage https://developer.android.com/studio/projects/android-library
+    \title Android: Android Archive (AAR)
+*/
+/*!
+    \externalpage https://developer.android.com/guide/components/activities/intro-activities
+    \title Android: Introduction to Activities
+*/
+/*!
+    \externalpage https://developer.android.com/studio/build#build-files
+    \title Android: Build Configuration Files
+*/
+/*!
+   \externalpage https://developer.android.com/reference/android/R.style#Theme_DeviceDefault_DayNight
+   \title Android: Theme_DeviceDefault_DayNight Style
+*/
+/*!
+   \externalpage https://developer.android.com/reference/android/R.style#Theme_Holo_Light
+   \title Android: Theme_Holo_Light Style
+*/
+/*!
+   \externalpage https://developer.android.com/reference/android/app/Application
+   \title Android: Application
+*/
+/*!
+    \externalpage https://developer.android.com/reference/android/app/Activity
+    \title Android: Activity
+*/
+/*!
+    \externalpage https://developer.android.com/reference/android/app/Activity#onCreate(android.os.Bundle)
+    \title Android: Activity onCreate()
+*/
+/*!
+    \externalpage https://developer.android.com/reference/android/view/ContextThemeWrapper#setTheme(android.content.res.Resources.Theme)
+    \title Android: Activity setTheme()
+*/
+/*!
+    \externalpage https://developer.android.com/reference/java/lang/System#load(java.lang.String)
+    \title Android: System load()
+*/
+/*!
+    \externalpage https://docs.oracle.com/javase/8/docs/technotes/guides/jni/spec/invocation.html#JNJI_OnLoad
+    \title Android: JNI_OnLoad()
+*/
+/*!
+    \externalpage https://developer.android.com/studio/build/dependencies
+    \title Android: Add build dependencies
+*/
+/*!
+    \externalpage https://developer.android.com/training/articles/keystore
+    \title Android: Android keystore system
+*/
+/*!
+    \externalpage https://developer.android.com/guide/topics/resources/providing-resources#OriginalFiles
+    \title Android: Accessing original files
+*/
+/*!
+    \externalpage https://developer.android.com/guide/topics/resources/providing-resources
+    \title Android: App resources overview
+*/
+
+/*!
+    \externalpage https://developer.android.com/guide/components/fragments
+    \title Android: Fragments
+*/
+/*!
+    \externalpage https://developer.android.com/reference/androidx/core/app/JobIntentService.html
+    \title Android: JobIntentService
+*/
+/*!
+    \externalpage https://developer.android.com/guide/components/foreground-services
+    \title Android: Foreground services
+*/
+
+/*!
+    \externalpage https://support.google.com/googleplay/android-developer/answer/11190644?hl=en
+    \title Android: Android Emoji Policy
+*/
+
+/*!
+    \externalpage https://developer.android.com/guide/topics/ui/look-and-feel/downloadable-fonts
+    \title Android: Google Downloadable Fonts
+*/
+
+/*!
+    \externalpage https://developer.android.com/guide/topics/ui/look-and-feel/downloadable-fonts#downloadable-fonts-process
+    \title Android: Downloadable Fonts Process
+*/
+
+/*!
+    \externalpage https://developer.android.com/reference/android/support/v4/provider/package-summary
+    \title Android: Support Library
+*/
+/*!
+    \externalpage https://developer.android.com/build/releases/gradle-plugin
+    \title Android: Android Gradle plugin
+*/
+
+/*!
+    \externalpage https://github.com/googlefonts/noto-emoji/
+    \title NotoColorEmoji font
+*/
+
+/*!
+    \externalpage https://github.com/googlefonts/noto-emoji/blob/main/fonts/LICENSE
+    \title SIL OPEN FONT LICENSE
+*/
+
+/*!
+    \externalpage https://developer.android.com/guide/topics/ui/look-and-feel/downloadable-fonts#adding-certificates
+    \title Android: Font Provider Certificates
+*/
+
+/*!
+    \externalpage https://github.com/android/user-interface-samples/blob/master/DownloadableFonts/app/src/main/res/values/font_certs.xml
+    \title Android: GMS Font Provider Certificates
+*/
+
+/*!
+    \externalpage https://developer.android.com/studio/publish/versioning.html#appversioning
+    \title Android: App Versioning
+*/
+
+/*!
+    \externalpage https://bugreports.qt.io/browse/QTBUG-78009
+    \title QTBUG-78009
+*/
+
+/*!
+    \externalpage https://strawberryperl.com/
+    \title Perl
+*/
+/*!
+    \externalpage https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html
+    \title Java SE Development Kit
+*/
+/*!
+    \externalpage https://openjdk.org/
+    \title OpenJDK
+*/
+/*!
+    \externalpage https://adoptium.net
+    \title Adoptium
+*/
+/*!
+    \externalpage https://www.gradle.org
+    \title Gradle
+*/
+
+/*!
+    \externalpage https://www.qt.io/download
+    \title Qt Downloads
+*/
+/*!
+    \externalpage https://wiki.qt.io/Building_Qt_5_from_Git#Getting_the_source_code
+    \title Getting the source code
+*/
+/*!
+    \externalpage https://wiki.openssl.org/index.php/Compilation_and_Installation#Configure_Options
+    \title OpenSSL Configure Options
+*/
+
+/*!
+    \externalpage https://github.com/KDAB/android_openssl
+    \title OpenSSL for Android
+*/
+
+/*!
+    \externalpage https://openssl-library.org/source/
+    \title OpenSSL Source
+*/
+
+/*!
+    \externalpage https://codereview.qt-project.org/#/admin/projects/qt/qthttp
+    \title Qt HTTP
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qt-6/qtqml-qtquick-compiler-tech.html
+    \title Qt Quick Compiler
+*/
+
+/*!
+    \externalpage https://doc.qt.io/QtForMCUs
+    \title Qt for MCUs
+*/
+
+/*!
+    \externalpage https://account.qt.io/
+    \title Qt Account
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qtvstools/
+    \title Qt VS Tools
+*/
+
+/*!
+    \externalpage https://doc.qt.io/vscodeext/
+    \title Qt Extension for VS Code
+*/
+/*!
+    \externalpage https://doc.qt.io/archives/qt-5.5/qtwebkit-index.html
+    \title Qt WebKit
+*/
+/*!
+    \externalpage https://doc.qt.io/Boot2Qt/
+    \keyword Qt for Device Creation
+    \title Boot to Qt
+*/
+/*!
+    \externalpage https://www.qt.io/product/qt6/qml-book/
+    \title Qt 6 QML Book
+*/
+
+/*!
+    \externalpage https://wiki.openssl.org/images/7/70/Setenv-android.sh
+    \title OpenSSL: Build Setup Script
+*/
+
+/*!
+    \externalpage https://doc.qt.io/QtForAutomation/index.html
+    \title Qt for Automation
+*/
+
+/*!
+    \externalpage https://doc.qt.io/QtAndroidAutomotive/
+    \title Qt for Android Automotive
+*/
+
+/*!
+    \externalpage https://doc.qt.io/QtAndroidAutomotive/qtaa-quick-starter-guide.html
+    \title Qt for Android Automotive Quick Starter Guide
+*/
+
+/*!
+    \externalpage https://webassembly.org
+    \title WebAssembly Resource site
+*/
+
+/*!
+    \externalpage https://www.freedesktop.org/wiki/Software/libinput
+    \title libinput
+*/
+
+/*!
+    \externalpage https://www.yoctoproject.org
+    \title Yocto Project
+*/
+
+/*!
+    \externalpage https://lct.sourceforge.net/
+    \title Linux Console Tools (LCT)
+*/
+
+/*!
+    \externalpage https://www.x.org/
+    \title X.org
+*/
+
+/*!
+    \externalpage https://crascit.com/professional-cmake/
+    \title Professional CMake: A Practical Guide
+*/
+
+/*!
+    \externalpage https://ninja-build.org/
+    \title Ninja
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qtdesignstudio/gstutorials.html
+    \title Qt Design Studio: Tutorials
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qtdesignstudio/qtdesignstudio-washingmachineui-example.html
+    \title Qt Design Studio: Washing Machine UI
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qtdesignstudio/studio-installation.html
+    \title Installing Qt Design Studio
+*/
+
+/*!
+    \externalpage https://www.qt.io/product/ui-design-tools
+    \title \QDS
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qtforpython-6/tutorials/index.html
+    \title Qt for Python Tutorials
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qtforpython-6/examples/index.html
+    \title Qt for Python Examples
+*/
+
+/*!
+    \externalpage https://doc.qt.io/QtCoAP/qtcoap-examples.html
+    \title Qt CoAP Examples
+*/
+
+/*!
+    \externalpage https://doc.qt.io/QtMQTT/qtmqtt-examples.html
+    \title Qt MQTT Examples
+*/
+
+/*!
+    \externalpage https://doc.qt.io/QtOPCUA/index.html
+    \title Qt OPC UA Examples
+*/
+
+/*!
+    \externalpage https://doc.qt.io/QtForMCUs/qulexamples.html
+    \title Qt Quick Ultralite Examples
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qt-5.15/
+    \title Qt 5.15
+*/
+
+/*!
+    \externalpage https://doc.qt.io/QtForDeviceCreation/b2qt-tutorial-deploying.html
+    \title Tutorial: Deploying Your First Project with Boot to Qt
+*/
+
+/*!
+    \externalpage https://cmake.org/cmake/help/latest/guide/tutorial/
+    \title CMake Tutorial
+*/
+
+/*!
+    \externalpage https://cmake.org/cmake/help/latest/prop_tgt/AUTOMOC.html#including-header-moc-files-in-sources
+    \title Including header moc files in sources
+*/
+
+/*!
+    \externalpage https://cmake.org/cmake/help/latest/prop_tgt/MACOSX_BUNDLE_INFO_PLIST.html
+    \title CMake MACOSX_BUNDLE_INFO_PLIST documentation
+*/
+
+/*!
+    \externalpage https://gitlab.kitware.com/cmake/cmake/-/issues/23734
+    \title CMake iOS archiving failure issue
+*/
+
+/*!
+    \externalpage https://cmake.org/cmake/help/latest/command/cmake_minimum_required.html#policy-settings
+    \title CMake Policy Settings
+*/
+
+/*!
+    \externalpage https://doc.qt.io/QtAndroidAutomotive/
+    \title Qt for Android Automotive
+*/
+
+/*!
+    \externalpage https://blackberry.qnx.com/en/products/foundation-software/qnx-rtos
+    \title QNX Neutrino RTOS
+*/
+
+/*!
+    \externalpage https://blackberry.qnx.com/en
+    \title QNX website
+*/
+
+/*!
+    \externalpage https://www.qt.io/pricing
+    \title Qt pricing
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/huawei_mediapad_m5_10-9091.php
+    \title Huawei MediaPad M5 10 (CMR-W09)
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/google_pixel_3a-9408.php
+    \title Pixel 3A
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/google_pixel_4a-10123.php
+    \title Pixel 4A
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/google_pixel_2-8733.php
+    \title Pixel 2
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/google_pixel_2_xl-8720.php
+    \title Pixel 2 XL
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/google_pixel_4-9896.php
+    \title Pixel 4
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/google_pixel_6-11037.php
+    \title Pixel 6
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/google_pixel_6_pro-10918.php
+    \title Pixel 6 Pro
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/google_pixel_6a-11229.php
+    \title Pixel 6a
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/google_pixel_7-11903.php
+    \title Pixel 7
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/google_pixel_7_pro-11908.php
+    \title Pixel 7 Pro
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/google_pixel_7a-12170.php
+    \title Pixel 7a
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/google_pixel_8-12546.php
+    \title Pixel 8
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/google_pixel_tablet-11905.php
+    \title Pixel Tablet
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/samsung_galaxy_s10-9536.php
+    \title Samsung Galaxy S10
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/samsung_galaxy_s21_5g-10626.php
+    \title Samsung Galaxy S21 (SM-G990B2)
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/samsung_galaxy_s21_fe_5g-10954.php
+    \title Samsung Galaxy S21 (SM-G990B)
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/samsung_galaxy_a26-13679.php
+    \title Samsung Galaxy A26 (SM-A266B)
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/samsung_galaxy_tab_s4_10_5-9262.php
+    \title Samsung Galaxy Tab S4 (SM-T835)
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/nothing_phone_(1)-11636.php
+    \title Nothing Phone 1 (A063)
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/motorola_moto_g5_plus-8453.php
+    \title Motorola Moto G5 Plus
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/samsung_galaxy_tab_a9+-12617.php
+    \title Samsung Galaxy Tab A9+ (SM-X210)
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/samsung_galaxy_tab_s10_lite_5g-14059.php
+    \title Samsung Galaxy Tab 10 Lite (SM-X400)
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/apple_iphone_12-10509.php
+    \title iPhone 12
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/apple_iphone_11-9848.php
+    \title iPhone 11
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/apple_iphone_16e-13395.php
+    \title iPhone 16e
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/apple_ipad_pro_11_(2021)-10865.php
+    \title iPad Pro, 3rd generation
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/apple_ipad_9_7_(2018)-9142.php
+    \title iPad, 6th generation
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/apple_ipad_10_2_(2021)-11106.php
+    \title iPad, 9th generation
+*/
+
+/*!
+    \externalpage https://www.gsmarena.com/apple_ipad_air_11_(2025)-13703.php
+    \title iPad Air M3
+*/
+
+/*!
+    \externalpage https://m3.material.io
+    \title Material 3
+*/
+
+/*!
+    \externalpage https://www.qt.io/terms-conditions/
+    \title Qt Support Terms and Conditions
+*/
+
+/*!
+    \externalpage https://www.qt.io/qt-support/#standard-support
+    \title Standard support
+*/
+
+/*!
+    \externalpage https://www.qt.io/qt-support/#premium-support
+    \title Premium support
+*/
+
+/*!
+    \externalpage https://doc.qt.io/Boot2Qt/b2qt-qbsp-overview.html
+    \title Qt Board Support Package
+*/
+
+/*!
+    \externalpage https://developer.apple.com/documentation/appkit/nsview
+    \title macOS: NSView
+*/
+
+/*!
+    \externalpage https://developer.apple.com/documentation/uikit/uiview
+    \title iOS: UIView
+*/
+
+/*!
+    \externalpage https://learn.microsoft.com/en-us/windows/win32/winprog/windows-data-types
+    \title Windows: HWND
+*/
+
+/*!
+    \externalpage https://www.qt.io/product/supported-platforms-languages/other-targets
+    \title Other Targets
+*/
+
+/*!
+    \externalpage https://emscripten.org/docs/optimizing/Optimizing-Code.html
+    \title Emscripten: Optimizing Code
+*/
+
+/*!
+    \externalpage https://account.qt.io/downloads
+    \title Qt Customer Portal
+*/
+
+// These examples were moved to manual tests but still referenced in deployment
+// documentation - add links to the source repository
+/*!
+    \externalpage https://code.qt.io/cgit/qt/qtbase.git/tree/tests/manual/examples/widgets/tools/plugandpaint/app?h=\QtVer
+    \title Plug & Paint Example
+    \keyword tools/plugandpaint/app
+*/
+
+/*!
+    \externalpage https://developer.android.com/reference/android/content/Context
+    \title Android: Context
+*/
+
+/*!
+    \externalpage https://developer.android.com/reference/android/view/View
+    \title Android: View
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qttoolsforandroid/
+    \title Qt Tools for Android Studio
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qtgradleplugin/
+    \title Qt Gradle Plugin
+*/
+
+/*!
+    \externalpage https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.jvm/-synchronized/
+    \title Kotlin: Synchronized
+*/
+
+/*!
+    \externalpage https://doc.qt.io/QtForMCUs/qtul-supported-platforms.html
+    \title Supported Qt for MCUs platforms
+*/
+
+/*!
+    \externalpage https://reuse.software/
+    \title REUSE
+*/
+
+/*!
+    \externalpage https://github.com/fsfe/reuse-tool
+    \title reuse-tool
+*/
+
+/*!
+    \externalpage https://wiki.qt.io/Licensing_in_Qt%27s_modules
+    \title Licensing in Qt sources
+*/
+
+/*!
+    \externalpage https://contribute.qt-project.org/quips/18
+    \title QUIP 18: License specification in Qt's modules
+*/
+
+/*!
+    \externalpage https://doc.qt.io/Boot2Qt/b2qt-meta-qt6.html
+    \title Boot to Qt: Using meta-qt6
+*/
+
+/*!
+    \externalpage https://code.qt.io/cgit/yocto/meta-qt6.git/
+    \title meta-qt6 repository
+*/
+
+/*!
+    \externalpage https://download.qt.io/official_releases/online_installers/
+    \title \QOI official releases
+*/
+
+/*!
+    \externalpage https://developer.android.com/develop/background-work/background-tasks/awake/wakelock
+    \title Android: wake lock
+*/
+
+/*!
+    \externalpage https://developer.android.com/training/articles/perf-jni
+    \title Android: JNI
+*/
+
+/*!
+    \externalpage https://developer.android.com/develop/ui/views/notifications
+    \title Android: Notifications
+*/
+
+/*!
+    \externalpage https://central.sonatype.com/search?q=qtjenny
+    \title Maven Central: QtJenny
+*/
+
+/*!
+    \externalpage https://github.com/LanderlYoung/Jenny
+    \title Jenny
+*/
+
+/*!
+    \externalpage https://kotlinlang.org/docs/kapt.html
+    \title Android: Kapt compiler plugin
+*/
+
+/*!
+    \externalpage https://www.qt.io/qt-professional-services
+    \title Qt Professional Services
+*/
+
+/*!
+    \externalpage https://developer.android.com/develop/ui/views/launch/splash-screen
+    \title Android Splash screens
+*/
+
+/*!
+    \externalpage https://learn.microsoft.com/en-us/cpp/mfc/ole-background?view=msvc-170
+    \title OLE
+*/
+
+/*!
+    \externalpage https://learn.microsoft.com/en-us/windows/win32/api/ole2/nf-ole2-oleinitialize
+    \title OleInitialize
+*/
+
+/*!
+    \externalpage https://developer.android.com/about/versions/15/behavior-changes-15#fgs-boot-completed
+    \title Android: Restrictions on BOOT_COMPLETED
+*/
+
+/*!
+    \externalpage https://developer.android.com/studio/run/emulator-acceleration
+    \title Android: Emulator Acceleration
+*/
+
+/*!
+    \externalpage https://support.google.com/googleplay/android-developer/answer/6112435
+    \title Android: How to get started with Play Console
+*/
+
+/*!
+    \externalpage https://www.youtube.com/playlist?list=PLWz5rJ2EKKc_M4-OBagr0dzGAfxea0mEn
+    \title Android: Google Play Console webinars
+*/
+
+/*!
+    \externalpage https://support.google.com/googleplay/android-developer/answer/9859152
+    \title Android: Create and set up your app in Play Console
+*/
+
+/*!
+    \externalpage https://support.google.com/googleplay/android-developer/answer/9859751
+    \title Android: Publish your app in Play Console
+*/
+
+/*!
+    \externalpage https://developer.android.com/studio/write/create-app-icons#about
+    \title Android Studio: Image Asset Studio
+*/
+
+/*!
+    \externalpage https://play.google.com/console
+    \title Google Play Console
+*/
+
+/*!
+    \externalpage https://developer.android.com/guide/app-bundle/faq
+    \title Android: Android App Bundle FAQ
+*/
+
+/*!
+    \externalpage https://support.google.com/googleplay/android-developer/answer/9842756
+    \title Android: Use Play App Signing
+*/
+
+/*!
+    \externalpage https://support.google.com/googleplay/android-developer/answer/11926878
+    \title Android: Target API level requirements
+*/
+
+/*!
+    \externalpage https://developer.android.com/reference/com/google/android/play/core/splitinstall/package-summary
+    \title Android: Google Split Install Interfaces
+*/
+
+/*!
+    \externalpage https://developer.android.com/tools/bundletool
+    \title Android: Bundletool Documentation
+*/
+
+/*!
+    \externalpage https://docs.oracle.com/javase/8/docs/technotes/tools/windows/jarsigner.html
+    \title Android: Jarsigner Documentation
+*/
+
+/*!
+    \externalpage https://developer.android.com/reference/com/google/android/play/core/splitinstall/SplitInstallManager
+    \title Android: SplitInstallManager
+*/
+
+/*!
+    \externalpage https://developer.android.com/guide/playcore/feature-delivery/on-demand#request
+    \title Android: Request an on demand module
+*/
+
+/*!
+    \externalpage https://developer.android.com/guide/playcore/feature-delivery
+    \title Android: Android Feature Delivery Documentation
+*/
+
+/*!
+    \externalpage https://www.qt.io/academy/course-catalog#getting-started-with-qt-for-android-
+    \title Qt Academy - Getting Started with Qt for Android
+*/
+

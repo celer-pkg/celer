@@ -1,0 +1,84 @@
+<svg width="880" height="400" viewBox="0 0 220 100" xmlns="http://www.w3.org/2000/svg">
+<!-- A marker to be used as an arrowhead -->
+<marker
+  id="arrow"
+  viewBox="0 0 10 10"
+  refX="5"
+  refY="5"
+  markerWidth="6"
+  markerHeight="6"
+  orient="auto-start-reverse">
+  <path d="M 0 0 L 10 5 L 0 10 z" />
+</marker>
+
+<marker
+  id="arrow2"
+  viewBox="0 0 10 10"
+  refX="5"
+  refY="5"
+  markerWidth="6"
+  markerHeight="6"
+  orient="90">
+  <path fill="red" d="M 0 0 L 10 5 L 0 10 z" />
+</marker>
+
+
+<marker
+  id="dot"
+  viewBox="0 0 10 10"
+  refX="3"
+  refY="3"
+  markerWidth="6"
+  markerHeight="6"
+  orient="90">
+  <circle cx="0" cy="0" r="6" stroke="green" fill="blue"/>
+</marker>
+
+  <!-- A line with a marker -->
+  <line
+    x1="10"
+    y1="10"
+    x2="90"
+    y2="90"
+    stroke="black"
+    marker-end="url(#arrow)" />
+
+  <!-- A curved path with markers -->
+  <path
+    d="M 110 10
+       C 120 20, 130 20, 140 10
+       C 150 0, 160 0, 170 10
+       C 180 20, 190 20, 200 10"
+    stroke="black"
+    fill="none"
+    marker-start="url(#arrow)"
+    marker-mid="url(#arrow)"
+    marker-end="url(#arrow)" />
+    
+  <path
+    d="M 110 30
+       L 130 40
+       L 150 20"
+    stroke="black"
+    stroke-width="3"
+    fill="none"
+    marker-start="url(#arrow2)"
+    marker-mid="url(#arrow2)"
+    marker-end="url(#arrow2)" />
+
+  <polyline
+    points="20,20 20,60 60,60"
+    fill="none"
+    stroke="black"
+    marker-start="url(#arrow)"
+    marker-end="url(#arrow)" />
+
+  <polygon
+    points="70,20 70,60 90,60"
+    fill="yellow"
+    stroke="black"
+    marker-start="url(#dot)"
+    marker-end="url(#dot)" 
+    marker-mid="url(#dot)"  />
+    
+</svg>

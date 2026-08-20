@@ -1,0 +1,70 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+
+project                 = QtSpatialAudio
+description             = Qt Spatial Audio Documentation
+version                 = $QT_VERSION
+buildversion            = "Technology Preview"
+
+moduleheader            = QtSpatialAudio
+includepaths           += .
+
+examplesinstallpath     = spatialaudio
+
+# Path to the root of qtmultimedia (for automatic linking to source code)
+url.sources.rootdir     = ../../..
+
+# The following parameters are for creating a qhp file, the qhelpgenerator
+# program can convert the qhp file into a qch file which can be opened in
+# Qt Assistant and/or Qt Creator.
+
+# Defines the name of the project. You cannot use operators (+, =, -) in
+# the name. Properties for this project are set using a qhp.<projectname>.property
+# format.
+qhp.projects = QtSpatialAudio
+qhp.QtSpatialAudio.file = qtspatialaudio.qhp
+qhp.QtSpatialAudio.namespace = org.qt-project.qtspatialaudio.$QT_VERSION_TAG
+qhp.QtSpatialAudio.indexTitle = Qt Spatial Audio
+qhp.QtSpatialAudio.virtualFolder  = qtspatialaudio
+
+qhp.QtSpatialAudio.subprojects = overview examples classes qmltypes
+
+qhp.QtSpatialAudio.subprojects.classes.title = Qt Spatial Audio Classes
+qhp.QtSpatialAudio.subprojects.classes.indexTitle = Qt Spatial Audio C++ Classes
+qhp.QtSpatialAudio.subprojects.classes.selectors = module:QtSpatialAudio
+qhp.QtSpatialAudio.subprojects.classes.sortPages = true
+
+qhp.QtSpatialAudio.subprojects.qmltypes.title = QML Types
+qhp.QtSpatialAudio.subprojects.qmltypes.indexTitle = Qt Spatial Audio QML Types
+qhp.QtSpatialAudio.subprojects.qmltypes.selectors = qmlclass
+qhp.QtSpatialAudio.subprojects.qmltypes.sortPages = true
+
+qhp.QtSpatialAudio.subprojects.examples.title = Examples
+qhp.QtSpatialAudio.subprojects.examples.indexTitle = Qt Spatial Audio Examples
+qhp.QtSpatialAudio.subprojects.examples.selectors = example
+qhp.QtSpatialAudio.subprojects.examples.sortPages = true
+
+qhp.QtSpatialAudio.subprojects.overview.title = Overview
+qhp.QtSpatialAudio.subprojects.overview.indexTitle = Spatial Audio Overview
+qhp.QtSpatialAudio.subprojects.overview.selectors = group:none
+
+tagfile = qtspatialaudio.tags
+
+exampledirs += ../../../examples/spatialaudio \
+               snippets
+
+headerdirs += .. \
+              ../../spatialaudioquick3d
+
+imagedirs += src/images \
+
+sourcedirs += .. \
+              ../../spatialaudioquick3d
+
+depends = qtcore qtdoc qtgui qtquick qtqml qtnetwork qmake qtcmake qtquickcontrols qtquick3d qtmultimedia
+
+# Ignore \since commands for versions earlier than 6.3
+ignoresince = 6.4
+
+navigation.landingpage = "Qt Spatial Audio"
+navigation.cppclassespage = "Qt Spatial Audio C++ Classes"
+navigation.qmltypespage = "Qt Spatial Audio QML Types"

@@ -1,0 +1,84 @@
+Version: 2
+Include: [
+  macos.yaml: [
+     "macos-universal-on-arm64",
+     "macos-14-x86_64-tests",
+     "macos-14-arm64-tests"
+  ],
+  cmake_platforms.yaml: [
+    "ubuntu-22.04",
+    "ubuntu-22.04-developer-build",
+    "ubuntu-24.04-arm64",
+    "opensuse-15.6-developer-build",
+    "opensuse-16.0-developer-build",
+    "sles-15_sp6-static",
+    "windows-10_22h2-msvc2022",
+    "rhel-9.6",
+    "windows-11_24h2-mingw13",
+    "windows-11_24H2-mingw13-developer-build",
+    "windows-11_24H2-llvm",
+    "windows-11_24H2-msvc2022",
+    "windows-11_23h2-arm64-msvc2022"
+  ],
+  cmake_platforms_qemu_qnx.yaml: [
+    "qnx-710-x86_64-developer-build-on-linux",
+    "qnx-710-arm64-on-linux",
+    "qnx-710-armv7-on-linux"
+  ],
+  offline_documentation.yaml
+]
+# Static build configurations for tools
+Configurations:
+-
+    Id: 'macos-14-latest-xcode-universal_Static'
+    Template: 'qtci-macos-14-arm-106'
+    Compiler: 'Clang'
+    Target arch: 'x86_64-arm64'
+    Features: ['Packaging', 'Sccache', 'UseConfigure', 'MinimalStaticTests']
+    Configure arguments: '-static -nomake examples -release -no-framework -no-icu -qt-doubleconversion -no-sql-mysql'
+    Environment variables: [
+        'CMAKE_ARGS=-DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"'
+    ]
+-
+    Id: 'Linux-RHEL_9_6_Static'
+    Template: 'qtci-linux-RHEL-9.6-x86_64-51'
+    Compiler: 'GCC'
+    Features: ['Packaging', 'Sccache', 'UseConfigure', 'MinimalStaticTests']
+    Configure arguments: '-static -no-icu -nomake examples -release -headersclean -qt-libjpeg -qt-libpng -qt-pcre -qt-harfbuzz -qt-doubleconversion -no-libudev -bundled-xcb-xinput -no-sql-mysql'
+    Environment variables: [
+        'CMAKE_ARGS=-DOpenGL_GL_PREFERENCE=LEGACY',
+        'NON_QTBASE_CMAKE_ARGS=-DINPUT_headersclean=ON'
+    ]
+-
+    Id: 'Ubuntu-24.04-arm64_Static'
+    Template: 'qtci-linux-Ubuntu-24.04-aarch64-52'
+    Compiler: 'GCC'
+    Features: ['Packaging', 'Sccache', 'UseConfigure', 'MinimalStaticTests']
+    Configure arguments: '-static -no-icu -nomake examples -release -headersclean -qt-libjpeg -qt-libpng -qt-pcre -qt-harfbuzz -qt-doubleconversion -no-libudev -bundled-xcb-xinput -no-sql-mysql'
+    Environment variables: [
+        'CMAKE_ARGS=-DOpenGL_GL_PREFERENCE=LEGACY',
+        'COMMON_TEST_CMAKE_ARGS=-DQT_SKIP_DOCKER_COMPOSE=ON',
+        'NON_QTBASE_CMAKE_ARGS=-DFFMPEG_DIR={{.Env.FFMPEG_DIR}} -DQT_DEPLOY_FFMPEG=TRUE -DINPUT_headersclean=ON'
+    ]
+-
+    Id: 'Windows-MSVC2022-arm64_Static'
+    Template: 'qtci-windows-11_23H2-aarch64-53'
+    Compiler: 'MSVC2022'
+    Features: ['Packaging', 'UseConfigure', 'MinimalStaticTests']
+    Configure arguments: '-release -headersclean -nomake examples -qt-zlib -static -no-icu -no-sql-psql -no-opengl'
+    Environment variables: [
+        'CMAKE_ARGS=-DFEATURE_msvc_obj_debug_info=ON -DOPENSSL_ROOT_DIR={{.Env.OPENSSL_INCLUDE_arm64}}\..',
+        'NON_QTBASE_CMAKE_ARGS= -DFEATURE_clangcpp=OFF -DFFMPEG_DIR={{.Env.FFMPEG_DIR_MSVC_ARM64}} -DQT_DEPLOY_FFMPEG=TRUE',
+        'Protobuf_ROOT={{.Env.Protobuf_ROOT_msvc}}',
+    ]
+-
+    Id: 'Windows-MSVC2022_Static'
+    Template: 'qtci-windows-10_22H2-x86_64-53'
+    Compiler: 'MSVC2022'
+    Features: ['Packaging', 'Sccache', 'UseConfigure', 'MinimalStaticTests']
+    Configure arguments: '-release -headersclean -nomake examples -qt-zlib -static -no-icu -no-sql-mysql -no-sql-odbc -no-sql-psql'
+    Environment variables: [
+        'CMAKE_ARGS=-DFEATURE_msvc_obj_debug_info=ON -DOPENSSL_ROOT_DIR={{.Env.OPENSSL_INCLUDE_x64}}\..',
+        'LLVM_INSTALL_DIR={{.Env.LLVM_INSTALL_DIR_msvc}}',
+        'NON_QTBASE_CMAKE_ARGS=-DINPUT_headersclean=ON'
+    ]

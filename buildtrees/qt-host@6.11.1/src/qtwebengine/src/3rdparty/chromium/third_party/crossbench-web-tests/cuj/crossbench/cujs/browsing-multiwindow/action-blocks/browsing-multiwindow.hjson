@@ -1,0 +1,172 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  pages: {
+    open-5-tabs: {
+      setup: [
+        {
+          action: close_all_tabs
+        }
+        {
+          action: get
+          url: about:blank
+          target: _self
+        }
+        {
+          action: get
+          url: about:blank
+          target: _new_tab
+        }
+        {
+          action: get
+          url: about:blank
+          target: _new_window
+        }
+        // TODO: A work around to open new tabs in specific order.
+        // This should be removed from here once the '_new_tab' works in
+        // a sperate window.
+        {
+          action: get
+          url: about:blank
+          target: _blank
+        }
+        {
+          action: switch_tab
+          tab_index: -1
+        }
+        {
+          action: get
+          url: about:blank
+          target: _blank
+        }
+      ]
+      actions: [
+        {
+          action: wait_for_ready_state
+          ready_state: complete
+        }
+      ]
+    }
+    switch-tab-and-page-scroll-1: {
+      blocks: {
+        template: ./switch-tab-and-page-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_1]
+          TAB_INDEX: 0
+        }
+        unbound_args: [
+          PAGE_1
+        ]
+      }
+    }
+    switch-tab-and-page-scroll-2: {
+      blocks: {
+        template: ./switch-tab-and-page-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_2]
+          TAB_INDEX: 1
+        }
+        unbound_args: [
+          PAGE_2
+        ]
+      }
+    }
+    switch-tab-and-page-scroll-3: {
+      blocks: {
+        template: ./switch-tab-and-page-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_3]
+          TAB_INDEX: 2
+        }
+        unbound_args: [
+          PAGE_3
+        ]
+      }
+    }
+    switch-tab-and-page-scroll-4: {
+      blocks: {
+        template: ./switch-tab-and-page-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_4]
+          TAB_INDEX: 3
+        }
+        unbound_args: [
+          PAGE_4
+        ]
+      }
+    }
+    switch-tab-and-page-scroll-5: {
+      blocks: {
+        template: ./switch-tab-and-page-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_5]
+          TAB_INDEX: 4
+        }
+        unbound_args: [
+          PAGE_5
+        ]
+      }
+    }
+    switch-tab-and-page-scroll-6: {
+      blocks: {
+        template: ./switch-tab-and-page-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_6]
+          TAB_INDEX: 0
+        }
+        unbound_args: [
+          PAGE_6
+        ]
+      }
+    }
+    switch-tab-and-page-scroll-7: {
+      blocks: {
+        template: ./switch-tab-and-page-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_7]
+          TAB_INDEX: 1
+        }
+        unbound_args: [
+          PAGE_7
+        ]
+      }
+    }
+    switch-tab-and-page-scroll-8: {
+      blocks: {
+        template: ./switch-tab-and-page-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_8]
+          TAB_INDEX: 2
+        }
+        unbound_args: [
+          PAGE_8
+        ]
+      }
+    }
+    switch-tab-and-page-scroll-9: {
+      blocks: {
+        template: ./switch-tab-and-page-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_9]
+          TAB_INDEX: 3
+        }
+        unbound_args: [
+          PAGE_9
+        ]
+      }
+    }
+    switch-tab-and-page-scroll-10: {
+      blocks: {
+        template: ./switch-tab-and-page-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_10]
+          TAB_INDEX: 4
+        }
+        unbound_args: [
+          PAGE_10
+        ]
+      }
+    }
+  }
+}

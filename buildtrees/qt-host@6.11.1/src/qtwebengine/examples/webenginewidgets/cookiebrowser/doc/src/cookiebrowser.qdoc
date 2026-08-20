@@ -1,0 +1,29 @@
+// Copyright (C) 2015 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example webenginewidgets/cookiebrowser
+    \examplecategory {Web Technologies}
+    \title WebEngine Cookie Browser Example
+    \ingroup webengine-widgetexamples
+    \brief A cookie browser based on \QWE Widgets.
+
+    \image cookiebrowser.png {Web page with cookie list showing activated cookies
+           and options to view or delete them}
+
+    \e {Cookie Browser} demonstrates how to use the \l{Qt WebEngine Widgets C++ Classes}
+    {Qt WebEngine C++ classes} to manage cookies. The browser can be used to view cookie content as
+    well as delete cookies and add new cookies.
+
+    \include examples-run.qdocinc
+
+    \section1 Files and Attributions
+
+    The example uses icons from the Tango Icon Library:
+
+    \table
+    \row
+        \li \l{cookiebrowser-tango}{Tango Icon Library}
+        \li Public Domain
+    \endtable
+*/

@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<!--
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+-->
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0"
+       name="super_state_machine">
+    <parallel id="super_top">
+        <state id="a">
+            <invoke>
+                <content>
+                    <scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0"
+                           name="sub_state_machine">
+                        <state id="sub_top"/>
+                    </scxml>
+                </content>
+            </invoke>
+        </state>
+        <state id="b"/>
+    </parallel>
+</scxml>

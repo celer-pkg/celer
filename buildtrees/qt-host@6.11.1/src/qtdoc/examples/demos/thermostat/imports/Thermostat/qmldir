@@ -1,0 +1,10 @@
+# Copyright (C) 2023 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+
+module Thermostat
+singleton AppSettings 1.0 AppSettings.qml
+singleton Constants 1.0 Constants.qml
+singleton Database 1.0 Database.qml
+singleton RoomsModel 1.0 RoomsModel.qml
+singleton Utils 1.0 Utils.qml
+Room 1.0 Room.qml

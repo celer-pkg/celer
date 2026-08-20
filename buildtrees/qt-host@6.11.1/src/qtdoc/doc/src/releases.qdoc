@@ -1,0 +1,268 @@
+// Copyright (C) 2026 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qt-releases.html
+
+    \title Qt Releases
+    \brief Information about Qt versioning and release schedules.
+
+    The Qt Framework consists of various \l{All Modules}{modules} and tools released under
+    a common version number.
+    In the following, we explain Qt's versioning scheme and the related compatibility
+    promises. Finally, we present the typical release schedules, and introduce the
+    long-term support (LTS) releases and support periods provided.
+
+    \note Some tools like \l{\QC Documentation}{\QC} or \l{Qt Design Studio Manual}{\QDS}
+    and related products like \l{Qt for MCUs Documentation}{Qt for MCUs} are released independently and have their own
+    versioning scheme and release schedule.
+
+    \section1 Versioning
+
+    Qt uses \l{https://semver.org/}{semantic versioning}. Each release is identified by a
+    \e{major}, \e{minor}, and \e{patch} number, separated by a dot. For instance, \e{Qt \QtVersion}.
+
+    \e{Major releases} increment the \e{major} version number, resetting minor and patch numbers to
+    zero. Major releases feature a rework of some of Qt's functionality, module structure,
+    and Application Programming Interfaces (APIs).
+
+    \e{Minor releases} increment the \e{minor} version number, resetting the patch version number
+    to zero. Minor versions contain new functionality, as well as various fixes and improvements.
+
+    \e{Patch releases} --- also called \e{maintenance releases} ---
+    increment just the \e patch version number. Patch releases consist of
+    bug fixes (including fixes for possible security issues), documentation fixes,
+    and performance improvements.
+
+    When not relevant, the patch version number is often left out. That is, when the documentation
+    refers to Qt 6.6, the documentation applies to Qt 6.6.0, Qt 6.6.1, Qt 6.6.2, and so on.
+
+    \section1 Compatibility promises
+
+    Usually, you start developing your applications against a specific Qt version. As time passes,
+    new Qt versions get released, and you need to update your Qt version---be it because you want
+    to benefit from bugs fixed or features introduced in more recent versions, or because the old Qt
+    version is not supported anymore. To aid you with this, Qt makes the following compatibility
+    guarantees.
+
+    \section2 Source compatibility
+
+    To be \e{source compatible} means that you can compile your application unmodified against two
+    different Qt versions. For each release, Qt aims to keep source compatibility with previous
+    releases of the same major version. That is, an application developed against Qt 6.0.0 should
+    still compile when built with any other Qt 6 release (though maybe with warnings due to API
+    being deprecated).
+
+    Note that modules or APIs marked as \e{Technology Preview}, \e{under development}, or
+    \e{subject to change}, as well as pre-releases, are excluded from this promise.
+
+    There are situations where adding new functionality or fixing issues still requires
+    changes that might break source compatibility in minor releases.
+    \l{https://contribute.qt-project.org/quips/6}{QUIP-6} lists some of these.
+
+    \section2 Binary compatibility
+
+    To be \e{binary compatible} means that you can run your dynamically compiled application
+    against two different Qt versions. Qt aims to keep \e{backwards binary compatibility} with
+    previous Qt releases of the same major version. That is, an application compiled against
+    Qt 6.0.0 should still run with any other Qt 6 release, but not necessarily the other way
+    around.
+
+    There is no universal C++ standard for Application Binary Interfaces (ABIs), so
+    this promise only applies when using the same toolchain (compiler) and
+    system environment for both versions. It is also valid only for dynamic builds of Qt,
+    excludes pre-releases and modules or API marked as \e{Technology Preview}, and requires both
+    Qt versions to be built with the same \l{Qt configure options}{configuration}.
+
+    \section1 Release schedules
+
+    \e{Major} releases of Qt happen rarely---Qt 4.0.0 was released in 2005, Qt 5.0.0
+    in 2012, and Qt 6.0.0 in 2020.
+
+    \e{Minor} releases of Qt happen twice a year.
+
+    For each minor release, we typically provide two or three \e{patch} releases--
+    until the next minor release of Qt is out. Exceptions are security issues that might warrant a
+    new patch-level release even later and \e{Long-Term Support releases}.
+
+    \section1 Long-Term Support releases
+
+    For selected Qt minor versions, \l{The Qt Company} provides additional patch-level releases for
+    an extended period. Such additional releases are called Long-Term Support (LTS) releases,
+    and the minor Qt version is said to be an LTS version. While the initial patch releases of such
+    an LTS version are also available to open-source users, immediate access to LTS releases
+    is limited to commercial customers of The Qt Company, under the
+    \l{Qt Licensing}{commercial license}.
+
+    Since Qt 6.8 LTS, every fourth minor Qt version gets additional LTS releases. The bug fixes
+    and security updates provided in such releases, as well as the longer support period,
+    make LTS versions a good choice for developing bigger applications. Before Qt 6.8 LTS,
+    every third minor Qt version got additional LTS releases.
+
+    Note that, for LTS releases, the \l{Qt WebEngine} module is treated differently: Due to parts
+    of it being only available under LGPL, the Qt WebEngine code remains available under its
+    \l{Qt WebEngine Licensing}{default licenses}.
+
+    \section1 Commercial support
+
+    The Qt Company provides \l{https://www.qt.io/qt-support/}{commercial support} for Qt.
+    Under \l{https://www.qt.io/terms-conditions/#appendix-9}{standard support conditions}, each
+    minor version of Qt is supported for one year, starting from the date of the minor release.
+    For Qt LTS versions before 6.8.0, the support is extended to three years,
+    starting from the original minor release (Qt x.y.0 release). Starting with
+    version 6.8.0, the LTS versions are supported for five years. Even longer
+    support can be negotiated individually.
+
+    \target Supported Qt Versions
+    \section1 Supported versions
+
+    \table
+    \header
+        \li Version
+        \li Latest release
+        \li Standard support until
+    \row
+        \li Qt 6.11
+        \li Qt 6.11.1
+        \li 2027-03-17
+    \row
+        \li Qt 6.10
+        \li Qt 6.10.3
+        \li 2026-10-07
+    \row
+        \li Qt 6.8 LTS
+        \li Qt 6.8.7 (LTS, commercial only)
+        \li 2029-10-08
+    \endtable
+
+
+    \section2 Extended Support
+
+    Once the standard support is expired, the Extended Support (ES) is available
+    for these versions:
+
+    \table
+    \header
+        \li Version
+        \li Latest release
+        \li Standard support until
+    \row
+        \li \b{Qt 6.11}
+        \li Qt 6.11.1
+        \li 2027-03-17
+    \row
+        \li \b{Qt 6.10}
+        \li Qt 6.10.3
+        \li 2026-10-07
+    \row
+        \li \b{Qt 6.9}
+        \li Qt 6.9.3
+        \li Ended (ES is available)
+    \row
+        \li \b{Qt 6.8 LTS}
+        \li Qt 6.8.7
+        \li 2029-10-08
+    \row
+        \li \b{Qt 6.7}
+        \li Qt 6.7.3
+        \li Ended (ES is available)
+    \row
+        \li \b{Qt 6.6}
+        \li Qt 6.6.3
+        \li Ended (ES is available)
+    \row
+        \li \b{Qt 6.5 LTS}
+        \li Qt 6.5.12
+        \li Ended \l {Extended Security Maintenance for Qt 6.5}
+            {Extended Security Maintenance available}
+    \row
+        \li Qt 6.4
+        \li Qt 6.4.3
+        \li Ended (ES is available)
+    \row
+        \li Qt 6.3
+        \li Qt 6.3.2
+        \li Ended (ES is available)
+    \row
+        \li \b{Qt 6.2 LTS}
+        \li Qt 6.2.13
+        \li Ended (ES is available)
+    \row
+        \li Qt 6.1
+        \li Qt 6.1.3
+        \li Ended (ES is available)
+    \row
+        \li Qt 6.0
+        \li Qt 6.0.4
+        \li Ended (ES is available)
+    \row
+        \li \b{Qt 5.15 LTS}
+        \li Qt 5.15.19
+        \li 2023-05-26 (Qt Legacy licenses)
+            2025-05-26 (Qt Subscription license holders only)
+            \l {Extended Security Maintenance for Qt 5.15}
+            {Extended Security Maintenance available}
+    \row
+        \li Qt 5.14
+        \li Qt 5.14.2
+        \li Ended (ES is available)
+    \row
+        \li Qt 5.13
+        \li Qt 5.13.2
+        \li Ended (ES is available)
+    \row
+        \li Qt 5.12 LTS
+        \li Qt 5.12.11
+        \li Ended (ES is available)
+    \row
+        \li Qt 5.11
+        \li Qt 5.11.3
+        \li Ended (ES is available)
+    \row
+        \li Qt 5.10
+        \li Qt 5.10.1
+        \li Ended (ES is available)
+    \row
+        \li Qt 5.9
+        \li Qt 5.9.9
+        \li Ended (ES is available)
+    \row
+        \li Qt 5.8
+        \li Qt 5.8.0
+        \li Ended (ES is available)
+    \row
+        \li Qt 5.7
+        \li Qt 5.7.1
+        \li Ended (ES is available)
+    \row
+        \li Qt 5.6
+        \li Qt 5.6.3
+        \li Ended (ES is available)
+    \row
+        \li Qt 5.5
+        \li Qt 5.5.1
+        \li Ended (ES is available)
+    \row
+        \li Qt 5.4
+        \li Qt 5.4.2
+        \li Ended (ES is available)
+    \row
+        \li Qt 5.3
+        \li Qt 5.3.2
+        \li Ended (ES is available)
+    \row
+        \li Qt 5.2
+        \li Qt 5.2.1
+        \li Ended (ES is available)
+    \row
+        \li Qt 5.1
+        \li Qt 5.1.1
+        \li Ended (ES is available)
+    \row
+        \li Qt 5.0
+        \li Qt 5.0.1
+        \li Ended (ES is available)
+
+    \endtable
+
+*/

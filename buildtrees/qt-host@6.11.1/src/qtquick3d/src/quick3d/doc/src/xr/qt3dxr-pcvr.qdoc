@@ -1,0 +1,132 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qt3dxr-pcvr.html
+    \title PCVR
+
+    \brief Details on supporting non-standalone VR headsets.
+
+    \section1 Overview
+
+    With standalone devices, all rendering and processing happens on the headset itself.
+    With non-standalone devices, also referred to as \c PCVR, all rendering and most of the
+    related processing happens on a computer connected to the headset either via a
+    physical cable, or wirelessly.
+
+    For developers, working in a PCVR-based environment can be simpler and more productive
+    than continuously deploying and testing on a standalone VR device. This is because
+    development, testing, debugging, and profiling methods and tools are mostly the same
+    as with regular desktop Windows or Linux applications, which the VR application still
+    is, even though it may not render anything on-screen on the desktop.
+
+    For end-users, however, setting up and running with PCVR can be more convoluted than
+    simply installing the application on a standalone device.
+
+    With devices where both approaches are possible (for example, the Meta Quest 3), it
+    can be useful for productivity to combine the two. Use PCVR (or even the Meta XR
+    Simulator) during development when it makes sense, but focus on the standalone
+    (Android) build for AR features and for final delivery to end-users.
+
+    \note The performance aspects of running the same Qt application on Android in
+    Standalone mode and on Windows in PCVR mode may vary wildly since it means running on
+    a completely different CPU, GPU, and software stack. Performance profiling conclusions
+    should always be drawn by running natively in the appropriate environment and
+    profiling using platform-specific tools.
+
+    When it comes to input, data from the headset's controller is delivered to the
+    application running on the PC via the OpenXR API, no differently than with
+    applications running on the headset directly. In addition, the application may still
+    rely on peripherals connected to the PC for further input methods, although this
+    should be considered carefully since relying on keyboard or mouse input has a number
+    of potential pitfalls.
+
+    \section1 Further considerations
+
+    With PCVR, the quality and performance depends heavily on the host PC's capabilities,
+    but the streaming technology and associated factors, such as the wireless network
+    bandwidth, can affect the results as well. This also means that the visual experience
+    may vary between runs and between environments, especially if wireless streaming is
+    used.
+
+    Some features may not be available or may be limited compared to standalone devices,
+    especially AR-related ones. Consider passthrough, for example. In standalone mode, the
+    application and the underlying software stack have easy access to the headset's camera
+    feed. When streaming from a remote computer, passthrough may become expensive and
+    could involve a lot of additional data transfer to the PC. Therefore it is not
+    uncommon that AR and spatial-related features are not available in PCVR systems.
+
+    In the PCVR ecosystem, there are multiple solutions that provide an OpenXR
+    implementation and wired or wireless streaming, with varying availability, depending
+    on the device used. Some runtimes are tied to a specific streaming solution, and each
+    of them may provide a different set of features.
+
+    Support for 3D APIs varies too. Generally, Direct 3D 11, Direct 3D 12, and Vulkan can
+    be expected to be supported by all OpenXR implementations on Windows. OpenGL support
+    is rare and has not been tested by Qt with PCVR.
+
+    \note Using Direct 3D 11 is not recommended, since important features such as
+    \l{Multiview Rendering} are not supported with that API. Prefer Direct 3D 12 instead.
+
+    Changing the 3D API used is no different from any Qt Quick or Qt Quick 3D application:
+    set the environment variable \c{QSG_RHI_BACKEND} (for example, to \c d3d12) or call
+    QQuickWindow::setGraphicsApi().
+
+    \section1 Choosing the OpenXR Implementation
+
+    With the standard Khronos OpenXR loader, there are multiple ways to change what
+    implementation gets loaded:
+
+    \list
+
+      \li Set the environment variable \c{XR_RUNTIME_JSON}. For example, setting
+      \c{XR_RUNTIME_JSON=c:\MetaXRSimulator\meta_openxr_simulator.json} makes the \qxr
+      application launched afterwards to pick the Meta XR Simulator's OpenXR
+      implementation.
+
+      \li Alternatively, the setting can be made permanent via the registry. (on Windows)
+      Check/change the value of \c{ActiveRuntime} under
+      \c{Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\OpenXR\1}
+
+      \li Some streaming solutions may have options in their settings to force using a
+      given OpenXR implementations.
+
+    \endlist
+
+    \section1 Wireless streaming solutions for the Meta Quest 3
+
+    \list
+        \li \l{https://www.meta.com/en-gb/help/quest/articles/headsets-and-accessories/oculus-link/connect-with-air-link/}{Meta Quest Link and Air Link}
+        \li \l{https://www.meta.com/en-gb/experiences/steam-link/5841245619310585/}{Steam Link VR} is a solution similar to Air Link
+        \li \l{https://www.vrdesktop.net/}{Virtual Desktop} is a remote desktop tool with wireless streaming as well.
+    \endlist
+
+    \section1 Tables of Tested Configurations
+
+    Meta Quest 3
+
+    \list
+        \li Wired connection (USB-C), Oculus OpenXR runtime
+        \li Wired connection (USB-C), SteamVR OpenXR runtime
+        \li Wireless connection via AirLink, Oculus OpenXR runtime
+        \li Wireless connection via AirLink, SteamVR OpenXR runtime
+        \li Wireless connection via SteamLink, SteamVR OpenXR runtime
+        \li Wireless connection via Virtual Desktop, SteamVR OpenXR runtime
+        \li Wireless connection via Virtual Desktop, VDXR OpenXR runtime
+    \endlist
+
+    Special
+
+    \list
+        \li Meta XR Simulator (Windows and macOS)
+    \endlist
+
+    \section1 Further reading
+
+    This page cannot possibly dive into all the details, configuration issues,
+    and possibilities around PCVR. For a good summary and introduction on the
+    topic of streaming and OpenXR implementations, it is recommended to take a
+    look at the \l{https://github.com/mbucchia/VirtualDesktop-OpenXR/wiki}{the
+    VDXR wiki}.
+
+*/

@@ -1,0 +1,34 @@
+From 0d39850502282d74b0c1c1014b2b0c3c768bd6c4 Mon Sep 17 00:00:00 2001
+From: Tim Blechmann <tim.blechmann@qt.io>
+Date: Mon, 16 Jun 2025 10:37:18 +0800
+Subject: [PATCH] yoga: don't export symbols
+
+---
+ src/3rdparty/yoga/YGMacros.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/3rdparty/yoga/YGMacros.h b/src/3rdparty/yoga/YGMacros.h
+index a675c4d88e..329d2a4bb0 100644
+--- a/src/3rdparty/yoga/YGMacros.h
++++ b/src/3rdparty/yoga/YGMacros.h
+@@ -28,7 +28,7 @@
+ #endif
+ 
+ #ifdef _WINDLL
+-#define WIN_EXPORT __declspec(dllexport)
++#define WIN_EXPORT // __declspec(dllexport)
+ #else
+ #define WIN_EXPORT
+ #endif
+@@ -37,7 +37,7 @@
+ #ifdef _MSC_VER
+ #define YOGA_EXPORT
+ #else
+-#define YOGA_EXPORT __attribute__((visibility("default")))
++#define YOGA_EXPORT // __attribute__((visibility("default")))
+ #endif
+ #endif
+ 
+-- 
+2.49.0.windows.1
+

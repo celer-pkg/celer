@@ -1,0 +1,43 @@
+[
+    {
+        "name": "CompositeWithEnum",
+        "relativePath": "CompositeWithEnum",
+        "type": "module"
+    },
+    {
+        "classname": "QtQmlPlugin",
+        "linkTarget": "Qt6::qmlplugin",
+        "name": "QtQml",
+        "plugin": "qmlplugin",
+        "pluginIsOptional": true,
+        "prefer": ":/qt-project.org/imports/QtQml/",
+        "relativePath": "QtQml",
+        "type": "module"
+    },
+    {
+        "name": "QML",
+        "prefer": ":/qt-project.org/imports/QML/",
+        "relativePath": "QML",
+        "type": "module"
+    },
+    {
+        "classname": "QtQmlModelsPlugin",
+        "linkTarget": "Qt6::modelsplugin",
+        "name": "QtQml.Models",
+        "plugin": "modelsplugin",
+        "pluginIsOptional": true,
+        "prefer": ":/qt-project.org/imports/QtQml/Models/",
+        "relativePath": "QtQml/Models",
+        "type": "module"
+    },
+    {
+        "classname": "QtQmlWorkerScriptPlugin",
+        "linkTarget": "Qt6::workerscriptplugin",
+        "name": "QtQml.WorkerScript",
+        "plugin": "workerscriptplugin",
+        "pluginIsOptional": true,
+        "prefer": ":/qt-project.org/imports/QtQml/WorkerScript/",
+        "relativePath": "QtQml/WorkerScript",
+        "type": "module"
+    }
+]

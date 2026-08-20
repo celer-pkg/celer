@@ -1,0 +1,133 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example weatherinfo
+    \title Weather Info
+    \examplecategory {Positioning & Location}
+    \meta tags {c++, qml, quick}
+
+    \brief The Weather Info example shows how to use the user's current position
+    to retrieve local content from a web service in a C++ plugin for \l{Qt Quick},
+    using \l{Qt Positioning}.
+
+    \ingroup qtpositioning-examples
+
+    Key \l{Qt Positioning} classes used in this example:
+
+    \list
+    \li \l{QGeoPositionInfo}
+    \li \l{QGeoPositionInfoSource}
+    \endlist
+
+    \image ../images/example-weatherinfo.png {Sample weather info screen}
+
+    \include examples-run.qdocinc
+
+    \section1 Weather Data Providers
+
+    The example uses several unrelated weather data providers:
+
+    \list
+    \li \l {http://www.openweathermap.org}{OpenWeather}
+    \li \l {https://www.weatherapi.com/}{WeatherAPI.com}
+    \li \l {https://open-meteo.com/}{Open-Meteo}
+    \endlist
+
+    The provider to be used is selected automatically at runtime and can be
+    changed if the selected provider is not available. However, it can't be
+    specified manually.
+
+    \note Free plans are used for all providers, which implies certain
+    limitations on the amount of weather requests. If the limits are exceeded,
+    the providers become temporary unavailable. When all providers are
+    unavailable, the application would not be able to show any weather
+    information. In this case it is required to wait until at least one of the
+    providers becomes available again.
+
+    \section1 Application Data Models
+
+    The key part of this example is the application's data model, contained
+    in the \c WeatherData and \c AppModel classes. \c WeatherData represents
+    the weather information taken from the HTTP service. It is a simple data
+    class, but we use \l Q_PROPERTY to expose it nicely to QML later.
+    It also uses \l QML_ANONYMOUS macro, which makes it recognized in QML.
+
+    \snippet weatherinfo/appmodel.h 0
+    \snippet weatherinfo/appmodel.h 1
+
+    \c AppModel models the state of the entire application. At startup, we
+    get the platform's default position source using
+    \l QGeoPositionInfoSource::createDefaultSource().
+
+    \snippet weatherinfo/appmodel.cpp 0
+    \snippet weatherinfo/appmodel.cpp 1
+
+    If no default source is available, we take a static position and fetch
+    weather for that. If, however, we do have a position source, we connect
+    its \l {QGeoPositionInfoSource::}{positionUpdated()} signal to a slot on the
+    \c AppModel and call \l {QGeoPositionInfoSource::}{startUpdates()}, which
+    begins regular updates of device position.
+
+    When a position update is received, we use the longitude and latitude
+    of the returned coordinate to retrieve weather data for the specified
+    location.
+
+    \snippet weatherinfo/appmodel.cpp 2
+
+    To inform the UI about this process, the \c cityChanged() signal is emitted
+    when a new city is used, and the \c weatherChanged() signal whenever a
+    weather update occurs.
+
+    The model also uses \l QML_ELEMENT macro, which makes it available in QML.
+
+    \snippet weatherinfo/appmodel.h 2
+    \snippet weatherinfo/appmodel.h 3
+    \snippet weatherinfo/appmodel.h 4
+
+    We use a \l QQmlListProperty for the weather forecast information,
+    which contains the weather forecast for the next days (the number of days
+    is provider-specific). This makes it easy to access the forecast from QML.
+
+    \section1 Expose Custom Models to QML
+
+    To expose the models to the QML UI layer, we use the \l QML_ELEMENT and
+    \l QML_ANONYMOUS macros. See the \l QQmlEngine class description for more
+    details on these macros.
+
+    To make the types available in QML, we need to update our build accordingly.
+
+    \section2 CMake Build
+
+    For a CMake-based build, we need to add the following to the
+    \c {CMakeLists.txt}:
+
+    \quotefromfile weatherinfo/CMakeLists.txt
+    \skipto qt_add_qml_module(weatherinfo
+    \printuntil )
+
+    \section2 qmake Build
+
+    For a qmake build, we need to modify the \c {weatherinfo.pro} file in the
+    following way:
+
+    \quotefromfile weatherinfo/weatherinfo.pro
+    \skipto CONFIG
+    \printuntil QML_IMPORT_MAJOR_VERSION
+    \skipto qml_resources.files
+    \printuntil RESOURCES
+
+    \section1 Instantiate the Models in QML
+
+    Finally, in the actual QML, we instantiate the \c {AppModel}:
+
+    \snippet weatherinfo/WeatherInfo.qml 0
+    \snippet weatherinfo/WeatherInfo.qml 1
+    \snippet weatherinfo/WeatherInfo.qml 2
+
+    Once the model is instantiated like this, we can use its properties
+    elsewhere in the QML document:
+
+    \snippet weatherinfo/WeatherInfo.qml 3
+    \snippet weatherinfo/WeatherInfo.qml 4
+*/

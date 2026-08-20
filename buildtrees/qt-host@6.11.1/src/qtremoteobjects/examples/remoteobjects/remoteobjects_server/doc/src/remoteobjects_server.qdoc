@@ -1,0 +1,46 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example remoteobjects_server
+    \title Time Server Application
+    \examplecategory {Connectivity}
+    \ingroup qtremoteobjects-examples
+    \meta tag {remoteobjects}
+    \brief A server which shares a time object with connected clients.
+
+    The Time Server Application instantiates a \c MinuteTimer object and
+    shares it with all connected \l {Time Client Application}
+    {Time Client Applications}.
+
+    \image remoteobjects-server-example.webp
+           {Terminal running remoteobjects_server and displaying the current time}
+
+    \section1 Defining Remote Objects using a REP-file
+
+    The REP-file "timemodel.rep" in the parent directory of the example
+    is used to generate the header-files used by both applications.
+    For this application, the generated "rep_timemodel_source.h" file
+    defines \c MinuteTimerSource, the the class to subclass for the
+    implementation of \c MinuteTimer, and other related classes.
+
+    \section1 The TimeModel Class
+
+    The \c TimeModel class in timemodel.h and timemodel.cpp implements the
+    time object to share. It uses a \c QBasicTimer to ensure that the
+    time is updated by calling the \c timerEvent member function.
+
+    \snippet remoteobjects_server/timemodel.cpp 0
+
+    \section1 Sharing an Instance of TimeModel
+
+    Instances of \c QRemoteObjectHost and a \c QRemoteObjectRegistryHost are
+    created to host an object and having a registry to find it. A
+    \c MinuteTimer object is then created and it is shared using the
+    \c enableRemoting member function of the \c QRemoteObjectRegistryHost
+    object.
+
+    \snippet remoteobjects_server/main.cpp 0
+
+    \sa {Time Client Application}
+*/

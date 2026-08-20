@@ -1,0 +1,28 @@
+From 41a2c6a19a2ac37be945fe6fdd87f0c2321a6785 Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Tue, 8 Aug 2023 00:08:28 -0700
+Subject: [PATCH 3/3] include bits/local_lim.h on linux only when using glibc
+
+bits/local_lim.h is not available on musl e.g.
+
+Change-Id: I45d142c73ca6695992ead7bfae2599e4e27d1e66
+---
+ src/3rdparty/PhysX/source/foundation/src/unix/PsUnixThread.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/3rdparty/PhysX/source/foundation/src/unix/PsUnixThread.cpp b/src/3rdparty/PhysX/source/foundation/src/unix/PsUnixThread.cpp
+index c29b09c..9389b4d 100644
+--- a/src/3rdparty/PhysX/source/foundation/src/unix/PsUnixThread.cpp
++++ b/src/3rdparty/PhysX/source/foundation/src/unix/PsUnixThread.cpp
+@@ -36,7 +36,7 @@
+ #include "PsThread.h"
+ 
+ #include <math.h>
+-#if !PX_APPLE_FAMILY && !defined(ANDROID) && !defined(__CYGWIN__) && !PX_PS4 && !PX_EMSCRIPTEN
++#if !PX_APPLE_FAMILY && !defined(ANDROID) && !defined(__CYGWIN__) && !PX_PS4 && !PX_EMSCRIPTEN && __GLIBC__
+ #include <bits/local_lim.h> // PTHREAD_STACK_MIN
+ #endif
+ #include <stdio.h>
+-- 
+2.41.0
+

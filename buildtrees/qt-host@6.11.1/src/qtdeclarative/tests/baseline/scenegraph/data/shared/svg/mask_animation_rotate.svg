@@ -1,0 +1,21 @@
+<svg viewBox="0 0 100 400" xmlns="http://www.w3.org/2000/svg">
+<rect fill="blue" />
+    <style>
+  @keyframes transformMask {
+    0% {transform: rotate(0deg);} 
+    0.1% {transform: rotate(45deg);}
+	100% {transform: rotate(45deg);}
+  }
+  #c2 {
+    animation-duration: 200s;
+    animation-name: transformMask;
+    animation-iteration-count: 1;
+  }
+  </style>
+<mask id="myMask" x="0.2" y="0.2" width="1" height="1">
+  <circle cx="50" cy="50" r="50" fill="white" />
+  <rect x="25" y="25" width="50" height="50" fill="black" />
+</mask>
+  <circle id="c2" cx="50" cy="50" r="50" fill="purple" mask="url(#myMask)" />
+<circle cx="50" cy="150" r="50" fill="purple"/>
+</svg>

@@ -1,0 +1,135 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example quickspeech
+    \title Quick Speech Example
+    \examplecategory {Data Processing & I/O}
+    \ingroup qttexttospeech_examples
+    \brief The Quick Speech example reads out user-provided text.
+    \meta tags {quick Android}
+
+    \image quickspeech-example.png {Screenshot showing a tool for text to speech
+           with options to change engine, locale, voice, volume, pitch, and
+           rate}
+
+    The \e{Quick Speech} example demonstrates how the \l[QML]{TextToSpeech} type
+    can be used in a \l{Qt Quick} application to read out text and to control
+    the speech.
+
+    The example uses \l{Qt Quick Controls} to provide controls for the speech's
+    pitch, volume, and rate. It also lets the user select an engine, a
+    language, and a voice.
+
+    \section1 Initializing a TextToSpeech
+    First, we initialize the text to speech object \c{tts}:
+
+    \snippet quickspeech/Main.qml initialize
+
+    \section1 Getting the status
+
+    \image status.gif {Gif showing a status example of the tool}
+
+    Switch cases are used to update the Label \c statusLabel in the footer.
+
+    \snippet quickspeech/Main.qml stateChanged
+
+    \section1 Highlighting words as they are spoken
+
+    The TextArea \c input is used to get the text to input and the
+    \l{TextToSpeech::sayingWord}{onSayingWord} signal as the trigger and also
+    to know the position to highlight words as they are spoken.
+
+    \snippet quickspeech/Main.qml sayingWord
+
+     The TextArea \c input is declared here:
+
+    \quotefromfile quickspeech/Main.qml
+    \skipto ColumnLayout {
+    \printuntil }
+
+    \section1 Controlling speech
+
+    \l Button types are arranged with a \l RowLayout and configured to control
+    the TextToSpeech \c tts.
+
+    \section2 The speak button
+
+    A \l Button is created labeled "Speak". It is enabled if \c tts's state
+    property is either \l{QTextToSpeech::}{Paused} or \l{QTextToSpeech::}{Ready}.
+    When the button is clicked, the available voices on the target devices are
+    retrieved, and \c tts.voice is set to the currently selected voice of
+    \c voicesComboBox. Then TextToSpeech::say() is called and is passed the
+    text in the \c inputbox.
+
+    \snippet quickspeech/Main.qml say0
+
+    \section1 The pause, resume, and stop buttons
+
+    These buttons are similar in implementation to the \c Speak button:
+
+    \snippet quickspeech/Main.qml pause
+    \snippet quickspeech/Main.qml resume
+    \snippet quickspeech/Main.qml stop
+
+    \section1 Selecting text to speech options
+
+    A \l GridLayout is used to arrange the controls and labels for the selection
+    of engine, locale, voice, volume, pitch, and rate options for text to
+    speech synthesis.
+
+    \section2 Selecting engine, locale, and voice
+
+    A group of \l{ComboBox} components are used for selecting these parameters.
+
+    For the engine selection ComboBox, \c tts.availableEngines() is used as the
+    model.
+
+    The \l{ComboBox::activated}{onActivated} triggers assigning tts.engine the
+    current text at the ComboBoxes current index.
+
+    \skipto Label {
+    \printuntil updateVoices()
+    \printto Label {
+
+    The last two lines in the above code snippet show that the available locales
+    and voices are updated at this point as well, as they are dependent on the
+    selected engine. Those functions are covered in a
+    \l{Updating available options}{following section}.
+
+    The \c localesComboBox is implemented the same way as \c engineComboBox, but
+    without updating the available engines.
+
+
+    \printuntil id: voicesComboBox
+    \printto Label
+
+    \section2 Selecting volume, pitch, and rate
+
+    These controls are implemented with \l{Slider}{Sliders} as follows:
+
+    \printto footer: Label {
+
+    \section1 Updating available options
+
+    By using the \c Component.onCompleted signal, the following is done
+    once the root ApplicationWindow has been instantiated.
+
+    \list
+        \li The \c enginesComboBox index is set to the currently set engine of
+            \c{tts}.
+        \li The available locales and voices are updated.
+        \li The current state of \c tts is signaled.
+    \endlist
+
+    \skipto Component.onCompleted: {
+    \printto }
+
+    Used throughout the application, the \c updateLocales() and \c updateVoice()
+    functions are implemented as follows:
+
+    \printuntil voicesComboBox.currentIndex = indexOfVoice
+
+    \include examples-run.qdocinc
+
+*/

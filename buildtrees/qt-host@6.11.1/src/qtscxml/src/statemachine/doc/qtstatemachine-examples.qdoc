@@ -1,0 +1,12 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\group examples-qtstatemachine
+\title Qt State Machine Examples
+\brief Examples for the Qt State Machine module.
+
+The Qt State Machine example applications demonstrate the functionality provided by the
+\l{Qt State Machine} module.
+
+*/

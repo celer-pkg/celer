@@ -1,0 +1,119 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_KHR_D3D11_enable
+    \title XR_KHR_D3D11_enable
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_KHR_D3D12_enable
+    \title XR_KHR_D3D12_enable
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_KHR_android_create_instance
+    \title XR_KHR_android_create_instance
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_KHR_android_thread_settings
+  \title XR_KHR_android_thread_settings
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_KHR_composition_layer_depth
+    \title XR_KHR_composition_layer_depth
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_KHR_opengl_enable
+    \title XR_KHR_opengl_enable
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_KHR_opengl_es_enable
+    \title XR_KHR_opengl_es_enable
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_KHR_vulkan_enable
+    \title XR_KHR_vulkan_enable
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_EXT_debug_utils
+    \title XR_EXT_debug_utils
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_EXT_hand_tracking
+    \title XR_EXT_hand_tracking
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_EXT_performance_settings
+    \title XR_EXT_performance_settings
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_FB_color_space
+    \title XR_FB_color_space
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_FB_display_refresh_rate
+    \title XR_FB_display_refresh_rate
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_FB_foveation
+    \title XR_FB_foveation
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_FB_foveation_configuration
+    \title XR_FB_foveation_configuration
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_FB_hand_tracking_aim
+    \title XR_FB_hand_tracking_aim
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_FB_hand_tracking_mesh
+    \title XR_FB_hand_tracking_mesh
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_FB_passthrough
+    \title XR_FB_passthrough
+*/
+/*!i
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_FB_scene
+    \title XR_FB_scene
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_FB_scene_capture
+    \title XR_FB_scene_capture
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_FB_spatial_entity
+    \title XR_FB_spatial_entity
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_FB_spatial_entity_container
+    \title XR_FB_spatial_entity_container
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_FB_spatial_entity_query
+    \title XR_FB_spatial_entity_query
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_FB_spatial_entity_storage
+    \title XR_FB_spatial_entity_storage
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_FB_swapchain_update_state
+    \title XR_FB_swapchain_update_state
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_FB_swapchain_update_state_opengl_es
+    \title XR_FB_swapchain_update_state_opengl_es
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_FB_swapchain_update_state_vulkan
+    \title XR_FB_swapchain_update_state_vulkan
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_FB_triangle_mesh
+    \title XR_FB_triangle_mesh
+*/
+/*!
+    \externalpage https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_MSFT_hand_interaction
+    \title XR_MSFT_hand_interaction
+*/

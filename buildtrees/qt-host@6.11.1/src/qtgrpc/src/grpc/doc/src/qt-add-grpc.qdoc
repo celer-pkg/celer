@@ -1,0 +1,118 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qt-add-grpc.html
+\ingroup cmake-commands-qtgrpc
+
+\title qt_add_grpc
+\target qt_add_grpc
+\summary {Generates Qt-based C++ services using a protobuf schema}
+
+\include cmake-find-package-grpc.qdocinc
+
+\cmakecommandsince 6.5
+
+Usually \c qtgrpcgen is invoked through the \c qt_add_grpc CMake macro.
+
+\section1 Synopsis
+
+\badcode
+    qt_add_grpc(<target> <CLIENT|SERVER>
+        PROTO_FILES <file> ...
+        [PROTO_INCLUDES <path> ...]
+        [QML]
+        [OUTPUT_DIRECTORY <dir>]
+        [GENERATE_PACKAGE_SUBFOLDERS]
+        [COPY_COMMENTS]
+        [EXPORT_MACRO <infix>]
+        [OUTPUT_HEADERS <var>]
+        [OUTPUT_TARGETS <var>]
+        [HEADER_GUARD <pragma|filename>]
+    )
+\endcode
+
+\note Only \c {CLIENT} code generation is currently supported.
+
+\versionlessCMakeCommandsNote qt6_add_grpc()
+
+\section1 Description
+
+The source files are created by \c qtgrpcgen and added to the target.
+If the target already exists, the files are \e added to the target source
+list. If the target doesn't exist, it is created as a library which you must
+link to.
+
+The \gRPC library that is generated using the \c qt_add_grpc command refers to
+the protobuf symbols that are used in service calls. This means you either need
+to use a common target in both \l qt_add_protobuf and \l qt_add_grpc calls or
+link the generated protobuf library to the \gRPC one.
+
+Considering the above statement you may reuse the target for both protobuf and
+\gRPC client code:
+\badcode
+    # Generate the protobuf types first
+    qt_add_protobuf(test_service_client
+        PROTO_FILES
+            test_service.protobuf
+    )
+    ...
+    # Reuse the protobuf target and extend it with \gRPC client
+    # functionality
+    qt_add_grpc(test_service_client CLIENT
+        PROTO_FILES
+            test_service.protobuf
+    )
+\endcode
+
+If you want to have separate targets then you need to link the \gRPC client
+target to the protobuf one:
+\badcode
+    # Generate the protobuf types first
+    qt_add_protobuf(test_service_protobuf
+        PROTO_FILES
+            test_service.protobuf
+    )
+    ...
+    # Add separate target with the generated code of the \gRPC client.
+    qt_add_grpc(test_service_client CLIENT
+        PROTO_FILES
+            test_service.protobuf
+    )
+    target_link_libraries(test_service_client PRIVATE test_service_protobuf)
+\endcode
+
+\section2 Arguments
+\list
+    \include qtprotoccommon.qdocinc proto_files-li
+    \include qtprotoccommon.qdocinc proto_includes-li
+    \li \c {QML} generates the QML client API for the \gRPC service.
+        The argument requires the \c GrpcQuick Qt component.
+        \badcode
+            find_package(Qt6 6.8 REQUIRED COMPONENTS Quick Protobuf ProtobufQuick Grpc GrpcQuick)
+            ...
+            # Generate the protobuf types
+            qt_add_protobuf(test_service_client
+                PROTO_FILES
+                    test_service.protobuf
+                QML
+            )
+            ...
+            # Generate \gRPC client functionality
+            qt_add_grpc(test_service_client CLIENT
+                PROTO_FILES
+                    test_service.protobuf
+                QML
+            )
+        \endcode
+    \include qtprotoccommon.qdocinc output_directory-li
+    \include qtprotoccommon.qdocinc generate_package_subfolders-li
+    \include qtprotoccommon.qdocinc copy_comments-li
+    \include qtprotoccommon.qdocinc export_macro-cmake-li
+    \include qtprotoccommon.qdocinc output_headers-li
+    \include qtprotoccommon.qdocinc output_targets-li
+    \include qtprotoccommon.qdocinc header_guard-li
+\endlist
+
+\sa{The qtgrpcgen Tool}
+*/

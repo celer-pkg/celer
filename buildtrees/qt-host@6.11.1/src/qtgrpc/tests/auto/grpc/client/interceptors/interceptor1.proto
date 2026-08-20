@@ -1,0 +1,16 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+syntax = "proto3";
+
+package tst.i1;
+
+message CallMessage {
+  string text = 1;
+  int64 number = 2;
+}
+
+service Interceptor {
+  rpc Unary(CallMessage) returns (CallMessage);
+}
+

@@ -1,0 +1,8 @@
+project = ClassRelates
+documentationinheaders = sure
+{headerdirs,sourcedirs} = .
+{HTML.nosubdirs,HTML.outputsubdir} = html
+
+locationinfo = false
+warninglimit = 0
+warninglimit.enabled = true

@@ -1,0 +1,9 @@
+// Copyright (C) 2015 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [0]
+<object ID="QMenus" CLASSID="CLSID:4dc3f340-a6f7-44e4-a79b-3e9217695fbd"
+CODEBASE="http://www.qt-project.org/demos/menusax.cab">
+[Object not available! Did you forget to build and register the server?]
+</object>
+//! [0]

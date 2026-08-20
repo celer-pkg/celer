@@ -1,0 +1,78 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title StocQt
+    \examplecategory {Data Visualization}
+    \ingroup qtquickdemos
+    \example demos/stocqt
+    \brief A configurable stock chart for 100 stocks.
+    \meta {tag} {demo,quick,game,graphs}
+    \meta {docdependencies} {QtGraphs}
+
+    \borderedimage qtquick-demo-stocqt.png
+
+    The \e{StocQt} application presents trend charts for a custom
+    list of 100 stocks based on the NASDAQ-100. It allows the user to choose stocks
+    from a list. The application also allows for favoriting up to 5 stocks for use in comparison charts.
+
+    The application uses several custom types such as Search, StockCheckBox,
+    StockChart, StockView, and SettingsView. These types
+    present the stock data in a readable form and let the user customize
+    the trend chart. For example, the user can choose to view the weekly,
+    monthly, quarterly, or half-yearly trends in the stock price.
+
+    The application uses a custom StockEngine singleton implemented in C++ for data handling,
+    such as API requests and favoriting stocks. It implements a custom APIHandler class for fetching the online data.
+
+    \quotefromfile demos/stocqt/src/apihandler.cpp
+    \skipto stockHistory
+    \printuntil onComplete
+
+    The application uses the ObjectModel type to access visual data models that it depends on.
+
+    \quotefromfile demos/stocqt/Main.qml
+    \skipto Window
+    \printuntil id
+    \dots 8
+    \skipto ListView
+    \printuntil id
+    \dots 8
+    \skipto model
+    \printuntil SettingsView
+    \printuntil }
+    \printuntil }
+    \printuntil }
+
+    The StockListModel is a custom data model listing the
+    stocks with basic information such as stock ID, name, value,
+    and favorite. This application uses this data model when the
+    user wants to choose another stock from the list.
+
+    StockView and FavoriteView are complex data models that present a trend chart for the
+    selected stock or a group of up to 5 stocks. They use another custom type, StockChart or FavoriteChart,
+    which loads the data from the StockEngine into ListModels and presents
+    the graphical trend of the stock price using a Surface3D, Bars3D, or Scatter3D.
+
+    \quotefromfile demos/stocqt/content/StockChart.qml
+    \skipto Rectangle
+    \printuntil id
+    \dots 8
+    \skipto function updateHistory(){
+    \printuntil }
+    \dots 8
+    \skipto Surface3D
+    \printuntil id
+    \dots 8
+    \skipto Surface3DSeries
+    \printuntil ,
+
+    The SettingsView presents information on the application.
+
+    To understand the application better, browse through its code using
+    \QC.
+
+    \include examples-run.qdocinc
+
+    \sa {QML Applications}
+*/

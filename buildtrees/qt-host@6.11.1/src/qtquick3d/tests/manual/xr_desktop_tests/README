@@ -1,0 +1,4 @@
+This directory contains XR related tests that use a View3D instead of an
+XrView. They can therefore be tested on the desktop without needing a headset
+or an emulator. These tests can be run from the command line using the `qml'
+tool.

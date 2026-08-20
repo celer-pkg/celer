@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>material_screenspacereflections.frag</file>
+        <file>qt_logo_rect.png</file>
+        <file>maps/OpenfootageNET_lowerAustria01-1024.hdr</file>
+    </qresource>
+</RCC>

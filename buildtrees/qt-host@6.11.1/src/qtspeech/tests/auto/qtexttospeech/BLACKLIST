@@ -1,0 +1,6 @@
+[pauseResume:darwin]
+macos-13 ci # QTBUG-108205
+macos-15 arm ci # QTBUG-108205
+macos-26 arm ci # QTBUG-108205
+[sayingWordWithPause:darwin]
+macos-13 ci # QTBUG-108205

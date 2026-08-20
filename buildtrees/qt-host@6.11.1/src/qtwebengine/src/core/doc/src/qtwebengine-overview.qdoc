@@ -1,0 +1,350 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtwebengine-overview.html
+    \title Qt WebEngine Overview
+    \ingroup explanations-webtechnologies
+
+    The \QWE module provides a web browser engine that makes it easy to embed content from
+    the World Wide Web into your Qt application on platforms that do not have a native web engine.
+
+    \QWE provides C++ classes and QML types for rendering HTML, XHTML, and SVG documents,
+    styled using Cascading Style Sheets (CSS) and scripted with JavaScript. HTML documents can be
+    made fully editable by the user through the use of the \c{contenteditable} attribute on HTML
+    elements.
+
+    \section1 Qt WebEngine Architecture
+
+    \image qtwebengine-architecture.png {A block diagram of the Qt WebEngine architecture showing how
+           Qt WebEngine Widgets, Qt WebEngine, and Qt WebEngine Process interact with Qt WebEngine
+           Core, which is built on top of the Chromium engine}
+
+    The functionality in \QWE is divided into the following modules:
+
+    \list
+        \li \l{Qt WebEngine Widgets Module} for creating widget-based web applications
+        \li \l{Qt WebEngine Module} for creating Qt Quick based web applications
+        \li \l{Qt WebEngine Core Module} for interacting with Chromium
+    \endlist
+
+    Page rendering and JavaScript execution are separated from the GUI process into the \QWE
+    Process. It is a library that must be shipped with the application if the Qt libraries are
+    bundled into the application.
+
+    \section2 Qt WebEngine Widgets Module
+
+    \image qtwebenginewidgets-model.png {Diagram showing the class relationship structure of the Qt
+           WebEngine Widgets module and how the main classes interact and depend on each other}
+
+    A \e {web engine view} is the main widget component of the \QWE module. It can be used
+    in various applications to load web content. Within a view, a \e {web engine page} holds a main
+    frame that is responsible for web content, the \e history of navigated links, and \e actions.
+    The view and page are quite similar, as they provide a set of common functions.
+
+    All pages belong to a \e {web engine profile} that contains shared \e settings, \e scripts, and
+    \e cookies. Profiles can be used to isolate pages from each other. A typical use case is a
+    dedicated profile for a \e {private browsing} mode, where no information is permanently saved.
+
+    \note The \QWE Widgets module uses the \l{Qt Quick Scene Graph}{Qt Quick scene graph}
+    to compose the elements of a web page into one view.
+
+    The content is rendered using the graphics card (GPU) capabilities. The scene
+    graph, in turn, relies on the Qt Rendering Hardware Interface as an abstraction
+    layer for the different capabilities and APIs a GPU might feature. For more
+    advice on how to tweak the rendering pipeline, see therefore
+    \l{Rendering via the Qt Rendering Hardware Interface}.
+
+    \section2 Qt WebEngine Module
+
+    \image qtwebengine-model.png {Diagram showing the class relationships in the Qt
+           WebEngine module. The View class connects to Action, History, and Profile.
+           The Profile class links to Settings, Script, and Cookie}
+
+    The \QWE QML implementation contains the same elements as the \QWE Widgets
+    implementation, except that there is no separately accessible web engine page.
+    The supported page functionality is integrated into the web engine view.
+
+    \section2 Qt WebEngine Core Module
+
+    The \QWE core is based on the \l {Chromium Project}. Chromium provides its own network
+    and painting engines and is developed tightly together with its dependent modules.
+    Even though the QtNetwork stack is not used, its setup can be synchronized with the \QWE.
+    See \l {Proxy Support}, \l {Managing Certificates}, \l {Client Certificates}, and
+    \l {QWebEngineCookieStore} for more details.
+
+    \note \QWE is based on Chromium, but does not contain or use any services
+    or add-ons that might be part of the Chrome browser that is built and delivered by Google.
+    You can find more detailed information about the differences between Chromium and Chrome in this
+    \l{https://chromium.googlesource.com/chromium/src/+/master/docs/chromium_browser_vs_google_chrome.md}{overview}
+    that is part of the documentation in the \l {Chromium Project} upstream source tree.
+
+    The Chromium version used is the one used by the latest stable Chrome version at the time of Qt feature freeze
+    for the current version of \QWE. Additional security patches are cherry picked from newer Chrome releases on
+    every patch release, security patches released in time for the Qt patch release freeze will be included.
+    If Chrome releases critical fixes outside our release window, the next patch release is sped up to ensure a
+    patched \QWE is released before the patch details goes public.
+
+    If you need a newer \QWE beyond security fixes, and can not update all of Qt, \QWE supports building with
+    older version of Qt back to the last Qt LTS. For instance \QWE 6.3, 6.4, and 6.5 can all be built with Qt 6.2.
+    In Qt LTS releases, \QWE may be fully replaced with such a newer version to make security patching easier.
+
+    The relevant Chromium versions in question can also be read at runtime using the
+    \l qWebEngineChromiumVersion() method, and \l qWebEngineChromiumSecurityPatchVersion()
+    to read the current security patch level. You can also find the versions in the \QWE
+    sources in the CHROMIUM_VERSION file.
+
+    \section1 Embedding Web Content into Widget Based Applications
+
+    Use the QWebEngineView class to display web pages in the simplest way. Because it is a widget,
+    you can embed QWebEngineView into your forms and use its convenience functions to download and
+    display web sites.
+
+    \code
+    QWebEngineView *view = new QWebEngineView(parent);
+    view->load(QUrl("http://www.qt.io/"));
+    view->show();
+    \endcode
+
+    An instance of QWebEngineView has one QWebEnginePage. QWebEnginePage can have a
+    QWebEngineHistory that provides access to the page's navigation history and several QAction
+    objects that apply actions on the web page. In addition, a QWebEnginePage has the ability to
+    run JavaScript code in the context of the page's main frame and to enable customization of
+    handlers for specific events like showing custom authentication dialogs.
+
+    Each QWebEnginePage belongs to a QWebEngineProfile that can have a QWebEngineSettings
+    for specifying page settings, a QWebEngineScriptCollection for running scripts on the page, and
+    a QWebEngineCookieStore for accessing the HTTP cookies of Chromium. A QWebEnginePage can also
+    directly point to a script collection.
+
+    For a widget based application, the web engine is automatically initialized, unless it is
+    placed in a plugin. In that case, it must be initialized in the application main source file
+    by using \l QtWebEngineQuick::initialize, as illustrated by the following code snippet:
+
+    \code
+    int main(int argc, char **argv)
+    {
+        QtWebEngineQuick::initialize();
+
+        QApplication app(argc, argv);
+
+        QMainWindow window;
+        window.show();
+
+        return app.exec();
+    }
+    \endcode
+
+    \section1 Embedding Web Content into Qt Quick Applications
+
+    The WebEngineView QML type allows Qt Quick applications to render regions of dynamic web
+    content. A \e{WebEngineView} type may share the screen with other QML types or encompass the
+    full screen as specified within the Qt Quick application.
+
+    To make sure that OpenGL context can be shared between the GUI and render processes, the web
+    engine must be initialized by using \l QtWebEngineQuick::initialize in the application main source
+    file, as illustrated by the following code snippet:
+
+    \code
+    int main(int argc, char *argv[])
+    {
+        QGuiApplication app(argc, argv);
+
+        QtWebEngineQuick::initialize();
+
+        QQmlApplicationEngine engine;
+        engine.load(QUrl("qrc:/main.qml"));
+
+        return app.exec();
+    }
+    \endcode
+
+    An application can load pages into the WebEngineView, using either an URL or HTML string, and
+    navigate within session history. By default, links to different pages load within the same
+    WebEngineView object, but web sites may request them to be opened as a new tab, window, or
+    dialog.
+
+    The following sample QML application loads a web page using the \l{WebEngineView::}{url}
+    property:
+
+    \quotefromfile minimal/main.qml
+    \skipto import
+    \printuntil /^\}/
+
+    \section1 Script Injection
+
+    \QWE does not allow direct access to the document object model (DOM) of a page.
+    However, the DOM can be inspected and adapted by injecting scripts.
+
+    The DOM of a page is constructed when the document is ready, typically
+    when the page is completely loaded. Therefore, executing scripts as soon as a document is
+    created is not suitable for DOM operations, where one has to wait until the DOM is ready.
+
+    In addition, an injected script shares the same \e world as the other scripts executed on the
+    page, which might lead to conflicts. To avoid this, the QWebEngineScript class and the
+    WebEngineScript QML type provide implementations of the Chromium API for
+    \e{Content Script Extensions}. They specify the
+    script to run, the injection point, and the world where the script is run. This enables
+    accessing the DOM to manipulate it within a world.
+
+    \QWE also supports augmenting a script by using the
+    following \l{Metadata Block}{Greasemonkey-like attributes}:
+
+    \list
+        \li \c {@exclude <regexp>}
+        \li \c {@include <regexp>}
+        \li \c {@match <regexp>}
+        \li \c {@name <free text>}
+        \li \c {@run-at [document-start|document-end|document-idle]}
+    \endlist
+
+    The attributes determine if and when a \l {User Scripts}{user script} is
+    run. They must be placed immediately in the beginning of the script, inside
+    a \c ==UserScript== comment:
+
+    \code
+    // ==UserScript==
+    // @include http://*.qt.io/*
+    // @exclude http://wiki.qt.io/*
+    // ==/UserScript==
+
+    window.alert("Page is from qt.io, but not wiki.qt.io");
+    \endcode
+
+    If your WebEngine application is built using the Qt Quick Compiler, and the application ships
+    JavaScript files inside .qrc resources, consider reading the section
+    \l{JavaScript Files in Qt Resource Files}.
+
+    \section1 Managing Certificates
+
+    \QWE uses its own network stack, and therefore QSslConfiguration is not used to
+    open SSL connections. Instead, \QWE uses the root CA certificates from the operating
+    system to validate the peer's certificate.
+
+    The \l{webEngineCertificateError::type} and \l{QWebEngineCertificateError::Type} enumerations
+    provide information about the types of certificate errors that might occur. The errors can be
+    handled by using the WebEngineView::certificateError QML method or by connecting to the
+    QWebEnginePage::certificateError signal.
+
+    \section1 Proxy Support
+
+    \QWE uses the proxy settings from \l{Qt Network}, and forwards them to Chromium's
+    networking stack. If QNetworkProxy::applicationProxy is set, it will also be used for \QWE.
+    If QNetworkProxyFactory::usesSystemConfiguration() is enabled, the proxy settings
+    are automatically retrieved from the system. Settings from an installed QNetworkProxyFactory
+    will be ignored, though.
+
+    In case QNetworkProxy::user() and QNetworkProxy::password() are set, these credentials
+    will be automatically used for proxy authentication. It is up to the user to provide valid
+    credentials, since there is no error handling callback.
+
+    If no credentials are set with QNetworkProxy, but the proxy requires authentication,
+    QWebEnginePage::proxyAuthenticationRequired is emitted.
+    For Qt Quick, a dialog is shown.
+
+    Not all properties of QNetworkProxy are supported by \QWE. That is,
+    QNetworkProxy::type(), QNetworkProxy::hostName() and QNetworkProxy::port() are taken into
+    account. All other proxy settings such as QNetworkProxy::rawHeader() are ignored.
+
+    \section1 High DPI Support
+
+    High DPI support is always enabled in Qt 6, and this also applies to \QWE. For more information,
+    see \l{High DPI}.
+
+    \section1 Using WebEngine Core
+
+    \QWE Core provides an API shared by \QWE and \QWE Widgets for handling
+    URL requests issued for the networking stack of Chromium and for accessing its HTTP cookies.
+
+    Implementing the QWebEngineUrlRequestInterceptor interface and installing the interceptor on a
+    profile enables intercepting, blocking, and modifying URL requests (QWebEngineUrlRequestInfo)
+    before they reach the networking stack of Chromium.
+
+    A QWebEngineUrlSchemeHandler can be registered for a profile to add support for custom URL
+    schemes. Requests for the scheme are then issued to QWebEngineUrlSchemeHandler::requestStarted()
+    as QWebEngineUrlRequestJob objects.
+
+    The QWebEngineCookieStore class provides functions for accessing HTTP cookies of Chromium.
+    The functions can be used to synchronize cookies with QNetworkAccessManager, as well as to set,
+    delete, and intercept cookies during navigation.
+
+    \section1 Process Models
+
+    The \QWE Process is a separate executable that is used to render web pages and
+    execute JavaScript. This mitigates security issues and isolates crashes caused by specific
+    content.
+
+    \QWE uses multiple OS processes to isolate web sites from each other
+    and from the client application, improving security and robustness. The
+    following process models, or ways to divide web sites between OS processes,
+    are supported:
+
+    \list
+      \li \l{Process per Site Instance}
+      \li \l{Process per Site}
+      \li \l{Single Process}
+    \endlist
+
+    \section2 Process per Site Instance
+
+    This is the default model. Pages from separate sites are put into separate
+    processes and separate visits to the same site are also isolated.
+
+    Two web pages are considered as belonging to the same site if they originate
+    from the same registered domain name (for example, \c wikipedia.org) and
+    scheme (for example, \c https). This is similar to the same-origin policy
+    but subdomains are ignored. For example, both \c{https://en.wikipedia.org/}
+    and \c{https://de.wikipedia.org/} would belong to the same site.
+
+    A site instance is a collection of web pages belonging to the same site.
+    When the application explicitly loads a URL into \QWE (via \l
+    QWebEnginePage::setUrl, for example), a new site instance is created for the
+    page. However, when the user clicks same-site links on the page, the
+    existing site instance is merely extended with more pages.
+
+    For instance, in the \l{WebEngine Widgets Simple Browser Example}{Simple
+    Browser} example, when a user opens two tabs and explicitly enters
+    \c{https://en.wikipedia.org/} into the URL bars, both tabs will have their
+    own separate OS processes (because explicitly entering a URL creates a new
+    site instance). However, when the user then middle-clicks some same-site
+    links to open more tabs, these new tabs will share the same OS process
+    (because user interaction extends the existing site instance).
+
+    \section2 Process per Site
+
+    Pages from separate sites are put into separate processes. Unlike Process
+    per Site Instance, all visits to the same site will share an OS process.
+
+    The benefit of this model is reduced memory consumption, because more web
+    pages will share processes. The drawbacks include reduced security,
+    robustness, and responsiveness.
+
+    To enable this model, use the command-line argument \c{--process-per-site}.
+    See \l{Using Command-Line Arguments}.
+
+    \section2 Single Process
+
+    For debugging purposes only, a single process mode can be enabled using the
+    command-line argument \c{--single-process}. See \l{Using Command-Line
+    Arguments} and \l{Qt WebEngine Debugging and Profiling}.
+
+    \section1 Platform Notes
+
+    \QWE currently supports only Windows, Linux, and \macos. Due to Chromium build
+    requirements it also often requires a newer compiler than the rest of Qt. See
+    \l{Qt WebEngine Platform Notes} for further details.
+
+    \section1 Related Modules
+
+    You can use the \l{https://doc.qt.io/qt-6/qtpdf-index.html}{Qt PDF} module to render PDF files.
+    Internally, the module is powered by \l{https://pdfium.googlesource.com/pdfium/}{PDFium},
+    which is also used in Chromium.
+
+    With the \l{Qt WebView} module, you can use the OS-provided browser APIs, on platforms where
+    those are available, to embed web content into your application without needing
+    to ship the entire Chromium runtime. On platforms where native APIs are not available,
+    it can also act as a wrapper around WebEngine.
+
+    The \l{Qt WebChannel} module can be used to create a bi-directional communication channel
+    between QObject objects on the C++ side and JavaScript on the QML side.
+*/

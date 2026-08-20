@@ -1,0 +1,33 @@
+{
+    "Id": "complete",
+    "Name": "Complete",
+    "QDocModule": "qtest",
+    "QtParts": [
+        "examples"
+    ],
+
+    "License": "License",
+    "Copyright": "Copyright",
+
+    "Description": "Multi
+Line
+Description",
+    "QtUsage": "Multi
+Line
+Usage",
+    "Homepage": "www.qt.io",
+    "Version": "1.0",
+    "CPE": [
+        "cpe:2.3:a:qt:qt:$<VERSION>:*:*:*:*:*:*:*",
+        "cpe:2.3:a:qt:qtbase:$<VERSION>:*:*:*:*:*:*:*"
+    ],
+    "PURL": [
+        "pkg:github/qt/qt@$<VERSION>",
+        "pkg:github/qt/qtbase@$<VERSION>"
+    ],
+    "DownloadLocation": "www.qt.io/$<VERSION>/qt-$<VERSION_DASHED>",
+    "SecurityCritical": true,
+    "LicenseId": "xxx",
+    "LicenseFile": "../../../../../../LICENSES/BSD-3-Clause.txt",
+    "PackageComment": "just a test package"
+}

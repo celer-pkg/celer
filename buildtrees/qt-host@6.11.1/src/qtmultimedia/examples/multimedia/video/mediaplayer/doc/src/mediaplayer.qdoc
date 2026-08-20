@@ -1,0 +1,153 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example video/mediaplayer
+    \title QML Media Player Example
+    \ingroup multimedia_examples
+    \ingroup video_examples_qml
+    \examplecategory {Multimedia}
+    \brief Playing audio and video using the QML \c MediaPlayer type.
+    \meta {tag} {quick}
+    \meta {tag} {player}
+    \image qtmultimedia-examples-qml-media-player.png
+           {Video player showing playback controls and video preview area}
+
+    This example demonstrates a simple multimedia player that can play
+    audio and video files using various codecs.
+
+    \include examples-run.qdocinc
+
+    \section1 Instantiating the MediaPlayer
+    The entry point for the QML code in this example is \c Main.qml. Here
+    an \c ApplicationWindow is created and properties such as the \c id, \c title,
+    \c width and \c height are set.
+
+    \snippet video/mediaplayer/Main.qml 0
+
+    Next the \c MediaPlayer is created and the two properties that are responsible for the video and
+    audio output are defined.
+    Firstly, \c videoOutput which renders the video viewfinder and secondly \c audioOutput which provides
+    the audio output for the player.
+
+    \snippet video/mediaplayer/Main.qml 1
+    \dots
+    \snippet video/mediaplayer/Main.qml 2
+    \dots
+    \snippet video/mediaplayer/Main.qml 3
+
+    The \c visible property of the \c VideoOutput type is set to \c true when the \c mediaStatus
+    property of the \c MediaPlayer is greater than 0. \c mediaStatus is of enumeration type
+    and is equal to 0 when \e {No media has been set}, and greater than 0 otherwise. Therefore,
+    the \c VideoOutput is visible when media has been set.
+
+    The \c MediaPlayer type has a signal property called \c onErrorOccurred that can be
+    overridden specifically to handle errors. In this case the signal opens a \c MessageDialog using
+    the method \c {open()} and sets its \c text property to a \c MediaPlayer property called
+    \c errorString.
+
+    \snippet video/mediaplayer/Main.qml 4
+
+    \section1 Playback Controls
+
+    In order to have a useable media player, there needs to be an interface to control the playback.
+    This is created in its own component file, \c PlaybackControl.qml, and instantiated in
+    \c Main.qml.
+
+    \snippet video/mediaplayer/Main.qml 5
+    \dots
+    \snippet video/mediaplayer/Main.qml 6
+
+    When created, objects are forwarded to this type such as track information,
+    metadata information and the \c MediaPlayer object itself. In \c PlaybackControl.qml,
+    each one of these objects have a \c {required property}, meaning that these properties must
+    be set when the \c PlaybackControl object is created.
+
+    \snippet video/mediaplayer/controls/PlaybackControl.qml 0
+
+    These playback controls can be broken down into sections. In the top left of the panel lies
+    a collection of buttons used to open a file, either by selecting a file from a file explorer or
+    entering a URL. The file is loaded into the \c MediaPlayer by setting the \c source property.
+    Both buttons are instantiated using a \c CustomButton \c {custom component}.
+
+    \snippet video/mediaplayer/controls/PlaybackControl.qml 1
+
+    Three buttons are created and centered on this panel, handling play, pause and seeking ten
+    seconds backwards or forwards. The media is played and paused using the methods \c {play()}
+    and \c {pause()}, respectively. To know when to draw a play or pause button, the \c playbackState
+    property is queried. For example, when it is equal to the enum value \c MediaPlayer.PlayingState
+    then the pause button is drawn.
+
+    \snippet video/mediaplayer/controls/PlaybackControl.qml 2
+
+    To navigate ten seconds forward or backwards, the \c position of the \c MediaPlayer type is
+    incremented by 10,000 milliseconds and set using the method \c {setPosition()}.
+
+    \snippet video/mediaplayer/controls/PlaybackControl.qml 3
+
+    \section1 Playback Seeking and Audio
+
+    In \c {PlaybackControl.qml}, an \c AudioControl and a \c PlaybackSeekControl type are instantiated.
+    These are both defined in their own component file and are responsible for volume control and
+    playback seeking, respectively. The \c AudioControl type defines a button to mute and a \c Slider,
+    from \c {QtQuick Controls}, to set the volume of the player. Both of these attributes are exposed by
+    defining a \c mute and \c volume property and are accessed from the \c AudioOutput definition in
+    \c {Main.qml}.
+
+    \snippet video/mediaplayer/controls/AudioControl.qml 0
+
+    The \c PlaybackSeekControl uses a \c RowLayout containing a \c Slider with a \c Text item either side.
+    The two \c Text items display the current time and the remaining time of the media being played. These
+    are both calculated using two properties of the \c MediaPlayer type, \c {position}, which gives the
+    current playback position in milliseconds, and \c {duration}, which gives the duration of the media
+    in milliseconds.
+
+    \snippet video/mediaplayer/controls/PlaybackSeekControl.qml 0
+    \dots
+    \snippet video/mediaplayer/controls/PlaybackSeekControl.qml 1
+
+    The \c Slider is only enabled when the media player is seekable and not, for example, live media.
+    The \c MediaPlayer type has a property for this called \c seekable. The \c value of the \c Slider
+    is calculated using the \c position and \c duration properties of the \c MediaPlayer.
+
+    \snippet video/mediaplayer/controls/PlaybackSeekControl.qml 2
+
+    \section1 Metadata and Track Information
+
+    The \c PlaybackControl type instantiates a \c SettingsPopup, which contains information about the
+    metadata of the currently loaded media and track selection, as well as the ability to update the
+    playback rate. This \c Popup is defined in \c SettingsPopup.qml.
+
+    \image qtmultimedia-examples-qml-media-player-settings.png
+           {User-selectable playback settings and metadata information}
+
+    The metadata is contained in its own component file, \c MetadataInfo.qml. It contains a \c ListModel,
+    a function to clear it, \c {clear()}, and a function to populate it, \c {read(MediaMetadata metadata)}.
+    The \c {read(MediaMetadata metadata)} function takes as a parameter an object of type \c MediaMetaData,
+    and navigates its key-value structure to extract its data into the \c model of the \c {ListView}. The
+    methods used to do this are \c {keys()}, which returns all the keys of the \c MediaMetaData, and
+    {stringValue(Key key)}, which returns the \c value for a given \c key.
+
+    \snippet video/mediaplayer/controls/MetadataInfo.qml 0
+
+    The data is then displayed in \c {SettingsPopup.qml} in a \c ListView type. The \c delegate of this
+    \c ListView is a row of two \c Text items, corresponding to the key-value pairs abstracted from the
+    \c MediaMetaData item.
+
+    On the other side of the \c Popup there is playback rate controls and track selection for audio, video and
+    subtitles. The playback rate is chosen from a \c ComboBox and set using the property \c playbackRate.
+
+    \snippet video/mediaplayer/controls/SettingsPopup.qml 0
+
+    The type called \c TracksInfo, defined in \c {TracksInfo.qml}, contains the data about the tracks.
+    More specifically, a \c ListModel containing the titles of the tracks, or for subtitles specifically, the
+    langauges. This information is populated in \c Main.qml by calling the \c {read(MediaMetadata mediaMetadata)}
+    function defined in the \c TracksInfo type.
+
+    \snippet video/mediaplayer/Main.qml 6
+
+    The \c model defined in \c TracksInfo is then queried in the \c {ComboBox}es in the
+    \c SettingsPopup to select the current track.
+
+    \snippet video/mediaplayer/controls/SettingsPopup.qml 1
+*/

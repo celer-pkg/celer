@@ -1,0 +1,32 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  pages: {
+    VideoCUJ: {
+      actions: [
+        {
+          action: get
+          url: https://storage.googleapis.com/chromiumos-test-assets-public/tast/cros/video/shaka_20250716.html
+          ready_state: complete
+        }
+        {
+          action: js
+          script: startPlayingShaka("$[FILE_NAME]", $[UNMUTE_PLAYER])
+        }
+        // Element ready doesn't mean stream is ready, so wait for a bit
+        {
+          action: wait_for_element
+          selector: video#video
+          timeout: 10s
+        }
+        // Wait until the video has finished playing
+        {
+          action: wait_for_condition
+          condition: return document.querySelector('video#video').ended
+          timeout: 60s
+        }
+      ]
+    }
+  }
+}

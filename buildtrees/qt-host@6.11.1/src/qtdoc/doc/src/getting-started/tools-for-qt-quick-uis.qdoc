@@ -1,0 +1,30 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page tools-for-qt-quick-uis.html
+
+    \title Tools for Qt Quick UIs
+    \brief Tools for designing Qt Quick UIs.
+
+    \image qtdesignstudio.webp "Qt Design Studio"
+
+    Qt provides a tool for designing Qt Quick UIs called
+    \l{Qt Design Studio Manual}{Qt Design Studio}. You need
+    to separately select Qt Design Studio in the list of modules
+    and tools presented to you by \QOI.
+
+    If you only design UIs and don't need the developer tools, you can install
+    the stand-alone Qt Design Studio package. It contains all the Qt modules
+    and tools you need to design UIs and preview them on the desktop. The
+    Qt Quick code is automatically generated for you, and you can deliver it
+    to developers for implementing the application. Developers can open the
+    project in a developer tool called \l{\QC Documentation}{\QC}.
+
+    \list
+        \li \l{Qt Design Studio: Installation}{I just want Qt Design Studio}
+        \li \l{Get and Install Qt}{I want Qt and Qt Design Studio}
+        \li \l{Create Your First Applications}
+            {I've already installed everything and want to start designing}
+    \endlist
+*/

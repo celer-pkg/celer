@@ -1,0 +1,17 @@
+This property determines how delegates can access the model.
+
+\value DelegateModel.ReadOnly
+        Prohibit delegates from writing the model via either context properties,
+        the \c model object, or required properties.
+
+\value DelegateModel.ReadWrite
+        Allow delegates to write the model via either context properties,
+        the \c model object, or required properties.
+
+\value DelegateModel.Qt5ReadWrite
+        Allow delegates to write the model via the \c model object and context
+        properties but \e not via required properties.
+
+The default is \c DelegateModel.Qt5ReadWrite.
+
+\sa {Models and Views in Qt Quick#Changing Model Data}

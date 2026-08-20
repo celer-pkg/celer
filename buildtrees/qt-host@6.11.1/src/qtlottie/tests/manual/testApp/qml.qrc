@@ -1,0 +1,45 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>rect_anim_easing.json</file>
+        <file>rect_move_bezier.json</file>
+        <file>rect_anchor_moved_static2.json</file>
+        <file>rect_anchor_std_anim.json</file>
+        <file>shape_static.json</file>
+        <file>shape_circle.json</file>
+        <file>rect_rotate.json</file>
+        <file>shape_complex.json</file>
+        <file>shape_complex2.json</file>
+        <file>rect_skew_axis.json</file>
+        <file>rect_skew.json</file>
+        <file>rect_gfill_radial.json</file>
+        <file>rect_gfill_linear.json</file>
+        <file>trim_path1.json</file>
+        <file>trim_path2.json</file>
+        <file>trim_path2_parallel.json</file>
+        <file>path_and_ellipse.json</file>
+        <file>trim_path2_offset.json</file>
+        <file>trim_path_multiple1.json</file>
+        <file>trim_path_multiple2.json</file>
+        <file>trim_path_multiple3.json</file>
+        <file>trim_path_multiple4.json</file>
+        <file>rect_negative_scale_anchors.json</file>
+        <file>rect_negative_scale_pos.json</file>
+        <file>rect_negative_scale_pos_anchors_rot.json</file>
+        <file>rect_rotate_shape.json</file>
+        <file>rect_rotate_layer.json</file>
+        <file>rect_rotate_layer2.json</file>
+        <file>trim_path_sequential2.json</file>
+        <file>shape_bezier_simple.json</file>
+        <file>layer_effect_fill.json</file>
+        <file>layer_effect_slider.json</file>
+        <file>easing_rect_translate.json</file>
+        <file>repeater1.json</file>
+        <file>repeater_group1.json</file>
+        <file>repeater_group2.json</file>
+        <file>rect_scale.json</file>
+        <file>rect_scale_anchors_on_layer.json</file>
+        <file>rect_scale_anchors_on_rect.json</file>
+        <file>linked_layers.json</file>
+    </qresource>
+</RCC>

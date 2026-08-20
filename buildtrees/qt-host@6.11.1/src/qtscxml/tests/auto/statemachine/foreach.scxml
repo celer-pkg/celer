@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="TopMachine" datamodel="ecmascript">
+    <datamodel>
+        <data id="SomeObject1" expr="[ { a : 1}, { a : 2}, { a : 3} ]" />
+        <data id="SomeObject2" expr="{ obj : { deep : [ { a : 1}, { a : 2}, { a : 3} ] } }" />
+        <data id="SomeObject3" expr="({ obj : [ { a : 1}, { a : 2}, { a : 3} ] })" />
+    </datamodel>
+    <state id="State_1">
+        <onentry>
+            <foreach array="SomeObject1" item="variable" index="varindex">
+                <send event="internalEvent1"/>
+            </foreach>
+            <foreach array="SomeObject2.obj.deep" item="variable" index="varindex">
+                <send event="internalEvent2"/>
+            </foreach>
+            <foreach array="SomeObject3.obj" item="variable" index="varindex">
+                <send event="internalEvent3"/>
+            </foreach>
+        </onentry>
+    </state>
+</scxml>

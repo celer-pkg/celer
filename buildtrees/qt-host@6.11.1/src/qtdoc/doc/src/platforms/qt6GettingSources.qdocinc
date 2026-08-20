@@ -1,0 +1,17 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+//! [Getting Qt6 sources]
+\section1 Getting Qt sources
+
+    You can download the Qt source code from your
+    \l {https://login.qt.io/login} {Qt Account}.
+
+    You can also get the Qt sources from the Git repo, see
+    \l{Getting Qt Sources from the Git repository}{Getting source code}.
+
+    \note Qt sources version must be 6.2 or later.
+    \note Qt modules supported by Qt for INTEGRITY are listed in \l {Qt for INTEGRITY#Supported Qt Modules}{Supported Qt Modules}.
+//! [Getting Qt6 sources]
+*/

@@ -1,0 +1,4 @@
+[gerrit]
+host=codereview.qt-project.org
+project=qt/qt5
+defaultbranch=dev

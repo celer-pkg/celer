@@ -1,0 +1,64 @@
+<?xml version="1.0" ?>
+<!--
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+-->
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0"
+       name="Sudoku" datamodel="ecmascript">
+    <datamodel>
+        <data id="initState"/>
+        <data id="currentState" expr="[[]]"/>
+        <data id="undoStack"/>
+    </datamodel>
+    <script src="sudoku.js"/>
+    <state id="game">
+        <onentry>
+            <raise event="restart"/>
+        </onentry>
+        <state id="idle">
+            <transition event="start" target="playing"/>
+            <transition event="setup" target="unsolved">
+                <assign location="initState" expr="_event.data.initState"/>
+                <raise event="restart"/>
+            </transition>
+            <state id="unsolved"/>
+            <state id="solved"/>
+        </state>
+        <state id="playing">
+            <onentry>
+                <raise event="restart"/>
+            </onentry>
+            <transition event="tap">
+                <if cond="isValidPosition()">
+                    <script>
+                        calculateCurrentState();
+                    </script>
+                    <if cond="isSolved()">
+                        <raise event="solved"/>
+                    </if>
+                    <raise event="update"/>
+                </if>
+            </transition>
+            <transition event="undo">
+                <script>
+                    undo();
+                </script>
+                <raise event="update"/>
+            </transition>
+            <transition event="stop" target="idle"/>
+            <transition event="solved" target="solved"/>
+        </state>
+        <transition event="restart">
+            <script>
+                restart();
+            </script>
+            <raise event="update"/>
+        </transition>
+        <transition event="update">
+            <send event="updateGUI">
+                <param name="currentState" expr="currentState"/>
+                <param name="initState" expr="initState"/>
+            </send>
+        </transition>
+    </state>
+</scxml>

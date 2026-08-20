@@ -1,0 +1,2 @@
+android_protoc/frameworks/**
+android_protoc/__init__.py

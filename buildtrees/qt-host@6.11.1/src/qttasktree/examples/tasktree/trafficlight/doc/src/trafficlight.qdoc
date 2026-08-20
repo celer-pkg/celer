@@ -1,0 +1,138 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example tasktree/trafficlight
+    \meta tags {widgets}
+    \examplecategory {Data Processing & I/O}
+    \title TaskTree Traffic Light
+    \ingroup tasktree_examples
+    \brief Demonstrates how to implement state machine behavior using TaskTree
+           through a traffic light simulation.
+
+    The \e {TaskTree Traffic Light} is an alternative implementation
+    for the Traffic Light examples in
+    \l {SCXML Traffic Light (Static, Widgets)} {Qt SCXML} and
+    \l {Traffic Light} {Qt State Machine}.
+
+    \image tasktree-trafficlight-example.png
+           {Traffic light with green light illuminated and pause button}
+
+    The application consists of three main components:
+
+    \list
+        \li A \c TrafficLight widget that displays the current state.
+        \li A \c TaskTree recipe that controls state transitions.
+        \li A \c GlueInterface that synchronizes the UI with the state machine.
+    \endlist
+
+    The following sections describe more details of the example's code.
+
+    \section1 Helper Glue Class
+
+    The \c GlueInterface class provides a clean separation between the UI and
+    operational logic.
+
+    \snippet tasktree/trafficlight/glueinterface.h 0
+
+    The \c GlueInterface class provides the following interface methods:
+    \table
+    \header
+        \li Method
+        \li Purpose
+    \row
+        \li \c setLights()
+        \li Updates traffic light state from TaskTree recipe
+    \row
+        \li \c lightsChanged()
+        \li Notifies UI when light states change
+    \row
+        \li \c smash()/ \c repair()
+        \li Handles fault simulation and recovery actions
+    \endtable
+
+    When users interact with the UI:
+    \list
+        \li Clicking pause triggers \c smash(), simulating a fault.
+        \li Clicking play triggers \c repair(), restoring normal operation.
+    \endlist
+
+    \section1 Implementing the state machine
+
+    The state machine logic is implemented through a TaskTree recipe.
+    The \c recipe() method creates this logic using a reference to \c GlueInterface:
+
+    \snippet tasktree/trafficlight/recipe.cpp 0
+
+    \section2 Root state management
+
+    The top level \l {QtTaskTree::}{Forever} item executes its
+    children in an infinite loop. It contains two subgroups representing
+    \e working and \e broken states.
+
+    State transition rules:
+    \list
+        \li States execute in sequence, because the default
+            \l {Execution Mode}{execution mode} is
+            \l {QtTaskTree::}{sequential}.
+        \li When one state completes, the other begins.
+        \li Transitions are triggered when a user clicks the pause or play
+            button in the UI, emitting the corresponding signal.
+    \endlist
+
+    \section2 The "working" operation state
+
+    The \e working \l {QtTaskTree::}{Group} consists of two
+    tasks running in \l {QtTaskTree::}{parallel}:
+
+    \list
+        \li The \l {QtTaskTree::}{signalAwaiterTask}
+            connects to the \c GlueInterface::smashed signal. If the signal is
+            triggered, the task immediately finishes with
+            \l {QtTaskTree::}{DoneResult::Success}. This
+            causes the \e working \l {QtTaskTree::}{Group} to stop
+            executing, and the recipe transitions to the \e broken state.
+        \li The nested \l {QtTaskTree::}{Forever} task consist of
+            four \c switchLightsTask tasks ("red", "redGoingGreen", "green", and
+            "greenGoingRed") executed \l {QtTaskTree::sequential}{sequentially}
+            in an infinite loop.
+    \endlist
+
+    The \l {QtTaskTree::}{stopOnSuccess} item of each group
+    instructs it to stop executing when any of its child tasks finishes with
+    \l {QtTaskTree::}{DoneResult::Success}.
+
+    The \c switchLightsTask implementation:
+
+    \list
+        \li Updates light states through \c GlueInterface::setLights().
+        \li Creates a timed delay using \l {QtTaskTree::}{timeoutTask}.
+        \li Maintains state for the specified duration \c timeout.
+    \endlist
+
+    \snippet tasktree/trafficlight/recipe.cpp 1
+
+    \section2 The "broken" operation state
+
+    The \e broken \l {QtTaskTree::}{Group} is similar to the
+    \e working \l {QtTaskTree::}{Group}. The only difference is that it
+    connects to the \c GlueInterface::repaired signal, and the lights cycle only
+    between 2 states toggling the \e yellow light on and off.
+
+    \section1 Application setup
+
+    The main application setup creates and connects all components:
+
+    \snippet tasktree/trafficlight/main.cpp 0
+
+    The \c main() function instantiates QApplication, \c GlueInterface,
+    QTaskTree and \c TrafficLight objects.
+
+    To construct the \c taskTree object, we pass a \c recipe() constructed with
+    the \c iface object. The \c widget also uses the passed \c iface object.
+
+    Before executing the application, the \c main() function shows the
+    \c TrafficLight widget and starts the task tree.
+
+    \include examples-run.qdocinc
+*/

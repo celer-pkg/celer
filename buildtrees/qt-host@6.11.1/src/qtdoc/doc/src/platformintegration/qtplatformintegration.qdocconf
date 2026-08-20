@@ -1,0 +1,36 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/global/externalsites.qdocconf)
+
+project = QtPlatformIntegration
+navigation.landingpage = "Platform Integration"
+description = "Integrating Qt with the native platform"
+version = $QT_VERSION
+
+depends += qtcore qtgui qtwidgets qtquick qtdoc qtwaylandcompositor
+sourcedirs = .
+headerdirs = .
+
+includepaths += .
+moduleheader = platformintegration.h
+
+qhp.projects = QtPlatformIntegration
+
+qhp.QtPlatformIntegration.file                = qtplatformintegration.qhp
+qhp.QtPlatformIntegration.namespace           = org.qt-project.qtplatformintegration.$QT_VERSION_TAG
+qhp.QtPlatformIntegration.virtualFolder       = qtplatformintegration
+qhp.QtPlatformIntegration.indexTitle          = "Platform Integration"
+qhp.QtPlatformIntegration.filterAttributes    = qt $QT_VERSION
+
+qhp.QtPlatformIntegration.subprojects = qpa typeconversions nativeinterfaces
+
+qhp.QtPlatformIntegration.subprojects.qpa.title = "Qt Platform Abstraction"
+qhp.QtPlatformIntegration.subprojects.qpa.indexTitle = "Qt Platform Abstraction"
+qhp.QtPlatformIntegration.subprojects.qpa.selectors = none
+
+qhp.QtPlatformIntegration.subprojects.typeconversions.title = "Type Conversions"
+qhp.QtPlatformIntegration.subprojects.typeconversions.indexTitle = "Type Conversions"
+qhp.QtPlatformIntegration.subprojects.typeconversions.selectors = none
+
+qhp.QtPlatformIntegration.subprojects.nativeinterfaces.title = "Native Interfaces"
+qhp.QtPlatformIntegration.subprojects.nativeinterfaces.indexTitle = "Native Interfaces"
+qhp.QtPlatformIntegration.subprojects.nativeinterfaces.selectors = none

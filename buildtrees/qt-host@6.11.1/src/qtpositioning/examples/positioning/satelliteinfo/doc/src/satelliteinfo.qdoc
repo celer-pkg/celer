@@ -1,0 +1,208 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example satelliteinfo
+    \title Satellite Info
+    \examplecategory {Application Examples}
+    \examplecategory {Positioning & Location}
+    \meta tags {c++, qml, quick}
+    \ingroup qtpositioning-examples
+    \brief The Satellite Info example shows the available satellites
+    using Sky View, Table View, or RSSI View and the user's current position.
+    It is implemented with \l{Qt Positioning} and \l{Qt Quick}.
+
+    This example demonstrates the usage of \l {Qt Positioning QML Types}
+    {Qt Positioning QML API}:
+
+    \list
+        \li \l {PositionSource}
+        \li \l {SatelliteSource}
+    \endlist
+
+    The example also shows how to use a custom \c {C++} model together with a
+    custom proxy model from \c {QML}.
+
+    \include examples-run.qdocinc
+
+    \section1 UI walkthrough
+
+    The example shows satellite information in three different tabs.
+    The data is taken from the \l {SatelliteSource::satellitesInView} and
+    \l {SatelliteSource::satellitesInUse} properties.
+
+    \image ../images/skyview_tableview.webp {Satellite view and table UI}
+
+    The \e {Sky View} tab shows the relative satellite positions using the
+    \c {Azimuth} and \c {Elevation} \l {geoSatelliteInfo::attribute}
+    {attributes}. Clicking on an individual satellite object opens a popup
+    with the \l {geoSatelliteInfo::satelliteIdentifier} {satellite identifier},
+    its azimuth, and elevation.
+
+    The \e {Table View} tab shows the list of all detected satellites, and
+    allows to apply sorting and filtering to the list.
+
+    \image ../images/rssiview_settings.webp {RSSI view with satellite signal bars}
+
+    The \e {RSSI View} tab shows the signal strength of satellites in view using
+    the \l {geoSatelliteInfo::}{signalStrength} property. The numbers below the
+    bars represent the individual \l {geoSatelliteInfo::satelliteIdentifier}
+    {satellite identifiers}.
+
+    The \e {Sky View} and \e {RSSI View} tabs also show the current latitude and
+    longitude. They use \l {PositionSource::position} property to extract this
+    information.
+
+    The \e {Status} block on top of the tabs shows the current mode or the last
+    error.
+
+    The \e {Settings} menu allows you to switch the application color mode and
+    show the help information.
+
+    The application operates in three different modes:
+
+    \table
+        \header
+            \li Application mode
+            \li Description
+        \row
+            \li Running
+            \li The application continuously queries the system for satellite
+                and position updates. When new data is available, it will be
+                displayed.
+        \row
+            \li Stopped
+            \li The application stops updating the satellite and position
+                information.
+        \row
+            \li Single
+            \li The application makes a single satellite and position update
+                request.
+    \endtable
+
+    The application automatically switches into a simulation mode if the
+    platform does not provide satellite or position information. The simulation
+    mode uses an \l {Qt Positioning NMEA plugin}{NMEA plugin} with pre-recorded
+    NMEA data.
+
+    \note Apple does not provide any APIs to retrieve satellite information, so
+    on \c macOS and \c iOS the satellite information will always be taken from
+    pre-recorded data. These API limitations do not affect positioning
+    information, so current position can be displayed correctly.
+
+    \section1 Retrieving Current Position
+
+    The current position is retrieved from the \l PositionSource QML object. The
+    \c {onPositionChanged} handler is used to receive position updates. The
+    string representations of latitude and longitude are extracted from the
+    \l {Position::}{coordinate} property.
+
+    \snippet satelliteinfo/ApplicationScreen.qml 3
+    \snippet satelliteinfo/ApplicationScreen.qml 4
+    \snippet satelliteinfo/ApplicationScreen.qml 5
+
+    \section1 Retrieving Satellite Information
+
+    Similarly to the position, the current satellite information is retrieved
+    from the \l SatelliteSource QML object. The \c {onSatellitesInViewChanged}
+    and \c {onSatellitesInUseChanged} handlers are used to get the updated
+    satellites in view and satellites in use respectively. In this example, the
+    data is then forwarded to the \c {C++} model, which is later used in all
+    views.
+
+    \snippet satelliteinfo/ApplicationScreen.qml 0
+    \snippet satelliteinfo/ApplicationScreen.qml 1
+    \snippet satelliteinfo/ApplicationScreen.qml 2
+
+    \note The example shows both the QML Positioning API, and the integration
+    of C++ model to QML. That is the reason why the satellite information is
+    first retrieved in \c {QML}, then forwarded to \c {C++}, and then back to
+    \c {QML} to be used in the model. In practice, if the application is
+    supposed to use complex \c {C++} models, consider directly using the
+    \l QGeoSatelliteInfoSource class from \c {C++}.
+
+    \section1 Using Custom C++ Models
+
+    The example uses two custom models - \c {SatelliteModel} and
+    \c {SortFilterModel}.
+
+    \section2 Satellite Model
+
+    The \c {SatelliteModel} class is derived from \l QAbstractListModel and
+    reimplements the \l {QAbstractListModel::}{rowCount()},
+    \l {QAbstractListModel::}{data()}, and
+    \l {QAbstractListModel::}{roleNames()} methods to represent the
+    satellite information. Using \l QAbstractListModel as a base class allows
+    to easily use the model with the \c {QML} \l ListView and \l Repeater types.
+    A custom \c {size} property is used only in the \e {RSSI View} tab to
+    dynamically calculate the width of the tab bars.
+
+    \snippet satelliteinfo/satellitemodel.h 0
+    \snippet satelliteinfo/satellitemodel.h 1
+
+    The \c {roleNames()} method is used to map the model's roles to the
+    property names which can be used to access the model data from \c {QML}.
+    For example, the \c {id} name is used to extract the satellite identifier,
+    and the \c {rssi} name is used to get the signal strength.
+
+    \snippet satelliteinfo/satellitemodel.cpp 0
+
+    On the \c {QML} side, we can use these names to get the actual values.
+    For example, the implementation of \e {RSSI View} uses the \c {rssi},
+    \c {inUse}, and \c {id} role names to draw the bars that represent
+    individual satellites:
+
+    \snippet satelliteinfo/RssiView.qml 0
+
+    \section2 Proxy Model
+
+    The \c {SortFilterModel} class is used to provide custom sorting and
+    filtering of the satellite objects shown in the \e {Table View} tab.
+
+    The model is derived from \l QSortFilterProxyModel and reimplements the
+    \l {QSortFilterProxyModel::}{filterAcceptsRow()} and
+    \l {QSortFilterProxyModel::}{lessThan()} methods to provide filtering and
+    sorting. The model also exposes several \c {slots} to tune the filtering
+    and sorting behavior.
+
+    \snippet satelliteinfo/sortfiltermodel.h 0
+    \snippet satelliteinfo/sortfiltermodel.h 1
+
+    These slots can be called from both \c {C++} and \c {QML}. For example, the
+    \e {Satellite Identifier} delegate uses the \c {updateSelectedSystems()}
+    slot to show or hide the information about satellites belonging to certain
+    satellite systems. Likewise, the \e {Satellite Status} delegates use the
+    \c {updateShowInView()} and \c {updateShowInUse()} slots to filter the
+    satellites with a specific status.
+
+    \snippet satelliteinfo/SatelliteView.qml 0
+    \dots
+    \snippet satelliteinfo/SatelliteView.qml 1
+
+    \section1 QML Module Registration
+
+    \section2 CMake Build
+
+    For a CMake-based build, we need to add the following to the
+    \c {CMakeLists.txt}:
+
+    \quotefromfile satelliteinfo/CMakeLists.txt
+    \skipto qt_add_qml_module(satelliteinfo
+    \printuntil )
+
+    \section2 qmake Build
+
+    For a qmake build, we need to modify the \c {satelliteinfo.pro} file in the
+    following way:
+
+    \quotefromfile satelliteinfo/satelliteinfo.pro
+    \skipto CONFIG += qmltypes
+    \printuntil QML_IMPORT_MAJOR_VERSION = 1
+    \skipto qml_resources.files
+    \printuntil RESOURCES += icon_resources
+
+    \section1 Source files
+
+    \sa {All Qt Examples}, {Qt Positioning Examples},
+    {Qt Quick Examples and Tutorials}
+*/

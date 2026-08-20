@@ -1,0 +1,34 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\qmlmodule QtQuick3D.Physics
+\title Qt Quick 3D Physics QML Types
+\brief Provides the QML types to include physics items into a Qt Quick scene.
+
+
+Qt Quick 3D Physics provides the following QML types:
+
+\section1 QtQuick3D.Physics QML Types
+
+Import the QtQuick3D.Physics module with the following statement:
+
+\qml
+import QtQuick3D.Physics
+\endqml
+
+\generatelist qmltypesbymodule QtQuick3D.Physics
+
+\section1 QtQuick3D.Physics.Helpers QML Types
+
+Import the QtQuick3D.Helpers module with the following statement:
+
+\qml
+import QtQuick3D.Physics.Helpers
+\endqml
+
+\generatelist qmltypesbymodule QtQuick3D.Physics.Helpers
+
+\noautolist
+*/
+

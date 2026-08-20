@@ -1,0 +1,94 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtquick3dphysics-changes-6-5.html
+\title Qt Quick 3D Physics API Changes from Tech Preview
+\brief List of API changes from Tech Preview
+
+Starting with the Qt 6.5.0 release, the Qt Quick 3D Physics module is no longer in Tech Preview.
+As a result of the API feedback and review process, some source-incompatible changes were made.
+
+The majority of the changes are renaming types and properties for consistency with other APIs and
+to make the names more descriptive. The most noticeable rename is changing \c DynamicsWorld to
+\l PhysicsWorld, which will affect all applications.
+
+The most important behavioral change is the handling of \l{DynamicRigidBody::isKinematic}{kinematic
+bodies}.  Changing the position/orientation of a kinematic body is no longer done by using the
+\l Node properties (\c position, \c rotation, etc.), but instead by using the new properties:
+\l{DynamicRigidBody::}{kinematicPosition}, \l{DynamicRigidBody::}{kinematicEulerRotation},
+\l{DynamicRigidBody::}{kinematicRotation}, and \l{DynamicRigidBody::}{kinematicPivot}. The reason for
+this change was to make sure that the visual movement of kinematic bodies is synchronized with the
+rest of the simulation, instead of happening one simulation step too early.
+
+The \l{DynamicRigidBody::density}{DynamicRigidBody.density} property no longer treats negative
+values (and zero) as a special case.  Instead, there are two new \l{DynamicRigidBody::}{massMode}
+enumeration values replacing \c Density:
+\table
+\row
+    \li \c DefaultDensity
+    \li The density of the body is defined by \l{PhysicsWorld::defaultDensity}{PhysicsWorld.defaultDensity}. This is the default.
+\row
+    \li \c CustomDensity
+    \li The density of the body is defined by the \l{DynamicRigidBody::}{density} property.
+\endtable
+
+The \c enableTriggerReports property has been renamed to \l{PhysicsNode::}{sendTriggerReports}. In addition,
+physics objects can now be notified when they enter a trigger body by setting \l{PhysicsNode::}{receiveTriggerReports}.
+
+The following is a complete list of all the API changes:
+
+\list
+
+\li CollisionShape:
+\list
+   \li renamed enableDebugView to \l{CollisionShape::}{enableDebugDraw}
+\endlist
+
+\li Renamed the abstract base type \c CollisionNode to \l PhysicsNode
+\list
+  \li  changed enableTriggerReports to \l{PhysicsNode::}{sendTriggerReports} and \l{PhysicsNode::}{receiveTriggerReports}
+\endlist
+
+\li \l CharacterController
+\list
+   \li renamed \c speed to \l{CharacterController::}{movement}
+\endlist
+
+\li \l ConvexMeshShape
+\list
+   \li renamed \c meshSource to \l{ConvexMeshShape::}{source}
+\endlist
+
+\li \l HeightFieldShape
+\list
+   \li renamed \c heightMap to \l{HeightFieldShape::}{source}
+\endlist
+
+\li \l TriangleMeshShape
+\list
+   \li renamed \c meshSource to \l{TriangleMeshShape::}{source}
+\endlist
+
+\li \l PhysicsWorld (renamed from \c DynamicsWorld)
+\list
+   \li renamed \c{forceDebugView} to \l{PhysicsWorld::}{forceDebugDraw}
+   \li renamed \c{minTimestep}/\c{maxTimestep} to \l{PhysicsWorld::}{minimumTimestep}/\l{PhysicsWorld::}{maximumTimestep}
+   \li removed sceneNode
+   \li added \l{PhysicsWorld::}{scene}
+   \li added \l{PhysicsWorld::}{viewport}
+\endlist
+
+\li \l DynamicRigidBody
+\list
+   \li changed the \c axisLockLinearX/Y/Z properties into a single property \l{DynamicRigidBody::}{linearAxisLock} that takes a bitfield
+   \li changed the \c axisLockAngularX/Y/Z properties into a single property \l{DynamicRigidBody::}{angularAxisLock} that takes a bitfield
+   \li added new properties \l{DynamicRigidBody::}{kinematicPosition}, \l{DynamicRigidBody::}{kinematicEulerRotation}, \l{DynamicRigidBody::}{kinematicRotation}, and \l{DynamicRigidBody::}{kinematicPivot}
+   \li changed \c Density enum value to \l{DynamicRigidBody::massMode}{DefaultDensity/CustomDensity} and removed special-casing of negative values.
+   \li replaced the \c linearVelocity property with the method \l{DynamicRigidBody::}{setLinearVelocity}.
+   \li replaced the \c angularVelocity property with the method \l{DynamicRigidBody::}{setAngularVelocity}.
+\endlist
+
+\endlist
+
+*/

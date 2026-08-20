@@ -1,0 +1,12 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+\page qtjenny-concepts.html
+\title Qt Jenny concepts and architecture
+
+Qt Jenny depends on the following set of key concepts:
+
+\list
+    \li The \l{Gradle} build tool.
+\endlist
+*/

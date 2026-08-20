@@ -1,0 +1,8 @@
+version = 1
+
+[[annotations]]
+path = ["docsamples/**"]
+precedence = "closest"
+comment = "example lottie files, from github.com/LottieFiles/lottie-docs"
+SPDX-FileCopyrightText = "Copyright © 2022 Design Barn Inc."
+SPDX-License-Identifier = "CC-BY-4.0"

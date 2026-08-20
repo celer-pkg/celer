@@ -1,0 +1,50 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+    \externalpage https://qt.io/
+    \title Qt Homepage
+*/
+/*!
+    \externalpage https://qt-project.atlassian.net/jira/
+    \title Qt Bug Tracker
+*/
+/*!
+    \externalpage https://qt.io/download
+    \title Downloads
+*/
+/*!
+    \externalpage https://www.qt.io/about-us/
+    \title The Qt Company
+*/
+/*!
+    \externalpage https://www.qt.io/about-us/
+    \title The Qt Group
+*/
+/*!
+    \externalpage https://code.qt.io/
+    \title Public Qt Repository
+*/
+/*!
+    \externalpage http://wiki.qt.io/Qt_Localization
+    \title external: Translating Qt Into Other Languages
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qt3dstudio/index.html
+    \title Qt 3D Studio Manual
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qtdesignstudio/index.html
+    \title Qt Design Studio Manual
+*/
+
+/*!
+    \externalpage https://marketplace.qt.io
+    \title Qt Marketplace
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qtforpython/index.html
+    \title Qt for Python
+*/

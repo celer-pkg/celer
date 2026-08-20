@@ -1,0 +1,196 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtqml-tooling-qmllint.html
+\title qmllint
+\keyword qmllint Reference
+\ingroup qtqml-tooling
+\ingroup qtqml-tooling-devtools
+\brief A tool for verifying the syntax of QML files and warning about
+anti-patterns.
+
+\e qmllint is a tool shipped with Qt, that verifies the syntactic validity of
+QML files. You can \l{Using qmllint with CMake}{integrate qmllint into your build system}
+for ease of use. It also warns about some QML anti-patterns. See
+\{Configuring qmllint warnings} for how to disable a specific warning type.
+
+\note When using IDE, such as Qt Creator, you don't need to run \c qmllint
+manually. The IDE uses \l {QML Language Server#Linting}{QML Language Server},
+that provides real-time linting output and diagnostics as you type.
+
+By default, some issues will result in warnings that will be printed. If there
+are more warnings than a limit which can be configured with \c{--max-warnings},
+the exit code will be non-zero.
+Minor issues however (such as unused imports) are just informational messages
+by default and will never affect the exit code.
+qmllint is very configurable and allows for
+\l{Configuring qmllint warnings}{disabling warnings or changing how they are treated}.
+
+qmllint warns about:
+\list
+  \li Unqualified accesses of properties
+  \li Usage of signal handlers without a matching signal
+  \li Usage of with statements in QML
+  \li Issues related to compiling QML code
+  \li Unused imports
+  \li Deprecated components and properties
+  \li And many other things
+\endlist
+
+See \l{QML Lint Warning and Errors} on how to fix qmllint warnings and errors.
+
+\note In order for qmllint to work properly, it requires type information.
+That information is provided by QML modules in the import paths.
+The current directory, as well as the import paths for Qt's built-in types,
+are used as import paths by default.
+To add more import paths not included in the default,
+add them via the \c{-I} flag.
+
+To get an overview and explanation of all available command line options, run \c{qmllint --help}.
+
+\section2 Compiler warnings
+
+qmllint can warn you about code that cannot be compiled by \l{qmlsc}.
+
+These warnings are not enabled by default. In order to enable them,
+\l{Configuring qmllint warnings}{configure qmllint} to use the compiler warning
+category.
+
+\section2 Using qmllint with CMake
+For projects using the \l{qt6_add_qml_module}{qt_add_qml_module()} CMake API for creating QML
+modules, \l{Linting QML sources}{convenience targets} such as \c all_qmllint are created
+automatically. These run qmllint on all the QML files of a specific module or of the project.
+
+\section2 Marking components and properties as deprecated
+
+qmllint allows you to mark both properties and components as deprecated:
+
+\code
+@Deprecated { reason: "Use NewCustomText instead" }
+Text {
+    @Deprecated { reason: "Use newProperty instead" }
+    property int oldProperty
+    property int newProperty
+    Component.onCompleted: console.log(oldProperty);  // Warning: XY.qml:8:40: Property "oldProperty" is deprecated (Reason: Use newProperty instead)
+}
+\endcode
+
+Deprecation warnings for components will be shown every time the component is created.
+
+\section2 Disabling warnings inline
+
+You may at any point disable warnings temporarily in a file using \c{// qmllint
+disable}.
+
+You can do this at the end of a line when a single line produces warnings:
+
+\code
+Item {
+    property string foo
+    Item {
+        property string bar: foo // qmllint disable unqualified
+    }
+}
+\endcode
+
+Alternatively you can disable comments for a block of lines by putting the
+comment in a line only containing \c{// qmllint disable}, ending the block with
+\c{// qmllint enable}:
+
+\code
+Item {
+    property string foo
+    Item {
+        // qmllint disable unqualified
+        property string bar: foo
+        property string bar2: foo
+        // qmllint enable unqualified
+    }
+}
+\endcode
+
+qmllint interprets all single line comments starting with \c {qmllint} as
+directives. Thus you may not start a comment that way unless you wish to enable
+or disable warnings.
+
+\note As done in the examples above it is preferable to explicitly specify the
+warning or a list of warnings you want to disable instead of disabling all
+warnings. This can be done by simply listing warning categories after \c{qmllint disable} (the names are
+the same as the options listed in \c{--help}).
+
+
+\section2 Configuring qmllint warnings
+
+You can configure the warnings that qmllint emits and their severity level.
+These levels can be \c{info}, \{warning}, \c{error}, or \c{disable}. You can
+customize the warnings using the \c{.qmllint.ini} settings file or by passing
+command line options to qmllint. Command line options override the default and
+the settings file.
+
+To customize the level of a warning category via the command line, set the
+corresponding command line option to the desired level.
+
+For example, to disable warnings about deprecations, call qmllint with the
+\c{--deprecated=disable} option. And to turn unused imports into an error, pass
+\c{--unused-imports=error}.
+
+Customizing warnings in a more permanent way can be done by modifying the
+settings file. See the upcoming section on \l{Settings} files for more details.
+
+
+\section2 Settings
+
+In addition to passing command-line options, you can also
+configure qmllint via a settings file.
+The command line \c{--write-defaults} will generate one for you.
+
+Setting files are named \c{.qmllint.ini} and look like this:
+
+\quotefile qmllint/config.ini
+
+Warning levels may be set to \c{info}, \c{warning}, \c{error}, or \c{disable}
+just as with command line options.
+
+qmllint will automatically look for a settings file at the location of the qml
+file that is being linted.
+It also looks through all parent directories to find this file and
+automatically applies the settings therein. You can disable this behavior by
+using \c{--ignore-settings}.
+You may always override these defaults by specifying
+\l{Configuring qmllint warnings}{command line parameters} that take precedence
+over the warning levels in settings.
+
+\section3 Context property settings
+
+Context properties can be defined or ignored by name in their own settings file.
+Context property settings allow a more fine-grained approach to disabling unqualified
+access warnings for context property usages, while \c{.qmllint.ini} only allows to
+disable all unqualified access warnings, potentially including non-context property
+related ones.
+
+Context property settings are named \c{.contextProperties.ini} and should be located
+inside the source folder of your project. They look like this:
+
+\quotefile qmllint/contextProperties.ini
+
+To disable qmllint warnings about unqualified access to a context property name,
+add the context property name to \c{disableUnqualifiedAccess}. Separate multiple
+context property names with a comma.
+
+To warn about context property usages, add the context property name to \c{warnOnUsage}.
+Separate multiple context property names with a comma.
+
+To control the qmllint heuristic, set \c{disableHeuristic} to \c{true} or \c{false}.
+
+\section2 Scripting
+
+qmllint can write or output JSON via the \c{--json <file>} option which will return valid JSON
+with warning messages, file and line location of warnings, and their severity
+level. Use the special filename '-' to write to stdout instead of a file.
+This can be used to more easily integrate qmllint in your pre-commit hooks or
+CI testing.
+
+\sa {Type Description Files}
+\sa {Qt Quick Tools and Utilities}
+*/

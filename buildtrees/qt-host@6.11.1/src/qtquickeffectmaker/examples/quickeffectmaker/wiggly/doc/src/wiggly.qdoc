@@ -1,0 +1,155 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example wiggly
+    \examplecategory {Graphics}
+    \meta tags {qqem, effects, quickcontrols}
+    \title Wiggly
+    \ingroup quickeffectmaker-examples
+    \brief Demonstrates how to use an effect created with the Qt Quick Effect Maker (QQEM).
+
+    \e {Wiggly} demonstrates how to use a shader effect, created
+    with the Qt Quick Effect Maker (QQEM), in your Qt Quick application. A
+    simple Qt Quick user interface allows changing the wiggly text and the wave size,
+    as well as applying the electric cloud effect.
+
+    \image wiggly-example.png
+           {Wiggly text reading HELLO WORLD with rainbow gradient and wave effect}
+
+    \include examples-run.qdocinc
+
+    \section1 Application basics
+
+    Most of the example is contained and set up in the \e main.qml file. First, create
+    an item which is used as the source for the effect.
+
+    \snippet wiggly/main.qml sourceitem
+
+    The item is a \l Rectangle with a \l Text element inside. The size of the rectangle
+    depends on the number of characters in the text to make it fit nicely into the
+    application window. The important lines here are \e {layer.enabled: true} that creates
+    the offscreen texture for the effect and \e {visible: false}
+    that hides this element as the effect will replace its content. If the item is
+    visible, it looks like this without the wiggly effect:
+
+    \image wiggly-sourceitem.png {Label displaying the text WIGGLY}
+
+    Next, create the settings toolbar used for controlling the effect.
+
+    \image wiggly-settings.png
+           {Settings toolbar with text field, two sliders, and toggle switch}
+
+    \snippet wiggly/main.qml settings
+
+    These components use the \l {Qt Quick Controls}, stacked inside a \l Row element.
+    The first one is a \l TextField, which you can use to change the wiggly text. Then
+    there are separate \l Slider elements, to control the wave size in X and Y
+    coordinates. The last control is a \l Switch, to enable the electric clouds effect.
+
+    \snippet wiggly/main.qml wigglyeffect
+
+    This WigglyEffect is applied to the \c sourceItem defined earlier. Code sets
+    \c timeRunning to true to animate the effect. Finally, it connects some shader effect
+    properties to the controlling components.
+
+    You can also look at the \c {WigglyEffect.qml} file for details of the effect. But
+    that file is created by the QQEM tool, so you should not usually modify it manually.
+    Instead, use the Qt Quick Effect Maker as instructed in the next section.
+
+    \section1 Modifying the effect in QQEM
+
+    As mentioned above, the \e {WigglyEffect} has been created using the Qt Quick
+    Effect Maker. For more information about QQEM installation, see the
+    \l {Installing Qt Quick Effect Maker} documentation.
+
+    To modify the effects:
+
+    \list 1
+        \li Open the effect project file (qep) in the QQEM tool.
+        \li Modify the effect nodes, properties or the shader code and see the live preview.
+        \li When ready, export the modified effect into your application.
+    \endlist
+
+    When the \c {WigglyEffect/WigglyEffect.qep} project is opened in QQEM, you should see
+    something like this:
+
+    \image wiggly-qqem.png
+           {Qt Quick Effect Maker with node view on left and shader code on right}
+
+    On the left side, you can see the \uicontrol {Node view} with different nodes of this effect.
+    The top-right view is \uicontrol {Property view}, with properties (API) of the effect.
+    The bottom-right corner shows \uicontrol {Live view} of the effect, with the currently
+    selected preview source item. To see the live preview with the actual content, add the
+    image of the \c {sourceItem} to the sources list in \uicontrol Edit > \uicontrol Preferences
+    and select it from the preview toolbar popup list.
+
+    To modify the shader code for the wiggly effect, double-click the \e Wiggly node or select
+    it and switch from \uicontrol DESIGN mode to \uicontrol CODE mode. Then select the
+    \uicontrol VERT tab to see the vertex shader, where most of the effect code is:
+
+    \badcode
+    @mesh 63, 1
+    out vec3 wigglyColor;
+
+    float rainbowColor(float phase) {
+        return abs(sin(texCoord.x * 2.0 + iTime + phase));
+    }
+
+    @main
+    {
+        float wave = sin(vertCoord.x * 0.01 + iTime * 3.0);
+        vertCoord.x += wigglyAmountX * wave;
+        vertCoord.y += wigglyAmountY * wave;
+        const float tau = 6.28318530718;
+        wigglyColor.r = rainbowColor(0.0);
+        wigglyColor.g = rainbowColor(1.0/3.0 * tau);
+        wigglyColor.b = rainbowColor(2.0/3.0 * tau);
+        float shadowAmount = (wigglyAmountX + wigglyAmountY) * wave;
+        wigglyColor.rgb += shadowAmount * wigglyShadows * 0.01;
+    }
+    \endcode
+
+    The first line sets up the ShaderEffect mesh grid size. This is needed, as by
+    default there are vertices only in the corners and the wiggly effect requires more
+    moving vertices. Then, set the vertex shader to output \c wigglyColor variable,
+    which will be later used in the fragment shader for applying some shadow. Next,
+    introduce a function called \c rainbowColor, which returns the color of a single
+    channel at the phase.
+
+    Inside the main method, code first sets the \c vertCoord to move the vertex positions
+    in a sin wave. The next lines set the red, green, and blue channels of the wiggly
+    rainbow. The last two lines then apply some shadowing following the wave.
+
+    Next, select the \uicontrol FRAG tab to see the fragment shader code:
+
+    \badcode
+    @main
+    {
+        fragColor.rgb *= wigglyColor * fragColor.a;
+    }
+    \endcode
+
+    The fragment shader is very simple and only multiplies the current source
+    color with the \c wigglyColor received from the vertex shader.
+
+    More of the processing could have been done on the fragment shader side, but having
+    the code on the vertex shader generally is more performant due to the number of
+    vertices being notably lower than the number of fragments (pixels). Some tools,
+    like the \l{http://www.shadertoy.com}{Shadertoy}, only allow writing a fragment
+    shader. But as Qt Quick and QQEM also support custom vertex shaders, you should
+    try to take advantage of them.
+
+    When you modify these shaders, the output of the \uicontrol {Live view} changes
+    instantly. To get the modified shader into use in the example application,
+    select \uicontrol File > \uicontrol Export from the menu.
+
+    You can now play more with the QQEM features. For example, add new nodes, change
+    or add new properties, utilize these properties in the shader code, and so on.
+    Here is an example of what the effect looks like with \c LedScreen node added
+    to the beginning of the node graph:
+
+    \image wiggly-ledscreen.png
+           {Wiggly text with LED screen effect showing colorful dot pattern}
+
+*/

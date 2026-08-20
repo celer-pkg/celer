@@ -1,0 +1,1059 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+  \page embedded-linux.html
+  \title Qt for Embedded Linux
+  \brief Provides information about Embedded Linux support in Qt.
+  \ingroup supportedplatform
+
+  \section1 Platform plugins for embedded Linux devices
+
+  On Embedded Linux systems, there are multiple platform plugins that you can
+  use: EGLFS, VkKhrDisplay, LinuxFB, or Wayland. The availability of these
+  plugins depends on how Qt is configured. Of these, Wayland requires the
+  presence of a compositor, and provides a full windowing system supporting
+  multiple windows, similarly to X11 or Windows. The others work without any
+  windowing system, meaning the Qt application is in full control of the
+  rendering and output. They typically support one fullscreen Qt "window" per
+  screen.
+
+  EGLFS is the default plugin on many boards. If it's not suitable, use the
+  \c QT_QPA_PLATFORM environment variable to request another plugin.
+  Alternatively, for quick tests, use the \c -platform command-line argument
+  with the same syntax.
+
+  \note As of Qt 5.0, Qt no longer has its own window system (QWS)
+  implementation. For single-process use cases, the \l{Qt Platform Abstraction}
+  is a superior solution; multi-process use cases are supported through
+  \l{Qt Wayland Compositor}{Wayland}.
+
+  See \l{Configure an Embedded Linux Device} for an overview of configuring Qt
+  for cross-compilation using an Embedded Linux toolchain.
+
+  \target embedded eglfs
+  \section2 EGLFS
+
+  \l {https://www.khronos.org/egl}{EGL} is an interface between OpenGL and the
+  native windowing system. Qt can use EGL for context and surface management,
+  however the API contains no platform-specifics. Creating a \e {native window},
+  which won't necessarily be an actual window on the screen, must still be
+  done by platform-specific means. This is why we need the board or GPU-specific
+  adaptation code. Typically, these adaptations are provided as:
+
+  \list
+    \li \e{EGLFS hooks} -- a single source file compiled into the platform
+        plugin
+    \li \e{EGL device integration} -- dynamically loaded plugins
+  \endlist
+
+  EGLFS is a platform plugin for running Qt applications on top of EGL and
+  OpenGL ES 2.0, without an actual windowing system like X11 or Wayland. It is
+  the recommended plugin for modern Embedded Linux devices that include a GPU.
+
+  In addition to Qt Quick and native OpenGL applications, EGLFS supports
+  software-rendered windows, like QWidget, too. For QWidget, the widgets'
+  contents are rendered using the CPU into images, which are then
+  uploaded into textures and composited by the plugin.
+
+  EGLFS forces the first top-level window - either a QWidget or a QQuickView
+  - to become fullscreen. This window is also chosen to be the \e root widget
+  window into which all other top-level widgets are composited. For example,
+  dialogs, popup menus, or combo boxes. This behavior is necessary because
+  with EGLFS there is always exactly one native window and one EGL window
+  surface; these belong to the widget or window that is created first. This
+  approach works well when there is a main window that exists for the
+  application's lifetime and all other widgets are either not top-levels or are
+  created afterward, once the main window is shown.
+
+  There are further restrictions for OpenGL-based windows. EGLFS supports a
+  single fullscreen GL window (as of Qt 5.3), like OpenGL-based QWindow,
+  a QQuickView, or a QOpenGLWidget. Opening additional OpenGL windows or mixing
+  such windows with QWidget-based content isn't supported; Qt terminates the
+  application with an error message.
+
+  Furthermore, APIs designed for desktop platforms or environments with a
+  windowing system, such as \l{Drag and Drop}, are not supported on EGLFS.
+
+  \section3 Environment variables used by EGLFS
+  If necessary, \c eglfs can be configured using the following environment
+  variables:
+
+  \table 100%
+    \header
+      \li Environment Variable
+      \li Description
+    \row
+      \li \c {QT_QPA_EGLFS_INTEGRATION}
+      \li In addition to the compiled-in \e hooks, it is also possible to use
+          dynamically loaded plugins to provide device or vendor-specific
+          adaptation. This environment variable enforces a specific plugin.
+          For example, setting it to \e{eglfs_kms} uses the KMS/DRM backend.
+          This is only an option when no static or compiled-in hooks were
+          specified in the device makespecs. In practice, the traditional
+          compiled-in hooks are rarely used, almost all backends are now
+          migrated to plugins. The device makespecs still contain a relevant,
+          though optional,  \c EGLFS_DEVICE_INTEGRATION entry: the name of
+          the preferred backend for that particular device. Avoid setting
+          this environment variable if there is more than one plugin present
+          on the target system. In a desktop environment, the KMS or X11 backends
+          are prioritized, depending on the presence of the \c DISPLAY environment
+          variable.
+          \note On some boards a special value of \c none is used instead
+          of an actual plugin. This indicates that no special integration is
+          necessary to use EGL with the framebuffer; no plugins must be loaded.
+    \row
+      \li \c {QT_QPA_EGLFS_PHYSICAL_WIDTH} and \c {QT_QPA_EGLFS_PHYSICAL_HEIGHT}
+      \li Specifies the physical screen's width and height in millimeters. Note
+          that since Qt 6 the physical screen size is no longer used to determine
+          logical dpi.
+    \row
+      \li \c {QT_QPA_EGLFS_ROTATION}
+      \li Specifies the rotation applied to software-rendered content in
+          QWidget-based applications. Supported values are 180, 90, and -90.
+          This variable does not apply to OpenGL-based windows, including Qt
+          Quick. Qt Quick applications can apply transformations in their QML
+          scene instead. The standard \c eglfs mouse cursor always takes the
+          value into account, with an appropriately positioned and rotated
+          pointer image, regardless of the application type. However, special
+          cursor implementations, such as the KMS/DRM backend's hardware
+          cursor, may not support rotation. This setting has no effect on
+          anything else, including touch input. The touch input backends
+          \c evdevtouch and \c libinput each have their own mechanisms to
+          configure rotation. See \l{Inputs on an Embedded Linux Device}
+          for further information on configuring touch input.
+    \row
+      \li \c {QT_QPA_EGLFS_FORCEVSYNC}
+      \li When set, \c eglfs requests \c FBIO_WAITFORVSYNC on the framebuffer
+          device after each call to eglSwapBuffers(). This variable is only
+          relevant for backends relying on the legacy Linux \c fbdev subsystem.
+          Normally, with a default swap interval of 1, Qt assumes that calling
+          eglSwapBuffers() takes care of vsync; if it doesn't (for example,
+          due to driver bugs), try setting \c QT_QPA_EGLFS_FORCEVSYNC to a
+          non-zero value.
+    \row
+      \li \c {QT_QPA_EGLFS_FORCE888}
+      \li When set, the red, green, and blue color channel sizes are ignored
+          when \c eglfs creates a new context, window or off-screen surface.
+          Instead, the plugin requests a configuration with 8 bits per channel.
+          This can be helpful on devices where configurations with less than 32
+          or 24 bits per pixel (for example, 5-6-5 or 4-4-4) are chosen by
+          default despite knowing they are not ideal, for example, due to
+          banding effects. Instead of changing application code, this variable
+          provides a shortcut to force 24 or 32 bpp configurations.
+  \endtable
+
+  Additionally, the following less commonly used variables are available:
+
+  \table 100%
+    \header
+      \li Environment Variable
+      \li Description
+    \row
+      \li \c {QT_QPA_EGLFS_FB}
+      \li Overrides the framebuffer device. The default is \c /dev/fb0. On most
+          embedded platforms this variable isn't very relevant because the
+          framebuffer is used only to query settings like the display
+          dimensions. However, on certain devices, this variable provides the
+          ability to specify which display to use in multiple display setups,
+          similar to the \c fb parameter in LinuxFB.
+    \row
+      \li \c {QT_QPA_EGLFS_WIDTH} and \c {QT_QPA_EGLFS_HEIGHT}
+      \li Contains the screen's width and height in pixels. While \c eglfs
+          tries to determine the dimensions from the framebuffer device
+          \e{/dev/fb0}, this doesn't always work. It may be necessary to
+          manually specify the sizes.
+    \row
+      \li \c {QT_QPA_EGLFS_DEPTH}
+      \li Overrides the color depth for the screen. On platforms where the
+          framebuffer device \e{/dev/fb0} is not available or the query is not
+          successful, a default of \c 32 is used. Use this variable to override
+          any such defaults.
+          \note This variable only affects the color depth value reported by
+          QScreen. It has no connection to EGL configurations and the color
+          depth used for OpenGL rendering.
+    \row
+      \li \c {QT_QPA_EGLFS_SWAPINTERVAL}
+      \li By default, a swap interval of \c 1 is requested. This variable
+          enables synchronizing to the display's vertical refresh. Use this
+          variable to override the swap interval's value. For instance, passing
+          0 disables blocking on swap, resulting in running as fast as possible
+          without any synchronization.
+    \row
+      \li \c {QT_QPA_EGLFS_DEBUG}
+      \li When set, some debugging information is printed on the debug output.
+          For example, the input QSurfaceFormat and the properties of the
+          chosen EGL configuration are printed while creating a new context.
+          When used together with Qt Quick's \c {QSG_INFO} variable, you can
+          get useful information for troubleshooting issues related to the EGL
+          configuration.
+  \endtable
+
+  \section3 Logging
+
+  In addition to \c {QT_QPA_EGLFS_DEBUG}, \c eglfs also supports Qt's modern
+  categorized logging system. The following logging categories are available:
+
+  \list
+
+    \li \c qt.qpa.egldeviceintegration – Enables logging for dynamically loaded
+        backends. Use this category to check what backend is in use.
+    \li \c qt.qpa.input – Enables debug output both from the \c evdev and
+        \c libinput input handlers. Use this category to check if a given input
+        device was recognized and opened.
+    \li \c qt.qpa.eglfs.kms – Enables verbose logging in the KMS/DRM backend.
+  \endlist
+
+  After running \c configure, make sure to inspect its output. This is the
+  easiest, quickest way to identify whether you have the necessary EGLFS
+  backend, libudev, or libinput enabled. In short, if there's an undesired
+  "no" in your \c configure output, run:
+
+  \code
+  ./configure -v
+  \endcode
+
+  to turn on the verbose output, so that you can see the compiler and linker
+  invocations for each configure test.
+
+  \note If you encounter errors about missing headers, libraries, or seemingly
+  cryptic linker failures, often, they are a sign of an incomplete or broken
+  sysroot and isn't related to Qt.
+
+  As an example, when targeting the Raspberry Pi with the Broadcom proprietary
+  graphics drivers, the output should contain something like the following:
+
+  \badcode
+    QPA backends:
+    EGLFS ................................ yes
+    EGLFS details:
+      EGLFS i.Mx6 ........................ no
+      EGLFS i.Mx6 Wayland ................ no
+      EGLFS EGLDevice .................... no
+      EGLFS GBM .......................... no
+      EGLFS Mali ......................... no
+      EGLFS Raspberry Pi ................. yes
+      EGL on X11 ......................... no
+  \endcode
+
+  If this is not the case, it's not advisable to proceed further with the build
+  since accelerated graphics won't be functional without the Raspberry
+  Pi-specific backend, even if the rest of Qt compiles successfully.
+
+  \section2 VkKhrDisplay
+
+  While EGLFS only supports OpenGL (ES), VkKhrDisplay is an \b experimental
+  platform plugin that supports rendering with the
+  \l{https://www.vulkan.org/}{Vulkan} API. To enumerate displays and set up
+  rendering, it relies on the
+  \l{https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VK_KHR_display.html}{VK_KHR_display}
+  family of extensions. Note that it is not given that a Vulkan implementation
+  within a graphics stack supports this functionality. Currently this platform
+  plugin has been verified and tested with
+  \l{https://docs.mesa3d.org/drivers/v3d.html}{Mesa and V3DV} running on a
+  Raspberry Pi 4.
+
+  This platform plugin does not support OpenGL or any software rendering.
+  Attempting to show a QWidget-based user interface will therefore fail. The
+  only supported QWindow surface type is QSurface::VulkanSurface. For Qt Quick
+  applications this implies that Vulkan-based rendering must be enforced either
+  by setting \c{QSG_RHI_BACKEND=vulkan} in the environment, or by calling
+  \l{QQuickWindow::setGraphicsApi}(QSGRendererInterface::Vulkan); early on
+  before creating a QQuickWindow or QQuickView.
+
+  To use this platform plugin, run the application with \c{-platform vkkhrdisplay}
+  or set \c QT_QPA_PLATFORM to \c vkkhrdisplay. The plugin is built only when
+  Qt is configured with Vulkan support.
+
+  Advanced EGLFS-style configuration (e.g. the JSON configuration file) or
+  outputting to multiple screens from the same application are not currently
+  implemented. Applications can however choose the screen to use via environment
+  variables.
+
+  To determine the index values, check the logs printed on the debug output by
+  the plugin. Currently these logs are uncategorized (printed via qDebug) since
+  inspecting them is essential in most cases, in order to ensure the plugin
+  picks the appropriate display and mode.
+
+  \list
+
+  \li \c QT_VK_DISPLAY_INDEX - When set, the display with the given index is used.
+
+  \li \c QT_VK_MODE_INDEX - When set, the mode with the given index is used.
+
+  \li \c QT_VK_PHYSICAL_DEVICE_INDEX - When set, the Vulkan physical device with
+  the given index is used. This will not be relevant in most cases on embedded.
+  Note that this variable is also used by the rest of the Qt graphics stack.
+
+  \endlist
+
+  Input (keyboard, mouse, touch) handling is similar to EGLFS, supporting
+  \c evdev, \c libinput, and \c tslib. There is no mouse cursor rendering
+  implemented, however. This is because there is no concept of a hardware cursor
+  in this environment, and rendering a cursor with Vulkan within the platform
+  plugin, similarly to what EGLFS does with OpenGL, is problematic for multiple
+  reasons. Therefore this platform plugin is not well suited for mouse-based
+  input at the moment.
+
+  The related environment variables are:
+
+  \list
+
+  \li \c QT_QPA_DISABLE_INPUT - Disables keyboard/mouse/touch input.
+
+  \li \c QT_QPA_NO_LIBINPUT - Prefers the evdev-based input handlers even when
+  \l{https://www.freedesktop.org/wiki/Software/libinput/}{libinput} is available.
+
+  \li \c QT_QPA_TSLIB - Requests using the legacy
+  \l{http://www.tslib.org/}{tslib} library.
+
+  \endlist
+
+  \section2 LinuxFB
+
+  This plugin writes directly to the framebuffer via Linux's fbdev subsystem.
+  Only software-rendered content is supported. Note that on some setups the
+  display performance is expected to be limited. To use Qt Quick applications
+  with this platform plugin, the \c software scenegraph backend must be used,
+  either by setting \c{QT_QUICK_BACKEND=software} in the environment, or by
+  calling \l{QQuickWindow::}{setGraphicsApi()} with
+  QSGRendererInterface::Software. QWidget applications, or QWindow with a
+  surface type of QSurface::RasterSurface, are supported, but this does not
+  include special widgets such as QOpenGLWidget.
+
+  As fbdev is being deprecated in the Linux kernel, DRM dumb
+  buffer support is also available. To use it, set the
+  \c QT_QPA_FB_DRM environment variable to a non-zero value. When set, provided
+  that dumb buffers are supported by your system, legacy framebuffer devices
+  like \c{/dev/fb0} won't be accessed. Instead, the rendering is set up via the
+  DRM APIs, similar to the \c{eglfs_kms} backend in EGLFS. The output is
+  double-buffered and page flipped, providing proper vsync for
+  software-rendered content as well.
+
+  \note When dumb buffers are in use, none of the options described below are
+  applicable since properties like physical and logical screen sizes are all
+  queried automatically.
+
+  \section3 Specifying additional settings
+
+  The \c linuxfb plugin allows you to specify additional settings via the
+  \c QT_QPA_PLATFORM environment variable or \c -platform command-line option.
+  For example, \c {QT_QPA_PLATFORM=linuxfb:fb=/dev/fb1} specifies that the
+  framebuffer device \c /dev/fb1 must be used instead of the default \c fb0.
+  To specify multiple settings, separate the mwith a colon (:).
+
+  \table
+    \header
+      \li Settings
+      \li Description
+    \row
+      \li \c {fb=/dev/fbN}
+      \li Specifies the framebuffer devices. On multiple display setups,
+          this setting allows you to run the application on different displays.
+          Currently, there's no way to use multiple framebuffers from one Qt
+          application.
+    \row
+      \li \c{size=}\e{<width>}\c{x}\e{<height>}
+      \li Specifies the screen size in pixels. The plugin tries to query the
+          display dimensions, both physical and logical, from the framebuffer
+          device. However, this query may not always lead to proper results;
+          it may be necessary to specify the values explicitly.
+    \row
+      \li \c{mmsize=}\e{<width>}\c{x}\e{<height>}
+      \li Specifies the physical width and height in millimeters.
+    \row
+      \li \c{offset=}\e{<width>}\c{x}\e{<height>}
+      \li Specifies the top-left corner of the screen offset in pixels. The
+          default position is at \c{(0, 0)}.
+    \row
+      \li \c {nographicsmodeswitch}
+      \li Specifies not to switch the virtual terminal to graphics mode
+          (\c KD_GRAPHICS). Typically, \e enabling graphics mode disables the
+          blinking cursor and screen blanking. However, when this parameter is
+          set, those two features are also skipped.
+    \row
+      \li \c {tty=/dev/ttyN}
+      \li Overrides the virtual console. Only used when \c{nographicsmodeswitch}
+          isn't set.
+  \endtable
+
+  As of Qt 5.9, the behavior of EGLFS and LinuxFB has been synchronized, with
+  regards to the window sizing policy: the first top-level window is forced to
+  cover the entire screen, with both platform plugins. If this is not desired,
+  set the \c{QT_QPA_FB_FORCE_FULLSCREEN} environment variable to \c 0 to
+  restore the behavior from earlier Qt versions.
+
+  \section1 Display output
+
+  The level of support to target one or more displays from one single Qt application
+  varies between the platform plugins. Support often depends on the device and its
+  graphics stack.
+
+  \section2 EGLFS with the eglfs_kms backend
+
+  When the KMS/DRM backend is in use, EGLFS reports all available screens in
+  QGuiApplication::screens(). Applications can target different screens with
+  different windows via QWindow::setScreen().
+
+  \note The restriction of one single fullscreen window per screen still
+  applies. Changing screens after making the QWindow visible isn't supported
+  either. Therefore, it's essential that embedded applications make all the
+  necessary QWindow::setScreen() calls before calling QWindow::show().
+
+  When you start developing on a given embedded device, often it's necessary to
+  verify the behavior of the device and drivers, and that the connected displays
+  are working as they should. One easy way is to use the \b{hellowindow} example.
+  Launching it with the \c{-platform eglfs --multiscreen --timeout} arguments
+  shows a rotating Qt logo on each connected screen for a few seconds.
+
+  \section3 Custom configuration
+
+  The KMS/DRM backend also supports custom configurations via a JSON file. To
+  enable this, set the \c QT_QPA_EGLFS_KMS_CONFIG environment variable to the
+  name of the file. You can also embed this file into the application via the Qt
+  resource system.
+
+  Most of these configuration options apply to all KMS/DRM-based backends,
+  regardless of the buffer management technology (GBM or EGLStreams).
+
+  \note Configurations files are considered trusted content that is fully
+  controlled and managed by the device or platform creator. They are not
+  expected to be exposed to the end-user in any form.
+
+  Here's an example configuration:
+
+  \badcode
+    {
+      "device": "/dev/dri/card1",
+      "hwcursor": false,
+      "pbuffers": true,
+      "outputs": [
+        {
+          "name": "VGA1",
+          "mode": "off"
+        },
+        {
+          "name": "HDMI1",
+          "mode": "1024x768"
+        }
+      ]
+    }
+  \endcode
+
+  Here we configure the specified device so that:
+
+  \list
+    \li It won't use the hardware cursor (falls back to rendering the mouse
+        cursor via OpenGL; by default hardware cursors are enabled as they're
+        more efficient).
+    \li It backs QOffscreenSurface with standard EGL pbuffer surfaces (by
+        default this is disabled and a gbm surface is used instead).
+    \li Output on the VGA connector is disabled, while HDMI is active with a
+        resolution of 1024x768.
+  \endlist
+
+  Additionally, such a configuration also disables looking for a device via
+  \c libudev; instead the specified device is used.
+
+  When \c mode is not defined, the system's preferred mode is chosen. The
+  accepted values for \c mode are: \c off, \c current, \c preferred, \c skip,
+  width\c{x}height, width\c{x}height\c{@}vrefresh, or a modeline string.
+
+  Specifying \c current chooses a mode with a resolution that matches the
+  current one. Because mode-setting is done only when the desired mode is
+  actually different from the active one (unless forced via the
+  \c QT_QPA_EGLFS_ALWAYS_SET_MODE environment variable), this value is useful to
+  preserve the current mode and any content in the planes not touched by Qt.
+
+  \c skip causes the connector for the output to be ignored as if it were
+  disconnected. \c off is similar, but it changes the mode and turns off the
+  display.
+
+  \section3 Default behavior
+
+  By default, all screens reported by the DRM layer are treated as one big virtual
+  desktop. The mouse cursor implementation takes this into account and moves
+  across the screens as expected. Although not recommended, you can disable the
+  virtual desktop by setting \c separateScreens to \c false in the configuration.
+
+  By default, the virtual desktop is formed left to right, based on the order of
+  connectors as reported by the system. To change this, set \c virtualIndex to a
+  value starting from 0.
+
+  For example, the following configuration uses the preferred resolution but ensures
+  that the left side of the virtual desktop is the screen connected to the HDMI port;
+  while the right side is the screen connected to the DisplayPort:
+
+  \badcode
+    {
+      "device": "drm-nvdc",
+      "outputs": [
+        {
+          "name": "HDMI1",
+          "virtualIndex": 0
+        },
+        {
+          "name": "DP1",
+          "virtualIndex": 1
+        }
+      ]
+    }
+  \endcode
+
+  The order of elements in the array is not relevant. Outputs with unspecified
+  virtual indices are placed after the others, with the original order in the
+  DRM connector list preserved.
+
+  To create a vertical desktop space (that is, to stack top to bottom instead of
+  left to right), add a \c virtualDesktopLayout property after \c device
+  with the value of \c vertical.
+
+  \warning It's recommended that all screens in the virtual desktop use the same
+  resolution, otherwise elements like the mouse cursor may behave in unexpected
+  ways when entering areas that only exist on one given screen.
+
+  When \c virtualIndex is not sufficient, the \c virtualPos property can be used
+  to explicitly specify the top-left position of the screen in question. Taking
+  the previous example and assuming a resolution of 1080p for HDMI1, the
+  following code snippet places a second HDMI-based screen below the first one:
+
+  \badcode
+    {
+       ...
+      "outputs": [
+        ...
+        {
+          "name": "HDMI2",
+          "virtualPos": "0, 1080"
+        }
+      ]
+    }
+  \endcode
+
+  \note Avoid such configurations when mouse support is desired. The mouse
+  cursor's behavior may be unexpected with non-linear layouts. Touch should
+  present no issues.
+
+  \section3 Automatic physic screen size querying
+
+  In some cases, the automatic querying of the physical screen size via DRM may
+  fail. Normally the \c QT_QPA_EGLFS_PHYSICAL_WIDTH and
+  \c QT_QPA_EGLFS_PHYSICAL_HEIGHT environment variable would be used to provide the
+  missing values. This is not suitable anymore when multiple screens are
+  present. Instead, use the \c physicalWidth and \c physicalHeight properties
+  in the \c outputs list to specify the sizes in millimeters.
+
+  \note Different physical sizes and thus differing logical DPIs are discouraged
+  because it may lead to unexpected issues due to some graphics stack components
+  not knowing about multiple screens and relying solely on the first screen's
+  values.
+
+  \section3 Active outputs and QScreen instances
+
+  Each active output from the \c outputs array corresponds to one QScreen
+  instance reported from QGuiApplication::screens(). By default, the primary screen
+  that QGuiApplication::primaryScreen() reports is the screen that is registered
+  first. If you're not using \c virtualIndex, this means the decision is based on
+  the DRM connector order. To override this, set the \c primary property to \c true
+  on the desired entry in the \c outputs list.
+
+  For example, to ensure the screen corresponding to the VGA output is the primary even
+  when the system happens to report the HDMI one first, do the following:
+
+  \badcode
+    {
+      "device": "/dev/dri/card0",
+      "outputs": [
+          { "name": "HDMI1" },
+          { "name": "VGA1", "mode": "1280x720", "primary": true },
+          { "name": "LVDS1", "mode": "off" }
+      ]
+    }
+  \endcode
+
+  For troubleshooting, it might be useful to enable debug logs from the KMS/DRM
+  backend. To do this, enable the \c qt.qpa.eglfs.kms categorized logging rule.
+
+  \note In an embedded environment, virtual desktops are more limited compared to
+  a full windowing system. Windows overlapping multiple screens, non-fullscreen
+  windows, and moving windows between screens, should be avoided and may not
+  function as expected.
+
+  \section3 A common use case
+
+  The most common and best supported use case for a multi-screen setup is to
+  open a dedicated QQuickWindow or QQuickView for each screen. With the default
+  \c threaded render loop of the Qt Quick scenegraph, each of these windows will
+  get its own dedicated render thread. This is good because the threads can be
+  throttled independently based on vsync, and will not interfere with each
+  other. With the \c basic loop, this can get problematic, causing animations to
+  degrade.
+
+  For example, discovering all connected screens and creating a QQuickView for
+  each of them can be done like this:
+
+  \badcode
+    int main(int argc, char **argv)
+    {
+        QGuiApplication app(argc, argv);
+
+        QVector<QQuickView *> views;
+        for (QScreen *screen : app.screens()) {
+            QQuickView *view = new QQuickView;
+            view->setScreen(screen);
+            view->setResizeMode(QQuickView::SizeRootObjectToView);
+            view->setSource(QUrl("qrc:/main.qml"));
+            QObject::connect(view->engine(), &QQmlEngine::quit, qGuiApp, &QCoreApplication::quit);
+            views.append(view);
+            view->showFullScreen();
+        }
+
+        int result = app.exec();
+
+        qDeleteAll(views);
+        return result;
+    }
+  \endcode
+
+  \section2 Advanced eglfs_kms features
+
+  \section3 Cloning (mirroring)
+
+  Screen cloning (mirroring) is supported. This is enabled via
+  the \c clones property:
+
+  \badcode
+    {
+      "device": "/dev/dri/card0",
+      "outputs": [
+          { "name": "HDMI1", "mode": "1920x1080" },
+          { "name": "DP1", "mode": "1920x1080", "clones": "HDMI1" }
+     ]
+    }
+  \endcode
+
+  In this case, the content on the display connected via DisplayPort will be the
+  same as on the HDMI one. This is ensured by scanning out the same buffer on
+  both.
+
+  However, this feature can only work if the resolutions are the same, there are no
+  incompatibilities when it comes to accepted buffer formats, and the application
+  doesn't have any output on the QScreen associated with a clone destination. In
+  practice, the latter means that no QWindow associated with the QScreen in question
+  - DP1 in the example - must ever perform a QOpenGLContext::swapBuffers() operation.
+  It's up to the configuration and the application to ensure these.
+
+  \section3 Headless mode using DRM render
+
+  Headless mode via DRM render nodes is supported. This allows
+  performing GPU compute (OpenGL compute shaders, OpenCL) or off-screen OpenGL
+  rendering without needing DRM master privileges. In this mode, applications can
+  function even when there is already another process outputting to the screen.
+
+  Just switching \c device from \c{/dev/dri/card0} to \c{/dev/dri/renderD128} is
+  futile on its own since there are a number of operations that cannot be
+  performed in headless mode. Therefore, this must be combined with a
+  \c headless property, for example:
+
+  \badcode
+    {
+        "device": "/dev/dri/renderD128",
+        "headless": "1024x768"
+    }
+  \endcode
+
+  Keep in mind that windows are still sized to match the - now virtual -
+  screen size, hence the need for specifying a size in the \c headless
+  property. There is also a lack of vsync-based throttling.
+
+  Once enabled, applications have two typical choices to perform off-screen
+  rendering in headless mode:
+
+  Use an ordinary window, such as a QOpenGLWindow subclass, targeting the
+  window's default framebuffer, meaning a \c{gbm_surface} in practice:
+
+  \badcode
+      MyOpenGLWindow w;
+      w.show(); // will not actually show up on screen
+      w.grabFramebuffer().save("output.png");
+  \endcode
+
+  Or the typical offscreen approach with an extra FBO:
+
+  \badcode
+     QOffscreenSurface s;
+     s.setFormat(ctx.format());
+     s.create();
+     ctx.makeCurrent(&s);
+     QOpenGLFramebufferObject fbo(1024, 768);
+     fbo.bind();
+     ctx.functions()->glClearColor(1, 0, 0, 1);
+     ctx.functions()->glClear(GL_COLOR_BUFFER_BIT);
+     fbo.toImage().save("output.png");
+     ctx.doneCurrent();
+  \endcode
+
+  \section3 DRM API selection
+
+  KMS/DRM can be used with two different DRM APIs which are \e legacy and \e atomic.
+  The main benefit of DRM atomic API is to allow several DRM plane updates
+  within the same renderloop, whereas legacy API would require one plane update
+  per vsync.
+
+  Atomic API is useful when your application needs to blend content into overlays
+  keeping all the updates within the same vsync. Still not all devices
+  support this API and it could be unavailable on some older devices.
+  KMS backend will by default use the legacy API, but you can enable the DRM
+  atomic API with \c QT_QPA_EGLFS_KMS_ATOMIC environment variable set to 1.
+
+  Using a smaller framebuffer than screen resolution can also be useful.
+  This is possible with DRM atomic using the \c size parameter in the JSON file.
+  The example below uses a 1280x720 framebuffer on a 3840x2160 videomode :
+
+  \badcode
+    {
+      "device": "/dev/dri/card0",
+      "outputs": [
+        { "name": "HDMI1", "mode": "3840x2160", "size": "1280x720", "format": "argb8888" }
+      ]
+    }
+  \endcode
+
+  \section3 EGLFS hot-plug and hot-reload
+
+  If a KMS-configuration-file is set via \c QT_QPA_EGLFS_KMS_CONFIG,
+  the referenced file will be watched by a QFileSystemWatcher.
+  Any changes to this file will trigger it to be re-read and cause appropriate updates.
+  e.g. layout changes, mode changes, turning screens on/off.
+
+  In a similar fashion, but strictly opt-in, \c QT_QPA_EGLFS_HOTPLUG_ENABLED
+  can be set and will enable a QDeviceDiscovery to watch the KMS-device for any changes
+  like screens connected/plugged-in and disconnected/unplugged.
+
+  Both features can and will often be used in parallel.
+
+  To properly facilitate the dynamic changes that are triggered by hot-plug and hot-reload,
+  it is important to react by creating and destroying windows in the respective
+  appearing and disappearing screens.
+
+  Example code:
+  \badcode
+    #include <QGuiApplication>
+    #include <QQuickView>
+    #include <QQuickItem>
+    #include <QScreen>
+    #include <QQmlContext>
+
+    QHash<QString, QQuickView*> screenNameToViewMap;
+
+    int main(int argc, char* argv[])
+    {
+        QGuiApplication app(argc,argv);
+        app.setQuitOnLastWindowClosed(false);
+
+        auto lRemove = [&](QScreen *screen) {
+            if (screen->name().compare(QStringLiteral("qt_Headless")) == 0)
+                return;
+
+            if (!screenNameToViewMap.contains(screen->name()))
+                return;
+
+            QQuickView *view = screenNameToViewMap.take(screen->name());
+            delete view;
+        };
+
+        auto lAdd = [&](QScreen *screen) {
+            if (screen->handle() == nullptr)
+                return;
+
+            if (screen->name().compare(QStringLiteral("qt_Headless")) == 0)
+                return;
+
+            if (screenNameToViewMap.contains(screen->name()))
+                return;
+
+            QQuickView *view = new QQuickView;
+
+            view->setSource(QUrl(QStringLiteral("qrc:/main.qml")));
+            view->setScreen(screen);                    // This is not as important as the next line, but good practice
+            view->setGeometry(screen->geometry());      // This is vital! Otherwise QWindow::show (/QWindowPrivate::create) will change the screen!
+            view->show();
+
+            screenNameToViewMap.insert(screen->name(), view);
+        };
+
+        QObject::connect(&app, &QGuiApplication::screenAdded, &app, lAdd, Qt::QueuedConnection);
+        QObject::connect(&app, &QGuiApplication::screenRemoved, &app, lRemove);
+
+        for (QScreen *screen : app.screens())
+            lAdd(screen);
+
+        return app.exec();
+    }
+  \endcode
+
+  Please note in above example the line regarding QWindow::setGeometry,
+  this is crucial for windows to appear on the screen they are meant to!
+
+  As the same signals exist for QML as well, equivalent code can be written in QML as well.
+
+  Especially for \c QT_QPA_EGLFS_HOTPLUG_ENABLED it is vital to adopt your code,
+  as some screens will act as if disconnected when turned off.
+  Without this feature enabled, neither Qt nor the application level code will be
+  notified about disconnects. All the backend resources will usually just stay intact
+  and therefor the screen will re-appear as if nothing happened.
+  With \c QT_QPA_EGLFS_HOTPLUG_ENABLED, the Qt's resources on the screen
+  (e.g. QScreen, QPlatformScreen, backing-store,..)
+  will be destroyed and will be recreated on connect (e.g. turning the screen back on).
+  And so, the application level resources (e.g. QWindow) need to be recreated as well.
+
+  The fallback screen called "qt_Headless" is there to facilitate any switches to
+  and from a zero-screen configurations. For application level windows,
+  this screen can and should in most cases be ignored.
+
+
+  \section2 EGLFS with an eglfs_kms_egldevice backend
+
+  This backend, typically used on Tegra devices, is similar to the KMS/DRM
+  backend mentioned above, except that it relies on the EGLDevice and EGLStream
+  extensions instead of GBM.
+
+  For technical details about this approach, check out
+  \l {https://wiki.qt.io/Qt_for_Embedded_Linux/XDC2014RitgerEGLNonMesa}{this presentation}.
+
+  As of Qt 5.7 this backend shares many of its internal implementation with the
+  GBM-based backend. This means that multiple screens and the advanced
+  configuration via \c QT_QPA_EGLFS_KMS_CONFIG are supported. Some settings,
+  such as \c hwcursor and \c pbuffers are not applicable however.
+
+  By default, the backend will automatically choose the correct EGL layer for the
+  default plane of each output. When necessary, this can be overridden by
+  setting the \c QT_QPA_EGLFS_LAYER_INDEX environment variable to the index of
+  the desired layer. This approach does not currently support multiple outputs,
+  so its usage should be limited to systems with a single screen. To see which
+  layers are available, and to debug potential startup issues, enable the
+  logging category \c qt.qpa.eglfs.kms.
+
+  In some cases, it may be necessary to perform a video mode set on application
+  startup even when the screen reports that the desired resolution is already
+  set. This is normally optimized away, but if the screen stays powered down,
+  try setting the environment variable \c QT_QPA_EGLFS_ALWAYS_SET_MODE to a
+  non-zero value and relaunch the application.
+
+  To configure the behavior of the EGLStream object used by the backend, use the
+  \c QT_QPA_EGLFS_STREAM_FIFO_LENGTH environment variable. This assumes that
+  \c KHR_stream_fifo is supported by the target system. By default, the stream
+  operates in mailbox mode. To switch to FIFO mode, set a value of 1 or
+  greater. The value specifies the maximum number of frames the stream can hold.
+
+  On some systems it may become necessary to target a specific overlay plane
+  through a pre-defined connector. Just forcing a layer index via
+  \c QT_QPA_EGLFS_LAYER_INDEX does not perform plane configuration and is therefore
+  not suitable in itself. Instead, in such special scenarios use the
+  \c QT_QPA_EGLFS_KMS_CONNECTOR_INDEX and \c QT_QPA_EGLFS_KMS_PLANE_INDEX
+  environment variables. When these are set, only the specified connector and
+  plane will be in use, all other outputs will get ignored. The backend will
+  take care of picking the EGL layer that corresponds to the desired plane, and
+  configuring the plane.
+
+  \section2 Touch input in systems with multiple screens on KMS/DRM
+
+  Touchscreens require additional considerations in multi-display systems
+  because touch events have to be routed to the correct virtual screen, and this
+  requires a correct mapping between touchscreens and display outputs.
+
+  The mapping is done via the JSON configuration file specified in
+  \c QT_QPA_EGLFS_KMS_CONFIG and described in the previous sections. When a
+  \c touchDevice property is present in an element of the \c outputs array, the
+  value is treated as a device node and the touch device is associated with the
+  display output in question.
+
+  For example, assuming our touchscreen has a device node of /dev/input/event5
+  and is a touchscreen integrated into the monitor connected via HDMI as the
+  secondary screen, the following configuration ensures correct touch (and
+  synthesized mouse) event translation:
+
+  \badcode
+     {
+        "device": "drm-nvdc",
+        "outputs": [
+          {
+            "name": "HDMI1",
+            "touchDevice": "/dev/input/event5",
+            "virtualIndex": 1
+          },
+          {
+            "name": "DP1",
+            "virtualIndex": 0
+          }
+        ]
+    }
+  \endcode
+
+  \note When in doubt, enable logging from both the graphics and input
+  subsystems by setting the environment variable
+  \c{QT_LOGGING_RULES=qt.qpa.*=true} before launching the application. This will
+  help identify the correct input device nodes and may uncover output
+  configuration issues that can be difficult to debug otherwise.
+
+  \note As of Qt 5.14, the above is only supported for the evdevtouch and
+  libinput backends. Other variants will continue to route events to the
+  primary screen. To force the usage of evdevtouch on systems where multiple
+  input backends are available, set the environment variable
+  \c QT_QPA_EGLFS_NO_LIBINPUT to \c 1.
+
+  \section2 EGLFS with other backends
+
+  Other backends, which are typically based on targeting the framebuffer or a
+  composition API directly via the vendor's EGL implementation, usually provide
+  limited or no support for multiple displays. On i.MX6-based boards with
+  Vivante GPUs the \c{QT_QPA_EGLFS_FB} environment variable can be used to
+  specify the framebuffer to target, similarly to linuxfb. On the Raspberry Pi
+  the \c{QT_QPA_EGLFS_DISPMANX_ID} environment variable can be used to specify
+  the screen to output to. The value corresponds to one of the \c{DISPMANX_ID_}
+  constants, refer to the Dispmanx documentation. Note that these approaches,
+  unlike KMS/DRM, will not typically allow output to multiple screens from
+  the same application. Alternatively, driver-specific environment variables or
+  kernel parameters may also be available as well to control the used
+  framebuffer. Refer to the embedded board's documentation.
+
+  \section1 Video memory
+
+  Systems with a fixed amount of dedicated video memory may need extra care
+  before running Qt applications based on Qt Quick or classes like
+  QOpenGLWidget. The default setting may be insufficient for such applications,
+  especially when they are displayed on a high resolution (for example, full HD)
+  screen. In this case, they may start failing in unexpected ways. It is
+  recommended to ensure that there is at least 128 MB of GPU memory available.
+  For systems that do not have a fixed amount of memory reserved for
+  the GPU, this is not an issue.
+
+  \section2 linuxfb
+
+  Use the \c fb plugin parameter to specify the framebuffer device to use.
+
+  \section1 Unix signal handlers
+
+  The console-oriented platform plugins like eglfs and linuxfb install signal
+  handlers by default to capture interrupt (\c SIGINT), suspend and continue
+  (\c SIGTSTP, \c SIGCONT) and termination (\c SIGTERM). This way the keyboard,
+  terminal cursor, and possibly other graphics state can be restored when the
+  application terminates or gets suspended due to \c kill, or \c{Ctrl+C} or
+  \c{Ctrl+Z}. (although terminating or suspending via the keyboard is only
+  possible when \c{QT_QPA_ENABLE_TERMINAL_KEYBOARD} is set, as outlined above in
+  the Input section). However, in some cases capturing \c SIGINT can be
+  undesirable as it may conflict with remote debugging for instance. Therefore,
+  the environment variable \c{QT_QPA_NO_SIGNAL_HANDLER} is provided to opt-out
+  from all built-in signal handling.
+
+  \section1 Fonts
+
+  Qt normally uses \c fontconfig to provide access to system fonts. If
+  \c fontconfig is not available, Qt will fall back to using
+  \c QBasicFontDatabase. In this case, Qt applications will look for fonts in Qt's
+  \c lib/fonts directory. Qt will automatically detect pre-rendered fonts and
+  TrueType fonts. This directory can be overridden by setting the \c
+  QT_QPA_FONTDIR environment variable.
+
+  For more information on the supported formats, see \l{Qt for Embedded Linux Fonts}.
+
+  \note Qt no longer ships any fonts in the \c lib/fonts directory. This
+  means that it is up to the platform (the system image) to provide the
+  necessary fonts.
+
+  \section1 Platform plugins for windowing systems on embedded Linux devices
+
+  \section2 XCB
+
+  This is the X11 plugin used on regular desktop Linux platforms. In some
+  embedded environments, that provide X and the necessary development files for
+  \l {https://xcb.freedesktop.org}{xcb}, this plugin functions just like it
+  does on a regular PC desktop.
+
+  \note On some devices there is no EGL and OpenGL support available under X
+  because the EGL implementation is not compatible with Xlib. In this case the
+  XCB plugin is built without EGL support, meaning that Qt Quick 2 or other
+  OpenGL-based applications do not work with this platform plugin. It can
+  still be used, however, to run software-rendered applications (based on QWidget
+  for example).
+
+  As a general rule, the usage of XCB on embedded devices is not
+  advisable. Plugins like eglfs are likely to provide better performance and
+  hardware acceleration.
+
+  \section2 Wayland
+
+  \l{https://wayland.freedesktop.org/}{Wayland} is a light-weight windowing
+  system; or more precisely, it is a protocol for clients to talk to a display
+  server.
+
+  Qt Wayland provides a \c wayland platform plugin that allows Qt applications
+  to connect to a Wayland compositor.
+
+  For more details, see \l{Wayland and Qt}.
+
+  \section1 Performance enhancement guidelines
+
+  \section2 Use hardware rendering where possible
+  When performance is critical to your application, avoid the use of Qt modules
+  that rely on software rendering. Prefer modules that rely on
+  hardware rendering instead, where possible.
+
+  \section2 Follow the best practices for Qt Quick
+
+  Follow the \l{Best Practices for QML and Qt Quick}, especially with regards to
+  including the \l{Building a QML application}{QML CMake API}, so that \l{qmllint},
+  \l{QML script compiler} (qmlsc), and the \l{QML type compiler} (qmltc) are available.
+  In addition, it's preferable to write declarative QML and minimize Javascript.
+  For more information on how using excessive JavaScript may impact performance see
+  \l{QML Performance Considerations And Suggestions}.
+
+  \section2 Use images/textures and shader effects instead of the Canvas QML type
+
+  For drawing custom UI elements, use images/textures and \l{Shader Effects}. Don't
+  use the QML \l[QML]{Canvas} type. Shaders require hardware acceleration (GPU).
+
+  \section2 Use Qt Quick instead of Qt Widgets
+
+  With Qt Quick, it's possible to use either hardware-accelerated or software-rendered backends.
+  For complex Uls, using Qt Widgets on embedded targets is not recommended, as it will always use
+  a software backend.
+
+  There are trade-offs here:
+  \list
+       \li Using the QML engine and Qt Quick comes with initial overhead.
+       \li If your UI is very simple and repaints rarely, it may perform faster when implemented
+       using Widgets instead of QML.
+       \li If your UI benefits from \l{Animation and Transitions in Qt Quick}{animations},
+       \l[QML]{Flickable}{smooth scrolling},and \l[QML]{Item::scale}{scaling},
+       \l[QML]{ShaderEffect}{rendering effects}, or \l{Qt Quick 3D}{3D} you need to have GPU
+       acceleration, and thus Qt Quick.
+  \endlist
+
+  \section2 Choose a resolution appropriate for your UI size
+
+  You need to be cautious with higher resolutions. Resolutions of 720p and higher
+  may reduce performance.
+
+  \section2 Use a QML Window type as your application's root element
+
+  Use a \l[QML]{Window} as your application's root element with the application's background
+  \l[QML]{Window::color}{color}.
+
+  The reasoning for this is that a Window component has a color property that has
+  the effect of being a buffer clear. Rendering the background using a full-screen
+  \l[QML]{Rectangle} as an application's root \l[QML]{Item} would cause an additional
+  draw call. For some RHI backends this may be the same thing, but there is a difference
+  between a \l{QOpenGLFunctions::glClear}{glClear} call and drawing a quad. In most cases,
+  a single, opaque image might not have a large performance impact but if you were to
+  use an alpha value in that item's color, you might see a significant performance impact.
+
+  \section1 Related topics
+
+  \list
+   \li \l{Boot to Qt}
+   \li \l{Configure an Embedded Linux Device}
+   \li \l{Inputs on an Embedded Linux Device}
+  \endlist
+
+*/

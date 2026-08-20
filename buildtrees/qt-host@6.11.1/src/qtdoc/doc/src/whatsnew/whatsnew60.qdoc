@@ -1,0 +1,228 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page whatsnew60.html
+    \title What's New in Qt 6.0
+    \brief Lists the new features in Qt 6.0.
+    \ingroup whatsnewqt6
+    \meta sortkey 600
+
+    \section1 Build System Changes in Qt 6
+
+    Building Qt from sources now requires CMake and Ninja. See
+    \l{Build System Changes in Qt 6} for more details on this and other
+    changes in configure.
+
+    \section1 Changes to Supported Modules
+
+    Qt 6.0 is streamlined compared to Qt 5 and some modules are no longer in the
+    default installation of Qt 6.0. Because of the modularized structure of Qt,
+    new modules or previous Qt 5 modules may appear in future releases of Qt 6.
+    For more information, visit the \l{All Modules} page.
+
+    The \l{Changes to Qt Modules in Qt 6} has a list of API changes.
+
+    \section1 New Modules in Qt 6.0
+
+        The following are new modules in Qt 6.0.
+
+        \list
+        \li \l{Qt 5 Core Compatibility APIs}
+        \li \l{Qt 5 Compatibility APIs: Graphical Effects}
+        \li \l[QtShaderTools]{Qt Shader Tools} - for graphics and compute
+            shaders
+        \endlist
+
+
+    \section1 Removed Modules in Qt 6.0
+
+        The following are Qt 5 modules that are not in Qt 6.0. They may be
+        re-introduced in a future release of Qt 6.
+
+        \table 80%
+        \header
+            \li Module
+            \li qmake
+            \li Comments
+        \row
+            \li Qt for Android Extras
+            \li \c androidextras
+            \li See \l {Changes to Qt Extras Modules}
+        \row
+            \li Qt Bluetooth
+            \li \c bluetooth
+            \li
+        \row
+            \li Qt Charts
+            \li \c charts
+            \li
+        \row
+            \li Qt Data Visualization
+            \li \c datavisualization
+            \li
+        \row
+            \li Qt Graphical Effects
+            \li
+            \li Available through \l{Qt 5 Compatibility APIs: Graphical Effects}. \br
+                See successors in Qt 6.5: \l {MultiEffect} and \l {Qt Quick Effect Maker}.
+        \row
+            \li Qt Location
+            \li \c location
+            \li
+        \row
+            \li Qt Mac Extras
+            \li \c macextras
+            \li See \l {Changes to Qt Extras Modules}
+        \row
+            \li Qt Multimedia
+            \li \c multimedia
+            \li
+        \row
+            \li Qt Multimedia Widgets
+            \li \c multimediawidgets
+        \row
+            \li Qt NFC
+            \li \c nfc
+            \li
+        \row
+            \li Qt Positioning
+            \li \c positioning
+            \li
+        \row
+            \li Qt Purchasing
+            \li \c purchasing
+            \li
+        \row
+            \li Qt Quick Extras
+            \li
+            \li Merged into \l{Qt Quick Controls}
+        \row
+            \li Qt Remote Objects
+            \li \c remoteobjects
+            \li
+        \row
+            \li Qt Script
+            \li \c qtscript
+            \li
+        \row
+            \li Qt SCXML
+            \li \c scxml
+            \li
+        \row
+            \li Qt Script Tools
+            \li \c scripttools
+            \li
+        \row
+            \li Qt Sensors
+            \li \c sensors
+            \li
+        \row
+            \li Qt Serial Bus
+            \li \c serialbus
+            \li
+        \row
+            \li Qt Serial Port
+            \li \c serialport
+            \li
+        \row
+            \li Qt Speech
+            \li \c texttospeech
+            \li
+        \row
+            \li Qt WebChannel
+            \li \c webchannel
+            \li
+        \row
+            \li Qt WebEngine
+            \li \c webenginecore
+            \li
+        \row
+            \li Qt WebSockets
+            \li \c websockets
+            \li
+        \row
+            \li Qt WebView
+            \li \c webview
+            \li
+        \row
+            \li Qt Windows Extras
+            \li \c winextras
+            \li See \l {Changes to Qt Extras Modules}
+        \row
+            \li Qt X11 Extras
+            \li \c x11extras
+            \li See \l {Changes to Qt Extras Modules}
+        \row
+            \li Qt XML Patterns
+            \li \c xmlpatterns
+            \li
+        \endtable
+
+    \section1 New Features in Qt 6.0
+
+    \section2 Qt QML Module
+    \list
+      \li QML Language
+      \list
+        \li Added JavaScript URL object support, providing native URL handling
+            in QML JavaScript code.
+        \li Allowed imports without version. If you omit the version from a QML
+            import statement the latest version of the module is imported.
+      \endlist
+      \li Module System
+      \list
+        \li Added \c import directive in qmldir files. This enables optional
+            imports and declarative module imports, allowing modules to declare
+            their dependencies explicitly.
+        \li Added qmlRegisterModuleImport() for procedurally adding imports to
+            a module. Don't do this unless you know what you're doing.
+        \li Added support for specifying resource (\c{:/some/path}) paths in
+            the QML2_IMPORT_PATH environment variable.
+        \li QML plugins can be optional now. The \c{optional} directive in
+            qmldir files specifies that the plugin doesn't have to be loaded if
+            the module's types are already present in the binary. This is
+            commonly the case for modules like QtQuick or QtQml.
+        \li Introduced support for purely-redirecting QML modules that only
+            import and re-export other modules without providing their own
+            types.
+      \endlist
+      \li Type System
+      \list
+        \li Introduced override behaviors
+            QML_LIST_PROPERTY_ASSIGN_BEHAVIOR_{APPEND|REPLACE|REPLACE_IF_NOT_DEFAULT}
+            for QQmlListProperty, giving more control over QML operations on
+            C++-declared list properties.
+        \li Added support for user-defined sequence types. Custom list types
+            can now be registered and used directly in QML using
+            QML_SEQUENTIAL_CONTAINER, enabling type-safe list properties
+            without needing to wrap elements in JavaScript objects.
+        \li Introduced two-component revision format (Major, Minor) for QML type
+            versioning, providing more granular control over API evolution.
+        \li Allowed singletons to be extended via QML_EXTENDED.
+        \li Allowed namespaces as extensions to types via QML_EXTENDED_NAMESPACE.
+        \li Allowed QML types from foreign namespaces via QML_FOREIGN_NAMESPACE.
+      \endlist
+    \endlist
+
+    \section1 List of API Changes
+
+    These pages contain an overview of API changes in Qt 6.0:
+    \list
+        \li \l {New Classes and Functions in Qt 6.0}
+        \li \l {Obsolete Classes}
+    \endlist
+*/
+
+/*!
+    \page newclasses60.html
+    \title New Classes and Functions in Qt 6.0
+    \ingroup whatsnewqt6-api
+    \meta sortkey 600
+    \brief A list of new APIs in Qt 6.0.
+
+    The section provides a comprehensive list of all new classes and functions
+    introduced in Qt 6.0.
+
+    \sincelist 6.0
+*/

@@ -1,0 +1,333 @@
+// Copyright (C) 2018 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
+
+#include "browser_main_parts_qt.h"
+
+#include "api/qwebenginemessagepumpscheduler_p.h"
+
+#include "base/message_loop/message_pump.h"
+#include "base/message_loop/message_pump_for_ui.h"
+#include "base/notimplemented.h"
+#include "base/process/process.h"
+#include "base/task/current_thread.h"
+#include "base/task/sequence_manager/sequence_manager_impl.h"
+#include "base/task/sequence_manager/thread_controller_with_message_pump_impl.h"
+#include "base/task/task_traits.h"
+#include "base/task/thread_pool.h"
+#include "base/threading/thread_restrictions.h"
+#include "chrome/browser/tab_contents/form_interaction_tab_helper.h"
+#include "components/device_event_log/device_event_log.h"
+#include "components/performance_manager/embedder/graph_features.h"
+#include "components/performance_manager/embedder/performance_manager_lifetime.h"
+#include "components/performance_manager/public/graph/graph.h"
+#include "components/performance_manager/public/performance_manager.h"
+#include "content/public/browser/browser_main_parts.h"
+#include "content/public/browser/browser_task_traits.h"
+#include "content/public/browser/browser_thread.h"
+#include "content/public/browser/child_process_security_policy.h"
+#include "content/public/common/buildflags.h"
+#include "content/public/common/content_features.h"
+#include "content/public/common/result_codes.h"
+#include "select_file_dialog_factory_qt.h"
+#include "services/service_manager/public/cpp/connector.h"
+#include "services/service_manager/public/cpp/service.h"
+#include "type_conversion.h"
+#include "ui/display/screen.h"
+
+#if BUILDFLAG(ENABLE_EXTENSIONS)
+#include "components/storage_monitor/storage_monitor.h"
+#include "extensions/browser/api/messaging/message_service.h"
+#include "extensions/common/constants.h"
+#include "extensions/common/extensions_client.h"
+#include "extensions/extensions_browser_client_qt.h"
+#include "extensions/extension_system_factory_qt.h"
+#include "common/extensions/extensions_client_qt.h"
+
+#if BUILDFLAG(ENABLE_WEBRTC)
+#include "chrome/browser/media/webrtc/webrtc_event_log_manager.h"
+#endif
+#endif // BUILDFLAG(ENABLE_EXTENSIONS)
+
+#if BUILDFLAG(ENABLE_PLUGINS)
+#include "content/public/browser/plugin_service.h"
+#include "extensions/plugin_info_host_qt.h"
+#include "extensions/plugin_service_filter_qt.h"
+#endif // BUILDFLAG(ENABLE_PLUGINS)
+
+#include "web_engine_context.h"
+#include "web_usb_detector_qt.h"
+
+#include <QDeadlineTimer>
+#include <QtGui/qtgui-config.h>
+#include <QStandardPaths>
+
+#if BUILDFLAG(IS_MAC)
+#include "base/message_loop/message_pump_apple.h"
+#include "services/device/public/cpp/geolocation/geolocation_system_permission_manager.h"
+#include "services/device/public/cpp/geolocation/system_geolocation_source.h"
+#include "ui/base/idle/idle.h"
+#endif
+
+#if defined(Q_OS_WIN)
+#include "ui/display/win/screen_win.h"
+#else
+#include "desktop_screen_qt.h"
+#endif
+
+#if defined(Q_OS_LINUX)
+#include "components/os_crypt/sync/key_storage_config_linux.h"
+#include "components/os_crypt/sync/os_crypt.h"
+#endif
+
+namespace QtWebEngineCore {
+
+namespace {
+
+// Return a timeout suitable for the glib loop, -1 to block forever,
+// 0 to return right away, or a timeout in milliseconds from now.
+int GetTimeIntervalMilliseconds(const base::TimeTicks &from)
+{
+    if (from.is_null())
+        return -1;
+
+    // Be careful here.  TimeDelta has a precision of microseconds, but we want a
+    // value in milliseconds.  If there are 5.5ms left, should the delay be 5 or
+    // 6?  It should be 6 to avoid executing delayed work too early.
+    int delay = static_cast<int>(std::ceil((from - base::TimeTicks::Now()).InMillisecondsF()));
+
+    // If this value is negative, then we need to run delayed work soon.
+    return delay < 0 ? 0 : delay;
+}
+
+}  // anonymous namespace
+
+class MessagePumpForUIQt : public base::MessagePump
+{
+public:
+    MessagePumpForUIQt()
+        : m_scheduler([this]() { handleScheduledWork(); })
+    {}
+
+    void Run(Delegate *) override
+    {
+        // This is used only when MessagePumpForUIQt is used outside of the GUI thread.
+        NOTIMPLEMENTED();
+    }
+
+    void Quit() override
+    {
+        // This is used only when MessagePumpForUIQt is used outside of the GUI thread.
+        NOTIMPLEMENTED();
+    }
+
+    void ScheduleWork() override
+    {
+        // NOTE: This method may called from any thread at any time.
+        ensureDelegate();
+        m_scheduler.scheduleImmediateWork();
+    }
+
+    void ScheduleDelayedWork(const Delegate::NextWorkInfo &next_work_info) override
+    {
+        // NOTE: This method may called from any thread at any time.
+        ScheduleDelayedWork(next_work_info.delayed_run_time);
+    }
+
+    void ScheduleDelayedWork(const base::TimeTicks &delayed_work_time)
+    {
+        ensureDelegate();
+        m_scheduler.scheduleDelayedWork(GetTimeIntervalMilliseconds(delayed_work_time));
+    }
+
+private:
+    void ensureDelegate()
+    {
+        if (!m_delegate) {
+            auto seqMan = base::CurrentThread::Get()->GetCurrentSequenceManagerImpl();
+            m_delegate = static_cast<base::sequence_manager::internal::ThreadControllerWithMessagePumpImpl *>(
+                             seqMan->controller_.get());
+        }
+    }
+
+    void handleScheduledWork()
+    {
+        QDeadlineTimer timer(std::chrono::milliseconds(2));
+        base::MessagePump::Delegate::NextWorkInfo more_work_info = m_delegate->DoWork();
+        while (more_work_info.is_immediate() && !timer.hasExpired())
+            more_work_info = m_delegate->DoWork();
+
+        if (more_work_info.is_immediate())
+            return m_scheduler.scheduleImmediateWork();
+
+        m_delegate->DoIdleWork();
+
+        ScheduleDelayedWork(more_work_info.delayed_run_time);
+    }
+
+    Delegate *m_delegate = nullptr;
+    QWebEngineMessagePumpScheduler m_scheduler;
+};
+
+#if BUILDFLAG(IS_MAC)
+class FakeGeolocationSource : public device::SystemGeolocationSource
+{
+public:
+    FakeGeolocationSource() = default;
+    ~FakeGeolocationSource() override = default;
+
+    // SystemGeolocationSource implementation:
+    void StartWatchingPosition(bool) override {}
+    void StopWatchingPosition() override {}
+    void RegisterPermissionUpdateCallback(PermissionUpdateCallback callback) override
+    {
+        callback.Run(device::LocationSystemPermissionStatus::kAllowed);
+    }
+    void RequestPermission() override {}
+    void AddPositionUpdateObserver(PositionObserver* observer) override {}
+    void RemovePositionUpdateObserver(PositionObserver* observer) override {}
+
+};
+#endif // BUILDFLAG(IS_MAC)
+
+std::unique_ptr<base::MessagePump> messagePumpFactory()
+{
+    static bool madePrimaryPump = false;
+    if (!madePrimaryPump) {
+        madePrimaryPump = true;
+        return std::make_unique<MessagePumpForUIQt>();
+    }
+#if BUILDFLAG(IS_MAC)
+    return base::message_pump_apple::Create();
+#else
+    return std::make_unique<base::MessagePumpForUI>();
+#endif
+}
+
+BrowserMainPartsQt::BrowserMainPartsQt() = default;
+
+BrowserMainPartsQt::~BrowserMainPartsQt() = default;
+
+int BrowserMainPartsQt::PreEarlyInitialization()
+{
+#if BUILDFLAG(ENABLE_EXTENSIONS)
+    content::ChildProcessSecurityPolicy::GetInstance()->RegisterWebSafeScheme(extensions::kExtensionScheme);
+#endif //ENABLE_EXTENSIONS
+    return content::RESULT_CODE_NORMAL_EXIT;
+}
+
+void BrowserMainPartsQt::PreCreateMainMessageLoop()
+{
+#if BUILDFLAG(IS_MAC)
+    m_geolocationSystemPermissionManager = std::make_unique<device::GeolocationSystemPermissionManager>(std::make_unique<FakeGeolocationSource>());
+#endif
+}
+
+void BrowserMainPartsQt::PostCreateMainMessageLoop()
+{
+    if (!device_event_log::IsInitialized())
+        device_event_log::Initialize(0 /* default max entries */);
+
+#if defined(Q_OS_LINUX)
+    auto config = std::make_unique<os_crypt::Config>();
+    config->product_name = "Qt WebEngine";
+    config->should_use_preference = false;
+    config->user_data_path = toFilePath(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
+    OSCrypt::SetConfig(std::move(config));
+#endif
+}
+
+int BrowserMainPartsQt::PreMainMessageLoopRun()
+{
+    ui::SelectFileDialog::SetFactory(std::make_unique<SelectFileDialogFactoryQt>());
+
+#if BUILDFLAG(ENABLE_EXTENSIONS)
+    extensions::MessageService::GetFactoryInstance(); // required for communicating with hangouts
+    extensions::ExtensionsClient::Set(new extensions::ExtensionsClientQt());
+    extensions::ExtensionsBrowserClient::Set(new extensions::ExtensionsBrowserClientQt());
+    extensions::ExtensionSystemFactoryQt::GetInstance();
+    extensions::ExtensionsBrowserClient::Get()->Init();
+    storage_monitor::StorageMonitor::Create();
+
+#if BUILDFLAG(ENABLE_PLUGINS)
+    content::PluginService *plugin_service = content::PluginService::GetInstance();
+    plugin_service->SetFilter(extensions::PluginServiceFilterQt::GetInstance());
+    extensions::PluginInfoHostQt::EnsureFactoryBuilt();
+#endif // BUILDFLAG(ENABLE_PLUGINS)
+
+#if BUILDFLAG(ENABLE_WEBRTC)
+    m_webrtcEventLogManager =
+            webrtc_event_logging::WebRtcEventLogManager::CreateSingletonInstance();
+#endif
+
+#endif // BUILDFLAG(ENABLE_EXTENSIONS)
+
+    if (base::FeatureList::IsEnabled(features::kWebUsb)) {
+        m_webUsbDetector.reset(new WebUsbDetectorQt());
+        content::GetUIThreadTaskRunner({ base::TaskPriority::BEST_EFFORT })
+                ->PostTask(FROM_HERE,
+                           base::BindOnce(&WebUsbDetectorQt::Initialize,
+                                          base::Unretained(m_webUsbDetector.get())));
+    }
+    return content::RESULT_CODE_NORMAL_EXIT;
+}
+
+void BrowserMainPartsQt::PostMainMessageLoopRun()
+{
+    performance_manager_lifetime_.reset();
+
+    m_webUsbDetector.reset();
+
+    // The ProfileQt's destructor uses the MessageLoop so it should be deleted
+    // right before the RenderProcessHostImpl's destructor destroys it.
+    WebEngineContext::current()->destroyProfileAdapter();
+}
+
+#if defined(Q_OS_WIN)
+class DesktopScreenWinQt : public display::win::ScreenWin
+{
+public:
+    DesktopScreenWinQt() {}
+    ~DesktopScreenWinQt() {}
+};
+#endif
+
+int BrowserMainPartsQt::PreCreateThreads()
+{
+#if BUILDFLAG(IS_MAC)
+    ui::InitIdleMonitor();
+#endif
+
+    // Like ChromeBrowserMainExtraPartsViews::PreCreateThreads does.
+    // FIXME: This is now done differently in Chrome, find out where and if we need to change.
+#if defined(Q_OS_WIN)
+    display::Screen::SetScreenInstance(new DesktopScreenWinQt());
+#elif defined(Q_OS_DARWIN)
+    display::Screen::SetScreenInstance(display::CreateNativeScreen());
+#else
+    display::Screen::SetScreenInstance(new DesktopScreenQt);
+#endif
+    return content::RESULT_CODE_NORMAL_EXIT;
+}
+
+static void CreatePoliciesAndDecorators(performance_manager::Graph *graph)
+{
+    graph->PassToGraph(FormInteractionTabHelper::CreateGraphObserver());
+}
+
+void BrowserMainPartsQt::PostCreateThreads()
+{
+    performance_manager_lifetime_ =
+        std::make_unique<performance_manager::PerformanceManagerLifetime>(
+            performance_manager::GraphFeatures::WithDefault(),
+            base::BindOnce(&QtWebEngineCore::CreatePoliciesAndDecorators));
+}
+
+#if BUILDFLAG(IS_MAC)
+device::GeolocationSystemPermissionManager *BrowserMainPartsQt::GetGeolocationSystemPermissionManager()
+{
+    return m_geolocationSystemPermissionManager.get();
+}
+#endif
+
+} // namespace QtWebEngineCore

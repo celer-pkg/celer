@@ -1,0 +1,457 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+
+#include "widgetgallery.h"
+
+#include <QApplication>
+#include <QCheckBox>
+#include <QComboBox>
+#include <QCommandLinkButton>
+#include <QDateTimeEdit>
+#include <QDial>
+#include <QDialogButtonBox>
+#include <QFileSystemModel>
+#include <QGridLayout>
+#include <QGroupBox>
+#include <QLabel>
+#include <QLineEdit>
+#include <QListWidget>
+#include <QMenu>
+#include <QPlainTextEdit>
+#include <QProgressBar>
+#include <QPushButton>
+#include <QRadioButton>
+#include <QScrollBar>
+#include <QShortcut>
+#include <QSpinBox>
+#include <QStandardItemModel>
+#include <QStyle>
+#include <QStyleFactory>
+#include <QStyleHints>
+#include <QTableWidget>
+#include <QTextBrowser>
+#include <QTextEdit>
+#include <QToolBox>
+#include <QToolButton>
+#include <QTreeView>
+
+#include <QDesktopServices>
+#include <QIcon>
+#include <QScreen>
+#include <QWindow>
+
+#include <QAnyStringView>
+#include <QDebug>
+#include <QLibraryInfo>
+#include <QStringView>
+#include <QSysInfo>
+#include <QTextStream>
+#include <QTimer>
+
+using namespace Qt::StringLiterals;
+
+static inline QString className(const QObject *o)
+{
+     return QString::fromUtf8(o->metaObject()->className());
+}
+
+static inline void setClassNameToolTip(QWidget *w)
+{
+    w->setToolTip(className(w));
+}
+
+static QString helpUrl(QStringView page)
+{
+    QString result;
+    QTextStream(&result) << "https://doc.qt.io/qt-" << QT_VERSION_MAJOR
+        << '/' << page << ".html";
+    return result;
+}
+
+static inline QString helpUrl(const QWidget *w)
+{
+    return helpUrl(className(w).toLower());
+}
+
+static void launchHelp(const QWidget *w)
+{
+     QDesktopServices::openUrl(helpUrl(w));
+}
+
+static void launchModuleHelp()
+{
+    QDesktopServices::openUrl(helpUrl(u"qtwidgets-index"));
+}
+
+template <class Widget>
+Widget *createWidget(QAnyStringView name, QWidget *parent = nullptr)
+{
+    auto *result = new Widget(parent);
+    result->setObjectName(name);
+    setClassNameToolTip(result);
+    return result;
+}
+
+template <class Widget, class Parameter>
+Widget *createWidget1(const Parameter &p1, QAnyStringView name, QWidget *parent = nullptr)
+{
+    auto *result = new Widget(p1, parent);
+    result->setObjectName(name);
+    setClassNameToolTip(result);
+    return result;
+}
+
+QTextStream &operator<<(QTextStream &str, const QRect &r)
+{
+    str << r.width() << 'x' << r.height() << Qt::forcesign << r.x() << r.y()
+        << Qt::noforcesign;
+    return str;
+}
+
+static QString highDpiScaleFactorRoundingPolicy()
+{
+    QString result;
+    QDebug(&result) << QGuiApplication::highDpiScaleFactorRoundingPolicy();
+    if (result.endsWith(u')'))
+        result.chop(1);
+    const auto lastSep = result.lastIndexOf("::"_L1);
+    if (lastSep != -1)
+        result.remove(0, lastSep + 2);
+    return result;
+}
+
+WidgetGallery::WidgetGallery(QWidget *parent)
+    : QDialog(parent)
+    , progressBar(createProgressBar())
+{
+    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+
+    auto *styleComboBox = createWidget<QComboBox>("styleComboBox");
+    const QString defaultStyleName = QApplication::style()->objectName();
+    QStringList styleNames = QStyleFactory::keys();
+    for (qsizetype i = 1, size = styleNames.size(); i < size; ++i) {
+        if (defaultStyleName.compare(styleNames.at(i), Qt::CaseInsensitive) == 0) {
+            styleNames.swapItemsAt(0, i);
+            break;
+        }
+    }
+    styleComboBox->addItems(styleNames);
+
+    auto *styleLabel = createWidget1<QLabel>(tr("&Style:"), "styleLabel");
+    styleLabel->setBuddy(styleComboBox);
+
+    auto *colorSchemeComboBox = createWidget<QComboBox>("colorSchemeComboBox");
+    colorSchemeComboBox->addItem(tr("Auto"));
+    colorSchemeComboBox->addItem(tr("Light"));
+    colorSchemeComboBox->addItem(tr("Dark"));
+    colorSchemeComboBox->setCurrentIndex(static_cast<int>(qApp->styleHints()->colorScheme()));
+
+    auto *colorSchemeLabel = createWidget1<QLabel>(tr("&Color Scheme:"), "colorSchemeLabel");
+    colorSchemeLabel->setBuddy(colorSchemeComboBox);
+
+    connect(colorSchemeComboBox, &QComboBox::currentIndexChanged, this, [](int index){
+        QGuiApplication::styleHints()->setColorScheme(static_cast<Qt::ColorScheme>(index));
+    });
+
+    connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, this, [colorSchemeComboBox](Qt::ColorScheme colorScheme) {
+        colorSchemeComboBox->setCurrentIndex(static_cast<int>(colorScheme));
+    });
+
+    const QKeySequence helpKeySequence(QKeySequence::HelpContents);
+    const QString helpText = tr("Press <kbd>%1</kbd> over a widget to see Documentation")
+                                     .arg(helpKeySequence.toString(QKeySequence::NativeText));
+    auto *helpLabel = createWidget1<QLabel>(helpText, "helpLabel");
+
+    auto *disableWidgetsCheckBox = createWidget1<QCheckBox>(tr("&Disable widgets"), "disableWidgetsCheckBox");
+
+    auto *buttonsGroupBox = createButtonsGroupBox();
+    auto *itemViewTabWidget = createItemViewTabWidget();
+    auto *simpleInputWidgetsGroupBox = createSimpleInputWidgetsGroupBox();
+    auto *textToolBox = createTextToolBox();
+
+    connect(styleComboBox, &QComboBox::textActivated,
+            this, &WidgetGallery::changeStyle);
+    connect(disableWidgetsCheckBox, &QCheckBox::toggled,
+            buttonsGroupBox, &QWidget::setDisabled);
+    connect(disableWidgetsCheckBox, &QCheckBox::toggled,
+            textToolBox, &QWidget::setDisabled);
+    connect(disableWidgetsCheckBox, &QCheckBox::toggled,
+            itemViewTabWidget, &QWidget::setDisabled);
+    connect(disableWidgetsCheckBox, &QCheckBox::toggled,
+            simpleInputWidgetsGroupBox, &QWidget::setDisabled);
+
+    auto *topLayout = new QHBoxLayout;
+    auto *appearanceLayout = new QGridLayout;
+    appearanceLayout->addWidget(styleLabel, 0, 0);
+    appearanceLayout->addWidget(styleComboBox, 0, 1);
+    appearanceLayout->addWidget(colorSchemeLabel, 1, 0);
+    appearanceLayout->addWidget(colorSchemeComboBox, 1, 1);
+    topLayout->addLayout(appearanceLayout);
+    topLayout->addStretch(1);
+    topLayout->addWidget(helpLabel);
+    topLayout->addStretch(1);
+    topLayout->addWidget(disableWidgetsCheckBox);
+
+    auto *dialogButtonBox = createWidget1<QDialogButtonBox>(
+            QDialogButtonBox::Help | QDialogButtonBox::Close, "dialogButtonBox");
+    connect(dialogButtonBox, &QDialogButtonBox::helpRequested, this, launchModuleHelp);
+    connect(dialogButtonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+
+    auto *mainLayout = new QGridLayout(this);
+    mainLayout->addLayout(topLayout, 0, 0, 1, 2);
+    mainLayout->addWidget(buttonsGroupBox, 1, 0);
+    mainLayout->addWidget(simpleInputWidgetsGroupBox, 1, 1);
+    mainLayout->addWidget(itemViewTabWidget, 2, 0);
+    mainLayout->addWidget(textToolBox, 2, 1);
+    mainLayout->addWidget(progressBar, 3, 0, 1, 2);
+    mainLayout->addWidget(dialogButtonBox, 4, 0, 1, 2);
+
+    setWindowTitle(tr("Widget Gallery Qt %1").arg(QT_VERSION_STR));
+
+    new QShortcut(helpKeySequence, this, this, &WidgetGallery::helpOnCurrentWidget);
+}
+
+void  WidgetGallery::setVisible(bool visible)
+{
+    QDialog::setVisible(visible);
+    if (visible) {
+        connect(windowHandle(), &QWindow::screenChanged, this, &WidgetGallery::updateSystemInfo);
+        updateSystemInfo();
+    }
+}
+
+void WidgetGallery::changeStyle(const QString &styleName)
+{
+    QApplication::setStyle(QStyleFactory::create(styleName));
+}
+
+void WidgetGallery::advanceProgressBar()
+{
+    int curVal = progressBar->value();
+    int maxVal = progressBar->maximum();
+    progressBar->setValue(curVal + (maxVal - curVal) / 100);
+}
+
+QGroupBox *WidgetGallery::createButtonsGroupBox()
+{
+    auto *result = createWidget1<QGroupBox>(tr("Buttons"), "buttonsGroupBox");
+
+    auto *defaultPushButton = createWidget1<QPushButton>(tr("Default Push Button"), "defaultPushButton");
+    defaultPushButton->setDefault(true);
+
+    auto *togglePushButton = createWidget1<QPushButton>(tr("Toggle Push Button"), "togglePushButton");
+    togglePushButton->setCheckable(true);
+    togglePushButton->setChecked(true);
+
+    auto *flatPushButton = createWidget1<QPushButton>(tr("Flat Push Button"), "flatPushButton");
+    flatPushButton->setFlat(true);
+
+    auto *toolButton = createWidget<QToolButton>("toolButton");
+    toolButton->setText(tr("Tool Button"));
+
+    auto *menuToolButton = createWidget<QToolButton>("menuButton");
+    menuToolButton->setText(tr("Menu Button"));
+    auto *toolMenu = new QMenu(menuToolButton);
+    menuToolButton->setPopupMode(QToolButton::InstantPopup);
+    toolMenu->addAction("Option");
+    toolMenu->addSeparator();
+    auto *action = toolMenu->addAction("Checkable Option");
+    action->setCheckable(true);
+    menuToolButton->setMenu(toolMenu);
+    auto *toolLayout = new QHBoxLayout;
+    toolLayout->addWidget(toolButton);
+    toolLayout->addWidget(menuToolButton);
+
+    auto *commandLinkButton = createWidget1<QCommandLinkButton>(tr("Command Link Button"), "commandLinkButton");
+    commandLinkButton->setDescription(tr("Description"));
+
+    auto *buttonLayout = new QVBoxLayout;
+    buttonLayout->addWidget(defaultPushButton);
+    buttonLayout->addWidget(togglePushButton);
+    buttonLayout->addWidget(flatPushButton);
+    buttonLayout->addLayout(toolLayout);
+    buttonLayout->addWidget(commandLinkButton);
+    buttonLayout->addStretch(1);
+
+    auto *radioButton1 = createWidget1<QRadioButton>(tr("Radio button 1"), "radioButton1");
+    auto *radioButton2 = createWidget1<QRadioButton>(tr("Radio button 2"), "radioButton2");
+    auto *radioButton3 = createWidget1<QRadioButton>(tr("Radio button 3"), "radioButton3");
+    radioButton1->setChecked(true);
+
+    auto *checkBox =  createWidget1<QCheckBox>(tr("Tri-state check box"), "checkBox");
+    checkBox->setTristate(true);
+    checkBox->setCheckState(Qt::PartiallyChecked);
+
+    auto *checkableLayout = new QVBoxLayout;
+    checkableLayout->addWidget(radioButton1);
+    checkableLayout->addWidget(radioButton2);
+    checkableLayout->addWidget(radioButton3);
+    checkableLayout->addWidget(checkBox);
+    checkableLayout->addStretch(1);
+
+    auto *mainLayout = new QHBoxLayout(result);
+    mainLayout->addLayout(buttonLayout);
+    mainLayout->addLayout(checkableLayout);
+    mainLayout->addStretch();
+    return result;
+}
+
+static QWidget *embedIntoHBoxLayout(QWidget *w, int margin = 5)
+{
+    auto *result = new QWidget;
+    auto *layout = new QHBoxLayout(result);
+    layout->setContentsMargins(margin, margin, margin, margin);
+    layout->addWidget(w);
+    return result;
+}
+
+QToolBox *WidgetGallery::createTextToolBox()
+{
+    auto *result = createWidget<QToolBox>("toolBox");
+
+    const QString plainText = tr("Twinkle, twinkle, little star,\n"
+                            "How I wonder what you are.\n"
+                            "Up above the world so high,\n"
+                            "Like a diamond in the sky.\n"
+                            "Twinkle, twinkle, little star,\n"
+                            "How I wonder what you are!\n");
+    // Create centered/italic HTML rich text
+    QString richText = "<html><head/><body><i>"_L1;
+    for (const auto &line : QStringView{ plainText }.split(u'\n'))
+        richText += "<center>"_L1 + line + "</center>"_L1;
+    richText += "</i></body></html>"_L1;
+
+    auto *textEdit = createWidget1<QTextEdit>(richText, "textEdit");
+    auto *plainTextEdit = createWidget1<QPlainTextEdit>(plainText, "plainTextEdit");
+
+    systemInfoTextBrowser = createWidget<QTextBrowser>("systemInfoTextBrowser");
+
+    result->addItem(embedIntoHBoxLayout(textEdit), tr("Text Edit"));
+    result->addItem(embedIntoHBoxLayout(plainTextEdit), tr("Plain Text Edit"));
+    result->addItem(embedIntoHBoxLayout(systemInfoTextBrowser), tr("Text Browser"));
+    return result;
+}
+
+QTabWidget *WidgetGallery::createItemViewTabWidget()
+{
+    auto *result = createWidget<QTabWidget>("bottomLeftTabWidget");
+    result->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Ignored);
+
+    auto *treeView = createWidget<QTreeView>("treeView");
+    auto *fileSystemModel = new QFileSystemModel(treeView);
+    fileSystemModel->setRootPath(QDir::rootPath());
+    treeView->setModel(fileSystemModel);
+
+    auto *tableWidget = createWidget<QTableWidget>("tableWidget");
+    tableWidget->setRowCount(10);
+    tableWidget->setColumnCount(10);
+
+    auto *listModel = new QStandardItemModel(0, 1, result);
+    listModel->appendRow(new QStandardItem(QIcon(":/qt-project.org/styles/commonstyle/images/diropen-128.png"_L1),
+                                           tr("Directory")));
+    listModel->appendRow(new QStandardItem(QIcon(":/qt-project.org/styles/commonstyle/images/computer-32.png"_L1),
+                                           tr("Computer")));
+
+    auto *listView = createWidget<QListView>("listView");
+    listView->setModel(listModel);
+
+    auto *iconModeListView = createWidget<QListView>("iconModeListView");
+    iconModeListView->setViewMode(QListView::IconMode);
+    iconModeListView->setModel(listModel);
+
+    result->addTab(embedIntoHBoxLayout(treeView), tr("&Tree View"));
+    result->addTab(embedIntoHBoxLayout(tableWidget), tr("T&able"));
+    result->addTab(embedIntoHBoxLayout(listView), tr("&List"));
+    result->addTab(embedIntoHBoxLayout(iconModeListView), tr("&Icon Mode List"));
+    return result;
+}
+
+QGroupBox *WidgetGallery::createSimpleInputWidgetsGroupBox()
+{
+    auto *result = createWidget1<QGroupBox>(tr("Simple Input Widgets"), "bottomRightGroupBox");
+    result->setCheckable(true);
+    result->setChecked(true);
+
+    auto *lineEdit = createWidget1<QLineEdit>("s3cRe7", "lineEdit");
+    lineEdit->setClearButtonEnabled(true);
+    lineEdit->setEchoMode(QLineEdit::Password);
+
+    auto *spinBox = createWidget<QSpinBox>("spinBox", result);
+    spinBox->setValue(50);
+
+    auto *dateTimeEdit = createWidget<QDateTimeEdit>("dateTimeEdit", result);
+    dateTimeEdit->setDateTime(QDateTime::currentDateTime());
+
+    auto *slider = createWidget<QSlider>("slider", result);
+    slider->setOrientation(Qt::Horizontal);
+    slider->setValue(40);
+
+    auto *scrollBar = createWidget<QScrollBar>("scrollBar", result);
+    scrollBar->setOrientation(Qt::Horizontal);
+    setClassNameToolTip(scrollBar);
+    scrollBar->setValue(60);
+
+    auto *dial = createWidget<QDial>("dial", result);
+    dial->setValue(30);
+    dial->setNotchesVisible(true);
+
+    auto *layout = new QGridLayout(result);
+    layout->addWidget(lineEdit, 0, 0, 1, 2);
+    layout->addWidget(spinBox, 1, 0, 1, 2);
+    layout->addWidget(dateTimeEdit, 2, 0, 1, 2);
+    layout->addWidget(slider, 3, 0);
+    layout->addWidget(scrollBar, 4, 0);
+    layout->addWidget(dial, 3, 1, 2, 1);
+    layout->setRowStretch(5, 1);
+    return result;
+}
+
+QProgressBar *WidgetGallery::createProgressBar()
+{
+    auto *result = createWidget<QProgressBar>("progressBar");
+    result->setRange(0, 10000);
+    result->setValue(0);
+
+    auto *timer = new QTimer(this);
+    connect(timer, &QTimer::timeout, this, &WidgetGallery::advanceProgressBar);
+    timer->start(1000);
+    return result;
+}
+
+void WidgetGallery::updateSystemInfo()
+{
+    QString systemInfo;
+    QTextStream str(&systemInfo);
+    str << "<html><head/><body><h3>Build</h3><p>" << QLibraryInfo::build() << "</p>"
+        << "<h3>Operating System</h3><p>\"" << QSysInfo::prettyProductName() << "\" / "
+        << QGuiApplication::platformName() << "</p>"
+        << "<h3>Screens</h3><p>High DPI scale factor rounding policy: "
+        << highDpiScaleFactorRoundingPolicy() << "</p><ol>";
+    const auto screens = QGuiApplication::screens();
+    for (const auto *screen : screens) {
+        const bool current = screen == this->screen();
+        str << "<li>";
+        if (current)
+            str << "<i>";
+        str << '"' << screen->name() << "\" " << screen->geometry() << ", "
+            << screen->logicalDotsPerInchX() << "DPI, DPR="
+            << screen->devicePixelRatio();
+        if (current)
+            str << "</i>";
+        str << "</li>";
+    }
+    str << "</ol></body></html>";
+    systemInfoTextBrowser->setHtml(systemInfo);
+}
+
+void WidgetGallery::helpOnCurrentWidget()
+{
+    // Skip over internal widgets
+    for (const auto *w = QApplication::widgetAt(QCursor::pos(screen())); w; w = w->parentWidget()) {
+        const QString name = w->objectName();
+        if (!name.isEmpty() && !name.startsWith("qt_"_L1)) {
+            launchHelp(w);
+            break;
+        }
+    }
+}

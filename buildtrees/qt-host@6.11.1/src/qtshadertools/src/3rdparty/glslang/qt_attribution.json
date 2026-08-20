@@ -1,0 +1,20 @@
+[
+    {
+        "Id": "glslang",
+        "Name": "glslang",
+        "QDocModule": "qtshadertools",
+        "Description": "An OpenGL and OpenGL ES shader front end and validator.",
+        "QtUsage": "Compile GLSL to SPIR-V.",
+
+        "Homepage": "https://github.com/KhronosGroup/glslang",
+        "PURL": [
+            "pkg:github/KhronosGroup/glslang@$<VERSION>"
+        ],
+        "Comment": "No relevant CPE found",
+        "Version": "16.1.0",
+        "License": "BSD 3-Clause \"New\" or \"Revised\" License, and MIT Khronos - old variant, and Apache License 2.0, and GNU General Public License v3.0 or later with Bison exception 2.2, and AML glslang variant License",
+        "LicenseId": "BSD-3-Clause AND LicenseRef-MIT-Khronos-old AND Apache-2.0 AND GPL-3.0-or-later WITH Bison-exception-2.2 AND AML-glslang",
+        "LicenseFile": "LICENSE.txt",
+        "CopyrightFile": "COPYRIGHT.txt"
+    }
+]

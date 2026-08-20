@@ -1,0 +1,155 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtquick3d-index.html
+\title Qt Quick 3D
+\brief Provides API that lets you define 3D items using QML.
+
+Qt Quick 3D provides a high-level API for creating 3D content and 3D user
+interfaces based on \l{Qt Quick}. Rather than using an external engine, which
+creates syncing issues and additional layers of abstraction, Qt Quick 3D
+provides extensions to the existing \l{Qt Quick Scene Graph} for spatial content
+and a renderer for that extended scene graph. When using the spatial scene
+graph, it's possible to mix Qt Quick 2D content with 3D content.
+
+Qt Quick 3D also provides for XR and VR applications with \l{\qxr}.
+
+\image dragon.jpg {Green metallic dragon model}
+
+\section1 Using the Module
+
+\section2 QML API
+
+\include {module-use.qdocinc} {using the qml api} {QtQuick3D}
+
+The following module imports provide additional functionality:
+
+\qml
+import QtQuick3D.AssetUtils
+import QtQuick3D.Helpers
+import QtQuick3D.Particles3D
+import QtQuick3D.Xr
+\endqml
+
+\section2 C++ API
+
+\include {module-use.qdocinc} {using the c++ api}
+
+\section3 Building with CMake
+
+\include {module-use.qdocinc} {building with cmake} {Quick3D}
+
+\section3 Building with qmake
+
+\include {module-use.qdocinc} {building_with_qmake} {quick3d}
+
+\section1 Building From Source
+
+When building from source, ensure that the modules and tools from the
+\e qtdeclarative and \e qtshadertools repositories are built first, as
+it's not possible to use Qt Quick 3D without these. Having \e
+qtquicktimeline available is strongly recommended as well, since
+keyframe-based animations will not be available otherwise.
+
+In addition, some of the examples rely on \l {Qt Quick Controls}.
+
+\section1 Module Evolution
+\l{Changes to Qt Quick 3D} lists important changes in the module API
+and functionality that were done for the Qt 6 series of Qt.
+
+\section1 Articles and Guides
+
+\list
+    \li \l{Qt Quick 3D - Introduction}{Qt Quick 3D Introduction Example}
+    \li \l{quick3d-asset-intro}{Qt Quick 3D Introduction with glTF Assets}
+    \li \l{Qt Quick 3D Graphics Requirements}
+    \li \l{Qt Quick 3D Architecture}
+    \li \l{Balsam Asset Import Tool}
+    \li \l{Optimizing 3D Assets}
+    \li \l{quick3d-pbr}{Physically-Based Rendering}
+    \li \l{Using Image-Based Lighting}
+    \li \l{Anti-Aliasing Best Practices}
+    \li \l{Qt Quick 3D Scenes with 2D Content}
+    \li \l{Programmable Materials, Effects, Geometry, and Texture data}
+    \li \l{Vertex Skinning}{Skeletal Animation}
+    \li \l{Morphing Animation}{Morphing Animation}
+    \li \l{Instanced Rendering}{Instanced Rendering}
+    \li \l{Qt Quick 3D Level of Detail}{Level of Detail}
+    \li \l{Custom Material Editor}{Custom Material Editor}
+    \li \l{quick3d-lightmap}{Lightmaps and Global Illumination}
+    \li \l{quick3d-shadow-mapping}{Shadow Mapping}
+    \li \l{\qxr}
+    \li \l{Multiview Rendering}
+    \li \l{quick3d-shadercache}{Disk-based caching of shaders}
+\endlist
+
+\section1 Examples
+
+\list
+    \li \l{Qt Quick 3D - Introduction}{Introduction}
+    \li \l{Qt Quick 3D - View3D Example}{View3D with Multiple Viewports}
+    \li \l{Qt Quick 3D - Lights Example}{Lights and Shadows}
+    \li \l{Qt Quick 3D - Dynamic Model Creation Example}{Dynamic Model Creation}
+    \li \l{Qt Quick 3D - Principled Material Example}{Principled Material}
+    \li \l{Qt Quick 3D - Scene Effects Example}{Built-in effects and tonemapping}
+    \li \l{Qt Quick 3D - Quick Items Example}{Qt Quick Items within the 3D Scene}
+    \li \l{Qt Quick 3D - Custom Materials Example}{Custom Materials}
+    \li \l{Qt Quick 3D - Custom Shaders Example}{Unshaded Custom Materials}
+    \li \l{Qt Quick 3D - Custom Effect Example}{Writing Custom Post-Processing Effects}
+    \li \l{Qt Quick 3D - Custom Geometry Example}{Adding Custom Geometry from C++}
+    \li \l{Qt Quick 3D - Procedural Texture Example}{Adding Custom Texture Data from C++}
+    \li \l{Qt Quick 3D - Baked Lightmap Example}{Using baked lightmaps}
+    \li \l{Qt Quick 3D - XR Simple Example}{Demonstrates setting up a simple VR scene}
+    \li \l{Qt Quick 3D - XR Simple Input Example}{Demonstrates controller input in VR}
+    \li \l{Qt Quick 3D - XR Spatial Anchors Example}{Demonstrates spatial anchors in VR}
+    \li \l{Qt Quick 3D Examples and Tutorials}{All examples}
+\endlist
+
+\section1 Reference
+\list
+    \li \l{Qt Quick 3D QML Types}
+    \li \l{Qt Quick 3D C++ Classes}
+    \li \l{Qt Quick 3D Helpers QML Types}
+    \li \l{QtQuick3D.AssetUtils QML Types}
+          {Qt Quick 3D Asset Utility QML Types}
+    \li \l{Qt Quick 3D Particles3D QML Types}
+    \li \l{\qxr}
+\endlist
+
+\section1 Related Modules
+
+\list
+    \li \l{Qt Quick}
+\endlist
+
+\section1 Qt Academy Courses
+
+\list
+    \li \l {https://www.qt.io/academy/course-catalog#qt-quick-3d:-animations}
+           {Qt Quick 3D: Animations}
+    \li \l {https://www.qt.io/academy/course-catalog#qt-quick-3d:-assets-&-resources}
+           {Qt Quick 3D: Assets & Resources}
+    \li \l {https://www.qt.io/academy/course-catalog#qt-quick-3d:-custom-materials,-render-settings-&-post-processing-}
+           {Qt Quick 3D: Custom Materials, Render Settings & Post-Processing}
+    \li \l {https://www.qt.io/academy/course-catalog#qt-quick-3d:-interaction-and-managing-performance-}
+           {Qt Quick 3D: Interaction and Managing Performance}
+    \li \l {https://www.qt.io/academy/course-catalog#qt-quick-3d:-lighting-&-cameras}
+           {Qt Quick 3D: Lighting & Cameras}
+    \li \l {https://www.qt.io/academy/course-catalog#qt-quick-3d:-views,-scenes-&-nodes}
+           {Qt Quick 3D: Views, Scenes & Nodes}
+\endlist
+
+
+\section1 Licenses and Attributions
+
+Qt Quick 3D is available under the commercial license from \l {The Qt Company}.
+In addition, it is available under the
+\l{GNU General Public License, version 3}.
+See \l {Qt Licensing} for further details.
+
+Furthermore, Qt Quick 3D potentially contains third party modules
+under the following permissive licenses:
+
+\annotatedlist attributions-qtquick3d
+*/

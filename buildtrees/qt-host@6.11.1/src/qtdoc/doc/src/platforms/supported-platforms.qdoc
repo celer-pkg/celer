@@ -1,0 +1,88 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page supported-platforms.html
+    \title Supported Platforms
+    \brief The platforms supported by Qt.
+
+    The following platforms are supported in Qt \qtver. For information
+    about prior Qt releases, please consult the relevant version in the
+    \l {https://doc.qt.io/archives/}{Qt Documentation Archives}.
+
+    Supported platforms are actively maintained, subjected to testing, and
+    bugs discovered in these platforms are prioritized for correction.
+    Significant errors discovered in testing can impact release dates.
+
+    The Qt Company offers commercial support for all officially supported
+    platforms and configurations.
+
+    \note Some of the platforms are only supported for certain types of
+    commercial licenses. For details, please refer to
+    \l{Qt Support Terms and Conditions} and your commercial license agreement.
+
+    Configurations not listed below are not officially supported by the Qt Project.
+    However, Qt may still run on unsupported platforms and configurations. The Qt
+    Company, Qt partners, open source developers, and community users are able to
+    provide assistance in this situation.
+
+    \note Support for specific configurations or operating system versions may
+          end before the support for Qt \qtver does. A subsequent patch release
+          of Qt \qtver may drop support for a configuration or replace it with
+          a currently-supported version.
+
+    \include supported-platforms.qdocinc all
+
+    \section1 Availability of Packages
+
+    You can download the Qt installers and source packages from the \l Downloads page.
+    For more information, visit the \l{Getting Started with Qt} page.
+
+    \note All the supported configurations are not provided as binary packages
+    in \QOI. However, the intention is to provide the most widely-used
+    configurations for the developer's convenience.
+
+    \note Linux binary packages are linked against glibc 2.34. If you are using
+    a glibc version older than that you need to build Qt from sources or upgrade
+    glibc to 2.34 or newer.
+
+    \section2 Exceptions
+    Individual modules might be available only on some platforms, or they might
+    not support all configurations. For example, as Qt \WebEngine has Chromium
+    as a third-party dependency, platform or configuration limitations upstream
+    also apply to Qt \WebEngine.
+
+    The documentation for each module contains detailed information about any
+    exceptions the module has from the general platform and configuration
+    support as described on this page.
+
+    \section1 Deployment of Qt Applications
+
+    The deployment procedure for each platform is different and they are
+    covered in greater detail in their platform pages. Meanwhile, there is a
+    deployment article for summarizing the deployment procedure in general.
+    \list
+    \li \l{Deploying Qt Applications}
+        \list
+            \li \l{Deploying an Application on Android}{Android}
+            \li \l{Qt for iOS}{iOS}
+            \li \l{Qt for Linux - Deployment}{Linux}
+            \li \l{Qt for macOS - Deployment}{\macos}
+            \li \l{Qt for Windows - Deployment}{Windows}
+        \endlist
+    \endlist
+
+    \section1 Supported Versions
+
+    For details, see \l {Supported Qt Versions}.
+
+    \section1 General Legal Disclaimer
+
+    Please note that Qt is offered on an "as is" basis without warranty
+    of any kind and that our products are not error or bug free. To the maximum extent
+    permitted by applicable law, The Qt Company on behalf of itself and its suppliers, disclaims all
+    warranties and conditions, either express or implied, including, but not limited to,
+    implied warranties of merchantability, fitness for a particular purpose, title and
+    non-infringement with regard to the Licensed Software.
+
+*/

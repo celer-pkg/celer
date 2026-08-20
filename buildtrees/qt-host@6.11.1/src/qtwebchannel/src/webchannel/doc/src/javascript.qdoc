@@ -1,0 +1,135 @@
+// Copyright (C) 2014 Klarälvdalens Datakonsult AB, a KDAB Group company, info@kdab.com, author Milian Wolff <milian.wolff@kdab.com>
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Qt WebChannel JavaScript API
+    \page qtwebchannel-javascript.html
+
+    \brief This page explains how to use the JavaScript QWebChannel API in HTML clients.
+
+    \section1 Setting up the JavaScript API
+
+    To communicate with a QWebChannel or \l [QML] WebChannel, a client must use and set up the
+    JavaScript API provided by \c qwebchannel.js. For clients run inside \l{Qt WebEngine}, you
+    can load the file via \c qrc:///qtwebchannel/qwebchannel.js. For external clients, you
+    need to copy the file to your web server. Then instantiate a QWebChannel object and pass
+    it a transport object and a callback function, which will be invoked once the
+    initialization of the channel finishes and the published objects become available. An optional
+    third argument contains an array of converter wrapper functions or a single one.
+
+    The transport object implements a minimal message passing interface. It should be an object
+    with a \c send() function, which takes a stringified JSON message and transmits it to the
+    server-side QWebChannelAbstractTransport object. Furthermore, its \c onmessage property should
+    be called when a message from the server was received. Alternatively, you can use a
+    \l{Qt WebSockets}{WebSocket} to implement the interface.
+
+    Note that the JavaScript QWebChannel object should be constructed once the transport object is
+    fully operational. In case of a WebSocket, that means you should create the QWebChannel in the
+    socket's \c onopen handler. Take a look at the \l{Qt WebChannel Standalone Example} to see how
+    this is done.
+
+    \note Only a single \c QWebChannel object per transport can be created in the same page.
+
+    A converter wrapper function is either a string with the name of a built-in converter or a
+    user supplied function that takes the object to process as an argument and returns the
+    resultant type or undefined if the function does not apply. If undefined is returned the next
+    converter is processed. If there are no converters that returns a value other than undefined,
+    processing proceeds as normal. "Date" is the only currently built-in converter function. It
+    takes a string with an ISO 8601 date and returns a new Date object if the syntax is right and
+    the date is valid.
+
+    \section1 Interacting with QObjects
+
+    Once the callback passed to the QWebChannel object is invoked, the channel has finished
+    initialization and all published objects are accessible to the HTML client via the \c channel.objects
+    property. Thus, assuming an object was published with the identifier "foo", then we can interact with it
+    as shown in the example below. Note that all communication between the HTML client and
+    the QML/C++ server is asynchronous. Properties are cached on the HTML side. Furthermore
+    keep in mind that only QML/C++ data types which can be converted to JSON will be (de-)serialized
+    properly and thus accessible to HTML clients.
+
+    \code
+new QWebChannel(yourTransport, function(channel) {
+
+    // Connect to a signal:
+    channel.objects.foo.mySignal.connect(function() {
+        // This callback will be invoked whenever the signal is emitted on the C++/QML side.
+        console.log(arguments);
+    });
+
+    // To make the object known globally, assign it to the window object, i.e.:
+    window.foo = channel.objects.foo;
+
+    // Invoke a method:
+    foo.myMethod(arg1, arg2, function(returnValue) {
+        // This callback will be invoked when myMethod has a return value. Keep in mind that
+        // the communication is asynchronous, hence the need for this callback.
+        console.log(returnValue);
+    });
+
+    // Read a property value, which is cached on the client side:
+    console.log(foo.myProperty);
+
+    // Writing a property will instantly update the client side cache.
+    // The remote end will be notified about the change asynchronously
+    foo.myProperty = "Hello World!";
+
+    // To get notified about remote property changes,
+    // simply connect to the corresponding notify signal:
+    foo.myPropertyChanged.connect(function() {
+        console.log(foo.myProperty);
+    });
+
+    // One can also access enums that are marked with Q_ENUM:
+    console.log(foo.MyEnum.MyEnumerator);
+});
+    \endcode
+
+    \section2 Overloaded methods and signals
+
+    When you publish a \c QObject that has overloaded methods, QWebChannel will resolve
+    method invocations to the best match. Note that due to JavaScript's type system, there is only
+    a single 'number' type which maps best to a C++ 'double'. When overloads differ only in the type
+    of a number-like parameter, QWebChannel will always choose that overload which best matches the
+    JavaScript 'number' type.
+    When you connect to an overloaded signal, the QWebChannel client will by default only connect to
+    the first signal overload of that name.
+    Additionally, overloads of methods and signals can explicitly be requested by their complete
+    \c QMetaMethod signature.
+    Assume we have the following \c QObject subclass on the C++ side:
+
+    \code
+    class Foo : public QObject
+    {
+        Q_OBJECT
+    slots:
+        void foo(int i);
+        void foo(double d);
+        void foo(const QString &str);
+        void foo(const QString &str, int i);
+
+    signals:
+        void bar(int i);
+        void bar(const QString &str);
+        void bar(const QString &str, int i);
+    };
+    \endcode
+
+    Then you can interact with this class on the JavaScript side like this:
+
+    \code
+    // methods
+    foo.foo(42); // will call the method named foo which best matches the JavaScript number parameter, i.e. foo(double d)
+    foo.foo("asdf"); // will call foo(const QString &str)
+    foo.foo("asdf", 42); // will call foo(const QString &str, int i)
+    foo["foo(int)"](42); // explicitly call foo(int i), *not* foo(double d)
+    foo["foo(QString)"]("asdf"); // explicitly call foo(const QString &str)
+    foo["foo(QString,int)"]("asdf", 42); // explicitly call foo(const QString &str, int i)
+
+    // signals
+    foo.bar.connect(...); // connect to first signal named bar, i.e. bar(int i)
+    foo["bar(int)"].connect(...); // connect explicitly to bar(int i)
+    foo["bar(QString)"].connect(...); // connect explicitly to bar(const QString &str)
+    foo["bar(QString,int)"].connect(...); // connect explicitly to bar(const QString &str, int i)
+    \endcode
+*/

@@ -1,0 +1,67 @@
+version = 1
+
+[[annotations]]
+path = ["tests/auto/protobufgen/data/cmd_line_generated/**",
+        "tests/auto/protobufgen/data/cmake_generated/**",
+        "tests/auto/grpcgen/data/expected_result/**",
+        "tests/auto/grpc/**",
+        "tests/auto/protobuf/conformance/expect_failing_tests_v3.21.9.0.txt",
+        "tests/auto/grpcgen/data/cmake_generated/**",
+        "tests/auto/grpcgen/data/cmd_line_generated/**"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GPL-3.0-only"
+
+[[annotations]]
+path = "tests/auto/grpc/client/shared/test_server/assets/generate.sh"
+precedence = "closest"
+comment = "tools and utils"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0"
+
+[[annotations]]
+path = ["**CMakeLists.txt", ".cmake.conf", "**.yaml", "**.json",
+        "**.cfg", "**BLACKLIST", "**.cmake.in", ".tag"]
+precedence = "closest"
+comment = "build system"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
+path = ["**/.gitattributes", "**.gitignore", "**.gitreview"]
+comment = "version control system. infrastructure"
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
+
+[[annotations]]
+path = ["examples/**", "**/src/snippets/**"]
+comment = "this must be after the build system table because example and snippets take precedence over build system"
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
+
+[[annotations]]
+path = ["**/doc/images/**", "**.qdocconf", "**.qdocinc"]
+comment = "documentation"
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only"
+
+[[annotations]]
+path = ["tests/auto/protobuf/conformance/data/*"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright 2008 Google Inc."
+SPDX-License-Identifier = "LicenseRef-protobuf"
+
+[[annotations]]
+path = ["**.toml", "licenseRule.json"]
+precedence = "override"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
+
+[[annotations]]
+path = ["**/qt_attribution.json"]
+precedence = "override"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only"

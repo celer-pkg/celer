@@ -1,0 +1,36 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  actions: [
+    {
+      action: js
+      script:
+        '''
+        performance.mark("page-load", {
+        detail: {
+            url: "$[PAGE_URL]"
+        }
+        });
+        '''
+    }
+    {
+      action: get
+      url: $[PAGE_URL]
+      ready_state: $[READY_STATE]
+      timeout: $[PAGE_LOAD_TIMEOUT]
+      target: $[TARGET]
+    }
+    {
+      action: js
+      script:
+        '''
+        performance.mark("page-loaded", {
+        detail: {
+            url: "$[PAGE_URL]"
+        }
+        });
+        '''
+    }
+  ]
+}

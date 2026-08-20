@@ -1,0 +1,69 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qttexttospeech-changes-qt6.html
+    \title Changes to Qt TextToSpeech
+    \ingroup changes-qt-5-to-6
+    \brief Migrate Qt TextToSpeech to Qt 6.
+
+    Qt 6 is a result of the conscious effort to make the framework more
+    efficient and easy to use.
+
+    We try to maintain binary and source compatibility for all the public
+    APIs in each release. But some changes were inevitable in an effort to
+    make Qt a better framework.
+
+    In this topic we summarize those changes in \l{Qt TextToSpeech}, and provide
+    guidance to handle them.
+
+    \section1 Available Engines
+
+    All engines that were available in Qt 5 are also available in Qt 6.4. For a
+    complete list of available engines in Qt 6.4, see \l{Qt TextToSpeech Engines}.
+
+    Engines can now receive additional configuration parameters. When constructing
+    a QTextToSpeech instance, pass a QVariantMap with engine-specific key/value
+    pairs.
+
+    \section1 API changes
+
+    The \l{Qt TextToSpeech} module has undergone some basic consolidation and
+    cleanup. There should be minimal porting effort to be able to switch to Qt 6.
+
+    \section2 The QTextToSpeech class
+
+    The \l QTextToSpeech::State enum value \c BackendError has been renamed to
+    \c Error. Detailed error information is available via QTextToSpeech::errorReason()
+    and QTextToSpeech::errorString().
+
+    The new \l{QTextToSpeech::}{engine} property allows changing of the engine on an
+    initialized QTextToSpeech object.
+
+    The \l{QTextToSpeech::}{pause} and \l{QTextToSpeech::stop} slots take a
+    \l{QTextToSpeech::BoundaryHint} enum value. This will break the compilation for
+    signal/slot connections that use PMF syntax if the signal has parameters that were
+    previously ignored:
+
+    \badcode
+    connect(stopButton, &QPushButton, tts, &QTextToSpeech::stop);
+    \endcode
+
+    Either connect to a signal without parameters, or use a lambda and call the
+    respective slot method explicitly:
+
+    \code
+    connect(stopButton, &QPushButton, tts, [tts]{ tts->stop(); });
+    \endcode
+
+    \section2 The QVoice class
+
+    Existing code using the QVoice class continues to work as before. QVoice objects
+    can now be serialized via QDataStream.
+
+    \section2 The QTextToSpeechEngine and QTextToSpeechPlugin classes
+
+    These classes have been removed from the public API. They still exist and are
+    used by the available engine implementations, but they are not part of the
+    documented and supported API, and are likely to change in future releases.
+*/

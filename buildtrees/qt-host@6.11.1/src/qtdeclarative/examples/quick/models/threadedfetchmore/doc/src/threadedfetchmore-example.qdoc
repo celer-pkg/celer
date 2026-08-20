@@ -1,0 +1,39 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example models/threadedfetchmore
+    \title Models and Views: Fetch More functionality using a worker thread
+    \brief Demonstrates how to implement fetchMore() in a worker thread while maintaining a responsive UI.
+    \examplecategory {User Interface Components}
+    \image qml-threadedfetchmore-example.png
+
+    This example shows how to utilize QAbstractItemModel::fetchMore() with an
+    object moved to a QThread so that the data fetching does not block the UI.
+    On each call, the \c FetchWorker sleeps for 2 seconds, to simulate a slow
+    backend service, before sending more data to the UI thread.
+
+    \section1 Basic functionality
+
+    While data is being fetched in the worker thread, the model adds a
+    BusyIndicator to the end of list. Once data is successfully fetched, the
+    BusyIndicator is removed, and new items are appended to the list.
+    The ListView is used in the typical way, and does not need adjustment
+    to deal with the slow model.
+
+    \section1 Responsibilities
+
+    The item model changes (in this case inserting and removing rows) must
+    happen in the UI thread. The worker thread object slowly constructs
+    DataBlock structs, and emits the \c dataFetched signal with a QList of data
+    blocks as the payload; the signal is sent via a Qt::QueuedConnection to the
+    ThreadedFetchMoreModel::dataReceived() slot, which appends them to the data
+    list in the UI thread. The UI thread adds a placeholder item to the end of
+    the list before sending the fetchDataBlock() signal to the worker object to
+    kick off the fetching process, and removes the placeholder before appending
+    new items to the list.
+
+    After all available data is fetched, the worker thread object sends the
+    \c noMoreToFetch signal to the model; from then on, the canFetchMore()
+    method always returns \c false.
+*/

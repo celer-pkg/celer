@@ -1,0 +1,162 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+    \page qt-quick-3d-xr.html
+    \title \qxr
+    \image xr_development.webp {VR headset render}
+    \brief The \qxr module provides APIs for developing XR applications.
+
+    \section1 Introduction
+
+    Extended Reality (XR) is a term that includes Virtual Reality (VR), Augmented Reality (AR),
+    and Mixed Reality (MR). These technologies create immersive experiences that can
+    alter a user's perception of the world around them. The \qxr module provides APIs for developing
+    XR applications with Qt Quick 3D across a variety of devices and platforms.
+
+    \section1 Difference between Qt Quick 3D and \qxr applications
+
+    \section2 The entry point
+
+    The main difference between a Qt Quick 3D and a \qxr application, from a developer's perspective,
+    is the scene's entry point, and being aware of real-world units and tracking data is essential.
+
+    In Qt Quick 3D, a minimal application would consist of a camera, light, and a 3D model. The positioning
+    and size of these elements are defined in the scene's coordinate system, which is arbitrary and can be
+    defined by the developer to fit the needs of the application.
+
+    \qml
+    View3D {
+        width: 1280
+        height: 720
+
+        PerspectiveCamera {
+            position: Qt.vector3d(0, 200, 300)
+        }
+
+        DirectionalLight {
+        }
+
+        Node {
+            id: sceneRoot
+            Model {
+                id: model
+                position: Qt.vector3d(0, -200, 0)
+                source: "#Cylinder"
+                materials: [ PrincipledMaterial {
+                        baseColor: "red"
+                }]
+            }
+        }
+    }
+    \endqml
+
+    In an XR application, consider real-world units and tracking data when defining the scene.
+    The camera's position and orientation are defined by the device's, or in the case of
+    head-mounted displays (HMD), the user's head position and orientation. The scene's units should
+    match the real-world unit. For example, you'd want a door or a desk to be the same
+    size in the real world as in the virtual world.
+
+    \note The entry point in an \qxr application is not a \l View3D but the \l  XrView. In addition,
+    an \l XrOrigin defines the scene's origin, which tracked items are placed relative to.
+
+    \qml
+    XrView {
+        DirectionalLight {
+        }
+
+        xrOrigin: XrOrigin {
+            XrController {
+                id: rightController
+                controller: XrController.ControllerRight
+            }
+            XrController {
+                id: leftController
+                controller: XrController.ControllerLeft
+            }
+        }
+
+        Node {
+            id: sceneRoot
+            Model {
+                id: floor
+                source: ":meshes/floor.mesh"
+                materials: [ PrincipledMaterial {
+                        baseColor: "green"
+                    }]
+            }
+
+            Model {
+                id: table
+                property real height: 0.7
+                position: Qt.vector3d(0, height - 2.5, 0)
+                source: ":meshes/table.mesh"
+                materials: PrincipledMaterial {
+                    baseColor: "white"
+                }
+            }
+
+            Model {
+                id: monitor
+                source: ":meshes/monitor.mesh"
+                y: table.height
+                XrItem {
+                    id: theScreen
+                    y: monitor.yOffset + height
+                    x: -width / 2
+                    width: monitor.width
+                    height: monitor.height
+                    contentItem: ScreenContent {}
+                }
+            }
+        }
+    }
+    \endqml
+
+    \section2 Additional CMake functions
+
+    As can be seen in the \c CmakeLists.txt file for all the \l{\qxr Examples}, you need to add
+    some functions to your project's top-level CMakeLists file.
+
+    To specify a custom \c AndroidManifest.xml and to make sure it gets used by adding this line
+    to your project's CMakeLists file:
+
+    \quotefromfile xr_simple/CMakeLists.txt
+    \skipto if(ANDROID)
+    \printuntil endif()
+
+    For more details about setting up your \c AndroidManifest.xml, see the relevant section of
+    the \l{Getting Started With Meta Quest 3} page.
+
+    CMakeLists.txt changes also apply to visionOS, where we include the \c MacOSXBundleInfo.plist.in file:
+
+    \printto qt_finalize_executable(xr_simple)
+
+    \section1 Where to go from here?
+
+    Take a look at \l{Getting Started With Meta Quest 3} or \l{Getting Started With Apple Vision Pro}
+    for more information about how to get started with your specific device. See the
+    \l{Supported Platforms} page for more information about platforms and devices supported.
+
+    If you are looking for a specific \qxr API, take a look at the \l{\qxr QML Types}{API Reference},
+    or try out one of the \l{\qxr Examples}, which demonstrate how the \qxr APIs can be used.
+
+    \section1 Quick Links
+
+    \list
+    \include qt3dxr-toc.qdoc listitems-quick-links
+    \endlist
+
+    //! NOTE: This table refers to list items in qt3dxr-toc.qdoc - add new items there
+    //! Using existing placeholder images for now
+    \table
+        \row
+            \include qt3dxr-toc.qdoc listitems-platforms-and-toolchains
+            \include qt3dxr-toc.qdoc listitems-getting-started
+            \include qt3dxr-toc.qdoc listitems-api-reference
+        \row
+            \include qt3dxr-toc.qdoc listitems-examples
+            \include qt3dxr-toc.qdoc tools-ide
+            \include qt3dxr-toc.qdoc developing-applications
+    \endtable
+
+*/

@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="/MyModule/">
+    <file alias="MyItem.qml">../../../../../../TestApp/somesubfolder/anothersubfolder/MyModule/MyItem.qml</file>
+  </qresource>
+</RCC>

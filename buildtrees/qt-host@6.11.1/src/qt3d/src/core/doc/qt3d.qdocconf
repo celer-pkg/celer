@@ -1,0 +1,96 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/config/exampleurl-qt3d.qdocconf)
+
+project                 = Qt3D
+description             = Qt 3D Reference Documentation
+version                 = $QT_VERSION
+
+moduleheader            = Qt3DDoc
+includepaths            = -I .
+
+examplesinstallpath     = qt3d
+
+# Path to the root of qt3d (for automatic linking to source code)
+url.sources.rootdir     = ../../..
+
+qhp.projects            = Qt3D
+
+qhp.Qt3D.file                = qt3d.qhp
+qhp.Qt3D.namespace           = org.qt-project.qt3d.$QT_VERSION_TAG
+qhp.Qt3D.virtualFolder       = qt3d
+qhp.Qt3D.indexTitle          = Qt 3D
+qhp.Qt3D.indexRoot           =
+
+qhp.Qt3D.subprojects = manual examples classes qmltypes
+qhp.Qt3D.subprojects.manual.title = Qt 3D
+qhp.Qt3D.subprojects.manual.indexTitle = Qt 3D module topics
+qhp.Qt3D.subprojects.manual.type = manual
+
+qhp.Qt3D.subprojects.examples.title      = Examples
+qhp.Qt3D.subprojects.examples.indexTitle = Qt 3D Examples
+qhp.Qt3D.subprojects.examples.selectors  = doc:example
+qhp.Qt3D.subprojects.examples.sortPages  = true
+
+qhp.Qt3D.subprojects.classes.title      = C++ Classes
+qhp.Qt3D.subprojects.classes.indexTitle = Qt 3D C++ Classes
+qhp.Qt3D.subprojects.classes.selectors  = class doc:headerfile
+qhp.Qt3D.subprojects.classes.sortPages  = true
+
+qhp.Qt3D.subprojects.qmltypes.title      = QML Types
+qhp.Qt3D.subprojects.qmltypes.indexTitle = Qt 3D QML Types
+qhp.Qt3D.subprojects.qmltypes.selectors  = qmlclass
+qhp.Qt3D.subprojects.qmltypes.sortPages  = true
+
+tagfile                 = qt3d.tags
+
+depends                 += qtcore qtgui qtqml qtquick qtdoc
+
+{headerdirs,sourcedirs} += . \
+              ../../render \
+              ../../core \
+              ../../logic \
+              ../../plugins \
+              ../../quick3d/quick3d \
+              ../../input \
+              ../../extras \
+              ../../animation \
+              ../../quick3d/quick3dscene2d \
+              ../../quick3d/quick3dscene3d
+
+# Exclude private header files from the documentation build
+excludefiles += "*_p.h"
+
+# Add some private headers explicitly to avoid documentation warnings
+headers       = ../../core/transforms/matrix4x4_p.h \
+                ../../core/transforms/vector3d_p.h \
+                ../../render/raycasting/qray3d_p.h \
+                ../../input/frontend/qabstractphysicaldeviceproxy_p.h \
+                ../../input/frontend/qinputdeviceintegration_p.h
+
+exampledirs += ../../../examples/qt3d \
+               snippets
+
+examples.fileextensions       += "*.fraq *.geom *.vert"
+examples.imageextensions      += "*.png"
+
+excludedirs += \
+              ../../plugins/renderplugins \
+              ../../plugins/sceneparsers
+
+macro.TODO = " "
+imagedirs   += images
+
+manifestmeta.thumbnail.names += "Qt3D/Qt 3D: Deferred Renderer C++ Example"
+
+navigation.landingpage = "Qt 3D"
+navigation.cppclassespage = "Qt 3D C++ Classes"
+navigation.qmltypespage = "Qt 3D QML Types"
+# Auto-generate navigation linking based on "Qt 3D module topics":
+navigation.toctitles = "Qt 3D module topics"
+navigation.toctitles.inclusive = false
+
+# Allow no documentation warnings when testing in CI
+warninglimit = 0
+
+# Suppress a specific warning category
+spurious += "No output generated for .*"

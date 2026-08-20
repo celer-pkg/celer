@@ -1,0 +1,33 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \module QtSpatialAudio
+    \title Qt Spatial Audio Module C++ Classes
+    \ingroup modules
+    \qtvariable spatialaudio
+    \qtcmakepackage SpatialAudio
+
+    \brief The \l {Qt Spatial Audio} module provides functionality for 3D audio.
+
+    \include module-use.qdocinc using qt module
+
+    \code
+        find_package(Qt6 REQUIRED COMPONENTS SpatialAudio)
+        target_link_libraries(my_project PRIVATE Qt6::SpatialAudio)
+    \endcode
+*/
+
+/*!
+    \page qtspatialaudio-modules.html
+    \title Qt Spatial Audio C++ Classes
+    \brief Provides C++ class for spatial audio use cases.
+
+    The C++ classes provide the same functionality as the Qt Quick3D spatial audio
+    module.
+
+    \section1 Classes
+
+    \generatelist {classesbymodule QtSpatialAudio}
+
+*/

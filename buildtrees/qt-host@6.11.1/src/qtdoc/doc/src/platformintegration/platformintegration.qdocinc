@@ -1,0 +1,35 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+
+//! [type-conversions]
+Many of Qt's basic data types, such as QString, QPoint, or QImage, provide
+conversions to and from the native equivalent types.
+//! [type-conversions]
+
+//! [native-interface-compat-warning]
+There are no source or binary compatibility guarantees for the
+native interface APIs, meaning that an application using these
+interfaces is only guaranteed to work with the Qt version it was
+developed against.
+//! [native-interface-compat-warning]
+
+//! [native-interface-blurb]
+The interfaces live in the QNativeInterface namespace, and cover use-cases
+such as accessing underlying native handles, adopting existing native
+handles, or providing platform specific APIs.
+//! [native-interface-blurb]
+
+//! [native-interface-handle-access-example]
+For example, to access the underlying NSOpenGLContext of an QOpenGLContext
+on \macos, via the QNativeInterface::QCocoaGLContext native interface:
+
+\code
+    using namespace QNativeInterface;
+    if (auto *cocoaGLContext = glContext->nativeInterface<QCocoaGLContext>())
+        [cocoaGLContext->nativeContext() makeCurrentContext];
+\endcode
+//! [native-interface-handle-access-example]
+
+*/

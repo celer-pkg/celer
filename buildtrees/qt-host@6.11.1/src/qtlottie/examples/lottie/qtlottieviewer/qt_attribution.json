@@ -1,0 +1,13 @@
+[
+    {
+        "Id": "lottielogo",
+        "Name": "Lottie Logo",
+        "QDocModule": "qtlottieanimation",
+        "QtUsage": "Used in the qtlottieviewer Example",
+        "QtParts": [ "examples" ],
+        "Files": [ "logo.json"  ],
+        "LicenseId": "MIT",
+        "License": "MIT License",
+        "Copyright": "Copyright (C) 2017 Airbnb"
+    }
+]

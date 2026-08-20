@@ -1,0 +1,49 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example screencapture
+    \title Screen Capture Example
+    \ingroup multimedia_examples
+    \examplecategory {Multimedia}
+    \brief Capturing a screen or window.
+    \meta {tag} {widgets}
+
+    \e{Screen Capture} demonstrates how to capture a screen or window using
+    QScreenCapture and QWindowCapture. The example shows a list of screens and
+    windows and displays a live preview of the selected item using a
+    QMediaCaptureSession and a QVideoWidget. Capturing can be started and stopped
+    with a \l{QPushButton}{button}.
+
+    \image screencapture.jpg
+           {UI showing list of screens together with the screenshotted image}
+
+    \include examples-run.qdocinc
+
+    \section1 Application Structure
+
+    The example consists of three custom classes. The UI and all screen capture
+    functionality is implemented in the class ScreenCapturePreview. The classes
+    ScreenListModel and WindowListModel only serve as models behind the two
+    QListView widgets. The main function creates a ScreenCapturePreview object,
+    which in turn creates instances of QScreenCapture and QWindowCapture,
+    and a QMediaCaptureSession and QVideoWidget, in addition to all the UI widgets.
+
+    The screen and window models are populated with the return values of
+    \l QGuiApplication::screens() and \l QWindowCapture::capturableWindows(),
+    respectively.
+
+    When a list item is selected, it is connected to the QScreenCapture object
+    with \l{QScreenCapture::}{setScreen()}, or to the QWindowCapture object
+    with \l{QWindowCapture::}{setWindow()}. The capture object is connected to
+    the QMediaCaptureSession object with \l{QMediaCaptureSession::}{setScreenCapture()}
+    and \l{QMediaCaptureSession::}{setWindowCapture()}, respectively.
+    The capture session in turn is connected to the QVideoWidget object with
+    \l{QMediaCaptureSession::}{setVideoOutput()}. Thus, the capture output is
+    previewed in the video widget on the right hand side of the UI.
+
+    The start/stop button calls \l QScreenCapture::start() and \l QScreenCapture::stop(),
+    or \l QWindowCapture::start() and \l QWindowCapture::stop().
+
+    A QMessageBox pops up if the \l{QScreenCapture::}{errorOccurred} signal is emitted.
+*/

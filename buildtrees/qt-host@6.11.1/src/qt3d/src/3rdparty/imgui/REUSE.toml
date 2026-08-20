@@ -1,0 +1,36 @@
+version = 1
+
+[[annotations]]
+path = ["imgui.cpp", "imstb_textedit.h", "imstb_truetype.h"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (c) 2014-2018 Omar Cornut"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ["imgui.h"]
+precedence = "closest"
+comment = "not in qt_attribution.json file"
+SPDX-FileCopyrightText = "Copyright (c) 2014-2018 Omar Cornut"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ["imgui_draw.cpp"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (c) 2004, 2005 Tristan Grimmer"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ["imconfig.h",
+        "imgui_internal.h",
+        "imgui_tables.cpp",
+        "imgui_widgets.cpp"]
+precedence = "closest"
+comment = "not in at_attribution.json file"
+SPDX-FileCopyrightText = "Unknown"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ["imstb_rectpack.h", "imstb_textedit.h", "imstb_truetype.h"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (c) 2017 Sean Barrett"
+SPDX-License-Identifier = "MIT OR CC0-1.0"

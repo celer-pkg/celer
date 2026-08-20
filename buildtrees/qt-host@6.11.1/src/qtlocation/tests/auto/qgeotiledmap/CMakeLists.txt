@@ -1,0 +1,10 @@
+qt_internal_add_test(tst_qgeotiledmap
+    SOURCES
+        tst_qgeotiledmap.cpp
+    INCLUDE_DIRECTORIES
+        ../geotestplugin
+    LIBRARIES
+        Qt::Core
+        Qt::LocationPrivate
+        Qt::PositioningPrivate
+)

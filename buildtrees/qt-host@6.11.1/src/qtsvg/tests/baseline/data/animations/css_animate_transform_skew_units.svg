@@ -1,0 +1,44 @@
+<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+  <style>
+  @keyframes rotateDeg {
+    0% {transform: skew(0, 0)} 
+    100% {transform: skew(0, 15deg)}
+  }
+  @keyframes rotateRad {
+    0% {transform: skew(0, 0)} 
+    100% {transform: skew(0, 0.26rad)}
+  }
+  @keyframes rotateGrad {
+    0% {transform: skew(0, 0)} 
+    100% {transform: skew(0, 16.666grad)}
+  }
+  @keyframes rotateTurn {
+    0% {transform: skew(0, 0)} 
+    100% {transform: skew(0, 0.0416turn)}
+  }
+  circle.deg {
+    animation-duration: 1s;
+    animation-name: rotateDeg;
+    animation-iteration-count: infinite;
+  }
+  circle.rad {
+    animation-duration: 1s;
+    animation-name: rotateRad;
+    animation-iteration-count: infinite;
+  }
+  circle.grad {
+    animation-duration: 1s;
+    animation-name: rotateGrad;
+    animation-iteration-count: infinite;
+  }
+  circle.turn {
+    animation-duration: 1s;
+    animation-name: rotateTurn;
+    animation-iteration-count: infinite;
+  }
+  </style>
+  <circle class="deg" cx="250" cy="200" r="100" fill="none" stroke-width="6" stroke="red"/>
+  <circle class="rad" cx="250" cy="200" r="80" fill="none" stroke-width="6" stroke="blue"/>
+  <circle class="grad" cx="250" cy="200" r="60" fill="none" stroke-width="6" stroke="green"/>
+  <circle class="turn" cx="250" cy="200" r="40" fill="none" stroke-width="6" stroke="violet"/>
+</svg>

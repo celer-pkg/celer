@@ -1,0 +1,95 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qt6-modernize-qml-modules.html
+\title Modernizing QML Modules
+\brief Modernize your QML modules.
+
+QML modules have become more powerful and easier to use in Qt 6.
+The following sections describe how to modernize QML modules that already use \l qt_add_qml_module.
+
+See also \l{Port QML modules to CMake} on how to port a QML module to the
+\l qt_add_qml_module CMake API.
+
+\section1 Use qt_standard_project_setup
+\l qt_standard_project_setup sets up \l{Qt CMake policies} needed for modern QML modules, among
+other things. To modernize your QML module and follow best practices, call
+\l qt_standard_project_setup in the project's top-level \c CMakeLists.txt file before any
+\l qt_add_qml_module call:
+\badcode
+qt_standard_project_setup(REQUIRES 6.8)
+\endcode
+
+\section1 Use the new standard resource path prefix
+The standard resource path for QML modules moved from \c{:/} to \c{:/qt/qml} with \l{QTP0001}. Don't
+use custom resource prefixes nor extend import paths in the engine.
+Remove all \c RESOURCE_PREFIX arguments from all \l qt_add_qml_module calls, as well as all calls to
+\l{QQmlEngine::addImportPath} or similar.
+Change all qrc paths in your C++ and QML code to use the new resource path prefix:
+\badcode
+// C++ usages like:
+QUrl someUrl("qrc:/MyQmlModule/MyResource1.png");
+// need to be changed to
+QUrl someUrl("qrc:/qt/qml/MyQmlModule/MyResource1.png");
+
+// QML usages like:
+":/MyQmlModule/MyResource1.png"
+// need to be changed to
+":/qt/qml/MyQmlModule/MyResource1.png"
+\endcode
+
+See also \l{Using the Qt Resource System with QML}.
+
+\section1 Use loadFromModule to load your QML files
+
+With the default import path, you can use the \c loadFromModule methods, like \l
+QQmlApplicationEngine::loadFromModule, \l QQuickView::loadFromModule, or
+\l QQmlComponent::loadFromModule, for example.
+
+Use \c loadFromModule to load your QML file, for example:
+\badcode
+engine.load(QUrl(QStringLiteral("qrc:/MyQmlModule/Main.qml")));
+// becomes
+engine.loadFromModule("MyQmlModule", "Main");
+\endcode
+
+\section1 Replace OUTPUT_DIRECTORY and IMPORT_PATH with DEPENDENCIES TARGET
+Avoid setting an \c IMPORT_PATH in the \l qt_add_qml_module. Instead, use \c{DEPENDENCIES TARGET}
+to declare dependencies to other QML modules that can't be found in the current import path.
+
+Using \c{DEPENDENCIES TARGET} also eliminates the need for the \c QT_QML_OUTPUT_DIRECTORY CMake
+variable and the \c OUTPUT_DIRECTORY argument to \l qt_add_qml_module, so remove their
+definitions and usages.
+
+For example:
+\badcode
+### in the CMakeLists.txt file defining the dependent QML module:
+# don't set QT_QML_OUTPUT_DIRECTORY and remove lines like these:
+set(QT_QML_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/qml)
+
+qt_add_qml_module(MyThirdPartyQmlLibraryDependency
+    URI MyThirdPartyQmlLibraryDependency
+    ....
+    # custom output paths are obsolete due to DEPENDENCIES TARGET below, so remove:
+    OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/qml
+}
+
+### in the CMakeLists.txt file defining the QML module that uses the dependency:
+qt_add_qml_module(MyQmlLibrary
+    URI MyQmlModule
+    ...
+    # replace import paths like these:
+    IMPORT_PATH ${CMAKE_CURRENT_BINARY_DIR}/thirdparty/qml
+    # with:
+    DEPENDENCIES TARGET MyThirdPartyQmlLibraryDependency
+}
+\endcode
+
+\note You might need to call \c{add_subdirectory()} before calling \l qt_add_qml_module in your
+CMakeLists.txt for \c {DEPENDENCIES TARGET} to find the target.
+
+For more information on how to declare module dependencies, see \l{Declaring module dependencies}.
+
+\sa {Changes to Qt QML}, {Port QML modules to CMake}
+*/

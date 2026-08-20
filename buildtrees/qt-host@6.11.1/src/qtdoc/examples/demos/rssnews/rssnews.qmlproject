@@ -1,0 +1,16 @@
+import QmlProject
+
+Project {
+    mainFile: "Main.qml"
+
+    /* Include .qml, .js, and image files from current directory and subdirectories */
+    QmlFiles {
+        directory: "."
+    }
+    JavaScriptFiles {
+        directory: "."
+    }
+    ImageFiles {
+        directory: "."
+    }
+}

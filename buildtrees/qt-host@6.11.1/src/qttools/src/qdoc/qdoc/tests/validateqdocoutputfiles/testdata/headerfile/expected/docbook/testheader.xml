@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<db:article xmlns:db="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.2" xml:lang="en">
+<db:info>
+<db:title>&lt;TestHeader&gt; - Test Header</db:title>
+<db:productname>Qt</db:productname>
+<db:titleabbrev>HeaderFile Reference Documentation</db:titleabbrev>
+<db:abstract>
+<db:para>A header file.</db:para>
+</db:abstract>
+</db:info>
+<db:variablelist>
+<db:varlistentry>
+<db:term>Header</db:term>
+<db:listitem>
+<db:para>TestHeader</db:para>
+</db:listitem>
+</db:varlistentry>
+<db:varlistentry>
+<db:term>Group</db:term>
+<db:listitem>
+<db:para>&lt;TestHeader&gt; is part of <db:simplelist><db:member><db:link xlink:href="headers.xml">Headers</db:link></db:member><db:member><db:link xlink:href="tests.xml">Tests</db:link></db:member></db:simplelist>
+</db:para>
+</db:listitem>
+</db:varlistentry>
+</db:variablelist>
+<db:section xml:id="details">
+<db:title>Detailed Description</db:title>
+</db:section>
+<db:section xml:id="type-documentation">
+<db:title>Type Documentation</db:title>
+<db:section xml:id="Globals-enum">
+<db:title>enum Globals</db:title>
+<db:informaltable>
+<db:thead>
+<db:tr>
+<db:th>Constant</db:th>
+</db:tr>
+</db:thead>
+<db:tr>
+<db:td>
+<db:para><db:code>Glo</db:code></db:para>
+</db:td>
+<db:td><db:code>0</db:code></db:td>
+</db:tr>
+<db:tr>
+<db:td>
+<db:para><db:code>Bal</db:code></db:para>
+</db:td>
+<db:td><db:code>1</db:code></db:td>
+</db:tr>
+</db:informaltable>
+</db:section>
+</db:section>
+<db:section xml:id="variable-documentation">
+<db:title>Variable Documentation</db:title>
+<db:section xml:id="globalVar-var">
+<db:title>const int globalVar</db:title>
+<db:para>Global variable.</db:para>
+</db:section>
+</db:section>
+<db:section xml:id="function-documentation">
+<db:title>Function Documentation</db:title>
+<db:section xml:id="globalFunc">
+<db:title>void globalFunc()</db:title>
+<db:para>Global function.</db:para>
+</db:section>
+</db:section>
+</db:article>

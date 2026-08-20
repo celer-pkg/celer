@@ -1,0 +1,32 @@
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
+name: CMakeTest
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  cmake_test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    env:
+      CC: clang
+      CXX: clang++
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Configure CMake
+      run: cmake .
+
+    - name: Build
+      run: cmake --build . -j4
+
+    - name: Test
+      run: ctest -j4

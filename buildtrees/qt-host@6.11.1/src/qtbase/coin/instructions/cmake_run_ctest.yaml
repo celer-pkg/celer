@@ -1,0 +1,216 @@
+type: Group
+instructions:
+  - type: ScheduleUploadTestResults
+  - type: PrependToEnvironmentVariable
+    variableName: PATH
+    variableValue: "{{.Env.PYTHON3_PATH}}:"
+    disable_if:
+      condition: property
+      property: host.os
+      equals_value: Windows
+  - type: EnvironmentVariable
+    variableName: TESTRUNNER
+    variableValue: "{{.Env.LIBEXEC_INSTALL_DIR}}qt-testrunner.py --"
+    # Running wasm tests with the coin testrunner is not yet implemented
+    disable_if:
+      condition: property
+      property: target.osVersion
+      in_values: [WebAssembly]
+  - type: AppendToEnvironmentVariable
+    variableName: TESTRUNNER
+    variableValue: " {{.SourceDir}}/coin_qnx_qemu_runner.sh"
+    enable_if:
+      condition: property
+      property: target.os
+      equals_value: QNX
+  - type: AppendToEnvironmentVariable
+    variableName: TESTRUNNER
+    variableValue: " {{.AgentWorkingDir}}/coin_vxworks_qemu_runner.sh"
+    enable_if:
+      condition: property
+      property: target.osVersion
+      in_values: [VxWorks]
+  - type: Group
+    enable_if:
+      condition: property
+      property: features
+      contains_value: UseAddressSanitizer
+    instructions:
+    - type: EnvironmentVariable
+      variableName: ASAN_OPTIONS
+      variableValue: "malloc_context_size=100:detect_leaks=0"
+    - type: EnvironmentVariable
+      # Override qt-testrunner as we don't want to gather test statistics
+      # because many tests FAIL when built with ASAN.
+      variableName: TESTRUNNER
+      variableValue: "{{.Env.LIBEXEC_INSTALL_DIR}}sanitizer-testrunner.py"
+  - type: EnvironmentVariable
+    variableName: COIN_CTEST_RESULTSDIR
+    variableValue: "{{.AgentWorkingDir}}\\testresults"
+    enable_if:
+      condition: property
+      property: host.os
+      equals_value: Windows
+  - type: EnvironmentVariable
+    variableName: COIN_CTEST_RESULTSDIR
+    variableValue: "{{.AgentWorkingDir}}/testresults"
+    disable_if:
+      condition: property
+      property: host.os
+      equals_value: Windows
+
+  - !include "{{qt/qtbase}}/vxworks_test_env_setup.yaml"
+
+  # Only output verbose test output for failures, unless
+  # the VerboseCTestOutput feature is enabled. The full
+  # test output for all tests are still stored and uploaded
+  # to coin for deeper investigations (see LastTest.log below)
+  - type: AppendToEnvironmentVariable
+    variableName: CTEST_ARGS
+    variableValue: " --output-on-failure"
+    disable_if:
+      condition: property
+      property: features
+      contains_value: VerboseCTestOutput
+  - type: AppendToEnvironmentVariable
+    variableName: CTEST_ARGS
+    variableValue: " -V"
+    enable_if:
+      condition: property
+      property: features
+      contains_value: VerboseCTestOutput
+
+  - type: AppendToEnvironmentVariable
+    variableName: CTEST_ARGS
+    variableValue: " --stop-on-failure"
+    enable_if:
+      condition: property
+      property: features
+      contains_value: AbortTestingOnFirstFailure
+
+  - type: AppendToEnvironmentVariable
+    variableName: CTEST_ARGS
+    variableValue: " --no-label-summary"
+
+    # Enable CTest's JUnit XML summary, supported in CMake >= v3.21
+  - type: AppendToEnvironmentVariable
+    variableName: CTEST_ARGS
+    variableValue: " --output-junit {{.Env.COIN_CTEST_RESULTSDIR}}{{.Env.CI_PATH_SEP}}test_summary.ctest_junit_xml"
+
+  - !include "{{qt/qtbase}}/coin_module_test_android_start_emulator.yaml"
+
+  - type: EnvironmentVariable
+    variableName: COIN_CROSS_PLATFORM_VERSION_TEST
+    variableValue: "TRUE"
+    enable_if:
+      condition: and
+      conditions:
+        - condition: property
+          property: platformDependency
+          not_equals_value: null
+        - condition: property
+          property: platformDependency.target.osVersion
+          not_equals_property: target.osVersion
+        - condition: property
+          property: features
+          contains_value: TestOnly
+
+  # Run CTest, with or without ignoring exit code
+  # FIXME: De-duplicate the CTest instruction when
+  # ignoreExitCode expands environment variables.
+  - type: ExecuteCommand
+    command: "{{.Env.TESTS_ENV_PREFIX}} ctest {{.Env.CTEST_ARGS}}"
+    executeCommandArgumentSplitingBehavior: SplitAfterVariableSubstitution
+    ignoreExitCode: false
+    maxTimeInSeconds: 14400
+    maxTimeBetweenOutput: 14400
+    userMessageOnFailure: >
+      Failed to run tests.
+    enable_if:
+      condition: runtime
+      env_var: COIN_CTEST_IGNORE_EXIT_CODE
+      not_equals_value: "1"
+  - type: ExecuteCommand
+    command: "{{.Env.TESTS_ENV_PREFIX}} ctest {{.Env.CTEST_ARGS}}"
+    executeCommandArgumentSplitingBehavior: SplitAfterVariableSubstitution
+    ignoreExitCode: true
+    maxTimeInSeconds: 14400
+    maxTimeBetweenOutput: 14400
+    userMessageOnFailure: >
+      Failed to run tests.
+    enable_if:
+      condition: runtime
+      env_var: COIN_CTEST_IGNORE_EXIT_CODE
+      equals_value: "1"
+
+  - type: ExecuteCommand
+    instructionName: "Copy ctest log"
+    command: >
+      cmake -E copy
+        Testing{{.Env.CI_PATH_SEP}}Temporary{{.Env.CI_PATH_SEP}}LastTest.log
+        {{.Env.COIN_CTEST_RESULTSDIR}}
+    executeCommandArgumentSplitingBehavior: SplitAfterVariableSubstitution
+    userMessageOnFailure: >
+      Failed to copy LastTest.log to testresults directory.
+    executeOn: always
+    maxTimeInSeconds: 60
+    maxTimeBetweenOutput: 60
+  - type: ExecuteCommand
+    command: >
+      cmake -E copy
+        Testing{{.Env.CI_PATH_SEP}}Temporary{{.Env.CI_PATH_SEP}}LastTest.log.tmp
+        {{.Env.COIN_CTEST_RESULTSDIR}}
+    executeCommandArgumentSplitingBehavior: SplitAfterVariableSubstitution
+    userMessageOnFailure: >
+      Failed to copy LastTest.log.tmp to testresults directory.
+    executeOn: failure
+    executeOnTarget: Copy ctest log
+    resetError: target
+    maxTimeInSeconds: 60
+    maxTimeBetweenOutput: 60
+
+  - type: Group
+    instructions:
+      # Qttestrunner does not work with bic tests.
+      - type: EnvironmentVariable
+        variableName: TESTRUNNER
+        variableValue: ""
+      - type: EnvironmentVariable
+        variableName: QT_MODULE_TO_TEST
+        variableValue: "{{.SourceDir}}"
+      - type: PrependToEnvironmentVariable
+        variableName: PATH
+        variableValue: "{{.InstallDir}}/bin:"
+      - type: InstallSourceArchive
+        maxTimeInSeconds: 600
+        maxTimeBetweenOutput: 600
+        project: qt/qtqa
+        ref: dev
+        directory: qt/qtqa
+        userMessageOnFailure: "Could not install qt/qtqa source archive. Please investigate why."
+      - type: ChangeDirectory
+        directory: "{{.AgentWorkingDir}}/qt/qtqa/tests/postbuild/bic"
+      - type: ExecuteCommand
+        command: ["{{.InstallDir}}/bin/qmake"]
+        maxTimeInSeconds: 7200
+        maxTimeBetweenOutput: 300
+        userMessageOnFailure: "Failed to execute qmake for bic tests"
+      - type: RunQtUnitTest
+        runTestCommand: ["make", "check", "-j1"]
+        directory: "{{.AgentWorkingDir}}/qt/qtqa/tests/postbuild/bic"
+        testRepetitionAllowance: 0
+        maxTimeInSeconds: 7200
+        maxTimeBetweenOutput: 300
+        userMessageOnFailure: "Running bic tests failed."
+    enable_if:
+      condition: and
+      conditions:
+        - condition: property
+          property: features
+          contains_value: Packaging
+        - condition: property
+          property: target.os
+          equals_value: Linux
+        - condition: property
+          property: features
+          contains_value: EnableBicTests

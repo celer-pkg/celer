@@ -1,0 +1,102 @@
+From 1ebc6d327f30fec3f44870f6e649a477768c1a1a Mon Sep 17 00:00:00 2001
+From: Jonas Karlsson <jonas.karlsson@qt.io>
+Date: Tue, 1 Aug 2023 12:31:36 +0200
+Subject: [PATCH 1/1] Fix PhysX ODR violations
+
+Fixes: QTBUG-114114
+Pick-to: 6.5 6.6
+Change-Id: If560716dba21a8156ac6a30ccf0bd1c2960d18ad
+---
+ .../PhysX/source/geomutils/src/mesh/GuBV4_BoxSweep_Internal.h | 3 ++-
+ .../PhysX/source/geomutils/src/mesh/GuBV4_CapsuleSweepAA.cpp  | 4 ++--
+ .../PhysX/source/geomutils/src/mesh/GuBV4_Raycast.cpp         | 2 ++
+ src/3rdparty/PhysX/source/scenequery/src/SqBucketPruner.cpp   | 3 ++-
+ 4 files changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/src/3rdparty/PhysX/source/geomutils/src/mesh/GuBV4_BoxSweep_Internal.h b/src/3rdparty/PhysX/source/geomutils/src/mesh/GuBV4_BoxSweep_Internal.h
+index aef2650..19b9be0 100644
+--- a/src/3rdparty/PhysX/source/geomutils/src/mesh/GuBV4_BoxSweep_Internal.h
++++ b/src/3rdparty/PhysX/source/geomutils/src/mesh/GuBV4_BoxSweep_Internal.h
+@@ -38,6 +38,7 @@
+ // - method 2 if the box is an OBB (SWEEP_AABB_IMPL is undefined)
+ 
+ #ifdef SWEEP_AABB_IMPL
++namespace {
+ 	// PT: TODO: refactor structure (TA34704)
+ 	struct RayParams
+ 	{
+@@ -51,7 +52,7 @@
+ 	#endif
+ 		BV4_ALIGN16(Vec3p	mOrigin_Padded);		// PT: TODO: this one could be switched to PaddedAligned & V4LoadA (TA34704)
+ 	};
+-
++}
+ 	#include "GuBV4_AABBAABBSweepTest.h"
+ #else
+ 	#include "GuBV4_BoxBoxOverlapTest.h"
+diff --git a/src/3rdparty/PhysX/source/geomutils/src/mesh/GuBV4_CapsuleSweepAA.cpp b/src/3rdparty/PhysX/source/geomutils/src/mesh/GuBV4_CapsuleSweepAA.cpp
+index 141fc35..2fbb7d8 100644
+--- a/src/3rdparty/PhysX/source/geomutils/src/mesh/GuBV4_CapsuleSweepAA.cpp
++++ b/src/3rdparty/PhysX/source/geomutils/src/mesh/GuBV4_CapsuleSweepAA.cpp
+@@ -41,7 +41,7 @@ using namespace physx::shdfnd::aos;
+ #include "GuInternal.h"
+ 
+ #define SWEEP_AABB_IMPL
+-
++namespace {
+ 	// PT: TODO: refactor structure (TA34704)
+ 	struct RayParams
+ 	{
+@@ -55,7 +55,7 @@ using namespace physx::shdfnd::aos;
+ 	#endif
+ 		BV4_ALIGN16(Vec3p	mOrigin_Padded);		// PT: TODO: this one could be switched to PaddedAligned & V4LoadA (TA34704)
+ 	};
+-
++}
+ #include "GuBV4_BoxSweep_Params.h"
+ 
+ namespace
+diff --git a/src/3rdparty/PhysX/source/geomutils/src/mesh/GuBV4_Raycast.cpp b/src/3rdparty/PhysX/source/geomutils/src/mesh/GuBV4_Raycast.cpp
+index c4a4c85..e6c7169 100644
+--- a/src/3rdparty/PhysX/source/geomutils/src/mesh/GuBV4_Raycast.cpp
++++ b/src/3rdparty/PhysX/source/geomutils/src/mesh/GuBV4_Raycast.cpp
+@@ -141,6 +141,7 @@ PX_FORCE_INLINE Ps::IntBool RayTriOverlapT(PxRaycastHit& mStabbedFace, const PxV
+ #pragma warning ( disable : 4324 )
+ #endif
+ 
++namespace {
+ struct RayParams
+ {
+ 	BV4_ALIGN16(Vec3p			mCenterOrMinCoeff_PaddedAligned);
+@@ -169,6 +170,7 @@ struct RayParams
+ 	BV4_ALIGN16(Vec3p			mP1_PaddedAligned);
+ 	BV4_ALIGN16(Vec3p			mP2_PaddedAligned);
+ };
++}
+ 
+ ///////////////////////////////////////////////////////////////////////////////
+ 
+diff --git a/src/3rdparty/PhysX/source/scenequery/src/SqBucketPruner.cpp b/src/3rdparty/PhysX/source/scenequery/src/SqBucketPruner.cpp
+index 9140689..04bfa24 100644
+--- a/src/3rdparty/PhysX/source/scenequery/src/SqBucketPruner.cpp
++++ b/src/3rdparty/PhysX/source/scenequery/src/SqBucketPruner.cpp
+@@ -1202,6 +1202,7 @@ PX_FREE(remap);
+ ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ 
+ #ifdef CAN_USE_MOVEMASK
++namespace {
+ 	struct RayParams
+ 	{
+ 		PX_ALIGN(16,	PxVec3	mData2);	float	padding0;
+@@ -1209,7 +1210,7 @@ PX_FREE(remap);
+ 		PX_ALIGN(16,	PxVec3	mData);		float	padding2;
+ 		PX_ALIGN(16,	PxVec3	mInflate);	float	padding3;
+ 	};
+-
++}
+ 	static PX_FORCE_INLINE void precomputeRayData(RayParams* PX_RESTRICT rayParams, const PxVec3& rayOrig, const PxVec3& rayDir, float maxDist)
+ 	{
+ 	#ifdef USE_SIMD
+-- 
+2.41.0
+

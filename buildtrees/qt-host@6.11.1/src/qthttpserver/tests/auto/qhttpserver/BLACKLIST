@@ -1,0 +1,21 @@
+# QTBUG-103712
+[routeGet:hello world, ssl]
+android
+[routeGet:post-and-get, get, ssl]
+android
+[routeGet:invalid-rule-method, get, ssl]
+android
+[routeGet:check custom type, data=1, ssl]
+android
+[routePost:post-and-get, post, ssl]
+android
+[routePost:any, post, ssl]
+android
+[routePost:post-body, ssl]
+android
+[routePost:post-body - huge body, chunk test, ssl]
+android
+[routeDelete:post-and-get, delete, ssl]
+android
+[routeDelete:any, delete, ssl]
+android

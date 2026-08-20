@@ -1,0 +1,129 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qt3dxr-supported-platforms.html
+    \title Supported Headsets
+    \target Supported Platforms
+
+    This page outlines the supported platforms and devices for which QtQuick3D.Xr is
+    tested and supported.
+
+    \note QtQuick3D.Xr is still under development, and all features might not be available on all
+    platforms.
+
+    \section1 Basic XR Platform Concepts
+
+    QtQuick3D.Xr supports two main platforms: devices that use OpenXR as the API for
+    developing applications and devices that use Apple's visionOS.
+
+    \section2 OpenXR
+
+    \l{https://www.khronos.org/openxr/}{OpenXR} is an open standard providing a common set
+    of APIs for developing XR applications. Implementations of OpenXR are available for
+    various platforms, such as Android or Windows.
+
+    Some VR/AR devices are a complete application deployment and runtime platform on their
+    own. For example, the \l{https://www.meta.com/no/en/quest/quest-3/}{Meta Quest 3} is a
+    complete, independent Android-based device. From the application developer's point of
+    view, the workflow is very similar to developing for Android mobile phones and
+    tablets. Such devices and their software platform are sometimes referred to as
+    \c{Standalone VR}.
+
+    Other headsets may not provide a full application deployment and runtime platform but
+    rather are used in combination with a computer, typically running Windows or Linux,
+    from where the application-rendered content is streamed to the headset, either via a
+    wired or wireless connection. This setup is sometimes referred to as \c{PCVR}. The
+    applications, in this case, are developed and deployed as regular desktop Windows or
+    Linux applications. However, instead of opening on-screen windows and showing content
+    there, as typical desktop applications would do, they render into offscreen buffers
+    via OpenXR and a 3D API such as Direct 3D or Vulkan. The resulting content is streamed
+    to the headset for displaying; the actual streaming and the related processing are
+    managed by the underlying software stack, transparently to Qt and the application. An
+    example of such headsets are some devices from Varjo, or the non-standalone devices in
+    the HTC Vive range.
+
+    Some devices fall into both categories. Most notably, the Meta Quest 3 supports both
+    modes of operation.
+
+    With standalone devices, all rendering and processing happens on the headset itself.
+    There is a single implementation of OpenXR and the underlying runtime environment,
+    which applications then use when launched on the device.
+
+    With non-standalone devices, all rendering and most of the related processing happens
+    on the host PC. The quality and performance depend heavily on the host PC's
+    capabilities, but the streaming technology and associated factors, such as the
+    wireless network bandwidth, can affect the results as well. In the PCVR world, there
+    are multiple solutions that provide an OpenXR implementation and wired or wireless
+    streaming.
+
+    \note Due to OpenXR being an open standard, devices that are compatible with it may
+    work, even if the devices were not tested and verified by Qt. This means that full
+    functionality and compatibility cannot be guaranteed out of the box.
+
+    \section2 Devices and platforms not based on OpenXR
+
+    \qxr currently supports one non-OpenXR platform: Apple's visionOS. Devices such as the
+    \l{https://www.apple.com/apple-vision-pro/}{Apple Vision Pro} fall into the
+    \c{Standalone VR} category.
+
+    \section1 Tested and Verified Headsets, Tier One
+
+    This is the list of devices that are regularly tested and verified by Qt and are
+    actively used during the development of \qxr.
+    \target visionOS_supported_versions
+    \list
+      \li Meta Quest 3, standalone (Android)
+      \li Meta Quest 3, PCVR mode (Windows)
+      \li Apple Vision Pro, standalone (visionOS)
+    \endlist
+
+    \section1 Tested and Verified Headsets, Tier Two
+
+    This is a list of additional devices that are tested occasionally during \qxr
+    development, and can be expected to work, but full functionality cannot be guaranteed.
+
+    \list
+      \li Meta Quest 2, standalone (Android)
+      \li HTC Vive in PCVR mode (Linux)
+    \endlist
+
+    \section1 Special Developer Environments
+
+    This is a list of VR simulator solutions that are used during \qxr
+    development and can be useful for application developers as well. Full
+    functionality is not guaranteed with these solutions, especially when it
+    comes to AR features.
+
+    \list
+      \li \l{https://developer.oculus.com/documentation/native/xrsim-intro/}{Meta XR
+      Simulator} (Windows). This is an OpenXR implementation for Windows that shows the
+      rendered content separately for the left and eye right in a desktop window while
+      offering input controller simulation and many other developer-oriented features.
+      From the applications' perspective, using the simulator is no different from PCVR on
+      Windows.
+    \endlist
+
+    \section1 Additional Notes
+
+    As mentioned above, other devices using OpenXR, for example, the Pico 4, may be
+    functional too, but this is not verified by Qt. The list of tested devices can be
+    expected to change and increase in future Qt releases.
+
+    When it comes to PCVR, there are further software stack details and complications that
+    may need to be considered. See the dedicated \l PCVR page for details.
+
+    \qxr prints warnings on the debug output by default. Diagnostic messages are not
+    printed out of the box. To enable those, enable the \c{qt.quick3d.xr} logging
+    category. For example, by setting the environment variable
+    \c{QT_LOGGING_RULES=qt.quick3d.xr=true}. See \l QLoggingCategory for more information.
+    It is strongly recommended that the additional debug prints are enabled, whenever
+    problems arise, or if the application does not start as expected. When reporting
+    problems, always include the full log in the error report. Due to the vast variety of
+    ways to run an XR application, especially when OpenXR is involved, these logs are
+    essential in order to better understand what is happening.
+
+    \sa {Getting Started With Meta Quest 3}
+    \sa {Getting Started With Apple Vision Pro}
+    \sa {PCVR}
+*/

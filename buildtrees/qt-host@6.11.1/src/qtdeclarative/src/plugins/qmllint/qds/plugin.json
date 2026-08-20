@@ -1,0 +1,39 @@
+{
+    "name": "QtDesignStudio",
+    "author": "Qt",
+    "description": "Warns about restrictions for QDS support",
+    "version": "1.0",
+    "isInternal": true,
+    "loggingCategories": [
+        {
+            "name": "FunctionsNotSupportedInQmlUi",
+            "settingsName": "FunctionsNotSupportedInQmlUi",
+            "description": "Warn about unsupported function calls in ui.qml files"
+        },
+        {
+            "name": "ReferenceToParentItemNotSupportedByVisualDesigner",
+            "settingsName": "ReferenceToParentItemNotSupportedByVisualDesigner",
+            "description": "Warn about references to the parent of a root Component in ui.qml files"
+        },
+        {
+            "name": "ImperativeCodeNotEditableInVisualDesigner",
+            "settingsName": "ImperativeCodeNotEditableInVisualDesigner",
+            "description": "Warn about unwanted assignments ui.qml files"
+        },
+        {
+            "name": "UnsupportedTypeInQmlUi",
+            "settingsName": "UnsupportedTypeInQmlUi",
+            "description": "Warn about unsupported types in ui.qml files"
+        },
+        {
+            "name": "InvalidIdeInVisualDesigner",
+            "settingsName": "InvalidIdeInVisualDesigner",
+            "description": "Warn about ambiguous id names in ui.qml files"
+        },
+        {
+            "name": "UnsupportedRootTypeInQmlUi",
+            "settingsName": "UnsupportedRootTypeInQmlUi",
+            "description": "Warn about unsupported root types in ui.qml files"
+        }
+    ]
+}

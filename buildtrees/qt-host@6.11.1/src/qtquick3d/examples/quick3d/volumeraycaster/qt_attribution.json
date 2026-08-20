@@ -1,0 +1,25 @@
+[
+    {
+        "Id": "alpha_blending.frag",
+        "Name": "alpha_blending.frag",
+        "QDocModule": "qtquick3d",
+        "QtUsage": "Used in the Volumetric example",
+        "QtParts": [
+            "examples"
+        ],
+        "Files": [
+            "alpha_blending.frag"
+        ],
+        "Description": "Volumetric rendering fragment shader",
+        "Homepage": "https://github.com/m-pilia/volume-raycasting",
+        "DownloadLocation": "https://github.com/m-pilia/volume-raycasting/blob/master/shaders/alpha_blending.frag",
+        "PURL": [
+            "pkg:github/m-pilia/volume-raycasting@$<VERSION>"
+        ],
+        "Comment": "No relevant CPE found",
+        "Version": "4500c7f9cb7d569de5978094677e48722bc9133e",
+        "LicenseId": "MIT",
+        "License": "MIT License",
+        "Copyright": "Copyright (C) 2018 Martino Pilia <martino.pilia@gmail.com>"
+    }
+]

@@ -1,0 +1,38 @@
+/* Copyright (C) 2025 The Qt Company Ltd.
+ * SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+*/
+
+module qtwebengine.mojom;
+
+struct ExtensionInfo {
+  string name;
+  string description;
+  string version;
+  string id;
+  bool isEnabled;
+  bool isInstalled;
+  bool isLoaded;
+};
+
+// Used by the WebUI page to bootstrap bidirectional communication.
+interface ExtensionsUIHandlerFactory {
+  // The WebUI calls this method when the page is first initialized.
+  CreatePageHandler(pending_remote<Page> page,
+                    pending_receiver<PageHandler> handler);
+};
+
+// Browser-side handler for requests from WebUI page.
+interface PageHandler {
+  // Get visual data for all the traces currently stored locally.
+  GetAllExtensionInfo() => (array<ExtensionInfo> reports);
+  LoadExtension();
+  InstallExtension();
+  UninstallExtension(string id) => (string error);
+  UnloadExtension(string id) => (string error);
+  SetExtensionEnabled(string id, bool isEnabled) => ();
+};
+
+// WebUI-side handler for requests from the browser.
+interface Page {
+    ReloadPage();
+};

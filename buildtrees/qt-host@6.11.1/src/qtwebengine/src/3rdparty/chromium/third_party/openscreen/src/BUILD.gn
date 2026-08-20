@@ -1,0 +1,145 @@
+# Copyright 2018 The Chromium Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build_overrides/build.gni")
+import("./build_overrides/data_headers_template.gni")
+import("./gni/openscreen.gni")
+
+# Used to ensure that relative includes still work while built with an embedder.
+config("include_dirs") {
+  root = rebase_path("./", "//")
+  include_dirs = [
+    "//$root",
+    "$root_gen_dir/$root",
+  ]
+}
+
+# Put defines here that are only used in our internal files and NEVER in
+# external headers that embedders (such as chromium and node) might include.
+config("features") {
+  # Only targets in this file and its subdirs can depend on this.
+  visibility = [ "./*" ]
+
+  root = rebase_path("./", "//")
+  defines = [ "OPENSCREEN_TEST_DATA_DIR=\"$root/test/data/\"" ]
+}
+
+# All compilable non-test targets in the repository (both executables and
+# source_sets)
+group("gn_all") {
+  testonly = true
+  deps = [
+    "cast/common:certificate",
+    "cast/common:channel",
+    "cast/common:public",
+    "cast/receiver:channel",
+    "cast/sender:channel",
+    "osp/msgs",
+    "third_party/abseil",
+    "third_party/boringssl",
+    "third_party/googleurl",
+    "third_party/jsoncpp",
+    "third_party/tinycbor",
+    "tools/cddl($host_toolchain)",
+    "util",
+  ]
+
+  # TODO(issuetracker.google.com/236163082): implement support on Windows.
+  if (!is_win) {
+    deps += [
+      "cast/streaming:receiver",
+      "cast/streaming:sender",
+      "discovery:dnssd",
+      "discovery:mdns",
+      "discovery:public",
+      "osp",
+      "platform",
+
+      # Quiche currently has an issue around logging macros on Windows.
+      "third_party/quiche",
+    ]
+    if (!build_with_chromium) {
+      deps += [
+        "cast/standalone_sender:cast_sender",
+        "osp:osp_demo",
+        "third_party/protobuf:protoc($host_toolchain)",
+        "third_party/zlib",
+      ]
+    }
+  }
+
+  # The cast_receiver depends on the standalone implementation which is only
+  # implemented for certain operating systems.
+  if (is_linux || is_mac || is_chromeos || is_android) {
+    deps += [ "cast/standalone_receiver:cast_receiver" ]
+  }
+}
+
+openscreen_source_set("openscreen_unittests_all") {
+  testonly = true
+  public_deps = [
+    "cast/common:unittests",
+    "cast/receiver:unittests",
+    "cast/sender:unittests",
+    "cast/streaming:unittests",
+    "cast/test:unittests",
+    "platform:unittests",
+    "third_party/abseil",
+    "util:unittests",
+  ]
+
+  if (!build_with_chromium && is_posix) {
+    public_deps += [
+      "cast/test:make_crl_tests($host_toolchain)",
+
+      # TODO(crbug.com/1132604): Discovery unittests fail in Chrome.
+      "discovery:unittests",
+    ]
+  }
+  public_deps += [ "osp/msgs:unittests" ]
+  if (!is_win) {
+    public_deps += [ "osp:unittests" ]
+  }
+}
+if (!build_with_chromium) {
+  openscreen_executable("openscreen_unittests") {
+    testonly = true
+    deps = [
+      ":openscreen_unittests_all",
+      "cast/common:certificate_boringssl",
+      "test:test_main",
+    ]
+  }
+}
+if (!build_with_chromium && is_posix) {
+  openscreen_source_set("e2e_tests_all") {
+    testonly = true
+    public_deps = [
+      "cast/test:e2e_tests",
+      "cast/test:make_crl_tests($host_toolchain)",
+    ]
+    if (is_linux) {
+      public_deps += [ "cast/common:discovery_e2e_test" ]
+    }
+  }
+  openscreen_executable("e2e_tests") {
+    testonly = true
+    deps = [
+      ":e2e_tests_all",
+      "test:test_main",
+    ]
+  }
+}
+if (!build_with_chromium) {
+  openscreen_source_set("fuzzer_tests_all") {
+    testonly = true
+    deps = [
+      "//cast/common:message_framer_fuzzer",
+      "//cast/streaming:compound_rtcp_parser_fuzzer",
+      "//cast/streaming:rtp_packet_parser_fuzzer",
+      "//cast/streaming:sender_report_parser_fuzzer",
+      "//discovery:mdns_fuzzer",
+    ]
+  }
+}

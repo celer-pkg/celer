@@ -1,0 +1,152 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example 3d/scatter
+    \meta tags {Graphs, Scatter3D, Multiple Series}
+    \examplecategory {Data Visualization}
+    \title Simple Scatter Graph
+    \ingroup qtgraphs_qmlexamples_3D
+    \brief Using Scatter3D in a QML application.
+
+    \e {Simple Scatter Graph} shows how to make a simple scatter graph visualization using
+    Scatter3D and QML.
+
+    For instructions about how to interact with the graph, see
+    \l{Qt Graphs Interacting with Data in 3D}{this page}.
+
+    For instructions on how to create a new Qt Quick application of your own, see Qt Creator help.
+
+    \image scatter-example.png
+
+    \include examples-run.qdocinc
+
+    \section1 Setting up the Layout
+
+    Before diving into the QML code, \c main.cpp sets up the application. The \c main.qml file
+    is read from resource (\c{qrc:})
+
+    \snippet 3d/scatter/main.cpp 0
+
+    This \c main.qml file is the starting point for the application's QML code. Firstly,
+    import all the required QML modules:
+
+    \snippet 3d/scatter/qml/scatter/main.qml 0
+
+    Then, create a \c {Data} item which will be the item that holds the data for the graph.
+
+    \snippet 3d/scatter/qml/scatter/main.qml 1
+
+    Next, create two GraphsTheme items that define two different themes for the graph, a Qt Green
+    theme and a Qt Neon Green theme.
+
+    \snippet 3d/scatter/qml/scatter/main.qml 2
+
+    The layout for this application is going to consist of five different buttons to
+    toggle different visual options for the graph on and off, and of course the graph itself.
+    There are many ways to organize these, one way is to have a \c {GridLayout} containing
+    four buttons, the \c {Graph}, and the fifth button, all appearing in a \c {ColumnLayout}.
+
+    \snippet 3d/scatter/qml/scatter/main.qml 3
+
+    The \c {GridLayout} is responsive. What this means is that the number of columns used
+    depends on the width of the application window. This is done by assigning the \c {columns}
+    property a ternary operator, resolving to either 1, 2 or 4, depending on the window width.
+
+    \snippet 3d/scatter/qml/scatter/main.qml 4
+
+    In this \c {GridLayout}, four \c {RoundButton}s are instantiated. One for toggling shadows,
+    one for mesh smoothing, one for camera position, and finally, one for changing the background
+    of the graph. All the buttons follow the same structure. Rather than redefining this structure
+    for all buttons, a custom component can be made.
+
+    \snippet 3d/scatter/qml/scatter/main.qml 5
+
+    \c CustomButtom extends the \c RoundButton type, but adds a few additions. Properties
+    such as \c {Layout.minimumWidth}, \c {Layout.FillWidth}, \c {radius} and \c {background} are set.
+    These define the styling and layout of the button.
+
+    \snippet 3d/scatter/qml/scatter/main.qml 6
+
+    Whereas the \c {contentItem} defines the content of the button, in this case a \c {Row} type
+    containing an icon and some text. The icon is imported using an \c {Image} type, and setting
+    the \c {source} property. The text is created using a \c {Label} type and set using its \c {text}
+    property. Two alliases are created for these two properties at the top of the custom component,
+    this will allow them to be set when an instance of \c CustomButton is created.
+
+    \snippet 3d/scatter/qml/scatter/main.qml 7
+
+    In the \c GridLayout, four \c {CustomButton}s are created. Three properties need to be
+    set, the two alliases for the icon image and the text, and the signal \c {onClicked}.
+
+    \snippet 3d/scatter/qml/scatter/main.qml 8
+
+    For example, the shadow button sets the \c onClicked sign to toggle the shadow on and off.
+
+    \section1 Setting up the Graph
+
+    Next in the layout is the \c {Graph}, this is defined in its own QML file \c {Graph.qml}, and
+    is instantiated as follows:
+
+    \snippet 3d/scatter/qml/scatter/main.qml 9
+
+    Looking at its implementation in \c {Graph.qml}, the graph is of type \c {Scatter3D}, nested
+    within an \c {Item} type.
+
+    \snippet 3d/scatter/qml/scatter/Graph.qml 0
+
+    Before defining the data sets, some of the axes properties are configured.
+
+    \snippet 3d/scatter/qml/scatter/Graph.qml 1
+
+    \section1 Setting up the Data
+
+    The graph shows three datasets, representing the data given in \c {Data.qml}. The datasets are
+    stored in \c {ListModel} types
+
+    \snippet 3d/scatter/qml/scatter/Data.qml 1
+    \dots
+    \snippet 3d/scatter/qml/scatter/Data.qml 2
+    \dots
+    \snippet 3d/scatter/qml/scatter/Data.qml 3
+    \dots
+    \snippet 3d/scatter/qml/scatter/Data.qml 4
+
+    and exposed to the other files using \c {property alias}es
+
+    \snippet 3d/scatter/qml/scatter/Data.qml 0
+
+    Before these aliases are used, create a \c {Scatter3DSeries} type, containing a
+    \c {ItemModelScatterDataProxy} item.
+
+    \snippet 3d/scatter/qml/scatter/Graph.qml 2
+
+    This data proxy refers to the datasets in \c {Data.qml} using its \c {itemModel}
+    property. The aliases mentioned above are accessed through the \c {id} of the \c {Data} type
+    instantiated in \c {main.qml}, \c {seriesData}.
+
+    \snippet 3d/scatter/qml/scatter/Graph.qml 3
+
+    Repeat this for the remaining two datasets.
+
+    \snippet 3d/scatter/qml/scatter/Graph.qml 4
+    \dots
+    \snippet 3d/scatter/qml/scatter/Graph.qml 5
+    \dots
+    \snippet 3d/scatter/qml/scatter/Graph.qml 6
+    \dots
+    \snippet 3d/scatter/qml/scatter/Graph.qml 7
+    \dots
+    \snippet 3d/scatter/qml/scatter/Graph.qml 8
+
+    Great, the scatter graph is now pointing to the three datasets.
+
+    The only thing left to do is to add the remaining button, the \c {theme button}, to our
+    \c {ColumnLayout}. The only difference with this button is it is positioned on the
+    left-hand side of the layout. This is set by defining the \c {Layout.alignment} property
+    to \c {Qt.AlignLeft} and \c {Layout.fillWidth} to \c false.
+
+    \snippet 3d/scatter/qml/scatter/main.qml 10
+
+    \section1 Example Contents
+*/

@@ -1,0 +1,727 @@
+{{>licenseInfo}}
+#include "{{prefixLowerCase}}httprequest.h"
+#include "{{prefixLowerCase}}httpfileelement.h"
+
+#include <QtCore/qbytearray.h>
+#include <QtCore/qdatetime.h>
+#include <QtCore/qdir.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qmap.h>
+#include <QtCore/qurl.h>
+#include <QtCore/qurlquery.h>
+#include <QtCore/quuid.h>
+
+#include <QtNetwork/qformdatabuilder.h>
+#include <QtNetwork/qhttpheaders.h>
+#include <QtNetwork/qhttpmultipart.h>
+#include <QtNetwork/qnetworkaccessmanager.h>
+#include <QtNetwork/qnetworkrequest.h>
+#include <QtNetwork/qnetworkrequestfactory.h>
+#include <QtNetwork/qrestaccessmanager.h>
+#include <QtNetwork/qrestreply.h>
+
+{{#contentCompression}}
+#include <zlib.h>
+{{/contentCompression}}
+
+{{#buildingQtSources}}
+QT_BEGIN_NAMESPACE
+{{/buildingQtSources}}
+
+{{#cppCommonNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppCommonNamespaceDeclarations}}
+
+using namespace Qt::StringLiterals;
+
+// Internal url encoding helper function
+QString toFormUrlEncoding(const QString &input)
+{
+    // Space ( ) → replaced with +
+    // Unsafe or non-alphanumeric characters → percent-encoded (%XX)
+    // Alphanumeric characters (a–z, A–Z, 0–9) → left as-is
+    // The following characters are always percent-encoded in x-www-form-urlencoded:
+    // "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="
+    return QString::fromLatin1(QUrl::toPercentEncoding(input).replace("%20", "+"));
+}
+
+class {{prefix}}HttpRequestInputPrivate
+{
+public:
+    // detaches the QESDP and returns a raw pointer, so that its
+    // members could be modified directly
+    static {{prefix}}HttpRequestInputPrivate *get({{prefix}}HttpRequestInput &obj);
+
+    bool m_isFormData = false;
+    {{prefix}}HttpRequestInput::VariableLayout m_varLayout = {{prefix}}HttpRequestInput::VariableLayout::NotSet;
+    std::unique_ptr<QHttpMultiPart> m_multiPart;
+    QHttpHeaders m_headers;
+    QString m_urlStr;
+    QString m_httpMethod = QStringLiteral("GET");
+    QByteArray m_requestBody;
+    QUrlQuery m_queryItem;
+    QMap<QString, QString> m_vars;
+    QMap<QString, QString> m_fieldHeaders;
+    QList<{{prefix}}HttpFileElement> m_files;
+};
+
+{{prefix}}HttpRequestInputPrivate *
+{{prefix}}HttpRequestInputPrivate::get({{prefix}}HttpRequestInput &obj)
+{
+    return obj.d_ptr.get();
+}
+
+{{prefix}}HttpRequestInput::{{prefix}}HttpRequestInput()
+    : d_ptr(new {{prefix}}HttpRequestInputPrivate)
+{
+}
+
+{{prefix}}HttpRequestInput::~{{prefix}}HttpRequestInput() = default;
+
+{{prefix}}HttpRequestInput::{{prefix}}HttpRequestInput(const QString &vUrlStr, const QString &vHttpMethod)
+    : {{prefix}}HttpRequestInput()
+{
+    d_ptr->m_urlStr = vUrlStr;
+    d_ptr->m_httpMethod = vHttpMethod;
+}
+
+void {{prefix}}HttpRequestInput::addVariable(const QString &key, const QString &value)
+{
+    if (d_ptr->m_varLayout == VariableLayout::UrlEncoded)
+        d_ptr->m_queryItem.addQueryItem(toFormUrlEncoding(key), toFormUrlEncoding(value));
+    else
+        d_ptr->m_vars[key] = value;
+}
+
+void {{prefix}}HttpRequestInput::addFieldHeaders(const QString &key, const QString &value)
+{
+    d_ptr->m_fieldHeaders[key] = value;
+}
+
+void {{prefix}}HttpRequestInput::addFile(const QString &variableName, const QString &localFilename, const QString &mimeType)
+{
+    {{prefix}}HttpFileElement file(localFilename);
+    file.setVariableName(variableName);
+    file.setMimeType(mimeType);
+    d_ptr->m_files.append(file);
+}
+
+void {{prefix}}HttpRequestInput::setVariableLayout({{prefix}}HttpRequestInput::VariableLayout layout)
+{
+    d_ptr->m_varLayout = layout;
+}
+
+{{prefix}}HttpRequestInput::VariableLayout {{prefix}}HttpRequestInput::variableLayout() const
+{
+    return d_ptr->m_varLayout;
+}
+
+void {{prefix}}HttpRequestInput::setHeaders(const QHttpHeaders &newHeaders)
+{
+    d_ptr->m_headers = newHeaders;
+}
+
+QHttpHeaders {{prefix}}HttpRequestInput::headers() const
+{
+    return d_ptr->m_headers;
+}
+
+QHttpHeaders &{{prefix}}HttpRequestInput::headers()
+{
+    return d_ptr->m_headers;
+}
+
+void {{prefix}}HttpRequestInput::setIsFormData(bool isForm)
+{
+    d_ptr->m_isFormData = isForm;
+}
+
+bool {{prefix}}HttpRequestInput::isFormData() const
+{
+    return d_ptr->m_isFormData;
+}
+
+QString {{prefix}}HttpRequestInput::httpMethod() const
+{
+    return d_ptr->m_httpMethod;
+}
+
+bool {{prefix}}HttpRequestInput::hasMultiPart() const
+{
+    return d_ptr->m_multiPart != nullptr && d_ptr->m_varLayout == VariableLayout::Multipart;
+}
+
+QHttpMultiPart* {{prefix}}HttpRequestInput::multiPart() const
+{
+    return d_ptr->m_multiPart.get();
+}
+
+QHttpMultiPart* {{prefix}}HttpRequestInput::takeMultiPart()
+{
+    return d_ptr->m_multiPart.release();
+}
+
+void {{prefix}}HttpRequestInput::setRequestBody(const QByteArray &data)
+{
+    d_ptr->m_requestBody = data;
+}
+
+QByteArray {{prefix}}HttpRequestInput::requestBody() const
+{
+    return d_ptr->m_requestBody;
+}
+
+namespace {{prefix}}HttpRequestWorker {
+
+{{prefix}}HttpFileElement getHttpFileElement(const QMap<QString, {{prefix}}HttpFileElement> &files, const QString &fieldname)
+{
+    if (!files.isEmpty()) {
+        if (fieldname.isEmpty()) {
+            return files.first();
+        } else if (files.contains(fieldname)) {
+            return files[fieldname];
+        }
+    }
+    return {{prefix}}HttpFileElement();
+}
+
+QNetworkRequest getNetworkRequest({{prefix}}HttpRequestInput &input, QByteArray &requestContent, QNetworkRequestFactory factory, bool responseCompressionEnabled, bool requestCompressionEnabled)
+{
+    // reset variables
+    requestContent = "";
+
+    auto *inputPriv = {{prefix}}HttpRequestInputPrivate::get(input);
+    if (inputPriv->m_varLayout == {{prefix}}HttpRequestInput::VariableLayout::NotSet) {
+        inputPriv->m_varLayout =
+                    inputPriv->m_httpMethod == "GET"_L1 || inputPriv->m_httpMethod == "HEAD"_L1
+                        ? {{prefix}}HttpRequestInput::VariableLayout::Address
+                        : {{prefix}}HttpRequestInput::VariableLayout::UrlEncoded;
+    }
+    // prepare request content
+    if (inputPriv->m_varLayout == {{prefix}}HttpRequestInput::VariableLayout::Address
+        || inputPriv->m_varLayout == {{prefix}}HttpRequestInput::VariableLayout::UrlEncoded) {
+        // variable layout is Address or UrlEncoded
+        if (!inputPriv->m_queryItem.isEmpty()) {
+            if (inputPriv->m_varLayout == {{prefix}}HttpRequestInput::VariableLayout::Address) {
+                inputPriv->m_urlStr += '?'_L1;
+                inputPriv->m_urlStr += inputPriv->m_queryItem.toString(QUrl::FullyEncoded);
+            } else {
+                requestContent = inputPriv->m_queryItem.toString(QUrl::FullyEncoded).toUtf8();
+            }
+        }
+    } else {
+        QFormDataBuilder builder;
+        // add variables
+        for (const auto &[key, str] : inputPriv->m_vars.asKeyValueRange()) {
+            auto part = builder.part(key);
+            const QByteArray value = str.toUtf8();
+            auto headerIt = inputPriv->m_fieldHeaders.find(key);
+            if (headerIt != inputPriv->m_fieldHeaders.end()) {
+                part.setBody(value, QString(), headerIt.value());
+            } else {
+                part.setBody(value);
+            }
+        }
+
+        // add files
+        QList<QFile *> addedFiles;
+        for (auto &fileInfo : inputPriv->m_files) {
+            QFileInfo fi(fileInfo.filename());
+            // ensure necessary variables are available
+            if (fileInfo.filename().isEmpty()
+                || fileInfo.variableName().isEmpty()
+                || !fi.exists()
+                || !fi.isFile()
+                || !fi.isReadable()) {
+                // silent abort for the current file
+                continue;
+            }
+            auto file = std::make_unique<QFile>(fileInfo.filename());
+            if (!file->open(QIODevice::ReadOnly)) {
+                qWarning() << "Cannot open the file: " << fileInfo.filename();
+                continue;
+            }
+            // ensure filename for the request
+            if (fileInfo.requestFilename().isEmpty())
+                fileInfo.requestFilename() = fi.fileName();
+            auto part = builder.part(fileInfo.variableName());
+            part.setBodyDevice(file.get(), fileInfo.filename(),
+                               fileInfo.mimeType().isEmpty() ? u"application/octet-stream"_s
+                                                             : fileInfo.mimeType());
+            addedFiles.append(file.release());
+        }
+        // Build the multipart object
+        inputPriv->m_multiPart = builder.buildMultiPart();
+        // Need to take care about opened files
+        for (QFile *file: std::as_const(addedFiles)) {
+            // we cannot delete the file now, so delete it with the multiPart
+            if (file)
+                file->setParent(inputPriv->m_multiPart.get());
+        }
+    }
+
+    if (inputPriv->m_requestBody.size() > 0) {
+        requestContent.clear();
+        if (!inputPriv->m_isFormData && requestCompressionEnabled) {
+            requestContent.append(compressData(inputPriv->m_requestBody, 7, CompressionType::Gzip));
+        } else {
+            requestContent.append(inputPriv->m_requestBody);
+        }
+    }
+    QNetworkRequest request = factory.createRequest(inputPriv->m_urlStr);
+    if (request.header(QNetworkRequest::UserAgentHeader).isNull())
+        request.setHeader(QNetworkRequest::UserAgentHeader, QString::fromUtf8("{{httpUserAgent}}{{^httpUserAgent}}OpenAPI-Generator/{{pluginVersion}}/cpp-qt{{/httpUserAgent}}"));
+
+    for (int i = 0; i < inputPriv->m_headers.size(); i++) {
+        const auto name = inputPriv->m_headers.nameAt(i);
+        const QByteArray headerName(name.data(), name.size());
+        // Skipping "multipart/*" header. Multipart should have NOT a header,
+        // but the header AND a boundary, like: Content-Type:
+        // multipart/form-data; boundary=----exclusive7MA4YWxkTrZu0gW
+        // Both are being set by buildMultiPart() call above.
+        if (inputPriv->m_varLayout == {{prefix}}HttpRequestInput::VariableLayout::Multipart
+                && (headerName.compare("content-type", Qt::CaseInsensitive) == 0))
+            continue;
+        // Header can already be presented in the request and should not be overwritten here.
+        if (!request.hasRawHeader(headerName)) {
+            // 'Cookie' values cannot be combined by QHttpHeaders::combinedValue()
+            // due to the fact that 'Cookie' are being divided by ';' naturally.
+            // Prefer QHttpHeaders::values() instead.
+            if (headerName.compare("Cookie", Qt::CaseInsensitive) == 0) {
+                const QList<QByteArray> cookies = inputPriv->m_headers.values(headerName);
+                QByteArray joinedCookies;
+                for (const auto &value: cookies) {
+                    if (!joinedCookies.isEmpty())
+                        joinedCookies.append("; " + value);
+                    else
+                        joinedCookies = value;
+                }
+                if (joinedCookies.isEmpty())
+                    qWarning() << "Setting an empty cookie value";
+                request.setRawHeader(headerName, joinedCookies);
+            } else {
+                request.setRawHeader(headerName, inputPriv->m_headers.combinedValue(headerName));
+            }
+        } else {
+            // rawHeader() return all values as a string separated by the delimiter,
+            // that a user chose to use (can be ';' or ',' in our case).
+            const QByteArray rawHeader = request.rawHeader(headerName);
+            const auto headerValue = QByteArray(inputPriv->m_headers.valueAt(i));
+            if (!rawHeader.contains(headerValue)) {
+                if (headerName.compare("Cookie", Qt::CaseInsensitive) == 0)
+                    request.setRawHeader(headerName, rawHeader + "; " + headerValue);
+                else
+                    request.setRawHeader(headerName, rawHeader + ", " + headerValue);
+            }
+        }
+    }
+    if (requestContent.size() > 0 && !inputPriv->m_isFormData) {
+        if (requestCompressionEnabled) {
+            request.setRawHeader("Content-Encoding", "gzip");
+        }
+    } else if (requestContent.size() <= 0
+               || inputPriv->m_varLayout == {{prefix}}HttpRequestInput::VariableLayout::UrlEncoded) {
+        // Here is expected that:
+        // 1) The Operation is a POST request. UrlEncoded is being set only for POST.
+        // 2) AND requestContent.size() <= 0 in case bodyParams/formParams are optional and empty.
+        // 3) OR/AND requestContent.size() <= 0 because the Operation has only Operation Parameters.
+        // 4) AND input.m_headers doesn't contain Content-Type.
+        // Despite the fact, that Openapi SPEC doesn't require to set Content-Type
+        // for the situation mentioned above, the Qt framework expects setting it for all
+        // POST requests.
+        // For more info see the Qt commit by sha 4f578d15fe2ef176f0533c7ff4aea99b17636f85
+        // Using the message without Content-Type triggers the Qt warning.
+        if (!inputPriv->m_headers.contains(QHttpHeaders::WellKnownHeader::ContentType)) {
+            request.setHeader(QNetworkRequest::ContentTypeHeader,
+                              "application/x-www-form-urlencoded"_L1);
+        }
+    }
+
+    if (responseCompressionEnabled) {
+        request.setRawHeader("Accept-Encoding", "gzip, deflate");
+    } else {
+        request.setRawHeader("Accept-Encoding", "identity");
+    }
+    return request;
+}
+
+static CompressionType encodingFormatToCompressionType(QByteArrayView encodingFormat)
+{
+    if (encodingFormat.compare("identity", Qt::CaseInsensitive) == 0 || encodingFormat.isEmpty())
+        return CompressionType::None;
+
+    if (encodingFormat.compare("gzip", Qt::CaseInsensitive) == 0)
+        return CompressionType::Gzip;
+
+    if (encodingFormat.compare("deflate", Qt::CaseInsensitive) == 0)
+        return CompressionType::Deflate;
+
+    qWarning() << "Unsupported Content-Encoding:" << encodingFormat;
+    return CompressionType::None;
+}
+
+enum class FilenameParameter
+{
+    Standard,
+    Extended,
+};
+
+/*
+    Returns an empty QString if it's not able to parse the value
+*/
+static QString parseFilenameParameter(QByteArrayView value, FilenameParameter type)
+{
+    // 1. Trim whitespaces
+    value = value.trimmed();
+    // 2. Remove quotes, if they exist
+    if (value.startsWith('"') && value.endsWith('"'))
+        value.slice(1, value.size() - 2);
+    // 3. Extract the filename. Note that non-ASCII bytes can be %-encoded, so
+    //    we need to first decode them and then use the specified charset (if any)
+    //    to create a proper filename
+    QString filename;
+    switch (type) {
+    case FilenameParameter::Standard:
+        filename = QString::fromLatin1(QByteArray::fromPercentEncoding(QByteArray(value)));
+        break;
+    case FilenameParameter::Extended: {
+        // The format is
+        //      charset  "'" [ language ] "'" value-chars
+        // See https://www.rfc-editor.org/rfc/rfc6266#section-4.1
+        // and https://www.rfc-editor.org/rfc/rfc5987#section-3.2
+        // Note that we ignore the language part and support only a small
+        // subset of encodings.
+        const qsizetype langStartIdx = value.indexOf('\'');
+        const qsizetype langEndIdx = value.indexOf('\'', langStartIdx + 1);
+        if (langStartIdx == -1 || langEndIdx == -1) {
+            // Incorrect format. The spec does not define any fallback,
+            // so simply return
+            return {};
+        } else {
+            const QByteArrayView encoding = value.first(langStartIdx);
+            const QByteArray name = value.sliced(langEndIdx + 1).toByteArray();
+            const QByteArray namePercentDecoded = QByteArray::fromPercentEncoding(name);
+            // Support Latin1, UTF-8, UTF-16, and UTF-32 for now.
+            // If it's a different encoding - simply return an empty string.
+            if (encoding.compare("iso-8859-1", Qt::CaseInsensitive) == 0) {
+                filename = QString::fromLatin1(namePercentDecoded);
+            } else if (encoding.compare("utf-8", Qt::CaseInsensitive) == 0) {
+                filename = QString::fromUtf8(namePercentDecoded);
+            } else if (encoding.compare("utf-16", Qt::CaseInsensitive) == 0) {
+                const auto size = namePercentDecoded.size();
+                if (size % 2 != 0)
+                    return {};
+                filename.setUtf16(reinterpret_cast<const char16_t *>(namePercentDecoded.data()),
+                                  size / 2);
+            } else if (encoding.compare("utf-32", Qt::CaseInsensitive) == 0) {
+                const auto size = namePercentDecoded.size();
+                if (size % 4 != 0)
+                    return {};
+                filename =
+                    QString::fromUcs4(reinterpret_cast<const char32_t *>(namePercentDecoded.data()),
+                                      size / 4);
+            } else {
+                return {};
+            }
+        }
+        break;
+    }
+    }
+
+    // 4. Now strip all the directory information, leaving only the filename
+    //    See https://www.rfc-editor.org/rfc/rfc6266#section-4.3
+    // We cannot use QFileInfo::fileName(), because it only parses
+    // native file paths
+    qsizetype separatorIdx = filename.lastIndexOf(QLatin1Char('/'));
+    if (separatorIdx == -1)
+        separatorIdx = filename.lastIndexOf(QLatin1Char('\\'));
+    if (separatorIdx != -1) {
+        const qsizetype newSize = filename.size() - separatorIdx - 1;
+        filename = newSize > 0 ? filename.last(newSize) : QString();
+    }
+
+    // 5. And finally handle some special cases. These include:
+    //    * special dirs: . and ..
+    //    * Windows forbidden characters: \/:*?"<>|
+    //    * additionally some characters that have special meaning on Unix: ~
+    //    * control characters 0x00 - 0x1F + 0x7F
+    const auto size = filename.size();
+    for (qsizetype idx = 0; idx < size; ++idx) {
+        const QChar c = filename[idx];
+
+        // Do not replace '.' if it's followed by a different character,
+        // because it can be a file extension.
+        // We want to replace ".." and the trailing '.', though
+        if (c == '.'_L1) {
+            if (idx == size - 1) {
+                filename[idx] = '_'_L1;
+            } else {
+                const QChar next = filename[idx + 1];
+                if (next == '.'_L1) {
+                    // replace both
+                    filename[idx] = '_'_L1;
+                    filename[idx + 1] = '_'_L1;
+                    ++idx;
+                }
+            }
+            continue;
+        }
+
+        // Control characters and other special symbols.
+        // We do not check '/' and '\' here, because we stripped all directory
+        // information earlier.
+        if (c <= QLatin1Char(0x1f)
+            || c == QLatin1Char(0x7f)
+            || c == ':'_L1
+            || c == '*'_L1
+            || c == '?'_L1
+            || c == '\"'_L1
+            || c == '<'_L1
+            || c == '>'_L1
+            || c == '|'_L1
+            || c == '~'_L1) {
+            filename[idx] = '_'_L1;
+        }
+    }
+
+    return filename;
+};
+
+QByteArray parseResponse(const QRestReply &reply, const QString &workDir, QMap<QString, {{prefix}}HttpFileElement> *files)
+{
+    QByteArray result;
+    QByteArray contentDispositionHdr;
+    QByteArray contentTypeHdr;
+    QByteArray contentEncodingHdr;
+
+    if (!reply.networkReply())
+        return result;
+
+    QHttpHeaders headers;
+    if (reply.networkReply()->rawHeaderPairs().count() > 0)
+        headers = reply.networkReply()->headers();
+
+    for (qsizetype i = 0; i < headers.size(); ++i) {
+        const auto name = headers.nameAt(i);
+        const auto value = headers.valueAt(i);
+        if (name.compare("Content-Disposition"_L1, Qt::CaseInsensitive) == 0)
+            contentDispositionHdr = QByteArray(value);
+        else if (name.compare("Content-Type"_L1, Qt::CaseInsensitive) == 0)
+            contentTypeHdr = QByteArray(value);
+        else if (name.compare("Content-Encoding"_L1, Qt::CaseInsensitive) == 0)
+            contentEncodingHdr = QByteArray(value);
+    }
+
+    // Read body first
+    result = reply.networkReply()->readAll();
+
+    // Decompress if needed
+    if (!contentEncodingHdr.isEmpty()) {
+        const auto encodings = contentEncodingHdr.split(';').first().split(',');
+        for (auto it = encodings.rbegin(); it != encodings.rend(); ++it) {
+            const QByteArray encoding = it->trimmed();
+            if (encoding.compare("identity", Qt::CaseInsensitive) == 0)
+                continue;
+            result = decompressData(result, encodingFormatToCompressionType(encoding));
+        }
+    }
+
+    const auto contentType = !contentTypeHdr.isEmpty()
+            ? contentTypeHdr.split(';').first().trimmed().toLower()
+            : QByteArray("");
+
+    if (contentType == "multipart/form-data") {
+        // TODO: Handle multipart responses
+    } else if (files) {
+        QString filename = QUuid::createUuid().toString(QUuid::WithoutBraces);
+        const auto contentDisposition = contentDispositionHdr.split(';');
+        bool isAttachment = false;
+
+        if (!contentDisposition.isEmpty()) {
+            isAttachment = contentDisposition.first().trimmed()
+                                             .compare("attachment", Qt::CaseInsensitive) == 0;
+            for (const auto &dispositionParam : contentDisposition) {
+                // We need case-insensitive lookup
+                const QByteArray dispositionParamLower = dispositionParam.toLower();
+                if (auto idx = dispositionParamLower.indexOf("filename*="); idx != -1) {
+                    // handle extended filename value
+                    const auto name = parseFilenameParameter(dispositionParam.sliced(idx + 10),
+                                                             FilenameParameter::Extended);
+                    if (!name.isEmpty()) {
+                        filename = name;
+                        break;
+                    } // otherwise do not break, but try to fall back to a "normal" filename
+                } else if (auto idx = dispositionParamLower.indexOf("filename="); idx != -1) {
+                    // handle "normal" filename value
+                    const auto name = parseFilenameParameter(dispositionParam.sliced(idx + 9),
+                                                             FilenameParameter::Standard);
+                    if (!name.isEmpty())
+                        filename = name;
+                    // intentionally do not break from the loop, because
+                    // we might see filename*= later, which is more preferable
+                }
+            }
+        }
+
+        {{prefix}}HttpFileElement felement(workDir + QDir::separator() + filename);
+        felement.setMimeType(QString::fromUtf8(contentType));
+        felement.setTemporary(!isAttachment);
+
+        felement.saveToLocalFile(result);
+        files->insert(filename, felement);
+    }
+
+    reply.networkReply()->deleteLater();
+    return result;
+}
+
+{{#contentCompression}}
+static QByteArray decompressGzipOrDeflate(const QByteArray &data)
+{
+    static constexpr uInt MaxUInt = std::numeric_limits<uInt>::max();
+    static constexpr int CHUNK_SIZE = 8*1024;
+
+    qsizetype inputLeft = data.size();
+    if (inputLeft <= 4)
+        return {};
+
+    QByteArray result;
+    bool success = false;
+
+    qsizetype offset = 0;
+    while (inputLeft > 0) {
+        // expand to quint64 to do the proper comparison
+        uInt inputBlockSize = (quint64)inputLeft > (quint64)MaxUInt ? MaxUInt : uInt(inputLeft);
+
+        success = false;
+
+        z_stream strm{};
+        strm.avail_in = inputBlockSize;
+        strm.next_in = (Bytef*)(data.data() + offset);
+
+        success = inflateInit2(&strm, 15 + 32) == Z_OK;
+        if (!success)
+            break;
+
+        char out[CHUNK_SIZE];
+        do {
+            strm.avail_out = CHUNK_SIZE;
+            strm.next_out = (Bytef*)(out);
+            success = inflate(&strm, Z_NO_FLUSH) >= Z_OK; // can return Z_STREAM_END
+            if (success)
+                result.append(out, CHUNK_SIZE - (int)strm.avail_out);
+        } while (strm.avail_out == 0);
+        if (success)
+            success = inflateEnd(&strm) == Z_OK;
+
+        if (!success)
+            break;
+
+        offset += qsizetype(inputBlockSize);
+        inputLeft -= qsizetype(inputBlockSize);
+    }
+    return success ? result : QByteArray();
+}
+{{/contentCompression}}
+
+QByteArray decompressData(const QByteArray &data, CompressionType compressionType)
+{
+{{#contentCompression}}
+    switch (compressionType) {
+    case CompressionType::Gzip:
+    case CompressionType::Deflate:
+        return decompressGzipOrDeflate(data);
+    case CompressionType::None:
+    default:
+        return data;
+    }
+{{/contentCompression}}
+{{^contentCompression}}
+    Q_UNUSED(data);
+    Q_UNUSED(compressionType);
+    qWarning("Content compression is disabled: contentCompression flag is off. "
+             "Returning an empty QByteArray.");
+    return QByteArray();
+{{/contentCompression}}
+}
+
+QByteArray compressData(const QByteArray &input, int level, CompressionType compressionType)
+{
+{{#contentCompression}}
+    static constexpr int GZIP_WINDOW_BIT = 15 + 16;
+    static constexpr int ZLIB_WINDOW_BIT = 15;
+    static constexpr int CHUNK_SIZE = 8 * 1024;
+
+    if (input.isEmpty())
+        return {};
+
+    int windowBits = 0;
+    switch (compressionType) {
+    case CompressionType::Gzip:
+        windowBits = GZIP_WINDOW_BIT;
+        break;
+    case CompressionType::Deflate:
+        windowBits = ZLIB_WINDOW_BIT;
+        break;
+    case CompressionType::None:
+        return input;
+    }
+
+    z_stream strm{};
+
+    if (deflateInit2(&strm, qMax(-1, qMin(9, level)), Z_DEFLATED,
+                     windowBits, 8, Z_DEFAULT_STRATEGY) != Z_OK) {
+        return {};
+    }
+
+    QByteArray output;
+    auto input_data = input.data();
+    qsizetype input_data_left = input.size();
+    int flush = 0;
+    bool hasError = false;
+    do {
+        qsizetype chunk_size = qMin((qsizetype)CHUNK_SIZE, input_data_left);
+        strm.next_in = (unsigned char*)input_data;
+        // fine to cast to uInt, since it's not larger than CHUNK_SIZE
+        strm.avail_in = (uInt)chunk_size;
+        input_data += chunk_size;
+        input_data_left -= chunk_size;
+        flush = (input_data_left <= 0 ? Z_FINISH : Z_NO_FLUSH);
+        do {
+            char out[CHUNK_SIZE];
+            strm.next_out = (unsigned char*)out;
+            strm.avail_out = (uInt)CHUNK_SIZE;
+            hasError = deflate(&strm, flush) < Z_OK; // can return Z_STREAM_END
+            if (hasError)
+                break;
+            // fine to truncate avail_out to int, because it cannot be
+            // larger than CHUNK_SIZE
+            const qsizetype processed = (CHUNK_SIZE - (int)strm.avail_out);
+            if (processed > 0)
+                output.append(out, processed);
+        } while (strm.avail_out == 0);
+    } while ((flush != Z_FINISH) && !hasError);
+    deflateEnd(&strm);
+
+    return output;
+{{/contentCompression}}
+{{^contentCompression}}
+    Q_UNUSED(input);
+    Q_UNUSED(level);
+    Q_UNUSED(compressionType);
+    qWarning("Content compression is disabled: contentCompression flag is off. "
+             "Returning an empty QByteArray.");
+    return QByteArray();
+{{/contentCompression}}
+}
+} // namespace {{prefix}}HttpRequestWorker
+
+
+
+{{#cppCommonNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppCommonNamespaceDeclarations}}
+
+{{#buildingQtSources}}
+QT_END_NAMESPACE
+{{/buildingQtSources}}

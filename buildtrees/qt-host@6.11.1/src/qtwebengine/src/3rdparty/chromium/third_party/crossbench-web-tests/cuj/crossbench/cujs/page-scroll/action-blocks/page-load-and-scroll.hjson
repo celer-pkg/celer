@@ -1,0 +1,17 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  page-load: {
+    template: ../../../common-action-blocks/basic/page-load.hjson
+    args: {
+      READY_STATE: complete
+      PAGE_LOAD_TIMEOUT: 2m
+    }
+    unbound_args: [
+      PAGE_URL
+      TARGET
+    ]
+  }
+  scroll: ../../../common-action-blocks/basic/scroll-entire-page.hjson
+}

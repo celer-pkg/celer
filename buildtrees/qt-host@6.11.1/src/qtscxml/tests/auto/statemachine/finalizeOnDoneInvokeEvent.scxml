@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" xmlns:conf="http://www.w3.org/2005/scxml-conformance" initial="s0" version="1.0" datamodel="ecmascript">
+  <state id="s0">
+    <invoke type="http://www.w3.org/TR/scxml/">
+      <content>
+        <scxml initial="subFinal" version="1.0" datamodel="ecmascript">
+          <final id="subFinal"/>
+        </scxml>
+      </content>
+      <finalize>
+        <log label="finalize" expr="_event.name"/>
+      </finalize>
+    </invoke>
+    <transition type="internal" event="done.invoke.s0" target="theend"/>
+  </state>
+  <final id="theend"/>
+</scxml>

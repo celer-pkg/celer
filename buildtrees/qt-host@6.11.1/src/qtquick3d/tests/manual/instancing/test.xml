@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<InstanceTable>
+  <Instance position="0 0 0" color="red"/>
+  <Instance position="200 200 200" scale="0.5 0.5 0.5" color="cornflowerblue"/>
+  <Instance position="-200 -200 -200" eulerRotation="60 30 0"/>
+  <Instance position="200 0 200" color="#af10a7"/>
+</InstanceTable>

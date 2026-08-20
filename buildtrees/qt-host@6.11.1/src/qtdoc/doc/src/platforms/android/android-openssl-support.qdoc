@@ -1,0 +1,161 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page android-openssl-support.html
+\ingroup android-platform-extra-topics
+\title Adding OpenSSL Support for Android
+\brief How to package OpenSSL libraries with a Qt for Android application.
+\previouspage deployment-android.html
+\nextpage android-manifest-file-configuration.html
+
+The Qt installation package comes with OpenSSL support, but the OpenSSL libraries
+are not part of the package due to legal restrictions in some countries. If your
+application depends on OpenSSL, consider packaging the SSL libraries with your
+Application Package (\c APK or \c AAB) as the target device may or may not have them.
+
+You can use the \l {QSslSocket::supportsSsl()} static function to check for SSL
+support on the target device. First, include the header:
+\code
+#include <QSslSocket>
+\endcode
+
+Then use the following line to check if SSL is supported:
+\code
+qDebug() << "Device supports OpenSSL: " << QSslSocket::supportsSsl();
+\endcode
+
+Check \QC's \c {Application Output} section or the Android \c logcat for
+that log message.
+
+\section1 Adding OpenSSL Libraries
+
+Using the convenience \l {OpenSSL for Android} repository,
+you can directly include OpenSSL libraries in your own project.
+
+With CMake, add the following to your \c {CMakeLists.txt}:
+
+\badcode
+if (ANDROID)
+    include(FetchContent)
+    FetchContent_Declare(
+        android_openssl
+        DOWNLOAD_EXTRACT_TIMESTAMP true
+        URL https://github.com/KDAB/android_openssl/archive/refs/heads/master.zip
+    )
+    FetchContent_MakeAvailable(android_openssl)
+    include(${android_openssl_SOURCE_DIR}/android_openssl.cmake)
+endif()
+\endcode
+
+\b{Or} if you cloned the repository into a subdirectory:
+
+\badcode
+include(<path/to/android_openssl>/android_openssl.cmake)
+\endcode
+
+Then, add the libraries to your targets:
+
+\badcode
+qt_add_executable(your_target_name ..)
+qt_add_executable(your_second_target_name ..)
+
+if (ANDROID)
+    add_android_openssl_libraries(your_target_name your_second_target_name)
+endif()
+\endcode
+
+For \c qmake, add the following to your \c {.pro} file:
+
+\badcode
+android: include(<path/to/android_openssl/openssl.pri)
+\endcode
+
+Alternatively, to add extra libraries, such as \c libcrypto and \c libssl.
+For CMake, use:
+
+\badcode
+set_target_properties(<target_name> PROPERTIES
+    QT_ANDROID_EXTRA_LIBS "<path_to_libs_dir>/libcrypto_3.so" "<path_to_libs_dir>/libssl_3.so"
+)
+\endcode
+
+Or for \c qmake use:
+
+\badcode
+ANDROID_EXTRA_LIBS += \
+    <path_to_libs_dir>/libcrypto_3.so \
+    <path_to_libs_dir>/libssl_3.so
+\endcode
+
+\note When targeting multiple architectures, include OpenSSL libraries
+for all the targeted architectures.
+
+Using \QC, it is possible to add extra libraries. For more
+information, see \l {\QC: Add libraries to CMake projects} and
+\l{\QC: Add libraries to qmake projects}.
+
+\section1 Building OpenSSL for Android
+
+The following instructions guide you to build the OpenSSL libraries manually:
+
+\list 1
+    \li Download \l{OpenSSL Source}{OpenSSL} sources.
+
+    \li Extract the sources to a folder and navigate to that folder using
+        the CLI.
+        \note If your development platform is Windows, you need \c msys with
+        \c perl 5.14 or later to build OpenSSL.
+
+    \li Add the Android LLVM toolchain to your path, for example, for Linux use:
+
+        \badcode \NdkFullVer
+        export PATH=~/Android/Sdk/ndk/\1/toolchains/llvm/prebuilt/<host>/bin:$PATH
+        \endcode
+
+        \include src/platforms/android/android-prerequisites.qdoc Android SDK Paths
+
+    \li Configure the OpenSSL sources to build for Android using
+        the following command, where <arch> can take a value of:
+        \c arm, \c arm64, \c x86 or \c x86_64:
+
+        \badcode \AndroidMinApiVer
+        ./Configure shared android-<arch> -D__ANDROID_API__=\1
+        \endcode
+
+        \note You must consider enabling or disabling the SSL features based on
+        the legal restrictions in the region where your application is available.
+        For more information about the configurable features, see
+        \l{OpenSSL Configure Options}.
+
+    \li Without a suffix, Android loads the system libraries \c libcrypto.so and
+        \c libssl.so. These may be different versions from your libraries or from what
+        Qt expects. To ensure that Qt apps can load the manually built OpenSSL libraries,
+        run the following commands:
+
+        \badcode
+        make -j$(nproc) SHLIB_VERSION_NUMBER= build_libs
+
+        mkdir -p ${out_path}
+        cp libcrypto.so ${out_path}/libcrypto_3.so
+        cp libssl.so ${out_path}/libssl_3.so
+
+        cd ${out_path}
+        patchelf --set-soname libcrypto_3.so libcrypto_3.so
+        patchelf --set-soname libssl_3.so libssl_3.so
+        patchelf --replace-needed libcrypto.so libcrypto_3.so libssl_3.so
+        \endcode
+
+        \note Though the \c libcrypto and \c libssl shared libraries that are not versioned,
+        they will have a \e _3 suffix.
+
+        Then set the environment variable in your main.cpp file:
+
+        \code
+        qputenv("ANDROID_OPENSSL_SUFFIX", "<custom_suffix>");
+        \endcode
+
+        \note Android does not load versioned libraries.
+\endlist
+
+*/

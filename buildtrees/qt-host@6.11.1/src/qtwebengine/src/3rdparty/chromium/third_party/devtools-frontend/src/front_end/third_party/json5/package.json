@@ -1,0 +1,5 @@
+{
+  "name": "json5",
+  "description": "Package list used when building/upgrading json5",
+  "private": true
+}

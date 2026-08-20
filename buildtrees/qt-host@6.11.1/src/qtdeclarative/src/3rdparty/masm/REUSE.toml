@@ -1,0 +1,36 @@
+version = 1
+
+[[annotations]]
+path = ["assembler/*"]
+precedence = "closest"
+SPDX-License-Identifier = "BSD-2-Clause"
+
+[[annotations]]
+path = ["disassembler/**"]
+precedence = "closest"
+SPDX-License-Identifier = "BSD-2-Clause"
+
+[[annotations]]
+path = ["wtf/*"]
+precedence = "closest"
+SPDX-License-Identifier = "BSD-2-Clause"
+
+[[annotations]]
+path = ["yarr/*"]
+precedence = "closest"
+SPDX-License-Identifier = "BSD-2-Clause"
+
+[[annotations]]
+path = ["jit/JITCompilationEffort.h",
+        "runtime/MatchResult.h",
+        "stubs/runtime/RegExpKey.h"]
+precedence = "closest"
+SPDX-License-Identifier = "BSD-2-Clause"
+
+
+[[annotations]]
+path = ["disassembler/udis86/differences.txt",
+        "disassembler/udis86/optable.xml"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright None"
+SPDX-License-Identifier = "Unlicense"

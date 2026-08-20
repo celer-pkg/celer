@@ -1,0 +1,102 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtquick3d-tool-materialeditor.html
+\title Custom Material Editor
+\brief GUI tool for creating custom materials.
+
+\section1 The Material Editor tool
+
+The Material Editor tool is a GUI tool that makes authoring \l [QtQuick3D] {CustomMaterial}{CustomMaterials} for QtQuick3D
+easier by providing: a real-time preview of the material, syntax highlighting, error reporting,
+and the ability to export the material to a \l[QtQuick3D]{CustomMaterial} QML component.
+
+\section2 Usage
+
+The Material Editor can be launched by running the command:
+
+\badcode
+$(QTDIR)/bin/materialeditor[.exe]
+\endcode
+
+The Material Editor window consists of two main components, the editor on the left and the preview on the right.
+
+\image MaterialEditor-main.png
+       {Material Editor window with shader editors and preview panel}
+
+\section2 Shader editing
+
+In the editor view there are two editors, one for the vertex shader and one for the fragment shader.
+When editing the shader snippets the result of those changes will immediately become visible in the preview.
+If the material could not be assembled a message describing the problem will be visible in the output panel.
+
+The language used for writing the \l[QtQuick3D]{CustomMaterial}'s shader snippets is Vulkan-style GLSL
+with some additional keywords that are specific for QtQuick3D, these are easily identifiable by being
+written in all upper-case characters. The QtQuick3D specific keywords will also be highlighted by the editor.
+
+For a more detailed overview of the language used in shaders snippets and how they interact with the rest of
+the rendering pipeline, see the \l {Programmable Materials, Effects, Geometry, and Texture data}{Programmable Materials}
+documentation.
+
+\image MaterialEditor-vertex.png {Vertex shader editor with displacement code}
+
+\section2 Material properties
+
+The Material Properties section contains the common QML properties for the material.
+These properties and how they affect the material are described in more details in the \l [QtQuick3d]{CustomMaterial} documentation.
+
+\image MaterialEditor-properties.png
+       {Material Properties panel with blend and shading settings}
+
+\section2 Preview
+
+In addition to showing how the current material is rendered, the preview panel contains a selection of controls
+that can be adjusted to see how the material looks under different conditions. These controls allows the
+user to: Select a different model, toggle the usage of \l{Using Image-Based Lighting}{Image Based Lighting},
+turn the scene light \b on or \b off, and adjust the rotation of the environment. It's also possible to orbit
+around the model using the mouse.
+
+\image MaterialEditor-preview.jpg
+       {Preview panel showing sphere with custom material}
+
+\section2 Uniforms
+
+The uniform table is where the uniforms used by the shaders are listed. Uniforms can be added, removed or changed
+at any time, but all uniforms used by the shader snippets needs to be added to the uniform table.
+Once a uniform is added it will become accessible to both shaders.
+When exporting the material to a QML component the uniforms will become properties on the material component.
+
+\image MaterialEditor-uniforms.png {Uniforms panel with float parameters}
+
+\section2 Output panel
+
+The output panel shows diagnostic messages, for example, errors found in the shader snippets.
+
+\image MaterialEditor-output.png {Shader output panel with error message}
+
+\section2 Importing shaders
+
+Shaders snippets can be imported into the application, these have the file extension \c{.vert} and \c{.frag} and
+are expected to contain plain-text.
+Imported shader snippets will of course need to be adapted, manually, if the shader code is not in a language or in a form
+that's compatible with the \l[QtQuick3D]{CustomMaterial} already (no translation is attempted by the tool.)
+
+\section2 Saving and loading projects.
+
+The Material Editor can save or load project files using it's own project format.
+The extension of the Material Editor project files are \c{.qmp}.
+\note The Material Editor's project file-format is not intended for runtime usage, it is only intended to
+be used with the Material Editor.
+
+\section2 Exporting.
+
+For the material to be usable from an application it needs to be exported as a QML Component,
+this can be done by opening the export dialog from the application menu. The export dialog will
+ask for an output folder, the name of the material component, and the name(s) of the shader snippets.
+When the material has been successfully exported the output folder will contain a QML Component
+describing the material together with any shader snippet and texture needed by the material.
+
+\image MaterialEditor-export.png {Export material dialog}
+
+*/

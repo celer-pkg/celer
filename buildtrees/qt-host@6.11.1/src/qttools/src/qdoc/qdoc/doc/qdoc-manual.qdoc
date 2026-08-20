@@ -1,0 +1,69 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qdoc-index.html
+    \nextpage Introduction to QDoc
+
+    \title QDoc Manual
+
+    \list
+      \li \l {Introduction to QDoc}
+      \li \l {Getting Started with QDoc}
+        \list
+          \li \l{Installing Clang for QDoc}
+          \li \l{Creating QDoc Configuration Files}
+          \li \l{Writing Documentation}
+          \li \l{Categories of Documentation}
+            \list
+              \li \l{C++ Documentation Style}
+              \li \l{QML Documentation Style}
+            \endlist
+        \endlist
+      \li \l {Command Index}
+      \li \l {Topic Commands}
+      \li \l {Context Commands}
+        \list
+          \li \l {Document Navigation}
+          \li \l {Status}
+          \li \l {Thread Support}
+          \li \l {Relating Things}
+          \li \l {Grouping Things}
+          \li \l {Naming Things}
+        \endlist
+      \li \l{Markup Commands}
+        \list
+          \li \l {Text Markup}
+          \li \l {Document Structure}
+          \li \l {Including Code Inline}
+          \li \l {Including External Code}
+          \li \l {Creating Links}
+          \li \l {Including Images}
+          \li \l {Tables and Lists}
+          \li \l {Special Content}
+          \li \l {Miscellaneous}
+        \endlist
+      \li \l {Macros}
+        \list
+            \li \l {CMake Text Snippets}
+            \li \l {HTML and DocBook Formatting}
+            \li \l {Product Names}
+            \li \l {Product Versions}
+            \li \l {Tabbed Content}
+            \li \l {\\youtube}{Linking to YouTube content}
+            \li \l {Miscellaneous Macros}
+        \endlist
+      \li \l {The QDoc Configuration File}
+        \list
+          \li \l {Generic Configuration Variables}
+          \li \l {Creating Help Project Files}
+          \li \l {Format-specific Configuration Variables}
+          \li \l {Supporting Derived Projects}
+          \li \l {Example Manifest Files}
+          \li \l {qtgui.qdocconf}
+          \li \l {minimum.qdocconf}
+        \endlist
+      \li \l {Troubleshooting QDoc Warnings}
+    \endlist
+*/
+

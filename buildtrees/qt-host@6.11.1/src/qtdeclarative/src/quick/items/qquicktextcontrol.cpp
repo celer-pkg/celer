@@ -1,0 +1,1937 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:critical reason:data-parser
+
+#include "qquicktextcontrol_p.h"
+#include "qquicktextcontrol_p_p.h"
+
+#ifndef QT_NO_TEXTCONTROL
+
+#include <qcoreapplication.h>
+#include <qfont.h>
+#include <qfontmetrics.h>
+#include <qevent.h>
+#include <qdebug.h>
+#include <qclipboard.h>
+#include <qtimer.h>
+#include <qinputmethod.h>
+#include "private/qtextdocumentlayout_p.h"
+#include "private/qabstracttextdocumentlayout_p.h"
+#include "qtextdocument.h"
+#include "private/qtextdocument_p.h"
+#include "qtextlist.h"
+#include "qtextdocumentwriter.h"
+#include "private/qtextcursor_p.h"
+#include <QtCore/qloggingcategory.h>
+
+#include <qtextformat.h>
+#include <qtransform.h>
+#include <qdatetime.h>
+#include <qbuffer.h>
+#include <qguiapplication.h>
+#include <limits.h>
+#include <qtexttable.h>
+#include <qvariant.h>
+#include <qurl.h>
+#include <qstylehints.h>
+#include <qmetaobject.h>
+
+#include <private/qqmlglobal_p.h>
+#include <private/qquickdeliveryagent_p_p.h>
+
+// ### these should come from QStyleHints
+const int textCursorWidth = 1;
+
+QT_BEGIN_NAMESPACE
+
+// could go into QTextCursor...
+static QTextLine currentTextLine(const QTextCursor &cursor)
+{
+    const QTextBlock block = cursor.block();
+    if (!block.isValid())
+        return QTextLine();
+
+    const QTextLayout *layout = block.layout();
+    if (!layout)
+        return QTextLine();
+
+    const int relativePos = cursor.position() - block.position();
+    return layout->lineForTextPosition(relativePos);
+}
+
+QQuickTextControlPrivate::QQuickTextControlPrivate()
+    : doc(nullptr),
+#if QT_CONFIG(im)
+      preeditCursor(0),
+#endif
+      interactionFlags(Qt::TextEditorInteraction),
+      cursorOn(false),
+      cursorIsFocusIndicator(false),
+      mousePressed(false),
+      lastSelectionState(false),
+      ignoreAutomaticScrollbarAdjustement(false),
+      overwriteMode(false),
+      acceptRichText(true),
+      cursorVisible(false),
+      cursorBlinkingEnabled(false),
+      hasFocus(false),
+      hadSelectionOnMousePress(false),
+      wordSelectionEnabled(false),
+      hasImState(false),
+      cursorRectangleChanged(false),
+      hoveredMarker(false),
+      selectByTouchDrag(false),
+      imSelectionAfterPress(false),
+      beingEdited(false),
+      lastSelectionStart(-1),
+      lastSelectionEnd(-1)
+{}
+
+bool QQuickTextControlPrivate::cursorMoveKeyEvent(QKeyEvent *e)
+{
+#if !QT_CONFIG(shortcut)
+    Q_UNUSED(e);
+#endif
+
+    Q_Q(QQuickTextControl);
+    if (cursor.isNull())
+        return false;
+
+    const QTextCursor oldSelection = cursor;
+    const int oldCursorPos = cursor.position();
+
+    QTextCursor::MoveMode mode = QTextCursor::MoveAnchor;
+    QTextCursor::MoveOperation op = QTextCursor::NoMove;
+
+    if (false) {
+    }
+#if QT_CONFIG(shortcut)
+    if (e == QKeySequence::MoveToNextChar) {
+            op = QTextCursor::Right;
+    }
+    else if (e == QKeySequence::MoveToPreviousChar) {
+            op = QTextCursor::Left;
+    }
+    else if (e == QKeySequence::SelectNextChar) {
+           op = QTextCursor::Right;
+           mode = QTextCursor::KeepAnchor;
+    }
+    else if (e == QKeySequence::SelectPreviousChar) {
+            op = QTextCursor::Left;
+            mode = QTextCursor::KeepAnchor;
+    }
+    else if (e == QKeySequence::SelectNextWord) {
+            op = QTextCursor::WordRight;
+            mode = QTextCursor::KeepAnchor;
+    }
+    else if (e == QKeySequence::SelectPreviousWord) {
+            op = QTextCursor::WordLeft;
+            mode = QTextCursor::KeepAnchor;
+    }
+    else if (e == QKeySequence::SelectStartOfLine) {
+            op = QTextCursor::StartOfLine;
+            mode = QTextCursor::KeepAnchor;
+    }
+    else if (e == QKeySequence::SelectEndOfLine) {
+            op = QTextCursor::EndOfLine;
+            mode = QTextCursor::KeepAnchor;
+    }
+    else if (e == QKeySequence::SelectStartOfBlock) {
+            op = QTextCursor::StartOfBlock;
+            mode = QTextCursor::KeepAnchor;
+    }
+    else if (e == QKeySequence::SelectEndOfBlock) {
+            op = QTextCursor::EndOfBlock;
+            mode = QTextCursor::KeepAnchor;
+    }
+    else if (e == QKeySequence::SelectStartOfDocument) {
+            op = QTextCursor::Start;
+            mode = QTextCursor::KeepAnchor;
+    }
+    else if (e == QKeySequence::SelectEndOfDocument) {
+            op = QTextCursor::End;
+            mode = QTextCursor::KeepAnchor;
+    }
+    else if (e == QKeySequence::SelectPreviousLine) {
+            op = QTextCursor::Up;
+            mode = QTextCursor::KeepAnchor;
+    }
+    else if (e == QKeySequence::SelectNextLine) {
+            op = QTextCursor::Down;
+            mode = QTextCursor::KeepAnchor;
+            {
+                QTextBlock block = cursor.block();
+                QTextLine line = currentTextLine(cursor);
+                if (!block.next().isValid()
+                    && line.isValid()
+                    && line.lineNumber() == block.layout()->lineCount() - 1)
+                    op = QTextCursor::End;
+            }
+    }
+    else if (e == QKeySequence::MoveToNextWord) {
+            op = QTextCursor::WordRight;
+    }
+    else if (e == QKeySequence::MoveToPreviousWord) {
+            op = QTextCursor::WordLeft;
+    }
+    else if (e == QKeySequence::MoveToEndOfBlock) {
+            op = QTextCursor::EndOfBlock;
+    }
+    else if (e == QKeySequence::MoveToStartOfBlock) {
+            op = QTextCursor::StartOfBlock;
+    }
+    else if (e == QKeySequence::MoveToNextLine) {
+            op = QTextCursor::Down;
+    }
+    else if (e == QKeySequence::MoveToPreviousLine) {
+            op = QTextCursor::Up;
+    }
+    else if (e == QKeySequence::MoveToStartOfLine) {
+            op = QTextCursor::StartOfLine;
+    }
+    else if (e == QKeySequence::MoveToEndOfLine) {
+            op = QTextCursor::EndOfLine;
+    }
+    else if (e == QKeySequence::MoveToStartOfDocument) {
+            op = QTextCursor::Start;
+    }
+    else if (e == QKeySequence::MoveToEndOfDocument) {
+            op = QTextCursor::End;
+    }
+#endif // shortcut
+    else {
+        return false;
+    }
+
+// Except for pageup and pagedown, OS X has very different behavior, we don't do it all, but
+// here's the breakdown:
+// Shift still works as an anchor, but only one of the other keys can be down Ctrl (Command),
+// Alt (Option), or Meta (Control).
+// Command/Control + Left/Right -- Move to left or right of the line
+//                 + Up/Down -- Move to top bottom of the file. (Control doesn't move the cursor)
+// Option + Left/Right -- Move one word Left/right.
+//        + Up/Down  -- Begin/End of Paragraph.
+// Home/End Top/Bottom of file. (usually don't move the cursor, but will select)
+
+    bool visualNavigation = cursor.visualNavigation();
+    cursor.setVisualNavigation(true);
+    const bool moved = cursor.movePosition(op, mode);
+    cursor.setVisualNavigation(visualNavigation);
+
+    bool isNavigationEvent
+            =  e->key() == Qt::Key_Up
+            || e->key() == Qt::Key_Down
+            || e->key() == Qt::Key_Left
+            || e->key() == Qt::Key_Right;
+
+    if (moved) {
+        if (cursor.position() != oldCursorPos)
+            emit q->cursorPositionChanged();
+        q->updateCursorRectangle(true);
+    } else if (isNavigationEvent && oldSelection.anchor() == cursor.anchor()) {
+        return false;
+    }
+
+    selectionChanged(/*forceEmitSelectionChanged =*/(mode == QTextCursor::KeepAnchor));
+
+    repaintOldAndNewSelection(oldSelection);
+
+    return true;
+}
+
+void QQuickTextControlPrivate::updateCurrentCharFormat()
+{
+    Q_Q(QQuickTextControl);
+
+    QTextCharFormat fmt = cursor.charFormat();
+    if (fmt == lastCharFormat)
+        return;
+    lastCharFormat = fmt;
+
+    emit q->currentCharFormatChanged(fmt);
+    cursorRectangleChanged = true;
+}
+
+void QQuickTextControlPrivate::setContent(Qt::TextFormat format, const QString &text)
+{
+    Q_Q(QQuickTextControl);
+
+#if QT_CONFIG(im)
+    cancelPreedit();
+#endif
+
+    // for use when called from setPlainText. we may want to re-use the currently
+    // set char format then.
+    const QTextCharFormat charFormatForInsertion = cursor.charFormat();
+
+    bool previousUndoRedoState = doc->isUndoRedoEnabled();
+    doc->setUndoRedoEnabled(false);
+
+    const int oldCursorPos = cursor.position();
+
+    // avoid multiple textChanged() signals being emitted
+    QObject::disconnect(doc, &QTextDocument::contentsChanged, q, &QQuickTextControl::textChanged);
+
+    if (!text.isEmpty()) {
+        // clear 'our' cursor for insertion to prevent
+        // the emission of the cursorPositionChanged() signal.
+        // instead we emit it only once at the end instead of
+        // at the end of the document after loading and when
+        // positioning the cursor again to the start of the
+        // document.
+        cursor = QTextCursor();
+        if (format == Qt::PlainText) {
+            QTextCursor formatCursor(doc);
+            // put the setPlainText and the setCharFormat into one edit block,
+            // so that the syntax highlight triggers only /once/ for the entire
+            // document, not twice.
+            formatCursor.beginEditBlock();
+            doc->setPlainText(text);
+            doc->setUndoRedoEnabled(false);
+            formatCursor.select(QTextCursor::Document);
+            formatCursor.setCharFormat(charFormatForInsertion);
+            formatCursor.endEditBlock();
+#if QT_CONFIG(textmarkdownreader)
+        } else if (format == Qt::MarkdownText) {
+            doc->setBaseUrl(doc->baseUrl().adjusted(QUrl::RemoveFilename));
+            doc->setMarkdown(text);
+#endif
+        } else {
+#if QT_CONFIG(texthtmlparser)
+            doc->setHtml(text);
+#else
+            doc->setPlainText(text);
+#endif
+            doc->setUndoRedoEnabled(false);
+        }
+        cursor = QTextCursor(doc);
+    } else {
+        doc->clear();
+    }
+    cursor.setCharFormat(charFormatForInsertion);
+
+    QObject::connect(doc, &QTextDocument::contentsChanged, q, &QQuickTextControl::textChanged);
+    emit q->textChanged();
+    doc->setUndoRedoEnabled(previousUndoRedoState);
+    _q_updateCurrentCharFormatAndSelection();
+    doc->setModified(false);
+
+    q->updateCursorRectangle(true);
+    if (cursor.position() != oldCursorPos)
+        emit q->cursorPositionChanged();
+}
+
+void QQuickTextControlPrivate::setCursorPosition(const QPointF &pos)
+{
+    Q_Q(QQuickTextControl);
+    const int cursorPos = q->hitTest(pos, Qt::FuzzyHit);
+    if (cursorPos == -1)
+        return;
+    cursor.setPosition(cursorPos);
+}
+
+void QQuickTextControlPrivate::setCursorPosition(int pos, QTextCursor::MoveMode mode)
+{
+    cursor.setPosition(pos, mode);
+
+    if (mode != QTextCursor::KeepAnchor) {
+        selectedWordOnDoubleClick = QTextCursor();
+        selectedBlockOnTripleClick = QTextCursor();
+    }
+}
+
+void QQuickTextControlPrivate::repaintCursor()
+{
+    Q_Q(QQuickTextControl);
+    emit q->updateCursorRequest();
+}
+
+void QQuickTextControlPrivate::repaintOldAndNewSelection(const QTextCursor &oldSelection)
+{
+    Q_Q(QQuickTextControl);
+    if (cursor.hasSelection()
+        && oldSelection.hasSelection()
+        && cursor.currentFrame() == oldSelection.currentFrame()
+        && !cursor.hasComplexSelection()
+        && !oldSelection.hasComplexSelection()
+        && cursor.anchor() == oldSelection.anchor()
+        ) {
+        QTextCursor differenceSelection(doc);
+        differenceSelection.setPosition(oldSelection.position());
+        differenceSelection.setPosition(cursor.position(), QTextCursor::KeepAnchor);
+        emit q->updateRequest();
+    } else {
+        if (!oldSelection.hasSelection() && !cursor.hasSelection()) {
+            if (!oldSelection.isNull())
+                emit q->updateCursorRequest();
+            emit q->updateCursorRequest();
+
+        } else {
+            if (!oldSelection.isNull())
+                emit q->updateRequest();
+            emit q->updateRequest();
+        }
+    }
+}
+
+void QQuickTextControlPrivate::selectionChanged(bool forceEmitSelectionChanged /*=false*/)
+{
+    Q_Q(QQuickTextControl);
+    if (forceEmitSelectionChanged) {
+#if QT_CONFIG(im)
+        if (hasFocus)
+            qGuiApp->inputMethod()->update(Qt::ImCurrentSelection);
+#endif
+        emit q->selectionChanged();
+    }
+
+    bool current = cursor.hasSelection();
+    int selectionStart = cursor.selectionStart();
+    int selectionEnd = cursor.selectionEnd();
+    if (current == lastSelectionState && (!current || (selectionStart == lastSelectionStart && selectionEnd == lastSelectionEnd)))
+        return;
+
+    if (lastSelectionState != current) {
+        lastSelectionState = current;
+        emit q->copyAvailable(current);
+    }
+
+    lastSelectionStart = selectionStart;
+    lastSelectionEnd = selectionEnd;
+
+    if (!forceEmitSelectionChanged) {
+#if QT_CONFIG(im)
+        if (hasFocus)
+            qGuiApp->inputMethod()->update(Qt::ImCurrentSelection);
+#endif
+        emit q->selectionChanged();
+    }
+    q->updateCursorRectangle(true);
+}
+
+void QQuickTextControlPrivate::_q_updateCurrentCharFormatAndSelection()
+{
+    updateCurrentCharFormat();
+    selectionChanged();
+}
+
+#if QT_CONFIG(clipboard)
+void QQuickTextControlPrivate::setClipboardSelection()
+{
+    QClipboard *clipboard = QGuiApplication::clipboard();
+    if (!cursor.hasSelection() || !clipboard->supportsSelection())
+        return;
+    Q_Q(QQuickTextControl);
+    QMimeData *data = q->createMimeDataFromSelection();
+    clipboard->setMimeData(data, QClipboard::Selection);
+}
+#endif
+
+void QQuickTextControlPrivate::_q_updateCursorPosChanged(const QTextCursor &someCursor)
+{
+    Q_Q(QQuickTextControl);
+    if (someCursor.isCopyOf(cursor)) {
+        emit q->cursorPositionChanged();
+        q->updateCursorRectangle(true);
+    }
+}
+
+void QQuickTextControlPrivate::setBlinkingCursorEnabled(bool enable)
+{
+    if (cursorBlinkingEnabled == enable)
+        return;
+
+    cursorBlinkingEnabled = enable;
+    updateCursorFlashTime();
+
+    if (enable)
+        connect(qApp->styleHints(), &QStyleHints::cursorFlashTimeChanged, this, &QQuickTextControlPrivate::updateCursorFlashTime);
+    else
+        disconnect(qApp->styleHints(), &QStyleHints::cursorFlashTimeChanged, this, &QQuickTextControlPrivate::updateCursorFlashTime);
+}
+
+void QQuickTextControlPrivate::updateCursorFlashTime()
+{
+    // Note: cursorOn represents the current blinking state controlled by a timer, and
+    // should not be confused with cursorVisible or cursorBlinkingEnabled. However, we
+    // interpretate a cursorFlashTime of 0 to mean "always on, never blink".
+    cursorOn = true;
+    int flashTime = QGuiApplication::styleHints()->cursorFlashTime();
+
+    if (cursorBlinkingEnabled && flashTime >= 2)
+        cursorBlinkTimer.start(flashTime / 2, q_func());
+    else
+        cursorBlinkTimer.stop();
+
+    repaintCursor();
+}
+
+void QQuickTextControlPrivate::extendWordwiseSelection(int suggestedNewPosition, qreal mouseXPosition)
+{
+    Q_Q(QQuickTextControl);
+
+    // if inside the initial selected word keep that
+    if (suggestedNewPosition >= selectedWordOnDoubleClick.selectionStart()
+        && suggestedNewPosition <= selectedWordOnDoubleClick.selectionEnd()) {
+        q->setTextCursor(selectedWordOnDoubleClick);
+        return;
+    }
+
+    QTextCursor curs = selectedWordOnDoubleClick;
+    curs.setPosition(suggestedNewPosition, QTextCursor::KeepAnchor);
+
+    if (!curs.movePosition(QTextCursor::StartOfWord))
+        return;
+    const int wordStartPos = curs.position();
+
+    const int blockPos = curs.block().position();
+    const QPointF blockCoordinates = q->blockBoundingRect(curs.block()).topLeft();
+
+    QTextLine line = currentTextLine(curs);
+    if (!line.isValid())
+        return;
+
+    const qreal wordStartX = line.cursorToX(curs.position() - blockPos) + blockCoordinates.x();
+
+    if (!curs.movePosition(QTextCursor::EndOfWord))
+        return;
+    const int wordEndPos = curs.position();
+
+    const QTextLine otherLine = currentTextLine(curs);
+    if (otherLine.textStart() != line.textStart()
+        || wordEndPos == wordStartPos)
+        return;
+
+    const qreal wordEndX = line.cursorToX(curs.position() - blockPos) + blockCoordinates.x();
+
+    if (!wordSelectionEnabled && (mouseXPosition < wordStartX || mouseXPosition > wordEndX))
+        return;
+
+    if (suggestedNewPosition < selectedWordOnDoubleClick.position()) {
+        cursor.setPosition(selectedWordOnDoubleClick.selectionEnd());
+        setCursorPosition(wordStartPos, QTextCursor::KeepAnchor);
+    } else {
+        cursor.setPosition(selectedWordOnDoubleClick.selectionStart());
+        setCursorPosition(wordEndPos, QTextCursor::KeepAnchor);
+    }
+
+    if (interactionFlags & Qt::TextSelectableByMouse) {
+#if QT_CONFIG(clipboard)
+        setClipboardSelection();
+#endif
+        selectionChanged(true);
+    }
+}
+
+void QQuickTextControlPrivate::extendBlockwiseSelection(int suggestedNewPosition)
+{
+    Q_Q(QQuickTextControl);
+
+    // if inside the initial selected line keep that
+    if (suggestedNewPosition >= selectedBlockOnTripleClick.selectionStart()
+        && suggestedNewPosition <= selectedBlockOnTripleClick.selectionEnd()) {
+        q->setTextCursor(selectedBlockOnTripleClick);
+        return;
+    }
+
+    if (suggestedNewPosition < selectedBlockOnTripleClick.position()) {
+        cursor.setPosition(selectedBlockOnTripleClick.selectionEnd());
+        cursor.setPosition(suggestedNewPosition, QTextCursor::KeepAnchor);
+        cursor.movePosition(QTextCursor::StartOfBlock, QTextCursor::KeepAnchor);
+    } else {
+        cursor.setPosition(selectedBlockOnTripleClick.selectionStart());
+        cursor.setPosition(suggestedNewPosition, QTextCursor::KeepAnchor);
+        cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
+        cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor);
+    }
+
+    if (interactionFlags & Qt::TextSelectableByMouse) {
+#if QT_CONFIG(clipboard)
+        setClipboardSelection();
+#endif
+        selectionChanged(true);
+    }
+}
+
+void QQuickTextControl::undo()
+{
+    Q_D(QQuickTextControl);
+    d->repaintSelection();
+    const int oldCursorPos = d->cursor.position();
+    d->doc->undo(&d->cursor);
+    if (d->cursor.position() != oldCursorPos)
+        emit cursorPositionChanged();
+    updateCursorRectangle(true);
+}
+
+void QQuickTextControl::redo()
+{
+    Q_D(QQuickTextControl);
+    d->repaintSelection();
+    const int oldCursorPos = d->cursor.position();
+    d->doc->redo(&d->cursor);
+    if (d->cursor.position() != oldCursorPos)
+        emit cursorPositionChanged();
+    updateCursorRectangle(true);
+}
+
+void QQuickTextControl::clear()
+{
+    Q_D(QQuickTextControl);
+    d->cursor.select(QTextCursor::Document);
+    d->cursor.removeSelectedText();
+}
+
+QQuickTextControl::QQuickTextControl(QTextDocument *doc, QObject *parent)
+    : QInputControl(TextEdit, *new QQuickTextControlPrivate, parent)
+{
+    setDocument(doc);
+}
+
+QQuickTextControl::~QQuickTextControl()
+{
+}
+
+QTextDocument *QQuickTextControl::document() const
+{
+    Q_D(const QQuickTextControl);
+    return d->doc;
+}
+
+void QQuickTextControl::setDocument(QTextDocument *doc)
+{
+    Q_D(QQuickTextControl);
+    if (!doc || d->doc == doc)
+        return;
+
+    if (d->doc) {
+        QAbstractTextDocumentLayout *oldLayout = d->doc->documentLayout();
+        disconnect(oldLayout, nullptr, this, nullptr);
+        disconnect(d->doc, nullptr, this, nullptr);
+    }
+
+    d->doc = doc;
+    d->cursor = QTextCursor(doc);
+    d->lastCharFormat = d->cursor.charFormat();
+
+    QAbstractTextDocumentLayout *layout = doc->documentLayout();
+    connect(layout, &QAbstractTextDocumentLayout::update, this, &QQuickTextControl::updateRequest);
+    connect(layout, &QAbstractTextDocumentLayout::updateBlock, this, &QQuickTextControl::updateRequest);
+    connect(doc, &QTextDocument::contentsChanged, this, [d]() {
+        d->_q_updateCurrentCharFormatAndSelection();
+    });
+    connect(doc, &QTextDocument::contentsChanged, this, &QQuickTextControl::textChanged);
+    connect(doc, &QTextDocument::cursorPositionChanged, this, [d](const QTextCursor &cursor) {
+        d->_q_updateCursorPosChanged(cursor);
+    });
+    connect(doc, &QTextDocument::contentsChange, this, &QQuickTextControl::contentsChange);
+    if (auto *qtdlayout = qobject_cast<QTextDocumentLayout *>(layout))
+        qtdlayout->setCursorWidth(textCursorWidth);
+}
+
+void QQuickTextControl::updateCursorRectangle(bool force)
+{
+    Q_D(QQuickTextControl);
+    const bool update = d->cursorRectangleChanged || force;
+    d->cursorRectangleChanged = false;
+    if (update)
+        emit cursorRectangleChanged();
+}
+
+void QQuickTextControl::setTextCursor(const QTextCursor &cursor)
+{
+    Q_D(QQuickTextControl);
+#if QT_CONFIG(im)
+    d->commitPreedit();
+#endif
+    d->cursorIsFocusIndicator = false;
+    const bool posChanged = cursor.position() != d->cursor.position();
+    const QTextCursor oldSelection = d->cursor;
+    d->cursor = cursor;
+    d->cursorOn = d->hasFocus && (d->interactionFlags & Qt::TextEditable);
+    d->_q_updateCurrentCharFormatAndSelection();
+    updateCursorRectangle(true);
+    d->repaintOldAndNewSelection(oldSelection);
+    if (posChanged)
+        emit cursorPositionChanged();
+}
+
+QTextCursor QQuickTextControl::textCursor() const
+{
+    Q_D(const QQuickTextControl);
+    return d->cursor;
+}
+
+#if QT_CONFIG(clipboard)
+
+void QQuickTextControl::cut()
+{
+    Q_D(QQuickTextControl);
+    if (!(d->interactionFlags & Qt::TextEditable) || !d->cursor.hasSelection())
+        return;
+    copy();
+    d->cursor.removeSelectedText();
+}
+
+void QQuickTextControl::copy()
+{
+    Q_D(QQuickTextControl);
+    if (!d->cursor.hasSelection())
+        return;
+    QMimeData *data = createMimeDataFromSelection();
+    QGuiApplication::clipboard()->setMimeData(data);
+}
+
+void QQuickTextControl::paste(QClipboard::Mode mode)
+{
+    const QMimeData *md = QGuiApplication::clipboard()->mimeData(mode);
+    if (md)
+        insertFromMimeData(md);
+}
+#endif
+
+void QQuickTextControl::selectAll()
+{
+    Q_D(QQuickTextControl);
+    const int selectionLength = qAbs(d->cursor.position() - d->cursor.anchor());
+    d->cursor.select(QTextCursor::Document);
+    d->selectionChanged(selectionLength != qAbs(d->cursor.position() - d->cursor.anchor()));
+    d->cursorIsFocusIndicator = false;
+    emit updateRequest();
+}
+
+void QQuickTextControl::processEvent(QEvent *e, const QPointF &coordinateOffset)
+{
+    QTransform t;
+    t.translate(coordinateOffset.x(), coordinateOffset.y());
+    processEvent(e, t);
+}
+
+void QQuickTextControl::processEvent(QEvent *e, const QTransform &transform)
+{
+    Q_D(QQuickTextControl);
+    if (d->interactionFlags == Qt::NoTextInteraction) {
+        e->ignore();
+        return;
+    }
+
+    switch (e->type()) {
+        case QEvent::KeyPress:
+            d->keyPressEvent(static_cast<QKeyEvent *>(e));
+            break;
+        case QEvent::KeyRelease:
+            d->keyReleaseEvent(static_cast<QKeyEvent *>(e));
+            break;
+        case QEvent::MouseButtonPress: {
+            QMouseEvent *ev = static_cast<QMouseEvent *>(e);
+            d->mousePressEvent(ev, transform.map(ev->position()));
+            break; }
+        case QEvent::MouseMove: {
+            QMouseEvent *ev = static_cast<QMouseEvent *>(e);
+            d->mouseMoveEvent(ev, transform.map(ev->position()));
+            break; }
+        case QEvent::MouseButtonRelease: {
+            QMouseEvent *ev = static_cast<QMouseEvent *>(e);
+            d->mouseReleaseEvent(ev, transform.map(ev->position()));
+            break; }
+        case QEvent::MouseButtonDblClick: {
+            QMouseEvent *ev = static_cast<QMouseEvent *>(e);
+            d->mouseDoubleClickEvent(ev, transform.map(ev->position()));
+            break; }
+        case QEvent::HoverEnter:
+        case QEvent::HoverMove:
+        case QEvent::HoverLeave: {
+            QHoverEvent *ev = static_cast<QHoverEvent *>(e);
+            d->hoverEvent(ev, transform.map(ev->position()));
+            break; }
+#if QT_CONFIG(im)
+        case QEvent::InputMethod:
+            d->inputMethodEvent(static_cast<QInputMethodEvent *>(e));
+            break;
+#endif
+        case QEvent::FocusIn:
+        case QEvent::FocusOut:
+            d->focusEvent(static_cast<QFocusEvent *>(e));
+            break;
+
+        case QEvent::ShortcutOverride:
+            if (d->interactionFlags & Qt::TextEditable) {
+                QKeyEvent *ke = static_cast<QKeyEvent *>(e);
+                ke->setAccepted(isCommonTextEditShortcut(ke));
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+bool QQuickTextControl::event(QEvent *e)
+{
+    return QObject::event(e);
+}
+
+bool QQuickTextControl::isBeingEdited()
+{
+    Q_D(QQuickTextControl);
+    return d->beingEdited;
+}
+
+void QQuickTextControl::timerEvent(QTimerEvent *e)
+{
+    Q_D(QQuickTextControl);
+    if (e->timerId() == d->cursorBlinkTimer.timerId()) {
+        d->cursorOn = !d->cursorOn;
+
+        d->repaintCursor();
+    }
+}
+
+void QQuickTextControl::setPlainText(const QString &text)
+{
+    Q_D(QQuickTextControl);
+    d->setContent(Qt::PlainText, text);
+}
+
+void QQuickTextControl::setMarkdownText(const QString &text)
+{
+    Q_D(QQuickTextControl);
+    d->setContent(Qt::MarkdownText, text);
+}
+
+void QQuickTextControl::setHtml(const QString &text)
+{
+    Q_D(QQuickTextControl);
+    d->setContent(Qt::RichText, text);
+}
+
+
+void QQuickTextControlPrivate::keyReleaseEvent(QKeyEvent *e)
+{
+    e->ignore();
+}
+
+void QQuickTextControlPrivate::keyPressEvent(QKeyEvent *e)
+{
+    Q_Q(QQuickTextControl);
+
+    QScopedValueRollback<bool> rollbackBeingEdited(beingEdited, true);
+    if (e->key() == Qt::Key_Back) {
+         e->ignore();
+         return;
+    }
+
+#if QT_CONFIG(shortcut)
+    if (e == QKeySequence::SelectAll) {
+            e->accept();
+            q->selectAll();
+#if QT_CONFIG(clipboard)
+            setClipboardSelection();
+#endif
+            return;
+    }
+#if QT_CONFIG(clipboard)
+    else if (e == QKeySequence::Copy) {
+            e->accept();
+            q->copy();
+            return;
+    }
+#endif
+#endif // shortcut
+
+    if (interactionFlags & Qt::TextSelectableByKeyboard
+        && cursorMoveKeyEvent(e))
+        goto accept;
+
+    if (!(interactionFlags & Qt::TextEditable)) {
+        e->ignore();
+        return;
+    }
+
+    if (e->key() == Qt::Key_Direction_L || e->key() == Qt::Key_Direction_R) {
+        QTextBlockFormat fmt;
+        fmt.setLayoutDirection((e->key() == Qt::Key_Direction_L) ? Qt::LeftToRight : Qt::RightToLeft);
+        cursor.mergeBlockFormat(fmt);
+        goto accept;
+    }
+
+    // schedule a repaint of the region of the cursor, as when we move it we
+    // want to make sure the old cursor disappears (not noticeable when moving
+    // only a few pixels but noticeable when jumping between cells in tables for
+    // example)
+    repaintSelection();
+
+    if (e->key() == Qt::Key_Backspace && !(e->modifiers() & ~Qt::ShiftModifier)) {
+        QTextBlockFormat blockFmt = cursor.blockFormat();
+        QTextList *list = cursor.currentList();
+        if (list && cursor.atBlockStart() && !cursor.hasSelection()) {
+            list->remove(cursor.block());
+        } else if (cursor.atBlockStart() && blockFmt.indent() > 0) {
+            blockFmt.setIndent(blockFmt.indent() - 1);
+            cursor.setBlockFormat(blockFmt);
+        } else {
+            QTextCursor localCursor = cursor;
+            localCursor.deletePreviousChar();
+        }
+        goto accept;
+    }
+#if QT_CONFIG(shortcut)
+      else if (e == QKeySequence::InsertParagraphSeparator) {
+        cursor.insertBlock();
+        e->accept();
+        goto accept;
+    } else if (e == QKeySequence::InsertLineSeparator) {
+        cursor.insertText(QString(QChar::LineSeparator));
+        e->accept();
+        goto accept;
+    }
+#endif
+    if (false) {
+    }
+#if QT_CONFIG(shortcut)
+    else if (e == QKeySequence::Undo) {
+            q->undo();
+    }
+    else if (e == QKeySequence::Redo) {
+           q->redo();
+    }
+#if QT_CONFIG(clipboard)
+    else if (e == QKeySequence::Cut) {
+           q->cut();
+    }
+    else if (e == QKeySequence::Paste) {
+        QClipboard::Mode mode = QClipboard::Clipboard;
+        q->paste(mode);
+    }
+#endif
+    else if (e == QKeySequence::Delete) {
+        QTextCursor localCursor = cursor;
+        localCursor.deleteChar();
+    }
+    else if (e == QKeySequence::DeleteEndOfWord) {
+        if (!cursor.hasSelection())
+            cursor.movePosition(QTextCursor::NextWord, QTextCursor::KeepAnchor);
+        cursor.removeSelectedText();
+    }
+    else if (e == QKeySequence::DeleteStartOfWord) {
+        const int oldCursorPos = cursor.position();
+        if (!cursor.hasSelection())
+            cursor.movePosition(QTextCursor::PreviousWord, QTextCursor::KeepAnchor);
+        cursor.removeSelectedText();
+        if (cursor.position() != oldCursorPos)
+            emit q->cursorPositionChanged();
+    }
+    else if (e == QKeySequence::DeleteEndOfLine) {
+        QTextBlock block = cursor.block();
+        if (cursor.position() == block.position() + block.length() - 2)
+            cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor);
+        else
+            cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
+        cursor.removeSelectedText();
+    }
+#endif // shortcut
+    else {
+        goto process;
+    }
+    goto accept;
+
+process:
+    {
+        if (q->isAcceptableInput(e)) {
+#if QT_CONFIG(im)
+            // QTBUG-90362
+            // Before key press event will be handled, pre-editing part should be finished
+            if (isPreediting())
+                commitPreedit();
+#endif
+            if (overwriteMode
+                // no need to call deleteChar() if we have a selection, insertText
+                // does it already
+                && !cursor.hasSelection()
+                && !cursor.atBlockEnd()) {
+                cursor.deleteChar();
+            }
+
+            cursor.insertText(e->text());
+            selectionChanged();
+        } else {
+            e->ignore();
+            return;
+        }
+    }
+
+ accept:
+
+#if QT_CONFIG(clipboard)
+    setClipboardSelection();
+#endif
+
+    e->accept();
+    cursorOn = true;
+
+    q->updateCursorRectangle(true);
+    updateCurrentCharFormat();
+}
+
+QRectF QQuickTextControlPrivate::rectForPosition(int position) const
+{
+    Q_Q(const QQuickTextControl);
+    const QTextBlock block = doc->findBlock(position);
+    if (!block.isValid())
+        return QRectF();
+    const QTextLayout *layout = block.layout();
+    const QPointF layoutPos = q->blockBoundingRect(block).topLeft();
+    int relativePos = position - block.position();
+#if QT_CONFIG(im)
+    if (preeditCursor != 0) {
+        int preeditPos = layout->preeditAreaPosition();
+        if (relativePos == preeditPos)
+            relativePos += preeditCursor;
+        else if (relativePos > preeditPos)
+            relativePos += layout->preeditAreaText().size();
+    }
+#endif
+    QTextLine line = layout->lineForTextPosition(relativePos);
+
+    QRectF r;
+
+    if (line.isValid()) {
+        qreal x = line.cursorToX(relativePos);
+        qreal w = 0;
+        if (overwriteMode) {
+            if (relativePos < line.textLength() - line.textStart())
+                w = line.cursorToX(relativePos + 1) - x;
+            else
+                w = QFontMetrics(block.layout()->font()).horizontalAdvance(QLatin1Char(' ')); // in sync with QTextLine::draw()
+        }
+        r = QRectF(layoutPos.x() + x, layoutPos.y() + line.y(), textCursorWidth + w, line.height());
+    } else {
+        r = QRectF(layoutPos.x(), layoutPos.y(), textCursorWidth, 10); // #### correct height
+    }
+
+    return r;
+}
+
+void QQuickTextControlPrivate::mousePressEvent(QMouseEvent *e, const QPointF &pos)
+{
+    Q_Q(QQuickTextControl);
+
+    mousePressed = (interactionFlags & Qt::TextSelectableByMouse) && (e->button() & Qt::LeftButton);
+    mousePressPos = pos.toPoint();
+    imSelectionAfterPress = false;
+
+    if (sendMouseEventToInputContext(e, pos))
+        return;
+
+    if (interactionFlags & Qt::LinksAccessibleByMouse) {
+        anchorOnMousePress = q->anchorAt(pos);
+
+        if (cursorIsFocusIndicator) {
+            cursorIsFocusIndicator = false;
+            repaintSelection();
+            cursor.clearSelection();
+        }
+    }
+
+    if (!selectByTouchDrag && !QQuickDeliveryAgentPrivate::isEventFromMouseOrTouchpad(e))
+        return;
+    if (interactionFlags & Qt::TextEditable)
+        blockWithMarkerUnderMousePress = q->blockWithMarkerAt(pos);
+    if (e->button() & Qt::MiddleButton) {
+        return;
+    } else  if (!(e->button() & Qt::LeftButton)) {
+        e->ignore();
+        return;
+    } else if (!(interactionFlags & (Qt::TextSelectableByMouse | Qt::TextEditable))) {
+        if (!(interactionFlags & Qt::LinksAccessibleByMouse))
+            e->ignore();
+        return;
+    }
+
+    cursorIsFocusIndicator = false;
+    const QTextCursor oldSelection = cursor;
+    const int oldCursorPos = cursor.position();
+
+#if QT_CONFIG(im)
+    commitPreedit();
+#endif
+
+    if ((e->timestamp() < (timestampAtLastDoubleClick + QGuiApplication::styleHints()->mouseDoubleClickInterval()))
+        && ((pos - tripleClickPoint).toPoint().manhattanLength() < QGuiApplication::styleHints()->startDragDistance())) {
+
+        cursor.movePosition(QTextCursor::StartOfBlock);
+        cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
+        cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor);
+        selectedBlockOnTripleClick = cursor;
+
+        anchorOnMousePress = QString();
+
+        timestampAtLastDoubleClick = 0; // do not enter this condition in case of 4(!) rapid clicks
+    } else {
+        int cursorPos = q->hitTest(pos, Qt::FuzzyHit);
+        if (cursorPos == -1) {
+            e->ignore();
+            return;
+        }
+
+        if (e->modifiers() == Qt::ShiftModifier && (interactionFlags & Qt::TextSelectableByMouse)) {
+            if (wordSelectionEnabled && !selectedWordOnDoubleClick.hasSelection()) {
+                selectedWordOnDoubleClick = cursor;
+                selectedWordOnDoubleClick.select(QTextCursor::WordUnderCursor);
+            }
+
+            if (selectedBlockOnTripleClick.hasSelection())
+                extendBlockwiseSelection(cursorPos);
+            else if (selectedWordOnDoubleClick.hasSelection())
+                extendWordwiseSelection(cursorPos, pos.x());
+            else if (!wordSelectionEnabled)
+                setCursorPosition(cursorPos, QTextCursor::KeepAnchor);
+        } else {
+            setCursorPosition(cursorPos);
+        }
+    }
+
+    if (cursor.position() != oldCursorPos) {
+        q->updateCursorRectangle(true);
+        emit q->cursorPositionChanged();
+    }
+    if (interactionFlags & Qt::TextEditable)
+        _q_updateCurrentCharFormatAndSelection();
+    else
+        selectionChanged();
+    repaintOldAndNewSelection(oldSelection);
+    hadSelectionOnMousePress = cursor.hasSelection();
+}
+
+void QQuickTextControlPrivate::mouseMoveEvent(QMouseEvent *e, const QPointF &mousePos)
+{
+    if (!selectByTouchDrag && !QQuickDeliveryAgentPrivate::isEventFromMouseOrTouchpad(e))
+        return;
+
+    Q_Q(QQuickTextControl);
+
+    if ((e->buttons() & Qt::LeftButton)) {
+        const bool editable = interactionFlags & Qt::TextEditable;
+
+        if (!(mousePressed
+              || editable
+              || selectedWordOnDoubleClick.hasSelection()
+              || selectedBlockOnTripleClick.hasSelection()))
+            return;
+
+        const QTextCursor oldSelection = cursor;
+        const int oldCursorPos = cursor.position();
+
+        if (!mousePressed)
+            return;
+
+        const qreal mouseX = qreal(mousePos.x());
+
+        int newCursorPos = q->hitTest(mousePos, Qt::FuzzyHit);
+
+#if QT_CONFIG(im)
+        if (isPreediting()) {
+            // note: oldCursorPos not including preedit
+            int selectionStartPos = q->hitTest(mousePressPos, Qt::FuzzyHit);
+            if (newCursorPos != selectionStartPos) {
+                commitPreedit();
+                // commit invalidates positions
+                newCursorPos = q->hitTest(mousePos, Qt::FuzzyHit);
+                selectionStartPos = q->hitTest(mousePressPos, Qt::FuzzyHit);
+                setCursorPosition(selectionStartPos);
+            }
+        }
+#endif
+
+        if (newCursorPos == -1)
+            return;
+
+        if (wordSelectionEnabled && !selectedWordOnDoubleClick.hasSelection()) {
+            selectedWordOnDoubleClick = cursor;
+            selectedWordOnDoubleClick.select(QTextCursor::WordUnderCursor);
+        }
+
+        if (selectedBlockOnTripleClick.hasSelection())
+            extendBlockwiseSelection(newCursorPos);
+        else if (selectedWordOnDoubleClick.hasSelection())
+            extendWordwiseSelection(newCursorPos, mouseX);
+#if QT_CONFIG(im)
+        else if (!isPreediting())
+            setCursorPosition(newCursorPos, QTextCursor::KeepAnchor);
+#endif
+
+        if (interactionFlags & Qt::TextEditable) {
+            if (cursor.position() != oldCursorPos) {
+                emit q->cursorPositionChanged();
+            }
+            _q_updateCurrentCharFormatAndSelection();
+#if QT_CONFIG(im)
+            if (qGuiApp)
+                qGuiApp->inputMethod()->update(Qt::ImQueryInput);
+#endif
+        } else if (cursor.position() != oldCursorPos) {
+            emit q->cursorPositionChanged();
+        }
+        selectionChanged(true);
+        repaintOldAndNewSelection(oldSelection);
+    }
+
+    sendMouseEventToInputContext(e, mousePos);
+}
+
+void QQuickTextControlPrivate::mouseReleaseEvent(QMouseEvent *e, const QPointF &pos)
+{
+    Q_Q(QQuickTextControl);
+
+    if (sendMouseEventToInputContext(e, pos))
+        return;
+
+    const QTextCursor oldSelection = cursor;
+    const int oldCursorPos = cursor.position();
+    const bool isMouse = QQuickDeliveryAgentPrivate::isEventFromMouseOrTouchpad(e);
+
+    if (mousePressed) {
+        mousePressed = false;
+#if QT_CONFIG(clipboard)
+        setClipboardSelection();
+        selectionChanged(true);
+    } else if (e->button() == Qt::MiddleButton
+               && (interactionFlags & Qt::TextEditable)
+               && QGuiApplication::clipboard()->supportsSelection()) {
+        setCursorPosition(pos);
+        const QMimeData *md = QGuiApplication::clipboard()->mimeData(QClipboard::Selection);
+        if (md)
+            q->insertFromMimeData(md);
+#endif
+    }
+    if (!isMouse && !selectByTouchDrag && !imSelectionAfterPress && interactionFlags.testFlag(Qt::TextEditable))
+        setCursorPosition(pos);
+
+    repaintOldAndNewSelection(oldSelection);
+
+    if (cursor.position() != oldCursorPos) {
+        emit q->cursorPositionChanged();
+        q->updateCursorRectangle(true);
+    }
+
+    if ((isMouse || selectByTouchDrag) && interactionFlags.testFlag(Qt::TextEditable) &&
+            (e->button() & Qt::LeftButton) && blockWithMarkerUnderMousePress.isValid()) {
+        QTextBlock block = q->blockWithMarkerAt(pos);
+        if (block == blockWithMarkerUnderMousePress) {
+            auto fmt = block.blockFormat();
+            fmt.setMarker(fmt.marker() == QTextBlockFormat::MarkerType::Unchecked ?
+                              QTextBlockFormat::MarkerType::Checked : QTextBlockFormat::MarkerType::Unchecked);
+            cursor.setBlockFormat(fmt);
+        }
+    }
+
+    if (interactionFlags & Qt::LinksAccessibleByMouse) {
+        if (!(e->button() & Qt::LeftButton))
+            return;
+
+        const QString anchor = q->anchorAt(pos);
+
+        if (anchor.isEmpty())
+            return;
+
+        if (!cursor.hasSelection()
+            || (anchor == anchorOnMousePress && hadSelectionOnMousePress)) {
+
+            const int anchorPos = q->hitTest(pos, Qt::ExactHit);
+            if (anchorPos != -1) {
+                cursor.setPosition(anchorPos);
+
+                QString anchor = anchorOnMousePress;
+                anchorOnMousePress = QString();
+                activateLinkUnderCursor(anchor);
+            }
+        }
+    }
+}
+
+void QQuickTextControlPrivate::mouseDoubleClickEvent(QMouseEvent *e, const QPointF &pos)
+{
+    Q_Q(QQuickTextControl);
+
+    if (e->button() == Qt::LeftButton && (interactionFlags & Qt::TextSelectableByMouse)
+            && (selectByTouchDrag || QQuickDeliveryAgentPrivate::isEventFromMouseOrTouchpad(e))) {
+#if QT_CONFIG(im)
+        commitPreedit();
+#endif
+
+        const QTextCursor oldSelection = cursor;
+        setCursorPosition(pos);
+        QTextLine line = currentTextLine(cursor);
+        bool doEmit = false;
+        if (line.isValid() && line.textLength()) {
+            cursor.select(QTextCursor::WordUnderCursor);
+            doEmit = true;
+        }
+        repaintOldAndNewSelection(oldSelection);
+
+        cursorIsFocusIndicator = false;
+        selectedWordOnDoubleClick = cursor;
+
+        tripleClickPoint = pos;
+        timestampAtLastDoubleClick = e->timestamp();
+        if (doEmit) {
+            selectionChanged();
+#if QT_CONFIG(clipboard)
+            setClipboardSelection();
+#endif
+            emit q->cursorPositionChanged();
+            q->updateCursorRectangle(true);
+        }
+    } else if (!sendMouseEventToInputContext(e, pos)) {
+        e->ignore();
+    }
+}
+
+bool QQuickTextControlPrivate::sendMouseEventToInputContext(QMouseEvent *e, const QPointF &pos)
+{
+#if QT_CONFIG(im)
+    Q_Q(QQuickTextControl);
+
+    Q_UNUSED(e);
+
+    if (isPreediting()) {
+        QTextLayout *layout = cursor.block().layout();
+        int cursorPos = q->hitTest(pos, Qt::FuzzyHit) - cursor.position();
+
+        if (cursorPos >= 0 && cursorPos <= layout->preeditAreaText().size()) {
+            if (e->type() == QEvent::MouseButtonRelease) {
+                QGuiApplication::inputMethod()->invokeAction(QInputMethod::Click, cursorPos);
+            }
+
+            return true;
+        }
+    }
+#else
+    Q_UNUSED(e);
+    Q_UNUSED(pos);
+#endif
+    return false;
+}
+
+#if QT_CONFIG(im)
+void QQuickTextControlPrivate::inputMethodEvent(QInputMethodEvent *e)
+{
+    Q_Q(QQuickTextControl);
+    if (cursor.isNull()) {
+        e->ignore();
+        return;
+    }
+    bool textEditable = interactionFlags.testFlag(Qt::TextEditable);
+    bool isGettingInput = !e->commitString().isEmpty()
+            || e->preeditString() != cursor.block().layout()->preeditAreaText()
+            || e->replacementLength() > 0;
+    bool forceSelectionChanged = false;
+    int oldCursorPos = cursor.position();
+
+    cursor.beginEditBlock();
+    if (isGettingInput && textEditable) {
+        cursor.removeSelectedText();
+    }
+
+    QTextBlock block;
+
+    // insert commit string
+    if (textEditable && (!e->commitString().isEmpty() || e->replacementLength())) {
+        auto *mimeData = QInputControl::mimeDataForInputEvent(e);
+        if (mimeData && q->canInsertFromMimeData(mimeData)) {
+            q->insertFromMimeData(mimeData);
+        } else {
+            if (e->commitString().endsWith(QChar::LineFeed))
+                block = cursor.block(); // Remember the block where the preedit text is
+            QTextCursor c = cursor;
+            c.setPosition(c.position() + e->replacementStart());
+            c.setPosition(c.position() + e->replacementLength(), QTextCursor::KeepAnchor);
+            c.insertText(e->commitString());
+        }
+    }
+
+    if (interactionFlags & (Qt::TextSelectableByKeyboard | Qt::TextSelectableByMouse)) {
+        for (int i = 0; i < e->attributes().size(); ++i) {
+            const QInputMethodEvent::Attribute &a = e->attributes().at(i);
+            if (a.type == QInputMethodEvent::Selection) {
+                if (mousePressed)
+                    imSelectionAfterPress = true;
+                QTextCursor oldCursor = cursor;
+                int blockStart = a.start + cursor.block().position();
+                cursor.setPosition(blockStart, QTextCursor::MoveAnchor);
+                cursor.setPosition(blockStart + a.length, QTextCursor::KeepAnchor);
+                repaintOldAndNewSelection(oldCursor);
+                forceSelectionChanged = true;
+            }
+        }
+    }
+
+    if (!block.isValid())
+        block = cursor.block();
+
+    const int oldPreeditCursor = preeditCursor;
+    if (textEditable) {
+        QTextLayout *layout = block.layout();
+        if (isGettingInput) {
+            layout->setPreeditArea(cursor.position() - block.position(), e->preeditString());
+            emit q->preeditTextChanged();
+        }
+        QList<QTextLayout::FormatRange> overrides;
+        preeditCursor = e->preeditString().size();
+        hasImState = !e->preeditString().isEmpty();
+        cursorVisible = true;
+        for (int i = 0; i < e->attributes().size(); ++i) {
+            const QInputMethodEvent::Attribute &a = e->attributes().at(i);
+            if (a.type == QInputMethodEvent::Cursor) {
+                hasImState = true;
+                preeditCursor = a.start;
+                cursorVisible = a.length != 0;
+            } else if (a.type == QInputMethodEvent::TextFormat) {
+                hasImState = true;
+                QTextCharFormat f = qvariant_cast<QTextFormat>(a.value).toCharFormat();
+                if (f.isValid()) {
+                    QTextLayout::FormatRange o;
+                    o.start = a.start + cursor.position() - block.position();
+                    o.length = a.length;
+                    o.format = f;
+                    overrides.append(o);
+                }
+            }
+        }
+        layout->setFormats(overrides);
+    }
+
+    cursor.endEditBlock();
+
+    QTextCursorPrivate *cursor_d = QTextCursorPrivate::getPrivate(&cursor);
+    if (cursor_d)
+        cursor_d->setX();
+    if (cursor.position() != oldCursorPos)
+        emit q->cursorPositionChanged();
+    q->updateCursorRectangle(oldPreeditCursor != preeditCursor || forceSelectionChanged || isGettingInput);
+    selectionChanged(forceSelectionChanged);
+}
+
+QVariant QQuickTextControl::inputMethodQuery(Qt::InputMethodQuery property) const
+{
+    return inputMethodQuery(property, QVariant());
+}
+
+QVariant QQuickTextControl::inputMethodQuery(Qt::InputMethodQuery property, const QVariant &argument) const
+{
+    Q_D(const QQuickTextControl);
+    QTextBlock block = d->cursor.block();
+    switch (property) {
+    case Qt::ImCursorRectangle:
+        return cursorRect();
+    case Qt::ImAnchorRectangle:
+        return anchorRect();
+    case Qt::ImFont:
+        return QVariant(d->cursor.charFormat().font());
+    case Qt::ImCursorPosition: {
+        const QPointF pt = argument.toPointF();
+        if (!pt.isNull())
+            return QVariant(d->doc->documentLayout()->hitTest(pt, Qt::FuzzyHit) - block.position());
+        return QVariant(d->cursor.position() - block.position());
+    }
+    case Qt::ImSurroundingText:
+        return QVariant(block.text());
+    case Qt::ImCurrentSelection: {
+        QMimeData *mimeData = createMimeDataFromSelection();
+        mimeData->deleteLater();
+        return QInputControl::selectionWrapper(mimeData);
+    }
+    case Qt::ImMaximumTextLength:
+        return QVariant(); // No limit.
+    case Qt::ImAnchorPosition:
+        return QVariant(d->cursor.anchor() - block.position());
+    case Qt::ImAbsolutePosition:
+        return QVariant(d->cursor.position());
+    case Qt::ImTextAfterCursor:
+    {
+        int maxLength = argument.isValid() ? argument.toInt() : 1024;
+        QTextCursor tmpCursor = d->cursor;
+        int localPos = d->cursor.position() - block.position();
+        QString result = block.text().mid(localPos);
+        while (result.size() < maxLength) {
+            int currentBlock = tmpCursor.blockNumber();
+            tmpCursor.movePosition(QTextCursor::NextBlock);
+            if (tmpCursor.blockNumber() == currentBlock)
+                break;
+            result += QLatin1Char('\n') + tmpCursor.block().text();
+        }
+        return QVariant(result);
+    }
+    case Qt::ImTextBeforeCursor:
+    {
+        int maxLength = argument.isValid() ? argument.toInt() : 1024;
+        QTextCursor tmpCursor = d->cursor;
+        int localPos = d->cursor.position() - block.position();
+        int numBlocks = 0;
+        int resultLen = localPos;
+        while (resultLen < maxLength) {
+            int currentBlock = tmpCursor.blockNumber();
+            tmpCursor.movePosition(QTextCursor::PreviousBlock);
+            if (tmpCursor.blockNumber() == currentBlock)
+                break;
+            numBlocks++;
+            resultLen += tmpCursor.block().length();
+        }
+        QString result;
+        while (numBlocks) {
+            result += tmpCursor.block().text() + QLatin1Char('\n');
+            tmpCursor.movePosition(QTextCursor::NextBlock);
+            --numBlocks;
+        }
+        result += QStringView{block.text()}.mid(0,localPos);
+        return QVariant(result);
+    }
+    case Qt::ImReadOnly:
+        return QVariant(!d->interactionFlags.testFlag(Qt::TextEditable));
+    default:
+        return QVariant();
+    }
+}
+#endif // im
+
+void QQuickTextControlPrivate::focusEvent(QFocusEvent *e)
+{
+    Q_Q(QQuickTextControl);
+    emit q->updateRequest();
+    hasFocus = e->gotFocus();
+    if (e->gotFocus()) {
+        setBlinkingCursorEnabled(interactionFlags & (Qt::TextEditable | Qt::TextSelectableByKeyboard));
+    } else {
+        setBlinkingCursorEnabled(false);
+
+        if (cursorIsFocusIndicator
+            && e->reason() != Qt::ActiveWindowFocusReason
+            && e->reason() != Qt::PopupFocusReason
+            && cursor.hasSelection()) {
+            cursor.clearSelection();
+            emit q->selectionChanged();
+        }
+    }
+}
+
+void QQuickTextControlPrivate::hoverEvent(QHoverEvent *e, const QPointF &pos)
+{
+    Q_Q(QQuickTextControl);
+
+    QString link;
+    if (e->type() != QEvent::HoverLeave)
+        link = q->anchorAt(pos);
+
+    if (hoveredLink != link) {
+        hoveredLink = link;
+        emit q->linkHovered(link);
+        qCDebug(lcHoverTrace) << q << e->type() << pos << "hoveredLink" << hoveredLink;
+    } else {
+        QTextBlock block = q->blockWithMarkerAt(pos);
+        if (block.isValid() != hoveredMarker)
+            emit q->markerHovered(block.isValid());
+        hoveredMarker = block.isValid();
+        if (hoveredMarker)
+            qCDebug(lcHoverTrace) << q << e->type() << pos << "hovered marker" << int(block.blockFormat().marker()) << block.text();
+    }
+}
+
+bool QQuickTextControl::hasImState() const
+{
+    Q_D(const QQuickTextControl);
+    return d->hasImState;
+}
+
+bool QQuickTextControl::overwriteMode() const
+{
+    Q_D(const QQuickTextControl);
+    return d->overwriteMode;
+}
+
+void QQuickTextControl::setOverwriteMode(bool overwrite)
+{
+    Q_D(QQuickTextControl);
+    if (d->overwriteMode == overwrite)
+        return;
+    d->overwriteMode = overwrite;
+    emit overwriteModeChanged(overwrite);
+}
+
+bool QQuickTextControl::cursorVisible() const
+{
+    Q_D(const QQuickTextControl);
+    return d->cursorVisible;
+}
+
+void QQuickTextControl::setCursorVisible(bool visible)
+{
+    Q_D(QQuickTextControl);
+    d->cursorVisible = visible;
+    d->setBlinkingCursorEnabled(d->cursorVisible
+            && (d->interactionFlags & (Qt::TextEditable | Qt::TextSelectableByKeyboard)));
+}
+
+QRectF QQuickTextControl::anchorRect() const
+{
+    Q_D(const QQuickTextControl);
+    QRectF rect;
+    QTextCursor cursor = d->cursor;
+    if (!cursor.isNull()) {
+        rect = d->rectForPosition(cursor.anchor());
+    }
+    return rect;
+}
+
+QRectF QQuickTextControl::cursorRect(const QTextCursor &cursor) const
+{
+    Q_D(const QQuickTextControl);
+    if (cursor.isNull())
+        return QRectF();
+
+    return d->rectForPosition(cursor.position());
+}
+
+QRectF QQuickTextControl::cursorRect() const
+{
+    Q_D(const QQuickTextControl);
+    return cursorRect(d->cursor);
+}
+
+QString QQuickTextControl::hoveredLink() const
+{
+    Q_D(const QQuickTextControl);
+    return d->hoveredLink;
+}
+
+QString QQuickTextControl::anchorAt(const QPointF &pos) const
+{
+    Q_D(const QQuickTextControl);
+    return d->doc->documentLayout()->anchorAt(pos);
+}
+
+QTextBlock QQuickTextControl::blockWithMarkerAt(const QPointF &pos) const
+{
+    Q_D(const QQuickTextControl);
+    return d->doc->documentLayout()->blockWithMarkerAt(pos);
+}
+
+void QQuickTextControl::setAcceptRichText(bool accept)
+{
+    Q_D(QQuickTextControl);
+    d->acceptRichText = accept;
+}
+
+void QQuickTextControl::moveCursor(QTextCursor::MoveOperation op, QTextCursor::MoveMode mode)
+{
+    Q_D(QQuickTextControl);
+    const QTextCursor oldSelection = d->cursor;
+    const bool moved = d->cursor.movePosition(op, mode);
+    d->_q_updateCurrentCharFormatAndSelection();
+    updateCursorRectangle(true);
+    d->repaintOldAndNewSelection(oldSelection);
+    if (moved)
+        emit cursorPositionChanged();
+}
+
+bool QQuickTextControl::canPaste() const
+{
+#if QT_CONFIG(clipboard)
+    Q_D(const QQuickTextControl);
+    if (d->interactionFlags & Qt::TextEditable) {
+        const QMimeData *md = QGuiApplication::clipboard()->mimeData();
+        return md && canInsertFromMimeData(md);
+    }
+#endif
+    return false;
+}
+
+void QQuickTextControl::setCursorIsFocusIndicator(bool b)
+{
+    Q_D(QQuickTextControl);
+    d->cursorIsFocusIndicator = b;
+    d->repaintCursor();
+}
+
+void QQuickTextControl::setWordSelectionEnabled(bool enabled)
+{
+    Q_D(QQuickTextControl);
+    d->wordSelectionEnabled = enabled;
+}
+
+#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
+void QQuickTextControl::setTouchDragSelectionEnabled(bool enabled)
+{
+    Q_D(QQuickTextControl);
+    d->selectByTouchDrag = enabled;
+}
+#endif
+
+QMimeData *QQuickTextControl::createMimeDataFromSelection() const
+{
+    Q_D(const QQuickTextControl);
+    const QTextDocumentFragment fragment(d->cursor);
+    return new QQuickTextEditMimeData(fragment);
+}
+
+bool QQuickTextControl::canInsertFromMimeData(const QMimeData *source) const
+{
+    Q_D(const QQuickTextControl);
+    if (d->acceptRichText)
+        return source->hasText()
+            || source->hasHtml()
+            || source->hasFormat(QLatin1String("application/x-qrichtext"))
+            || source->hasFormat(QLatin1String("application/x-qt-richtext"));
+    else
+        return source->hasText();
+}
+
+void QQuickTextControl::insertFromMimeData(const QMimeData *source)
+{
+    Q_D(QQuickTextControl);
+    if (!(d->interactionFlags & Qt::TextEditable) || !source)
+        return;
+
+    bool hasData = false;
+    QTextDocumentFragment fragment;
+#if QT_CONFIG(texthtmlparser)
+    if (source->hasFormat(QLatin1String("application/x-qrichtext")) && d->acceptRichText) {
+        // x-qrichtext is always UTF-8 (taken from Qt3 since we don't use it anymore).
+        const QString richtext = QLatin1String("<meta name=\"qrichtext\" content=\"1\" />")
+                + QString::fromUtf8(source->data(QLatin1String("application/x-qrichtext")));
+        fragment = QTextDocumentFragment::fromHtml(richtext, d->doc);
+        hasData = true;
+    } else if (source->hasHtml() && d->acceptRichText) {
+        fragment = QTextDocumentFragment::fromHtml(source->html(), d->doc);
+        hasData = true;
+    } else {
+        QString text = source->text();
+        if (!text.isNull()) {
+            fragment = QTextDocumentFragment::fromPlainText(text);
+            hasData = true;
+        }
+    }
+#else
+    fragment = QTextDocumentFragment::fromPlainText(source->text());
+#endif // texthtmlparser
+
+    if (hasData)
+        d->cursor.insertFragment(fragment);
+    updateCursorRectangle(true);
+}
+
+void QQuickTextControlPrivate::activateLinkUnderCursor(QString href)
+{
+    QTextCursor oldCursor = cursor;
+
+    if (href.isEmpty()) {
+        QTextCursor tmp = cursor;
+        if (tmp.selectionStart() != tmp.position())
+            tmp.setPosition(tmp.selectionStart());
+        tmp.movePosition(QTextCursor::NextCharacter);
+        href = tmp.charFormat().anchorHref();
+    }
+    if (href.isEmpty())
+        return;
+
+    if (!cursor.hasSelection()) {
+        QTextBlock block = cursor.block();
+        const int cursorPos = cursor.position();
+
+        QTextBlock::Iterator it = block.begin();
+        QTextBlock::Iterator linkFragment;
+
+        for (; !it.atEnd(); ++it) {
+            QTextFragment fragment = it.fragment();
+            const int fragmentPos = fragment.position();
+            if (fragmentPos <= cursorPos &&
+                fragmentPos + fragment.length() > cursorPos) {
+                linkFragment = it;
+                break;
+            }
+        }
+
+        if (!linkFragment.atEnd()) {
+            it = linkFragment;
+            cursor.setPosition(it.fragment().position());
+            if (it != block.begin()) {
+                do {
+                    --it;
+                    QTextFragment fragment = it.fragment();
+                    if (fragment.charFormat().anchorHref() != href)
+                        break;
+                    cursor.setPosition(fragment.position());
+                } while (it != block.begin());
+            }
+
+            for (it = linkFragment; !it.atEnd(); ++it) {
+                QTextFragment fragment = it.fragment();
+                if (fragment.charFormat().anchorHref() != href)
+                    break;
+                cursor.setPosition(fragment.position() + fragment.length(), QTextCursor::KeepAnchor);
+            }
+        }
+    }
+
+    if (hasFocus) {
+        cursorIsFocusIndicator = true;
+    } else {
+        cursorIsFocusIndicator = false;
+        cursor.clearSelection();
+    }
+    repaintOldAndNewSelection(oldCursor);
+
+    emit q_func()->linkActivated(href);
+}
+
+#if QT_CONFIG(im)
+bool QQuickTextControlPrivate::isPreediting() const
+{
+    QTextLayout *layout = cursor.block().layout();
+    if (layout && !layout->preeditAreaText().isEmpty())
+        return true;
+
+    return false;
+}
+
+void QQuickTextControlPrivate::commitPreedit()
+{
+    Q_Q(QQuickTextControl);
+
+    if (!hasImState)
+        return;
+
+    QGuiApplication::inputMethod()->commit();
+
+    if (!hasImState)
+        return;
+
+    QInputMethodEvent event;
+    QCoreApplication::sendEvent(q->parent(), &event);
+}
+
+void QQuickTextControlPrivate::cancelPreedit()
+{
+    Q_Q(QQuickTextControl);
+
+    if (!hasImState)
+        return;
+
+    QGuiApplication::inputMethod()->reset();
+
+    QInputMethodEvent event;
+    QCoreApplication::sendEvent(q->parent(), &event);
+}
+#endif // im
+
+void QQuickTextControl::setTextInteractionFlags(Qt::TextInteractionFlags flags)
+{
+    Q_D(QQuickTextControl);
+    if (flags == d->interactionFlags)
+        return;
+    d->interactionFlags = flags;
+
+    if (d->hasFocus)
+        d->setBlinkingCursorEnabled(flags & (Qt::TextEditable | Qt::TextSelectableByKeyboard));
+}
+
+Qt::TextInteractionFlags QQuickTextControl::textInteractionFlags() const
+{
+    Q_D(const QQuickTextControl);
+    return d->interactionFlags;
+}
+
+QString QQuickTextControl::toPlainText() const
+{
+    return document()->toPlainText();
+}
+
+#if QT_CONFIG(texthtmlparser)
+QString QQuickTextControl::toHtml() const
+{
+    return document()->toHtml();
+}
+#endif
+
+#if QT_CONFIG(textmarkdownwriter)
+QString QQuickTextControl::toMarkdown() const
+{
+    return document()->toMarkdown();
+}
+#endif
+
+bool QQuickTextControl::cursorOn() const
+{
+    Q_D(const QQuickTextControl);
+    return d->cursorOn;
+}
+
+int QQuickTextControl::hitTest(const QPointF &point, Qt::HitTestAccuracy accuracy) const
+{
+    Q_D(const QQuickTextControl);
+    return d->doc->documentLayout()->hitTest(point, accuracy);
+}
+
+QRectF QQuickTextControl::blockBoundingRect(const QTextBlock &block) const
+{
+    Q_D(const QQuickTextControl);
+    return d->doc->documentLayout()->blockBoundingRect(block);
+}
+
+QString QQuickTextControl::preeditText() const
+{
+#if QT_CONFIG(im)
+    Q_D(const QQuickTextControl);
+    QTextLayout *layout = d->cursor.block().layout();
+    if (!layout)
+        return QString();
+
+    return layout->preeditAreaText();
+#else
+    return QString();
+#endif
+}
+
+
+QStringList QQuickTextEditMimeData::formats() const
+{
+    if (!fragment.isEmpty())
+        return QStringList() << QString::fromLatin1("text/plain") << QString::fromLatin1("text/html")
+#if QT_CONFIG(textodfwriter)
+            << QString::fromLatin1("application/vnd.oasis.opendocument.text")
+#endif
+        ;
+    else
+        return QMimeData::formats();
+}
+
+QVariant QQuickTextEditMimeData::retrieveData(const QString &mimeType, QMetaType type) const
+{
+    if (!fragment.isEmpty())
+        setup();
+    return QMimeData::retrieveData(mimeType, type);
+}
+
+void QQuickTextEditMimeData::setup() const
+{
+    QQuickTextEditMimeData *that = const_cast<QQuickTextEditMimeData *>(this);
+#if QT_CONFIG(texthtmlparser)
+    that->setData(QLatin1String("text/html"), fragment.toHtml().toUtf8());
+#endif
+#if QT_CONFIG(textodfwriter)
+    {
+        QBuffer buffer;
+        QTextDocumentWriter writer(&buffer, "ODF");
+        writer.write(fragment);
+        buffer.close();
+        that->setData(QLatin1String("application/vnd.oasis.opendocument.text"), buffer.data());
+    }
+#endif
+    that->setText(fragment.toPlainText());
+    fragment = QTextDocumentFragment();
+}
+
+
+QT_END_NAMESPACE
+
+#include "moc_qquicktextcontrol_p.cpp"
+
+#endif // QT_NO_TEXTCONTROL

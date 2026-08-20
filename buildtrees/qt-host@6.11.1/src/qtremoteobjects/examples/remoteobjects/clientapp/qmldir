@@ -1,0 +1,5 @@
+module TimeExample
+typeinfo clientapp.qmltypes
+prefer :/qt/qml/TimeExample/
+Clock 1.0 Clock.qml
+Plugins 1.0 Plugins.qml

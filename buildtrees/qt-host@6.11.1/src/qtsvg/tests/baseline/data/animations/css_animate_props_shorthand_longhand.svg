@@ -1,0 +1,34 @@
+<svg viewBox="0 0 300 500" xmlns="http://www.w3.org/2000/svg">
+  <style>
+  @keyframes color {
+    0% {fill: red;}
+    100% {fill: blue;}
+  }
+  @keyframes transform {
+    0% {transform: translate(0, 0);}
+    100% {transform: translate(50px, 0);}
+  }
+  @keyframes stroke {
+     0% {stroke: green;}
+    100% {stroke: violet;}
+  }
+  #circle1 {
+    animation: color 1000ms infinite, transform 1000ms infinite, stroke 1000ms infinite;
+  }
+  #circle2 {
+    animation: color 2000ms 1, transform 2000ms 1, stroke 2000ms 1;
+    animation-name: transform;
+    animation-duration: 750ms;
+    animation-iteration-count: infinite;
+  }
+  #circle3 {
+    animation-name: transform;
+    animation-duration: 500ms;
+    animation-iteration-count: infinite;
+    animation: color 700ms infinite, transform 700ms infinite, stroke 700ms infinite;
+  }
+  </style>
+  <circle id="circle1" cx="100" cy="100" r="60" fill="red" stroke="green" stroke-width="12"/>
+  <circle id="circle2" cx="100" cy="250" r="60" fill="red" stroke="green" stroke-width="12"/>
+  <circle id="circle3" cx="100" cy="400" r="60" fill="red" stroke="green" stroke-width="12"/>
+</svg>

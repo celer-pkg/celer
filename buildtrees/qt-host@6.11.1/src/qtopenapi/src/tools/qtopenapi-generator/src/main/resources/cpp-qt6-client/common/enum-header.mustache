@@ -1,0 +1,50 @@
+{{>licenseInfo}}
+#ifndef {{prefix}}_ENUM_H
+#define {{prefix}}_ENUM_H
+
+#include "{{prefixLowerCase}}{{packageNameLowerCase}}commonexports.h"
+
+#include <QtCore/qjsonvalue.h>
+#include <QtCore/qstring.h>
+
+{{#buildingQtSources}}
+QT_BEGIN_NAMESPACE
+{{/buildingQtSources}}
+
+{{#cppCommonNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppCommonNamespaceDeclarations}}
+
+class {{packageNameUpperCase}}_COMMON_EXPORT {{prefix}}Enum {
+public:
+    {{prefix}}Enum();
+    virtual ~{{prefix}}Enum();
+
+    virtual QJsonValue asJsonValue() const = 0;
+    virtual QString asJson() const = 0;
+    virtual void fromJson(const QString &jsonString) = 0;
+    virtual void fromJsonValue(const QJsonValue &jval) = 0;
+    virtual bool isSet() const = 0;
+    virtual bool isValid() const = 0;
+
+private:
+    friend bool operator==(const {{prefix}}Enum &lhs, const {{prefix}}Enum &rhs)
+    { return lhs.asJsonValue() == rhs.asJsonValue(); }
+    friend bool operator!=(const {{prefix}}Enum &lhs, const {{prefix}}Enum &rhs)
+    { return !operator==(lhs, rhs); }
+
+    friend size_t qHash(const {{prefix}}Enum &val, size_t seed)
+    { return qHash(val.asJsonValue(), seed); }
+    friend size_t qHash(const {{prefix}}Enum &val)
+    { return qHash(val, 0); }
+};
+
+{{#cppCommonNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppCommonNamespaceDeclarations}}
+
+{{#buildingQtSources}}
+QT_END_NAMESPACE
+{{/buildingQtSources}}
+
+#endif // {{prefix}}_ENUM_H

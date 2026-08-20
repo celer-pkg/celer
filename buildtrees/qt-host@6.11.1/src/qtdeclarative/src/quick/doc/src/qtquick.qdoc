@@ -1,0 +1,166 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtquick-index.html
+\title Qt Quick
+\brief The Qt Quick module implements the "standard library" for QML
+
+The Qt Quick module is the standard library for writing QML applications.
+While the \l{Qt Qml} module provides the QML engine and
+language infrastructure, the Qt Quick module provides all the basic
+types necessary for creating user interfaces with QML. It
+provides a visual canvas and includes types for creating and animating
+visual components, receiving user input, creating data models and views
+and delayed object instantiation.
+
+The Qt Quick module provides both a \l{Qt Quick QML Types}{QML API}, which
+supplies QML types for creating user interfaces with the QML language, and a
+\l{Qt Quick C++ Classes}{C++ API} for extending QML applications with C++ code.
+
+\note A set of Qt Quick-based UI controls is also available to create user
+interfaces. See \l{Qt Quick Controls} for more information.
+
+If you're new to QML and Qt Quick, please see \l{QML Applications} for an
+introduction to writing QML applications.
+
+\section1 Using the Module
+
+\section2 QML API
+
+\include {module-use.qdocinc} {using the qml api} {QtQuick}
+
+\section2 C++ API
+
+\include {module-use.qdocinc} {using the c++ api}
+
+\section3 Building with CMake
+
+\include {module-use.qdocinc} {building with cmake} {Quick}
+
+\section3 Building with qmake
+
+\include {module-use.qdocinc} {building_with_qmake} {quick}
+
+\section1 Important Concepts in Qt Quick
+
+Qt Quick provides everything you need to create a rich application with a fluid
+and dynamic user interface. It enables you to build user interfaces around the
+behavior of user interface components and how they connect with one another,
+and it provides a visual canvas with its own coordinate system and rendering
+engine. Animation and transition effects are first class concepts in Qt Quick,
+and you can add visual effects through specialized components for particle and
+shader effects.
+
+\list
+    \li \l {Important Concepts In Qt Quick - The Visual Canvas}
+           {The Visual Canvas}
+    \li \l {Important Concepts In Qt Quick - User Input} {User Input}
+    \li \l {Important Concepts In Qt Quick - Positioning} {Positioning}
+    \li \l {Important Concepts in Qt Quick - States, Transitions and Animations}
+           {States, Transitions And Animations}
+    \li \l {Important Concepts In Qt Quick - Data - Models, Views, and data Storage}
+           {Data - Models, Views, and Data Storage}
+    \li \list \l {Important Concepts In Qt Quick - Graphical Effects}
+           {Particles And Graphical Effects}
+       \li \l MultiEffect
+    \endlist
+    \li \l {Important Concepts In Qt Quick - Convenience Types}
+           {Convenience Types}
+\endlist
+
+When using the Qt Quick module, you will need to know how to write QML
+applications using the QML language. In particular, QML Basics and QML
+Essentials from the \l{QML Applications} page.
+
+To find out more about using the QML language, see the \l{Qt Qml} module documentation.
+
+\section1 C++ Extension Points
+
+\list
+    \li \l {C++ Extension Points Provided By Qt Quick}
+           {C++ Extension Points}
+        \list
+            \li \l {user-defined-qquickitem-derived-types}
+                   {Creating User-Defined QQuickItem-Derived Types}
+            \li \l {scene-graph-related-classes}
+                   {Scene Graph-Related Classes}
+            \li \l {pixmap-and-threaded-image-support}
+                   {Pixmap and Threaded Image Support}
+        \endlist
+\endlist
+
+\section1 Articles and Guides
+
+\list
+    \li \l {Best Practices for QML and Qt Quick} {Qt Quick Guidelines}
+    \li \l {Qt Quick Tools and Utilities}
+
+    Further information for writing QML applications:
+    \list
+        \li \l {QML Applications}
+            - essential information for application development with QML and Qt
+            Quick
+        \li \l {Qt Qml}
+            - documentation for the Qt Qml module, which provides the QML engine
+            and language infrastructure
+        \li \l {Qt Quick How-tos}
+            - shows how to achieve specific tasks in Qt Quick
+    \endlist
+\endlist
+
+\section1 Examples
+
+\list
+    \li \l {Qt Quick Examples and Tutorials}
+\endlist
+
+\section1 Reference
+
+\list
+    \li \l {Qt Quick C++ Classes}
+           - the C++ API provided by the Qt Quick module
+    \li \l {Qt Quick QML Types}
+           - a list of QML types provided by the \c{QtQuick} import
+        \list
+            \li \l {Qt Quick Effects QML Types} {Effects}
+                   - provides graphical effects to apply to Qt Quick items
+            \li \l {Qt Quick Local Storage QML Types} {Local Storage}
+                   - a submodule containing a JavaScript interface for an SQLite
+                   database
+            \li \l {Qt Quick Particles QML Types} {Particles}
+                   - provides a particle system for Qt Quick
+            \li \l {Qt Quick Layouts} {Layouts}
+                   - provides layouts for arranging Qt Quick items
+            \li \l {Qt Quick Test QML Types} {Tests}
+                   - contains types for writing unit test for a QML application
+            \li \l{Qt Quick Shapes QML Types}{Shapes}
+                   - provides types for rendering vector shapes in a Qt Quick scene.
+            \li \l{Qt Quick Vector Image QML Types}{Vector Image} - provides types for displaying
+            vector image files.
+        \endlist
+    \li \l {Qt Quick Android Classes}
+            - provides classes for using QML with Java/Kotlin Android APIs.
+\endlist
+
+\section1 Qt Academy Courses
+    \list
+        \li \l {https://www.qt.io/academy/course-catalog#introduction-to-qt-quick}
+               {Introduction to Qt Quick}
+    \endlist
+
+
+\section1 Licenses and Attributions
+
+Qt Quick is available under commercial licenses from \l{The Qt Company}.
+In addition, it is available under free software licenses. Since Qt 5.4,
+these free software licenses are
+\l{GNU Lesser General Public License, version 3}, or
+the \l{GNU General Public License, version 2}.
+See \l{Qt Licensing} for further details.
+
+Furthermore Qt Quick in Qt \QtVersion may contain third party
+modules under following permissive licenses:
+
+\annotatedlist attributions-qtquick
+*/

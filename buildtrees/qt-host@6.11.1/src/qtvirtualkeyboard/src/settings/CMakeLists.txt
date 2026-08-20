@@ -1,0 +1,49 @@
+# Copyright (C) 2022 The Qt Company Ltd.
+# SPDX-License-Identifier: BSD-3-Clause
+
+#####################################################################
+## qtvkbsettingsplugin Plugin:
+#####################################################################
+
+qt_policy(SET QTP0005 NEW)
+
+qt_internal_add_qml_module(VirtualKeyboardSettings
+    URI "QtQuick.VirtualKeyboard.Settings"
+    VERSION "${PROJECT_VERSION}"
+    PAST_MAJOR_VERSIONS 2 1
+    PLUGIN_TARGET qtvkbsettingsplugin
+    NO_PLUGIN_OPTIONAL
+    DEPENDENCIES
+        TARGET Qt::VirtualKeyboard
+    SOURCES
+        qquickvirtualkeyboardsettings.cpp
+        qquickvirtualkeyboardsettings_p.h
+    DEFINES
+        QT_ASCII_CAST_WARNINGS
+        QT_NO_CAST_FROM_ASCII
+        QT_NO_CAST_FROM_BYTEARRAY
+        QT_NO_CAST_TO_ASCII
+    LIBRARIES
+        Qt::Core
+        Qt::Gui
+        Qt::Qml
+        Qt::Quick
+        Qt::VirtualKeyboardPrivate
+    NO_GENERATE_CPP_EXPORTS
+)
+
+qt_internal_extend_target(VirtualKeyboardSettings CONDITION QT_FEATURE_vkb_no_builtin_style
+    DEFINES
+        QT_VIRTUALKEYBOARD_DEFAULT_STYLE=""
+)
+
+qt_internal_extend_target(VirtualKeyboardSettings CONDITION QT_FEATURE_vkb_retro_style AND NOT QT_FEATURE_vkb_no_builtin_style
+    DEFINES
+        QT_VIRTUALKEYBOARD_DEFAULT_STYLE="retro"
+)
+
+qt_internal_extend_target(VirtualKeyboardSettings CONDITION NOT QT_FEATURE_vkb_no_builtin_style AND NOT QT_FEATURE_vkb_retro_style
+    DEFINES
+        QT_VIRTUALKEYBOARD_DEFAULT_STYLE="default"
+)
+

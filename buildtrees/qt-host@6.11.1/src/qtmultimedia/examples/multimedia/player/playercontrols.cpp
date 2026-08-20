@@ -1,0 +1,172 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+
+#include "playercontrols.h"
+
+#include <QBoxLayout>
+#include <QComboBox>
+#include <QSlider>
+#include <QStyle>
+#include <QToolButton>
+#include <QtAudio>
+
+using namespace Qt::StringLiterals;
+
+PlayerControls::PlayerControls(QWidget *parent) : QWidget(parent)
+{
+    m_playButton = new QToolButton(this);
+    m_playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+
+    connect(m_playButton, &QAbstractButton::clicked, this, &PlayerControls::playClicked);
+
+    m_pauseButton = new QToolButton(this);
+    m_pauseButton->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
+    connect(m_pauseButton, &QAbstractButton::clicked, this, &PlayerControls::pauseClicked);
+
+    m_stopButton = new QToolButton(this);
+    m_stopButton->setIcon(style()->standardIcon(QStyle::SP_MediaStop));
+    connect(m_stopButton, &QAbstractButton::clicked, this, &PlayerControls::stop);
+
+    m_nextButton = new QToolButton(this);
+    m_nextButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipForward));
+
+    connect(m_nextButton, &QAbstractButton::clicked, this, &PlayerControls::next);
+
+    m_previousButton = new QToolButton(this);
+    m_previousButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipBackward));
+
+    connect(m_previousButton, &QAbstractButton::clicked, this, &PlayerControls::previous);
+
+    m_muteButton = new QToolButton(this);
+    m_muteButton->setIcon(style()->standardIcon(QStyle::SP_MediaVolume));
+
+    connect(m_muteButton, &QAbstractButton::clicked, this, &PlayerControls::muteClicked);
+
+    m_volumeSlider = new QSlider(Qt::Horizontal, this);
+    m_volumeSlider->setRange(0, 100);
+    QSizePolicy sp = m_volumeSlider->sizePolicy();
+    sp.setHorizontalPolicy(QSizePolicy::MinimumExpanding);
+    m_volumeSlider->setSizePolicy(sp);
+
+    connect(m_volumeSlider, &QSlider::valueChanged, this,
+            &PlayerControls::onVolumeSliderValueChanged);
+
+    m_rateBox = new QComboBox(this);
+    m_rateBox->addItem(u"0.5x"_s, QVariant(0.5));
+    m_rateBox->addItem(u"1.0x"_s, QVariant(1.0));
+    m_rateBox->addItem(u"2.0x"_s, QVariant(2.0));
+    m_rateBox->setCurrentIndex(1);
+
+    connect(m_rateBox, &QComboBox::activated, this, &PlayerControls::updateRate);
+
+    setState(QMediaPlayer::StoppedState, /*force=*/true);
+
+    QBoxLayout *layout = new QHBoxLayout(this);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addWidget(m_stopButton);
+    layout->addWidget(m_previousButton);
+    layout->addWidget(m_pauseButton);
+    layout->addWidget(m_playButton);
+    layout->addWidget(m_nextButton);
+    layout->addWidget(m_muteButton);
+    layout->addWidget(m_volumeSlider);
+    layout->addWidget(m_rateBox);
+}
+
+QMediaPlayer::PlaybackState PlayerControls::state() const
+{
+    return m_playerState;
+}
+
+void PlayerControls::setState(QMediaPlayer::PlaybackState state, bool force)
+{
+    if (state != m_playerState || force) {
+        m_playerState = state;
+
+        QColor baseColor = palette().color(QPalette::Base);
+        QString inactiveStyleSheet = "background-color: "_L1 + baseColor.name();
+        QString defaultStyleSheet = QString();
+
+        switch (state) {
+        case QMediaPlayer::StoppedState:
+            m_stopButton->setStyleSheet(inactiveStyleSheet);
+            m_playButton->setStyleSheet(defaultStyleSheet);
+            m_pauseButton->setStyleSheet(defaultStyleSheet);
+            break;
+        case QMediaPlayer::PlayingState:
+            m_stopButton->setStyleSheet(defaultStyleSheet);
+            m_playButton->setStyleSheet(inactiveStyleSheet);
+            m_pauseButton->setStyleSheet(defaultStyleSheet);
+            break;
+        case QMediaPlayer::PausedState:
+            m_stopButton->setStyleSheet(defaultStyleSheet);
+            m_playButton->setStyleSheet(defaultStyleSheet);
+            m_pauseButton->setStyleSheet(inactiveStyleSheet);
+            break;
+        }
+    }
+}
+
+float PlayerControls::volume() const
+{
+    qreal linearVolume =
+            QtAudio::convertVolume(m_volumeSlider->value() / qreal(100),
+                                   QtAudio::LogarithmicVolumeScale, QtAudio::LinearVolumeScale);
+
+    return linearVolume;
+}
+
+void PlayerControls::setVolume(float volume)
+{
+    qreal logarithmicVolume = QtAudio::convertVolume(volume, QtAudio::LinearVolumeScale,
+                                                     QtAudio::LogarithmicVolumeScale);
+
+    m_volumeSlider->setValue(qRound(logarithmicVolume * 100));
+}
+
+bool PlayerControls::isMuted() const
+{
+    return m_playerMuted;
+}
+
+void PlayerControls::setMuted(bool muted)
+{
+    if (muted != m_playerMuted) {
+        m_playerMuted = muted;
+
+        m_muteButton->setIcon(style()->standardIcon(muted ? QStyle::SP_MediaVolumeMuted
+                                                          : QStyle::SP_MediaVolume));
+    }
+}
+
+void PlayerControls::playClicked()
+{
+    emit play();
+}
+
+void PlayerControls::pauseClicked()
+{
+    emit pause();
+}
+
+void PlayerControls::muteClicked()
+{
+    emit changeMuting(!m_playerMuted);
+}
+
+qreal PlayerControls::playbackRate() const
+{
+    return m_rateBox->itemData(m_rateBox->currentIndex()).toDouble();
+}
+
+void PlayerControls::updateRate()
+{
+    emit changeRate(playbackRate());
+}
+
+void PlayerControls::onVolumeSliderValueChanged()
+{
+    emit changeVolume(volume());
+}
+
+#include "moc_playercontrols.cpp"

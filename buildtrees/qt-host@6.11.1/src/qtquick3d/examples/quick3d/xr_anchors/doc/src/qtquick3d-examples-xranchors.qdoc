@@ -1,0 +1,34 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example xr_anchors
+    \ingroup quick3d-examples
+    \ingroup qt3dxr-examples
+    \title Qt Quick 3D - XR Spatial Anchors Example
+    \examplecategory {3D}
+    \brief Demonstrates how to use spatial anchors in Qt Quick 3D XR.
+    \image xranchors-example.jpg
+           {Colored boxes with label showing anchor information}
+
+    This example shows how to use XrSpatialAnchorListModel to display and interact with real
+    physical objects in the environment. It supports both passthrough mode and fully
+    immersive mode. The basic structure follows the \l{Qt Quick 3D - XR Simple Example}{xr_simple}
+    example.
+
+    The most relevant part of the example is a Repeater3D on an XrSpatialAnchorListModel.
+    For each anchor, we create a box that fills the volume of the anchor with a color. The choice
+    of color depends on the classification of the anchor. This box is invisible in passthrough mode.
+    In addition, we visualize the position and orientation of the anchor with small boxes:
+
+    \snippet xr_anchors/main.qml repeater
+
+    The box for the anchor is pickable and has a string property \c anchorInfo that contains
+    the \l {XrSpatialAnchor::classificationString}{classificationString} of the anchor. We then
+    perform picking based on the controller's position. (See the \l{Qt Quick 3D - XR Simple Input Example}
+    {xr_input example} for details.) If we hit one of the anchor boxes, we show a label with the
+    anchor information:
+
+    \snippet xr_anchors/main.qml label
+
+*/

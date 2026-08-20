@@ -1,0 +1,16 @@
+// Copyright (C) 2018 Ford Motor Company
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+\page qtremoteobjects-troubleshooting.html
+\title Troubleshooting Qt Remote Objects
+\section1 Troubleshooting
+
+QtRO includes a number of internal logging categories that can be used for further debugging:
+
+\code
+qt.remoteobjects
+qt.remoteobjects.io
+qt.remoteobjects.models
+\endcode
+
+*/

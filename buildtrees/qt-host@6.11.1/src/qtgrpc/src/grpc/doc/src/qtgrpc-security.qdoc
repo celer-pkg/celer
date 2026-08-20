@@ -1,0 +1,45 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtgrpc-security.html
+    \title Qt GRPC Security Considerations
+
+    \brief Security considerations for Qt GRPC
+
+    If you are using \l{Qt GRPC}, consider security aspects
+    to protect users, network traffic, and hardware from threats.
+
+    Here are some strategies to consider:
+    \list
+    \li Use encryption when sending or receiving data. Encrypted data
+        adds protection against eavesdropping and similar attacks.
+        \l{Qt Network} provides support for TLS encryption which can use
+        different TLS backends and ciphers. For more information, see
+        \l{Secure Sockets Layer (SSL) Classes}.
+
+    \li Use strong authentication and authorization mechanisms.
+        To accommodate different users on different platforms, you may choose
+        to use several OAuth2 and OpenID-based services. Qt offers support
+        for these APIs through the \l{Qt Network Authorization} module.
+
+    \li Validate and process untrusted data safely. Input fields and other
+        incoming data are vulnerable to injection attacks.
+        For more information, see \l{Handling Untrusted Data}.
+
+    \li Set rate limits and monitor traffic to prevent misuse.
+        Qt GRPC can be vulnerable to denial-of-service attacks and setting
+        limits and thorough testing can help with reducing the risk of
+        traffic overload.
+
+    \li Update your environment to fix security vulnerabilities.
+        System hardware should be updated to use the latest security features
+        and fixes.
+    \endlist
+
+    For more information about using Qt GPRC, visit the
+    \l{Qt GRPC Client Guide}.
+
+    For other security topics, visit the \l{Security in Qt} page.
+
+*/

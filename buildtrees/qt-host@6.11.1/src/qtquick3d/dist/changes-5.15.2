@@ -1,0 +1,51 @@
+Qt 5.15.2 is a bug-fix release. It maintains both forward and backward
+compatibility (source and binary) with Qt 5.15.1.
+
+For more details, refer to the online documentation included in this
+distribution. The documentation is also available online:
+
+  https://doc.qt.io/qt-5.15/index.html
+
+The Qt version 5.15 series is binary compatible with the 5.14.x series.
+Applications compiled for 5.14 will continue to run with 5.15.
+
+Some of the changes listed in this file include issue tracking numbers
+corresponding to tasks in the Qt Bug Tracker:
+
+  https://bugreports.qt.io/
+
+Each of these identifiers can be entered in the bug tracker to obtain more
+information about a particular change.
+
+****************************************************************************
+*                   Important Behavior Changes                             *
+****************************************************************************
+
+****************************************************************************
+*                          Library                                         *
+****************************************************************************
+
+ - [QDS-2637] Do not sync renderer until the View3D component is complete
+   In QDS, the first update is triggered by blank object creation (looks
+   like this happens inside Qt, so we can't easily change that), and
+   things like dynamic properties are set afterwards. This led to custom
+   material and effect objects being incomplete at the time
+   updateSpatialNode was called. Fixed by waiting for component
+   completion in View3D before synchorizing renderer.
+   The bug was: Shader compilation fails if custom material shaders
+   require any shader uniform properties
+ - [QDS-2636] Rename shaderInfo to shaderInformation in CustomMaterial template
+   'shaderInfo' as id causes issues in QDS, as it conflicts with with
+   propertyName it's assigned to.
+   The bug was: Custom effects and materials do not work correctly in
+   editor unless defined in components
+ - [QDS-2637] Fix issue of generating uniforms for custom materials and effects
+   When custom material or effect was defined in the currently open qml
+   document in QDS, the uniforms could not be properly parsed, because
+   QDS wraps all dynamic properties in QVariant type. Fixed by digging
+   for the actual type from the value.
+   The bug was: Shader compilation fails if custom material shaders
+   require any shader uniform properties
+ - [QDS-2609] Fix a UV generation bug without a shader key
+   The bug was: Imported 3D model appearing completely black
+

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grit latest_public_release="0" current_release="1">
+  <outputs>
+    <output filename="grit/qt_webengine_resources.h" type="rc_header" context="default_100_percent">
+      <emit emit_type='prepend'></emit>
+    </output>
+    <output filename="qt_webengine_resources.pak" type="data_package" context="default_100_percent"/>
+  </outputs>
+  <release seq="1">
+    <includes>
+      <if expr="not is_ios">
+        <include name="IDR_DEVTOOLS_DISCOVERY_PAGE_HTML" file="devtools_discovery_page.html" type="BINDATA"/>
+      </if>
+      <if expr="enable_pdf">
+        <include name="IDR_PDF_MANIFEST" file="../../chrome/browser/resources/pdf/manifest.json" type="BINDATA" />
+      </if>
+      <if expr="enable_hangout_services_extension">
+        <include name="IDR_HANGOUT_SERVICES_MANIFEST_V2" file="../../chrome/browser/resources/hangout_services/manifest_v2.json" type="BINDATA" />
+        <include name="IDR_HANGOUT_SERVICES_MANIFEST_V3" file="../../chrome/browser/resources/hangout_services/manifest_v3.json" type="BINDATA" />
+      </if>
+      <include name="IDR_VERSION_UI_QT_HTML" file="version_ui/qt_version.html" preprocess="true" type="BINDATA" />
+      <include name="IDR_VERSION_UI_QT_CSS" file="version_ui/qt_version.css" type="BINDATA" />
+    </includes>
+    <structures fallback_to_low_resolution="true">
+      <structure type="chrome_scaled_image" name="IDR_QT_LOGO"  file="qt.png" />
+      <structure type="chrome_scaled_image" name="IDR_QTWEBENGINE_LOGO"  file="qtwebengine.png" />
+    </structures>
+  </release>
+</grit>

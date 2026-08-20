@@ -1,0 +1,14 @@
+Version: 2
+Configurations:
+-
+    Id: 'ubuntu-24.04-x64-examples-and-tests-build'
+    Template: 'qtci-linux-Ubuntu-24.04-x86_64-54'
+    Compiler: 'GCC'
+    Features: ['Sccache', 'UseConfigure', 'DoNotRunTests', 'NoSubmoduleDependencies']
+    Configure arguments: '-make examples -make tests'
+    Environment variables: [
+        'COMMON_CMAKE_ARGS=-DQT_BUILD_EXAMPLES_AS_EXTERNAL=OFF -DQT_GENERATE_SBOM=OFF',
+        'COMMON_NON_QTBASE_CMAKE_ARGS=-DQT_BUILD_EXAMPLES_AS_EXTERNAL=OFF -DQT_GENERATE_SBOM=OFF',
+        'COMMON_TEST_CMAKE_ARGS=-DQT_SKIP_DOCKER_COMPOSE=ON',
+        'NON_QTBASE_CMAKE_ARGS=-DFFMPEG_DIR={{.Env.FFMPEG_DIR}} -DQT_DEPLOY_FFMPEG=TRUE'
+    ]

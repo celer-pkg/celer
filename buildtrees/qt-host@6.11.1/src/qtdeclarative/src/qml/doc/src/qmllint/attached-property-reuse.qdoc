@@ -1,0 +1,64 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qmllint-warnings-and-errors-attached-property-reuse.html
+\ingroup qmllint-warnings-and-errors
+
+\title Attached property reuse
+\brief [attached-property-reuse] Attached type was initialized multiple times.
+
+\qmllintwarningcategory attached-property-reuse
+
+\section1 Using attached type already initialized in a parent scope
+
+\section2 What happened?
+You initialized a propagating
+\l{Attached Properties and Attached Signal Handlers}{attached type}
+multiple times.
+
+\note This mostly happens for attached types that inherit from
+\l{QQuickAttachedPropertyPropagator}.
+
+\section2 Why is this bad?
+Propagating attached objects consume memory for each instantiation but only need to be initialized once.
+
+\section2 Example
+\qml
+import QtQuick
+import QtQuick.Templates as T
+import QtQuick.Controls.Material // contains the Material attached type
+
+T.ToolBar {
+    id: control
+
+    // first instantiation of Material's attached property
+    property color c: Material.toolBarColor
+
+    background: Rectangle {
+         // second instantiation of Material's attached property, wrong!
+        color: Material.toolBarColor
+    }
+}
+
+\endqml
+To fix this warning, query the attached type from the parent:
+\qml
+import QtQuick
+import QtQuick.Templates as T
+import QtQuick.Controls.Material // contains the Material attached type
+
+T.ToolBar {
+    id: control
+
+    // first instantiation of Material's attached property
+    property color c: Material.toolBarColor
+
+    background: Rectangle {
+        // use control's attached property, correct!
+        color: control.Material.toolBarColor
+    }
+}
+\endqml
+*/
+

@@ -1,0 +1,8 @@
+POD MyPOD(int i, float f, QString s)
+
+class MyClass
+{
+    PROP(MyPOD myPOD)
+    SLOT(QMap<QString, MyPOD> myPodMap())
+    SLOT(QList<MyPOD> myPodList())
+}

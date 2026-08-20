@@ -1,0 +1,678 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page get-and-install-qt-cli.html
+
+    \title Get and Install Qt with Command Line Interface
+    \brief How to download and install with CLI.
+
+    Use the command line interface with \QOI and \QMT to install, uninstall, update,
+    and search components.
+
+    The command line interface supports both \b{interactive and non-interactive
+    usage (unattended usage)}. The following topics provide examples and
+    information on how you can use the command line interface:
+
+    \list
+        \li \l{Downloading \QOI with Command Line Interface}
+        \li \l{Component Names For Installation}
+        \li \l{Installing Without User Interaction}
+        \li \l{Installing With User Interaction}
+        \li \l{Uninstalling Packages}
+        \li \l{Listing Installed Packages}
+        \li \l{Checking Updates}
+        \li \l{Updating Packages}
+        \li \l{Popular Commands}
+        \li \l{Selecting Mirror for Opensource}
+        \li \l{Summary of Command Line Interface Usage}
+    \endlist
+
+    \section1 Downloading \QOI with Command Line Interface
+
+    You can use the \c curl command on the command line interface to download \QOI.
+    To see all the \QOI packages available for different platforms, visit
+    \l {\QOI official releases}.
+
+    To download a specific \QOI package with the same name as the remote file,
+    use the \c -O (uppercase 'O') option.
+
+    The example command below downloads the \c qt-online-installer-linux-x64-online.run
+    package:
+
+    \badcode
+    curl -OL https://download.qt.io/official_releases/online_installers/qt-online-installer-linux-x64-online.run
+    \endcode
+
+    \section1 Component Names for Installation
+
+    \section2 Quick Installation with Alias Packages
+
+    Instead of searching for specific package names for installation, you can
+    use alias packages to install the most common configurations. Alias packages
+    are a shortcut to include the actual packages for an easier installation
+    experience.
+
+    \section3 Listing Existing Alias Packages
+
+    To list the existing alias packages, use the following command on the command
+    line interface.
+
+    \e {Using \QOI}:
+
+    \badcode
+    <installer executable> search
+    \endcode
+
+    For details on the \e{\QOI} executables for different platforms,
+    see \l {Installing With User Interaction}.
+
+    \e {Using \QMT}:
+
+    \badcode
+    <maintenancetool executable> search
+    \endcode
+
+    For details on the \e{\QMT} executables for different platforms,
+    see \l {Installing With User Interaction}.
+
+    \section3 Contents of Alias Packages
+
+    The contents of the alias packages are listed in the table below.
+
+    \note Qt \QtVersion release is used in the alias package examples listed below.
+    Always remember to use the packages that match the Qt release you are working
+    on.
+
+    \table
+    \header
+       \li Alias package name
+       \li \QOI (package content)
+    \row
+       \li qt\QtVersion-essentials
+       \li
+          \list
+             \li \l {Qt Essentials} {essential module libraries}
+             \li essential module headers
+             \li essential module private headers
+             \li essential module runtime tools
+             \li essential module development tools
+          \endlist
+    \row
+       \li qt\QtVersion-essentials-dev
+       \li
+          \list
+             \li \l {Qt Essentials} {essential module libraries}
+             \li essential module headers
+             \li essential module private headers
+             \li essential module runtime tools
+             \li essential module development tools
+         \endlist
+    \row
+       \li qt\QtVersion-full
+       \li
+          \list
+             \li \l {Qt Essentials} {essential module libraries}
+             \li essential module headers
+             \li essential module private headers
+             \li essential module runtime tools
+             \li essential module development tools
+             \li \l {Qt Add-Ons} {add-on module libraries}
+             \li add-on module headers
+             \li add-on module private headers
+             \li add-on module runtime tools
+             \li add-on module development tools
+             \li sources
+         \endlist
+    \row
+       \li qt\QtVersion-full-dev
+       \li
+          \list
+             \li \l {Qt Essentials} {essential module libraries}
+             \li essential module headers
+             \li essential module private headers
+             \li essential module runtime tools
+             \li essential module development tools
+             \li \l {Qt Add-Ons} {add-on module libraries}
+             \li add-on module headers
+             \li add-on module private headers
+             \li add-on module runtime tools
+             \li add-on module development tools
+             \li sources
+         \endlist
+    \row
+       \li qt\QtVersion-full-dbg
+       \li
+          \list
+             \li Qt debug information files for:
+                \list
+                   \li \l {Qt Essentials} {essential module libraries}
+                   \li \l {Qt Add-Ons} {add-on module libraries}
+                \endlist
+          \endlist
+    \row
+       \li qt\QtVersion-sdk
+       \li
+       \list
+             \li latest \QC
+             \li qt\QtVersion-full-dev (details above)
+             \li qt\QtVersion-full-dbg (details above)
+             \li Ninja
+             \li CMake
+          \endlist
+    \endtable
+
+    \b {\QOI command examples}
+
+    \badcode \QtVersion
+    # Windows: new installation with Qt Online Installer
+    qt-unified-windows-x64-[Qt Online Installer version]-online.exe install qt\1-sdk
+
+    # macOS: new installation with Qt Online Installer
+    hdiutil attach qt-unified-macOS-x64-[Qt Online Installer version]-online.dmg
+    /Volumes/qt-unified-macOS-x64-[Qt Online Installer version]-online/qt-unified-macOS-x64-[Qt Online Installer version]-online.app/Contents/MacOS/qt-unified-macOS-x64-[Qt Online Installer version]-online install qt\1-sdk
+    hdiutil detach /Volumes/qt-unified-macOS-x64-[Qt Online Installer version]-online
+
+    # Linux: new installation with Qt Online Installer
+    qt-unified-linux-x64-[Qt Online Installer version]-online.run install qt\1-sdk
+    \endcode
+
+    \section3 Alias Package Options for Windows
+
+    \note The information in this section is valid for the Qt 6.8, Qt 6.9, and
+          Qt 6.10 releases.
+
+    \e {Windows on ARM64}
+
+    Only the MSVC binaries (msvc2022-arm64) are installed as other Qt binary
+    packages are not available for Windows on Arm (WoA).
+
+    \e {Windows on x86_64}
+
+    By default, only the MinGW binaries are installed.
+
+    However, with \e {Windows on x86_64} you can also install binaries for the
+    following toolchains.
+
+    \list
+        \li llvm-mingw
+        \li msvc2022
+        \li msvc2022-arm64 (for cross-compilation)
+    \endlist
+
+    Using, for example, the \e {qt\QtVersion-essentials} alias package installs
+    the package with the default MinGW binaries.
+
+    To get the \c {Qt essentials} package content with, for example, the MSVC 2022
+    binaries, use the corresponding \e {qt\QtVersion-msvc2022-essentials} alias
+    package.
+
+    \section2 Listing Non-Alias Packages
+
+    To list the non-alias packages, use the following command on the command
+    line interface.
+
+    \e {Using \QOI}:
+
+    \badcode
+    <installer executable> search --type package
+    \endcode
+
+    For details on the \e{\QOI} executables for different platforms,
+    see \l {Installing With User Interaction}.
+
+    \e {Using \QMT}:
+
+    \badcode
+    <maintenancetool executable> search --type package
+    \endcode
+
+    For details on the \e{\QMT} executables for different platforms,
+    see \l {Installing With User Interaction}.
+
+    \section2 Advanced Searching for Specific Installation Packages
+
+    Search available packages with the \c{search} command and regular
+    expressions: \b{\c{search <regexp>}}. You can filter the results with
+    \b{\c{--filter-packages <regexp>}}. For example, filtering with the display
+    name information can help search.
+
+    For example, the following command finds all MSVC 2022 packages for Qt \QtVersion:
+
+    \badcode \QtVersionTag
+    search .*\1.*msvc2022
+    \endcode
+
+    You get the same result when you filter the search result as follows:
+
+    \badcode \QtVersion
+    search --filter-packages DisplayName=MSVC 2022,Version=\1
+    \endcode
+
+    As a result, you get the following packages:
+
+    \badcode \QtVersionTag \QtVersion
+    <availablepackages>
+        <package name="qt.qt6.\1.win64_msvc2022_64" displayname="MSVC 2022 64-bit" version="\2.-0-<timestamp>"/>
+        <package name="qt.qt6.\1.win64_msvc2022_arm64" displayname="MSVC 2022 ARM64" version="\2.-0-<timestamp>"/>
+    </availablepackages>
+    \endcode
+
+    You can also use filtering when you search all Qt versions that some package
+    is provided for. For example, search all Qt Charts packages provided for
+    Qt versions:
+
+    \badcode
+    search --filter-packages DisplayName=charts
+    \endcode
+
+    The search result is as follows:
+
+    \badcode
+    <availablepackages>
+        <package name="qt.qt5.5125.qtcharts" displayname="Qt Charts" version="5.12.5-0-<timestamp>"/>
+        <package name="qt.qt6.641.addons.qtcharts" displayname="Qt Charts" version="6.4.1-0-<timestamp>"/>
+        <package name="qt.qt5.5123.qtcharts" displayname="Qt Charts" version="5.12.3-0-<timestamp>"/>
+    \endcode
+
+    \section1 Installing Without User Interaction
+
+    By default, \QOI or \QMT may ask for
+    additional information during installation, which requires user attention.
+    Unattended usage via the command line interface is possible by providing all
+    the requested information beforehand with appropriate options.
+
+    \section2 New Installation with \QOI
+
+    You can do new installations from the command line interface without user
+    interaction as follows:
+
+    \list 1
+        \li Define the \e{\QOI} executable.
+        \li Define the installation directory with \b{\c{--root}}.
+        \li Use the \b{\c{install <list of packages>}} command with \b{options
+        for unattended usage}. See the full list of options in
+        \l{Options for Unattended Usage}.
+    \endlist
+
+    The following examples demonstrate how you install Qt \QtVersion binaries
+    with \QOI for Windows, macOS, and Linux. The unattended
+    commands automatically accept the licenses (\b{\c{--accept-licenses}}), answer
+    all message queries with their default answer (\b{\c{--default-answer}}), and
+    skip asking for permission to continue performing (\b{\c{--confirm-command}}):
+
+    \badcode \QtVersionTag
+    # Windows: new installation with Qt Online Installer
+    qt-unified-windows-x64-[Qt Online Installer version]-online.exe --root C:\Users\[username]\installation_dir --accept-licenses --default-answer --confirm-command install qt.qt6.\1.win64_msvc2022_64
+
+    # macOS: new installation with Qt Online Installer
+    qt-unified-macOS-x64-[Qt Online Installer version]-online.dmg --root /home/<username>/installation_dir --accept-licenses --default-answer --confirm-command install qt.qt6.\1.clang_644
+
+    # linux: new installation with Qt Online Installer
+    qt-unified-linux-x64-[Qt Online Installer version]-online.run --root /home/<username>/installation_dir --accept-licenses --default-answer --confirm-command install qt.qt6.\1.linux_gcc_64
+    \endcode
+
+    \l{Options for Unattended Usage} lists all available options for unattended
+    usage.
+
+    \section2 Updating Installation with \QMT
+
+    You can update existing installation from the command line interface without
+    user interaction as follows:
+
+    \list 1
+        \li Define the \e{\QMT} executable.
+        \li Use \b{\c{install <list of packages>}} with \b{options for
+        unattended usage}. See the full list of options in
+        \l{Options for Unattended Usage}.
+    \endlist
+
+    The following examples demonstrate how you add Qt \QtVersion binaries
+    with \QMT to an exsting installation on Windows, macOS, and
+    Linux. The unattended commands automatically accept the licenses
+    (\b{\c{--accept-licenses}}), answer all message queries with their default
+    answer (\b{\c{--default-answer}}), and skip asking for permission to continue
+    performing (\b{\c{--confirm-command}}):
+
+    \badcode \QtVersionTag
+    # Windows: update installation with Qt Maintenance Tool
+    MaintenanceTool.exe --accept-licenses --default-answer --confirm-command install qt.qt6.\1.win64_msvc2022_64
+
+    # macOS: update installation with Qt Maintenance Tool
+    MaintenanceTool.app/Contents/MacOS/MaintenanceTool --accept-licenses --default-answer --confirm-command install qt.qt6.\1.clang_64
+
+    # linux: update installation with Qt Maintenance Tool
+    MaintenanceTool.run --accept-licenses --default-answer --confirm-command install qt.qt6.\1.linux_gcc_64
+    \endcode
+
+    \section2 Options for Unattended Usage
+
+    The following table lists all options for unattended command line usage:
+
+    \table
+    \header
+        \li Option for unattended usage
+        \li Description
+    \row
+        \li \c{--accept-licenses}
+        \li Automatically accepts all license agreements.
+    \row
+        \li \c{--accept-obligations}
+        \li In the opensource installations, accepts Qt Open Source usage
+        obligations without user input.
+    \row
+        \li \c{--default-answer}
+        \li  Answers all message queries with their default answer.
+    \row
+        \li \c{--auto-answer <identifier=value>}
+        \li In case you want different answers to certain queries, you can use
+        this option. For example,
+        \c{--auto-answer telemetry-question=Yes,AssociateCommonFiletypes=Yes}.
+        See all message identifiers in \l{Message Identifiers for \--auto-answer}.
+    \row
+        \li \c{--accept-messages}
+        \li Accepts all message queries.
+    \row
+        \li \c{--reject-messages}
+        \li Rejects all message queries.
+    \row
+        \li \c{--confirm-command}
+        \li By default, \QOI and \QMT print a summary
+        of components to be affected by the option. Then they ask for
+        permission to continue acting, to prevent accidental
+        changes. This option skips asking for permission to continue.
+    \row
+        \li \c{--email <your_email>}
+        \li Provides the email when you log in from the command line. For more
+        information, see \l{Providing Login Information}.
+    \row
+        \li \c{--pw <your_pw>}
+        \li Provides the password when you log in from the command line. For
+        more information, see \l{Providing Login Information}.
+    \row
+        \li \c{--file-query <identifier=value>}
+        \li Sometimes \QOI asks for a file or a folder location.
+        You can provide the location with \c{--file-query <identifier=value>}.
+        For example, \c{--file-query PathForSDP7=<path_to_sdp>}.
+
+        The identifiers are printed into the command line before the actual
+        question and message type. You can pick up the identifiers from there.
+    \endtable
+
+    \section2 Message Identifiers for \--auto-answer
+
+    Use the \c{--auto-answer} option to provide answers to certain queries. The
+    following table lists known identifiers and values used for
+    \c{--auto-answer}:
+
+    \table
+        \header
+        \li ID
+        \li Values
+        \li Default
+    \row
+        \li OperationDoesNotExistError
+        \li Abort, Ignore
+        \li Ignore
+    \row
+        \li OverwriteTargetDirectory
+        \li Yes, No
+        \li No
+    \row
+        \li stopProcessesForUpdates
+        \li Retry, Ignore, Cancel
+        \li Cancel
+    \row
+        \li installationErrorWithCancel
+        \li Retry, Ignore, Cancel
+        \li Cancel
+    \row
+        \li installationErrorWithIgnore
+        \li Retry, Ignore
+        \li Ignore
+    \row
+        \li AssociateCommonFiletypes
+        \li Yes, No
+        \li Yes
+    \row
+        \li telemetry-question
+        \li Yes, No
+        \li Yes
+    \endtable
+
+    \section2 Providing Login Information
+
+    \QOI and \QMT have a forced login. The forced
+    login uses information on the \e{qtaccount.ini} file if it is available in
+    cache. You find \e{qtaccount.ini} as follows:
+
+    \table
+    \header
+        \li Host
+        \li qtaccount.ini location
+    \row
+        \li Windows
+        \li \c{C:\Users\<username>\AppData\Roaming\Qt}
+    \row
+        \li macOS
+        \li \c{/Users/<username>/Library/Application Support/Qt/qtaccount.ini}
+    \row
+        \li Linux
+        \li \c{/home/<username>/.local/share/Qt/qtaccount.ini}
+    \endtable
+
+    Optionally, you can login either from the command line using the switches
+    for email and password: \c{--email <your_email>} and \c{--pw <your_pw>}.
+
+    Alternatively, you can save the jwt token to the environment variable
+    \c{QT_INSTALLER_JWT_TOKEN}. You find the token in the \e{qtaccount.ini} file.
+
+    \section1 Installing With User Interaction
+
+    You can use the command line interface with user interaction as follows:
+
+    \list 1
+        \li Define the executable:
+            \list
+                \li \e{\QOI} if you need to do a new installation.
+                \li \e{\QMT} if you need to update an existing
+                installation.
+            \endlist
+        \li When you do a new installation,
+        define the installation directory with \c{--root}
+        \li  Use \b{\c{install <list of packages>}} to install the listed
+        packages.
+    \endlist
+
+    The following examples demonstrate how you create a new installation
+    of Qt \QtVersion binaries with \QOI for Windows, macOS, and Linux:
+
+    \badcode \QtVersionTag
+    # Windows: new installation with user interaction
+    qt-unified-windows-x64-[Qt Online Installer version]-online.exe --root C:\Users\[username]\installation_dir install qt.qt6.\1.win64_msvc2022_64
+
+    # macOS: new installation with user interaction
+    qt-unified-macOS-x64-[Qt Online Installer version]-online.dmg --root /home/<username>/installation_dir install qt.qt6.\1.clang_64
+
+    # linux: new installation with user interaction
+    qt-unified-linux-x64-[Qt Online Installer version]-online.run --root /home/<username>/installation_dir install qt.qt6.\1.linux_gcc_64
+    \endcode
+
+    The following examples demonstrate how you update your existing
+    installation by installing the Qt \QtVersion binaries with \QMT:
+
+    \badcode \QtVersionTag
+    # Windows: update installation with Qt Maintenance Tool
+    MaintenanceTool.exe install qt.qt6.\1.win64_msvc2022_64
+
+    # macOS: update installation with Qt Maintenance Tool
+    MaintenanceTool.dmg install qt.qt6.\1.clang_64
+
+    # Linux: update installation with Qt Maintenance Tool
+    MaintenanceTool.run install qt.qt6.\1.linux_gcc_64
+    \endcode
+
+    \section1 Uninstalling Packages
+
+    The command line interface provides two commands for uninstalling packages:
+
+    \list
+        \li The \b{\c{remove <list of packages>}} command uninstalls the listed
+        packages.
+        \li The \b{\c{purge}} command uninstalls all installed packages.
+    \endlist
+
+    You should use both commands with \QMT.
+
+    By default, \QMT prints a summary of components to be affected
+    by the command. Then the tool asks for permission to continue acting, to
+    prevent accidental changes. Use \b{\c{--confirm-command}} to skip asking for
+    permission to continue.
+
+    The following example uninstalls the Qt \QtVersion binaries without user
+    interaction:
+
+    \badcode \QtVersionTag
+    # windows
+    MaintenanceTool.exe --confirm-command remove qt.qt6.\1.win64_msvc2022_64
+
+    # macOS
+    MaintenanceTool.dmg --confirm-command remove install qt.qt6.\1.clang_64
+
+    # linux
+    MaintenanceTool.run --confirm-command remove qt.qt6.\1.linux_gcc_64
+    \endcode
+
+    The following examples uninstall all packages and ask for permission to
+    continue performing the action:
+
+    \badcode
+    # Windows
+    MaintenanceTool.exe purge
+
+    # macOS
+    MaintenanceTool.dmg purge
+
+    # Linux
+    MaintenanceTool.run purge
+    \endcode
+
+    \section1 Listing Installed Packages
+
+    The \b{\c{list}} command lists all packages you have installed. Use the
+    command with \QMT as follows:
+
+    \badcode
+    # Windows
+    MaintenanceTool.exe list
+
+    # macOS
+    MaintenanceTool.dmg list
+
+    # Linux
+    MaintenanceTool.run list
+    \endcode
+
+    \section1 Checking Updates
+
+    The \b{\c{check-updates}} command checks the updates that are available for
+    the installed packages. Use the command with \QMT as follows:
+
+    \badcode
+    # Windows
+    MaintenanceTool.exe check-updates
+
+    # macOS
+    MaintenanceTool.dmg check-updates
+
+    # Linux
+    MaintenanceTool.run check-updates
+
+    \endcode
+
+    \section1 Updating Packages
+
+    The \b{\c{ update}} command updates the installed packages. Use the command
+    with \QMT as follows:
+
+    \badcode
+    # windows
+    MaintenanceTool.exe update
+
+    # macOS
+    MaintenanceTool.dmg update
+
+    # linux
+    MaintenanceTool.run update
+    \endcode
+
+    \section1 Popular Commands
+
+    Use the command \b{\c{<installer_executable> --help}} to study the available
+    commands and options. Popular commands are as follows:
+
+    \table
+    \header
+        \li Command
+        \li Usage
+    \row
+        \li \c{in}, \c{install <pkg ...>}
+        \li Installs packages given as an argument. If you don't give any
+        packages, installs the default package set.
+    \row
+        \li \c{rm}, \c{remove <pkg ...>}
+        \li Uninstalls selected packages and their child components.
+    \row
+        \li \c{ch}, \c{check-updates}
+        \li Shows information about available updates on \QMT.
+    \row
+        \li \c{up}, \c{update <pkg ...>}
+        \li Updates packages given as an argument. If no packages are given,
+        install all available updates.
+    \row
+        \li \c{se}, \c{search <regexp>}
+        \li Searches available packages. If you don't give any search pattern,
+        shows all available packages.
+        You can use the \c{--filter-packages} option to specify additional
+        filters for the search operation. See
+        \l{https://doc.qt.io/qtinstallerframework/ifw-cli.html#summary-of-options}{Summary of Options}
+        in Qt Installer Framework Manual.
+    \endtable
+
+    \l{https://doc.qt.io/qtinstallerframework/ifw-cli.html}{Qt Installer Framework Manual}
+    provides more information about the commands and options.
+
+    \section1 Selecting Mirror for Opensource
+
+    \QOI has an option for selecting a mirror for opensource
+    metadata and downloads. Set the mirror from the command line with the
+    \b{\c{--mirror}} option.
+
+    For example, use \c{--mirror} as follows:
+
+    \badcode
+    installer(.exe) --mirror http://www.nic.funet.fi/pub/mirrors/download.qt-project.org
+    installer(.exe) --mirror http://ftp2.nluug.nl/languages/qt
+    maintenancetool(.exe) --mirror http://qt.mirror.constant.com
+    \endcode
+
+    As the example shows, don't use the full path but use the path before
+    '/online' (no forward slash at the end).
+
+    You find the available mirrors from
+    \l{https://download.qt.io/online/qtsdkrepository/windows_x86/root/qt/Updates.xml.mirrorlist}.
+
+    \section1 Summary of Command Line Interface Usage
+
+    \l{https://doc.qt.io/qtinstallerframework/}{Qt Installer Framework Manual}
+    provides more detailed information about the command line interface:
+
+    \list
+        \li \l{https://doc.qt.io/qtinstallerframework/ifw-use-cases-cli.html}{Using from Command Line}
+        describes different command line interface use cases.
+        \li \l{https://doc.qt.io/qtinstallerframework/ifw-cli.html#summary-of-options}{Summary of Options}
+        lists all available options.
+        \li \l{https://doc.qt.io/qtinstallerframework/ifw-cli.html#summary-of-commands}{Summary of Commands}
+        lists all available commands.
+    \endlist
+*/

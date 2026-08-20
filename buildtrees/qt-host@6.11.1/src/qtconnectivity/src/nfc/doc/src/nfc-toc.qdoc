@@ -1,0 +1,19 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page nfc-toc.html
+    \title Qt NFC module topics
+
+    The following list has links to all the individual topics (HTML files)
+    in the Qt NFC module.
+
+    \list
+    \li \l {Qt NFC Overview}
+    \li \l {Supported NFC Features}
+    \li \l {Qt NFC on Android}
+    \li \l {PC/SC in Qt NFC}{PC/SC support}
+    \li \l {Changes to Qt NFC}{Upgrading from Qt 5}
+    \endlist
+
+*/

@@ -1,0 +1,182 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page build-optimized-qt.html
+    \title Building Optimized Qt
+    \brief Building optimized Qt for your specific needs.
+
+    This page describes the process of configuring and building
+    a smaller and tailored version of Qt, according to your specific needs.
+
+    \section1 Step 1: Getting the Sources, and Installing Build Requirements and Set Environment
+
+    For getting sources, installing dependencies and setting up environment,
+    refer to platform-specific instructions:
+    \list
+        \li \l{Qt for Windows - Building from Source}
+        \li \l{Qt for macOS - Building from Source}
+        \li \l{Qt for Linux - Building from Source}
+        \li \l{Configure an Embedded Linux Device}
+        \li \l{Qt for Android - Building from Source}
+        \li \l{Qt for iOS - Building from Source}
+    \endlist
+
+    \section1 Step 2: Building the Qt Libraries and Tools
+
+    Follow your platform-specific instructions and use the following \l {Qt configure options}
+    to create a build that is optimized for your needs.
+
+    The following table describes in more detail the configure options that help to
+    reduce build size.
+
+    \table
+    \header
+        \li Qt configure option
+        \li Description
+    \row
+        \li -static
+        \li Produce archive files for static linking. A static binary is linked with
+        all necessary libraries and dependencies embedded within the executable file itself.
+        This means that when you run the program, it uses its own internal copy of the
+        required libraries, rather than relying on external ones. This allows linker to
+        drop unnecessary parts of the binary code. This is the most optimal solution for single
+        executable deliveries.
+    \row
+        \li -ltcg
+        \li Link Time Optimization (LTO) is a powerful technique that can significantly
+        improve the performance and reduce the size of your executable file by analyzing
+        and optimizing binary code at the linking stage.
+    \row
+        \li -reduce-exports
+        \li Reduce the amount of exported symbols.
+    \row
+        \li -gc-binaries
+        \li Remove unnecessary parts from binary. Place each function or data item
+        into its own section and enable linker garbage collection of unused sections.
+    \row
+        \li -submodules qtbase,qtdeclarative,qtqmlscriptcompiler,qtsvg
+        \li Submodules to compile. Limit dependencies to unnecessary features.
+    \row
+        \li -skip qtlanguageserver,qtquicktimeline
+        \li Remove automatically included submodules from compilation. Limit dependencies
+        to unneeded features.
+    \row
+        \li -disable-deprecated-up-to <version>
+        \li Remove deprecated implementation.
+
+        Sets the QT_DISABLE_DEPRECATED_UP_TO value to <version>. QT_DISABLE_DEPRECATED_UP_TO
+        is used to remove deprecated methods from both API and ABI. <version> is a hex value.
+        For example, use 0x070000 to remove all code that is deprecated in Qt 7.0.0
+        or earlier releases. By default, <version> is set to 0x040000 and 0x050000 on Windows
+        and non-Windows respectively.
+    \endtable
+
+    In addition, you can remove features one by one as described in
+    \l {Including or excluding features}.
+    This may cause restrictions for available components and functionalities. Not all
+    combinations are tested. Qt tests specific minimal configure option combinations
+    in Continuous Integration (CI) system; it tests a
+    \l {https://code.qt.io/cgit/qt/qt5.git/tree/coin/platform_configs/qtlite.yaml}
+    {highly minimized embedded Linux configuration}, and slightly
+    \l {https://code.qt.io/cgit/qt/qt5.git/tree/coin/platform_configs/quick-minimal.yaml}
+    {less minimized configurations for other platforms}. These configurations are
+    for running Quick applications.
+
+    Qt configure command also supports the - - (double dash) command line parameter which allows
+    user to inject extra CMake arguments such as -DCMAKE_CXX_FLAGS="-march=native".
+    In case of cross compilation these parameters can be added via
+    -DCMAKE_TOOLCHAIN_FILE=path/to/toolchain.cmake as described in \l {An Example Toolchain File}.
+    The following table lists some options that you can consider using with GCC:
+
+    \table
+    \header
+        \li Compiler option
+        \li Description
+    \row
+        \li -march <arch>
+        \li Target architecture. Use "native" if application is executed on the same architecture
+        where it's compiled.
+    \row
+        \li -mtune <tune>
+        \li Tells the compiler to generate code that takes advantage of the specified processor
+        architecture's characteristics, such as its instruction set, register count,
+        and cache hierarchy.
+    \row
+        \li -fno-asynchronous-unwind-tables
+        \li Reduces binary size. Keep in mind that disabling asynchronous unwind tables
+        can have implications on performance, compatibility, and maintainability of your code.
+        It's generally recommended to use this option only when necessary, after carefully
+        considering its potential effects.
+    \row
+        \li -fno-unwind-tables
+        \li Reduces binary size. Keep in mind that disabling unwind tables can have
+        implications on performance, compatibility, and maintainability of your code.
+        It's generally recommended to use this option only when necessary, after carefully
+        considering its potential effects.
+
+        It's worth noting that \c {-fno-unwind-tables} is a more aggressive version of
+        \c {-fno-asynchronous-unwind-tables}, as it disables the creation of unwind tables
+        entirely, whereas the latter only disables the asynchronous generation of unwind tables.
+    \row
+        \li -fomit-frame-pointer
+        \li Reduces binary size. When this option is enabled, the compiler doesn't store
+        a frame pointer on the stack for each function call. Instead, it uses the stack
+        pointer as the frame pointer, which can save memory and improve performance. It's worth
+        noting that some compilers, such as GCC and Clang, enable \c {-fomit-frame-pointer}
+        by default when compiling for certain architectures, such as ARM and PowerPC, or in certain
+        optimization modes.
+    \row
+        \li -fno-exceptions
+        \li Reduces binary size. When this option is enabled, the compiler doesn't generate
+        code for try-catch blocks, and any attempts to throw or catch exceptions result
+        in runtime errors. Qt itself works without exceptions, but some dependencies might
+        require exceptions.
+    \row
+        \li -no-pie
+        \li Reduces binary size. In general, \c {-fno-pie} should be used with caution
+        and only when necessary, as it can have implications on the compatibility and
+        performance of your compiled code. Position independent executable also adds security.
+        For more information on position-independent code, refer to
+        \l {https://en.wikipedia.org/wiki/Address_space_layout_randomization} {Address Space Layout Randomization}
+        in Wikipedia.
+    \endtable
+
+    The following table lists linker options:
+    \table
+    \header
+        \li Linker option
+        \li Description
+    \row
+        \li -no-pie
+        \li Reduces binary size. In general, \c {-fno-pie} should be used with caution
+        and only when necessary, as it can have implications on the compatibility and
+        performance of your compiled code. Position independent executable also adds security.
+        For more information on position-independent code, refer to
+        \l {https://en.wikipedia.org/wiki/Address_space_layout_randomization} {Address Space Layout Randomization}
+        in Wikipedia.
+    \endtable
+
+    \section1 Step 3: Building Your Application
+
+    After Qt is installed, you can start building applications with it.
+
+    Optimize QML code generation with CMake project commands. For more information on
+    QML code generation, see \l {qt_add_qml_module} and \l {Best Practices for QML and Qt Quick}.
+
+    The command in the following CMake code snippet makes the binary size smaller:
+
+        \badcode
+        set_target_properties(
+                ExampleApp
+            PROPERTIES
+                QT_QMLCACHEGEN_ARGUMENTS "--only-bytecode"
+        )
+        \endcode
+
+    If you plan to build your application from an IDE, you need to register the Qt version explicitly
+    there. For \QC, see \l{\QC: Add Qt versions}.
+
+    If you're using command line to build your application, follow the platform-specific guide.
+
+*/

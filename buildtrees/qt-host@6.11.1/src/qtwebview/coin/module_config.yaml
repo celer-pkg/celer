@@ -1,0 +1,17 @@
+version: 2
+accept_configuration:
+  condition: property
+  property: features
+  not_contains_value: Disable
+
+instructions:
+  Build:
+    - type: EnvironmentVariable
+      variableName: VERIFY_SOURCE_SBOM
+      variableValue: "ON"
+    - !include "{{qt/qtbase}}/coin_module_build_template_v2.yaml"
+
+  Test:
+    - !include "{{qt/qtwebview}}/run_native_plugin_tests.yaml"
+    - !include "{{qt/qtwebview}}/run_webengine_plugin_tests.yaml"
+    - !include "{{qt/qtbase}}/coin_module_test_docs.yaml"

@@ -1,0 +1,30 @@
+<%--
+    Copyright (C) 2024 The Qt Company Ltd.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied
+    See the License for the specific language governing permissions and
+    limitations under the License.
+--%>
+
+@import org.qtproject.qt.qtjenny.JteData
+@import org.qtproject.qt.qtjenny.Constants
+@import org.qtproject.qt.qtjenny.HandyHelper
+@import org.qtproject.qt.qtjenny.MethodOverloadResolver.MethodRecord
+@import javax.lang.model.type.TypeKind
+
+@param jteData: JteData
+    !{val classParam = if (jteData.rawStaticMod != "") "FULL_CLASS_NAME," else ""}
+    !{val thizParam = if (jteData.rawStaticMod != "") "QJniObject::" else "m_jniObject."}
+    ${jteData.fieldComment}
+    ${jteData.rawStaticMod}auto get${jteData.fieldCamelCaseName}(${jteData.param}) ${jteData.constMod}{
+       return ${thizParam}get${jteData.static}Field<${jteData.jniReturnType}>(${classParam}"${
+                        jteData.field!!.simpleName.toString()}");
+
+    }
+

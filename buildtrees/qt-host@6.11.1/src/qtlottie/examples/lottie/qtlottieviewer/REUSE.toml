@@ -1,0 +1,8 @@
+version = 1
+
+[[annotations]]
+path = ["logo.json"]
+precedence = "closest"
+comment = "example lottie file, github.com/lottie/lottie-spec"
+SPDX-FileCopyrightText = "Copyright © 2017 Airbnb"
+SPDX-License-Identifier = "MIT"

@@ -1,0 +1,18 @@
+# Copyright 2024 The PDFium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# See `docs/unsafe_buffers.md`.
+
+# Checks to enforce
+.buffers,libc
+
+# These directories are excluded because they come from outside PDFium and
+# we don't have control over their contents.
+-base/
+-samples/
+-skia/
+-testing/
+-third_party/
+-tools/
+-v8/

@@ -1,0 +1,41 @@
+import("//extensions/buildflags/buildflags.gni")
+import("//tools/json_schema_compiler/json_features.gni")
+import("//tools/json_schema_compiler/json_schema_api.gni")
+import("//qtwebengine/common/extensions/api/schema.gni")
+
+assert(enable_extensions)
+
+################################################################################
+# Public Targets
+
+group("api") {
+  public_deps = [
+    ":generated_api_json_strings",
+    ":generated_api_types",
+  ]
+}
+
+################################################################################
+# Private Targets
+
+generated_json_strings("generated_api_json_strings") {
+  sources = webengine_extensions_api_schema_files
+
+  bundle_name = "QtWebEngine"
+  root_namespace = webengine_extensions_api_root_namespace
+
+  deps = [ "//extensions/common/api" ]
+
+  visibility = [ ":api" ]
+}
+
+generated_types("generated_api_types") {
+  sources = webengine_extensions_api_schema_files
+
+  root_namespace = webengine_extensions_api_root_namespace
+
+  deps = [ "//extensions/common/api" ]
+
+  visibility = [ ":api" ]
+}
+

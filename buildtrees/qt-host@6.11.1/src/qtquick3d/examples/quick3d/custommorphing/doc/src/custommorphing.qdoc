@@ -1,0 +1,55 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example custommorphing
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - Custom Morphing Animation
+    \examplecategory {3D}
+    \brief Demonstrates writing C++ custom geometry with a morph target.
+    \image custommorphing.png
+           {Orange wavy object demonstrating custom morphing animation}
+
+    This example shows how to define a complex custom geometry in C++ that contains a base shape and a
+    morph target, with normal vectors for both.
+
+    \section1 Custom geometry
+
+    The main part of this example is creating a custom geometry with a morph target. We do this by
+    subclassing QQuick3DGeometry:
+
+    \snippet custommorphing/morphgeometry.h class definition
+
+    The constructor defines the layout of the mesh data:
+    \snippet custommorphing/morphgeometry.cpp constructor
+
+    The function \c updateData performs the actual uploading of the mesh geometry:
+    \snippet custommorphing/morphgeometry.cpp updateData
+    We call \c updateData from the constructor, and when a property has changed.
+
+    The function \c calculateGeometry contains all the tedious mathematics to calculate the shapes
+    and normal vectors. It is specific to this example, and the code will not be explained in
+    detail. In general: to implement smooth shading, it's necessary to calculate the normal vector
+    for each vertex. Mathematically, the normal vector can be calculated from the partial
+    derivatives of the function describing the plane:
+
+    \image partialderivatives.png
+           {Formula to calculate normal vector}
+
+    In this example, we make it simple by using a cosine wave for the base
+    shape, knowing that its derivative is a sine function.
+
+    In practice, normal vectors can often be determined by geometric reasoning. For the morph
+    target, we use the fact that any vector from the center of a sphere to the surface will be
+    normal to the sphere at that point. Note that normal vectors in QtQuick3D must have unit length,
+    which can be done by using \l QVector3D::normalized().
+
+    \section1 QML part
+
+    We define a morph target that corresponds to the one we created in the custom geometry, and do
+    an animation on the weight, so it will cycle between the two shapes:
+    \snippet custommorphing/main.qml target
+
+    Finally, we create a model using our custom geometry, and apply the morph target to it:
+    \snippet custommorphing/main.qml model
+*/

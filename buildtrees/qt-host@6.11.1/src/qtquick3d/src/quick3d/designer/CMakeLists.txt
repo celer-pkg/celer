@@ -1,0 +1,92 @@
+# Copyright (C) 2022 The Qt Company Ltd.
+# SPDX-License-Identifier: BSD-3-Clause
+
+qt_path_join(destination ${QT_INSTALL_DIR} "${INSTALL_QMLDIR}/QtQuick3D/designer")
+qt_copy_or_install(
+    FILES
+        AbstractLightSection.qml
+        BufferInputSection.qml
+        BufferInputSpecifics.qml
+        BufferSection.qml
+        BufferSpecifics.qml
+        CameraSection.qml
+        CascadesSection.qml
+        CubeMapTextureSpecifics.qml
+        CustomCameraSpecifics.qml
+        CustomMaterialSection.qml
+        CustomMaterialSpecifics.qml
+        DebugSettingsSection.qml
+        DebugSettingsSpecifics.qml
+        DefaultMaterialSection.qml
+        DefaultMaterialSpecifics.qml
+        DirectionalLightSection.qml
+        DirectionalLightSpecifics.qml
+        EffectSection.qml
+        EffectSpecifics.qml
+        FileInstancingSection.qml
+        FileInstancingSpecifics.qml
+        FogSection.qml
+        FogSpecifics.qml
+        FrustumCameraSection.qml
+        FrustumCameraSpecifics.qml
+        InstanceListEntrySection.qml
+        InstanceListEntrySpecifics.qml
+        InstanceListSection.qml
+        InstanceListSpecifics.qml
+        InstancingSection.qml
+        JointSection.qml
+        JointSpecifics.qml
+        LightmapperSection.qml
+        LightmapperSpecifics.qml
+        Loader3DSection.qml
+        Loader3DSpecifics.qml
+        MaterialSection.qml
+        ModelSection.qml
+        ModelSpecifics.qml
+        MorphTargetSection.qml
+        MorphTargetSpecifics.qml
+        NodeSection.qml
+        NodeSpecifics.qml
+        Object3DSection.qml
+        OrthographicCameraSection.qml
+        OrthographicCameraSpecifics.qml
+        PassSection.qml
+        PassSpecifics.qml
+        PerspectiveCameraSection.qml
+        PerspectiveCameraSpecifics.qml
+        PointLightSection.qml
+        PointLightSpecifics.qml
+        PrincipledMaterialSection.qml
+        PrincipledMaterialSpecifics.qml
+        Repeater3DSection.qml
+        Repeater3DSpecifics.qml
+        ResourceLoaderSection.qml
+        ResourceLoaderSpecifics.qml
+        SceneEnvironmentSection.qml
+        SceneEnvironmentSpecifics.qml
+        SetUniformValueSection.qml
+        SetUniformValueSpecifics.qml
+        ShaderSection.qml
+        ShaderSpecifics.qml
+        ShadowSection.qml
+        SkinSpecifics.qml
+        SkinSection.qml
+        SpecularGlossyMaterialSection.qml
+        SpecularGlossyMaterialSpecifics.qml
+        SpotLightSection.qml
+        SpotLightSpecifics.qml
+        TextureInputSection.qml
+        TextureInputSpecifics.qml
+        TextureSection.qml
+        TextureSpecifics.qml
+        View3DSection.qml
+        View3DSpecifics.qml
+        ReflectionProbeSection.qml
+        ReflectionProbeSpecifics.qml
+        quick3d.metainfo
+        propertyGroups.json
+    DESTINATION "${destination}"
+)
+
+add_subdirectory(source)
+add_subdirectory(images)

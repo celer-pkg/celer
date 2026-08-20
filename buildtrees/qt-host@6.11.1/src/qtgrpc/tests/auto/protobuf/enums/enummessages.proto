@@ -1,0 +1,111 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+syntax = "proto3";
+
+package qtprotobufnamespace.tests;
+
+message SimpleEnumMessage {
+    enum LocalEnum {
+        LOCAL_ENUM_VALUE0 = 0;
+        LOCAL_ENUM_VALUE1 = 1;
+        LOCAL_ENUM_VALUE2 = 2;
+        LOCAL_ENUM_VALUE3 = 3;
+    }
+
+    LocalEnum localEnum = 1;
+}
+
+message RepeatedEnumMessage {
+    enum LocalEnum {
+        LOCAL_ENUM_VALUE0 = 0;
+        LOCAL_ENUM_VALUE1 = 1;
+        LOCAL_ENUM_VALUE2 = 2;
+        LOCAL_ENUM_VALUE3 = 3;
+    }
+
+    repeated LocalEnum localEnumList = 1;
+}
+
+message MixedEnumUsageMessage {
+    enum LocalEnum {
+        LOCAL_ENUM_VALUE0 = 0;
+        LOCAL_ENUM_VALUE1 = 1;
+        LOCAL_ENUM_VALUE2 = 2;
+        LOCAL_ENUM_VALUE3 = 3;
+    }
+
+    message NestedEnumHolder {
+        enum LocalEnum {
+            NESTED_LOCAL_ENUM_VALUE0 = 0;
+            NESTED_LOCAL_ENUM_VALUE1 = 1;
+            NESTED_LOCAL_ENUM_VALUE2 = 2;
+            NESTED_LOCAL_ENUM_VALUE3 = 3;
+        }
+    }
+
+    message NestedEnumHolderLevel1 {
+        enum LocalEnum {
+            NESTED_LEVEL1_LOCAL_ENUM_VALUE0 = 0;
+            NESTED_LEVEL1_LOCAL_ENUM_VALUE1 = 1;
+        }
+        message NestedEnumHolderLevel2 {
+            enum LocalEnum {
+                NESTED_LEVEL2_LOCAL_ENUM_VALUE0 = 0;
+                NESTED_LEVEL2_LOCAL_ENUM_VALUE1 = 1;
+            }
+        }
+    }
+
+    message NestedEnumMessage {
+        LocalEnum localEnumField = 1;
+        RepeatedEnumMessage.LocalEnum localEnumField2 = 2;
+        NestedEnumHolder.LocalEnum localEnumField3 = 3;
+        NestedEnumHolderLevel1.LocalEnum localEnumField4 = 4;
+        NestedEnumHolderLevel1.NestedEnumHolderLevel2.LocalEnum localEnumField5 = 5;
+    }
+
+    LocalEnum localEnum = 1;
+    repeated LocalEnum localEnumList = 2;
+    map<string, LocalEnum> localEnumMap = 3;
+    repeated NestedEnumMessage msgList = 4;
+}
+
+message SimpleFileEnumMessage {
+    TestEnum globalEnum = 1;
+    repeated TestEnum globalEnumList = 2;
+}
+
+message StepChildEnumMessage {
+    SimpleEnumMessage.LocalEnum localStepChildEnum = 1;
+    repeated SimpleEnumMessage.LocalEnum localStepChildList = 2;
+}
+
+enum TestEnum {
+    TEST_ENUM_VALUE0 = 0;
+    TEST_ENUM_VALUE1 = 1;
+    TEST_ENUM_VALUE2 = 2;
+    TEST_ENUM_VALUE3 = 4;
+    TEST_ENUM_VALUE4 = 3;
+}
+
+enum TestEnumSecondInFile {
+    TEST_ENUM_SIF_VALUE0 = 0;
+    TEST_ENUM_SIF_VALUE1 = 1;
+    TEST_ENUM_SIF_VALUE2 = 2;
+}
+
+message A {
+    enum AEnum {
+        AVal0 = 0;
+        AVal1 = 1;
+    }
+    B.BEnum val = 1;
+}
+
+message B {
+    enum BEnum {
+        BVal0 = 0;
+        BVal1 = 1;
+    }
+    A.AEnum val = 1;
+}

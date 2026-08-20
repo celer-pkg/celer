@@ -1,0 +1,18 @@
+type: Group
+instructions:
+  - type: Group
+    instructions:
+      - type: EnvironmentVariable
+        # This variable interferes with Android input tests
+        # when forwarded by androidtestrunner.
+        variableName: QT_IM_MODULE
+        variableValue: ""
+      - type: ExecuteCommand
+        command: "{{.Env.ANDROID_EMULATOR_RUNNER}}"
+        maxTimeInSeconds: 600
+        maxTimeBetweenOutput: 300
+        userMessageOnFailure: "Failed to start emulator, check coin log and testresults log files."
+    enable_if:
+      condition: property
+      property: features
+      contains_value: AndroidTestRun

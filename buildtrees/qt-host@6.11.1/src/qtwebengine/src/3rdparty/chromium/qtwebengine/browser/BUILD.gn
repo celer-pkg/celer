@@ -1,0 +1,26 @@
+import("//chrome/common/features.gni")
+import("//tools/grit/grit_rule.gni")
+import ("//mojo/public/tools/bindings/mojom.gni")
+
+mojom("interfaces") {
+  sources = [
+    "qtwebchannel.mojom",
+    "qtwebenginepage.mojom"
+  ]
+}
+
+grit("qt_webengine_resources") {
+  source = "qt_webengine_resources.grd"
+  defines = chrome_grit_defines
+  outputs = [
+    "grit/qt_webengine_resources.h",
+    "qt_webengine_resources.pak",
+  ]
+  output_dir = "$root_gen_dir/qtwebengine"
+}
+
+group("resources") {
+  deps = [
+    ":qt_webengine_resources",
+  ]
+}

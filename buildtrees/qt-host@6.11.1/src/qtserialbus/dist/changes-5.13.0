@@ -1,0 +1,40 @@
+Qt 5.13 introduces many new features and improvements as well as bugfixes
+over the 5.12.x series. For more details, refer to the online documentation
+included in this distribution. The documentation is also available online:
+
+https://doc.qt.io/qt-5/index.html
+
+The Qt version 5.13 series is binary compatible with the 5.12.x series.
+Applications compiled for 5.12 will continue to run with 5.13.
+
+Some of the changes listed in this file include issue tracking numbers
+corresponding to tasks in the Qt Bug Tracker:
+
+https://bugreports.qt.io/
+
+Each of these identifiers can be entered in the bug tracker to obtain more
+information about a particular change.
+
+****************************************************************************
+*                            Qt 5.13.0 Changes                             *
+****************************************************************************
+
+QtSerialBus
+-----------
+
+ - [QTBUG-70360] Removed the hard QtSerialPort dependency from QtSerialBus.
+   The module can now be built without QtSerialPort (which in turn disables
+   Modbus RTU support). This is especially interesting for platforms without
+   serial port support.
+
+ - CAN Plugins
+   * Fixed the error message "Cannot configure TxEcho for open device"
+     when QCanBusDevice::ReceiveOwnKey was used in the SystecCAN plugin
+
+ - QModbusRtuSerialMaster
+   * [QTBUG-73230][QTBUG-73965] Fixed the "response timer active" and
+     "processQueue is in an unexpected state" assert messages
+   * Implementend handling for sending Modbus RTU broadcast requests
+
+ - QModbusClient
+   * [QTBUG-75461] Reduce minimal Modbus response timeout to 10ms

@@ -1,0 +1,26 @@
+// Copyright (C) 2015 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\qmlmodule QtQuick3D.SpatialAudio
+\title Qt Spatial Audio QML Types
+\ingroup qmlmodules
+\brief Provides QML types for spatial audio.
+
+The QML types for \l{Qt Spatial Audio} support the full functionality of the
+C++ API.
+
+\section1 QML Types
+
+Qt Spatial Audio QML types are designed to be used together with \l{Qt Quick 3D}. They
+can be imported into your application using the following import statement in your
+.qml file:
+
+\qml
+import QtQuick3D.SpatialAudio
+\endqml
+
+\generatelist qmltypesbymodule QtQuick3D.SpatialAudio
+
+\noautolist
+*/

@@ -1,0 +1,60 @@
+<svg width="350" height="450" viewBox="0 0 350 450" xmlns="http://www.w3.org/2000/svg">
+
+<defs>
+  <filter id="blur">
+    <feGaussianBlur stdDeviation="5 5"/>
+  </filter>
+
+  <filter id="offset">
+    <feOffset in="SourceGraphic" dx="5" dy="5" />
+  </filter>
+
+
+  <filter id="imageIn">
+    <feColorMatrix
+      in="SourceGraphic"
+      type="matrix"
+      values="0 0 0 0 0
+              0 0 0 0 0
+              1 1 1 1 0
+              0 0 0 0.5 0" />
+      <feOffset dx="5" dy="5" />
+      <feComposite in2="SourceGraphic" operator="over" />
+    </filter>
+
+  <mask x="0" y="0" width="1" height="1" id="simpleMask">
+    <g>
+        <rect x="0" y="0" width="150" height="300" fill="white" />
+        <rect x="150" y="0" width="500" height="300" fill="black" />
+    </g>
+  </mask>
+
+</defs>
+
+<text font-size="50" filter="url(#blur)" font-family="Arial" fill="red" x="5" y="50"> Example Text </text>
+<text font-size="50" fill="blue" font-family="Arial" x="5" y="50" opacity="0.5"> Example Text </text>
+
+<text font-size="50" filter="url(#offset)" font-family="Arial" fill="red" x="5" y="125"> Example Text </text>
+<text font-size="50" font-family="Arial" fill="blue" x="5" y="125" opacity="0.5"> Example Text </text>
+
+<text font-size="50" filter="url(#imageIn)" font-family="Arial" fill="red" x="5" y="200"> Example Text </text>
+
+<text transform="translate(0, 225) scale(0.8 0.8) rotate(-45 0 0)" font-size="50" filter="url(#blur)" font-family="Arial" fill="red" x="5" y="50"> Example Text </text>
+<text transform="translate(0, 225) scale(0.8 0.8) rotate(-45 0 0)" font-size="50" fill="blue" font-family="Arial" x="5" y="50" opacity="0.5"> Example Text </text>
+
+<text transform="translate(5, 300)" font-size="50" font-family="Arial" fill="green" x="5" y="50"> Example Text </text>
+<text transform="translate(0, 300)" font-size="50" filter="url(#blur)" font-family="Arial" fill="red" x="5" y="50"> Example Text </text>
+<text transform="translate(0, 300)" font-size="50" fill="blue" font-family="Arial" x="5" y="50" opacity="0.5"> Example Text </text>
+
+
+<text transform="translate(5, 300)" font-size="50" font-family="Arial" fill="green" x="5" y="50"> Example Text </text>
+<text transform="translate(0, 300)" font-size="50" filter="url(#blur)" font-family="Arial" fill="red" x="5" y="50"> Example Text </text>
+<text transform="translate(0, 300)" font-size="50" fill="blue" font-family="Arial" x="5" y="50" opacity="0.5"> Example Text </text>
+
+
+<text mask="url(#simpleMask)" transform="translate(0, 375)" font-size="50" filter="url(#blur)" font-family="Arial" fill="red" x="5" y="50"> Example Text </text>
+<text mask="url(#simpleMask)" transform="translate(0, 375)" font-size="50" fill="blue" font-family="Arial" x="5" y="50" opacity="0.5"> Example Text </text>
+<rect fill="none" stroke="black" x="5" y="375" width="150" height="50"/>
+
+
+</svg>

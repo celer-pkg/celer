@@ -1,0 +1,78 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+syntax = "proto3";
+
+package qtprotobufnamespace.tests;
+
+// test annotation
+message AnnotatedMessage1 {
+    /**
+     * \brief Field annotation
+     */
+    sint32 testField = 1;
+}
+
+/*test annotation*/
+message AnnotatedMessage2 {
+    /*!
+     * \brief Field annotation
+     */
+    sint32 testField = 1;
+}
+
+/*
+ * test annotation
+ */
+message AnnotatedMessage3 {
+    /*
+     * Field annotation
+     * Field annotation secondline
+     */
+    sint32 testField = 1;
+}
+
+/*
+  test annotation
+ */
+message AnnotatedMessage4 {
+    sint32 testField = 1;
+}
+
+//! \brief test annotation
+message AnnotatedMessage5 {
+    /*
+     * Field annotation
+     */
+    sint32 testField = 1;
+}
+
+//* \brief test annotation
+message AnnotatedMessage6 {
+    //* Field annotation
+    sint32 testField = 1;
+}
+
+/*!
+ * \brief test annotation
+ */
+message AnnotatedMessage7 {
+    //! Field annotation
+    sint32 testField = 1;
+}
+
+/**
+ * \brief test annotation
+ */
+message AnnotatedMessage8 {
+    /*Field annotation*/
+    sint32 testField = 1;
+}
+
+/*
+ * test annotation
+ * test annotation secondline
+ */
+message AnnotatedMessage9 {
+    // Field annotation
+    sint32 testField = 1;
+}

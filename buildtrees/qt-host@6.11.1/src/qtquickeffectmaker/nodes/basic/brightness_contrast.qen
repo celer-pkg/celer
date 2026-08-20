@@ -1,0 +1,36 @@
+{
+    "QEN": {
+        "description": "This effect adjusts the source item colors. Brightness adjustment changes the perceived luminance of the source item. Contrast adjustment increases or decreases the color and brightness variations.",
+        "fragmentCode": [
+            "@main",
+            "{",
+            "    fragColor.rgb /= max(1.0/256.0, fragColor.a);",
+            "    float c = 1.0 + brightnessContrastContrast;",
+            "    float contrastGainFactor = 1.0 + c * c * c * c * step(0.0, brightnessContrastContrast);",
+            "    fragColor.rgb = ((fragColor.rgb - 0.5) * (contrastGainFactor * brightnessContrastContrast + 1.0)) + 0.5;",
+            "    fragColor.rgb = mix(fragColor.rgb, vec3(step(0.0, brightnessContrastBrightness)), abs(brightnessContrastBrightness));",
+            "    fragColor = vec4(fragColor.rgb * fragColor.a, fragColor.a);",
+            "}"
+        ],
+        "name": "BrightnessContrast",
+        "properties": [
+            {
+                "defaultValue": "0",
+                "description": "This property defines how much the source brightness is increased or decreased.\n\nThe value ranges from -1.0 to 1.0. By default, the property is set to 0.0 (no change).",
+                "maxValue": "1",
+                "minValue": "-1",
+                "name": "brightnessContrastBrightness",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0",
+                "description": "This property defines how much the source contrast is increased or decreased. The decrease of the contrast is linear, but the increase is applied with a non-linear curve to allow very high contrast adjustment at the high end of the value range.\n\nThe value ranges from -1.0 to 1.0. By default, the property is set to 0.0 (no change).",
+                "maxValue": "1",
+                "minValue": "-1",
+                "name": "brightnessContrastContrast",
+                "type": "float"
+            }
+        ],
+        "version": 1
+    }
+}

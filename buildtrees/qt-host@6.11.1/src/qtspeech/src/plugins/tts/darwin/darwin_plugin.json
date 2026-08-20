@@ -1,0 +1,12 @@
+{
+    "Keys": ["darwin"],
+    "Provider": "darwin",
+    "Version": 100,
+    "Priority": 100,
+    "Capabilities": [
+        "Speak",
+        "PauseResume",
+        "WordByWordProgress",
+        "Synthesize"
+    ]
+}

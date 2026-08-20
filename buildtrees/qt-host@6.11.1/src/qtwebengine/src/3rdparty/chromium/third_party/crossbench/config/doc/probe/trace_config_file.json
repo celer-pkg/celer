@@ -1,0 +1,23 @@
+{
+  "startup_duration": 4,
+  "trace_config": {
+    "included_categories": [
+      "disabled-by-default-memory-infra"
+    ],
+    "excluded_categories": [
+      "*"
+    ],
+    "memory_dump_config": {
+      "triggers": [
+        {
+          "mode": "light",
+          "periodic_interval_ms": 50
+        },
+        {
+          "mode": "detailed",
+          "periodic_interval_ms": 1000
+        }
+      ]
+    }
+  }
+}

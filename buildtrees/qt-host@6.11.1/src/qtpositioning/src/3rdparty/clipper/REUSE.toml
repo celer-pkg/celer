@@ -1,0 +1,7 @@
+version = 1
+
+[[annotations]]
+path = ["clipper.cpp", "clipper.h"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright Angus Johnson 2010-2017"
+SPDX-License-Identifier = "BSL-1.0"

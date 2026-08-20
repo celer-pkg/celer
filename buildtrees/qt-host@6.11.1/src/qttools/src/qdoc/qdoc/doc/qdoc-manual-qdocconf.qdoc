@@ -1,0 +1,2517 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page 21-0-qdoc-configuration.html
+    \previouspage Miscellaneous Macros
+    \nextpage Generic Configuration Variables
+
+    \title The QDoc Configuration File
+
+    Before running QDoc, you must create a QDoc configuration file to
+    tell QDoc where to find the source files that contain the QDoc
+    comments. The pathname to your configuration file is passed to
+    QDoc on the command line:
+
+    \quotation
+        \c {/current/dir$ ../../bin/qdoc ./config.qdocconf}
+    \endquotation
+
+    \section1 General Description
+
+    The configuration file is a list of entries of the form \e
+    {"variable = value"}. Using the configuration variables, you can
+    define where QDoc should find the various source files, images and
+    examples, where to put generated documentation etc. The
+    configuration file can also contain directives like \c
+    include. For an example, see \l minimum.qdocconf.
+
+    You can also use configuration variables to get QDoc to support
+    \l{Supporting Derived Projects} {derived projects}, i.e QDoc can
+    generate links in your project's documentation to elements in the
+    Qt online documentation. See the \l {Supporting Derived projects}
+    section.
+
+    A valid configuration variable name can include upper and lower case
+    letters, numbers, and an underscore, '_'.
+
+    The value of a configuration variable can be set using either '='
+    or '+='. The difference is that '=' overrides the previous value,
+    while '+=' adds a new value to the current one.
+
+    Values of some configuration variables are interpreted as a list of
+    strings, for example:
+    \l {sourcedirs-variable}
+    {\c{sourcedirs}}, while others are treated as a single string. Double
+    quotes around a value string are optional, but including them allows
+    you to use special characters like '=' and ' \" ' within the value
+    string, for example:
+
+    \badcode
+    HTML.postheader = "<ul class=\"breadcrumbs\">"
+    \endcode
+
+    If an entry spans many lines, use a backslash at the end of every
+    line but the last:
+
+    \badcode
+    sourcedirs = kernel tools widgets
+    \endcode
+
+    This can be written as:
+    \badcode
+    sourcedirs = kernel \
+                 tools \
+                 widgets
+    \endcode
+
+    If a value spans multiple lines but is interpreted as a single string,
+    the lines are joined with spaces.
+
+    \section1 Expansion of Configuration Values
+
+    QDoc supports expanding environment variables within configuration files.
+    For example, Qt modules rely on the environment variable QT_INSTALL_DOCS
+    to include definitions related to all Qt module documentation projects:
+
+    \badcode
+    include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+    \endcode
+
+    A variable to expand is prefixed with '$'. To use the literal character
+    '$' within a value string, escape it with a backslash: '\\$'.
+
+    Since QDoc 6.0, values can be expanded also from other configuration
+    variables. In addition to the \c {$variable} syntax, also \c {${variable}}
+    is valid. The latter eliminates the need to separate the variable
+    name with whitespace or non-variable characters. For example:
+
+    \badcode
+    baseurl = https://doc.qt.io/
+    ...
+    url = ${baseurl}qtcreator
+    \endcode
+
+    If the target variable refers to a list of strings, they will be
+    joined using spaces in the expanded value:
+
+    \badcode
+    vars = foo \
+           bar \
+           baz
+
+    items = "Items: $vars"          # Expands to "Items: foo bar baz"
+    \endcode
+
+    Controlling which character is used for joining the string list is also
+    possible:
+
+    \badcode
+    items = "Items: ${vars,|}"      # Expands to "Items: foo|bar|baz"
+    items = "Items: ${vars,,}"      # Expands to "Items: foo,bar,baz"
+    items = "Items: ${vars,}"       # Expands to "Items: foobarbaz"
+    \endcode
+
+    As the expansion is performed after reading in all variables, the order
+    in which they are defined does not matter.
+
+    \note Nested variable expansion is not supported.
+
+    \section2 Expanding Environment Variables
+
+    When expanding environment variables, the \c {${variable}} syntax has
+    different behavior compared to \c {$variable}. The former expands the
+    content of the variable in place to be parsed as part of the
+    configuration file, while the latter simply assigns the content as a
+    value for the current configuration variable. This has implications if
+    the environment variable contains a list of elements separated by
+    whitespace, or other formatting recognized by QDoc.
+
+    For example, if the value of an environment variable \c SRCDIRS is
+    \c {"../src/a ../src/b"}, then
+
+    \badcode
+    sourcedirs  = $SRCDIRS      # Fail - value is interpreted as a single path.
+    sourcedirs  = ${SRCDIRS}    # Ok - whitespace is used as a delimiter.
+    \endcode
+
+    \section1 Configuration Variables
+
+    \section2 Variable List
+
+    \list
+    \li \l {defines-variable} {defines}
+    \li \l {depends-variable} {depends}
+    \li \l {documentationinheaders-variable} {documentationinheaders}
+    \li \l {exampledirs-variable} {exampledirs}
+    \li \l {examples-variable} {examples}
+    \li \l {examplesinstallpath-variable} {examplesinstallpath}
+    \li \l {examples.fileextensions-variable} {examples.fileextensions}
+    \li \l {examples.warnaboutmissingimages-variable} {examples.warnaboutmissingimages}
+    \li \l {examples.warnaboutmissingprojectfiles-variable} {examples.warnaboutmissingprojectfiles}
+    \li \l {excludedirs-variable} {excludedirs}
+    \li \l {excludefiles-variable} {excludefiles}
+    \li \l {extraimages-variable} {extraimages}
+    \li \l {falsehoods-variable} {falsehoods}
+    \li \l {headerdirs-variable} {headerdirs}
+    \li \l {headers-variable} {headers}
+    \li \l {headers.fileextensions-variable} {headers.fileextensions}
+    \li \l {HTML.footer-variable} {HTML.footer}
+    \li \l {HTML.postheader-variable} {HTML.postheader}
+    \li \l {HTML.postpostheader-variable} {HTML.postpostheader}
+    \li \l {HTML.style-variable} {HTML.style}
+    \li \l {includepaths-variable} {includepaths}
+    \li \l {includeprivate-variable} {includeprivate}
+    \li \l {ignorewords-variable} {ignorewords}
+    \li \l {ignoresince-variable} {ignoresince}
+    \li \l {imagedirs-variable} {imagedirs}
+    \li \l {imagesoutputdir-variable} {imagesoutputdir}
+    \li \l {indexes-variable} {indexes}
+    \li \l {language-variable} {language}
+    \li \l {locationinfo-variable} {locationinfo}
+    \li \l {logwarnings-variable} {logwarnings}
+    \li \l {macro-variable} {macro}
+    \li \l {manifestmeta-variable} {manifestmeta}
+    \li \l {moduleheader-variable} {moduleheader}
+    \li \l {navigation-variable} {navigation}
+    \li \l {outputdir-variable} {outputdir}
+    \li \l {outputformats-variable} {outputformats}
+    \li \l {outputprefixes-variable} {outputprefixes}
+    \li \l {outputsuffixes-variable} {outputsuffixes}
+    \li \l {productname-variable} {productname}
+    \li \l {project-variable} {project}
+    \li \l {projectroot-variable} {projectroot}
+    \li \l {sourcedirs-variable} {sourcedirs}
+    \li \l {sources-variable} {sources}
+    \li \l {sources.fileextensions-variable} {sources.fileextensions}
+    \li \l {spurious-variable} {spurious}
+    \li \l {tabsize-variable} {tabsize}
+    \li \l {url-variable} {url}
+    \li \l {url.examples-variable} {url.examples}
+    \li \l {url.sources-variable} {url.sources}
+    \li \l {usealttextastitle-variable} {usealttextastitle}
+    \li \l {version-variable} {version}
+    \li \l {versionsym-variable} {versionsym}
+    \li \l {warninglimit-variable} {warninglimit}
+    \endlist
+
+    \section2 Categories
+
+    \list
+    \li \l {Generic Configuration Variables}
+    \li \l {Format-specific Configuration Variables}
+    \endlist
+
+    \section1 Configuration File Examples
+
+    \list
+    \li A minimum configuration file: \l minimum.qdocconf
+    \li The Qt configuration file: \l qtgui.qdocconf
+    \endlist
+*/
+
+
+/*!
+    \page 22-qdoc-configuration-generalvariables.html
+    \previouspage The QDoc Configuration File
+    \nextpage Creating Help Project Files
+
+    \title Generic Configuration Variables
+
+    With the general QDoc configuration variables, you can define
+    where QDoc will find the various source files it needs to generate
+    the documentation, as well as the directory to put the generated
+    documentation. You can also do some minor manipulation of QDoc
+    itself, controlling its output and processing behavior.
+
+    \target codeindent-variable
+    \section1 codeindent
+
+    The \c codeindent variable specifies the level of indentation that
+    QDoc uses when writing code snippets.
+
+    QDoc originally used a hard-coded value of four spaces for code
+    indentation to ensure that code snippets could be easily
+    distinguished from surrounding text. Since we can use \l{HTML
+    Specific Configuration Variables#HTML.stylesheets} {stylesheets}
+    to adjust the appearance of certain types of HTML elements, this
+    level of indentation is not always required.
+
+    \target codelanguages-variable
+    \section1 codelanguages
+
+    The \c codelanguages variable specifies a list of source code languages
+    not recognized by QDoc that can be used within \\code ... \\endcode
+    blocks. This enables blocks of code to be written in languages that
+    QDoc cannot parse, and HTML to be generated that can be highlighted
+    or processed by other tools.
+
+    \code [text]
+    codelanguages = Python Rust Java Swift "C#"
+    \endcode
+
+    Since QDoc can handle C++ (Cpp), QML and text, these languages do
+    not need to be specified in this list. Language names containing
+    special characters, such as C#, need to be quoted with double quotes
+    when included in this list.
+
+    The \c codelanguages variable was introduced in QDoc 6.11 to enable
+    online Qt documentation to use syntax highlighting for a subset of
+    the \l{languages supported by highlight.js}.
+
+    See also \l {code-command}{\\code}.
+
+    \target codeprefix-variable
+    \target codesuffix-variable
+    \section1 codeprefix, codesuffix
+
+    The \c codeprefix and \c codesuffix variables specify a pair of
+    strings that each code snippet is enclosed in.
+
+    \target defines-variable
+    \section1 defines
+
+    The \c defines variable specifies the C++ preprocessor symbols
+    that QDoc will recognize and respond to.
+
+    When a preprocessor symbol is specified using the \c defines
+    variable, you can also use the \l {if-command} {\\if} command to
+    enclose documentation that only will be included if the
+    preprocessor symbol is defined.
+
+    \badcode
+        defines = QT_GUI_LIB
+    \endcode
+
+    This ensures that QDoc will process the code that requires these
+    symbols to be defined. For example:
+
+    \code
+        #ifdef Q_GUI_LIB
+        void keyClick(QWidget *widget, Qt::Key key, Qt::KeyboardModifiers modifier = Qt::NoModifier, int delay = -1)
+        #endif
+    \endcode
+
+
+    You can also define preprocessor symbols manually on the command
+    line using the -D option. For example:
+
+    \badcode
+        currentdirectory$ qdoc -Dqtforpython qtgui.qdocconf
+    \endcode
+
+    In this case the -D option ensures that the \c qtforpython
+    preprocessor symbol is defined when QDoc processes the source
+    files defined in the qtgui.qdocconf file.
+
+    See also \l {falsehoods-variable} {falsehoods} and \l {if-command} {\\if}.
+
+    \target depends-variable
+    \section1 depends
+
+    The \c depends variable defines a list of other documentation projects
+    that this project depends on for resolving link targets for type
+    inheritance and anything else the documentation needs to link to.
+
+    Like Qt itself, documentation for Qt is distributed across multiple
+    modules. In a multi-module documentation project, the minimum set
+    of dependencies for a single module consists of actual build
+    dependencies. In addition, if there is a documentation project
+    (module) that acts as a top-level entry point for the entire
+    documentation set and provides \l {navigation-variable}{navigation}
+    links, each module documentation should include it as a dependency.
+
+    When QDoc generates documentation for a project, it will also generate
+    an \c .index file containing URLs to each linkable entity in the project.
+    Each dependency is a (lowercase) name of a project. This name must
+    match with the base name of the index file generated for that
+    project.
+
+    \badcode
+    depends = \
+        qtdoc \
+        qtcore \
+        qtquick
+    \endcode
+
+    When invoking QDoc on a project that has dependencies and uses the
+    \c depends variable, one or more \c -indexdir path(s) must be passed
+    as command line option(s). QDoc uses these paths to search for
+    the dependencies' index files.
+
+    \badcode
+    qdoc mydoc.qdocconf -outputdir $PWD/html -indexdir $QT_INSTALL_DOCS
+    \endcode
+
+    With above, QDoc will search for a file
+    \c {$QT_INSTALL_DOCS/qtdoc/qtdoc.index} for a dependency to \c qtdoc.
+    If an index file for a dependency is not found, QDoc will output a
+    warning.
+
+    The \c depends command accepts also a special value of '*'. This
+    instructs QDoc to load all index files found in specified index
+    directories; that is, "depends on everything".
+
+    \badcode
+    depends = *
+    \endcode
+
+    See also \l{indexes-variable}{indexes}, \l{project-variable}{project}, and
+    \l{url-variable}{url}.
+
+    \target documentationinheaders-variable
+    \section1 documentationinheaders
+
+    Set \c {documentationinheaders = true} to instruct QDoc to parse
+    documentation comments also in header files when generating
+    documentation for C++-based projects.
+
+    \warning In large code bases, this may impact QDoc's processing time.
+    Therefore, you shouldn't set this flag unless you need it.
+
+    This feature was introduced to QDoc with Qt 6.9.
+
+    \target exampledirs-variable
+    \section1 exampledirs
+
+    The \c exampledirs variable specifies the directories containing
+    the source code of the example files.
+
+    The \l {examples-variable} {examples} and \l
+    {exampledirs-variable} {exampledirs} variables are used by the \l
+    {quotefromfile-command} {\\quotefromfile}, \l {quotefile-command}
+    {\\quotefile} and \l {example-command} {\\example} commands. If
+    both the \l {examples-variable} {examples} and \l
+    {exampledirs-variable} {exampledirs} variables are defined, QDoc
+    will search in both, first in \l {examples-variable} {examples}
+    then in \l {exampledirs-variable} {exampledirs}.
+
+    QDoc will search through the directories in the specified order,
+    and accept the first matching file it finds. It will only search
+    in the specified directories, \e not in subdirectories.
+
+    \badcode
+        exampledirs = $QTDIR/doc/src \
+                      $QTDIR/examples \
+                      $QTDIR \
+                      $QTDIR/qmake/examples
+
+        examples    = $QTDIR/examples/widgets/analogclock/analogclock.cpp
+    \endcode
+
+    When processing
+
+    \badcode
+        \quotefromfile widgets/calculator/calculator.cpp
+    \endcode
+
+    QDoc will see if there is a file called \c calculator.cpp
+    listed as a value in the \l {examples-variable} {\c examples} variable. If
+    there isn't, it will search in the \c exampledirs variable, and
+    first see if there exists a file called
+
+    \badcode
+        $QTDIR/doc/src/widgets/calculator/calculator.cpp
+    \endcode
+
+    If it doesn't, QDoc will continue looking for a file called
+
+    \badcode
+        $QTDIR/examples/widgets/calculator/calculator.cpp
+    \endcode
+
+    and so forth.
+
+    See also \l {examples-variable}{examples}.
+
+    \target examples-variable
+    \section1 examples
+
+    The \c examples variable allows you to specify individual example
+    files in addition to those located in the directories specified by
+    the \l {exampledirs-variable} {\c exampledirs} variable.
+
+    The \c examples and \l {exampledirs-variable} {\c exampledirs}
+    variables are used by the \l {quotefromfile-command}
+    {\\quotefromfile}, \l {quotefile-command} {\\quotefile} and \l
+    {example-command} {\\example} commands. If both the \c examples and \l
+    {exampledirs-variable} {\c exampledirs} variables are defined,
+    QDoc will search in both, first in \c examples then in \l
+    {exampledirs-variable} {\c exampledirs}.
+
+    QDoc will search through the values listed for the \c examples
+    variable, in the specified order, and accept the first one it
+    finds.
+
+    For an extensive example, see the \l {exampledirs-variable} {\c
+    exampledirs} command. But note that if you know the file is listed
+    in the \c examples variable, you don't need to specify its path:
+
+    \badcode
+        \quotefromfile calculator.cpp
+    \endcode
+
+    See also \l {exampledirs-variable} {exampledirs}.
+
+    \target examplesinstallpath-variable
+    \section1 examplesinstallpath
+
+    The \c examplesinstallpath variable sets the root path for this
+    project's examples under the \e installed example directory.
+
+    Assuming a root install path of \c QT_INSTALL_EXAMPLES for all
+    examples, then the path
+
+    \badcode
+    <QT_INSTALL_EXAMPLES>/<examplesinstallpath>/<example_path>
+    \endcode
+
+    will be used to refer to a path of a single example within this
+    documentation project. These paths are recorded in the
+    \l {Example Manifest Files} {example manifest file}, read by Qt
+    Creator.
+
+    To ensure correct paths, \c examplesinstallpath must match with
+    one of the directories listed in \l {exampledirs-variable}
+    {exampledirs}. The path passed as an argument for each
+    \l {example-command} {\\example} command is relative to
+    the path in \e exampledirs.
+
+    For example:
+
+    \badcode
+    exampledirs = ./snippets \
+                  ../../../examples/mymodule
+
+    examplesinstallpath = mymodule
+    \endcode
+
+    And given a following \\example command:
+
+    \badcode *
+    /*!
+        \example basic/hello
+        ...
+    \1/
+    \endcode
+
+    Then, the path \c {mymodule/basic/hello} is recorded in the manifest file
+    for this example.
+
+    \note It is possible to override \c examplesinstallpath for an individual
+          \l {example-command}{\\example} using the \l {meta-command}{\\meta}
+          command.
+
+    \b {See also}: \l {exampledirs}, \l {example-command} {\\example}, and
+    \l {meta-command}{\\meta}.
+
+    \target examples.fileextensions-variable
+    \section1 examples.fileextensions
+
+    The \c examples.fileextensions variable specifies the file
+    extensions that QDoc will look for when collecting example files
+    for display in the documentation.
+
+    The default extensions are *.cpp, *.h, *.js, *.xq, *.svg, *.xml
+    and *.ui.
+
+    The extensions are given as standard wildcard expressions. You
+    can add a file extension to the filter using '+='. For example:
+
+    \badcode
+        examples.fileextensions += *.qrc
+    \endcode
+
+    See also \l{headers.fileextensions}.
+
+    \target examples.warnaboutmissingimages-variable
+    \section1 examples.warnaboutmissingimages
+
+    While processing example documentation, QDoc may emit warnings if an example
+    doesn't contain any images. This warning can be disabled by setting the
+    following configuration variable in the .qdocconf file for the project:
+
+    \c {examples.warnaboutmissingimages = false}
+
+    This configuration variable was introduced to QDoc with Qt 6.9.
+
+    See also \l{examples.warnaboutmissingprojectfiles-variable}
+    {examples.warnaboutmissingprojectfiles}.
+
+    \target examples.warnaboutmissingprojectfiles-variable
+    \section1 examples.warnaboutmissingprojectfiles
+
+    While processing example documentation, QDoc may emit warnings if an example
+    doesn't contain a project file. This warning can be disabled by setting the
+    following configuration variable in the .qdocconf file for the project:
+
+    \c {examples.warnaboutmissingprojectfiles = false}
+
+    This configuration variable was introduced to QDoc with Qt 6.9.
+
+    See also \l{examples.warnaboutmissingimages-variable}
+    {examples.warnaboutmissingimages}.
+
+    \target excludedirs-variable
+    \section1 excludedirs
+
+    The \c excludedirs variable is for listing directories that should \e{not}
+    be processed by QDoc, even if the same directories are included by the
+    \l {sourcedirs-variable} {sourcedirs} or \l {headerdirs-variable} {headerdirs}
+    variables.
+
+    For example:
+
+    \badcode
+        sourcedirs =  src/corelib
+        excludedirs = src/corelib/tmp
+    \endcode
+
+    When executed, QDoc will exclude the listed directories from
+    further consideration. Files in these directories will not be
+    read by QDoc.
+
+    See also \l {excludefiles-variable} {excludefiles}.
+
+    \target excludefiles-variable
+    \section1 excludefiles
+
+    The \c excludefiles variable allows you to specify individual files
+    that should \e{not} be processed by QDoc.
+
+    \badcode
+    excludefiles += $QT_CORE_SOURCES/../../src/widgets/kernel/qwidget.h \
+                    $QT_CORE_SOURCES/../../src/widgets/kernel/qwidget.cpp
+    \endcode
+
+    If you include the above in your qdocconf file for qtbase, there
+    will be no class documentation generated for QWidget.
+
+    Since Qt 5.6, also simple wildcards ('*' and '?') are recognized by
+    \c excludefiles. For example, to exclude all private Qt header files
+    from being parsed, define the following:
+
+    \badcode
+    excludefiles += "*_p.h"
+    \endcode
+
+    See also \l {excludedirs-variable} {excludedirs}.
+
+    \target extraimages-variable
+    \section1 extraimages
+
+    The \c extraimages variable tells QDoc to incorporate specific
+    images in the generated documentation.
+
+    QDoc automatically copies an image file from \l imagedirs to the output
+    directory if it's referenced by the \l {image-command} {\c{\image}} or
+    \l {inlineimage-command} {\c{\inlineimage}} command. If you want to copy
+    additional images, you must specify them using the \c extraimages variable.
+
+    The general syntax is \tt {\e{format}.extraimages = \e image}.
+
+    Example:
+    \badcode
+        HTML.extraimages = images/qt-logo.png
+    \endcode
+
+    See also \l images and \l imagedirs.
+
+    \target falsehoods-variable
+    \section1 falsehoods
+
+    The \c falsehoods variable defines the truth value of specified
+    preprocessor symbols as false.
+
+    The values of the variable are regular expressions (see QRegularExpression
+    for details). If this variable is not set for a preprocessor
+    symbol, QDoc assumes its truth value is true. The exception is
+    '0', which is always false.
+
+    QDoc will recognize, and is able to evaluate, the following
+    preprocessor syntax:
+
+    \code
+        #ifdef NOTYET
+         ...
+        #endif
+
+        #if defined (NOTYET)
+         ...
+        #end if
+    \endcode
+
+    However, faced with unknown syntax like
+
+    \code
+        #if NOTYET
+            ...
+        #endif
+    \endcode
+
+    QDoc will evaluate it as true by default, \e unless the
+    preprocessor symbol is specified within the \c falsehoods variable
+    entry:
+
+    \badcode
+        falsehoods = NOTYET
+    \endcode
+
+    See also \l defines.
+
+    \target generateindex-variable
+    \section1 generateindex
+
+    The \c generateindex variable contains a boolean value that
+    specifies whether to generate an index file when HTML
+    documentation is generated.
+
+    By default, an index file is always generated with HTML
+    documentation, so this variable is typically only used when
+    disabling this feature (by setting the value to \c false) or when
+    enabling index generation for the WebXML output (by setting the
+    value to \c true).
+
+    \target headerdirs-variable
+    \section1 headerdirs
+
+    The \c headerdirs variable specifies the directories containing
+    the header files associated with the \c .cpp source files used in
+    the documentation.
+
+    \badcode
+        headerdirs = $QTDIR/src \
+                     $QTDIR/extensions/activeqt \
+                     $QTDIR/extensions/motif \
+                     $QTDIR/tools/designer/src/lib/extension \
+                     $QTDIR/tools/designer/src/lib/sdk \
+                     $QTDIR/tools/designer/src/lib/uilib
+    \endcode
+
+    When executed, the first thing QDoc will do is to read through the
+    headers specified in the \l {headers} {\c headers} variable, and
+    the ones located in the directories specified in the \c headerdir
+    variable (including all subdirectories), building an internal
+    structure of the classes and their functions.
+
+    Then it will read through the sources specified in the \l
+    {sources-variable} {\c sources}, and the ones located in the
+    directories specified in the \l {sourcedirs-variable} {\c
+    sourcedirs} varible (including all subdirectories), merging the
+    documentation with the structure it retrieved from the header
+    files.
+
+    If both the \c headers and \c headerdirs variables are defined,
+    QDoc will read through both, first \l {headers} {\c headers} then
+    \c headerdirs.
+
+    In the specified directories, QDoc will only read the files with
+    the \c fileextensions specified in the \l {headers.fileextensions}
+    {\c headers.fileextensions} variable. The files specified by
+    \l {headers} {\c headers} will be read without taking into account
+    their fileextensions.
+
+    See also \l headers and \l headers.fileextensions.
+
+    \target headers-variable
+    \section1 headers
+
+    The \c headers variable allows you to specify individual header
+    files in addition to those located in the directories specified by
+    the \l {headerdirs} {\c headerdirs} variable.
+
+    \badcode
+        headers = $QTDIR/src/gui/widgets/qlineedit.h \
+                  $QTDIR/src/gui/widgets/qpushbutton.h
+    \endcode
+
+    When processing the \c headers variable, QDoc behaves in the same
+    way as it does when processing the \l {headerdirs} {\c headerdirs}
+    variable. For more information, see the \l {headerdirs} {\c
+    headerdirs} variable.
+
+    See also \l headerdirs.
+
+    \target headers.fileextensions-variable
+    \section1 headers.fileextensions
+
+    The \c headers.fileextensions variable specify the extension used
+    by the headers.
+
+    When processing the header files specified in the \l {headerdirs}
+    {\c headerdirs} variable, QDoc will only read the files with the
+    fileextensions specified in the \c headers.fileextensions
+    variable. In this way QDoc avoids spending time reading irrelevant
+    files.
+
+    The default extensions are *.ch, *.h, *.h++, *.hh, *.hpp, and
+    *.hxx.
+
+    The extensions are given as standard wildcard expressions. You
+    can add a file extension to the filter using '+='. For example:
+
+    \badcode
+        header.fileextensions += *.H
+    \endcode
+
+    \warning The above assignment may not work as described.
+
+    See also \l headerdirs.
+
+    \target includepaths-variable
+    \section1 includepaths
+
+    The \c includepaths variable is used for passing additional
+    include paths to the Clang parser that QDoc uses for parsing C++
+    code for documentation comments.
+
+    The variable accepts a list of paths, prefixed with \c{-I} (include
+    path), \c {-F} (\macos framework include path), or \c{-isystem}
+    (system include path). If a prefix is omitted, \c{-I} is used by
+    default.
+
+    Paths relative to the current .qdocconf file are resolved into
+    absolute paths. Paths that do not exist in the file system are
+    ignored.
+
+    \note For Qt documentation projects, the build system typically
+          provides the required include paths as command line
+          arguments when invoking QDoc.
+
+    See also \l moduleheader.
+
+    \target includeprivate-variable
+    \section1 includeprivate
+
+    Use \c includeprivate to include private C++ class members in your
+    documentation. QDoc normally excludes private functions, types, and
+    variables from generated documentation.
+
+    To include all private members, set \c includeprivate to \c true:
+
+    \badcode
+    includeprivate = true
+    \endcode
+
+    You can also enable specific member types:
+
+    \badcode
+    # Include only private functions
+    includeprivate.functions = true
+
+    # Include only private types (classes, enums, typedefs)
+    includeprivate.types = true
+
+    # Include only private variables
+    includeprivate.variables = true
+    \endcode
+
+    Specific settings override the global setting. For example:
+
+    \badcode
+    includeprivate = true
+    includeprivate.types = false
+    \endcode
+
+    This configuration includes private functions and variables but
+    excludes private types.
+
+    \note Document private members only when you need to explain internal
+          APIs and implementation details. Avoid exposing implementation
+          details that users don't need.
+
+    QDoc introduced \c includeprivate in Qt 6.11.
+
+    \target internalfilepatterns-variable
+    \section1 internalfilepatterns
+
+    The \c internalfilepatterns variable specifies file path patterns that
+    identify internal implementation files. \b{Classes} declared in files
+    matching these patterns are automatically marked as Internal, along with all
+    their members (properties, functions, enums, nested types). Free functions,
+    enums, and typedefs at file scope are not affected by this setting.
+
+    When showinternal is \c false (the default), these entities are excluded
+    from documentation validation. When \c showinternal is \c true, they are
+    included in the documentation but retain their Internal status, allowing
+    generators to style them differently (such as adding visual indicators for
+    internal APIs).
+
+    This is useful for private implementation headers that contain classes not
+    part of the documented public interface. In Qt, this includes private
+    headers ending with \c {_p.h}.
+
+    \section2 Pattern Syntax
+    The patterns support two syntaxes:
+
+    \list
+    \li \b{Shell-style glob patterns}: Simple wildcards where \c{*} matches any
+        characters and \c{?} matches exactly one character. \b{Glob patterns are
+        matched against the filename only}, not the full path, making them ideal
+        for patterns such as \c{*_p.h}.
+    \li \b{Regular expressions}: For path-based matching, use regex syntax. Any
+        pattern containing regex metacharacters (\c{^$[]{}()|+\\.}) is treated
+        as a regular expression and matched against the full normalized file
+        path.
+    \endlist
+
+    Patterns are matched with forward slashes (\c{/}) as directory separators.
+    QDoc normalizes path separators internally, so always use \c{/} in patterns
+    regardless of platform.
+
+    When a class is marked as Internal due to its file location, the Internal
+    status automatically propagates to all its members through the node
+    hierarchy.
+
+    \b{Example - Qt Convention (glob):}
+    \badcode
+        internalfilepatterns = *_p.h
+    \endcode
+    Matches any file ending with \c{_p.h} at any directory depth.
+
+    \b{Example - Multiple Filename Patterns (glob):}
+    \badcode
+        internalfilepatterns = *_p.h *_impl.h *_pch.h
+    \endcode
+    Matches files ending with \c{_p.h}, \c{_impl.h}, or \c{_pch.h}.
+
+    \note Glob patterns will \b{not} work for directory matching, as globs only
+          see the filename. For directory-based patterns, use regex instead.
+
+    \b{Example - Directory-Based Match (regex):}
+    \badcode *
+        internalfilepatterns = .\1/internal/.\1\.h
+    \endcode
+    Matches any \c{.h} file in any \c{internal} directory at any depth.
+
+    \b{Example - Multiple Patterns:}
+    \badcode *
+        internalfilepatterns = *_p.h .\1/private/.\1\.h
+    \endcode
+    Combines glob patterns for simple cases with regex for complex paths.
+
+    QDoc introduced \c internalfilepatterns in Qt 6.11.
+
+    \b{See also:} \l{excludedirs-variable}{excludedirs} and
+                  \l{excludefiles-variable}{excludefiles}.
+
+    \target ignorewords-variable
+    \section1 ignorewords
+
+    The \c ignorewords variable is used for specifying a list of strings
+    that QDoc will ignore when resolving hyperlink targets.
+
+    QDoc has an auto-linking feature, where linking is attempted for words
+    that resemble C++ or QML entities. Specifically, a string
+    qualifies for auto-linking if it is at least three characters in
+    length, has no whitespace, and it
+
+    \list
+      \li is a \e camelCase word, that is, it contains at least one
+          uppercase character at index greater than zero, or
+      \li contains the substring \c {()} or \c {::}, or
+      \li contains at least one special character, \c {@} or \c {_}.
+    \endlist
+
+    Adding a qualified word to \c ignorewords stops QDoc from linking
+    that word automatically. For example, if the word \e OpenGL is a
+    valid link target (a section, \l{page-command}{\\page}, or
+    \l {externalpage-command}{\\externalpage} title), a hyperlink for
+    each occurrence can be avoided with
+
+    \badcode
+    ignorewords += OpenGL
+    \endcode
+
+    Linking explicitly with \l {l-command}{\\l} continues to work for
+    ignored words.
+
+    The \c ignorewords variable was introduced in QDoc 5.14.
+
+    \target ignoresince-variable
+    \section1 ignoresince
+
+    The \c ignoresince variable is used for setting a cutoff value for
+    versions passed to the \l {since-command}{\\since} command. All
+    \\since commands that define a version lower than the cutoff are
+    ignored and do not generate output.
+
+    The cutoff values are project-specific. The project name can be
+    defined as a subvariable. The default project name is \e Qt. For
+    example:
+
+    \badcode
+    ignoresince      = 5.0
+    ignoresince.QDoc = 5.0
+    \endcode
+
+    These will ignore \\since commands where the major version is 4
+    or lower and the project is either \c QDoc or undefined.
+
+    \badcode
+    \since 3.2          # Ignored
+    \since 5.2          # Documented (as 'Qt 5.2')
+    \since QDoc 4.6     # Ignored
+    \since QtQuick 2.5  # Documented
+    \endcode
+
+    The \c ignoresince variable was introduced in QDoc 5.15.
+
+    See also \l {since-command}{\\since}.
+
+    \target imagedirs-variable
+    \section1 imagedirs
+
+    The \c imagedirs variable specifies the directories containing the
+    images used in the documentation.
+
+    The \l {images} {\c images} and \c imagedirs variables are used by
+    the \l {image-command} {\\image} and \l {inlineimage-command}
+    {\\inlineimage} commands. If both the \l {images} {\c images} and
+    \c imagedirs variables are defined, QDoc will search in both. First
+    in \l {images} {\c images}, then in \c imagedirs.
+
+    QDoc will search through the directories in the specified order,
+    and accept the first matching file it finds. It will only search
+    in the specified directories, \e not in subdirectories.
+
+    \badcode
+        imagedirs = $QTDIR/doc/src/images \
+                    $QTDIR/examples
+
+        images    = $QTDIR/doc/src/images/calculator-example.png
+    \endcode
+
+    When processing
+
+    \badcode
+        \image calculator-example.png
+    \endcode
+
+    QDoc will then see if there is a file called
+    calculator-example.png listed as a value in the \c images
+    variable. If there isn't, it will search in the \c imagedirs
+    variable for:
+
+    \badcode
+        $QTDIR/doc/src/images/calculator-example.png
+    \endcode
+
+    If the file doesn't exist, QDoc will look for a file called
+
+    \badcode
+        $QTDIR/examples/calculator-example.png
+    \endcode
+
+    \target imagesoutputdir-variable
+    \section1 imagesoutputdir
+
+    The \c imagesoutputdir variable controls the name of the subdirectory,
+    under the output directory, that QDoc uses to store images.
+
+    The default value for \c imagesoutputdir is \e images.
+
+    Image files passed as an argument to \qdoccmd {image} and
+    \qdoccmd {inlineimage} commands are copied to this directory.
+
+    Setting a custom output directory for images is useful for multi-module
+    documentation builds where multiple documentation projects are configured
+    to use a shared output directory. For example, with the following (shared)
+    configuration:
+
+    \badcode
+    imagesoutputdir = images/${project}
+    \endcode
+
+    Each documentation project in the build uses
+    \c {<outputdir>/images/<project name>} to store images, thus avoiding
+    identically-named image files overwriting each other.
+
+    This variable was introduced to QDoc with Qt 6.11.
+
+    \target language-variable
+    \section1 language
+
+    The \c language variable specifies the language of the source code
+    that is used in the documentation. Specifically, it defines the
+    default language for parsing source code within \\code .. \\endcode
+    blocks.
+
+    \badcode
+    language = Cpp
+    \endcode
+
+    The default language is C++ (Cpp), and doesn't need to be explicitly
+    specified. If the code snippets in the documentation consist mainly
+    of QML code, set QML as the default:
+
+    \badcode
+    language = QML
+    \endcode
+
+    See also \l {code-command}{\\code}.
+
+    \target locationinfo-variable
+    \section1 locationinfo
+
+    The \c locationinfo boolean variable determines whether detailed
+    location information about each entity is written to
+    \c {.index}-files and \c {.webxml}-files (when using the WebXML
+    output format).
+
+    Location information consists of the full path and line
+    number of either the declaration or documentation comment block
+    in the source code.
+
+    Setting this to \c false turns off location info:
+
+    \badcode
+        locationinfo = false
+    \endcode
+
+    The default value is \c true.
+
+    The \c locationinfo variable was introduced in QDoc 5.15.
+
+    \target logwarnings-variable
+    \section1 logwarnings
+
+    The \c logwarnings boolean variable determines whether QDoc writes
+    warning messages to a log file in addition to stderr.
+
+    When set to \c true, QDoc creates a log file named
+    \c {<project>-qdoc-warnings.log} in the output directory and writes
+    all warning messages to this file. Warnings are still also written
+    to stderr as usual.
+
+    The log file includes a header with project information and, by default,
+    the command-line arguments used to invoke QDoc for reproducibility.
+
+    Setting this to \c true enables warning logging:
+
+    \badcode
+        logwarnings = true
+    \endcode
+
+    The default value is \c false.
+
+    This feature is useful for large documentation sets or CI environments
+    where warnings can be numerous and scroll by too quickly to be analyzed
+    systematically.
+
+    The \c logwarnings variable was introduced in QDoc 6.11.
+
+    \section2 logwarnings.disablecliargs
+
+    The \c logwarnings.disablecliargs boolean sub-variable controls whether
+    CLI arguments are omitted from warning log file headers.
+
+    \badcode
+    logwarnings.disablecliargs = true
+    \endcode
+
+    When set to \c true, the command-line arguments are omitted from the log
+    file header, making the log files portable across different environments.
+    This is useful for test suites and CI systems where command-line arguments
+    contain environment-specific paths and temporary directories.
+
+    The default value is \c false.
+    The \c {logwarnings.disablecliargs} variable was introduced in QDoc 6.11.
+
+
+    \target macro-variable
+    \section1 macro
+
+    The \c macro variable is used to create your own simple QDoc
+    commands. The syntax is \tt {macro.\e{command} = \e{definition}}.
+    \e command is limited to a combination of letter and number
+    characters, but no special characters like dash or underscore.
+    \e definition is written using QDoc syntax.
+
+    A macro variable can be restricted for use in one type of output
+    generation. By appending \c {.HTML} to the macro name, for
+    example, the macro is only used when generating HTML output.
+
+    \badcode
+        macro.key              = "\\b"
+        macro.raisedaster.HTML = "<sup>*</sup>"
+    \endcode
+
+    The first macro defines the \\key command to render its argument
+    using a bold font. The second macro defines the \\raisedaster
+    command to render a superscript asterisk, but only when generating
+    HTML.
+
+    A macro can also take up to seven parameters:
+
+    \badcode
+    macro.hello            = "Hello \1!"
+    \endcode
+
+    Parameters are passed to macros the same way as to other commands:
+
+    \badcode
+    \hello World
+    \endcode
+
+    When using more than one parameter, or when an argument
+    contains whitespace, enclose each argument in braces:
+
+    \badcode
+    macro.verinfo          = "\1 (version \2)"
+    \endcode
+
+    \badcode
+    \verinfo {QFooBar} {1.0 beta}
+    \endcode
+
+    A special macro option, \e match, can be added for additional
+    regular expression pattern matching for expanded macros.
+
+    For example,
+
+    \badcode
+    macro.qtminorversion       = "$QT_VER"
+    macro.qtminorversion.match = "\\d+\\.(\\d+)"
+    \endcode
+
+    This creates a macro \\qtminorversion that expands to the minor
+    version based on the QT_VER environment variable.
+
+    A macro that defines a match pattern outputs all capture groups
+    (parentheses) concatenated together, or the exact matched string
+    if the pattern does not contain any capture groups.
+
+    For more information about pre-defined macros, see \l {Macros}.
+
+    \target manifestmeta-variable
+    \section1 manifestmeta
+
+    The \c manifestmeta variable specifies additional meta-content
+    for the example manifest files generated by QDoc.
+
+    See the \l{Manifest Meta Content} section for more information.
+
+    \target moduleheader-variable
+    \section1 moduleheader
+
+    The \c moduleheader variable defines the name of the module
+    header of a documented C++ module.
+
+    Projects that document C++ APIs require a module-level header
+    that includes all public classes, namespaces and header files
+    for the module. The Clang parser in QDoc uses this file to
+    build a pre-compiled header (PCH) for the module to increase
+    the speed of parsing source files.
+
+    By default, the \l{project-variable}{project} name is used
+    also as the module header name.
+
+    \badcode
+    project = QtCore
+    \endcode
+
+    With the above project name, QDoc searches a module header
+    \e QtCore in all known include paths; first using the paths
+    passed as command line arguments, then the paths listed in
+    the \l includepaths variable.
+
+    QDoc will issue a warning if the module header is not found.
+    It will then attempt to build an artificial module header
+    based on the headers listed in the \l {headerdirs-variable}
+    {headerdirs} variable.
+
+    For Qt documentation projects, the build system typically
+    provides QDoc with correct include paths to locate the
+    module header, provided that the \c project variable is set
+    correctly. The \c moduleheader variable provides an
+    alternative file name for QDoc to search for.
+
+    If the project contains no C++ documentation, QDoc should be
+    instructed to skip generating a PCH by setting \c moduleheader
+    to an empty string:
+
+    \badcode
+    # No C++ code to document in this project
+    moduleheader =
+    \endcode
+
+    See also \l includepaths and \l project.
+
+    \target naturallanguage-variable
+    \section1 naturallanguage
+
+    The \c naturallanguage variable specifies the natural language
+    used for the documentation generated by QDoc.
+
+    \badcode
+        naturallanguage = zh-Hans
+    \endcode
+
+    By default, the natural language is \c en for compatibility with
+    legacy documentation.
+
+    QDoc will add the natural language information to the HTML it
+    generates, using the \c lang and \c xml:lang attributes.
+
+    See also \l {sourceencoding-variable} {sourceencoding},
+    \l {outputencoding-variable} {outputencoding},
+    \l{http://www.w3.org/TR/xhtml1/#C_7}
+    {C.7. The lang and xml:lang Attributes} and
+    \l{http://www.w3.org/TR/i18n-html-tech-lang/#ri20040429.113217290}
+    {Best Practice 13: Using Hans and Hant codes}.
+
+    \target navigation-variable
+    \section1 navigation
+
+    The \c navigation sub-variables, if defined, set the home page, landing
+    page, C++ classes page, and QML types page that are visible in the
+    generated navigation bar for each page.
+
+    In a project with multiple sub-projects (for example, Qt modules), each
+    sub-project typically defines its own landing page while the same home
+    page is used across all sub-projects.
+
+    \b Sub-variables
+
+    \table
+      \row \li \c navigation.homepage
+           \li Project home page.
+      \row \li \c navigation.hometitle
+           \li (Optional) User-visible title for the home page.
+               Default value is taken from \c homepage.
+      \row \li \c navigation.landingpage
+           \li Sub-project landing page.
+      \row \li \c navigation.landingtitle
+           \li (Optional) User-visible title for the landing page.
+               Defaults value is taken from \c landingpage.
+      \row \li \c navigation.cppclassespage
+           \li Top-level page that lists all C++ classes for this (sub-)project.
+               Typically, the title of a \l {module-command}{\\module} page.
+      \row \li \c navigation.cppclassestitle
+           \li (Optional) User-visible title for the C++ classes page.
+               Default is "C++ Classes".
+      \row \li \c navigation.qmltypespage
+           \li Top-level page that lists all QML types for this (sub-)project.
+               Typically, the title of a \l {qmlmodule-command}{\\qmlmodule} page.
+      \row \li \c navigation.qmltypestitle
+           \li (Optional) User-visible title for the QML types page.
+               Default is "QML Types".
+      \row \li \c navigation.toctitles (Since QDoc 6.0)
+           \li Page title(s) containing a \l {list-command}{\\list} structure that
+               acts as a table of contents (TOC). QDoc generates navigation links
+               for pages listed in the TOC, without the need for
+               \l {nextpage-command}{\\nextpage} and \l {previouspage-command}
+               {\\previouspage} commands, as well as a navigation hierarchy that's
+               visible in the navigation bar (breadcrumbs) for HTML output.
+      \row \li \c navigation.toctitles.inclusive (Since QDoc 6.3)
+           \li If set to \c true, page(s) listed in \c navigation.toctitles
+               will also appear in the navigation bar as a root item.
+      \row \li \c navigation.trademarkspage (Since QDoc 6.8)
+           \li Title of a page that documents trademarks mentioned in the
+               documentation. See also \qdoccmd tm command.
+    \endtable
+
+    For example:
+
+    \badcode
+    # Common configuration
+    navigation.homepage  = index.html
+    navigation.hometitle = "Qt $QT_VER"
+
+    # qtquick.qdocconf
+    navigation.landingpage    = "Qt Quick"
+    navigation.cppclassespage = "Qt Quick C++ Classes"
+    navigation.qmltypespage   = "Qt Quick QML Types"
+    \endcode
+
+    The above configuration produces the following navigation bar for \c Item QML type:
+
+    \badcode
+    Qt 5.10 > Qt Quick > QML Types > Item QML Type
+    \endcode
+
+    \section2 Table of contents and navigation links
+
+    If there are one or more pages that act as a table of contents (TOC),
+    list their titles in \c navigation.toctitles to automate
+    the navigational (\e {previous} and \e {next} page) link generation
+    for all pages listed in a TOC.
+
+    QDoc expects a \qdoccmd {list} of links on each TOC page. Nested
+    sub-lists are allowed.
+
+    For example,
+
+    \badcode
+    \list
+        \li \l {Home}
+        \li \l {Getting started}
+        \li What's new
+            \list
+                \li \l {What's new in v1.3} {v1.3}
+                \li \l {What's new in v1.2} {v1.2}
+                \li \l {What's new in v1.1} {v1.1}
+            \endlist
+    \endlist
+    \endcode
+
+    Since QDoc version 6.10, also \qdoccmd {generatelist} can appear
+    in the table of contents list:
+
+    \badcode
+    \list
+        \li \l {Home}
+        \li \l {Getting started}
+        \li What's new
+        \generatelist [descending] whatsnew
+    \endlist
+    \endcode
+
+    Here, the result is similar to the first \\list, assuming all
+    three `What's new` pages are part of the same \c whatsnew group.
+
+    See also \qdoccmd {ingroup}.
+
+    \target overloadedsignalstarget-variable
+    \section1 overloadedsignalstarget
+
+    \b {Default:} \c connecting-overloaded-signals
+
+    The \c overloadedsignalstarget variable specifies the link target used in
+    automatically generated notes for overloaded signals.
+
+    When QDoc encounters an overloaded signal, it generates a note with a link
+    to help documentation on connecting to overloaded signals. By default, this
+    links to a target named \c connecting-overloaded-signals.
+
+    Projects can customize this to link to their own documentation:
+
+    \badcode
+    # Link to a target within the project
+    overloadedsignalstarget = signals-guide.html#overloaded-signals
+
+    # Link to external documentation
+    overloadedsignalstarget = https://example.com/docs/signals.html#overloaded-signals
+    \endcode
+
+    The target can be:
+    \list
+        \li A simple target name (for use with \qdoccmd {target} commands):
+            \c {connecting-overloaded-signals}
+        \li A relative URL: \c {signals-guide.html#overloaded-signals}
+        \li An absolute URL: \c {https://example.com/docs/signals.html#overloaded-signals}
+    \endlist
+
+    See also \l {overloadedslotstarget-variable} {overloadedslotstarget}.
+
+    \target overloadedslotstarget-variable
+    \section1 overloadedslotstarget
+
+    \b {Default:} \c connecting-overloaded-slots
+
+    The \c overloadedslotstarget variable specifies the link target used in
+    automatically generated notes for overloaded slots.
+
+    When QDoc encounters an overloaded slot, it generates a note with a link
+    to help documentation on connecting to overloaded slots. By default, this
+    links to a target named \c connecting-overloaded-slots.
+
+    Projects can customize this to link to their own documentation:
+
+    \badcode
+    # Link to a target within the project
+    overloadedslotstarget = signals-guide.html#overloaded-slots
+
+    # Link to external documentation
+    overloadedslotstarget = https://example.com/docs/slots.html#overloaded-slots
+    \endcode
+
+    The target can be:
+    \list
+        \li A simple target name (for use with \qdoccmd {target} commands):
+            \c {connecting-overloaded-slots}
+        \li A relative URL: \c {signals-guide.html#overloaded-slots}
+        \li An absolute URL: \c {https://example.com/docs/slots.html#overloaded-slots}
+    \endlist
+
+    See also \l {overloadedsignalstarget-variable} {overloadedsignalstarget}.
+
+    \target outputdir-variable
+    \section1 outputdir
+
+    The \c outputdir variable specifies the directory where QDoc will
+    put the generated documentation.
+
+    \badcode
+        outputdir = $QTDIR/doc/html
+    \endcode
+
+    locates the generated Qt reference documentation in
+    $QTDIR/doc/html. For example, the documentation of the QWidget
+    class is located in
+
+    \badcode
+        $QTDIR/doc/html/qwidget.html
+    \endcode
+
+    The associated images will be put in an \c images subdirectory.
+
+    \warning When running QDoc multiple times using the same output
+    directory, all files from the previous run will be lost.
+
+    \target outputencoding-variable
+    \section1 outputencoding
+
+    The \c outputencoding variable specifies the encoding used for the
+    documentation generated by QDoc.
+
+    \badcode
+        outputencoding = UTF-8
+    \endcode
+
+    By default, the output encoding is \c ISO-8859-1 (Latin1) for
+    compatibility with legacy documentation. When generating
+    documentation for some languages, particularly non-European
+    languages, this is not sufficient and an encoding such as UTF-8 is
+    required.
+
+    QDoc will encode HTML using this encoding and generate the correct
+    declarations to indicate to browsers which encoding is being
+    used. The \l naturallanguage configuration variable should also be
+    specified to provide browsers with a complete set of character
+    encoding and language information.
+
+    See also \l outputencoding and \l naturallanguage.
+
+    \target outputformats-variable
+    \section1 outputformats
+
+    The \c outputformats variable specifies the format(s) of
+    the generated documentation.
+
+    Since Qt 5.11, QDoc supports the HTML and WebXML formats; since
+    Qt 5.15, it can also generate the documentation in DocBook. If no
+    \c outputformats are specified, QDoc generates the documentation
+    in HTML (the default format). All output formats can be specified,
+    with dedicated output directories and other settings. For example:
+
+    \badcode
+    outputformats = WebXML HTML
+    WebXML.nosubdirs = true
+    WebXML.outputsubdir = webxml
+    WebXML.quotinginformation = true
+    \endcode
+
+    This generates HTML documentation using the default settings, as well
+    as WebXML documentation into output subdirectory \e webxml.
+
+    \target outputprefixes-variable
+    \section1 outputprefixes
+
+    The \c outputprefixes variable specifies a mapping between types of files
+    and the prefixes to prepend to the output file names in the generated
+    documentation.
+
+    QDoc supports adding an output prefix to the file names of QML type, C++
+    class, namespace, and header file reference pages.
+
+    \badcode
+        outputprefixes     = QML CPP
+        outputprefixes.QML = uicomponents-
+        outputprefixes.CPP = components-
+    \endcode
+
+    By default, files containing the API documentation for QML types
+    are prefixed with \c {qml-}. In the above example, the prefix \c
+    {uicomponents-} is used instead.
+
+    Likewise, C++ type documentation pages are prefixed with \c {components-}
+    in the above example. By default, C++ type pages have no prefix.
+
+    \target outputsuffixes-variable
+    \section1 outputsuffixes
+
+    The \c outputsuffixes variable specifies a mapping between types of
+    files and suffixes to apply to the module or type name as they appear
+    in the output file names.
+
+    QDoc supports adding an output suffix to the file names of module pages,
+    QML type, C++ class, namespace, and header file reference pages.
+
+    By default, no suffix is used. The QML output suffix, if defined, is
+    applied as a suffix to the module name as it appears in the file names
+    of QML type and QML module pages.
+
+    File names for C++ types do not include the module name. The CPP
+    output suffix, if defined, is applied as a suffix for the type name.
+
+    \badcode
+        outputsuffixes = QML CPP
+        {outputsuffixes.QML,outputsuffixes.CPP} = -tp
+    \endcode
+
+    With the definitions above, given a QML module name \e FooBar and the default
+    \l {outputprefixes-variable}{output prefix} (\c {qml-}), the name of
+    the generated file for a QML type \e FooWidget is
+    \c qml-foobar-tp-foowidget.html.
+
+    Likewise, for a C++ class \e QFoobar, QDoc generates \c qfoobar-tp.html.
+
+    The \c outputsuffixes variable was introduced in QDoc 5.6.
+
+    \target qhp-variable
+    \section1 qhp
+
+    The \c qhp sub-variables are used to define the information to be
+    written out to Qt Help Project (\c{qhp}) files.
+
+    See the \l{Creating Help Project Files} chapter for information
+    about this process.
+
+    Since QDoc 6.6, setting the base \c qhp variable to \c true means
+    that a valid help project configuration is expected:
+
+    \badcode
+    qhp = true
+    \endcode
+
+    Then, if a project configuration did not define \c {qhp.projects},
+    QDoc issues a warning. This is useful for ensuring that all
+    documentation projects with a shared top-level \e .qdocconf file
+    (as in Qt) are configured correctly.
+
+    To turn off the warning, set the variable to \c false.
+
+    \target sourcedirs-variable
+    \section1 sourcedirs
+
+    The \c sourcedirs variable specifies the directories containing
+    the \c .cpp or \c .qdoc files used in the documentation.
+
+    \badcode
+        sourcedirs  += .. \
+                       ../../../examples/gui/doc/src
+    \endcode
+
+    When executed, the first thing QDoc will do is to read through the
+    headers specified in the \l {header-command} {\c header} variable,
+    and the ones located in the directories specified in the \c
+    headerdir variable (including all subdirectories), building an
+    internal structure of the classes and their functions.
+
+    Then it will read through the sources specified in the \l
+    {sources} {\c sources}, and the ones located in the directories
+    specified in the \l {sourcedirs} {\c sourcedirs} variable
+    (including all subdirectories), merging the documentation with the
+    structure it retrieved from the header files.
+
+    If both the \c sources and \c sourcedirs variables are defined,
+    QDoc will read through both, first \l {sources} {\c sources} then
+    \c sourcedirs.
+
+    In the specified directories, QDoc will only read the files with
+    the \c fileextensions specified in the \l {sources.fileextensions}
+    {\c sources.fileextensions} variable. The files specified by \l {sources}
+    {\c sources} will be read independent of their fileextensions.
+
+    See also \l {sources-variable} {sources} and
+    \l {sources.fileextensions-variable} {sources.fileextensions}.
+
+    \target sourceencoding-variable
+    \section1 sourceencoding
+
+    The \c sourceencoding variable specifies the encoding used for the
+    source code and documentation.
+
+    \badcode
+        sourceencoding = UTF-8
+    \endcode
+
+    By default, the source encoding is \c ISO-8859-1 (Latin1) for
+    compatibility with legacy documentation. For some languages,
+    particularly non-European languages, this is not sufficient and an
+    encoding such as UTF-8 is required.
+
+    Although QDoc will use the encoding to read source and
+    documentation files, limitations of C++ compilers may prevent you
+    from using non-ASCII characters in source code comments. In cases
+    like these, it is possible to write API documentation completely
+    in documentation files.
+
+    See also \l {naturallanguage-variable} {naturallanguage} and
+    \l {outputencoding-variable} {outputencoding}.
+
+    \target sources-variable
+    \section1 sources
+
+    The \c sources variable allows you to specify individual source
+    files in addition to those located in the directories specified by
+    the \l {sourcedirs-variable} {sourcedirs} variable.
+
+    \badcode
+        sources = $QTDIR/src/gui/widgets/qlineedit.cpp \
+                  $QTDIR/src/gui/widgets/qpushbutton.cpp
+    \endcode
+
+    When processing the \c sources variable, QDoc behaves in the same
+    way as it does when processing the \l {sourcedirs-variable}
+    {sourcedirs} variable. For more information, see the \l
+    {sourcedirs-variable} {sourcedirs} variable.
+
+    See also \l {sourcedirs-variable} {sourcedirs}.
+
+    \target sources.fileextensions-variable
+    \section1 sources.fileextensions
+
+    The \c sources.fileextensions variable filters the files within a
+    source directory.
+
+    When processing the source files specified in the \l {sourcedirs}
+    {\c sourcedirs} variable, QDoc will only read the files with the
+    fileextensions specified in the \c sources.fileextensions
+    variable. In this way QDoc avoid spending time reading irrelevant
+    files.
+
+    The default extensions are *.c++, *.cc, *.cpp, *.cxx, *.mm, *.qml
+    and *.qdoc.
+
+    The extensions are given as standard wildcard expressions. You
+    can add a file extension to the filter using '+='. For example:
+
+    \badcode
+        sources.fileextensions += *.CC
+    \endcode
+
+    \warning The above assignment may not work as described.
+
+    See also \l {sourcedirs-variable} {sourcedirs} and \l
+    {sources-variable} {sources}.
+
+
+    \target spurious-variable
+    \section1 spurious
+
+    The \c spurious variable excludes specified QDoc warnings from the
+    output. The warnings are specified using standard wildcard
+    expressions.
+
+    \badcode
+        spurious = "Cannot find .*" \
+        "Missing .*"
+    \endcode
+
+    makes sure that warnings matching either of these expressions,
+    will not be part of the output when running QDoc. For example
+    would the following warning be omitted from the output:
+
+    \badcode
+        src/opengl/qgl_mac.cpp:156: Missing parameter name
+    \endcode
+
+    \target syntaxhighlighting
+    \section1 syntaxhighlighting
+
+    The \c syntaxhighlighting variable specifies whether QDoc should
+    perform syntax highlighting on source code quoted in the
+    documentation it generates.
+
+    \badcode
+        syntaxhighlighting = true
+    \endcode
+
+    will enable syntax highlighting for all supported programming
+    languages.
+
+    \target tabsize-variable
+    \section1 tabsize
+
+    The \c tabsize variable defines the size of a tab character.
+
+    \badcode
+    tabsize = 4
+    \endcode
+
+    will give the tab character the size of 4 spaces. The default
+    value of the variable is 8, and doesn't need to be specified.
+
+    \target tagfile-variable
+    \section1 tagfile
+
+    The \c tagfile variable specifies the Doxygen tag file to be
+    written when HTML is generated.
+
+    \target version-variable
+    \section1 version
+
+    The \c version variable specifies the version number of the
+    documented software.
+
+    \badcode
+        version = 5.6.0
+    \endcode
+
+    When a version number is specified (using the \tt{\l version} or
+    \tt {\l versionsym} variables in a \c .qdocconf file), it is
+    accessible through the corresponding \\version command for use in
+    the documentation.
+
+    \warning The \\version command's functionality is not fully
+    implemented; currently it only works within raw HTML code.
+
+    See also \l versionsym.
+
+    \target versionsym-variable
+    \section1 versionsym
+
+    The \c versionsym variable specifies a C++ preprocessor symbol
+    that defines the version number of the documented software.
+
+    \badcode
+        versionsym = QT_VERSION_STR
+    \endcode
+
+    QT_VERSION_STR is defined in qglobal.h as follows
+
+    \badcode
+        #define QT_VERSION_STR   "5.14.1"
+    \endcode
+
+    When a version number is specified (using the \tt{\l version} or
+    \tt {\l versionsym} variables in a \c .qdocconf file), it is
+    accessible through the corresponding \\version command for use in
+    the documentation.
+
+    \warning The \\version command's functionality is not fully
+    implemented. Currently, it only works within raw HTML code.
+
+    See also \l {version} {\\version}.
+
+    \target warninglimit-variable
+    \section1 warninglimit
+
+    The \c warninglimit variable sets the maximum number of documentation
+    warnings allowed. If this limit is exceeded, QDoc continues as normal
+    but exits with the warning count as the error code. If the limit was
+    not exceeded or \c warninglimit was not defined, QDoc process exits
+    with 0, assuming there were no other critical errors.
+
+    Setting the \c warninglimit to \c 0 means failure on any warning.
+
+    \note By default, QDoc does not enforce the warning limit. Enable it
+    with \c {warninglimit.enabled = true} or by defining
+    the \c QDOC_ENABLE_WARNINGLIMIT environment variable.
+
+    For example,
+
+    \badcode
+    # Fail the documentation build if we have more than 100 warnings
+    warninglimit = 100
+    warninglimit.enabled = true
+    \endcode
+
+    The \c warninglimit variable was introduced in Qt 5.11.
+*/
+
+/*!
+    \page 22-creating-help-project-files.html
+    \previouspage Generic Configuration Variables
+    \nextpage Format-specific Configuration Variables
+
+    \title Creating Help Project Files
+
+    \section1 Overview
+
+    Qt Assistant uses a system for managing Qt documentation that requires
+    QDoc to generate inventories of files.
+
+    QDoc allows configuration variables to be used to specify which pages are
+    to be used in each documentation set it generates. These are specified as
+    subvariables of the \c qhp variable with each set declared using a unique
+    identifier as a subvariable.
+
+    For example, the configuration file for the Qt Quick documentation set
+    specifies information about the set as subvariables with the
+    \c{qhp.QtQuick} prefix:
+
+    \badcode
+    qhp.projects = QtQuick
+
+    qhp.QtQuick.file                = qtquick.qhp
+    qhp.QtQuick.namespace           = org.qt-project.qtquick.$QT_VERSION_TAG
+    qhp.QtQuick.virtualFolder       = qtquick
+    qhp.QtQuick.indexTitle          = Qt Quick
+    qhp.QtQuick.indexRoot           =
+
+    qhp.QtQuick.subprojects         = qmltypes classes examples
+
+    qhp.QtQuick.subprojects.qmltypes.title = QML Types
+    qhp.QtQuick.subprojects.qmltypes.indexTitle = Qt Quick QML Types
+    qhp.QtQuick.subprojects.qmltypes.selectors = qmlclass
+    qhp.QtQuick.subprojects.qmltypes.sortPages = true
+
+    qhp.QtQuick.subprojects.classes.title = Classes
+    qhp.QtQuick.subprojects.classes.title = C++ Classes
+    qhp.QtQuick.subprojects.classes.indexTitle = Qt Quick C++ Classes
+    qhp.QtQuick.subprojects.classes.selectors = class fake:headerfile
+    qhp.QtQuick.subprojects.classes.sortPages = true
+
+    qhp.QtQuick.subprojects.examples.title = Examples
+    qhp.QtQuick.subprojects.examples.indexTitle = Qt Quick Examples and Tutorials
+    qhp.QtQuick.subprojects.examples.selectors = fake:example
+    \endcode
+
+    The documentation set may include one or more subprojects, which are added
+    to the table of contents under the name specified by \c title. The page
+    in the documentation referred to by the \c indexTitle acts as the index page
+    for the subproject. The page types to list under the subproject are specified
+    by \c selectors. The entries are alphabetically sorted if \c sortPages is set
+    to \c true.
+
+    \section2 Using Selectors
+
+    The \c selectors property specifies which page types are listed under the
+    table of contents entry for a subproject. Multiple selectors can be listed,
+    separated by whitespace.
+
+    \note If a subproject does not define a \c selectors property, all pages
+    in the project are included by default.
+
+    \table
+    \header \li Selector             \li Description
+    \row    \li \c namespace         \li Namespaces
+    \row    \li \c class             \li Classes
+    \row    \li \c qmltype           \li QML Types
+    \row    \li \c qmlclass          \li Alias for \c qmltype.
+    \row    \li \c module[:name]     \li C++ modules or members of the module
+                                         with a specified name.
+    \row    \li \c qmlmodule[:name]  \li QML modules or members of the module
+                                         with a specified name.
+    \row    \li \c doc[:subtype]     \li Documentation pages with a specified
+                                         \c subtype. Multiple subtypes can be
+                                         listed as a comma-separated list.
+    \row    \li \c fake              \li Alias for \c doc.
+    \row    \li \c group[:groupname] \li Documentation pages for members of a
+                                         specified group, as added using the
+                                         \l {ingroup-command}
+                                         {\\ingroup} groupname command.
+                                         Multiple group names can be listed as
+                                         a comma-separated list.
+                                         (Introduced in QDoc 5.6).
+    \row    \li \c none              \li Selects nothing; only a link to the
+                                         \c indexTitle is generated.
+                                         (Introduced in QDoc 6.9).
+    \endtable
+
+    Available subtypes for the \c doc selector:
+
+    \table
+    \header \li Subtype              \li Description
+    \row    \li \c example           \li Examples
+    \row    \li \c headerfile        \li Header files
+    \row    \li \c page              \li Documentation pages defined with the
+                                         \l {page-command} {\\page} command.
+    \endtable
+
+    For example, the following configuration would select example pages and
+    pages that include the \c {\ingroup tutorials} command:
+
+    \badcode
+    qhp.QtQuickControls.subprojects = examples
+    qhp.QtQuickControls.subprojects.examples.title = Examples and Tutorials
+    qhp.QtQuickControls.subprojects.examples.indexTitle = Qt Quick Controls Examples
+    qhp.QtQuickControls.subprojects.examples.selectors = doc:example group:tutorials
+    qhp.QtQuickControls.subprojects.examples.sortPages = true
+    \endcode
+
+    \section2 Adding Table of Contents
+
+    To create a table of contents for a manual, create a subproject with
+    a \c{type} property and set it to \c{manual}. The page in the documentation
+    referred to by the \c{indexTitle} property must contain a list of links
+    that acts as a table of contents for the whole manual. QDoc will take the
+    information in this list and create a table of contents for the subproject.
+
+    For example, the configuration file for Qt Creator defines only one
+    subproject for its documentation, including all the documentation in a
+    single manual:
+
+    \badcode
+    qhp.QtCreator.subprojects = manual
+    qhp.QtCreator.subprojects.manual.title = Qt Creator Manual
+    qhp.QtCreator.subprojects.manual.indexTitle = All topics
+    qhp.QtCreator.subprojects.manual.type = manual
+    \endcode
+
+    In this example, the page entitled "All topics" contains a nested
+    list of links to pages in the documentation which is duplicated in
+    Qt Assistant's Contents tab.
+
+    An example of such a list structure:
+
+    \badcode *
+    /\1!
+        \page qtcreator-toc.html
+        \title All topics
+
+        \list
+            \li \l {Installation}
+            \li \l {Getting started}
+            \list
+                \li \l {Configuring Qt Creator}
+                \li \l {Building and running an example}
+            \endlist
+            \li \l {Overview}
+            \li \l {Tutorials}
+                \generatelist tutorials
+            ...
+        \endlist
+    \1/
+    \endcode
+
+    Above, the \e {Getting started} topic has two pages as sub-topics.
+    The \e {Tutorials} topic is a \qdoccmd {group} page, and a \qdoccmd
+    {generatelist} command is used for listing individual tutorial pages
+    (members of \c tutorials group) as its sub-topics.
+*/
+
+/*!
+    \page 24-qdoc-configuration-htmlvariables.html
+    \previouspage Creating Help Project Files
+    \nextpage Supporting Derived Projects
+
+    \keyword HTML Specific Configuration Variables
+    \title Format-specific Configuration Variables
+
+    The format-specific configuration variables define the generated
+    documentation's style, or define the contents of the
+    documentation's footer or postheader.
+
+    Some of the configuration values are relevant only for the HTML
+    output format and their values contain raw HTML.
+
+    \target HTML.footer-variable
+    \section1 HTML.footer
+
+    The \c HTML.footer variable defines the content of the generated
+    HTML documentation's footer.
+
+    The footer is rendered at the bottom of the generated
+    documentation page.
+
+    The variable's value is given as raw HTML code enclosed by
+    quotation marks. Note that if the value spans several lines, each
+    line needs to be enclosed by quotation marks.
+
+    \badcode
+        HTML.footer = "<p /><address><hr /><div align=\"center\">\n" \
+                      ...
+                      "</tr></table></div></address>"
+    \endcode
+
+    \target FORMAT.nosubdirs
+    \section1 <FORMAT>.nosubdirs
+
+    A boolean value which, when \c true, enables single-directory output
+    mode; all generated files go to \l {FORMAT.outputsubdir} directory,
+    instead of a subdirectory based on the documentation project name.
+
+    \target FORMAT.outputsubdir
+    \section1 <FORMAT>.outputsubdir
+
+    Defines the subdirectory under \l outputdir where documentation is
+    generated.
+
+    \badcode
+    HTML.nosubdirs = true
+    HTML.outputsubdir = html
+    \endcode
+
+    With above, the output goes to \c {<outputdir>/html}.
+
+    \target HTML.postheader-variable
+    \section1 HTML.postheader
+
+    The \c HTML.postheader variable defines the content of the
+    generated HTML documentation's postheader.
+
+    The header is rendered at the top of the generated documentation
+    page, immediately after the opening \c {<body>} element.
+
+    The variable's value is given as raw HTML enclosed by quotation
+    marks. Note that if the value spans several lines, each line needs
+    to be enclosed by quotation marks.
+
+    After rendering the content of \c HTML.postheader, QDoc outputs the
+    page's breadcrumb navigation as set of \c {<li>} elements. Therefore,
+    postheader must end with a valid parent element for \c {<li>}, such
+    as \c {<ul>}. The default value for \c HTML.postheader is
+
+    \badcode
+     HTML.postheader = "<ul class=\"breadcrumb\">\n"
+    \endcode
+
+    See also \qdocvar {HTML.postpostheader}.
+
+    \target HTML.postpostheader-variable
+    \section1 HTML.postpostheader
+
+    The \c HTML.postpostheader variable defines the content that
+    closes the HTML document's postheader and its enclosed list of
+    navigation breadcrumb items. Its value must include the
+    matching closing tag for the list element opened in
+    \qdocvar {HTML.postheader}.
+
+    The default value for \c HTML.postpostheader is
+
+    \badcode
+    HTML.postpostheader = "</ul>\n"
+    \endcode
+
+    \target FORMAT.quotinginformation
+    \section1 <FORMAT>.quotinginformation
+
+    A boolean value which, when \c true, generates references to
+    quoted content (for example, \l {quotefromfile-command}{\\quotefromfile}
+    and \l {snippet-command}{\\snippet} commands) instead of including
+    the content directly.
+
+    Used currently for the \c WebXML output format.
+
+    \badcode
+    WebXML.quotinginformation = true
+    \endcode
+
+    \target HTML.style-variable
+    \section1 HTML.style
+
+    The HTML.style variable defines the style for
+    the generated HTML documentation.
+
+    The variable's value is given as raw HTML enclosed by quotation
+    marks. Note that if the value spans several lines, each line needs
+    to be enclosed by quotation marks.
+
+    \badcode
+    HTML.style = "h3.fn,span.fn" \
+                 "{ margin-left: 1cm; text-indent: -1cm; }\n" \
+                 "a:link { color: #004faf; text-decoration: none }\n" \
+                 "a:visited" \
+                 "{ color: #672967; text-decoration: none }\n" \
+                 "td.postheader { font-family: sans-serif }\n" \
+                 "tr.address { font-family: sans-serif }\n" \
+                 "body { background: #ffffff; color: black; }"
+    \endcode
+
+    \target HTML.stylesheets-variable
+    \section1 HTML.stylesheets
+
+    The HTML.stylesheets variable defines a list of stylesheets
+    to use for the generated HTML documentation.
+
+    Using separate stylesheets for the documentation makes it easier
+    to customize and experiment with the style used once the contents
+    has been generated. Typically, it is only necessary to define a
+    single stylesheet for any set of documentation; for example:
+
+    \badcode
+    HTML.stylesheets = path/to/classic.css
+    \endcode
+
+    QDoc expects to find stylesheets in the directory containing the
+    \l qtgui.qdocconf file, and it will copy those specified to the output
+    directory alongside the HTML pages.
+
+    \target HTML.tocdepth
+    \section1 <FORMAT>.tocdepth
+
+    The \c {<FORMAT>.tocdepth} variable defines how many document sections
+    are printed in the table of contents. Setting tocdepth to \c 0 disables
+    the table of contents while leaving it undefined prints all document
+    sections.
+
+    Currently only has an effect for the HTML format:
+
+    \badcode
+    HTML.tocdepth = 3
+    \endcode
+*/
+
+/*!
+    \page 25-qdoc-configuration-derivedprojects.html
+    \previouspage Format-specific Configuration Variables
+    \nextpage Example Manifest Files
+
+    \title Supporting Derived Projects
+
+    Some configuration variables allow you to use QDoc to support
+    Qt-based projects. They allow your project to contain links to the
+    online Qt documentation, which means that QDoc will be able to
+    create links to the class reference documentation, without any
+    explicit linking command.
+
+    \target description-variable
+    \section1 description
+
+    The description variable holds a short description of the
+    associated project.
+
+    See also \l project.
+
+    \target indexes-variable
+    \section1 indexes
+
+    The \c indexes variable defines a set of paths to index files to load.
+
+    \badcode
+    indexes = \
+        $QT_INSTALL_DOCS/qtcore/qtcore.index \
+        $SOME_OTHER_PROJECT/doc/foo.index
+    \endcode
+
+    The \c indexes variable provides an alternative to \l depends for
+    defining project's dependencies. As direct paths are provided, no
+    \c -indexdir command line option(s) are required when invoking QDoc.
+
+    It is possible to define dependencies using either variable. Qt
+    documentation only uses the \c depends variable.
+
+    See also \l depends, \l project and \l url.
+
+    \target productname-variable
+    \section1 productname
+
+    Use the \c productname variable if the name of the product being documented
+    is different from the name of the documentation \qdocvar project. This is
+    particularly useful for larger documentation sets that consist of multiple
+    documentation projects and/or modules, as it allows QDoc to generate the
+    product name instead of project name in certain contexts, such as the
+    \qdoccmd since command.
+
+    For example, Qt defines \e Qt as the \c productname, while each individual
+    module defines its own \c project name. This allows authors to use the
+    shorthand notation for the \qdoccmd since command.
+
+    This configuration variable was introduced to QDoc with Qt 6.9.
+
+    See also \qdoccmd {since}.
+
+    \target project-variable
+    \section1 project
+
+    The \c project variable provides a name for the project associated
+    with the \c .qdocconf file. This is a mandatory variable that all
+    projects must set.
+
+    The project's name is used to form a file name for the associated
+    project's \e index file.
+
+    \badcode
+        project = QtCreator
+    \endcode
+
+    This will cause an index file called \c qtcreator.index to be
+    created.
+
+    If the project name contains whitespace or special characters,
+    these are replaced with dashes ('-') in the generated index file
+    name.
+
+    See also \l depends, \l indexes, and \l description.
+
+    \target projectroot-variable
+    \section1 projectroot
+
+    The \c projectroot variable sets the project root directory for relative
+    path calculation in warning logs.
+
+    \badcode
+    projectroot = /path/to/project/root
+    \endcode
+
+    QDoc uses the following priority order to determine the project root:
+
+    \list 1
+        \li \c QDOC_PROJECT_ROOT environment variable
+        \li \c projectroot configuration variable
+        \li If neither is set, absolute paths are used
+    \endlist
+
+    When a project root is set, QDoc converts absolute file paths to relative
+    paths in warning log files. This makes logs portable across different
+    build environments.
+
+    Qt's build system automatically sets \c QDOC_PROJECT_ROOT, so you
+    typically don't need to set \c projectroot manually.
+
+    For standalone QDoc usage, setting \c projectroot enables portable
+    warning logs:
+
+    \badcode
+    projectroot = /home/user/myproject
+    logwarnings = true
+    \endcode
+
+    The \c projectroot variable was introduced in QDoc 6.11.
+    See also \l logwarnings.
+
+    \target url-variable
+    \section1 url
+
+    The \c url variable holds the base URL for the
+    documentation associated with the current project.
+
+    The URL is stored in the generated index file for the
+    project. When we use the index on its own, QDoc will use this as
+    the base URL when constructing links to classes, functions, and
+    other things listed in the index.
+
+    \badcode
+    project     = QtCore
+    description = Qt Core Reference Documentation
+    url         = https://doc.qt.io/qt/
+
+    ...
+    \endcode
+
+    This ensures that whenever QDoc generates
+    references to entities in the Qt Core module, the base URL is
+    \c https://doc.qt.io/qt/.
+
+    See also \l depends, \l indexes and \l {url.examples}.
+
+    \target url.examples-variable
+    \section1 url.examples
+
+    The \c url.examples variable holds the base URL for the examples
+    associated with the current project.
+
+    If defined, a link to the example project directory is generated
+    at the end of each example documentation page. The \c url.examples
+    variable refers to the root directory of the examples related to
+    this project; it can be a link to an online repository (starting
+    with \e http:// or \e https://), or to the local file system
+    (\c file://).
+
+    If \c url.examples is not defined, QDoc will output a list of
+    example's files and images instead.
+
+    For example, given these definitions:
+
+    \badcode
+    url.examples = "https://code.qt.io/cgit/qt/qtbase.git/tree/examples/"
+    examplesinstallpath = corelib
+    \endcode
+
+    Then, for the following \l {example-command}{\\example} command:
+
+    \badcode *
+    /\1!
+        \example threads/semaphores
+        ...
+    \1/
+    \endcode
+
+    QDoc generates a link to
+    \c https://code.qt.io/cgit/qt/qtbase.git/tree/examples/corelib/threads/semaphores.
+
+    If the URL contains more components (for example, a query string)
+    after the example path, \\1 can be used as a placeholder for the
+    path:
+
+    \badcode
+    url.examples = "https://code.qt.io/cgit/qt/qtbase.git/tree/examples/\1?h=$QT_VER"
+    examplesinstallpath = corelib
+    \endcode
+
+    Given the same \\example command as above and assuming that
+    \c $QT_VER expands to \c {5.13}, the generated URL is
+    \c https://code.qt.io/cgit/qt/qtbase.git/tree/examples/corelib/threads/semaphores?h=5.13.
+
+    \c {url.examples} variable was introduced in QDoc version 5.13.
+
+    See also \l url, \l examplesinstallpath, and \l {example-command}{\\example}.
+
+    \target url.sources-variable
+    \section1 url.sources
+
+    The \c {url.sources} variable holds the base URL for the C++ source
+    code associated with the current project. This is a URL for viewing
+    the project's sources in a repository, for example, on \e {github.com}.
+
+    Enable the source links by setting \c {url.sources.enabled} to
+    \c true. When enabled, QDoc generates a link to a declaration
+    in the \e synopsis (signature) of each documented C++ entity in its
+    \e {Detailed description} section.
+
+    In addition, define the root directory of the sources with
+    \c {url.sources.rootdir}. The generated link is composed of the
+    base URL (\c {url.sources}) and the path of the source file, relative
+    to \c {url.sources.rootdir}.
+
+    If the URL contains more components after the path (for example, a query
+    string specifying a branch), \\1 acts as a placeholder for
+    the path. Similarly, \\2 acts as a placeholder for the line number.
+
+    \c {url.sources.linktext} sets the user-visible link text for source
+    links. By default, the link text is an empty string; use the \c {a.srclink}
+    CSS selector to style the links in the HTML output.
+
+    For example, with the following configuration in
+    \c {qtbase/src/gui/doc/qtgui.qdocconf}:
+
+    \badcode
+    url.sources = "https://code.qt.io/cgit/qt/qtbase.git/tree/\1?h=$QT_VER#n\2"
+    url.sources.rootdir = ../../..    # root of the `qtbase` repository
+    url.sources.linktext = "(source)"
+    url.sources.enabled = true
+    \endcode
+
+    QDoc will generate links to \e code.qt.io for each documented C++
+    entity, specific to the branch defined with the \c QT_VER environment
+    variable.
+
+    The \c {url.sources} variable was introduced to QDoc with Qt 6.10.
+
+    \target usealttextastitle-variable
+    \section1 usealttextastitle
+    In some cases, it's desirable to provide a "tooltip" for images when
+    rendered in graphical browsers. QDoc offers a way to do this, where the
+    \e alt text given as an optional string to the \qdoccmd image command is
+    also used as the \e title attribute for the image. Enable this behavior
+    by setting the this variable with \c {usealttextastitle = true} in your
+    QDoc configuration file.
+
+    This configuration variable was introduced to QDoc with Qt 6.9.
+
+
+    \target howto
+    \section1 How to Support Derived Projects
+
+    This feature makes use of the comprehensive indexes generated by
+    QDoc when it creates the Qt reference documentation.
+
+    For example, \l qtgui.qdocconf (the configuration file for Qt GUI)
+    contains the following variable definitions:
+
+    \badcode
+        project     = QtGui
+        description = Qt GUI Reference Documentation
+        url         = http://doc.qt.io/qt/
+
+        ...
+    \endcode
+
+    The \l project variable name is used to form a file name for the
+    index file; in this case the \c qtgui.index file is created. The \l
+    url is stored in the index file. Afterwards, QDoc will use this
+    as the base URL when constructing links to classes, functions,
+    and other things listed in the index.
+
+    See also \l depends, \l indexes, \l project, and \l url.
+*/
+
+/*!
+    \page 26-qdoc-configuration-example-manifest-files.html
+    \previouspage Supporting Derived Projects
+
+    \title Example Manifest Files
+
+    QDoc generates example-manifest.xml files that contain information about
+    all documented examples. These files are used by Qt Creator to present a
+    list of examples in its welcome screen and to link to their documentation.
+
+    \section1 Manifest XML Structure
+
+    A manifest file has the following structure:
+
+    \badcode
+    <?xml version="1.0" encoding="UTF-8"?>
+    <instructionals module="QtGui">
+        <examples>
+            <example
+                name="Analog Clock Window"
+                docUrl="qthelp://org.qt-project.qtgui.502/qtgui/analogclock.html"
+                projectPath="gui/analogclock/analogclock.pro"
+                imageUrl="qthelp://org.qt-project.qtgui.502/qtgui/images/analogclock-window.png">
+                <description><![CDATA[The Analog Clock Window example shows how
+                    to draw the contents of a custom window.]]></description>
+                <tags>analog,clock,window</tags>
+                <fileToOpen>gui/analogclock/main.cpp</fileToOpen>
+            </example>
+            ...
+        </examples>
+    </instructionals>
+    \endcode
+
+    Each \c {<example>} element contains information about a name,
+    description, the location of the project file and documentation,
+    as well as a list of tags associated with the example.
+
+    \target metacontent
+    \section1 Manifest Meta Content
+
+    It is possible to augment the manifest files with additional
+    meta-content - that is, extra attributes and tags for selected
+    examples, using the \c manifestmeta configuration command.
+
+    One use case for meta-content is highlighting a number of prominent
+    examples. Another is improving search functionality by adding
+    relevant keywords as tags for a certain category of examples.
+
+    The examples for which meta-content is applied to is specified using
+    one or more filters. Matching examples to filters is done based on
+    names, with each example name prefixed with a module name and a
+    slash. Simple wildcard matching is supported; by using \c {*} at the
+    end it's possible to match multiple examples with a single string.
+
+    Example:
+
+    \badcode
+    manifestmeta.filters                = highlighted sql webkit global
+
+    manifestmeta.highlighted.names      = "QtGui/Analog Clock Window" \
+                                          "QtWidgets/Analog Clock"
+    manifestmeta.highlighted.attributes = isHighlighted:true
+
+    manifestmeta.sql.names              = "QtSql/*"
+    manifestmeta.sql.tags               = database,sql
+
+    manifestmeta.webkit.names           = "QtWebKitExamples/*"
+    manifestmeta.webkit.tags            = webkit
+
+    manifestmeta.global.names           = *
+    manifestmeta.global.tags            = qt6
+    \endcode
+
+    Above, an \c isHighlighted attribute is added to two examples. If
+    the attribute value is omitted, QDoc uses the string \c {true} by
+    default. Extra tags are added for Qt WebKit and Qt SQL examples, and
+    another tag is applied to all examples by using just \c {*} as the
+    match string.
+*/
+
+/*!
+    \page 21-1-minimum-qdocconf.html
+    \previouspage qtgui.qdocconf
+    \nextpage The QDoc Configuration File
+
+    \title minimum.qdocconf
+
+    \quotefile examples/minimum.qdocconf
+*/
+
+/*!
+    \page 21-2-qtgui-qdocconf.html
+    \previouspage Supporting Derived Projects
+    \nextpage minimum.qdocconf
+
+    \title qtgui.qdocconf
+
+    \quotefile files/qtgui.qdocconf
+*/
+
+/*!
+    \externalpage https://highlightjs.readthedocs.io/en/latest/supported-languages.html
+    \title languages supported by highlight.js
+*/

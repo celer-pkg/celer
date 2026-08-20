@@ -1,0 +1,719 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.1">
+<context>
+    <name>ClassWithTemplateFn</name>
+    <message>
+        <location filename="template_classes.cpp" line="444"/>
+        <source>ClassWithTemplateFn</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>TemplateClassWithFn</name>
+    <message>
+        <location filename="template_classes.cpp" line="472"/>
+        <source>TemplateClassWithFn</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>TemplateClassWithTemplateFn</name>
+    <message>
+        <location filename="template_classes.cpp" line="459"/>
+        <source>TemplateClassWithTemplateFn</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cl1</name>
+    <message>
+        <location filename="template_classes.cpp" line="12"/>
+        <source>cl1::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="14"/>
+        <source>cl1::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="16"/>
+        <source>cl1::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="18"/>
+        <source>cl1::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cl10</name>
+    <message>
+        <location filename="template_classes.cpp" line="131"/>
+        <source>cl10::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="133"/>
+        <source>cl10::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="135"/>
+        <source>cl10::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="137"/>
+        <source>cl10::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cl11</name>
+    <message>
+        <location filename="template_classes.cpp" line="144"/>
+        <source>cl11::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="146"/>
+        <source>cl11::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="148"/>
+        <source>cl11::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="150"/>
+        <source>cl11::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cl12</name>
+    <message>
+        <location filename="template_classes.cpp" line="157"/>
+        <source>cl12::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="159"/>
+        <source>cl12::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="161"/>
+        <source>cl12::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="163"/>
+        <source>cl12::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cl13</name>
+    <message>
+        <location filename="template_classes.cpp" line="171"/>
+        <source>cl13::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="173"/>
+        <source>cl13::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="175"/>
+        <source>cl13::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="177"/>
+        <source>cl13::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cl14</name>
+    <message>
+        <location filename="template_classes.cpp" line="183"/>
+        <source>cl14::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="185"/>
+        <source>cl14::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="187"/>
+        <source>cl14::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="189"/>
+        <source>cl14::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cl15</name>
+    <message>
+        <location filename="template_classes.cpp" line="196"/>
+        <source>cl15::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="198"/>
+        <source>cl15::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="200"/>
+        <source>cl15::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="202"/>
+        <source>cl15::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cl16</name>
+    <message>
+        <location filename="template_classes.cpp" line="209"/>
+        <source>cl16::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="211"/>
+        <source>cl16::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="213"/>
+        <source>cl16::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="215"/>
+        <source>cl16::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cl2</name>
+    <message>
+        <location filename="template_classes.cpp" line="25"/>
+        <source>cl2::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="27"/>
+        <source>cl2::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="29"/>
+        <source>cl2::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="31"/>
+        <source>cl2::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cl3</name>
+    <message>
+        <location filename="template_classes.cpp" line="38"/>
+        <source>cl3::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="40"/>
+        <source>cl3::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="42"/>
+        <source>cl3::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="44"/>
+        <source>cl3::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cl4</name>
+    <message>
+        <location filename="template_classes.cpp" line="51"/>
+        <source>cl4::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="53"/>
+        <source>cl4::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="55"/>
+        <source>cl4::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="57"/>
+        <source>cl4::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cl5</name>
+    <message>
+        <location filename="template_classes.cpp" line="65"/>
+        <source>cl5::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="67"/>
+        <source>cl5::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="69"/>
+        <source>cl5::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="71"/>
+        <source>cl5::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cl6</name>
+    <message>
+        <location filename="template_classes.cpp" line="78"/>
+        <source>cl6::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="80"/>
+        <source>cl6::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="82"/>
+        <source>cl6::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="84"/>
+        <source>cl6::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cl7</name>
+    <message>
+        <location filename="template_classes.cpp" line="91"/>
+        <source>cl7::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="93"/>
+        <source>cl7::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="95"/>
+        <source>cl7::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="97"/>
+        <source>cl7::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cl8</name>
+    <message>
+        <location filename="template_classes.cpp" line="104"/>
+        <source>cl8::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="106"/>
+        <source>cl8::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="108"/>
+        <source>cl8::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="110"/>
+        <source>cl8::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cl9</name>
+    <message>
+        <location filename="template_classes.cpp" line="118"/>
+        <source>cl9::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="120"/>
+        <source>cl9::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="122"/>
+        <source>cl9::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="124"/>
+        <source>cl9::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>context</name>
+    <message>
+        <location filename="template_classes.cpp" line="430"/>
+        <source>text</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>global</name>
+    <message>
+        <location filename="template_classes.cpp" line="410"/>
+        <source>func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="412"/>
+        <source>func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="414"/>
+        <source>func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="416"/>
+        <source>func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ns::NsTemplateClassWithFn</name>
+    <message>
+        <location filename="template_classes.cpp" line="497"/>
+        <source>NsTemplateClassWithFn</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ns::NsTemplateClassWithTemplateFn</name>
+    <message>
+        <location filename="template_classes.cpp" line="511"/>
+        <source>NsTemplateClassWithTemplateFn</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ns::cl1</name>
+    <message>
+        <location filename="template_classes.cpp" line="254"/>
+        <source>ns::cl1::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="256"/>
+        <source>ns::cl1::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="258"/>
+        <source>ns::cl1::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="260"/>
+        <source>ns::cl1::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ns::cl10</name>
+    <message>
+        <location filename="template_classes.cpp" line="373"/>
+        <source>ns::cl10::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="375"/>
+        <source>ns::cl10::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="377"/>
+        <source>ns::cl10::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="379"/>
+        <source>ns::cl10::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ns::cl11</name>
+    <message>
+        <location filename="template_classes.cpp" line="386"/>
+        <source>ns::cl11::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="388"/>
+        <source>ns::cl11::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="390"/>
+        <source>ns::cl11::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="392"/>
+        <source>ns::cl11::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ns::cl12</name>
+    <message>
+        <location filename="template_classes.cpp" line="399"/>
+        <source>ns::cl12::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="401"/>
+        <source>ns::cl12::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="403"/>
+        <source>ns::cl12::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="405"/>
+        <source>ns::cl12::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ns::cl2</name>
+    <message>
+        <location filename="template_classes.cpp" line="267"/>
+        <source>ns::cl2::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="269"/>
+        <source>ns::cl2::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="271"/>
+        <source>ns::cl2::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="273"/>
+        <source>ns::cl2::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ns::cl3</name>
+    <message>
+        <location filename="template_classes.cpp" line="280"/>
+        <source>ns::cl3::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="282"/>
+        <source>ns::cl3::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="284"/>
+        <source>ns::cl3::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="286"/>
+        <source>ns::cl3::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ns::cl4</name>
+    <message>
+        <location filename="template_classes.cpp" line="293"/>
+        <source>ns::cl4::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="295"/>
+        <source>ns::cl4::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="297"/>
+        <source>ns::cl4::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="299"/>
+        <source>ns::cl4::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ns::cl5</name>
+    <message>
+        <location filename="template_classes.cpp" line="307"/>
+        <source>ns::cl5::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="309"/>
+        <source>ns::cl5::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="311"/>
+        <source>ns::cl5::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="313"/>
+        <source>ns::cl5::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ns::cl6</name>
+    <message>
+        <location filename="template_classes.cpp" line="320"/>
+        <source>ns::cl6::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="322"/>
+        <source>ns::cl6::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="324"/>
+        <source>ns::cl6::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="326"/>
+        <source>ns::cl6::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ns::cl7</name>
+    <message>
+        <location filename="template_classes.cpp" line="333"/>
+        <source>ns::cl7::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="335"/>
+        <source>ns::cl7::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="337"/>
+        <source>ns::cl7::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="339"/>
+        <source>ns::cl7::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ns::cl8</name>
+    <message>
+        <location filename="template_classes.cpp" line="346"/>
+        <source>ns::cl8::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="348"/>
+        <source>ns::cl8::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="350"/>
+        <source>ns::cl8::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="352"/>
+        <source>ns::cl8::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ns::cl9</name>
+    <message>
+        <location filename="template_classes.cpp" line="360"/>
+        <source>ns::cl9::func1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="362"/>
+        <source>ns::cl9::func2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="364"/>
+        <source>ns::cl9::func3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="template_classes.cpp" line="366"/>
+        <source>ns::cl9::func4</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+</TS>

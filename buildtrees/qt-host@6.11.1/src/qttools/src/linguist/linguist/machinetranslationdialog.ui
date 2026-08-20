@@ -1,0 +1,774 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MachineTranslationDialog</class>
+ <widget class="QDialog" name="MachineTranslationDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>517</width>
+    <height>672</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Auto Translation</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_8">
+   <item>
+    <widget class="QToolBox" name="toolBox">
+     <property name="frameShape">
+      <enum>QFrame::Shape::NoFrame</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Shadow::Plain</enum>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="configPage">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>493</width>
+        <height>498</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QGroupBox" name="configGroup">
+         <property name="title">
+          <string/>
+         </property>
+         <property name="flat">
+          <bool>false</bool>
+         </property>
+         <property name="checkable">
+          <bool>false</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <layout class="QGridLayout" name="configLayout" rowstretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0" columnstretch="0,0" rowminimumheight="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0">
+            <item row="2" column="0">
+             <spacer name="verticalSpacer_5">
+              <property name="orientation">
+               <enum>Qt::Orientation::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>10</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="12" column="0">
+             <widget class="QLabel" name="contextLabel">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Context</string>
+              </property>
+              <property name="buddy">
+               <cstring>contextEdit</cstring>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QLabel" name="apiTypeLabel">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>API Type</string>
+              </property>
+             </widget>
+            </item>
+            <item row="10" column="0" colspan="2">
+             <widget class="QComboBox" name="modelComboBox">
+              <property name="minimumSize">
+               <size>
+                <width>150</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="currentText">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="11" column="0">
+             <spacer name="verticalSpacer">
+              <property name="orientation">
+               <enum>Qt::Orientation::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>10</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="13" column="0" colspan="2">
+             <widget class="QPlainTextEdit" name="contextEdit">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="placeholderText">
+               <string>Optional: Provide additional context about your application (e.g., medical software, game, financial app) for more accurate translations.</string>
+              </property>
+             </widget>
+         </item>
+         <item row="14" column="0" colspan="2">
+            <widget class="QWidget" name="advancedSettingsWidget" native="true">
+              <property name="visible">
+               <bool>false</bool>
+              </property>
+              <layout class="QGridLayout" name="advancedSettingsLayout">
+               <item row="0" column="0">
+                <widget class="QLabel" name="maxRetriesLabel">
+                 <property name="toolTip">
+                  <string>Maximum number of retry attempts for failed translation requests</string>
+                 </property>
+                 <property name="text">
+                  <string>Maximum Retries</string>
+                 </property>
+                 <property name="buddy">
+                  <cstring>maxRetriesSpinBox</cstring>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QSpinBox" name="maxRetriesSpinBox">
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>100</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="maxConcurrentBatchesLabel">
+                 <property name="toolTip">
+                  <string>Maximum number of translation batches to process in parallel</string>
+                 </property>
+                 <property name="text">
+                  <string>Maximum Concurrent Batches</string>
+                 </property>
+                 <property name="buddy">
+                  <cstring>maxConcurrentBatchesSpinBox</cstring>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QSpinBox" name="maxConcurrentBatchesSpinBox">
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>20</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="transferTimeoutLabel">
+                 <property name="toolTip">
+                  <string>Timeout for network requests in seconds</string>
+                 </property>
+                 <property name="text">
+                  <string>Transfer Timeout (seconds)</string>
+                 </property>
+                 <property name="buddy">
+                  <cstring>transferTimeoutSpinBox</cstring>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QSpinBox" name="transferTimeoutSpinBox">
+                 <property name="minimum">
+                  <number>10</number>
+                 </property>
+                 <property name="maximum">
+                  <number>3600</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="0">
+                <widget class="QLabel" name="maxBatchSizeLabel">
+                 <property name="toolTip">
+                  <string>Maximum number of source texts to include in each translation batch</string>
+                 </property>
+                 <property name="text">
+                  <string>Maximum Batch Size</string>
+                 </property>
+                 <property name="buddy">
+                  <cstring>maxBatchSizeSpinBox</cstring>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="1">
+                <widget class="QSpinBox" name="maxBatchSizeSpinBox">
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>100</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="0">
+                <widget class="QLabel" name="temperatureLabel">
+                 <property name="toolTip">
+                  <string>LLM temperature (lower = more deterministic, higher = more creative)</string>
+                 </property>
+                 <property name="text">
+                  <string>Temperature</string>
+                 </property>
+                 <property name="buddy">
+                  <cstring>temperatureSpinBox</cstring>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="1">
+                <widget class="QDoubleSpinBox" name="temperatureSpinBox">
+                 <property name="maximum">
+                  <double>2.000000000000000</double>
+                 </property>
+                 <property name="singleStep">
+                  <double>0.050000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="0">
+                <widget class="QLabel" name="maxJsonFormatTriesLabel">
+                 <property name="toolTip">
+                  <string>Number of attempts of sending JSON-format requests before falling back to non-JSON format requests</string>
+                 </property>
+                 <property name="text">
+                  <string>Maximum JSON Format Tries</string>
+                 </property>
+                 <property name="buddy">
+                  <cstring>maxJsonFormatTriesSpinBox</cstring>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="1">
+                <widget class="QSpinBox" name="maxJsonFormatTriesSpinBox">
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>20</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="0">
+                <widget class="QLabel" name="ollamaWakeUpTimeoutLabel">
+                 <property name="toolTip">
+                  <string>Timeout for waking up an idle Ollama server in seconds</string>
+                 </property>
+                 <property name="text">
+                  <string>Ollama Wake-up Timeout (seconds)</string>
+                 </property>
+                 <property name="buddy">
+                  <cstring>ollamaWakeUpTimeoutSpinBox</cstring>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="1">
+                <widget class="QSpinBox" name="ollamaWakeUpTimeoutSpinBox">
+                 <property name="minimum">
+                  <number>30</number>
+                 </property>
+                 <property name="maximum">
+                  <number>600</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="7" column="0" colspan="2">
+                <widget class="QLabel" name="settingsWarningLabel">
+                 <property name="styleSheet">
+                  <string>color: #b58900;</string>
+                 </property>
+                 <property name="wordWrap">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="8" column="0" alignment="Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignVCenter">
+                <widget class="QPushButton" name="applySettingsButton">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Maximum" vsizetype="Fixed"/>
+                 </property>
+                 <property name="text">
+                  <string>Apply</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="8" column="1">
+                <widget class="QPushButton" name="resetSettingsButton">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Maximum" vsizetype="Fixed"/>
+                 </property>
+                 <property name="text">
+                  <string>Reset to Defaults</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item row="15" column="0" alignment="Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignVCenter">
+             <widget class="QPushButton" name="advancedSettingsToggle">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Fixed"/>
+              </property>
+              <property name="text">
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="15" column="1">
+             <widget class="QPushButton" name="nextButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Fixed"/>
+              </property>
+              <property name="text">
+               <string>Next</string>
+              </property>
+             </widget>
+            </item>
+            <item row="7" column="0" colspan="2">
+             <widget class="QLabel" name="connectionStatusLabel">
+              <property name="text">
+               <string>Not connected</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0" colspan="2">
+             <widget class="QComboBox" name="apiTypeComboBox">
+              <property name="minimumSize">
+               <size>
+                <width>150</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="currentText">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="serverLabel">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Server URL</string>
+              </property>
+             </widget>
+            </item>
+            <item row="8" column="0">
+             <spacer name="verticalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Orientation::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>10</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="4" column="0">
+             <widget class="QLineEdit" name="serverText">
+              <property name="text">
+               <string notr="true">http://localhost:11434</string>
+              </property>
+             </widget>
+            </item>
+            <item row="9" column="0">
+             <widget class="QLabel" name="serverLabel_2">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Model</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="1">
+             <widget class="QPushButton" name="connectButton">
+              <property name="text">
+               <string>Connect</string>
+              </property>
+              <property name="autoDefault">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="0">
+             <widget class="QLabel" name="apiKeyLabel">
+              <property name="text">
+               <string>API Key</string>
+              </property>
+              <property name="buddy">
+               <cstring>apiKeyEdit</cstring>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="0" colspan="2">
+             <widget class="QLineEdit" name="apiKeyEdit">
+              <property name="echoMode">
+               <enum>QLineEdit::EchoMode::Password</enum>
+              </property>
+              <property name="placeholderText">
+               <string>Optional: Required only for cloud APIs (OpenAI, Anthropic, etc.)</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="selectionPage">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>493</width>
+        <height>498</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <widget class="QGroupBox" name="selectionGroup">
+         <property name="title">
+          <string/>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <layout class="QGridLayout" name="selectionLayout" rowstretch="0,0,0,0,0,0,0,0,1,0,0" columnstretch="1,0" rowminimumheight="0,0,0,0,0,0,0,0,0,0,0">
+            <property name="sizeConstraint">
+             <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+            </property>
+            <item row="2" column="0" colspan="2">
+             <widget class="QComboBox" name="filesComboBox">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+            <item row="8" column="0" colspan="2">
+             <widget class="QListWidget" name="groupListWidget">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="selectionMode">
+               <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="0" colspan="2">
+             <widget class="QComboBox" name="filterComboBox">
+              <property name="duplicatesEnabled">
+               <bool>false</bool>
+              </property>
+              <item>
+               <property name="text">
+                <string>All Items</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Text Based</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>ID Based</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item row="9" column="0" colspan="2">
+             <widget class="QLabel" name="selectionLabel">
+              <property name="text">
+               <string>No messages selected</string>
+              </property>
+             </widget>
+            </item>
+            <item row="10" column="0" colspan="2">
+             <widget class="QPushButton" name="translateButton">
+              <property name="text">
+               <string>Translate</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="0" colspan="2">
+             <spacer name="verticalSpacer_4">
+              <property name="orientation">
+               <enum>Qt::Orientation::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>10</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="7" column="0" colspan="2">
+             <widget class="QLabel" name="groupLabel">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Groups</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop</set>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0" colspan="2">
+             <spacer name="verticalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Orientation::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>10</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="4" column="0" colspan="2">
+             <widget class="QLabel" name="filterLabel">
+              <property name="text">
+               <string>Filter</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0" colspan="2">
+             <widget class="QLabel" name="filesLabel">
+              <property name="text">
+               <string>File</string>
+              </property>
+              <property name="buddy">
+               <cstring>filesComboBox</cstring>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="progressPage">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>493</width>
+        <height>498</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_6">
+       <item>
+        <widget class="QGroupBox" name="progressGroup">
+         <property name="title">
+          <string/>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <layout class="QGridLayout" name="gridLayout">
+            <item row="1" column="0" colspan="3">
+             <widget class="QTextEdit" name="translationLog">
+              <property name="minimumSize">
+               <size>
+                <width>200</width>
+                <height>300</height>
+               </size>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+              <property name="placeholderText">
+               <string>Translation Log</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QProgressBar" name="progressBar">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="value">
+               <number>0</number>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0" colspan="3">
+             <widget class="QLabel" name="statusLabel">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string extracomment="Default display when no translations have been processed yet">Translation status: -</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="2">
+             <widget class="QPushButton" name="stopButton">
+              <property name="minimumSize">
+               <size>
+                <width>70</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>70</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Stop</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QPushButton" name="logButton">
+              <property name="minimumSize">
+               <size>
+                <width>150</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>150</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Log Raw Requests</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QPushButton" name="applyButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Apply Translations</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cancelButton">
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="doneButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Done</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

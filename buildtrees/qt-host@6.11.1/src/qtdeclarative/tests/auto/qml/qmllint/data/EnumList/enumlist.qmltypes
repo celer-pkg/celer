@@ -1,0 +1,103 @@
+import QtQuick.tooling 1.2
+
+Module {
+    Component {
+        file: "mycustomtype.h"
+        name: "MyCustomType"
+        accessSemantics: "reference"
+        prototype: "QObject"
+        exports: ["EnumProperty/MyCustomType 1.0"]
+        exportMetaObjectRevisions: [256]
+        Property {
+            name: "requiredConditions"
+            type: "Org::Company::Configuration::Condition"
+            isList: true
+            read: "getRequiredConditions"
+            write: "setRequiredConditions"
+            notify: "requiredConditionsChanged"
+            index: 0
+        }
+        Property {
+            name: "enablerConditions"
+            type: "int"
+            isList: true
+            read: "getEnablerConditions"
+            write: "setEnablerConditions"
+            notify: "enablerConditionsChanged"
+            index: 1
+        }
+        Signal { name: "requiredConditionsChanged" }
+        Signal { name: "enablerConditionsChanged" }
+    }
+    Component {
+        file: "conditiontypes.h"
+        name: "Org::Company::Configuration"
+        accessSemantics: "none"
+        exports: ["EnumProperty/Configuration 1.0"]
+        isCreatable: false
+        enforcesScopedEnums: true
+        exportMetaObjectRevisions: [256]
+        Enum {
+            name: "Condition"
+            isScoped: true
+            values: ["A", "B", "C", "D"]
+        }
+    }
+    Component {
+        file: "private/qquickflexboxlayout_p.h"
+        name: "QQuickFlexboxLayout"
+        accessSemantics: "reference"
+        prototype: "QObject"
+        exports: ["EnumProperty/FlexboxLayout 1.0"]
+        exportMetaObjectRevisions: [256]
+        attachedType: "QQuickFlexboxLayoutAttached"
+        Enum {
+            name: "FlexboxDirection"
+            values: ["Column", "ColumnReverse", "Row", "RowReverse"]
+        }
+        Property {
+            name: "direction"
+            type: "FlexboxDirection"
+            read: "direction"
+            write: "setDirection"
+            notify: "directionChanged"
+            index: 0
+            isFinal: true
+        }
+    }
+    Component {
+        file: "private/qquickflexboxlayout_p.h"
+        name: "QQuickFlexboxLayoutAttached"
+        accessSemantics: "reference"
+        prototype: "QObject"
+    }
+    Component {
+        file: "private/qquickpositioners_p.h"
+        name: "QQuickRow"
+        accessSemantics: "reference"
+        prototype: "QObject"
+        attachedType: "QQuickPositionerAttached"
+        exports: [
+            "EnumProperty/Row 1.0",
+        ]
+        exportMetaObjectRevisions: [
+            256,
+        ]
+    }
+    Component {
+        file: "private/qquickpositioners_p.h"
+        name: "QQuickPositionerAttached"
+        accessSemantics: "reference"
+        prototype: "QObject"
+        Property {
+            name: "propertyOfAttachedTypeRow"
+            type: "int"
+            read: "propertyOfAttachedTypeRow"
+            write: "setPropertyOfAttachedTypeRow"
+            notify: "propertyOfAttachedTypeRowChanged"
+            index: 0
+            isFinal: true
+        }
+    }
+
+}

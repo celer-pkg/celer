@@ -1,0 +1,38 @@
+# Copyright 2016 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+import("//ui/base/ui_features.gni")
+import("//build/config/linux/pkg_config.gni")
+
+if (use_xkbcommon) {
+  pkg_config("xkb") {
+    packages = [ "xkbcommon", "xkbfile" ]
+  }
+}
+
+source_set("qt") {
+  sources = [
+    "ozone_platform_qt.h",
+    "ozone_platform_qt.cpp",
+  ]
+
+  import("//ui/base/ui_features.gni")
+  import("//ui/gl/features.gni")
+
+  deps = [
+    "//base",
+    "//ui/base:buildflags",
+    "//ui/ozone:ozone_base",
+    "//ui/ozone/common",
+  ]
+
+  defines = [ "OZONE_IMPLEMENTATION" ]
+  libs = []
+  if (use_xkbcommon) {
+    configs += [ ":xkb" ]
+  }
+
+  if (ozone_platform_x11) {
+    libs += [ "X11" ]
+  }
+}

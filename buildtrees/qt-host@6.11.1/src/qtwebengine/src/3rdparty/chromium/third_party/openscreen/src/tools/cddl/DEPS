@@ -1,0 +1,14 @@
+# -*- Mode: Python; -*-
+
+# The CDDL compiler is a standalone tool from the rest of OSP.
+include_rules = [
+    '-util',
+    '-platform',
+
+    # TODO(issuetracker.google.com/155336849): Allow linkage of Open Screen
+    # executables with embedder platform implementations, so we can use
+    # util/string_util.h instead of absl here.
+    '+absl/strings/ascii.h',
+    '+absl/strings/match.h',
+    '+absl/strings/numbers.h',
+]

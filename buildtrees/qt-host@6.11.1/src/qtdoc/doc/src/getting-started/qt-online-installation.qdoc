@@ -1,0 +1,123 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qt-online-installation.html
+
+    \title Get and Install Qt with \QOI
+    \brief Downloading and installing Qt modules and tools.
+
+    \target \QOI
+    \QOI lets you install only the modules and tools you need to develop for a specific desktop
+    platform and deploy your applications to desktop platforms, mobile devices, embedded systems,
+    or MCUs.
+
+    To install Qt, complete the instructions on this page or take the
+    \l {https://www.qt.io/academy/course-catalog#how-to-install-qt}{How to install Qt} course.
+
+    \section1 Before you start
+
+    Before you start the installation:
+
+    \list
+      \li Create an account at \l{https://account.qt.io}{Qt Account}.
+      \li Ensure that your platform is supported, see \l{Supported Platforms}.
+    \endlist
+
+    \section1 Install
+
+    \list 1
+      \li On \l{https://account.qt.io}{Qt Account}, go to \uicontrol Downloads and select \QOI for your
+      operating system.
+      \li Run \QOI.
+      \li Select the components that you want to install and follow the instructions to complete
+      the installation.
+
+      Note the following:
+
+      \list
+        \li The available selection of components in \QOI depends on your license.
+        \li You can always install, uninstall, and update modules and components after the
+            installation with \QMT (included in every Qt installation).
+      \endlist
+
+    \image qtinstallercomponents.webp
+
+    \endlist
+
+    See the following table to find examples of which components to install depending on
+    your target platforms.
+
+    \table
+    \header
+        \li To develop for
+        \li Choose
+        \li Notes
+    \row
+        \li Desktop
+        \li \uicontrol {Qt <x.x> for desktop development}
+        \li To use something other than the default toolchain, such as
+            MSVC on Windows, select \uicontrol {Custom Installation}. Then
+            select Qt for the toolchain you want to use.
+    \row
+        \li Mobile Devices
+        \li \uicontrol {Qt <x.x> for mobile development}
+        \li To develop for a particular platform, select
+            \uicontrol {Custom Installation}. Then select the Qt for the mobile
+            device platform that you want to run the applications on. For
+            example, \l{Qt for Android} or \l{Qt for iOS}.
+    \row
+        \li Embedded Devices
+        \li \uicontrol {Qt <x.x> for embedded development}
+        \li For more information, see the quick start guide for your device in the
+            \l{Boot to Qt}{Boot to Qt documentation}.
+    \row
+        \li Android Automotive
+        \li \uicontrol {Qt <x.x> for Android Automotive}
+        \li For more information, see the \e {Installing Qt for Android Automotive} part in the
+            \l{Qt for Android Automotive}{Qt for Android Automotive documentation}.
+    \row
+        \li Automation
+        \li \uicontrol {Custom Installation}
+        \li Install necessary Qt modules and toolchains
+            from the \l{Qt for Automation}{Qt for Automation/Qt M2M Protocols}
+            section, depending on the types of devices that you want to run
+            applications on.
+    \row
+        \li MCUs
+        \li \uicontrol {Qt for MCU development}
+        \li For more information, see the \e {Installing Qt for MCUs} part in the
+            \l{Qt for MCUs Documentation}.
+    \endtable
+
+    \section1 Getting help
+
+    To get help with the installation, see these support channels:
+
+    \table
+      \header
+        \li User type
+        \li Support channel
+        \li Notes
+      \row
+        \li Commercial
+        \li \l {https://account.qt.io/support}{Qt Support Center}
+        \li None.
+      \row
+        \li Evaluation and open source
+        \li \l {https://forum.qt.io/}{Qt Forum}
+        \li See also the \l {https://wiki.qt.io/Forum_Help}{Help on using the Forum} wiki page.
+      \row
+        \li Non-commercial users
+        \li \l {https://account.qt.io/support}{Qt Support Center}
+        \li Limited help available.
+    \endtable
+
+    \section1 After the installation
+
+    After you have installed Qt, you are ready to start developing applications.
+
+    For more information, see \l{Create Your First Applications} or
+    \l{https://academy.qt.io/catalog}{Qt courses}.
+
+*/

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+-->
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="FtpClient"
+       datamodel="ecmascript">
+    <state id="G" initial="I">
+        <transition event="reply" target="E"/>
+        <transition event="cmd" target="F"/>
+
+        <state id="I">
+            <transition event="reply.2xx" target="S"/>
+        </state>
+
+        <state id="B">
+            <transition event="cmd.DELE cmd.CWD cmd.CDUP cmd.HELP cmd.NOOP cmd.QUIT cmd.SYST
+                               cmd.STAT cmd.RMD cmd.MKD cmd.PWD cmd.PORT"
+                        target="W.general"/>
+            <transition event="cmd.APPE cmd.LIST cmd.NLST cmd.REIN cmd.RETR cmd.STOR cmd.STOU"
+                        target="W.1xx"/>
+            <transition event="cmd.USER" target="W.user"/>
+
+            <state id="S"/>
+            <state id="F"/>
+        </state>
+
+        <state id="W">
+            <onentry>
+                <send eventexpr="&quot;submit.&quot; + _event.name">
+                    <param name="params" expr="_event.data"/>
+                </send>
+            </onentry>
+
+            <transition event="reply.2xx" target="S"/>
+            <transition event="reply.4xx reply.5xx" target="F"/>
+
+            <state id="W.1xx">
+                <transition event="reply.1xx" target="W.transfer"/>
+            </state>
+            <state id="W.transfer"/>
+            <state id="W.general"/>
+            <state id="W.user">
+                <transition event="reply.3xx" target="P"/>
+            </state>
+            <state id="W.login"/>
+        </state>
+
+        <state id="P">
+            <transition event="cmd.PASS" target="W.login"/>
+        </state>
+    </state>
+
+    <final id="E"/>
+</scxml>

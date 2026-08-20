@@ -1,0 +1,73 @@
+
+fuzztest_cc_library(
+  NAME
+    test_binary_util
+  HDRS
+    test_binary_util.h
+  SRCS
+    test_binary_util.cc
+  DEPS
+    absl::check
+    absl::flat_hash_map
+    absl::strings
+    absl::string_view
+    absl::time
+    fuzztest_flag_name
+    fuzztest_subprocess
+  TESTONLY
+)
+
+add_executable(
+  functional_test
+  functional_test.cc
+)
+target_link_libraries(
+  functional_test
+  PUBLIC
+  fuzztest_escaping
+  fuzztest_io
+  fuzztest_logging
+  fuzztest_printer
+  fuzztest_serialization
+  fuzztest_subprocess
+  fuzztest_test_binary_util
+  fuzztest_type_support
+  fuzztest_temp_dir
+  re2
+  absl::flat_hash_map
+  absl::strings
+  absl::str_format
+  absl::time
+  GTest::gmock_main
+)
+add_test(
+  NAME
+  functional_test
+  COMMAND
+  functional_test --test_srcdir="${CMAKE_BINARY_DIR}"
+)
+set_property(
+  TEST
+  functional_test
+  PROPERTY ENVIRONMENT
+  "TEST_SRCDIR=${CMAKE_BINARY_DIR}"
+)
+
+add_executable(
+  benchmark_test
+  benchmark_test.cc
+)
+target_link_libraries(
+  benchmark_test
+  PUBLIC
+  fuzztest_logging
+  fuzztest_subprocess
+  re2
+  absl::flat_hash_map
+  absl::flags
+  absl::flags_parse
+  absl::strings
+  absl::str_format
+  absl::time
+  GTest::gmock_main
+)

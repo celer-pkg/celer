@@ -1,0 +1,106 @@
+VERSION ""
+
+
+NS_ :
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_:
+
+
+BO_  1234 Test: 3 Vector__XXX
+ SG_ s4 m2 : 8|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ s3 m1 : 8|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ s2 m2 : 4|12@1- (1,0) [0|0] "" Vector__XXX
+ SG_ s1 m1M : 4|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ s0 M : 0|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ s5 : 16|8@1- (1,0) [0|0] "" Vector__XXX
+
+BO_  2566844926 Test: 3 Vector__XXX
+ SG_ s4 m2 : 8|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ s3 m1 : 8|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ s2 m2 : 4|12@1- (1,0) [0|0] "" Vector__XXX
+ SG_ s1 m1M : 4|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ s0 M : 0|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ s5 : 16|8@1- (1,0) [0|0] "" Vector__XXX
+
+BO_  1236 Test: 3 Vector__XXX
+ SG_ s4 m2 : 8|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ s3 m1 : 8|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ s2 m2 : 4|12@1- (1,0) [0|0] "" Vector__XXX
+ SG_ s1 m1M : 4|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ s0 M : 0|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ s5 : 16|8@1- (1,0) [0|0] "" Vector__XXX
+
+BO_  1237 Test: 3 Vector__XXX
+ SG_ s4 m2 : 8|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ s3 m1 : 8|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ s2 m2 : 4|12@1- (1,0) [0|0] "" Vector__XXX
+ SG_ s1 m1M : 4|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ s0 M : 0|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ s5 : 16|8@1- (1,0) [0|0] "" Vector__XXX
+
+BO_  1238 Test: 3 Vector__XXX
+ SG_ s4 m2 : 8|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ s3 m1 : 8|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ s2 m2 : 4|12@1- (1,0) [0|0] "" Vector__XXX
+ SG_ s1 m1M : 4|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ s0 M : 0|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ s5 : 16|8@1- (1,0) [0|0] "" Vector__XXX
+
+SG_MUL_VAL_  1234 s4 s1 2-3, 5-5 ;
+SG_MUL_VAL_  1234 s3 s1 1 - 1;
+SG_MUL_VAL_  1234 s2 s0 2 -4 , 6-  8 , 10  -10  ;
+SG_MUL_VAL_  1234 s1 s0 1-1, 5-5, 9-9;
+
+CM_ "Typo in mux switch name";
+SG_MUL_VAL_  2566844926 s4 s11 2-3, 5-5;
+SG_MUL_VAL_  2566844926 s3 s1 1-1;
+SG_MUL_VAL_  2566844926 s2 s0 2-4, 6-8, 10-10;
+SG_MUL_VAL_  2566844926 s1 s0 1-1, 5-5, 9-9;
+
+CM_ "Typo in multiplexed signal name";
+SG_MUL_VAL_  1236 s6 s1 2-3, 5-5;
+SG_MUL_VAL_  1236 s3 s1 1-1;
+SG_MUL_VAL_  1236 s2 s0 2-4, 6-8, 10-10;
+SG_MUL_VAL_  1236 s1 s0 1-1, 5-5, 9-9;
+
+CM_ "Typo in message id";
+SG_MUL_VAL_  12371 s4 s1 2-3, 5-5;
+SG_MUL_VAL_  1237 s3 s1 1-1;
+SG_MUL_VAL_  1237 s2 s0 2-4, 6-8, 10-10;
+SG_MUL_VAL_  1237 s1 s0 1-1, 5-5, 9-9;
+
+CM_ "Incorrect string format";
+SG_MUL_VAL_  1238 s4 s1 2-3, 5-5
+SG_MUL_VAL_  1238 s3 s1 1-1;
+SG_MUL_VAL_  1238 s2 s0 2-4, 6-8 10-10;
+SG_MUL_VAL_  1238 s1 s0 1-1, 5-5, 9-9;

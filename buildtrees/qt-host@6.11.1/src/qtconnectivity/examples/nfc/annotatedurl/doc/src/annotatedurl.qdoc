@@ -1,0 +1,132 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\example annotatedurl
+\title Annotated URL
+\examplecategory {Connectivity}
+\meta tags {nfc, ndef, widgets}
+\brief Reads formatted NFC Data Exchange Format (NDEF) messages.
+
+The Annotated URL example uses \l{Qt NFC} to display the contents of specifically
+formatted NFC Data Exchange Format (NDEF) messages read from an NFC
+Tag. The NDEF message should contain a URI record, an optional \c
+image/* MIME record, and one or more localized Text records.
+
+This is the initial state of the example:
+\image {annotatedurl.png} {Annotated URL NFC main screen}
+
+If a tag is touched, its NDEF content will be shown. Here is the UI
+for a tag that contains a text record and URI record:
+
+\image {annotatedurl2.png} {Annotated URL NFC tag details}
+
+When the screen is tapped, the URL will be opened in the browser.
+
+\section1 AnnotatedUrl Class Definition
+
+The \c AnnotatedUrl class wraps \l QNearFieldManager, the class providing
+the NFC Tag detection functionality. NDEF messages are read by
+\l QNearFieldManager and forwarded to a handler contained in the
+\c AnnotatedUrl class. After parsing the NDEF message the class emits
+the \c annotatedUrl() signal. The UI reacts to the signal displaying
+the contents of the NDEF message.
+
+\snippet annotatedurl/annotatedurl.h 0
+
+\note The \c startDetection() method is used to defer the actual tag detection
+until all the connections between the UI and NFC-related logic are established.
+This is important when the application is automatically started once an NFC tag
+is touched. Such usecase is currently supported on Android.
+
+\snippet annotatedurl/main.cpp 0
+
+\section1 Message Filtering
+
+As it is mentioned above, the application supports the NDEF messages of a
+specific format. A correct message should contain the following fields:
+
+\list
+    \li \e {At least one} NDEF Text record, which will be used as a header.
+    \li \e {Exactly one} NDEF URI record.
+    \li \e {An optional} MIME record with an icon.
+\endlist
+
+The order of the records is not strictly specified.
+
+An instance of \l QNdefFilter is used to validate the NDEF message. The filter
+is populated as follows:
+
+\snippet annotatedurl/annotatedurl.cpp populateFilter
+
+If the incoming message does not match the filter, an error message is shown:
+
+\image {annotatedurl3.png} {Annotated URL NFC tag data view}
+
+\note The \l {ndefeditor}{NDEF Editor} example application can be used to create
+the tags with correct or incorrect message structure.
+
+\section1 AnnotatedUrl Handler Implementation
+
+NFC messages read by the \l QNearFieldManager are forwarded to
+\c {AnnotatedUrl::handleMessage}.
+
+\snippet annotatedurl/annotatedurl.cpp handleMessage 1
+
+At first the messages are validated using the \l QNdefFilter::match() method:
+
+\snippet annotatedurl/annotatedurl.cpp handleMessage 2
+
+If the messages have the correct format, the parsing continues.
+
+Because NFC messages are composed of several NDEF records, looping
+through all of the records allows the extraction of the 3 parameters
+to be displayed in the UI: the Uri, the Title and the Pixmap:
+
+\snippet annotatedurl/annotatedurl.cpp handleMessage 3
+\snippet annotatedurl/annotatedurl.cpp handleMessage 4
+
+Finally after having extracted the parameters of the NFC message the
+corresponding signal is emitted so that the UI can handle it.
+
+\snippet annotatedurl/annotatedurl.cpp handleMessage 5
+
+\section1 Adapter State Handling
+
+On Android the adapter state changes can be detected by connecting to the
+\l QNearFieldManager::adapterStateChanged() signal. This allows stopping the
+detection when the NFC adapter is disabled, and restarting it when the adapter
+is enabled again. This approach is implemented in the
+\c {AnnotatedUrl::handleAdapterStateChange} slot.
+
+\snippet annotatedurl/annotatedurl.cpp handleAdapterState
+
+\section1 Automatic Application Startup
+
+Android supports automatic application startup when the NDEF tag is touched.
+See \l {Qt NFC on Android} for the required changes to the Android manifest
+file.
+
+Introduction of a custom AndroidManifest.xml requires special steps on the
+build system side.
+
+\section2 Building with qmake
+
+When using qmake, the following needs to be added to the \c {.pro} file:
+
+\quotefromfile annotatedurl/annotatedurl.pro
+\skipto android {
+\printuntil }
+
+\section2 Building with CMake
+
+When using CMake, the following needs to be added to the \c CMakeLists.txt:
+
+\quotefromfile annotatedurl/CMakeLists.txt
+\skipto if(ANDROID)
+\printuntil endif()
+
+\include examples-run.qdocinc
+
+\sa {Qt NFC}
+*/

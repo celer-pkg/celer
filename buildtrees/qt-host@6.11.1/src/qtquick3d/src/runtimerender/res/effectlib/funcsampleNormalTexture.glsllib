@@ -1,0 +1,11 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+vec3 qt_sampleNormalTexture(in sampler2D inSampler, in float factor, in vec2 texCoord, in vec3 tangent,
+                            in vec3 binormal, in vec3 normal)
+{
+    mat3 tanFrame = mat3(tangent, binormal, normal);
+    vec3 tsNormal = texture(inSampler, texCoord).xyz * 2.0 - vec3(1.0);
+    tsNormal *= vec3(factor, factor, 1.0);
+    return normalize(tanFrame * tsNormal);
+}

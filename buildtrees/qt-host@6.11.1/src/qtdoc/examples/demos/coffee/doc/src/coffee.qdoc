@@ -1,0 +1,248 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Coffee Machine
+    \ingroup qtquickdemos
+    \example demos/coffee
+    \brief A Qt Quick application with a state-based custom user interface.
+    \meta {tag} {quick,embedded,states,touch}
+    \examplecategory {Application Examples}
+    \examplecategory {Embedded}
+    \examplecategory {Mobile}
+
+    \image coffee_machine_overview.png {Coffee machine UI showing 'Get Started' button}
+
+    This app demonstrates a cross platform, multi screen size and responsive way
+    of implementing a typical user interface for product ordering.
+
+    \include examples-run.qdocinc
+
+    \section1 UI Walkthrough
+
+    This section guides you through the typical user flow for the application.
+
+    \section2 Selecting a recipe
+
+    \image coffee_machine_selection.png
+           {List of available coffee types}
+
+    The coffee machine application lets you choose a type of coffee and indicates
+    how many coffees of that type you have left to order.
+
+    \section2 Coffee customization
+
+    \image coffee_machine_modify.png
+           {Sliders to customise the ratio of the coffee blend}
+
+    Once a recipe is selected, the app displays what ratio the coffee blend
+    will contain of:
+    \list
+        \li brewed coffee
+        \li hot milk
+        \li milk foam
+        \li sugar
+    \endlist
+    This can be modified using sliders.
+
+    \section2 Displaying the brewing status
+
+    \image coffee_machine_emptycup.png
+           {Prompting user to insert a cup}
+
+    Once the user has acknowledged that the cup is in the machine, the brew starts.
+
+    When the brew has been started, the app shows an animated display of the
+    brewing process.
+
+    \section2 Coffee is ready
+
+    Once the brewing process has ended, the app shows coffee cup with the desired
+    coffee mix in it for a few seconds before returning to the starting page.
+
+    \section1 How it works
+
+    Here we discuss how these features are implemented.
+
+    \section2 Adapting to screen sizes and orientation
+
+    The application window root object has initial values for height
+    and width, which will be used as the window size on desktop platforms.
+    The default QWindow::AutomaticVisibility ensures that the window will
+    be shown as maximized or fullscreen on platforms that require it,
+    such as mobile platforms.
+
+    \snippet demos/coffee/Main.qml Set application window size
+
+    From there child objects of the \c ApplicationWindow fetch the size of the
+    \c ApplicationWindow to determine their own sizes accordingly.
+
+    The app uses \l {GridLayout} throughout the application page components to
+    easily adapt to changes in screen orientation.
+
+    \image coffee_machine_selection_android_landscape.png
+           {Landscape orientation of coffee machine selection page for Android}
+    \caption {Screen switches to landscape when Android device orientation is
+             landscape}
+
+    \image coffee_machine_selection_windows.png
+           {Landscape orientation of coffee machine selection page for Windows}
+    \caption {Landscape mode is the default orientation on Windows desktop}
+
+    \note On the desktop version, the width must be greater than the height.
+
+    \section2 Navigating through the app pages
+
+    The application uses \l {StackView} QML type to display different pages of
+    the app. The \c StackView handling the different page components is
+    implemented in \c ApplicationFlowForm.ui.qml.
+
+    Navigating from one page to next triggers a state change in
+    \c ApplicationFlow.qml where the needed property changes are handled by
+    \l {PropertyChanges} QML type:
+
+    \snippet demos/coffee/ApplicationFlow.qml States
+
+    The animations happening during these state changes are implemented with
+    \l {Transition} and \l {PropertyAnimation} inside the \c StackView component
+    in \c ApplicationFLowForm.ui.qml.
+
+    \section2 Implementing start page
+
+    The application starts by showing the \c Home page to the user as the initial
+    item in the \l {StackView}:
+
+    \snippet demos/coffee/ApplicationFlowForm.ui.qml Stack view
+
+    The \c Home component is structured by placing \l {Item} component as the
+    root object with state machine and appropriate property aliases, followed by
+    \l {GridLayout}. This same kind of structuring will be used in all of the app
+    page components.
+
+    The \c Home page displays an image of a coffee cup with
+    Qt logo on top, Coffee Machine as a title, caption with some catchy briefing
+    on what the user can expect and a \c getStartedButton button.
+
+    The user can move forward by pressing the \c getStartedButton, the button
+    \c onClicked function is implemented \c ApplicationFlow.qml:
+
+    \snippet demos/coffee/ApplicationFlow.qml On clicked
+
+    This will trigger the state change to "Coffee-selection" in
+    \c ApplicationFlow.qml and push the \c choosingCoffee component on top of
+    the \c Home component in \l{StackView}.
+
+    \section2 Implementing coffee selection
+
+    On the Coffee Selection page \c ChoosingCoffee.qml is displayed, here the
+    user sees 4 different coffee options to choose from. These options are
+    displayed as \c CoffeeCards which are located inside the \l{GridLayout} in
+    \c ChoosingCoffee.qml:
+
+    \snippet demos/coffee/ChoosingCoffeeForm.ui.qml Coffees
+
+    The implementation of the \c CoffeeCard is located \c CoffeeCard.qml.
+
+    These  cards may be displayed in either grid or in a row type of way
+    depending on the available screen width and height properties that the
+    \c ApplicationWindow root object follows and passes down to the
+    \c ChoosingCoffee.qml and to the \l{GridLayout} in there through the state
+    machine.
+
+    \c CoffeeCards vary in their names, brewing times, ingredients and how many
+    cups there are available at the moment.
+
+    On this page the user can also change the application theme for the first time
+    by pressing the little sun looking icon button from the upper right corner of
+    the screen.
+    Pressing the theme button calls \c themeButton function in \c ApplicationFlow.qml:
+
+    \snippet demos/coffee/ApplicationFlow.qml Theme button
+
+    The function changes the \c currentTheme property of \c Colors.qml and colors
+    change throughout the app by property bindings automatically.
+    All the colors used in app are located in \c Colors.qml.
+
+    If theme is switched to light theme the theme changing icon button icon turns
+    to represent a half moon.
+
+    Pressing on any of the coffee cards triggers a state change inside
+    \l{AbstractButton} in \c CoffeeCard.qml which then triggers \l{NumberAnimation}
+    through \l{Transition}:
+
+    \snippet demos/coffee/CoffeeCardForm.ui.qml AbstractButton
+
+    This will scale the selected coffee card down to smaller size and
+    turns the edges of the card to green giving user the expression that the
+    coffee was indeed selected.
+
+    Every coffee cards \c button property alias \c onClicked function binds to a
+    function located in \c ApplicationFlow.qml. When user presses any of the
+    coffee cards the function with a name correlating with the chosen coffee
+    option gets called. The function will set the state of \c ApplicationFlow.qml
+    to \c Settings , push a new component to the \l{StackView} and set the
+    ingredient properties accordingly.
+
+    \section2 Implementing coffee settings
+
+    On this page the user can customize their coffee option to match their
+    preference by adjusting custom \l {Slider} QML types. Changing the value of
+    sliders will affect the liquid levels seen inside the coffee cup, this is
+    made possible by binding the height of the liquid images inside \c Cup.qml to
+    the values of corresponding sliders.
+
+    Values of the sliders in \c Settings page are stored in \c CoffeeConfig for
+    later use using \c Synchronizer Qml type.
+
+    \snippet demos/coffee/Settings.qml synchronizer
+
+    Clicking on Start button changes the state of \c ApplicationFlow.qml to
+    "Insert", and the app displays the \c Insert.qml.
+
+    \section2 Implementing insert cup
+
+    On this page the user is instructed to insert their cup on to the machine
+    before the brewing process can start.
+
+    Pressing the \c Continue button will move app to \c Progress page.
+
+    \section2 Implementing brewing coffee
+
+    Progress page displays a coffee cup and progress bar that will both in their
+    own way signal the brewing process in real time.
+
+    The coffee cup here once filled will display the exact same configuration as
+    the user selected on \c Settings page, this is made sure by binding the
+    \c Cup property variables  to the saved corresponding values in
+    \c ApplicationFlow.qml.
+
+    The animation for filling the coffee cup happens with state engines
+    \l {Transition} and \l {SmoothedAnimation}.
+
+    \snippet demos/coffee/ProgressForm.ui.qml Cup
+
+    The progress bar animation is implemented with \l {Behavior}.
+
+    \snippet demos/coffee/Progress.qml Behavior
+
+    \l {Timer} will take care of updating the application state once the brewing
+    is done.
+
+    \snippet demos/coffee/Progress.qml Timer
+
+    \section2 Implementing coffee ready
+
+    Ready page displays a coffee cup filled with whatever configuration the user
+    selected with a "Your coffee is ready" text and a check icon.
+
+    When this page is displayed a \l {Timer} starts running and once the interval
+    set is reached user is directed back to \c Home.qml.
+
+    \section1 Source files
+
+    \sa {Qt Quick Examples and Tutorials} {All Qt Examples}
+
+    \include squish-tested-example.qdocinc
+
+*/
+

@@ -1,0 +1,68 @@
+{
+    "QEN": {
+        "description": "Generates snowing effect.",
+        "fragmentCode": [
+            "@main",
+            "{",
+            "    float snowing = 0.0;",
+            "    float time = iTime * 0.8;",
+            "    for (int i = 1; i < (1 + snowingLayers); i++) {",
+            "        // Divide layer into cells",
+            "        float cellAmount = 2.0 + (float(i) * 3.0);",
+            "        vec2 uv = vec2(texCoord.x, texCoord.y - time * snowingGravity * (1.0 / float(i)));",
+            "        vec2 uvStep = (ceil(uv * cellAmount - vec2(0.5, 0.5)) / cellAmount);",
+            "        float discardFlake = fract(sin(dot(uvStep.xy, vec2(32.4691, 94.615))) * 31572.1684);",
+            "        if (discardFlake < 0.3) {",
+            "            // Random positions inside the cell",
+            "            float x = fract(sin(dot(uvStep, vec2(12.9898, 78.233))) * 43758.5453) - 0.5;",
+            "            float y = fract(sin(dot(uvStep, vec2(62.2364, 94.674))) * 62159.8432) - 0.5;",
+            "            float maxMag = snowingVariation / (1.0 + snowingFlakeSize);",
+            "            float mag1 = maxMag / cellAmount * cos(time * 3.0);",
+            "            float mag2 = maxMag / cellAmount * sin(time * 3.0);",
+            "            float d = (2.0 / snowingFlakeSize) * distance((uvStep.xy + vec2(x , sin(y)) * mag1 + vec2(y, x) * mag2), uv);",
+            "            float snowd = (x + 1.0) * 0.5 * clamp((1.5 - d * (10.0 + (x * 5.0)) * cellAmount), 0.0, 1.0);",
+            "            snowing +=snowd;",
+            "        }",
+            "    }",
+            "    vec4 snowingColor = vec4(1.0, 1.0, 1.0, snowing);",
+            "    fragColor = mix(fragColor, snowingColor * fragColor.a, snowing);",
+            "}"
+        ],
+        "name": "Snowing",
+        "properties": [
+            {
+                "defaultValue": "4",
+                "description": "The amount of snow layers. Increasing the layers adds variation to the snowing effect, but also requires more processing power. The default value is 4 and practical range is between 1 and 10.",
+                "maxValue": "10",
+                "minValue": "1",
+                "name": "snowingLayers",
+                "type": "int"
+            },
+            {
+                "defaultValue": "1",
+                "description": "Size of a single snowflake. The default value is 1.0 and practical range is between 0.2 and 2.0.",
+                "maxValue": "2",
+                "minValue": "0.2",
+                "name": "snowingFlakeSize",
+                "type": "float"
+            },
+            {
+                "defaultValue": "1",
+                "description": "Defines gravity of the snowing effect so how fast the snowflakes fall down. The default value is 1.0 and practical range is between 0.2 and 2.0.",
+                "maxValue": "2",
+                "minValue": "0.2",
+                "name": "snowingGravity",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0.5",
+                "description": "Defines how much snowflakes positions vary while they are coming down. The default value is 0.5 and the range is between 0.0 and 1.0.",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "snowingVariation",
+                "type": "float"
+            }
+        ],
+        "version": 1
+    }
+}

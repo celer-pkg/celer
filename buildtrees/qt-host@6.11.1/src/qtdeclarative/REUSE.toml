@@ -1,0 +1,157 @@
+version = 1
+
+[[annotations]]
+path = ["tools/**", "src/plugins/qmlls/**", "src/plugins/qmllint/**",
+        "src/qmltyperegistrar/**"]
+precedence = "closest"
+comment = "tools"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0"
+
+[[annotations]]
+path = ["tests/**"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GPL-3.0-only"
+
+[[annotations]]
+path = ["src/plugins/qmltooling/**.json",
+        "src/plugins/scenegraph/openvg/openvg.json"]
+comment = "controls and dialogs."
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only"
+
+[[annotations]]
+path = ["tests/manual/nodetypes_ng/compile.bat", "tests/auto/quick/scenegraph/data/compile.bat",
+        "tests/benchmarks/qml/binding/data/repeat.sh",
+        "tests/auto/quick/qquickshadereffect/data/compile.bat",
+        "tests/auto/quick/qquickitemlayer/data/buildshaders.bat"]
+precedence = "closest"
+comment = "tools"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0"
+
+[[annotations]]
+path = ["**.prf", "**Info.plist", "**cmake.in", "src/**.in", "**/ci_config_linux.json", "**CMakeLists.txt", "**.cmake",
+        ".cmake.conf", "**.yaml", "**.gradle", "src/quick/items/syncexcludes",
+        "**.cfg", "**.pro", "**.conf", ".tag"]
+comment = "build system"
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
+path = ["**/.gitattributes", "**.gitignore", "**/.gitreview", ".gitmodules"]
+precedence = "closest"
+comment = "infrastruture"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
+
+[[annotations]]
+path = ["**/snippets/**", "examples/**", "src/quick/doc/src/internal/*.puml",
+        "src/quick/doc/src/internal/*.svg", "src/quick/doc/src/internal/*.dot"]
+comment = "this must be after the build system table because example and snippets take precedence over build system"
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
+
+[[annotations]]
+path = ["**/doc/images/**", "qtdeclarative.doxy", "**.md", "**/README", "**/README.md",
+        "**/README.txt", "**/doc/**.qdocconf" ,
+        "**/doc/**.qdocinc", "**/doc/**.dox"]
+comment = "documentation"
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only"
+
+[[annotations]]
+path = ["src/quickcontrols/imagine/*",
+        "src/quickdialogs/quickdialogsquickimpl/images/**png",
+        "src/quickdialogs/quickdialogsquickimpl/images/**svg",
+        "src/quickcontrols/windows/images/*.png",
+        "src/quickcontrols/universal/images/*.png",
+        "src/quickdialogs/quickdialogsquickimpl/images/*.svg",
+        "src/quickcontrols/material/images/*.png",
+        "src/quickcontrols/material/images/*.svg",
+        "src/quickcontrols/macos/images/*.png",
+        "src/quickcontrols/macos/images/*.webp",
+        "src/quickcontrols/ios/images/*.png",
+        "src/quickcontrols/imagine/images/*.png",
+        "src/quickcontrols/imagine/images/*.webp",
+        "src/quickcontrols/fusion/images/*.png",
+        "src/quickcontrols/fusion/images/*.svg",
+        "src/quickcontrols/fluentwinui3/light/images/*.png",
+        "src/quickcontrols/fluentwinui3/dark/images/*.png",
+        "src/quickcontrols/fluentwinui3/icons/*.png",
+        "src/quickcontrols/designer/images/*.png",
+        "src/quickcontrols/basic/images/*.png",
+        "src/particles/particleresources/*.png"]
+comment = "controls and dialogs."
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only"
+
+[[annotations]]
+path = ["src/quick/doc/QtQuickDoc", "src/quickcontrols/qmldir"]
+comment = "module"
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only"
+
+[[annotations]]
+path = "tests/auto/quick/qquicktextdocument/data/hello.md"
+comment = "test"
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GPL-3.0-only"
+
+[[annotations]]
+path = ["src/quickcontrols/universal/README.md"]
+precedence = "closest"
+comment = "to be confirmed"
+SPDX-FileCopyrightText = "None"
+SPDX-License-Identifier = "Unlicense"
+
+[[annotations]]
+path = ["**.toml", "licenseRule.json"]
+precedence = "override"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
+
+[[annotations]]
+path = ["**/qt_attribution.json"]
+precedence = "override"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only"
+
+[[annotations]]
+path = ["**LICENSE*"]
+precedence = "override"
+comment = "License file."
+SPDX-FileCopyrightText = "None"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = ["examples/quick/quickshapes/weatherforecast/assets/generate.bat"]
+precedence = "override"
+comment = "the SPDX expression in file cannot be parsed"
+SPDX-FileCopyrightText = "Copyright (C) 2024 The Qt Company Ltd"
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
+
+[[annotations]]
+path = "examples/quick/vectorimage/generate.bat"
+precedence = "override"
+comment = "reuse cannot read it. override to avoid skipping the file"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
+
+[[annotations]]
+path = "src/quick/doc/snippets/qquickrhiitem/qquickrhiitem_intro.vert"
+precedence = "override"
+comment = "example and snippets. Override needed here, unclear why."
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
+
+
+

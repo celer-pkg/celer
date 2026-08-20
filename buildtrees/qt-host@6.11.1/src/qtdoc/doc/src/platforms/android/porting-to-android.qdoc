@@ -1,0 +1,84 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page porting-to-android.html
+\title Porting to Android
+\brief Provides instructions to port your existing Qt application to Android.
+\ingroup android-platform-extra-topics
+\previouspage android-building.html
+\nextpage deployment-android.html
+
+Most Qt applications should be portable to Android with ease unless they
+depend on a specific hardware or software feature not supported by Android.
+
+The porting approach differs depending on whether the existing application is
+QML or Widget based, your intended build tool, and if you are porting from a
+mobile or desktop application.
+
+QML-based applications built with CMake are considered the best approach for
+mobile applications.
+
+\section1 Porting from Qt desktop applications
+
+Most of your existing Qt code should work, but you must make some decisions
+around your UI scalability and layout for different orientations and screen sizes.
+Consider a \l{https://www.qt.io/blog/responsive-layouts-in-qt}{responsive layouts}
+approach to fully take advantage of Qt Qml Applications.
+
+There are considerations that are not directly impacted by using Qt, such
+as app store guidelines, theme guidelines, and others that may impact the way you
+develop your application. These won't be discussed here.
+
+\section1 Adding resources
+
+Most applications need resources. Here, we discuss how that impacts porting your
+application to Android.
+
+\section2 Using the Qt Resource System
+
+\include porting-notes.qdocinc using resources
+
+\section2 Adding resources using the asset approach
+
+Qt for Android provides a special, virtual file system that is based on
+the \l{Android: Accessing original files}{Android Assets mechanism}.
+Files that are put under the directory "\l {ANDROID_PACKAGE_SOURCE_DIR}/assets/"
+are packaged as part of your application package.
+
+The asset approach is the best option for better
+interoperability with the Android APIs. You can access all resources in the
+directory using the "assets:" prefix. Unlike qrc, this approach is
+Android-specific, not a cross-platform solution.
+
+\note Using \l {The Qt Resource System} entails having \c {qrc} files bundled
+in the shared libraries which must be unpacked first and loaded by the
+linker, while the Android assets are compressed in the \e APK and can
+be directly used in your application. That means using the Android assets
+can take up less space, but it's not a cross-platform solution with Qt.
+
+\section3 The asset approach with CMake
+
+If you are new to using CMake or CMake with Qt for the first time, see
+\l{Build with CMake}. Here, the focus is on the steps applicable for adding
+resources.
+
+You will likely want to modify a few things that are controlled by the Android
+Manifest file. See \l{Qt for Android Manifest File Configuration} for more information
+on that. So you likely have already set \l QT_ANDROID_PACKAGE_SOURCE_DIR like
+so:
+
+\badcode
+set_property(TARGET target_name PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
+             "${CMAKE_CURRENT_SOURCE_DIR}/android")
+\endcode
+
+Now, you can place your assets directly in that folder or have a custom
+step with CMake to copy them from the main project path to the assets path.
+
+Then, you can access that image asset from C++ as follows:
+
+\code
+QImage image("assets:/images/happy.png");
+\endcode
+*/

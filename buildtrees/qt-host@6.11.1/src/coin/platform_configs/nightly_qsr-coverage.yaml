@@ -1,0 +1,14 @@
+Version: 2
+Configurations:
+
+-
+    Id: 'ubuntu-22.04-qsr-coverity'
+    Template: 'qtci-linux-Ubuntu-22.04-x86_64-51'
+    Compiler: 'GCC'
+    Features: ['Sccache', 'UseConfigure', 'DoNotRunTests', 'QSR_COVERAGE', 'AllowNightlyExport', 'Packaging']
+    Configure arguments: '-nomake examples -release -force-debug-info -separate-debug-info -headersclean -qt-libjpeg -qt-libpng -qt-pcre -qt-harfbuzz -qt-doubleconversion -no-libudev -bundled-xcb-xinput'
+    Environment variables: [
+        'CMAKE_ARGS=-DOpenGL_GL_PREFERENCE=LEGACY',
+        'COMMON_TEST_CMAKE_ARGS=-DQT_SKIP_DOCKER_COMPOSE=ON',
+        'NON_QTBASE_CMAKE_ARGS=-DFFMPEG_DIR={{.Env.FFMPEG_DIR}} -DQT_DEPLOY_FFMPEG=TRUE -DINPUT_headersclean=ON'
+    ]

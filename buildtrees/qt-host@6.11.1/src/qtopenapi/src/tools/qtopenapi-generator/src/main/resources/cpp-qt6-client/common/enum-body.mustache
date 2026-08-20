@@ -1,0 +1,22 @@
+{{>licenseInfo}}
+#include "{{prefixLowerCase}}enum.h"
+
+{{#buildingQtSources}}
+QT_BEGIN_NAMESPACE
+{{/buildingQtSources}}
+
+{{#cppCommonNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppCommonNamespaceDeclarations}}
+
+{{prefix}}Enum::{{prefix}}Enum() = default;
+
+{{prefix}}Enum::~{{prefix}}Enum() = default;
+
+{{#cppCommonNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppCommonNamespaceDeclarations}}
+
+{{#buildingQtSources}}
+QT_END_NAMESPACE
+{{/buildingQtSources}}

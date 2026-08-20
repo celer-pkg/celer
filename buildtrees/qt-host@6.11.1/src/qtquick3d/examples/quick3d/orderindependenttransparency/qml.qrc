@@ -1,0 +1,36 @@
+<RCC>
+    <qresource prefix="/">
+        <file>CustomCheckBox.qml</file>
+        <file>CustomSlider.qml</file>
+        <file>CustomSelectionBox.qml</file>
+        <file>main.qml</file>
+        <file>images/arrow_icon.png</file>
+        <file>images/qt_logo.png</file>
+        <file>images/icon_settings.png</file>
+        <file>images/qt_logo2.png</file>
+        <file>images/qt_logo2_n.png</file>
+        <file>qmldir</file>
+        <file>AppSettings.qml</file>
+        <file>BlendValueTest.qml</file>
+        <file>SettingsView.qml</file>
+        <file>StartupView.qml</file>
+        <file>images/pillar_normal.png</file>
+        <file>Instancing.qml</file>
+        <file>Particles.qml</file>
+        <file>CustomInfoView.qml</file>
+        <file>meshes/asteroid.mesh</file>
+        <file>CustomLabel.qml</file>
+        <file>images/tilepattern.png</file>
+        <file>FireParticles.qml</file>
+        <file>FireStick.qml</file>
+        <file>FireStone.qml</file>
+        <file>RandomEmitter.qml</file>
+        <file>meshes/block.mesh</file>
+        <file>meshes/stick3.mesh</file>
+        <file>images/color_table3.png</file>
+        <file>images/firestone.png</file>
+        <file>images/flame.png</file>
+        <file>images/stick_charred.png</file>
+        <file>images/stick_heat3.png</file>
+    </qresource>
+</RCC>

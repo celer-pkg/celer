@@ -1,0 +1,96 @@
+[
+    {
+        "classname": "QtQuick2Plugin",
+        "linkTarget": "Qt6::qtquick2plugin",
+        "name": "QtQuick",
+        "plugin": "qtquick2plugin",
+        "pluginIsOptional": true,
+        "prefer": ":/qt-project.org/imports/QtQuick/",
+        "relativePath": "QtQuick",
+        "type": "module"
+    },
+    {
+        "classname": "QtQmlPlugin",
+        "linkTarget": "Qt6::qmlplugin",
+        "name": "QtQml",
+        "plugin": "qmlplugin",
+        "pluginIsOptional": true,
+        "prefer": ":/qt-project.org/imports/QtQml/",
+        "relativePath": "QtQml",
+        "type": "module"
+    },
+    {
+        "name": "QML",
+        "prefer": ":/qt-project.org/imports/QML/",
+        "relativePath": "QML",
+        "type": "module"
+    },
+    {
+        "name": "Bar",
+        "type": "module"
+    },
+    {
+        "name": "Foo",
+        "type": "module"
+    },
+    {
+        "name": "With.Module",
+        "relativePath": "With/Module",
+        "type": "module"
+    },
+    {
+        "name": "private",
+        "type": "directory"
+    },
+    {
+        "classname": "QtQmlModelsPlugin",
+        "linkTarget": "Qt6::modelsplugin",
+        "name": "QtQml.Models",
+        "plugin": "modelsplugin",
+        "pluginIsOptional": true,
+        "prefer": ":/qt-project.org/imports/QtQml/Models/",
+        "relativePath": "QtQml/Models",
+        "type": "module"
+    },
+    {
+        "classname": "QtQmlWorkerScriptPlugin",
+        "linkTarget": "Qt6::workerscriptplugin",
+        "name": "QtQml.WorkerScript",
+        "plugin": "workerscriptplugin",
+        "pluginIsOptional": true,
+        "prefer": ":/qt-project.org/imports/QtQml/WorkerScript/",
+        "relativePath": "QtQml/WorkerScript",
+        "type": "module"
+    },
+    {
+        "name": "QTBUG-45916.js",
+        "type": "javascript"
+    },
+    {
+        "name": ".",
+        "type": "directory"
+    },
+    {
+        "name": "Methods.js",
+        "type": "javascript"
+    },
+    {
+        "name": "Things",
+        "plugin": "doesNotExistPlugin",
+        "relativePath": "Things",
+        "type": "module"
+    },
+    {
+        "name": "Module",
+        "type": "module"
+    },
+    {
+        "name": "Imports",
+        "relativePath": "Imports",
+        "type": "module"
+    },
+    {
+        "name": "../Fake",
+        "type": "directory"
+    }
+]

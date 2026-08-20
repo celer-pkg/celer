@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Mixed</title>
+        <script>
+         var result;
+         var canary;
+
+         function setIFrameUrl(frameUrl,imgUrl) {
+             result = undefined;
+             canary = undefined;
+             let img = document.createElement('img');
+             img.onerror = function() {
+                 console.log("TEST:cannotLoad");
+                 console.log("TEST:done");
+             };
+             img.onload = function() {
+                 document.getElementById("iframe").setAttribute("src", frameUrl);
+             };
+             img.src = imgUrl
+         }
+
+         addEventListener("load", function() {
+             document.getElementById("iframe").addEventListener("load", function() {
+                 if (canary && window[0].canary) {
+                     console.log("TEST:canLoadAndAccess");
+                     console.log("TEST:done");
+                 } else {
+                     console.log("TEST:canLoadButNotAccess");
+                     console.log("TEST:done");
+                 }
+             });
+         });
+         window.onerror = function(message, url, line, col, errorObj) {
+             return true;
+         };
+        </script>
+    </head>
+    <body>
+        <iframe id="iframe"></iframe>
+    </body>
+</html>

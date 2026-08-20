@@ -1,0 +1,30 @@
+[positioning]
+macos ci
+[modalWithChildWindow]
+# QTBUG-69160
+android
+[modalWindowEnterEventOnHide_QTBUG35109]
+osx
+android
+windows
+[spuriousMouseMove]
+# QTBUG-69162
+windows-10
+android
+[modalWindowPosition]
+# QTBUG-69161
+android
+# QTBUG-87392
+[paintEvent]
+android
+[isActive]
+android
+[modalWindowModallity]
+android
+[enterLeaveOnWindowShowHide]
+windows-10
+windows-11
+android
+macos-26 # QTBUG-142157
+[stateChangeSignal]
+macos # QTBUG-140388

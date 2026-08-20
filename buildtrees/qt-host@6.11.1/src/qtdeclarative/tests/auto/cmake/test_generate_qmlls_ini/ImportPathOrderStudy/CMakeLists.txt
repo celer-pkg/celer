@@ -1,0 +1,6 @@
+# Copyright (C) 2025 The Qt Company Ltd.
+# SPDX-License-Identifier: BSD-3-Clause
+
+add_subdirectory(MyLib_Real)
+add_subdirectory(MyLib_Mock)
+add_subdirectory(MyApp)

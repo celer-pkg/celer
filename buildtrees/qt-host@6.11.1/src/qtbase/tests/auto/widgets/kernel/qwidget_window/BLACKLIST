@@ -1,0 +1,18 @@
+# QTBUG-87412
+[tst_move_show]
+android
+wayland
+[tst_show_move_hide_show]
+android
+[tst_resize_show]
+android
+[tst_show_resize_hide_show]
+android
+[tst_resize_count]
+android
+[setWindowState]
+android
+[mouseMoveWithPopup]
+android
+[setWindowState:maximized]
+xcb ubuntu-24.04 # QTBUG-129026

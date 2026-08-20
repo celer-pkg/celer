@@ -1,0 +1,273 @@
+{
+    "QEP": {
+        "QQEM": "0.44",
+        "connections": [
+            {
+                "fromId": 5,
+                "toId": 1
+            },
+            {
+                "fromId": 0,
+                "toId": 6
+            },
+            {
+                "fromId": 6,
+                "toId": 7
+            },
+            {
+                "fromId": 7,
+                "toId": 5
+            }
+        ],
+        "exportDirectory": ".",
+        "exportFlags": 3,
+        "exportName": "CloudyRectMaterial",
+        "nodes": [
+            {
+                "fragmentCode": [
+                    "void main() {",
+                    "    fragColor = vec4(0.0);",
+                    "    @nodes",
+                    "    fragColor = fragColor * qt_Opacity;",
+                    "}"
+                ],
+                "name": "Main",
+                "nodeId": 0,
+                "type": 0,
+                "vertexCode": [
+                    "void main() {",
+                    "    texCoord = qt_MultiTexCoord0;",
+                    "    fragCoord = qt_Vertex.xy;",
+                    "    vec2 vertCoord = qt_Vertex.xy;",
+                    "    @nodes",
+                    "    gl_Position = qt_Matrix * vec4(vertCoord, 0.0, 1.0);",
+                    "}"
+                ],
+                "x": 140,
+                "y": 35.400001525878906
+            },
+            {
+                "name": "Output",
+                "nodeId": 1,
+                "type": 1,
+                "x": 140,
+                "y": 592.5999755859375
+            },
+            {
+                "description": "Generates electric clouds type of effect for the source item.",
+                "fragmentCode": [
+                    "@requires NoiseHelper",
+                    "@main",
+                    "{",
+                    "    vec2 uv = fragCoord.xy / iResolution.y;",
+                    "    float cloudVal = 0.0;",
+                    "    float sum = 0.0;",
+                    "    float multiplier = 1.0;",
+                    "    for (int i = 0; i < electricCloudLevels; i++) {",
+                    "        vec3 noisePos = vec3(uv, 0.4 * iTime / multiplier);",
+                    "        cloudVal += multiplier * abs(pseudo3dNoise(noisePos));",
+                    "        sum += multiplier;",
+                    "        multiplier *= 0.5;",
+                    "        uv = 2.0 * uv;",
+                    "    }",
+                    "    cloudVal /= sum;",
+                    "    float c = 0.4 + cos(TAU * cloudVal);",
+                    "    fragColor = mix(fragColor, vec4(c) * electricCloudColor * fragColor.a, abs(0.5 * c));",
+                    "}"
+                ],
+                "name": "ElectricClouds",
+                "nodeId": 5,
+                "properties": [
+                    {
+                        "defaultValue": "6",
+                        "description": "The levels of details for the electic clouds. Bigger value means more detailed rending which also requires more processing power. The default value is 6 and practical range is between 1 and 10.",
+                        "maxValue": "10",
+                        "minValue": "1",
+                        "name": "electricCloudLevels",
+                        "type": "int",
+                        "value": "4"
+                    },
+                    {
+                        "defaultValue": "1, 1, 1, 0.6",
+                        "description": "The color used for the clouds. Alpha channel defines the amount of opacity this effect has.",
+                        "name": "electricCloudColor",
+                        "type": "color",
+                        "value": "1, 1, 1, 0.6"
+                    }
+                ],
+                "type": 2,
+                "x": 105,
+                "y": 528.4400024414062
+            },
+            {
+                "description": "This node contains noise / hash helper functions which other nodes can utilize.",
+                "fragmentCode": [
+                    "#define HASH_BOX_SIZE 1920U",
+                    "#define PI 3.14159265359",
+                    "#define TAU 6.28318530718",
+                    "#define SQRT2 1.41421356237",
+                    "",
+                    "float hash21(vec2 n);",
+                    "vec3 hash23(vec2 n);",
+                    "float _hash11(uint n);",
+                    "float _hash21( uvec2 x );",
+                    "vec3 _hash13(uint n);",
+                    "",
+                    "// Hash from vec2 to float",
+                    "// Can be used directly with fragCoord",
+                    "float hash21(vec2 n)",
+                    "{",
+                    "    uvec2 uin = uvec2(n);",
+                    "    return _hash21(uin);",
+                    "}",
+                    "",
+                    "// Hash from vec2 to vec3",
+                    "// Can be used directly with fragCoord",
+                    "vec3 hash23(vec2 n)",
+                    "{",
+                    "    uvec2 uin = uvec2(n);",
+                    "    return _hash13(uin.x + HASH_BOX_SIZE * uin.y);",
+                    "}",
+                    "",
+                    "// Hash from uint to float",
+                    "float _hash11(uint n)",
+                    "{",
+                    "    n = (n << 13U) ^ n;",
+                    "    n = n * (n * n * 15731U + 789221U) + 1376312589U;",
+                    "    return float( n & uint(0x7fffffffU))/float(0x7fffffff);",
+                    "}",
+                    "",
+                    "// Hash from uvec2 to float",
+                    "float _hash21( uvec2 x )",
+                    "{",
+                    "    uvec2 q = 1103515245U * ( (x>>1U) ^ (x.yx   ) );",
+                    "    uint  n = 1103515245U * ( (q.x  ) ^ (q.y>>3U) );",
+                    "    return float(n) * (1.0/float(0xffffffffU));",
+                    "}",
+                    "",
+                    "// Hash from uint to vec3",
+                    "vec3 _hash13(uint n)",
+                    "{",
+                    "    n = (n << 13U) ^ n;",
+                    "    n = n * (n * n * 15731U + 789221U) + 1376312589U;",
+                    "    uvec3 k = n * uvec3(n,n*16807U,n*48271U);",
+                    "    return vec3( k & uvec3(0x7fffffffU))/float(0x7fffffff);",
+                    "}",
+                    "",
+                    "vec2 pseudo3dNoiseLevel(vec2 intPos, float t) {",
+                    "    float rand = hash21(intPos);",
+                    "    float angle = TAU * rand + t * rand;",
+                    "    return vec2(cos(angle), sin(angle));",
+                    "}",
+                    "",
+                    "// Generates noise which resembles 3D perlin-noise",
+                    "float pseudo3dNoise(vec3 pos) {",
+                    "    const vec2 i = floor(pos.xy);",
+                    "    const vec2 f = fract(pos.xy);",
+                    "    const vec2 blend = f * f * (3.0 - 2.0 * f);",
+                    "    float noiseVal = mix(",
+                    "        mix(",
+                    "            dot(pseudo3dNoiseLevel(i + vec2(0.0, 0.0), pos.z), f - vec2(0.0, 0.0)),",
+                    "            dot(pseudo3dNoiseLevel(i + vec2(1.0, 0.0), pos.z), f - vec2(1.0, 0.0)),",
+                    "            blend.x),",
+                    "        mix(",
+                    "            dot(pseudo3dNoiseLevel(i + vec2(0.0, 1.0), pos.z), f - vec2(0.0, 1.0)),",
+                    "            dot(pseudo3dNoiseLevel(i + vec2(1.0, 1.0), pos.z), f - vec2(1.0, 1.0)),",
+                    "            blend.x),",
+                    "        blend.y);",
+                    "    return noiseVal * SQRT2;",
+                    "}",
+                    "",
+                    "@main"
+                ],
+                "name": "NoiseHelper",
+                "nodeId": 6,
+                "type": 2,
+                "x": 105,
+                "y": 211.23138427734375
+            },
+            {
+                "description": "Creates a rounded rectangle with blur radius. The properties match with the RectangularShadow QtQuick.Effects element, so this node provides a starting point for the custom RectangularShadow materials.",
+                "fragmentCode": [
+                    "float roundedBox(vec2 centerPos, vec2 size, float radii) {",
+                    "    return length(max(abs(centerPos) - size + radii, 0.0)) - radii;",
+                    "}",
+                    "",
+                    "float roundedBox4R(vec2 centerPos, vec2 size, vec4 radii) {",
+                    "    // Get corner index [0..3] from centerPos",
+                    "    int i = int(2.0 + (0.5 * sign(centerPos.x)) + sign(centerPos.y));",
+                    "    return length(max(abs(centerPos) - size + radii[i], 0.0)) - radii[i];",
+                    "}",
+                    "",
+                    "@main",
+                    "{",
+                    "    float box;",
+                    "    if (radius < 0)",
+                    "        box = roundedBox4R(fragCoord - iResolution.xy * 0.5, rectSize, radius4);",
+                    "    else",
+                    "        box = roundedBox(fragCoord - iResolution.xy * 0.5, rectSize, radius);",
+                    "    float a = 1.0 - smoothstep(0.0, blur, box);",
+                    "    fragColor = color * a * a;",
+                    "}",
+                    ""
+                ],
+                "name": "RectangularShadow",
+                "nodeId": 7,
+                "properties": [
+                    {
+                        "defaultValue": "0, 0, 0, 1",
+                        "description": "Color of the shadow/glow.",
+                        "name": "color",
+                        "type": "color",
+                        "value": "0, 0, 0, 1"
+                    },
+                    {
+                        "defaultValue": "100, 100",
+                        "description": "The size of the shadow rectangle.",
+                        "maxValue": "200, 200",
+                        "minValue": "0, 0",
+                        "name": "rectSize",
+                        "type": "vec2",
+                        "value": "100, 100"
+                    },
+                    {
+                        "defaultValue": "0",
+                        "description": "Corner radius amount of the shadow rectangle.",
+                        "maxValue": "50",
+                        "minValue": "-1",
+                        "name": "radius",
+                        "type": "float",
+                        "value": "0"
+                    },
+                    {
+                        "defaultValue": "10",
+                        "description": "Blur radius amount of the shadow rectangle.",
+                        "maxValue": "50",
+                        "minValue": "0",
+                        "name": "blur",
+                        "type": "float",
+                        "value": "10"
+                    },
+                    {
+                        "defaultValue": "0, 0, 0, 0",
+                        "maxValue": "50, 50, 50, 50",
+                        "minValue": "0, 0, 0, 0",
+                        "name": "radius4",
+                        "type": "vec4",
+                        "value": "0, 0, 0, 0"
+                    }
+                ],
+                "type": 2,
+                "x": 105,
+                "y": 382.02374267578125
+            }
+        ],
+        "settings": {
+            "headings": [
+                "// Copyright (C) 2024 The Qt Company Ltd.",
+                "// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause"
+            ]
+        },
+        "version": 1
+    }
+}

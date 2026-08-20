@@ -1,0 +1,14 @@
+{
+    "spec_dir": "",
+    "spec_files": [
+        "*_test.js",
+        "binary/*_test.js"
+    ],
+    "helpers": [
+    ],
+    "env": {
+        "stopSpecOnExpectationFailure": true,
+        "stopOnSpecFailure": true,
+        "random": false
+    }
+}

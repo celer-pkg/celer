@@ -1,0 +1,82 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \externalpage https://www.ieee-security.org/TC/W2SP/2011/papers/websocket.pdf
+    \title "Talking to Yourself for Fun and Profit" by Lin-Shung Huang et al
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc6454
+    \title RFC 6454
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc6455
+    \title RFC 6455
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc6455#section-10
+    \title WebSocket Security Considerations
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc6455#section-9
+    \title WebSocket Extensions
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/rfc6455#section-1.9
+    \title WebSocket Subprotocols
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/draft-hixie-thewebsocketprotocol-76
+    \title hixie76
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/draft-ietf-hybi-thewebsocketprotocol-00
+    \title hybi-00
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/draft-ietf-hybi-thewebsocketprotocol-04
+    \title hybi-04
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/draft-ietf-hybi-thewebsocketprotocol-05
+    \title hybi-05
+*/
+
+/*!
+    \externalpage https://datatracker.ietf.org/doc/html/draft-ietf-hybi-thewebsocketprotocol-07
+    \title hybi-07
+*/
+
+/*!
+    \externalpage https://github.com/google/pywebsocket/wiki/WebSocketProtocolSpec
+    \title pywebsocket's WebSocketProtocolSpec
+*/
+
+/*!
+    \externalpage https://github.com/crossbario/autobahn-testsuite
+    \title Autobahn|Testsuite
+*/
+
+/*!
+    \externalpage https://github.com/crossbario/autobahn-testsuite/blob/master/README.md#installation
+    \title Autobahn|Testsuite installation documentation
+*/
+
+/*!
+    \externalpage https://www.mozilla.org/firefox
+    \title Firefox
+*/
+
+/*!
+    \externalpage https://bugzilla.mozilla.org/show_bug.cgi?id=594502
+    \title Firefox bug 594502
+*/

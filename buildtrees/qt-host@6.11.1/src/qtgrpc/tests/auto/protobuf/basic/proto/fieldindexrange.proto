@@ -1,0 +1,21 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+syntax = "proto3";
+
+package qtprotobufnamespace.tests;
+
+message FieldIndexTest1Message {
+    sint32 testField = 31;
+}
+
+message FieldIndexTest2Message {
+    sint32 testField = 8191;
+}
+
+message FieldIndexTest3Message {
+    sint32 testField = 2097151;
+}
+
+message FieldIndexTest4Message {
+    sint32 testField = 536870911;
+}

@@ -1,0 +1,16 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/scatter/Data.qml</file>
+        <file>qml/scatter/Graph.qml</file>
+        <file>qml/scatter/main.qml</file>
+        <file>images/background.svg</file>
+        <file>images/background_hide.svg</file>
+        <file>images/camera.svg</file>
+        <file>images/camera2.svg</file>
+        <file>images/flatten.svg</file>
+        <file>images/shadow.svg</file>
+        <file>images/shadow_hide.svg</file>
+        <file>images/smooth_curve.svg</file>
+        <file>images/theme.svg</file>
+    </qresource>
+</RCC>

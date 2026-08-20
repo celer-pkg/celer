@@ -1,0 +1,7 @@
+{
+  probes: {
+    frequency: {
+      cpus: "max"
+    }
+  }
+}

@@ -1,0 +1,607 @@
+# Copyright 2024-2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+package(
+    default_visibility = ["//ink:__subpackages__"],
+)
+
+cc_library(
+    name = "stroke_shape_update",
+    srcs = ["stroke_shape_update.cc"],
+    hdrs = ["stroke_shape_update.h"],
+    deps = [
+        "//ink/geometry:envelope",
+    ],
+)
+
+cc_test(
+    name = "stroke_shape_update_test",
+    srcs = ["stroke_shape_update_test.cc"],
+    deps = [
+        ":stroke_shape_update",
+        "//ink/geometry:envelope",
+        "//ink/geometry:rect",
+        "//ink/geometry:type_matchers",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "stroke_input_modeler",
+    srcs = ["stroke_input_modeler.cc"],
+    hdrs = ["stroke_input_modeler.h"],
+    deps = [
+        "//ink/brush:brush_family",
+        "//ink/geometry:angle",
+        "//ink/geometry:point",
+        "//ink/geometry:vec",
+        "//ink/strokes/input:stroke_input",
+        "//ink/strokes/input:stroke_input_batch",
+        "//ink/types:duration",
+        "//ink/types:physical_distance",
+        "@com_google_absl//absl/cleanup",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/types:span",
+        "@ink_stroke_modeler//ink_stroke_modeler:params",
+        "@ink_stroke_modeler//ink_stroke_modeler:stroke_modeler",
+        "@ink_stroke_modeler//ink_stroke_modeler:types",
+    ],
+)
+
+cc_test(
+    name = "stroke_input_modeler_test",
+    srcs = ["stroke_input_modeler_test.cc"],
+    deps = [
+        ":stroke_input_modeler",
+        "//ink/brush:brush_family",
+        "//ink/geometry:angle",
+        "//ink/geometry:type_matchers",
+        "//ink/strokes/input:stroke_input",
+        "//ink/strokes/input:stroke_input_batch",
+        "//ink/types:duration",
+        "//ink/types:physical_distance",
+        "//ink/types:type_matchers",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/status",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "brush_tip_state",
+    srcs = ["brush_tip_state.cc"],
+    hdrs = ["brush_tip_state.h"],
+    deps = [
+        "//ink/geometry:angle",
+        "//ink/geometry:point",
+        "//ink/geometry/internal:algorithms",
+    ],
+)
+
+cc_test(
+    name = "brush_tip_state_test",
+    srcs = ["brush_tip_state_test.cc"],
+    deps = [
+        ":brush_tip_state",
+        ":type_matchers",
+        "//ink/geometry:angle",
+        "//ink/geometry:type_matchers",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "brush_tip_modeler_helpers",
+    srcs = ["brush_tip_modeler_helpers.cc"],
+    hdrs = ["brush_tip_modeler_helpers.h"],
+    deps = [
+        ":brush_tip_state",
+        ":easing_implementation",
+        ":noise_generator",
+        ":stroke_input_modeler",
+        "//ink/brush:brush_behavior",
+        "//ink/brush:brush_tip",
+        "//ink/geometry:angle",
+        "//ink/geometry:point",
+        "//ink/geometry:vec",
+        "//ink/geometry/internal:algorithms",
+        "//ink/geometry/internal:modulo",
+        "//ink/strokes/input:stroke_input",
+        "//ink/types:duration",
+        "//ink/types:physical_distance",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "brush_tip_modeler_helpers_test",
+    srcs = ["brush_tip_modeler_helpers_test.cc"],
+    deps = [
+        ":brush_tip_modeler_helpers",
+        ":brush_tip_state",
+        ":easing_implementation",
+        ":noise_generator",
+        ":stroke_input_modeler",
+        ":type_matchers",
+        "//ink/brush:brush_behavior",
+        "//ink/brush:brush_tip",
+        "//ink/brush:easing_function",
+        "//ink/geometry:angle",
+        "//ink/geometry:type_matchers",
+        "//ink/geometry:vec",
+        "//ink/strokes/input:stroke_input",
+        "//ink/types:duration",
+        "//ink/types:physical_distance",
+        "//ink/types:type_matchers",
+        "@com_google_absl//absl/types:span",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "brush_tip_modeler",
+    srcs = ["brush_tip_modeler.cc"],
+    hdrs = ["brush_tip_modeler.h"],
+    deps = [
+        ":brush_tip_modeler_helpers",
+        ":brush_tip_state",
+        ":easing_implementation",
+        ":stroke_input_modeler",
+        "//ink/brush:brush_behavior",
+        "//ink/brush:brush_tip",
+        "//ink/geometry:angle",
+        "//ink/geometry:point",
+        "//ink/types:duration",
+        "@com_google_absl//absl/algorithm:container",
+        "@com_google_absl//absl/base:nullability",
+        "@com_google_absl//absl/container:inlined_vector",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/log:absl_log",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "brush_tip_modeler_test",
+    srcs = ["brush_tip_modeler_test.cc"],
+    deps = [
+        ":brush_tip_modeler",
+        ":brush_tip_state",
+        ":stroke_input_modeler",
+        "//ink/brush:brush_behavior",
+        "//ink/brush:brush_tip",
+        "//ink/brush:easing_function",
+        "//ink/geometry:angle",
+        "//ink/geometry:point",
+        "//ink/geometry:type_matchers",
+        "//ink/strokes/input:stroke_input",
+        "//ink/types:duration",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "easing_implementation",
+    srcs = ["easing_implementation.cc"],
+    hdrs = ["easing_implementation.h"],
+    deps = [
+        "//ink/brush:easing_function",
+        "//ink/geometry:point",
+        "//ink/geometry:vec",
+        "//ink/geometry/internal:algorithms",
+        "@com_google_absl//absl/container:inlined_vector",
+        "@com_google_absl//absl/functional:overload",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/log:absl_log",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_test(
+    name = "easing_implementation_test",
+    srcs = ["easing_implementation_test.cc"],
+    deps = [
+        ":easing_implementation",
+        "//ink/brush:easing_function",
+        "//ink/brush:fuzz_domains",
+        "@com_google_absl//absl/container:inlined_vector",
+        "@com_google_fuzztest//fuzztest",
+        "@com_google_fuzztest//fuzztest:fuzztest_gtest_main",
+    ],
+)
+
+cc_library(
+    name = "noise_generator",
+    srcs = ["noise_generator.cc"],
+    hdrs = ["noise_generator.h"],
+    deps = [
+        "//ink/geometry/internal:algorithms",
+        "@com_google_absl//absl/log:absl_check",
+    ],
+)
+
+cc_test(
+    name = "noise_generator_test",
+    srcs = ["noise_generator_test.cc"],
+    deps = [
+        ":noise_generator",
+        "@com_google_fuzztest//fuzztest",
+        "@com_google_fuzztest//fuzztest:fuzztest_gtest_main",
+    ],
+)
+
+cc_library(
+    name = "extrusion_points",
+    hdrs = ["extrusion_points.h"],
+    deps = ["//ink/geometry:point"],
+)
+
+cc_library(
+    name = "circular_extrusion_helpers",
+    srcs = ["circular_extrusion_helpers.cc"],
+    hdrs = ["circular_extrusion_helpers.h"],
+    deps = [
+        "//ink/geometry:angle",
+        "//ink/geometry:point",
+        "//ink/geometry:segment",
+        "//ink/geometry:vec",
+        "//ink/geometry/internal:algorithms",
+        "//ink/geometry/internal:circle",
+        "@com_google_absl//absl/log:absl_check",
+    ],
+)
+
+cc_test(
+    name = "circular_extrusion_helpers_test",
+    srcs = ["circular_extrusion_helpers_test.cc"],
+    deps = [
+        ":circular_extrusion_helpers",
+        ":extrusion_points",
+        "//ink/geometry:angle",
+        "//ink/geometry:point",
+        "//ink/geometry:type_matchers",
+        "//ink/geometry:vec",
+        "//ink/geometry/internal:circle",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "brush_tip_shape",
+    srcs = ["brush_tip_shape.cc"],
+    hdrs = ["brush_tip_shape.h"],
+    deps = [
+        ":brush_tip_state",
+        ":circular_extrusion_helpers",
+        ":extrusion_points",
+        "//ink/geometry:affine_transform",
+        "//ink/geometry:angle",
+        "//ink/geometry:point",
+        "//ink/geometry:rect",
+        "//ink/geometry:segment",
+        "//ink/geometry:vec",
+        "//ink/geometry/internal:algorithms",
+        "//ink/geometry/internal:circle",
+        "//ink/types:small_array",
+        "@com_google_absl//absl/container:inlined_vector",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "brush_tip_shape_test",
+    srcs = ["brush_tip_shape_test.cc"],
+    deps = [
+        ":brush_tip_shape",
+        ":brush_tip_state",
+        ":extrusion_points",
+        "//ink/geometry:angle",
+        "//ink/geometry:type_matchers",
+        "//ink/geometry/internal:circle",
+        "//ink/geometry/internal:test_matchers",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:span",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "brush_tip_extrusion",
+    srcs = ["brush_tip_extrusion.cc"],
+    hdrs = ["brush_tip_extrusion.h"],
+    deps = [
+        ":brush_tip_shape",
+        ":brush_tip_state",
+        ":rounded_polygon",
+        "//ink/geometry:distance",
+        "//ink/geometry:rect",
+        "//ink/geometry/internal:circle",
+        "@com_google_absl//absl/container:inlined_vector",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "brush_tip_extrusion_test",
+    srcs = ["brush_tip_extrusion_test.cc"],
+    deps = [
+        ":brush_tip_extrusion",
+        "//ink/geometry:angle",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "brush_tip_extruder",
+    srcs = ["brush_tip_extruder.cc"],
+    hdrs = ["brush_tip_extruder.h"],
+    deps = [
+        ":brush_tip_extrusion",
+        ":brush_tip_shape",
+        ":brush_tip_state",
+        ":constrain_brush_tip_extrusion",
+        ":extrusion_points",
+        ":stroke_outline",
+        ":stroke_shape_update",
+        "//ink/geometry:affine_transform",
+        "//ink/geometry:envelope",
+        "//ink/geometry:mutable_mesh",
+        "//ink/geometry:point",
+        "//ink/strokes/internal/brush_tip_extruder:geometry",
+        "//ink/strokes/internal/brush_tip_extruder:mutable_mesh_view",
+        "//ink/strokes/internal/brush_tip_extruder:side",
+        "@com_google_absl//absl/algorithm:container",
+        "@com_google_absl//absl/container:inlined_vector",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "brush_tip_extruder_test",
+    srcs = ["brush_tip_extruder_test.cc"],
+    deps = [
+        ":brush_tip_extruder",
+        ":brush_tip_state",
+        ":stroke_shape_update",
+        ":stroke_vertex",
+        "//ink/geometry:angle",
+        "//ink/geometry:mutable_mesh",
+        "//ink/geometry:point",
+        "//ink/geometry:rect",
+        "//ink/geometry:type_matchers",
+        "//ink/geometry/internal:algorithms",
+        "@com_google_absl//absl/types:span",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+# TODO(b/268209721): Add a brush_tip_extruder_image_test
+
+cc_library(
+    name = "stroke_vertex",
+    srcs = ["stroke_vertex.cc"],
+    hdrs = ["stroke_vertex.h"],
+    deps = [
+        "//ink/geometry:mesh_format",
+        "//ink/geometry:mesh_packing_types",
+        "//ink/geometry:mutable_mesh",
+        "//ink/geometry:point",
+        "//ink/geometry:vec",
+        "//ink/geometry/internal:algorithms",
+        "//ink/types:small_array",
+        "@com_google_absl//absl/algorithm:container",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "stroke_vertex_test",
+    srcs = ["stroke_vertex_test.cc"],
+    deps = [
+        ":stroke_vertex",
+        "//ink/geometry:mesh_format",
+        "//ink/geometry:mutable_mesh",
+        "//ink/geometry:point",
+        "//ink/geometry:type_matchers",
+        "//ink/geometry:vec",
+        "//ink/types:small_array",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "stroke_outline",
+    srcs = ["stroke_outline.cc"],
+    hdrs = ["stroke_outline.h"],
+    deps = [
+        "@com_google_absl//absl/algorithm:container",
+        "@com_google_absl//absl/base:nullability",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/numeric:bits",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "stroke_outline_test",
+    srcs = ["stroke_outline_test.cc"],
+    deps = [
+        ":stroke_outline",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "stroke_shape_builder",
+    srcs = ["stroke_shape_builder.cc"],
+    hdrs = ["stroke_shape_builder.h"],
+    deps = [
+        ":brush_tip_extruder",
+        ":brush_tip_modeler",
+        ":stroke_input_modeler",
+        ":stroke_outline",
+        ":stroke_shape_update",
+        ":stroke_vertex",
+        "//ink/brush:brush_coat",
+        "//ink/brush:brush_family",
+        "//ink/brush:brush_paint",
+        "//ink/geometry:envelope",
+        "//ink/geometry:mutable_mesh",
+        "//ink/strokes/input:stroke_input_batch",
+        "//ink/types:duration",
+        "@com_google_absl//absl/container:inlined_vector",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "stroke_shape_builder_test",
+    srcs = ["stroke_shape_builder_test.cc"],
+    deps = [
+        ":stroke_shape_builder",
+        ":stroke_shape_update",
+        ":stroke_vertex",
+        "//ink/brush:brush_coat",
+        "//ink/brush:brush_family",
+        "//ink/brush:brush_paint",
+        "//ink/brush:brush_tip",
+        "//ink/geometry:envelope",
+        "//ink/geometry:mutable_mesh",
+        "//ink/geometry:type_matchers",
+        "//ink/geometry/internal:algorithms",
+        "//ink/strokes/input:stroke_input_batch",
+        "//ink/types:duration",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "stroke_shape_builder_benchmark",
+    srcs = ["stroke_shape_builder_benchmark.cc"],
+    deps = [
+        ":stroke_shape_builder",
+        ":stroke_shape_update",
+        "//ink/brush",
+        "//ink/brush:brush_behavior",
+        "//ink/brush:brush_family",
+        "//ink/brush:brush_paint",
+        "//ink/brush:brush_tip",
+        "//ink/brush:easing_function",
+        "//ink/color",
+        "//ink/geometry:angle",
+        "//ink/geometry:rect",
+        "//ink/strokes/input:recorded_test_inputs",
+        "//ink/strokes/input:stroke_input",
+        "//ink/strokes/input:stroke_input_batch",
+        "//ink/types:duration",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_benchmark//:benchmark_main",
+    ],
+)
+
+cc_library(
+    name = "legacy_vertex",
+    srcs = ["legacy_vertex.cc"],
+    hdrs = ["legacy_vertex.h"],
+    deps = [
+        "//ink/color",
+        "//ink/geometry:point",
+    ],
+)
+
+cc_library(
+    name = "rounded_polygon",
+    srcs = ["rounded_polygon.cc"],
+    hdrs = ["rounded_polygon.h"],
+    deps = [
+        "//ink/geometry:angle",
+        "//ink/geometry:point",
+        "//ink/geometry:segment",
+        "//ink/geometry:vec",
+        "//ink/geometry/internal:circle",
+        "@com_google_absl//absl/container:inlined_vector",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "rounded_polygon_test",
+    srcs = ["rounded_polygon_test.cc"],
+    deps = [
+        ":rounded_polygon",
+        "//ink/geometry:type_matchers",
+        "//ink/geometry/internal:circle",
+        "@com_google_absl//absl/strings",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "constrain_brush_tip_extrusion",
+    srcs = ["constrain_brush_tip_extrusion.cc"],
+    hdrs = ["constrain_brush_tip_extrusion.h"],
+    deps = [
+        ":brush_tip_extrusion",
+        ":brush_tip_state",
+        "//ink/geometry:distance",
+        "//ink/geometry/internal:algorithms",
+        "@com_google_absl//absl/log:absl_check",
+    ],
+)
+
+cc_test(
+    name = "constrain_brush_tip_extrusion_test",
+    srcs = ["constrain_brush_tip_extrusion_test.cc"],
+    deps = [
+        ":brush_tip_extrusion",
+        ":brush_tip_state",
+        ":constrain_brush_tip_extrusion",
+        ":type_matchers",
+        "//ink/geometry:angle",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "type_matchers",
+    testonly = 1,
+    srcs = ["type_matchers.cc"],
+    hdrs = ["type_matchers.h"],
+    deps = [
+        ":brush_tip_shape",
+        ":brush_tip_state",
+        ":stroke_input_modeler",
+        "//:gtest_for_library_testonly",
+        "//ink/geometry:type_matchers",
+        "//ink/geometry/internal:circle",
+        "//ink/geometry/internal:test_matchers",
+        "//ink/types:type_matchers",
+        "@com_google_absl//absl/container:inlined_vector",
+    ],
+)

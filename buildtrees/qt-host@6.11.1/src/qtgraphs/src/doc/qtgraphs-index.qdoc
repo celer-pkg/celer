@@ -1,0 +1,95 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Qt Graphs
+    \page qtgraphs-index.html
+    \brief Provides functionality for 2D and 3D graphs.
+
+    The Qt Graphs module enables you to visualize data in 2D and 3D graphs.
+
+    In the 3D realm there is support for bar, scatter, and surface graphs.
+    It's especially useful for visualizing depth maps and large quantities
+    of rapidly changing data, such as data received from multiple sensors.
+    The look and feel of graphs can be customized by using themes or by adding
+    custom items and labels.
+
+    In the 2D realm, there is support for area, bar, donut, line, pie, scatter, and spline graphs,
+    and they are easily combinable with any other QML content.
+
+    Qt Graphs is built on Qt 6 and the 3D graphs on Qt Quick 3D to take advantage of
+    hardware acceleration and Qt Quick.
+
+    \section1 Using the Module
+
+    \section2 QtGraphs QML API
+
+    \include {module-use.qdocinc} {using the qml api} {QtGraphs}
+
+    \section2 C++ API
+
+    \include {module-use.qdocinc} {using the c++ api}
+
+    \section3 Building with CMake
+
+    \include {module-use.qdocinc} {building with cmake} {Graphs}
+
+    \section3 Building with qmake
+
+    \include {module-use.qdocinc} {building_with_qmake} {graphs}
+
+    \section3 Building a widget application
+
+    \list
+        \li \l{Qt Graphs Widgets}{Building With Widgets}
+    \endlist
+
+    \section1 Articles and Guides
+
+    \section2 Limiting Features
+
+    In cases the target of an application is some embedded hardware with limited
+    specifications, it is possible to build only 2D or 3D support into the module.
+
+    For more information, see \l{Qt Graphs Configure Options}{configuring Qt Graphs}.
+
+    \section2 Qt Graphs for 2D
+
+    \list
+        \li \l{Qt Graphs Overview for 2D}{Overview}
+        \li \l{Qt Graphs Migration from Qt Charts}{Migration Guide from Qt Charts}
+    \endlist
+
+    \section2 Qt Graphs for 3D
+
+    \list
+        \li \l{Qt Graphs Overview for 3D}{Overview}
+        \li \l{Qt Graphs Data Handling with 3D}{Data Handling}
+        \li \l{Qt Graphs Interacting with Data in 3D}{Interacting with Data}
+        \li \l{Qt Graphs Migration from Qt DataVisualization}{Migration Guide from Qt DataVisualization}
+        \li \l{Qt Graphs Integration with Qt Quick 3D}{Integration with Qt Quick 3D}
+        \li \l{Qt Graphs Known Issues}{Known Issues}
+    \endlist
+
+    \section2 Qt Graphs Common
+
+    \list
+        \li \l{Qt Graphs Theme Overview}{Theme Overview}
+    \endlist
+
+    \section1 Examples
+    \list
+        \li \l{Qt Graphs Examples}
+    \endlist
+
+    \section1 API Reference
+    \list
+        \li \l{Qt Graphs C++ Classes}
+        \li \l{Qt Graphs QML Types}
+    \endlist
+
+    \section1 Licenses and Attributions
+    Qt Graphs is available under commercial licenses from \l{The Qt
+    Company}. In addition, it is available under the \l{GNU General Public
+    License, version 3}. See \l{Qt Licensing} for further details.
+*/

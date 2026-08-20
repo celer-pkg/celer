@@ -1,0 +1,61 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example trafficlight
+    \title Traffic Light
+    \ingroup examples-qtstatemachine
+    \examplecategory {Data Processing & I/O}
+
+    \brief The Traffic Light example shows how to use \l{Qt State Machine Overview}
+    to implement the control flow of a traffic light.
+
+    \image trafficlight-example.png {Traffic light with green light illuminated}
+
+    In this example we write a TrafficLightWidget class. The traffic light has
+    three lights: Red, yellow and green. The traffic light transitions from
+    one light to another (red to yellow to green to yellow to red again) at
+    certain intervals.
+
+    \snippet trafficlight/main.cpp 0
+
+    The LightWidget class represents a single light of the traffic light. It
+    provides an \c on property and two slots, turnOn() and turnOff(), to turn
+    the light on and off, respectively. The widget paints itself in the color
+    that's passed to the constructor.
+
+    \snippet trafficlight/main.cpp 1
+
+    The TrafficLightWidget class represents the visual part of the traffic
+    light; it's a widget that contains three lights arranged vertically, and
+    provides accessor functions for these.
+
+    \snippet trafficlight/main.cpp 2
+
+    The createLightState() function creates a state that turns a light on when
+    the state is entered, and off when the state is exited. The state uses a
+    timer, and as we shall see the timeout is used to transition from one
+    LightState to another. Here is the statechart for the light state:
+
+    \image trafficlight-example1.png
+           {LightState with timing substate: entry turns light on and starts
+           timer, exit turns off, timeout transitions to final state}
+
+    \snippet trafficlight/main.cpp 3
+
+    The TrafficLight class combines the TrafficLightWidget with a state
+    machine.  The state graph has four states: red-to-yellow, yellow-to-green,
+    green-to-yellow and yellow-to-red. The initial state is red-to-yellow;
+    when the state's timer times out, the state machine transitions to
+    yellow-to-green. The same process repeats through the other states.
+    This is what the statechart looks like:
+
+    \image trafficlight-example2.png
+           {Traffic light cycle: redGoingYellow, yellowGoingGreen,
+           greenGoingYellow, yellowGoingRed}
+
+    \snippet trafficlight/main.cpp 4
+
+    The main() function constructs a TrafficLight and shows it.
+
+*/

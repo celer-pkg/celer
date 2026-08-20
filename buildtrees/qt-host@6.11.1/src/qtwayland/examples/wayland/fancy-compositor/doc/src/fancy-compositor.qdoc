@@ -1,0 +1,104 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Fancy Compositor
+    \example fancy-compositor
+    \examplecategory {Embedded}
+    \brief Fancy Compositor is an example that demonstrates how to write a fancy Wayland compositor in pure QML.
+    \ingroup qtwaylandcompositor-examples
+
+    \section1 Introduction
+
+    Fancy Compositor is a small desktop-style Wayland compositor example that demonstrates the power and
+    ease of the \l{Qt Wayland Compositor} QML APIs.
+
+    The Fancy Compositor example is similar to the \l{Minimal QML}{Minimal QML example}, in that it is a
+    full-blown Wayland compositor, implemented only using QML code.
+
+    \section1 Initializing the Compositor
+
+    Like the \l{Minimal QML}{Minimal QML example}, Fancy Compositor supports the main
+    \l{Shell Extensions - Qt Wayland Compositor}{shell extensions} that are supported by Qt.
+
+    \snippet fancy-compositor/qml/main.qml shell extensions
+
+    These are instantiated as children of the \l{WaylandCompositor} which automatically adds
+    them to the list of supported interfaces which is broadcasted to clients from the server.
+
+    When a connected client creates a surface and binds it to one of the shell extensions, the
+    corresponding signal is emitted. This then calls a method inside our custom \l WaylandOutput
+    class, which appends the \l ShellSurface to a \l{ListModel}.
+
+    \snippet fancy-compositor/qml/CompositorScreen.qml handleShellSurface
+
+    This model is used as the source for a \l Repeater which creates
+    \l{ShellSurfaceItem}{ShellSurfaceItems} inside the compositor's \l WaylandOutput. This adds a
+    view of the surface in the Qt Quick scene. Since it is a \l{ShellSurfaceItem}, it also has
+    certain interaction options for the user of the compositor, depending on which shell extension
+    is in use.
+
+    \snippet fancy-compositor/qml/CompositorScreen.qml repeater
+
+    \section1 Keyboard
+
+    In addition to the basic windowing system functions, the Fancy Compositor also supports an
+    optional on-screen keyboard running in-process. This uses the \l{Qt Virtual Keyboard} module,
+    and will be enabled if the module is available.
+
+    \snippet fancy-compositor/qml/Keyboard.qml keyboard
+
+    The code is simple. We instantiate an \l InputPanel in the bottom of the output, and make sure
+    it is visible if and only if it is currently active.
+
+    \snippet fancy-compositor/qml/CompositorScreen.qml keyboard
+
+    The keyboard is then added to the \l WaylandOutput using a \l Loader element. The \l Loader is
+    used here to avoid having a hard dependency on the \l{Qt Virtual Keyboard} module. If loading
+    fails, then the compositor will continue operating normally, but without support for an
+    on-screen keyboard.
+
+    Finally, we need a way for the compositor to communicate the text input to its clients. This
+    is done via a \c{text-input} extension. The Fancy Compositor example supports both the
+    \c{text_input_unstable_v2} protocol as well as Qt's \c{qt_text_input_method_unstable_v1}
+    protocol.
+
+    \snippet fancy-compositor/qml/main.qml text input
+
+    The \c{qt_text_input_method_unstable_v1} extension is added to the compositor by instantiating
+    the \l QtTextInputMethodManager as a child of the \l{WaylandCompositor}, and
+    \l{TextInputManager} adds \c{text_input_unstable_v2}.
+
+    Newer Qt applications will pick \c{qt_text_input_method_unstable_v1} when it is available,
+    while other clients can use \c{text_input_unstable_v2}.
+
+    \section1 Transitions
+
+    In addition to the basic functionality, the Fancy Compositor example also demonstrates animated
+    transitions between states.
+
+    The first of these is the \e{activation} transition. This is only supported on the \l{XdgShell},
+    since this is the only shell extension which has an \l{XdgToplevel::}{activated} state.
+
+    \snippet fancy-compositor/qml/Chrome.qml activation
+
+    When a client window becomes activated under the \l XdgShell protocol, we trigger an animation
+    which makes the window "pop out" for 200 ms.
+
+    The Fancy Compositor also supports a \e{destruction} animation. This triggers whenever the
+    window closes and surface is destroyed, whether this was because the client gracefully closed
+    its window, or even if it crashes.
+
+    \snippet fancy-compositor/qml/Chrome.qml destruction
+
+    To ensure that the content exists for the duration of the animation, we start by locking the
+    buffer. This means the final frame rendered by the client will remain in memory until we are
+    done with it.
+
+    Again, we trigger an animation on the scale of the item. The animation in question imitates
+    turning off the power on a CRT screen, giving a visual clue to the user that the window is
+    closing, and didn't just vanish into thin air.
+
+    Any sort of animated effect may be used for state changes such as these, with the full range
+    of Qt Quick at your disposal.
+*/

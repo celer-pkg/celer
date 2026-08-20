@@ -1,0 +1,24 @@
+<svg viewBox="0 0 1300 500" xmlns="http://www.w3.org/2000/svg">
+  <style>
+  @keyframes transformRect1 {
+    0% {transform: translate(0px, 0px) scale(1, 1)}
+    100% {transform: translate(500px, 0px) scale(2, 2)}
+  }
+  @keyframes transformRect2 {
+    0% {transform: scale(1, 1) translate(0px, 0px)}
+    100% {transform: scale(2, 2) translate(500px, 0px)}
+  }
+  #rect1 {
+    animation-duration: 2s;
+    animation-name: transformRect1;
+    animation-iteration-count: infinite;
+  }
+ #rect2 {
+    animation-duration: 2s;
+    animation-name: transformRect2;
+    animation-iteration-count: infinite;
+  }
+  </style>
+  <rect id="rect1" x="100" y="100" width="50" height="50" fill="blue" stroke-width="6"/>
+  <rect id="rect2" x="100" y="100" width="50" height="50" fill="blue" stroke-width="6"/>
+</svg>

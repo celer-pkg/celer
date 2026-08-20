@@ -1,0 +1,46 @@
+<svg width="190" height="370"
+  xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink">
+
+  <defs>
+    <image id="theJpg" x="10"  width="80" height="80" xlink:href="../images/cloud411q25s.jpg" />
+    <image id="thePng" x="100" width="80" height="80" xlink:href="../images/sign.png" />
+
+    <filter id="blurMe5-2">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="5 2" />
+    </filter>
+
+    <filter id="blueToRed">
+      <feColorMatrix in="SourceGraphic" type="matrix" color-interpolation-filters="linearRGB"
+        values="1 0 1 0 0
+                0 1 0 0 0
+                0 0 0 0 0
+                0 0 0 1 0"/>
+    </filter>
+
+    <mask x="0" y="0" width="1" height="1" id="myMask" maskContentUnits="objectBoundingBox" >
+      <circle cx="0.5" cy="0.5" r="0.5" fill="white" />
+    </mask>
+
+    <pattern id="patternJpg" patternContentUnits="objectBoundingBox" width="0.5" height="0.5"
+            patternTransform="rotate(45)">
+      <image width="0.5" height="0.5" xlink:href="../images/cloud411q25s.jpg" />
+    </pattern>
+    <pattern id="patternPng" patternContentUnits="objectBoundingBox" width="0.5" height="0.5"
+            patternTransform="rotate(45)">
+      <image width="0.5" height="0.5" xlink:href="../images/sign.png" />
+    </pattern>
+  </defs>
+
+  <use href="#theJpg" y="10"  filter="url(#blurMe5-2)" />
+  <use href="#thePng" y="10"  filter="url(#blurMe5-2)" />
+
+  <use href="#theJpg" y="100" filter="url(#blueToRed)" />
+  <use href="#thePng" y="100" filter="url(#blueToRed)" />
+
+  <use href="#theJpg" y="190" mask="url(#myMask)" />
+  <use href="#thePng" y="190" mask="url(#myMask)" />
+
+  <rect x="10"  y="280" width="80" height="80" fill="url(#patternJpg)"/>
+  <rect x="100" y="280" width="80" height="80" fill="url(#patternPng)"/>
+</svg>

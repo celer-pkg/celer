@@ -1,0 +1,467 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example chat
+    \ingroup qtgrpc-examples
+    \examplecategory {Networking}
+    \meta tag {network,protobuf,grpc,serialization,tcp,ssl,tls,quick}
+    \title QtGrpc Chat
+    \brief A chat application to share messages of any kind in a chat room.
+
+    The \e Chat example demonstrates advanced usage of the QtGrpc client API.
+    The server enables users to register and authenticate, allowing them to
+    join the \e ChatRoom. Once joined, users can share various message types in
+    the \e ChatRoom, such as text messages, images, user activity or any other
+    files from their disk with all other participants.
+
+    \inlineimage {chat_room.webp} {Mobile chat window}
+    \inlineimage {chat_login.webp} {Login window}
+
+    \section1 Running the example
+
+    \list
+        \li Ensure that the \c{qtgrpc_chat_server} is running and successfully
+            listening.
+        \li If you are on the same machine as the server, the default
+            \c{localhost} address should suffice when running the
+            \c{qtgrpc_chat_client}. If you are using a device other than the
+            one hosting the server, specify the correct IP address of the host
+            running the server in the Settings dialog.
+        \li Ensure that the \c{GRPC_CHAT_USE_EMOJI_FONT} CMake option is
+            enabled on the client to build with a smooth emoji experience 🚀.
+    \endlist
+
+    \image {chat_settings.webp} {Connection settings window img}
+
+    To run the example from \l{\QC Documentation}{Qt Creator}, open the
+    \uicontrol Welcome mode and select the example from \uicontrol Examples.
+    For more information, see \l{\QC: Tutorial: Build and run}.
+
+    \section1 Relevant modules and classes.
+    This example introduces the following Qt modules and classes.
+
+    \list
+        \li Communication through long-lived \l{QGrpcBidiStream}.
+        \li Using the QtGrpc client from a worker \l{QThread}{thread}.
+        \li Using the QtProtobufQtCoreTypes module in the protobuf schema.
+        \li Secure communication through \l{Secure Sockets Layer (SSL) Classes}{SSL}.
+        \li Visualizing QtProtobuf messages in a QML ListView.
+    \endlist
+
+    \section1 Protobuf Schema
+
+    The Protobuf schema defines the structure of messages and services used in
+    the chat application. The schema is split into two files:
+
+    \snippet chat/proto/qtgrpcchat.proto proto-1
+
+    The \c{qtgrpcchat.proto} file specifies the QtGrpcChat service, which provides
+    two RPC methods:
+
+    \list
+        \li \c{Register}: Registers a user with the provided \c Credentials.
+            The server stores and verifies users from a database in plain text.
+        \li \c{ChatRoom}: Establishes a bidirectional stream for exchanging
+            \c{ChatMessage}(s) between all connected clients. The server
+            broadcasts all incoming messages to other connected clients.
+    \endlist
+
+    \snippet chat/proto/chatmessages.proto proto-2
+
+    The \c{chatmessages.proto} file defines \c{ChatMessage}, which is a
+    \l{https://en.wikipedia.org/wiki/Tagged_union}{tagged union (also known as
+    a sum type)}. It represents all the individual messages that can be sent
+    through the \c{ChatRoom} streaming RPC. Every \c{ChatMessage} must include
+    a \c{username} and \c{timestamp} to identify the sender.
+
+    You include the \c{QtCore/QtCore.proto} import to enable the types of the
+    QtProtobufQtCoreTypes module, allowing seamless conversion between
+    QtCore-specific types and their Protobuf equivalents.
+
+    \snippet chat/proto/chatmessages.proto proto-3
+
+    \c{FileMessage} is one of the supported message types for the
+    \c{ChatMessage} sum type. It allows wrapping any local file into a message.
+    The optional \c{Continuation} field ensures reliable delivery by handling
+    large file transfers in chunks.
+
+    \note For more details on using the \c{ProtobufQtCoreTypes} module in your
+    Protobuf schema and application code, see \l{Qt Core usage}.
+
+    \section1 Server
+
+    \note The server application described here uses the \gRPC library.
+
+    The server application uses the asynchronous \gRPC
+    \l{https://grpc.io/docs/languages/cpp/callback/}{callback API}. This allows
+    us to benefit from the performance advantages of the async API without the
+    complexity of manually managing completion queues.
+
+    \snippet chat/server/main.cpp server-1
+
+    You declare the \c{QtGrpcChatService} class, which subclasses the
+    \c{CallbackService} of the generated \c{QtGrpcChat} service.
+
+    \snippet chat/server/main.cpp server-2
+
+    Also override the virtual functions to implement the functionality for the
+    two \gRPC methods provided by the service:
+
+    \list
+        \li The \c{Register} method verifies and stores users in a plain text
+            database.
+        \li The \c{ChatRoom} method checks credentials provided in the metadata
+            against the database. If successful, it establishes a bidirectional
+            stream for communication.
+    \endlist
+
+    \snippet chat/server/main.cpp server-3
+
+    The service implementation tracks all active clients that connect or
+    disconnect through the \c{ChatRoom} method. This enables the \c{broadcast}
+    functionality, which shares messages with all connected clients. To reduce
+    storage and overhead, the \c{ChatMessage} is wrapped in a \c{shared_ptr}.
+
+    \snippet chat/server/main.cpp server-4
+
+    The \c{startSharedWrite} method is a member function of the
+    \c{ChatRoomReactor}. If the reactor is currently writing, the message is
+    buffered in a queue. Otherwise, a write operation is initiated. There is a
+    single and unique message shared between all clients.
+    Each copy of the \c{response} message increases the \c{use_count}. Once all
+    clients have finished writing the message, and its \c{use_count} drops to 0 its
+    resources are freed.
+
+    \snippet chat/server/main.cpp server-5
+
+    This snippet is part of the \c{ChatRoomReactor::OnReadDone} virtual method.
+    Each time this method is called, a new message has been received from the
+    client. The message is broadcast to all other clients, skipping the sender.
+
+    \snippet chat/server/main.cpp server-6
+
+    This snippet is part of the \c{ChatRoomReactor::OnWriteDone} virtual
+    method. Each time this method is called, a message has been written to the
+    client. If there are buffered messages in the queue, the next message is
+    written. Otherwise, \c{m_response} is reset to signal that no write
+    operation is in progress. A lock is used to protect against contention with
+    the \c{broadcast} method.
+
+    \section1 Client
+
+    The client application uses the provided Protobuf schema to communicate
+    with the server. It provides both front-end and back-end capabilities for
+    registering users and handling the long-lived bidirectional stream of the
+    \c{ChatRoom} \gRPC method. This enables the visualization and communication
+    of \c{ChatMessage}s.
+
+    \section2 Setup
+
+    \snippet chat/client/CMakeLists.txt client-setup-1
+
+    First, generate the source files from the Protobuf schema. Since the
+    \c{qtgrpcchat.proto} file does not contain any \c{message} definitions,
+    only \l{qt_add_grpc}{qtgrpcgen} generation is required. Also provide the
+    \c{PROTO_INCLUDES} of the \c{ProtobufQtCoreTypes} module to ensure the
+    \c{"QtCore/QtCore.proto"} import is valid.
+
+    \snippet chat/client/CMakeLists.txt client-setup-2
+
+    Ensure that the independent \c{qtgrpc_chat_client_proto} target is
+    publicly linked against its dependencies, including the
+    \c{ProtobufQtCoreTypes} module. The application target is then linked
+    against this library.
+
+    \section2 Backend Logic
+
+    The backend of the application is built around four crucial elements:
+
+    \list
+        \li \c{ChatEngine}: A QML-facing singleton that manages the application
+            logic.
+        \li \c{ClientWorker}: A worker object that provides \gRPC client
+            functionality asynchronously.
+        \li \c{ChatMessageModel}: A custom \c{QAbstractListModel} for handling
+            and storing \c{ChatMessage}s.
+        \li \c{UserStatusModel}: A custom \c{QAbstractListModel} for managing
+            user activity.
+    \endlist
+
+    \snippet chat/client/chatengine.h client-1
+
+    The snippet above shows some of the \c{Q_INVOKABLE} functionality that is
+    called from QML to interact with the server.
+
+    \snippet chat/client/clientworker.h client-2a
+    \snippet chat/client/clientworker.h client-2b
+
+    The slots provided by the \c{ClientWorker} somewhat mirror the API exposed by the
+    \c{ChatEngine}. The \c{ClientWorker} operates in a dedicated thread to
+    handle expensive operations, such as transmitting or receiving large files,
+    in the background.
+
+    \snippet chat/client/chatengine.cpp client-3
+    \dots 0
+
+    In the \c{ChatEngine} constructor, assign the \c{ClientWorker} to its
+    dedicated worker thread and continue handling and forwarding its signals to
+    make them available on the QML side.
+
+    \snippet chat/client/chatengine.cpp client-4a
+    \dots 0
+    \snippet chat/client/clientworker.cpp client-4b
+
+    This demonstrates how the \c{ChatEngine} interacts with the
+    \c{ClientWorker} to register users. Since the \c{ClientWorker} runs in its
+    own thread, it is important to use \l{QMetaObject::}{invokeMethod} to call
+    its member functions safely.
+
+    In the \c{ClientWorker}, you check whether the client is uninitialized or if
+    the host URI has changed. If either condition is met, call
+    \c{initializeClient}, which creates a new QGrpcHttp2Channel. Since this
+    is an expensive operation, minimize its occurrences.
+
+    To handle the \c{Register} RPC, use the
+    \l{QGrpcCallOptions::}{setDeadlineTimeout} option to guard against server
+    inactivity. It is generally recommended to set a deadline for unary RPCs.
+
+    \snippet chat/client/clientworker.cpp client-5a
+    \dots
+    \snippet chat/client/clientworker.cpp client-5b
+
+    When logging into the \c{ChatRoom},you can use the
+    \l{QGrpcCallOptions::}{setMetadata} option to provide user credentials, as
+    required by the server for authentication. The actual call and connection
+    setup are handled in the \c{connectStream} method.
+
+    \snippet chat/client/clientworker.cpp client-6a
+    \dots
+    \snippet chat/client/clientworker.cpp client-6b
+    \dots
+    \snippet chat/client/clientworker.cpp client-6c
+    \dots
+
+    To implement basic reconnection logic in case the stream finishes abruptly
+    while you are still connected. This is done by simply calling
+    \c{connectStream} again with the \c{QGrpcCallOptions} from the initial
+    call. This ensures that all required connections are also updated.
+
+    \note Android’s
+    \l{https://developer.android.com/training/monitoring-device-state/doze-standby}{Doze/App-Standby}
+    mode can be triggered, e.g., by using the FileDialog or switching to
+    another app. This mode shuts down network access, closing all active
+    QTcpSocket connections and causing the stream to be
+    \l{QGrpcBidiStream::}{finished}. You can address this issue with the
+    reconnection logic.
+
+    \snippet chat/client/clientworker.cpp client-6d
+    \dots 8
+    \snippet chat/client/clientworker.cpp client-6e
+    \dots 8
+    \snippet chat/client/clientworker.cpp client-6f
+
+    When messages are received, the \c{ClientWorker} performs some
+    pre-processing, such as saving the \c{FileMessage} content, so that the
+    \c{ChatEngine} only needs to focus on the models. Use the \c{ContentFields}
+    enum to safely check the \c{oneof content} field of our ChatMessage sum type.
+
+    \snippet chat/client/chatengine.cpp client-7a
+    \dots 0
+    \snippet chat/client/clientworker.cpp client-7b
+
+    When sending messages, the \c{ChatEngine} creates properly formatted
+    requests. For example, the \c{sendText} method accepts a \c{QString} and
+    uses the \c{createMessage} function to generate a valid message with the
+    \c{username} and \c{timestamp} fields set. The client is then invoked to
+    send the message, and a copy is enqueued into our own \c{ChatMessageModel}.
+
+    \section2 QML Frontend
+
+    \snippet chat/client/Main.qml client-qml-1
+
+    The following imports are used in the QML code:
+
+    \list
+        \li \c{QtGrpc}: Provides QtGrpc QML functionality, such as the
+            \l{QtGrpc::}{StatusCode}.
+        \li \c{QtGrpcChat}: Our application module, which includes components
+            like the \c{ChatEngine} singleton.
+        \li \c{QtGrpcChat.Proto}: Provides QML access to our generated \l{Qt
+            Protobuf QML Types}{protobuf types}.
+    \endlist
+
+    \snippet chat/client/Main.qml client-qml-2
+
+    \c{Main.qml} handles core signals emitted by the \c{ChatEngine}. Most
+    of these signals are handled globally and are visualized in any state of
+    the application.
+
+    \snippet chat/client/LoginView.qml client-qml-3a
+    \dots
+    \snippet chat/client/LoginView.qml client-qml-3b
+    \dots 8
+    \snippet chat/client/LoginView.qml client-qml-3c
+    \dots 12
+    \snippet chat/client/LoginView.qml client-qml-3d
+    \dots 16
+    \snippet chat/client/LoginView.qml client-qml-3e
+
+    The generated message types from the protobuf schema are accessible in QML
+    as they're \l{QML_VALUE_TYPE}s (a \e{camelCase} version of the message
+    definition). The \c{LoginView.qml} uses the \c{credentials} value type
+    property to initiate the \c{login} on the \c{ChatEngine}.
+
+    \snippet chat/client/ChatView.qml client-qml-4a
+    \dots 12
+    \snippet chat/client/ChatView.qml client-qml-4b
+    \dots 16
+    \snippet chat/client/ChatView.qml client-qml-4c
+    \dots 12
+    \snippet chat/client/ChatView.qml client-qml-4d
+    \dots 16
+    \snippet chat/client/ChatView.qml client-qml-4e
+
+    In \c{ChatView.qml}, the ListView displays messages in the \c{ChatRoom}.
+    This is slightly more complex, as you need to handle the \c{ChatMessage} sum
+    type conditionally.
+
+    You can use a DelegateChooser, which allows us to select the appropriate
+    delegate based on the type of message. Use the default
+    \c{whatThis} role in the model, which provides the message type for each
+    \c{ChatMessage} instance. The \c{DelegateBase} component then accesses the
+    \c{display} role of the model, making the chatMessage data available for
+    rendering.
+
+    \snippet chat/client/ChatMessages/TextDelegate.qml client-qml-5
+
+    Here is one of the components that visualizes the \c{TextMessage} type. It
+    uses the \c{textMessage} value type from the protobuf module to visualize
+    the text.
+
+    \snippet chat/client/ChatView.qml client-qml-6a
+    \dots 20
+    \snippet chat/client/ChatView.qml client-qml-6b
+
+    The Chat client provides various access points in sending
+    messages like:
+
+    \list
+        \li Accepting files Dropped onto the application.
+        \li <Ctrl + V> to send anything stored in the QClipboard.
+        \li <Ctrl + Enter> to send the message from the \c{inputField}
+        \li Clicking the send button for the \c{inputField}
+        \li Selecting files through a FileDialog
+    \endlist
+
+    \section1 SSL
+
+    To secure communication between the server and clients, SSL/TLS encryption
+    is used. This requires the following at a minimum:
+
+    \list
+        \li \e{Private Key}: contains the server's private key, which is used
+            to establish secure connections. It must be kept confidential and
+            should never be shared.
+        \li \e{Certificate}: contains the server's public certificate, which
+            is shared with clients to verify the server's identity. It is
+            typically signed by a Certificate Authority (CA) or can be
+            self-signed for testing purposes.
+        \li Optional \e{Root CA Certificate}: If you are using a custom
+            Certificate Authority (CA) to sign your server certificate, the
+            root CA certificate is required on the client side to validate the
+            server's certificate chain. This ensures the client can trust the
+            server's certificate, as the custom CA's root certificate is not
+            pre-installed in the client's trust store like those of public CAs.
+    \endlist
+
+    Use \l{https://www.openssl.org/}{OpenSSL} to create these files and set
+    up our \gRPC communication to use SSL/TLS.
+
+    \snippet chat/server/main.cpp server-ssl
+
+    You provide the \e{Private Key} and \e{Certificate} to the \gRPC server.
+    With that, you can construct the \c{SslServerCredentials} to enable TLS on the
+    server-side. In addition to secure communication, also allow unencrypted
+    access.
+
+    The server listens on the following addresses:
+    \list
+        \li HTTPS : \c{0.0.0.0:65002}
+        \li HTTP  : \c{0.0.0.0:65003}
+    \endlist
+
+    The server binds to \c{0.0.0.0} to listen on all network interfaces,
+    allowing access from any device on the same network.
+
+    \snippet chat/client/clientworker.cpp client-ssl
+
+    The client loads the \e{Root CA Certificate}, as you self-signed the CA.
+    This certificate is used to create the QSslCertificate. It is important to
+    provide the \c{"h2"} protocol with
+    \l{QSslConfiguration::}{setAllowedNextProtocols}, as you are using HTTP/2.
+
+    \section1 Interceptors
+
+    The chat client uses a QGrpcInterceptorChain to observe all RPC activity.
+    During initialization, a \c{LoggingInterceptor} attaches to the channel,
+    giving the application a live view of every operation that passes through
+    the chain.
+
+    \snippet chat/client/clientworker.cpp interceptor-1
+
+    You construct a QGrpcInterceptorChain and add the interceptor to it using
+    its \c{unique_ptr} overload, which transfers ownership to the chain. You
+    then move the chain into the QGrpcHttp2Channel constructor. After the
+    channel takes ownership, the interceptor remains valid for the entire
+    lifetime of the channel.
+
+    \snippet chat/client/logginginterceptor.h interceptor-2
+
+    \c{LoggingInterceptor} implements all available interceptor interfaces,
+    covering the full RPC lifecycle. It holds a \c{shared_ptr} to a
+    \c{LogModel} for adding log entries, and a \c{QHash} to track active
+    operations by ID.
+
+    \details {Logging interceptor implementation}
+
+        The following snippets show how the \c{onStart} and \c{onFinished}
+        interception points work. The remaining interception points perform
+        basic logging of their respective events.
+
+        \snippet chat/client/logginginterceptor.cpp interceptor-3
+
+        In \c{onStart}, the interceptor stores the current timestamp in a QHash
+        keyed by the \l{QGrpcOperationContext::}{operationId()}. Returning
+        \c{Continuation::Proceed} passes the call down the chain.
+
+        \snippet chat/client/logginginterceptor.cpp interceptor-4
+
+        In \c{onFinished}, the stored timestamp is looked up by operation ID
+        to compute the RPC duration. The log level is derived from the status
+        code, and the final entry is added to the \c{LogModel}.
+
+    \enddetails
+
+    The accumulated log entries are exposed to QML through the
+    \c{ChatEngine::logModel} property. A dedicated \c{LogDialog} renders them
+    in a ListView:
+
+    \snippet chat/client/LogDialog.qml interceptor-5a
+    \dots 4
+    \snippet chat/client/LogDialog.qml interceptor-5b
+    \dots 16
+    \snippet chat/client/LogDialog.qml interceptor-5c
+
+    Each delegate shows the log level, timestamp, and RPC details. The
+    \c{LogModel} prepends new entries so the most recent activity appears
+    at the top.
+
+    \image {interceptor_logs.webp} {Interceptor Logs dialog with RPC activity
+    entries}
+
+    \section1 Source files
+
+    \sa {All Qt Examples}
+*/
+

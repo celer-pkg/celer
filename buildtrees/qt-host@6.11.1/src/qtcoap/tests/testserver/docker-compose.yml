@@ -1,0 +1,54 @@
+version: '2.1'
+
+
+# The tag of images is used by docker compose file to launch the correct
+# docker containers. By default we always launch the "latest" tag.
+#
+# But in the "docker build" phase, we also tag the images with a unique tag,
+# the SHA1 hash of all files used for "docker build" - see sha1tree() in
+# provisioning.
+#
+# So if you want to update the docker image at a specific time, make sure that
+#   1. you modify this file to run the specific image's SHA1 tag, instead of
+#      "latest"
+#   2. you build two docker images in provisioning, the currently used one,
+#      plus the new one that you tag as "latest"
+#   3. you switch this file to the "latest" tag when ready
+
+# You can run `docker images` to list all the tags of available images:
+# For example:
+# REPOSITORY              TAG
+# qt-test-server-californium 537fe302f61851d1663f41495230d8e3554a4a13
+
+services:
+    californium:
+        extends:
+            file: ${SHARED_DATA}/docker-compose-common.yml
+            service: ${SHARED_SERVICE}
+        container_name: qt-test-server-californium
+        hostname: ${HOST_NAME:-californium}
+        build:
+            context: .
+            args:
+                provisioningImage: qt-test-server-californium:latest
+                serviceDir: ./californium
+        ports:
+            - "5683:5683/udp"
+            - "5684:5684/udp"
+        entrypoint: ./startup.sh
+        command: service/californium.sh
+    freecoap:
+        extends:
+            file: ${SHARED_DATA}/docker-compose-common.yml
+            service: ${SHARED_SERVICE}
+        container_name: qt-test-server-freecoap
+        hostname: ${HOST_NAME:-freecoap}
+        build:
+            context: .
+            args:
+                provisioningImage: qt-test-server-freecoap:latest
+                serviceDir: ./freecoap
+        ports:
+            - "5685:5685/udp"
+        entrypoint: ./startup.sh
+        command: service/freecoap.sh

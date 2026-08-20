@@ -1,0 +1,14 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example sqlbrowser
+    \title SQL Browser
+    \ingroup sql_examples
+    \examplecategory {Data Processing & I/O}
+
+    \brief The SQL Browser example shows how a data browser can be used to visualize
+    the results of SQL statements on a live database.
+
+    \image sqlbrowser-demo.png {The main window depicts the connected database together with the items in the database. The user is able to generate an SQL query and submit it.}
+*/

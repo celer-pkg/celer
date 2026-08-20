@@ -1,0 +1,19 @@
+// Copyright (C) 2015 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example videowidget
+    \title Video Widget Example
+    \ingroup multimedia_examples
+    \examplecategory {Multimedia}
+    \brief Implementing a video player widget.
+    \meta {tag} {widgets,QVideoWidget}
+
+    \e{Video Widget} demonstrates how to implement a simple video player using
+    QVideoWidget.
+
+    \image video-videowidget.png
+           {Video interface with control panel}
+
+    \include examples-run.qdocinc
+*/

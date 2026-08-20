@@ -1,0 +1,30 @@
+{{>licenseInfo}}
+#ifndef {{prefix}}_COMMON_GLOBAL_H
+#define {{prefix}}_COMMON_GLOBAL_H
+
+#define OPENAPI_GENERATOR_VERSION_STR       "{{generatorVersion}}"
+#define OPENAPI_GENERATOR_VERSION_MAJOR     {{generatorVersionMajor}}
+#define OPENAPI_GENERATOR_VERSION_MINOR     {{generatorVersionMinor}}
+#define OPENAPI_GENERATOR_VERSION_PATCH     {{generatorVersionPatch}}
+
+// Macro checks if the current generator version greater or equal
+// to the provided value.
+#define OPENAPI_GENERATOR_VERSION_GE(major, minor, patch) \
+    ((OPENAPI_GENERATOR_VERSION_MAJOR > (major)) \
+        || (OPENAPI_GENERATOR_VERSION_MAJOR == (major) \
+            && OPENAPI_GENERATOR_VERSION_MINOR > (minor)) \
+        || (OPENAPI_GENERATOR_VERSION_MAJOR == (major) \
+            && OPENAPI_GENERATOR_VERSION_MINOR == (minor) \
+                && OPENAPI_GENERATOR_VERSION_PATCH >= (patch)))
+
+// Macro checks if the current generator version less or equal
+// to the provided value.
+#define OPENAPI_GENERATOR_VERSION_LE(major, minor, patch) \
+    ((OPENAPI_GENERATOR_VERSION_MAJOR < (major)) \
+        || (OPENAPI_GENERATOR_VERSION_MAJOR == (major) \
+            && OPENAPI_GENERATOR_VERSION_MINOR < (minor)) \
+        || (OPENAPI_GENERATOR_VERSION_MAJOR == (major) \
+            && OPENAPI_GENERATOR_VERSION_MINOR == (minor) \
+                && OPENAPI_GENERATOR_VERSION_PATCH <= (patch)))
+
+#endif // {{prefix}}_COMMON_GLOBAL_H

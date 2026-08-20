@@ -1,0 +1,8 @@
+{
+  "name": "third-party-web",
+  "description": "Package list used when building/upgrading third-party-web",
+  "private": true,
+  "dependencies": {
+    "third-party-web": "0.26.2"
+  }
+}

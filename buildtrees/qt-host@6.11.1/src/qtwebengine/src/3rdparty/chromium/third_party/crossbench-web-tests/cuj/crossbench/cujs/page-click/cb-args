@@ -1,0 +1,1 @@
+--playback 2x --wpr $[WEB_TESTS]/cuj/crossbench/wpr/page-click-scroll.wprgo

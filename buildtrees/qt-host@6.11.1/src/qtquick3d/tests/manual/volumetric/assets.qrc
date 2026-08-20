@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>colormap.png</file>
+        <file>OpenfootageNET_garage-1024.hdr</file>
+    </qresource>
+</RCC>

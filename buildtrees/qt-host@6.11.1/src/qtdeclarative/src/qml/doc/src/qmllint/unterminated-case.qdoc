@@ -1,0 +1,67 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qmllint-warnings-and-errors-unterminated-case.html
+\ingroup qmllint-warnings-and-errors
+
+\title Unterminated non-empty case block
+\brief [unterminated-case] A non-empty case block was not terminated.
+
+\qmllintwarningcategory unterminated-case
+
+\section1 Unterminated non-empty case block
+
+\section2 What happened?
+A case block in a switch statement was non-empty but was not terminated by a
+break, return, or throw statement. There was also no opt-in fallthrough
+comment.
+
+\section2 Why is that bad?
+Fallthrough logic in switch statements can be confusing or overlooked. If it is
+intentional, it should be marked explicitly with a comment such as
+"// fallthrough". If it isn't intentional, the warning indicates that a
+terminating statement was forgotten.
+
+\section2 Example
+\qml
+switch (state) {
+case Main.State.Reset:
+    clearState()                    // <--- "Unterminated non-empty case block"
+case Main.State.Invalid:
+    asyncInitState()
+    return false
+case Main.State.Initializing:
+    // wait for initialization to complete
+    return false
+case Main.State.Ready:
+    res = lookup(query)
+    log(res.stats)
+    saveToDisk(res.data)            // <--- "Unterminated non-empty case block"
+default:
+    throw new InvalidStateException("Unknown state")
+}
+\endqml
+To fix this warning, add missing terminating statements or add explicit opt-in
+comments allowing fallthrough logic:
+\qml
+switch (state) {
+case Main.State.Reset:
+    clearState()
+    // fallthrough                   // <--- add fallthrough comment
+case Main.State.Invalid:
+    asyncInitState()
+    return false
+case Main.State.Initializing:
+    // wait for initialization to complete
+    return false
+case Main.State.Ready:
+    res = lookup(query)
+    log(res.stats)
+    saveToDisk(res.data)
+    return true                     // <--- add forgotten terminating statement
+default:
+    throw new InvalidStateException("Unknown state")
+}
+\endqml
+*/

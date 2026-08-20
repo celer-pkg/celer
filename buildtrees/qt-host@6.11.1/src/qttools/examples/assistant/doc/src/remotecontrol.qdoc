@@ -1,0 +1,14 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example remotecontrol
+    \ingroup examples-qtassistant
+    \title Remote Control Example
+    \examplecategory {Desktop}
+
+    \brief Using and controlling Qt Assistant as a help viewer.
+
+    \image remotecontrol-example.png {Screenshot of the example UI}
+
+*/

@@ -1,0 +1,779 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title QSB Manual
+    \page qtshadertools-qsb.html
+
+    \c qsb is a command-line tool provided by the \l{Qt Shader Tools}
+    module. It integrates third-party libraries such as
+    \l{https://github.com/KhronosGroup/glslang}{glslang} and
+    \l{https://github.com/KhronosGroup/SPIRV-Cross}{SPIRV-Cross},
+    optionally invokes external tools, such as, \c fxc or \c
+    spirv-opt, and generates \c{.qsb} files. Additionally, it can be
+    used to inspect the contents of a \c{.qsb} package.
+
+    \badcode
+Usage: qsb [options] file
+Qt Shader Baker (using QShader from Qt 6.10.0)
+
+Options:
+  -?, -h, --help               Displays help on commandline options.
+  --help-all                   Displays help, including generic Qt options.
+  -v, --version                Displays version information.
+  -b, --batchable              Also generates rewritten vertex shader for Qt
+                               Quick scene graph batching.
+  --zorder-loc <location>      The extra vertex input location when rewriting
+                               for batching. Defaults to 7.
+  --glsl <versions>            Comma separated list of GLSL versions to
+                               generate. (for example, "100 es,120,330")
+  --hlsl <versions>            Comma separated list of HLSL (Shader Model)
+                               versions to generate. F.ex. 50 is 5.0, 51 is 5.1.
+  --msl <versions>             Comma separated list of Metal Shading Language
+                               versions to generate. F.ex. 12 is 1.2, 20 is 2.0.
+  --qt6                        Equivalent to --glsl "100 es,120,150" --hlsl 50
+                               --msl 12. This set is commonly used with shaders
+                               for Qt Quick materials and effects.
+  --msltess                    Indicates that a vertex shader is going to be
+                               used in a pipeline with tessellation. Mandatory
+                               for vertex shaders planned to be used with
+                               tessellation when targeting Metal (--msl).
+  --tess-vertex-count <count>  The output vertex count from the tessellation
+                               control stage. Mandatory for tessellation
+                               evaluation shaders planned to be used with Metal.
+                               The default value is 3. If it does not match the
+                               tess.control stage, the generated MSL code will
+                               not function as expected.
+  --tess-mode <mode>           The tessellation mode: triangles or quads.
+                               Mandatory for tessellation control shaders
+                               planned to be used with Metal. The default value
+                               is triangles. Isolines are not supported with
+                               Metal. If it does not match the tess.evaluation
+                               stage, the generated MSL code will not function
+                               as expected.
+  --view-count <num_views>     The number of views the shader is used with.
+                               num_views must be >= 2. Mandatory when multiview
+                               rendering is used (gl_ViewIndex). Set only for
+                               vertex shaders that really do rely on multiview
+                               (as the resulting asset is tied to num_views).
+                               Can be set for fragment shaders too, to get
+                               QSHADER_VIEW_COUNT auto-defined. (useful for
+                               ensuring uniform buffer layouts)
+  -g                           Generate full debug info for SPIR-V and DXBC
+  -O                           Invoke spirv-opt (external tool) to optimize
+                               SPIR-V for performance.
+  -o, --output <filename>      Output file for the shader pack.
+  --orig-file <filename>       Filename to be be used for dependency tracking
+                               instead of <file>.
+  --qsbversion <version>       QSB version to use for the output file. By
+                               default the latest version is automatically used,
+                               use only to bake compatibility versions. F.ex. 64
+                               is Qt 6.4.
+  -c, --fxc                    In combination with --hlsl invokes fxc (SM
+                               5.0/5.1) or dxc (SM 6.0+) to store DXBC or DXIL
+                               instead of HLSL.
+  -t, --metallib               In combination with --msl builds a Metal library
+                               with xcrun metal(lib) and stores that instead of
+                               the source. Suitable only when targeting macOS,
+                               not iOS.
+  -T, --metallib-ios           In combination with --msl builds a Metal library
+                               with xcrun metal(lib) and stores that instead of
+                               the source. Suitable only when targeting iOS, not
+                               macOS.
+  -D, --define <name[=value]>  Define macro. This argument can be specified
+                               multiple times.
+  -p, --per-target             Enable per-target compilation. (instead of
+                               source->SPIRV->targets, do source->SPIRV->target
+                               separately for each target)
+  -d, --dump                   Switches to dump mode. Input file is expected to
+                               be a shader pack.
+  -x, --extract <what>         Switches to extract mode. Input file is expected
+                               to be a shader pack. Result is written to the
+                               output specified by -o. Pass -b to choose the
+                               batchable variant.
+                               <what>=reflect|spirv,<version>|glsl,<version>|...
+  -r, --replace <what>         Switches to replace mode. Replaces the specified
+                               shader in the shader pack with the contents of a
+                               file. This argument can be specified multiple
+                               times. Pass -b to choose the batchable variant.
+                               Also supports adding a shader for a
+                               target/variant that was not present before.
+                               <what>=<target>,<filename> where
+                               <target>=spirv,<version>|glsl,<version>|...
+  -e, --erase <what>           Switches to erase mode. Removes the specified
+                               shader from the shader pack. Pass -b to choose
+                               the batchable variant.
+                               <what>=spirv,<version>|glsl,<version>|...
+  -s, --silent                 Enables silent mode. Only fatal errors will be
+                               printed.
+  --mediump                    Default to medium precision for floats in
+                               fragment shaders instead of high. GLSL ES only;
+                               ignored for everything else, including GLSL.
+  --depfile <depfile>          Enables generating the depfile for the input
+                               shaders, using the #include statements.
+
+Arguments:
+  file                         Vulkan GLSL source file to compile. The file
+                               extension determines the shader stage, and can be
+                               one of .vert, .tesc, .tese, .geom, .frag, .comp.
+                               Note: Tessellation control/evaluation is not
+                               supported with HLSL, instead use -r to inject
+                               handcrafted hull/domain shaders. Some targets may
+                               need special arguments to be set, e.g. MSL
+                               tessellation will likely need --msltess,
+                               --tess-vertex-count, --tess-mode, depending on
+                               the stage. Geometry shaders are not supported
+                               with Metal.
+    \endcode
+
+    \section1 Modes of Operation
+
+    There are five major modes of operation:
+
+    \list
+
+    \li \c{.qsb} file generation.
+
+    \li \c{.qsb} file inspection. For example, \c{qsb -d
+    myshader.frag.qsb} will print the reflection metadata (in JSON
+    form) and the included shaders.
+
+    \li Extraction mode. This allows writing a given shader from an
+    existing \c{.qsb} file into a separate file. For example, \c{qsb
+    -x spirv,100 -o myshader.spv myshader.frag.qsb} writes the SPIR-V
+    binary into \c myshader.spv.
+
+    \li Replace mode. This allows replacing the contents of one or more shaders
+    within the \c{.qsb} file with content read from the specified files. This
+    way handcrafted shader code can be injected into the \c{.qsb} package.
+
+    \li Erase mode. This removes the specified shader variant from the \c{.qsb}
+    file.
+
+    \endlist
+
+    \section1 Example
+
+    Take the following fragment shader:
+    \badcode
+    #version 440
+
+    layout(location = 0) in vec2 v_texcoord;
+    layout(location = 0) out vec4 fragColor;
+    layout(binding = 1) uniform sampler2D tex;
+
+    layout(std140, binding = 0) uniform buf {
+        float uAlpha;
+    };
+
+    void main()
+    {
+        vec4 c = texture(tex, v_texcoord);
+        fragColor = vec4(c.rgb, uAlpha);
+    }
+    \endcode
+
+    Executing \c{qsb -o shader.frag.qsb shader.frag} results in generating \c
+    shader.frag.qsb. Inspecting this file with \c{qsb -d shader.frag.qsb} gives
+    us:
+
+    \badcode
+Stage: Fragment
+QSB_VERSION: 5
+Has 1 shaders:
+  Shader 0: SPIR-V 100 [Standard]
+
+Reflection info: {
+    "combinedImageSamplers": [
+        {
+            "binding": 1,
+            "name": "tex",
+            "set": 0,
+            "type": "sampler2D"
+        }
+    ],
+    "inputs": [
+        {
+            "location": 0,
+            "name": "v_texcoord",
+            "type": "vec2"
+        }
+    ],
+    "localSize": [
+        0,
+        0,
+        0
+    ],
+    "outputs": [
+        {
+            "location": 0,
+            "name": "fragColor",
+            "type": "vec4"
+        }
+    ],
+    "uniformBlocks": [
+        {
+            "binding": 0,
+            "blockName": "buf",
+            "members": [
+                {
+                    "name": "uAlpha",
+                    "offset": 0,
+                    "size": 4,
+                    "type": "float"
+                }
+            ],
+            "set": 0,
+            "size": 4,
+            "structName": "_27"
+        }
+    ]
+}
+
+
+Shader 0: SPIR-V 100 [Standard]
+Entry point: main
+Contents:
+Binary of 864 bytes
+    \endcode
+
+    By default only SPIR-V is generated, so an application using this shader
+    package would only be functional with Vulkan. Let's make it more useful:
+
+    \badcode
+    qsb --glsl "100 es,120,150" --hlsl 50 --msl 12 -o shader.frag.qsb shader.frag
+    \endcode
+
+    This leads to generating a shader package that makes it suitable for OpenGL,
+    Direct 3D, and Metal as well. The features used in this shader are basic,
+    and even GLSL ES 100 (the shading language of OpenGL ES 2.0) is suitable.
+
+    Inspecting the result shows:
+
+    \badcode
+Stage: Fragment
+QSB_VERSION: 5
+Has 6 shaders:
+  Shader 0: GLSL 120 [Standard]
+  Shader 1: HLSL 50 [Standard]
+  Shader 2: GLSL 100 es [Standard]
+  Shader 3: MSL 12 [Standard]
+  Shader 4: SPIR-V 100 [Standard]
+  Shader 5: GLSL 150 [Standard]
+
+Reflection info: {
+    ... <same as above>
+}
+
+
+Shader 0: GLSL 120 [Standard]
+Entry point: main
+Contents:
+#version 120
+
+struct buf
+{
+    float uAlpha;
+};
+
+uniform buf _27;
+
+uniform sampler2D tex;
+
+varying vec2 v_texcoord;
+
+void main()
+{
+    vec4 c = texture2D(tex, v_texcoord);
+    gl_FragData[0] = vec4(c.xyz, _27.uAlpha);
+}
+
+************************************
+
+Shader 1: HLSL 50 [Standard]
+Entry point: main
+Native resource binding map:
+0 -> [0, -1]
+1 -> [0, 0]
+Contents:
+cbuffer buf : register(b0)
+{
+    float _27_uAlpha : packoffset(c0);
+};
+
+Texture2D<float4> tex : register(t0);
+SamplerState _tex_sampler : register(s0);
+
+static float2 v_texcoord;
+static float4 fragColor;
+
+struct SPIRV_Cross_Input
+{
+    float2 v_texcoord : TEXCOORD0;
+};
+
+struct SPIRV_Cross_Output
+{
+    float4 fragColor : SV_Target0;
+};
+
+void frag_main()
+{
+    float4 c = tex.Sample(_tex_sampler, v_texcoord);
+    fragColor = float4(c.xyz, _27_uAlpha);
+}
+
+SPIRV_Cross_Output main(SPIRV_Cross_Input stage_input)
+{
+    v_texcoord = stage_input.v_texcoord;
+    frag_main();
+    SPIRV_Cross_Output stage_output;
+    stage_output.fragColor = fragColor;
+    return stage_output;
+}
+
+************************************
+
+...
+
+Shader 3: MSL 12 [Standard]
+Entry point: main0
+Native resource binding map:
+0 -> [0, -1]
+1 -> [0, 0]
+Contents:
+#include <metal_stdlib>
+#include <simd/simd.h>
+
+using namespace metal;
+
+struct buf
+{
+    float uAlpha;
+};
+
+struct main0_out
+{
+    float4 fragColor [[color(0)]];
+};
+
+struct main0_in
+{
+    float2 v_texcoord [[user(locn0)]];
+};
+
+fragment main0_out main0(main0_in in [[stage_in]], constant buf& _27 [[buffer(0)]], texture2d<float> tex [[texture(0)]], sampler texSmplr [[sampler(0)]])
+{
+    main0_out out = {};
+    float4 c = tex.sample(texSmplr, in.v_texcoord);
+    out.fragColor = float4(c.xyz, _27.uAlpha);
+    return out;
+}
+
+************************************
+
+...
+    \endcode
+
+    This package can now be used by Qt Quick with all supported graphics APIs:
+    Vulkan, Direct 3D, Metal, OpenGL, and OpenGL ES. At run time the appropriate
+    shader is picked up automatically by the Qt Rendering Hardware Interface
+    that sits underneath Qt Quick and Qt Quick 3D.
+
+    Besides translating the SPIR-V bytecode back to higher level source code,
+    the system takes care of additional problems, such as ensuring correct
+    mapping of SPIR-V binding numbers onto native resources. For example, with
+    HLSL we saw a section like this above:
+
+\badcode
+Native resource binding map:
+ 0 -> [0, -1]
+ 1 -> [0, 0]
+\endcode
+
+    Internally, this allows mapping a SPIR-V style binding point \c 0 to the
+    HLSL register \c b0 and binding \c 1 to \c t0 and \c s0. This helps making
+    the differences in resource bindings between the various shading languages
+    transparent to the users of the Rendering Hardware Interface, and allows
+    everything in Qt to operate with Vulkan/SPIR-V style binding points as they
+    are specified in the original Vulkan-style GLSL source code.
+
+    \section1 Shader Types
+
+    The type of shader is deduced from the input file extension. Thus, the
+    extension must be one of the following:
+
+    \list
+    \li \c .vert - for vertex shaders
+    \li \c .tesc - for tessellation control shaders
+    \li \c .tese - for tessellation evaluation shaders
+    \li \c .geom - for geometry shaders
+    \li \c .frag - for fragment (pixel) shaders
+    \li \c .comp - for compute shaders
+    \endlist
+
+    \note Tessellation control and evaluation shaders are not currently
+    supported with Direct 3D (HLSL).
+
+    \section1 Shading Languages and Versions
+
+    SPIR-V 1.0 is always generated. What gets generated in addition depends on
+    the command-line arguments \c{--glsl}, \c{--hlsl}, and \c{--msl}.
+
+    These parameters are all followed by a comma-separated list. The list must
+    include GLSL-style version numbers, with an optional suffix (\c{es},
+    indicating GLSL ES). The space between the suffix and the version is
+    optional (not having the space can help avoiding the need for quoting).
+
+    For example, Qt Quick's built-in materials (the shaders backing items, such
+    as \l Image, \l Text, \l Rectangle) all prepare their shaders with \c{--glsl
+    "100 es,120,150" --hlsl 50 --msl 12}. This makes them compatible with OpenGL
+    ES 2.0 and higher, OpenGL 2.1 and higher, and OpenGL core profile contexts
+    of version 3.2 and higher.
+
+    If the shader uses functions or constructs that do not have an equivalent in
+    the specified targets, \c qsb will fail. If that is the case, the targets
+    will need to be adjusted, and this also means that the application's minimum
+    system requirements get adjusted implicitly. As an example, take the \c
+    textureLod GLSL function that is only available with OpenGL ES 3.0 and up
+    (meaning GLSL ES 300 or higher). When requesting GLSL \c{300 es} instead of
+    \c{100 es}, \c qsb will succeed, but the application using that \c{.qsb}
+    file will now require OpenGL ES 3.0 or higher and will not be compatible
+    with OpenGL ES 2.0 based systems.
+
+    Another obvious example of this is compute shaders: \c{.comp} shaders will
+    need to specify \c{--glsl 310es,430} as compute shaders are only available
+    with OpenGL ES 3.1 or newer and OpenGL 4.3 or newer.
+
+    Adjusting the shader model version for HLSL, or the Metal Shading Language
+    version is expected to be needed rarely. Shader Model 5.0 (\c{--hlsl 50}) and
+    MSL 1.2 (\c{--msl 12}) will typically be sufficient.
+
+    \section1 Qt Quick Scene Graph Batching
+
+    The Qt Quick Scene Graph's renderer supports batching of geometry to reduce
+    the number of draw calls. See \l{Qt Quick Scene Graph}{the Scene Graph
+    pages} for details. This relies on injecting code to the vertex shader's
+    main() function. In Qt 5.x this happened at run time, by modifying the
+    supplied GLSL vertex shader code. In Qt 6 that is not an option. Instead,
+    batchable variants of vertex shaders can be built by the \c qsb tool. This
+    is requested by the \c{-b} argument. When the input is not a vertex shader
+    with \c{.vert} extension, it has no effect. For vertex shaders, however, it
+    will lead to generating two versions for each target. Qt Quick will then
+    automatically pick the right variant (standard or batchable) at run time.
+
+    \note Applications do not have to concern themselves with the details of
+    batching. They must simply ensure that \c{-b} (or the equivalent \c
+    BATCHABLE keyword if using the \l{Qt Shader Tools Build System
+    Integration}{CMake integration}) is specified when processing the vertex
+    shaders. This is relevant only for Qt Quick shaders used with \l
+    ShaderEffect or \l QSGMaterialShader.
+
+    Take the following example vertex shader:
+    \badcode
+#version 440
+layout(location = 0) in vec4 position;
+layout(location = 1) in vec2 texcoord;
+layout(location = 0) out vec2 v_texcoord;
+layout(std140, binding = 0) uniform buf {
+    mat4 mvp;
+} ubuf;
+
+void main()
+{
+    v_texcoord = texcoord;
+    gl_Position = ubuf.mvp * position;
+}
+    \endcode
+
+    Running \c {qsb -b --glsl 330 -o example.vert.qsb example.vert} leads to:
+
+\badcode
+Stage: Vertex
+QSB_VERSION: 5
+Has 4 shaders:
+  Shader 0: GLSL 330 [Standard]
+  Shader 1: GLSL 330 [Batchable]
+  Shader 2: SPIR-V 100 [Standard]
+  Shader 3: SPIR-V 100 [Batchable]
+
+Reflection info: {
+  ...
+\endcode
+
+    Note how all target languages and versions now exist in two variants:
+    Standard and a slightly modified Batchable.
+
+    \section1 Invoking External Tools
+
+    \c qsb can invoke certain external tools. These fall into two categories:
+    tools for performing optimizations on the shader bytecode (SPIR-V), and
+    platform-specific tools to perform the first phase of shader compilation,
+    from source to some intermediate bytecode format.
+
+    These are enabled by the following command-line options:
+
+    \list
+
+    \li \c{-O} - invokes \c spirv-opt as a post-processing step on the SPIR-V
+    binary.  The \c{.qsb} file will include the optimized version. This assumes
+    that \c spirv-opt is available on the system (for example, from the Vulkan
+    SDK) and ready to be invoked.
+
+    \li \c{-c} or \c{--fxc} - invokes \c{fxc.exe}, the Direct 3D shader
+    compiler.  The resulting \c DXBC (DirectX Byte Code) data is what gets
+    stored in the \c{.qsb} file instead of HLSL.  Qt will automatically pick it
+    up at run time, so it is up to the \c{.qsb} file's creator to decide what to
+    include, HLSL source or the intermediate format. Whenever possible, prefer
+    the latter since it eliminates the need for parsing an HLSL source at run
+    time, leading to potentially significant performance gains upon graphics
+    pipeline creation. The downside is that this argument can only be used when
+    \c qsb runs on Windows.
+
+    \li \c{-t} or \c{--metallib} - invokves the appropriate XCode Metal tools to
+    generate a .metallib file and includes that in the \c{.qsb} package instead
+    of the MSL source code. This option is only available when \c qsb is running
+    on macOS.
+
+    \endlist
+
+    \section1 Other Options
+
+    \list
+
+    \li \c{-D} - defines a macro. This allows using #ifdef and similar in the
+    GLSL source code.
+
+    \li \c{-g} - enables generating full debug information for SPIR-V, thus
+    enabling tools like \l{https://renderdoc.org/}{RenderDoc} to display the
+    full source when inspecting a pipeline or when performing vertex or fragment
+    debugging. Also has an effect for Direct 3D when \c{-c} is specified,
+    because \c fxc is then instructed to include debug information in the
+    generated intermediate bytecode.
+
+    \li \c{--mediump} - requests defaulting to medium precision for floats in
+    GLSL ES fragment shaders. Ignored for any other targets, including (non-ES)
+    GLSL, and for non-fragment shaders.
+
+    \li \c{--orig-file} - specifies the filename that is used instead of the
+    input source file when generating dependency files for CMake (--depfiles).
+    This is useful when the file passed to qsb is an intermediate, generated
+    shader source file. For dependency tracking purposes however, it is often
+    the original file that needs to be used.
+
+    \endlist
+
+    \section1 Tessellation
+
+    \list
+
+    \li \c{--msltess} - Indicates that the vertex shader is used in a pipeline
+    that includes tessellation stages. Has no effect for other types of
+    shaders, and when MSL shader generation is not enabled. If not specified,
+    the vertex shader will not be functional on Metal in combination with
+    tessellation.
+
+    \li \c{--tess-vertex-count <count>} - Specifies the output vertex count
+    from the tessellation control stage. Specifying this is mandatory for
+    tessellation evaluation shaders used with Metal. The default value is 3. If
+    it does not match the tessellation control stage, the generated MSL code
+    will not function as expected.
+
+    \li \c{--tess-mode <mode>} - This option specifies the tessellation mode.
+    It can take one of two values: \c triangles or \c quads. The default value
+    is \c triangles. Specifying this is mandatory for tessellation control
+    shaders used with Metal. The value must match the tessellation evaluation
+    stage, otherwise the generated MSL code will not function as expected.
+
+    \endlist
+
+    \section1 Multiview
+
+    Take the following vertex shader. It is written as Vulkan-compatible GLSL,
+    enabling the \c{GL_EXT_multiview} extension to make using \c{gl_ViewIndex}
+    legal.
+
+\badcode
+#version 440
+#extension GL_EXT_multiview : require
+
+layout(location = 0) in vec4 pos;
+layout(std140, binding = 0) uniform buf
+{
+    mat4 mvp[2];
+};
+
+void main()
+{
+    gl_Position = mvp[gl_ViewIndex] * pos;
+}
+\endcode
+
+    \note In practice the #extension GL_EXT_multiview line will not be needed
+    in the source code passed to \c qsb, because passing the
+    \c{--view-count} argument described below automatically injects that line
+    into the shader source code before compiling to SPIR-V.
+
+    For Vulkan this works as-is, as long as Vulkan 1.1 is supported at runtime.
+    See
+    \l{https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VK_KHR_multiview.html}{VK_KHR_multiview}
+    for details.
+
+    To generate a HLSL vertex shader from the above for Direct 3D 12 (see
+    \l{https://microsoft.github.io/DirectX-Specs/d3d/ViewInstancing.html}{view
+    instancing} for details), the minimum shader model version is 6.1, meaning
+    \c qsb will fail when specifying e.g. \c{--hlsl 50}. Use at least \c{--hlsl
+    61} when processing a multiview vertex shader. Multiview is not supported
+    with Direct 3D 11.
+
+    For OpenGL, additional metadata is needed:
+
+    \list
+
+    \li \c{--view-count} - When transpiling above shader (after compiling to
+    SPIR-V) to OpenGL-compatible GLSL source code, it is not enough to map
+    \c{gl_ViewIndex} to \c{gl_ViewID_OVR}, but the number of views needs to be
+    declared in the shader as well. Passing a value of 2 to the \c{--view-count}
+    argument results in injecting a \c{layout(num_views = 2) in;} statement into
+    the generated GLSL source code, thus making it a valid (OpenGL) GLSL shader.
+    See
+    \l{https://registry.khronos.org/OpenGL/extensions/OVR/OVR_multiview.txt}{GL_OVR_multiview}
+    for details and note that the generated GLSL shaders also require
+    \l{https://registry.khronos.org/OpenGL/extensions/OVR/OVR_multiview2.txt}{GL_OVR_multiview2}
+    to be supported at runtime since that is what is going to be required by the
+    \c{#extension} directive in the generated shader source code.
+
+    \endlist
+
+    When targeting OpenGL (ES) with such a vertex shader, the generated GLSL
+    version (\c{--glsl}) must be at least \c 330 or \c{300 es}. The former is
+    not something that is enforced by \c qsb or QShaderBaker, but in practice
+    OpenGL implementations are known to reject such shaders if the GLSL version
+    is 150 or smaller. Hence it is recommended to pass \c{--glsl 330,300es}
+    when conditioning vertex shaders enabling GL_EXT_multiview.
+
+    Specifying \c{--view-count} automatically generates and injects a
+    preprocessor define:
+    \c{#define QSHADER_VIEW_COUNT n} where \c n is the number of views.
+    When the view count is not provided, the define is not set at all.
+    This allows writing code such as the following, and allows using the same
+    source file for all view count-specific variants of the shader.
+
+\badcode
+layout(std140, binding = 0) uniform buf {
+#if QSHADER_VIEW_COUNT >= 2
+    mat4 matrix[QSHADER_VIEW_COUNT];
+#else
+    mat4 matrix;
+#endif
+    float opacity;
+};
+\endcode
+
+    In addition, the \c{#extension GL_EXT_multiview : require} line is generated
+    automatically in vertex shaders whenever a view count of 2 or greater is
+    set. This reduces the number of extra lines needed to be added for multiview
+    support in a vertex shader.
+
+    Setting the view count can be relevant with other types of shaders as well.
+    For example, when sharing a uniform buffer between the vertex and fragment
+    shader, and both shaders have to ensure the same buffer layout, it can be
+    useful to be able to write \c{#if QSHADER_VIEW_COUNT >= 2} in both source
+    files. That can be ensured by specifying \c{--view-count} for both when
+    invoking \c qsb.
+
+    \note Directly relying on the \c{gl_ViewIndex} keyword in a non-vertex
+    stage, for example in a fragment shader, is not portable at the moment and
+    should be avoided.
+
+    \section1 Working with GLSL Features Specific to OpenGL
+
+    It can sometimes be necessary to use shading language constructs that are
+    specific to OpenGL and GLSL, and are not applicable to other shading
+    languages, intermediate formats, and graphics APIs.
+
+    The prime examples of this are the external textures and samplers of OpenGL
+    ES. Implementing video playback or showing a camera viewfinder may involve,
+    depending on the platform, working with OpenGL texture objects that are not
+    meant to be used as regular 2D textures, but are rather usable, with a
+    limited feature set, via the
+    \l{https://www.khronos.org/registry/OpenGL/extensions/OES/OES_EGL_image_external.txt}{GL_TEXTURE_EXTERNAL_OES}
+    binding point in the OpenGL API and the \c{samplerExternalOES} sampler type
+    in shaders. The latter presents a potential showstopper when using the
+    SPIR-V based shader pipeline of Qt: running such a shader through qsb will
+    result in a failure due to \c{samplerExternalOES} not being accepted as a
+    valid type due to not being mappable to SPIR-V and other target shading
+    languages.
+
+    To overcome this, qsb offers the option to replace the contents of any given
+    shader variant in a .qsb file with user-provided data that is read from a
+    file, fully replacing the original qsb-generated shader source or byte code.
+
+    Take the following fragment shader. Note the type of \c tex. What if the
+    type needs to be \c samplerExternalOES when running with OpenGL ES?
+
+\badcode
+#version 440
+
+layout(location = 0) in vec2 texCoord;
+layout(location = 0) out vec4 fragColor;
+
+layout(std140, binding = 0) uniform buf {
+    float opacity;
+} ubuf;
+
+layout(binding = 1) uniform sampler2D tex;
+
+void main()
+{
+    fragColor = texture(tex, texCoord).rgba * ubuf.opacity;
+}
+\endcode
+
+   Just changing the type of samplerExternalOES is not feasible. That leads to
+   compilation errors right away.
+
+   There is a simple solution, however: writing a separate, pure OpenGL ES
+   targeted version of the shader, and injecting it into the .qsb file. The
+   following shader is only compatible with GLSL ES and cannot be run through
+   qsb. However, we know that it can be processed by OpenGL ES at run time.
+
+\badcode
+precision highp float;
+#extension GL_OES_EGL_image_external : require
+varying vec2 texCoord;
+
+struct buf
+{
+    float opacity;
+};
+
+uniform buf ubuf;
+uniform samplerExternalOES tex;
+
+void main()
+{
+    gl_FragColor = texture2D(tex, texCoord).rgba * ubuf.opacity;
+}
+\endcode
+
+    Let's call this \c{shader_gles.frag}. Once \c{qsb --glsl 100es -o
+    shader.frag.qsb shader.frag} completes, giving us a (half-ready) .qsb file,
+    we can do \c{qsb -r glsl,100es,shader_gles.frag shader.frag.qsb} to update
+    \c{shader.frag.qsb} by substituting the shader for GLSL 100 es with
+    the contents of the specified file (\c{shader_gles.frag}). Now
+    \c{shader.frag.qsb} is ready to be used at run time with OpenGL ES.
+
+    \note Pay attention to keeping the interface between the shader and the
+    application unchanged. Always inspect the qsb-generated GLSL code first,
+    either by printing the .qsb file contents via \c{-d} option, or by
+    extracting the GLSL ES 100 shader by running \c{qsb -x glsl,100es -o
+    gles_shader.frag shader.frag.qsb}. The struct, struct member, and uniform
+    names must not differ in the manually injected version either.
+
+    \note The ability to place data from arbitrary files into the .qsb package
+    can also be used to inject handcrafted hull and domain HLSL shaders, in
+    order to make tessellation-based graphics pipelines functional with Direct
+    3D as well.
+
+*/

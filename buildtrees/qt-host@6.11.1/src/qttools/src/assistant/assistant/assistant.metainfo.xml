@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='utf-8'?>
+<component type="desktop-application">
+  <id>io.qt.Assistant</id>
+  <name>Qt Assistant</name>
+  <summary>View documentation in Qt help file format</summary>
+  <developer id="org.qt-project">
+    <name>Qt Project</name>
+  </developer>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0</project_license>
+  <project_group>Qt</project_group>
+  <description>
+    <p>The Qt Assistant is a tool for viewing documentation in Qt help file format.</p>
+  </description>
+  <screenshots>
+    <screenshot type="default">
+      <caption>The main window</caption>
+      <image type="source">https://doc.qt.io/qt-6/images/assistant-dockwidgets.png</image>
+    </screenshot>
+  </screenshots>
+  <url type="homepage">https://www.qt.io/</url>
+  <url type="bugtracker">https://bugreports.qt.io/</url>
+  <url type="help">https://doc.qt.io/qt-6/qtassistant-index.html</url>
+  <url type="vcs-browser">https://code.qt.io/cgit/qt/qttools.git/tree/src/assistant/assistant</url>
+  <url type="contribute">https://www.qt.io/community/contribute-to-qt</url>
+  <categories>
+    <category>Development</category>
+    <category>Documentation</category>
+    <category>Qt</category>
+  </categories>
+  <recommends>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </recommends>
+  <content_rating type="oars-1.1"/>
+  <launchable type="desktop-id">assistant.desktop</launchable>
+  <provides>
+    <binary>assistant6</binary>
+  </provides>
+</component>

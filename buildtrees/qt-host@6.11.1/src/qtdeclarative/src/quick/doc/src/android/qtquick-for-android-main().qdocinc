@@ -1,0 +1,38 @@
+\section1 Changes in \c main() are required by Qt Quick for Android APIs
+
+    A typical Qt Quick application's main.cpp appears like this:
+    \code
+    #include <QGuiApplication>
+    #include <QQmlApplicationEngine>
+
+    int main(int argc, char *argv[])
+    {
+        QGuiApplication app(argc, argv);
+
+        QQmlApplicationEngine engine;
+        QObject::connect(
+            &engine,
+            &QQmlApplicationEngine::objectCreationFailed,
+            &app,
+            []() { QCoreApplication::exit(-1); },
+            Qt::QueuedConnection);
+        engine.loadFromModule("MyQtQuickProject", "Main");
+
+        return app.exec();
+    }
+    \endcode
+
+    In \c main() we don't need to create a QML Engine or load any QML
+    that will be handled later by the Qt Quick View APIs.
+    All that we need is in \c main() is:
+
+    \code
+    #include <QGuiApplication>
+
+    int main(int argc, char *argv[])
+    {
+        QGuiApplication app(argc, argv);
+
+        return app.exec();
+    }
+    \endcode

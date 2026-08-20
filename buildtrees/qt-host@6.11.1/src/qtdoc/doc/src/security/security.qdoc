@@ -1,0 +1,141 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page security.html
+    \title Security in Qt
+    \brief Addressing security issues in Qt
+    \ingroup security
+
+    Qt's security relies on the infrastructure created and maintained by
+    the Qt Group and Qt Project. This infrastructure involves the development,
+    testing, and build environments. For example, there is an established code
+    review process, a testing process using static analyzers and fuzzing tools,
+    testing of third-party components, and further antivirus testing for each
+    release. Qt also has an established process for handling security
+    vulnerabilities.
+
+    \section1 Qt Project security policy
+
+    The Qt Project specifies its security policy in
+    \l{https://contribute.qt-project.org/quips/15}{QUIP 15}.
+    A summary of the security policy:
+
+    \list
+        \li Qt has a \e{Core Security Team} that enforces the security policy
+            and addresses issues.
+        \li Proactive measures to prevent security issues - code reviews, code
+            analysis, fuzz testing, and so on.
+        \li Reporting Security Issues: the Core Security Team monitors security
+            issues for Qt modules and affected third-party components.
+        \li Handling Security Issues: the maintainers, Core Security Team,
+            Chief Maintainer, and Qt Group share and handle security
+            issues.
+        \li Disclosure of confirmed security issues at
+            \l{https://cve.mitre.org/}{Common Vulnerabilities and Exposures database}
+            and a public announcement to the Qt
+            \l{mailto:announce@qt-project.org} mailing list.
+
+            You can subscribe to the mailing list by visiting the
+            \l{https://lists.qt-project.org/listinfo/announce}
+              {Qt Project Mailing List Information Page}.
+    \endlist
+
+    \section1 Reporting security issues
+
+    To report security issues in \l{https://www.qt.io/product}{Qt Products},
+    send an email to Security Mail List at \l{mailto:security@qt-project.org}.
+    The Core Security Team monitors and moderates incoming emails on business
+    days (excluding weekends).
+    After sending an email to the Security Mail List, there will be an
+    acknowledgment of receipt within
+    two business days. If there is no response, then the reporter should
+    contact the
+    \l{https://wiki.qt.io/Maintainers}{Chief Maintainer} directly.
+
+    To report issues regarding Qt Group services such as the website or
+    Qt Account, email \l{mailto:security@qt.io}.
+
+    \section2 Qt Group commercial security agreement
+
+    For commercial licensees, use the \e{Security Issues} category in the
+    support portal to report issues to the Qt Group Support team. The
+    reporter will be sent an acknowledgment when the issue is forwarded to the
+    Security Mail List.
+
+    Visit the
+    \l{https://www.qt.io/terms-conditions/responsible-vulnerability-disclosure-process}{Responsible Vulnerability Disclosure Agreement} page for more information.
+
+    \section1 Qt vulnerabilities
+
+    When technical experts confirm a security issue in one of the Qt products,
+    a Common Vulnerabilities and Exposures entry (CVE) will be
+    created. A CVE consists of an ID and a description. Further metadata
+    is added over time.
+
+    For Qt products, The Qt Company is managing the CVE creation process as the
+    responsible \l{https://www.cve.org/PartnerInformation/ListofPartners/partner/TQtC}
+    {CVE Numbering Authority (CNA)}. It lists new CVEs in the
+    \l{https://wiki.qt.io/List_of_known_vulnerabilities_in_Qt_products}
+    {List of known vulnerabilities in Qt Products}, but also contributes to
+    the \l{https://www.cve.org/}{central CVE database}.
+
+    To uniquely identify products affected by a vulnerability, CVEs contain entries
+    in the \e{Common Platform Enumeration} (CPE) format. For issues in the Qt Framework, the
+    \e vendor and \e product parts of such a CPE are \c qt:qt.
+    For example, a hypothetical CVE that affects Qt \QtVersion will have the following CPE:
+
+    \badcode \QtVersion
+    cpe:2.3:a:qt:qt:\1:*:*:*:*:*:*:*
+    \endcode
+
+    \section1 Software Bill of Materials (SBOM)
+
+    Starting from Qt 6.8, the Qt installation includes Software Bill of
+    Materials (SBOM) documents, containing information about installed Qt
+    modules, packages, and third-party components in SPDX format. SBOM files
+    allow users to track Qt installed packages for vulnerability management and
+    license compliance.
+
+    \list
+        \li \l{Software Bill of Materials}
+        \li \l{https://spdx.dev/learn/overview/#producing}{SPDX Format Overview}
+    \endlist
+
+    \section1 Untrusted data
+
+    Several Qt modules handle data such as user input and executable resources.
+    Qt expects application developers to handle untrusted data appropriately.
+    If a Qt API fetches and processes untrusted data before the application
+    could do the processing, then Qt considers this API as
+    \e{security critical}. Security critical APIs undergo extra scrutiny and
+    testing during development.
+
+    In general, avoid unprocessed data from unknown sources if possible and
+    perform safety procedures when handling data. Qt provides several
+    mechanisms for processing data, such as validators for user input.
+
+    For more information, see \l{Handling Untrusted Data}.
+
+    \section1 Permissions
+
+    Qt 6.5 introduces a cross-platform permission API for handling permissions.
+    The permission API is for user-related private data and hardware such as
+    contact lists, calendar, camera, and microphone.
+
+    For more information, see \l{Application Permissions}.
+
+    \section1 Extended Security Maintenance for Qt 5.15
+
+    We acknowledge that your product may have a lifecycle that is longer than
+    our usual support window for a given Qt release. We now offer maintenance
+    services for customers with an end-of-support (EoS) version of Qt.
+
+    Extended Security Maintenance for \b {Qt 5.15} begins 26th of May 2025. The
+    Extended Security Maintenance subscription service provides you access to
+    Critical Vulnerability and Security (CVS) maintenance patches relating to
+    Qt libraries for select Long Term Support (LTS) releases after the
+    end-of-support (EoS).
+
+    For more information, see \l {https://www.qt.io/qt-support/} {Qt Support}.
+*/

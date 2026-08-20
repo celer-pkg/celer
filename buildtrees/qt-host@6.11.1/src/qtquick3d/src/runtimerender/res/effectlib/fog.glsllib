@@ -1,0 +1,48 @@
+// Copyright (C) 2007-2022 Juan Linietsky, Ariel Manzur.
+// Copyright (C) 2014-2022 Godot Engine contributors
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only AND MIT
+
+#ifdef QQ3D_SHADER_META
+/*{
+    "uniforms": [
+                  { "type": "vec2", "name": "qt_cameraProperties" },
+                  { "type": "vec3", "name": "qt_cameraPosition", "multiview_dependent": true },
+                  { "type": "vec4", "name": "qt_fogColor" },
+                  { "type": "vec4", "name": "qt_fogDepthProperties" },
+                  { "type": "vec4", "name": "qt_fogHeightProperties" },
+                  { "type": "vec4", "name": "qt_fogTransmitProperties" }
+    ]
+}*/
+#endif // QQ3D_SHADER_META
+
+// qt_fogColor = (fogColor.x, fogColor.y, fogColor.z, fogDensity)
+// qt_fogDepthProperties = (fogDepthBegin, fogDepthEnd, fogDepthCurve, fogDepthEnabled ? 1.0 : 0.0)
+// qt_fogHeightProperties = (fogHeightMin, fogHeightMax, fogHeightCurve, fogHeightEnabled ? 1.0 : 0.0)
+// qt_fogTransmitProperties = (fogTransmitCurve, 0.0, 0.0, fogTransmitEnabled ? 1.0 : 0.0)
+
+void calculateFog(inout vec3 emission, inout vec3 specular, inout vec3 diffuse) {
+    float fogAmount = 0.0;
+    vec3 fogColor = qt_fogColor.rgb;
+    if (qt_fogDepthProperties.w > 0.5) {
+        float fogFar = qt_fogDepthProperties.y > 0.0 ? qt_fogDepthProperties.y : qt_cameraProperties.y;
+#if QSHADER_VIEW_COUNT >= 2
+        float fogZ = smoothstep(qt_fogDepthProperties.x, fogFar, length(qt_cameraPosition[qt_viewIndex] - qt_varWorldPos));
+#else
+        float fogZ = smoothstep(qt_fogDepthProperties.x, fogFar, length(qt_cameraPosition - qt_varWorldPos));
+#endif
+        fogAmount = pow(fogZ, qt_fogDepthProperties.z) * qt_fogColor.a;
+        if (qt_fogTransmitProperties.w > 0.5) {
+            vec3 totalLight = emission + specular + diffuse;
+            float transmit = pow(fogZ, qt_fogTransmitProperties.x);
+            fogColor = mix(max(totalLight, fogColor), fogColor, transmit);
+        }
+    }
+    if (qt_fogHeightProperties.w > 0.5) {
+        fogAmount = max(fogAmount, pow(smoothstep(qt_fogHeightProperties.x, qt_fogHeightProperties.y, qt_varWorldPos.y), qt_fogHeightProperties.w));
+    }
+    float fogMod = 1.0 - fogAmount;
+    emission = emission * fogMod + fogColor * fogAmount;
+    specular *= fogMod;
+    diffuse *= fogMod;
+}

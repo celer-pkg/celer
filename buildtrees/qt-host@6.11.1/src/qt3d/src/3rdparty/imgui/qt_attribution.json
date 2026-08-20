@@ -1,0 +1,50 @@
+[
+    {
+        "Id": "imgui",
+        "Name": "Dear ImGui",
+        "QDocModule": "qt3d",
+        "Description": "Dear ImGui",
+        "QtUsage": "Used in tests to demonstrate and verify the integration of an external GUI library.",
+
+        "Homepage": "https://github.com/ocornut/imgui",
+        "Version": "v1.91.0",
+        "PURL": [
+            "pkg:github/ocornut/imgui@$<VERSION>"
+        ],
+        "Comment": "no relevant CPE found",
+        "License": "MIT License",
+        "LicenseId": "MIT",
+        "LicenseFile": "LICENSE.txt",
+        "Copyright": "Copyright (c) 2014-2018 Omar Cornut"
+    },
+    {
+        "Id": "imgui-proggyclean",
+        "Name": "Dear ImGui - ProggyClean.ttf",
+        "QDocModule": "qt3d",
+        "Description": "ProggyClean.ttf font that is embedded into Dear ImGui",
+        "QtUsage": "Used in tests to demonstrate and verify the integration of an external GUI library.",
+        "Files": "imgui_draw.cpp",
+
+        "Homepage": "https://github.com/bluescan/proggyfonts",
+        "Comment": "No relevant PURL or CPE set, because the dependency is a font file",
+        "License": "MIT License",
+        "LicenseId": "MIT",
+        "LicenseFile": "LICENSE.proggyclean.txt",
+        "Copyright": "Copyright (c) 2004, 2005 Tristan Grimmer"
+    },
+    {
+        "Id": "imgui-stb",
+        "Name": "Dear ImGui - stb",
+        "QDocModule": "qt3d",
+        "Description": "Single-file public domain (or MIT licensed) libraries for C/C++",
+        "QtUsage": "Used in tests to demonstrate and verify the integration of an external GUI library.",
+        "Files": "imstb_rectpack.h imstb_textedit.h imstb_truetype.h",
+
+        "Homepage": "https://github.com/nothings/stb/",
+        "Comment": "No relevant PURL or CPE set, because the dependency is a single file",
+        "License": "MIT License or Public Domain",
+        "LicenseId": "MIT OR CC0-1.0",
+        "LicenseFile": "LICENSE.imstb.txt",
+        "Copyright": "Copyright (c) 2017 Sean Barrett"
+    }
+]

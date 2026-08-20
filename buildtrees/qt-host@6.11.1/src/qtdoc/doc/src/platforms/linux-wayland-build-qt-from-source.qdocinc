@@ -1,0 +1,86 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [getting-the-sources]
+Qt sources can be installed in \QOI. Source packages are also
+available \l{Getting Qt Sources from the Git repository}{through Git}, as
+archives in the \l{Qt Account} (commercial users), and on
+\l{https://download.qt.io/official_releases/qt/}{download.qt.io}
+(open-source users).
+
+If you install the sources through \QOI, they will
+be available in the Qt installation directory, for example
+\tt{$HOME/Qt/\QtVersion/Src}.
+
+If you downloaded the single source archive, extract it to a directory of
+your choice:
+
+\include snippets/code/doc_src_installation.qdoc 11
+//! [getting-the-sources]
+
+//! [install-build-requirements]
+\table 80%
+    \header \li Tool \li Supported Versions
+    \row
+        \li CMake
+        \li Version 3.22 and newer.
+    \row
+        \li Ninja
+        \li -
+    \row
+        \li Python
+        \li Version 3
+\endtable
+
+\include use-ninja-note.qdocinc ninja-note
+//! [install-build-requirements]
+
+//! [build-the-qt-libraries-and-tools]
+To configure your build, create a build directory and run the
+\c{./configure} script in this directory:
+
+\include snippets/code/doc_src_installation.qdoc 12
+
+By default, Qt is configured for installation in the
+\tt{/usr/local/Qt-\QtVersion} directory. This can be changed by using the
+\c{-prefix} option. See the list of \l{Qt Configure Options}{configure options}
+to tweak further.
+
+Did \c{configure} run successfully? Then proceed with building the libraries
+and tools:
+
+\badcode
+cmake --build . --parallel
+\endcode
+
+After building, you need to install the libraries and tools in the
+appropriate place (unless you enabled a
+\l{Developer Builds}{developer build}):
+
+\badcode
+cmake --install .
+\endcode
+
+Note that this might require root access.
+//! [build-the-qt-libraries-and-tools]
+
+//! [using-qt]
+After Qt is installed, you can start building applications with it.
+
+If you work from the command line, consider adding the Qt tools to your
+default \c PATH. This is done as follows:
+
+In \c{.profile} (if your shell is bash, ksh, zsh or sh), add the
+following lines:
+
+\badcode \QtVersion
+PATH=/usr/local/Qt-\1/bin:$PATH
+export PATH
+\endcode
+
+In \c{.login} (if your shell is csh or tcsh), add the following line:
+
+\badcode \QtVersion
+setenv PATH /usr/local/Qt-\1/bin:$PATH
+\endcode
+//! [using-qt]

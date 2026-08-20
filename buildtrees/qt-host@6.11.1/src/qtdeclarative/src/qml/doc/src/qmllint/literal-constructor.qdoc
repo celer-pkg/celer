@@ -1,0 +1,63 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qmllint-warnings-and-errors-literal-constructor.html
+\ingroup qmllint-warnings-and-errors
+
+\title Literal constructor
+\brief [literal-constructor] Do not use function as a constructor.
+
+\qmllintwarningcategory literal-constructors
+
+\section1 Do not use function as a constructor
+
+\section2 What happened?
+A literal construction function was used as a constructor.
+
+\section2 Why is that bad?
+Calling a literal construction function such as \c{Number} as a regular
+function coerces the passed value to a primitive number. However, calling
+\c{Number} as a constructor returns an object deriving from \c {Number}
+containing that value. This is wasteful and likely not the expected outcome.
+Moreover, it may lead to unexpected or confusing behavior because of the
+returned value not being primitive.
+
+\section2 Example
+\qml
+import QtQuick
+
+Item {
+    function numberify(x) {
+        return new Number(x)
+    }
+    Component.onCompleted: {
+        let n = numberify("1")
+        console.log(typeof n)   // object
+        console.log(n === 1)    // false
+
+        if (new Boolean(false)) // All objects are truthy!
+            console.log("aaa")  // aa
+    }
+}
+\endqml
+To fix this warning, do not call these functions as constructors but as regular
+functions:
+\qml
+import QtQuick
+
+Item {
+    function numberify(x) {
+        return Number(x)
+    }
+    Component.onCompleted: {
+        let n = numberify("1")
+        console.log(typeof n)   // number
+        console.log(n === 1)    // true
+
+        if (Boolean(false))
+            console.log("aaa")  // <not executed>
+    }
+}
+\endqml
+*/

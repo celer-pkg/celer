@@ -1,0 +1,13 @@
+Name: CrossBench multi-purpose benchark runner
+Short Name: crossbench
+URL: https://chromium.googlesource.com/crossbench
+Version: N/A
+Revision: DEPS
+License: BSD-3-Clause, MIT
+License File: LICENSE
+Security Critical: No
+Shipped: no
+
+Description:
+CrossBench is a cross-browser/cross-benchmark runner to extract performance
+numbers for common press benchmarks and simple page loading.

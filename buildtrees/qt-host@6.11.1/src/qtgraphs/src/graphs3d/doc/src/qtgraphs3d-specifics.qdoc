@@ -1,0 +1,505 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtgraphs_and_qtquick3d_integration_guide.html
+    \title Qt Graphs Integration with Qt Quick 3D
+
+    As Qt Graphs for 3D is based on Qt Quick 3D, it is possible to integrate Qt
+    Quick 3D scenes into the graphs.
+
+    \image q3dbars-qtquick3d-integration.png
+
+    \section1 Scene Environment
+
+    To adjust a Qt Quick 3D scene environment in a graph, define either
+    \c SceneEnvironment or \c ExtendedSceneEnvironment in the \c environment
+    property of the graph as follows:
+
+    \badcode
+    environment: ExtendedSceneEnvironment {
+        aoEnabled: true
+        aoDither: true
+        ditheringEnabled: true
+        lightProbe: Texture {
+            textureData: ProceduralSkyTextureData {
+                groundBottomColor: "black"
+                skyTopColor: "white"
+            }
+        }
+        backgroundMode: SceneEnvironment.SkyBox
+        lensFlareEnabled: true
+        lensFlareGhostCount: 10
+        lensFlareApplyStarburstTexture: true
+        lensFlareBloomBias: 0.4
+    }
+    \endcode
+
+    \section2 Non-supported Features
+
+    Overriding antialiasing mode or scene clear color doesn't work, which means
+    that setting value for \c{SceneEnvironment.antialiasingMode} and
+    \c{SceneEnvironment.clearColor} does nothing. However, if the
+    \c backgroundMode is not set to \c{SceneEnvironment.Color}, background
+    will be affected by the settings.
+
+    \section1 Scene Integration
+
+    To integrate a Qt Quick 3D scene into a graph, set the graph's \c importScene
+    property to a \c Node with the following settings:
+
+    \badcode
+    importScene: Node {
+        Model {
+            scale: Qt.vector3d(0.01, 0.01, 0.01)
+            source: "#Sphere"
+            x: 2.5
+            z: 2
+            y: 1
+            castsReflections: false
+            receivesReflections: true
+            materials: [
+                PrincipledMaterial {
+                    baseColor: "gold"
+                    metalness: 1.0
+                    roughness: 0.1
+                }
+            ]
+            ReflectionProbe {
+                boxSize: Qt.vector3d(6, 3, 5)
+                boxOffset: Qt.vector3d(-1.5, -1, -1.5)
+                parallaxCorrection: true
+                quality: ReflectionProbe.High
+            }
+        }
+        Model {
+            scale: Qt.vector3d(0.01, 0.01, 0.01)
+            source: "#Sphere"
+            x: -2.5
+            z: -2
+            y: 1
+            castsReflections: false
+            receivesReflections: true
+            materials: [
+                PrincipledMaterial {
+                    baseColor: "white"
+                    metalness: 0.0
+                    roughness: 0.0
+                    transmissionFactor: 1.0
+                    thicknessFactor: 50
+                }
+            ]
+        }
+    }
+    \endcode
+
+    Adding \l{QtQuick3D::Node}{Nodes} directly as children to the graph will not
+    work, because the default child for a graph is the corresponding series.
+*/
+
+/*!
+    \page qtgraphs_data_handling.html
+    \title Qt Graphs Data Handling with 3D
+
+    \section1 Series
+
+    A series combines a logically connected set of data items and visual
+    properties that describe how the data items should be rendered, such as item
+    meshes and colors. Each graph's type has its own series type. For example,
+    bar graphs use \l QBar3DSeries. All graphs can have multiple series added
+    simultaneously. Each series owns its data.
+
+    This code snippet shows how to use \l QBar3DSeries to render bars as
+    cylinders and with a gradient instead of a uniform color:
+
+    \snippet doc_src_qtgraphs.cpp seriesexample
+
+    \section1 Data Proxies
+
+    The data users wish to visualize comes in many formats, all of which cannot
+    be directly supported. Therefore, Qt Graphs implements data proxies, into
+    which user can feed their data in a known format. Each graph has a basic
+    proxy type in its series, which takes data in a format suitable for that
+    graph. With the proxy-series relationship, since data is stored in series,
+    it's important to mention a few points. Firstly, with this implementation,
+    users can access data through the series. If a user wants to perform
+    operations on this data, such as adding or removing, they can still carry
+    out these operations through the proxy. However, in order to perform these
+    operations, it is necessary to create a series associated with this proxy.
+
+    For example, the basic proxy for \l QBar3DSeries is \l QBarDataProxy, which
+    is used to add data to the series as \l QBarDataItem objects. Each
+    \l QBarDataItem holds a single bar value. Additional typedefs are provided
+    for \l QBarDataArray and \l QBarDataRow containers.
+
+    This code snippet shows how to use basic proxy when your data is stored in a
+    hypothetical \c myData object, which returns the data as
+    \l{QBarDataItem}{QBarDataItems}:
+
+    \snippet doc_src_qtgraphs.cpp proxyexample
+
+    \note Series objects can own only a single proxy at a time. The existing
+    proxy is deleted when another is set to the series. Graphs can contain
+    multiple series, though. If you need to switch back and forth between two
+    different sets of data, it is usually more efficient to store each set in a
+    different series and just change the series, rather than reset the data in
+    the series using a proxy every time you need to switch.
+
+    \section1 Item Models and Data Mapping
+
+    For common use cases, Qt Graphs offers specialized proxies. One such case is
+    having data in an item model (\l QAbstractItemModel subclass), which is a
+    common way to store data in Qt applications. Each of the graph's types
+    offers a special proxy class for this purpose, for example,
+    \l QItemModelBarDataProxy for \l QBar3DSeries. These proxies are simple to
+    use: provide them a pointer to the item model containing the data, and
+    specify the rules on how to map the data into a format the basic proxy can
+    process.
+
+    Mapping works with item model roles. Each data item in the model can have
+    different values for different roles. For example, with
+    \l QItemModelBarDataProxy, you can specify which role is used to determine
+    which row the item belongs to, which role does the same for columns, and
+    which role specifies the value of the item. When the proxy resolves the data
+    from the model, it uses these mappings to generate the rows and columns of
+    the bar graph.
+
+    Often, the item models will have a single role that contains information you
+    want to map to multiple values. A typical example of this is a timestamp
+    field when generating a bar graph with two time-related axes, for example,
+    years and months. To enable mapping a single item model role to more than
+    one data field, item model proxies should implement a pattern matching and
+    replacing mechanism. You can also use this mechanism to reformat data even
+    in one-to-one mapping cases.
+
+    Depending on the graph's type, proxies may support other functionalities as
+    well, such as \l QItemModelBarDataProxy optionally mapping
+    \l QAbstractItemModel rows and columns directly into bar graph rows and
+    columns.
+
+    See individual proxy classes for more information and examples about how to
+    use them: \l QItemModelBarDataProxy, \l QItemModelScatterDataProxy, and
+    \l QItemModelSurfaceDataProxy.
+
+    \section1 Other Custom Proxies
+
+    \l QHeightMapSurfaceDataProxy is a specialized proxy for generating a
+    surface graph from a heightmap image. See the \l QHeightMapSurfaceDataProxy
+    documentation for more information.
+
+    The \l{Graph Gallery} example, in the \uicontrol {Bar Graph} tab, shows how
+    a custom proxy can be created. It defines a custom data set based on variant
+    lists and an extension of the basic proxy to resolve that data with an
+    associated mapper.
+
+    \section1 Dealing with Real-time Data
+
+    When you have a data set that updates rapidly, it is important to handle
+    data properly to ensure good performance. Since memory allocation is a
+    costly operation, always use \l {QList::reserve()} and \l{QList::resize()}
+    where possible to avoid unnecessary reallocations when constructing the
+    array to give to the proxy.
+
+    If you need to:
+
+    \list
+    \li \e {change the entire data set for each frame}, it is in most cases
+        best to reuse the existing array, especially if the array dimensions do
+        not change.
+    \li \e {add, insert, remove, or change several rows or items for each
+        frame}, it is always more efficient to do it with one method call
+        instead of multiple calls affecting a single row or item each. For
+        example, adding ten rows with a single QBarDataProxy::addRows() call is
+        much more efficient than ten separate QBarDataProxy::addRow() calls.
+    \endlist
+
+    Bars3D is optimized to access only data that is within the data window and
+    thus should not suffer a noticeable slowdown even if more data is
+    continually added to the series using the proxy.
+
+    Due to the unsorted nature of the scatter data, any change in the data
+    window ranges requires all data points to be checked for visibility, which
+    can cause an increasing slowdown if data is continually added to the proxy.
+    For the best performance with the scatter graphs, only keep the data you
+    need in the proxy.
+
+    Surface data, while on the item level similar to scatter data, is already
+    assigned into rows and columns. Therefore, the surface renderer can optimize
+    drawing by making the assumption that the data in the rows and columns is
+    sorted along their respective axes. It is not quite as efficient as in the
+    case of the bars, but nearly so.
+*/
+
+/*!
+    \page qtgraphs_interacting_with_data.html
+    \title Qt Graphs Interacting with Data in 3D
+
+    \section1 Interacting with Data
+
+    End users can use a mouse or touch input to interact with the rendered graph:
+
+    \list
+    \li To rotate data, hold down the right mouse button and move the mouse, or
+        use the tap-and-move touch gesture.
+    \li To zoom graph, use the mouse wheel or pinch touch gesture.
+    \li To select, click the left mouse button or tap-and-hold touch gesture.
+    \endlist
+    Qt Graphs has default handlers for mouse actions and touch gestures. When
+    using customized input handlers, disable the default handlers. The
+    \l{Axis Handling} example, in the \uicontrol {Axis Dragging} tab,
+    illustrates how to use a custom input handler to drag an axis label to move
+    the visible part of the data.
+
+    In addition to perspective projection, orthographic projection can be used
+    to create 2D graphs by replacing the default input handler with one that
+    does not allow rotating the graph and setting the camera to view the graph
+    directly from the side or from the top.
+
+    \section1 Data Selection Modes
+
+    All graph types support selecting a single data item - a bar, a scatter
+    item, or a surface point - using the mouse, touch, and programmatically via
+    the series APIs. The selected item is highlighted in the rendered graph, and
+    selection causes the emission of a series-specific signal for this purpose,
+    for example, \l {QBar3DSeries::selectedBarChanged()}, which the application
+    can handle.
+
+    Bar and surface graphs support slice selection modes, where a selected row
+    or column is drawn in a separate viewport as a pseudo-2D graph. This makes
+    it easier to see the actual values of a single row or column.
+
+    The bar graph supports highlighting the whole row and column of the selected
+    bar without opening the slice view. The bar graph also supports selecting
+    and slicing a whole row and column by clicking the axis label, based on the
+    selection mode.
+
+    When multiple series are added to a graph, selecting an item in one of them
+    will clear the selection on the other series. There is a multiseries option
+    as well for bars and surface, which will select each series in the selected
+    position.
+*/
+
+/*!
+    \page qtgraphs_migration_guide.html
+    \title Qt Graphs Migration from Qt DataVisualization
+
+    The API and functionality between Qt DataVisualization and Qt Graphs was
+    kept mostly unchanged. However, there are some differences that need to be
+    taken into consideration when migrating your application from Qt
+    DataVisualization to Qt Graphs:
+
+    \list
+        \li QML import statement
+        \li CMake module inclusion
+        \li qmake module inclusion
+        \li Widget application creation
+        \li Requirement to use OpenGL backend
+        \li Removed classes
+        \li Removed APIs
+        \li Changed APIs
+    \endlist
+
+    \section1 QML Import Statement
+
+    The import statement in Qt DataVisualization:
+    \code
+    import QtDataVisualization
+    \endcode
+    is changed to:
+    \code
+    import QtGraphs
+    \endcode
+    for Qt Graphs.
+
+    \section1 CMake Module Inclusion
+
+    The inclusion in Qt DataVisualization:
+    \code
+    find_package(Qt6 REQUIRED COMPONENTS DataVisualization)
+    target_link_libraries(mytarget PRIVATE Qt6::DataVisualization)
+    \endcode
+    is changed to:
+    \code
+    find_package(Qt6 REQUIRED COMPONENTS Graphs)
+    target_link_libraries(mytarget PRIVATE Qt6::Graphs)
+    \endcode
+    for Qt Graphs.
+
+    \section1 Qmake Module Inclusion
+
+    The inclusion in Qt DataVisualization:
+    \code
+    QT += datavisualization
+    \endcode
+    is changed to:
+    \code
+    QT += graphs
+    \endcode
+    for Qt Graphs.
+
+    \section1 Widget Application Creation
+
+    To create a Graph in a widget application, change your code from:
+    \code
+    Q3DBars *barGraph = new Q3DBars();
+    QWidget *barsWidget = new QWidget();
+    QWidget *container = QWidget::createWindowContainer(barGraph, barsWidget);
+
+    auto *hLayout = new QHBoxLayout(barsWidget);
+    hLayout->addWidget(container, 1);
+    \endcode
+    to:
+    \snippet doc_src_qtgraphs.cpp widget in a layout example
+
+    \section1 Requirement to Use OpenGL Backend
+
+    To use Qt Graphs 3D, you no longer need to force using the OpenGL backend:
+    \code
+    // Remove this line
+    qputenv("QSG_RHI_BACKEND", "opengl");
+    \endcode
+    Qt Graphs uses Qt Quick 3D for rendering, and as such supports the
+    rendering backends native to the platform it is being run on.
+
+    \section1 Removed classes
+
+    \list
+        \li Q3DCamera
+        \li Q3DLight
+        \li Q3DObject
+        \li Q3DTheme
+    \endlist
+
+    \section1 Removed APIs
+
+    \list
+        \li hasContext
+        \li shadowsSupported
+        \li reflection
+        \li reflectivity
+     \endlist
+
+    \section1 Changed APIs
+
+    \list
+        \li optimizationHint
+        \li renderingMode
+        \li renderToImage
+        \li ColorGradient and ColorGradientStop
+        \li ThemeColor
+        \li Data APIs
+        \li Camera APIs
+        \li Theme APIs
+        \li Enums
+    \endlist
+
+    \section2 optimizationHint
+
+    \c Legacy is now the mode that was \c OptimizationDefault in QtDataVisualization.
+    \c Default uses instancing, and should be used for all targets that support it.
+
+    \section2 renderingMode
+
+    \c RenderDirectToBackground_NoClear has been removed, as it was already
+    obsolete in QtDataVisualization in Qt 6.
+
+    \section2 renderToImage
+
+    \c renderToImage now returns \c{QSharedPointer<QQuickItemGrabResult>}
+    instead of a \c{QImage}, and does not take \c msaaSamples as a parameter
+    anymore.
+
+    \section2 ColorGradient and ColorGradientStop
+
+    \c ColorGradient is now \c Gradient and \c ColorGradientStop \c{GradientStop}.
+
+    \section2 ThemeColor
+
+    \c ThemeColor is now \c{Color}.
+
+    \section2 Data APIs
+
+    No need to create data arrays with \c new anymore. For example, when data
+    was created for bar graph in Qt DataVisualization, it was done like this:
+
+    \code
+    // Qt DataVisualization approach.
+    QBarDataRow *data = new QBarDataRow;
+    *data << 1.0f << 3.0f << 7.5f << 5.0f << 2.2f;
+    \endcode
+
+    Now, it is done like this:
+
+    \code
+    // Qt Graphs approach.
+    QBarDataRow data;
+    data << 1.0f << 3.0f << 7.5f << 5.0f << 2.2f;
+    series->dataProxy()->addRow(data);
+    \endcode
+
+    \section2 Camera APIs
+
+    As Q3DCamera was removed, the required functions from it were moved.
+    \c{cameraPreset, cameraTargetPosition, cameraXRotation, cameraYRotation,
+    cameraZoomLevel, wrapCameraXRotation, and wrapCameraYRotation} are now the
+    parts of \l GraphsItem3D.
+
+    \section2 Theme APIs
+
+    As Q3DTheme was removed and the theming between 2D and 3D graphs unified,
+    some of the required functions from it have been moved, and the rest can be
+    found from the replacement, \l{GraphsTheme}.
+    \c{lightColor, ambientLightStrength, lightStrength, and shadowStrength} are
+    now implemented on \l GraphsItem3D.
+
+    \c windowColor was removed. \c backgroundColor now does what \c windowColor
+    used to do, and a new function \c plotAreaBackgroundColor replaces the
+    functionality of what \c backgroundColor previously did.
+
+    The generic color scheme of the whole graph is now controlled by a
+    \l{GraphsTheme::colorScheme}{color scheme} property, and series colors by a
+    \l{GraphsTheme::theme}{theme} property. If color scheme is not explicitly
+    set, it will follow the desktop theming (Light/Dark).
+
+    \section2 Enums
+
+    In Qt Graphs, all the enums are implemented as scoped enums, for example,
+    for the \c{QAbstract3DGraph::ShadowQualityLow} in Qt DataVisualization, the
+    corresponding enum in Qt Graphs is \c{QtGraphs3D::ShadowQuality::Low}.
+
+*/
+
+/*!
+ * \fn QSurfaceFormat qDefaultSurfaceFormat(bool antialias)
+ * \deprecated [6.9] Use \l {QQuick3D::idealSurfaceFormat()}
+ * \relates QtGraphs3D
+ *
+ * This convenience function can be used to create a custom surface format suitable for use by
+ * Qt Graphs graphs.
+ *
+ * The \a antialias parameter specifies whether or not antialiasing is activated.
+ *
+ * Give the surface format returned by this function to the graph constructor (C++) or set
+ * it as the window format for QQuickView (QML) before calling \c show() on it.
+ *
+ * For example, disable antialiasing on C++ application:
+ *
+ * \code
+ * #include <QtGraphs/qutils.h>
+ *
+ * // ...
+ *
+ * QSurfaceFormat::setDefaultFormat(qDefaultSurfaceFormat(true));
+ * \endcode
+ *
+ * For example, enable antialiasing for direct rendering modes on QML application:
+ *
+ * \code
+ * #include <QtGraphs/qutils.h>
+ *
+ * // ...
+ *
+ * QQuickView viewer;
+ * viewer.setFormat(qDefaultSurfaceFormat(true));
+ * \endcode
+ */

@@ -1,0 +1,27 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example openglseries
+    \title OpenGL Accelerated Series Example
+    \examplecategory {Data Visualization}
+    \ingroup qtcharts_examples
+
+    \brief The example shows how to enable OpenGL acceleration for QLineSeries and QScatterSeries.
+
+    \image examples_openglseries.png {Screenshot showing multiple OpenGL charts stacked}
+
+    \include examples-run.qdocinc
+
+    \section1 Enabling OpenGL Acceleration
+
+    To create an OpenGL accelerated series, all you have to do compared to a regular
+    series is to set QAbstractSeries::useOpenGL property to \c{true}:
+
+    \snippet openglseries/main.cpp 1
+
+    This makes the chart to instantiate a transparent QOpenGLWidget that is used to draw
+    the accelerated series on top of the chart.
+
+    \note The OpenGL acceleration is only supported for QLineSeries and QScatterSeries.
+*/

@@ -1,0 +1,8 @@
+version = 1
+
+[[annotations]]
+path = ["main.m"]
+precedence = "closest"
+comment = "no license info."
+SPDX-FileCopyrightText = "Copyright (c) 2016 Oleg Yadrov. All rights reserved."
+SPDX-License-Identifier = "MIT"

@@ -1,0 +1,24 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example scenegraph/vulkantextureimport
+    \title Scene Graph - Vulkan Texture Import
+    \examplecategory {Graphics}
+    \ingroup qtquickexamples
+    \brief Shows how to use a texture created directly with Vulkan.
+
+    \image vulkantextureimport-example.jpg
+
+
+    The Vulkan Texture Import example shows how an application can import and
+    use a
+    \l{https://www.khronos.org/registry/vulkan/specs/1.1-extensions/man/html/VkImage.html}
+    {VkImage} in the Qt Quick scene. This provides an alternative to the \l{Scene Graph -
+    Vulkan Under QML}{underlay} or overlay approaches when it comes to integrating
+    native Vulkan rendering.
+
+    This example is equivalent in most ways to the \l{Scene Graph - Metal Texture Import}{Metal Texture Import}
+    example. The Vulkan rendering code is taken from the \l{Scene Graph - Vulkan Under QML}{Vulkan Under QML} example.
+
+  */

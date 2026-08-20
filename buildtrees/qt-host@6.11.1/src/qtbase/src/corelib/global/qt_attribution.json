@@ -1,0 +1,14 @@
+{
+    "Id": "tlexpected",
+    "Name": "tl::expected",
+    "QDocModule": "qtcore",
+    "QtUsage": "Available as a private type in all Qt modules",
+    "Description": "Single header implementation of std::expected with functional-style extensions.",
+    "Files": [ "qexpected_p.h" ],
+    "Homepage": "https://github.com/TartanLlama/expected/",
+    "Version": "41d3e1f48d682992a2230b2a715bca38b848b269",
+    "DownloadLocation": "https://github.com/TartanLlama/expected/blob/41d3e1f48d682992a2230b2a715bca38b848b269/include/tl/expected.hpp",
+    "License": "Creative Commons Zero v1.0 Universal",
+    "LicenseId": "CC0-1.0",
+    "Copyright": "To the extent possible under law, Sy Brand has waived all copyright and related or neighboring rights to the expected library. This work is published from: United Kingdom."
+}

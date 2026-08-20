@@ -1,0 +1,95 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page deployment-plugins.html
+    \title Deploying Plugins
+    \brief A guide to the plugin-specific aspects of deploying Qt and Qt Applications.
+
+    This topic explains how to deploy plugin libraries for Qt or your application to load at
+    runtime. If you use \l{How to Create Qt Plugins#Static Plugins}{static plugins}, then the
+    plugin code is already part of your application executable and no separate deployment steps
+    are required.
+
+    \section1 The Plugin Directory
+
+    In Qt, when an application starts, the application's executable directory is the base directory
+    where Qt searches for plugins.
+
+    For example, on Windows, if the application is in \c{C:\Program Files\MyApp} and it has a style
+    plugin, Qt looks in \c{C:\Program Files\MyApp\styles}.
+
+    To find out where your application's executable is located, see
+    QCoreApplication::applicationDirPath().
+
+    Qt also looks in the directory specified by QLibraryInfo::path(QLibraryInfo::PluginsPath),
+    which typically is located in \c QTDIR/plugins; \c QTDIR is the directory where Qt is installed.
+    If you want Qt to look in additional places you can add as many paths as you need with calls to
+    QCoreApplication::addLibraryPath(). If you want to set your own path(s), you can use
+    QCoreApplication::setLibraryPaths().
+
+    Alternatively, you can use a \c qt.conf file to override the hard-coded paths that are compiled
+    into the Qt library. For more information, see \l {Using qt.conf}.
+
+    Another possibility is to set the \c QT_PLUGIN_PATH environment variable before you run the
+    application; multiple paths can be separated with a system path separator. When set, Qt looks
+    for plugins in the paths specified in this variable.
+
+    \note Do not export \c QT_PLUGIN_PATH as a system-wide environment variable because it can
+    interfere with other Qt installations.
+
+    \section1 Loading and Verifying Plugins Dynamically
+
+    When loading plugins, the Qt library does some sanity checking to determine whether the plugin
+    can be loaded and used. This sanity check enables you to have multiple Qt versions and
+    configurations installed side by side.
+
+    The following rules apply:
+
+    \list
+    \li Plugins linked with a Qt library that has a higher minor version number will not be loaded by a
+        library with a lower minor version number.
+
+        \br
+        \b{Example:} Qt 6.2.0 will \e{not} load a plugin built with Qt 6.3.0.
+        \b{Example:} Qt 6.2.0 will load a plugin built with Qt 6.1.0.
+        \b{Example:} Qt 6.2.0 will load a plugin built with Qt 6.2.1.
+
+    \li Plugins linked with a Qt library that has a lower major version number will not be loaded
+        by a library with a higher major version number.
+
+        \br
+        \b{Example:} Qt 6.0.0 will \e{not} load a plugin built with Qt 5.15.0.
+    \endlist
+
+    When building plugins to extend an application, it's important to ensure that the plugin is
+    configured in the same way as the application. This means that if the application was built in
+    release mode, plugins should be built in release mode, too. Except for Unix operating systems,
+    where the plugin system will not load plugins built in a different mode from the application.
+
+    \section1 Debugging Plugins
+
+    There are a number of issues that may prevent correctly-written plugins from working with the
+    applications that are designed to use them. Many of these are related to differences in the way
+    that plugins and applications have been built, often arising from separate build systems and
+    processes.
+
+    To obtain diagnostic information from Qt, about each plugin it tries to load, use the
+    \c QT_DEBUG_PLUGINS environment variable. Set this variable to a non-zero value in the
+    environment where your application is launched.
+
+    The following table describes the common causes of problems developers experience when creating
+    plugins and possible solutions.
+
+    \table
+      \header
+        \li Problem \li Cause \li Solution
+      \row
+        \li Plugins silently fail to load even when opened directly by the application.
+            \QD shows the plugin libraries in its \uicontrol{Help|About Plugins} dialog, but no
+            plugins are listed under each of them.
+        \li The application and its plugins are built in different modes.
+        \li Build the plugin in the same configuration as the executable.
+    \endtable
+
+*/

@@ -1,0 +1,10 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  template: ../../../common-action-blocks/basic/scroll.hjson
+  args: {
+    SCROLL_SELECTOR: .punch-filmstrip-scroll
+    SCROLL_END_DISTANCE_SELECTOR: $[SCROLL_SELECTOR]
+  }
+}

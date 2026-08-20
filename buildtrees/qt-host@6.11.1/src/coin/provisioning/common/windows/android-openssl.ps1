@@ -1,0 +1,127 @@
+# Copyright (C) 2025 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+
+# Requires: 7z, perl and msys
+
+. "$PSScriptRoot\helpers.ps1"
+
+if (Is64BitWinHost) {
+    $msys_bash = "C:\Utils\msys64\usr\bin\bash"
+} else {
+    $msys_bash = "C:\Utils\msys32\usr\bin\bash"
+}
+
+# OpenSSL need to be configured from sources for Android build in windows 7
+# Msys need to be installed to target machine
+# More info and building instructions can be found from http://doc.qt.io/qt-5/opensslsupport.html
+
+$openssl_version_latest = "3.5.4"
+$ndk_version_latest = "r27c_16kb"
+$prebuilt_ssl_sha1_latest = "a76cd9ec719d4e71473dcf451d648a9766247081"
+$openssl_sha1_latest = "b75daac8e10f189abe28a076ba5905d363e4801f"
+
+$openssl_version_preview = "3.5.4"
+$ndk_version_preview = "r29-beta2_16kb"
+$prebuilt_ssl_sha1_preview = "664bab8b4f5e01c8bb87ab0ea8333b2ef1af703d"
+$openssl_sha1_preview = "b75daac8e10f189abe28a076ba5905d363e4801f"
+
+$openssl_version_nightly1 = $openssl_version_latest
+$ndk_version_nightly1 = $ndk_version_latest
+$prebuilt_ssl_sha1_nightly1 = $prebuilt_ssl_sha1_latest
+$openssl_sha1_nightly1 = $openssl_sha1_latest
+
+$openssl_version_nightly2 = $openssl_version_latest
+$ndk_version_nightly2 = $ndk_version_latest
+$prebuilt_ssl_sha1_nightly2 = $prebuilt_ssl_sha1_latest
+$openssl_sha1_nightly2 = $openssl_sha1_latest
+
+function Install($1, $2, $3, $4) {
+
+    $openssl_version = $1
+    $ndk_version = $2
+    $prebuilt_sha1 = $3
+    $openssl_sha1 = $4
+
+    Write-Host "Installing OpenSSL ${openssl_version} for Android NDK ${ndk_version}"
+
+    $openssl_compressed = Get-DownloadLocation ("openssl-${openssl_version}.tar.gz")
+    # msys unix style paths
+    $openssl_path = "/c/Utils/openssl-android-master"
+    $ndk_path = "/c/Utils/Android/android-ndk-${ndk_version}"
+    $cc_path = "$ndk_path/toolchains/llvm/prebuilt/windows-x86_64/bin"
+
+    $prebuilt_url_openssl = "\\ci-files01-hki.ci.qt.io\provisioning\openssl\prebuilt-openssl-${openssl_version}-for-android-ndk-${ndk_version}.zip"
+    $prebuilt_zip_openssl = Get-DownloadLocation ("prebuilt-openssl-${openssl_version}-for-android-ndk-${ndk_version}.zip")
+
+    if ((Test-Path $prebuilt_url_openssl)) {
+        Write-Host "Install prebuilt OpenSSL for Android"
+        Download $prebuilt_url_openssl $prebuilt_url_openssl $prebuilt_zip_openssl
+        Verify-Checksum $prebuilt_zip_openssl $prebuilt_sha1
+        Extract-7Zip $prebuilt_zip_openssl C:\Utils
+        Remove $prebuilt_zip_openssl
+    } else {
+        Write-Host "Build OpenSSL for Android from sources"
+        # openssl-${openssl_version}_fixes-ndk_root.tar.gz package includes fixes from https://github.com/openssl/openssl/pull/17322 and string ANDROID_NDK_HOME is replaced with ANDROID_NDK_ROOT in Configurations/15-android.conf
+        Download \\ci-files01-hki.ci.qt.io\provisioning\openssl\openssl-${openssl_version}.tar.gz \\ci-files01-hki.ci.qt.io\provisioning\openssl\openssl-${openssl_version}.tar.gz $openssl_compressed
+        Verify-Checksum $openssl_compressed $openssl_sha1
+
+        Extract-7Zip $openssl_compressed C:\Utils\tmp
+        Extract-7Zip C:\Utils\tmp\openssl-${openssl_version}.tar C:\Utils\tmp
+        Move-Item C:\Utils\tmp\openssl-${openssl_version} ${destination}-${ndk_version}
+        Remove "$openssl_compressed"
+
+        Write-Host "Configuring OpenSSL $openssl_version for Android..."
+        Push-Location ${destination}-${ndk_version}
+        # $ must be escaped in powershell...
+
+        function CheckExitCode {
+
+            param (
+                $p
+            )
+
+            if ($p.ExitCode) {
+                Write-host "Process failed with exit code: $($p.ExitCode)"
+                exit 1
+            }
+        }
+
+    $make_install = Start-Process -NoNewWindow -Wait -PassThru -ErrorAction Stop -FilePath "$msys_bash" -ArgumentList ("-lc", "`"yes | pacman -S make`"")
+    CheckExitCode $make_install
+
+    $configure = Start-Process -NoNewWindow -Wait -PassThru -ErrorAction Stop -FilePath "$msys_bash" -ArgumentList ("-lc", "`"pushd $openssl_path; ANDROID_NDK_ROOT=$ndk_path PATH=${cc_path}:`$PATH CC=clang $openssl_path/Configure shared android-arm`"")
+    CheckExitCode $configure
+
+    $make = Start-Process -NoNewWindow -Wait -PassThru -ErrorAction Stop -FilePath "$msys_bash" -ArgumentList ("-lc", "`"pushd $openssl_path; ANDROID_NDK_ROOT=$ndk_path PATH=${cc_path}:`$PATH CC=clang make -f $openssl_path/Makefile build_generated`"")
+    CheckExitCode $make
+
+    Pop-Location
+    Remove-item C:\Utils\tmp -Recurse -Confirm:$false
+    }
+
+    return "C:\Utils\prebuilt-openssl-${openssl_version}-for-android-ndk-${ndk_version}"
+
+}
+
+# Install NDK Default version
+$ndk_ssl_path = Install $openssl_version_latest $ndk_version_latest $prebuilt_ssl_sha1_latest $openssl_sha1_latest
+Set-EnvironmentVariable "OPENSSL_ANDROID_HOME_LATEST" "$ndk_ssl_path"
+Write-Output "Android OpenSSL $openssl_version_latest for NDK $ndk_version_latest" >> ~/versions.txt
+
+if ($ndk_version_preview -ne $ndk_version_latest) {
+    $ndk_ssl_path = Install $openssl_version_preview $ndk_version_preview $prebuilt_ssl_sha1_preview $openssl_sha1_preview
+    Set-EnvironmentVariable "OPENSSL_ANDROID_HOME_PREVIEW" "$ndk_ssl_path"
+    Write-Output "Android OpenSSL $openssl_version_preview for NDK $ndk_version_preview" >> ~/versions.txt
+}
+
+if ($ndk_version_nightly1 -ne $ndk_version_latest) {
+    $ndk_ssl_path = Install $openssl_version_nightly1 $ndk_version_nightly1 $prebuilt_ssl_sha1_nightly1 $openssl_sha1_nightly1
+    Set-EnvironmentVariable "OPENSSL_ANDROID_HOME_NIGHTLY1" "$ndk_ssl_path"
+    Write-Output "Android OpenSSL $openssl_version_nightly1 for NDK $ndk_version_nightly1" >> ~/versions.txt
+}
+
+if ($ndk_version_nightly2 -ne $ndk_version_latest) {
+    $ndk_ssl_path = Install $openssl_version_nightly2 $ndk_version_nightly2 $prebuilt_ssl_sha1_nightly2 $openssl_sha1_nightly2
+    Set-EnvironmentVariable "OPENSSL_ANDROID_HOME_NIGHTLY2" "$ndk_ssl_path"
+    Write-Output "Android OpenSSL $openssl_version_nightly2 for NDK $ndk_version_nightly2" >> ~/versions.txt
+}

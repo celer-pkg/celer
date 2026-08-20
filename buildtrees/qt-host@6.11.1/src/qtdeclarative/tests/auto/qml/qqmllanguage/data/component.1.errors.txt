@@ -1,0 +1,1 @@
+4:5:Cannot create empty component specification

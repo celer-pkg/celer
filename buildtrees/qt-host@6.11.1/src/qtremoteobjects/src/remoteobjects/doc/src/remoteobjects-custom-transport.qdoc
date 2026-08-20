@@ -1,0 +1,40 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtremoteobjects-custom-transport.html
+\title APIs for Implementing Custom Transport Backends
+\brief Gives an overview of abstract APIs for implementing custom transport
+backends for Qt Remote Objects.
+
+Qt Remote Objects provides several abstract interfaces for implementing custom
+transport backends. The concept behind these classes is that there needs to be
+a host node, which has an address that can be connected to. Then there is a
+client object, which can be publicly constructed, and can connect to the server.
+When the server gets a connection request, it creates the server side of the
+connection, which communicates directly with the client. There are thus three
+abstractions, one for the server (\c QConnectionAbstractServer), one for the
+client-side of the connection (\c QtROClientIoDevice), and the third for the
+server-side of the connection (\c QtROServerIoDevice). The latter two inherit
+from \c QtROIoDeviceBase.
+
+\section1 API Overview
+
+\list
+\li \c QtROIoDeviceBase
+\li \c QtROClientIoDevice
+\li \c QtROServerIoDevice
+\li \c QConnectionAbstractServer
+\endlist
+
+After implementing these interfaces, you can register your custom protocol
+using the qRegisterRemoteObjectsServer() and qRegisterRemoteObjectsClient()
+methods.
+
+\note These APIs are provided to give more flexibility for implementing custom
+communication protocols for Qt Remote Objects. There are no source or binary
+compatibility guarantees for them, meaning that the API is only guaranteed to work
+with the Qt version it was developed against. API changes will however only be made
+in minor releases. (6.1, 6.2, and so on.)
+
+*/

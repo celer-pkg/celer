@@ -1,0 +1,106 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page unicode.html
+    \title Unicode in Qt
+    \brief Information about support for Unicode in Qt.
+
+    \keyword Unicode
+
+
+    \l{https://www.unicode.org/}{Unicode}
+    is the standard for encoding text in almost all languages
+    spoken in the world. It is nowadays used as the native encoding
+    for text on most modern operating systems. The major exception is
+    Microsoft Windows that still has a dual system supporting code pages
+    and Unicode for applications.
+
+    \section1 Qt's Classes for Working with Strings
+
+    These classes are relevant when working with string data. For information
+    about rendering text, see the \l{Rich Text Processing} overview, and if
+    your string data is in XML, see the \l{XML Processing} overview.
+
+    \annotatedlist string-processing
+
+    \section1 Information about Unicode on the Web
+
+    The \l{https://www.unicode.org/}{Unicode Consortium} has a number
+    of documents available, including
+
+    \list
+
+    \li \l{https://www.unicode.org/versions/latest/}{The current version of the standard}
+    \li \l{https://www.unicode.org/standard/principles.html}{A
+    technical introduction to Unicode}
+    \li \l{https://www.unicode.org/standard/standard.html}{The
+    home page for the standard}
+
+    \endlist
+
+    \section1 Unicode in Qt
+
+    In Qt, and in most applications that use Qt, most or all user-visible
+    strings are stored using Unicode. Qt provides:
+
+    \list
+
+    \li Translation to/from legacy encoding for file I/O: see
+    QTextCodec and QTextStream.
+    \li Support for locale specific Input Methods and keyboards.
+    \li A string class, QString, that stores Unicode characters, with
+    support for migrating from C strings including fast
+    translation to and from UTF-8, ISO8859-1 and US-ASCII, and all the
+    usual string operations.
+    \li Unicode-aware UI controls.
+    \li Unicode compliant text segmentation (QTextBoundaryFinder)
+    \li Unicode compliant line breaking and text rendering
+
+    \endlist
+
+    To fully benefit from Unicode, we recommend using QString for storing
+    all user-visible strings, and performing all text file I/O using
+    QTextStream.
+
+    All the function arguments in Qt that may be user-visible strings,
+    QLabel::setText() and a many others, take \c{const QString &}s.
+    QString provides implicit casting from \c{const char *}
+    so that things like
+
+    \snippet snippets/code/doc_src_unicode.cpp 0
+
+    will work. There is also a function, QObject::tr(), that provides
+    translation support, like this:
+
+    \snippet snippets/code/doc_src_unicode.cpp 1
+
+    QObject::tr() maps from \c{const char *} to a Unicode string, and
+    uses installable QTranslator objects to do the mapping.
+
+    Qt provides a number of built-in QTextCodec classes, that is,
+    classes that know how to translate between Unicode and legacy
+    encodings to support programs that must talk to other programs or
+    read/write files in legacy file formats.
+
+    Conversion to/from \c{const char *} uses a UTF-8.
+    However, applications can easily find codecs
+    for other locales, and set any open file or network connection to use
+    a special codec.
+
+    Since US-ASCII and ISO-8859-1 are so common, there are also especially
+    fast functions for mapping to and from them. For example, to open an
+    application's icon one might do this:
+
+    \snippet snippets/code/doc_src_unicode.cpp 2
+
+    or
+
+    \snippet snippets/code/doc_src_unicode.cpp 3
+
+    Qt supports rendering text in most languages written in the world. The detailed
+    list of supported writing systems depends a bit on operating system support and
+    font availability on the target system.
+
+    \sa {Internationalization with Qt}
+*/

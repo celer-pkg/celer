@@ -1,0 +1,59 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example custominstancing
+    \examplecategory {3D}
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - Custom Instanced Rendering
+    \examplecategory {3D}
+    \brief Demonstrates instancing with custom materials and a C++ instance table.
+    \image custominstancing.jpg
+           {Blocky terrain with water, grass, and hills demonstrating
+           instanced rendering}
+
+    This example shows how to create instance data programmatically in C++, and how to use custom
+    materials with instanced rendering.
+
+    \section1 Custom instancing table
+
+    We define our table as a subclass of \l {QQuick3DInstancing} and add some properties so we can
+    control it from QML:
+
+    \snippet custominstancing/cppinstancetable.h properties
+
+    The virtual function \l {QQuick3DInstancing::getInstanceBuffer}{getInstanceBuffer} is
+    reimplemented to return the instancing data:
+    \snippet custominstancing/cppinstancetable.cpp getInstanceBuffer
+
+
+    \section1 Custom material
+
+    We use a shaded custom material, meaning that Qt gives us the basic implementation, and we just
+    specify additional logic.
+
+    The only customization we need for the vertex shader is for passing information to the fragment
+    shader. By default, Qt only provides the instance data to the vertex shader, so we pass it on as
+    \c vCustomData. We also calculate the global position of the vertex and make it available as \c
+    vGlobalPosition.
+
+    \quotefile custominstancing/cubeMaterial.vert
+
+    The fragment shader performs a simple wave animation for water surfaces. Everything else gets a
+    subtle radial gradient. The difference is determined by the first element of the custom data.
+
+    \quotefile custominstancing/cubeMaterial.frag
+
+
+    \section1 Using the custom table and material in QML
+
+    We create a custom material using the shaders we made earlier, and add a new property \c uTime.
+    This property is automatically mapped to the corresponding uniform in the fragment shader.
+
+    \snippet custominstancing/main.qml material
+
+    Finally, we create our model and apply the custom material and instance table:
+    \snippet custominstancing/main.qml model
+
+    Note that we only create a single cube: All the heavy lifting is done by the GPU.
+*/

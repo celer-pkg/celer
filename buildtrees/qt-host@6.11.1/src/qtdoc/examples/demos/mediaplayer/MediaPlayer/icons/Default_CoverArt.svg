@@ -1,0 +1,29 @@
+<svg width="612" height="612" viewBox="0 0 612 612" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g filter="url(#filter0_d_378_616)">
+<rect x="50" y="10" width="512" height="512" rx="20" fill="#41CD52"/>
+<rect x="50" y="10" width="512" height="512" rx="20" fill="url(#paint0_linear_378_616)" fill-opacity="0.2"/>
+<rect x="50" y="10" width="512" height="512" rx="20" fill="url(#paint1_linear_378_616)" fill-opacity="0.2"/>
+</g>
+<path opacity="0.2" d="M214.385 354.782C221.966 362.261 230.991 366 241.462 366C252.145 366 261.226 362.261 268.705 354.782C276.184 347.303 279.923 338.222 279.923 327.538V198.372H395.307V299.654C392.102 296.235 388.256 293.615 383.769 291.795C379.282 289.983 374.581 289.077 369.666 289.077C359.196 289.077 350.17 292.872 342.589 300.462C335 308.043 331.205 317.068 331.205 327.538C331.205 338.222 335 347.303 342.589 354.782C350.17 362.261 359.196 366 369.666 366C380.35 366 389.431 362.261 396.91 354.782C404.388 347.303 408.128 338.222 408.128 327.538V166H267.103V299.654C263.897 296.235 260.051 293.615 255.564 291.795C251.077 289.983 246.376 289.077 241.462 289.077C230.991 289.077 221.966 292.872 214.385 300.462C206.795 308.043 203 317.068 203 327.538C203 338.222 206.795 347.303 214.385 354.782Z" fill="white"/>
+<defs>
+<filter id="filter0_d_378_616" x="0" y="0" width="612" height="612" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feMorphology radius="10" operator="erode" in="SourceAlpha" result="effect1_dropShadow_378_616"/>
+<feOffset dy="40"/>
+<feGaussianBlur stdDeviation="30"/>
+<feComposite in2="hardAlpha" operator="out"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0.254902 0 0 0 0 0.803922 0 0 0 0 0.321569 0 0 0 0.25 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_378_616"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_378_616" result="shape"/>
+</filter>
+<linearGradient id="paint0_linear_378_616" x1="58.5" y1="16" x2="562" y2="515.5" gradientUnits="userSpaceOnUse">
+<stop stop-opacity="0"/>
+<stop offset="1"/>
+</linearGradient>
+<linearGradient id="paint1_linear_378_616" x1="56.5" y1="10" x2="562" y2="514.5" gradientUnits="userSpaceOnUse">
+<stop stop-color="white"/>
+<stop offset="0.519416" stop-color="white" stop-opacity="0"/>
+</linearGradient>
+</defs>
+</svg>

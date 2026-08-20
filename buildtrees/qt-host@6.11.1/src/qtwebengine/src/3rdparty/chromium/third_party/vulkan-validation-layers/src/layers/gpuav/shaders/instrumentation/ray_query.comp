@@ -1,0 +1,86 @@
+// Copyright (c) 2024-2025 The Khronos Group Inc.
+// Copyright (c) 2024-2025 Valve Corporation
+// Copyright (c) 2024-2025 LunarG, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// NOTE: This file doesn't contain any entrypoints and should be compiled with the --no-link option for glslang
+
+#version 450
+#extension GL_GOOGLE_include_directive : enable
+#include "common_descriptor_sets.h"
+#include "error_payload.h"
+
+bool inst_ray_query_comp(const uint inst_num, const uint ray_flags, const vec3 ray_origin, const float ray_tmin, const vec3 ray_direction, const float ray_tmax)
+{
+    uint error = 0u;
+    uint param_0 = 0u;
+
+    if (isnan(ray_tmin)) {
+        error = kErrorSubCodeRayQueryMinNaN;
+    } else if (isnan(ray_tmax)) {
+        error = kErrorSubCodeRayQueryMaxNaN;
+    } else if (isnan(ray_origin.x) || isnan(ray_origin.y) || isnan(ray_origin.z)) {
+        error = kErrorSubCodeRayQueryOriginNaN;
+    } else if (isnan(ray_direction.x) || isnan(ray_direction.y) || isnan(ray_direction.z)) {
+        error = kErrorSubCodeRayQueryDirectionNaN;
+    } else if (isinf(ray_origin.x) || isinf(ray_origin.y) || isinf(ray_origin.z)) {
+        error = kErrorSubCodeRayQueryOriginFinite;
+    } else if (isinf(ray_direction.x) || isinf(ray_direction.y) || isinf(ray_direction.z)) {
+        error = kErrorSubCodeRayQueryDirectionFinite;
+    } else if (ray_tmin < 0.0f) {
+        error = kErrorSubCodeRayQueryNegativeMin;
+    } else if (ray_tmax < 0.0f) {
+        error = kErrorSubCodeRayQueryNegativeMax;
+    } else if (ray_tmax < ray_tmin) {
+        error = kErrorSubCodeRayQueryMinMax;
+    } else {
+        // From SPIRV-Headers
+        const uint OpaqueKHR = 0x00000001;
+        const uint NoOpaqueKHR = 0x00000002;
+        const uint CullBackFacingTrianglesKHR = 0x00000010;
+        const uint CullFrontFacingTrianglesKHR = 0x00000020;
+        const uint CullOpaqueKHR = 0x00000040;
+        const uint CullNoOpaqueKHR = 0x00000080;
+        const uint SkipTrianglesKHR = 0x00000100;
+        const uint SkipAABBsKHR = 0x00000200;
+
+        const uint both_skip = SkipTrianglesKHR | SkipAABBsKHR;
+        uint skip_cull_mask = ray_flags &(SkipTrianglesKHR | CullBackFacingTrianglesKHR | CullFrontFacingTrianglesKHR);
+        uint opaque_mask = ray_flags &(OpaqueKHR | NoOpaqueKHR | CullOpaqueKHR | CullNoOpaqueKHR);
+
+        if ((ray_flags & both_skip) == both_skip) {
+            error = kErrorSubCodeRayQueryBothSkip;
+            param_0 = ray_flags;
+        } else if (skip_cull_mask != 0 && ((skip_cull_mask & (skip_cull_mask - 1)) != 0)) {
+            error = kErrorSubCodeRayQuerySkipCull;
+            param_0 = ray_flags;
+        } else if (opaque_mask != 0 && ((opaque_mask & (opaque_mask - 1)) != 0)) {
+            error = kErrorSubCodeRayQueryOpaque;
+            param_0 = ray_flags;
+        }
+    }
+
+    if (0u != error) {
+         error_payload = ErrorPayload(
+                            inst_num,
+                            SpecConstantLinkShaderId | (kErrorGroupInstRayQuery << kErrorGroupShift) | (error << kErrorSubCodeShift),
+                            param_0,
+                            0,
+                            0
+                        );
+        return false;
+    }
+
+    return true;
+}

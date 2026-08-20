@@ -1,0 +1,25 @@
+version = 1
+
+[[annotations]]
+path = ["**"]
+precedence = "closest"
+comment = ["Assuming all files are covered by the first entry in qt_attribution.json",
+           "Except the files within the directories mentioned in the two other entries",
+           "Some files have in file info, different from the following copyrights and license."]
+SPDX-FileCopyrightText = ["Copyright (c) 2017-2024, The Khronos Group Inc.",
+                          "Copyright (c) 2017-2019, Valve Corporation",
+                          "Copyright (c) 2017-2019, LunarG, Inc."]
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["src/external/jsoncpp/**"]
+precedence = "closest"
+comment = "in file license not in reuse readable format."
+SPDX-FileCopyrightText = "Copyright (c) 2007-2010 Baptiste Lepilleur and The JsonCpp Authors"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ["src/external/jnipp/**"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (c) 2016 Mitchell Dowd"
+SPDX-License-Identifier = "MIT"

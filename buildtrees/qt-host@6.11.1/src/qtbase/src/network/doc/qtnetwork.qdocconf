@@ -1,0 +1,66 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/config/exampleurl-qtbase.qdocconf)
+
+project                 = QtNetwork
+description             = Qt Network Reference Documentation
+version                 = $QT_VERSION
+
+examplesinstallpath     = network
+
+# Path to the root of qtbase (for automatic linking to source code)
+url.sources.rootdir     = ../../..
+
+qhp.projects            = QtNetwork
+
+qhp.QtNetwork.file         = qtnetwork.qhp
+qhp.QtNetwork.namespace           = org.qt-project.qtnetwork.$QT_VERSION_TAG
+qhp.QtNetwork.virtualFolder       = qtnetwork
+qhp.QtNetwork.indexTitle          = Qt Network
+qhp.QtNetwork.indexRoot           =
+
+qhp.QtNetwork.subprojects = manual examples classes
+qhp.QtNetwork.subprojects.manual.title = Qt Network
+qhp.QtNetwork.subprojects.manual.indexTitle = Qt Network module topics
+qhp.QtNetwork.subprojects.manual.type = manual
+
+qhp.QtNetwork.subprojects.examples.title = Examples
+qhp.QtNetwork.subprojects.examples.indexTitle = Network Examples
+qhp.QtNetwork.subprojects.examples.selectors = example
+
+qhp.QtNetwork.subprojects.classes.title = C++ Classes
+qhp.QtNetwork.subprojects.classes.indexTitle = Qt Network C++ Classes
+qhp.QtNetwork.subprojects.classes.selectors = class fake:headerfile
+qhp.QtNetwork.subprojects.classes.sortPages = true
+
+tagfile                 = ../../../doc/qtnetwork/qtnetwork.tags
+
+depends                 += qtcore qtgui qtdoc qmake qtcmake qtwidgets
+
+headerdirs  += ..
+
+sourcedirs  += .. \
+               ../../../examples/network/doc/src
+
+exampledirs += ../../../examples/network \
+               ../ \
+               snippets
+
+imagedirs   += images \
+               ../../../examples/network/doc/images
+
+navigation.landingpage = "Qt Network"
+navigation.cppclassespage = "Qt Network C++ Classes"
+# Auto-generate navigation linking based on "Qt Network module topics":
+navigation.toctitles = "Qt Network module topics"
+navigation.toctitles.inclusive = false
+
+manifestmeta.highlighted.names = \
+    "QtNetwork/Fortune Client" \
+    "QtNetwork/Fortune Server" \
+    "QtNetwork/HTTP Client" \
+    "QtNetwork/Secure Socket Client" \
+    "QtNetwork/Torrent Example"
+
+# Enforce zero documentation warnings
+reportmissingalttextforimages = true
+warninglimit = 0

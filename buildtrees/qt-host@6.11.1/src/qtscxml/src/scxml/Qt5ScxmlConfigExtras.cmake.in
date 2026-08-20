@@ -1,0 +1,27 @@
+# Copyright (C) 2016 Klaralvdalens Datakonsult AB (KDAB).
+# SPDX-License-Identifier: BSD-3-Clause
+    add_executable(Qt5::qscxmlc IMPORTED)
+
+!!IF isEmpty(CMAKE_BIN_DIR_IS_ABSOLUTE)
+    set(imported_location \"${_qt5Scxml_install_prefix}/$${CMAKE_BIN_DIR}qscxmlc$$CMAKE_BIN_SUFFIX\")
+!!ELSE
+    set(imported_location \"$${CMAKE_BIN_DIR}qscxmlc$$CMAKE_BIN_SUFFIX\")
+!!ENDIF
+    _qt5_Scxml_check_file_exists(${imported_location})
+
+    set_target_properties(Qt5::qscxmlc PROPERTIES
+        IMPORTED_LOCATION ${imported_location}
+    )
+    get_target_property(Qt5Scxml_QSCXMLC_EXECUTABLE Qt5::qscxmlc LOCATION)
+endif()
+
+# Create versionless tool targets.
+foreach(__qt_tool qscxmlc)
+    if(NOT \"${QT_NO_CREATE_VERSIONLESS_TARGETS}\" AND NOT TARGET Qt::${__qt_tool}
+       AND TARGET Qt5::${__qt_tool})
+        add_executable(Qt::${__qt_tool} IMPORTED)
+        get_target_property(__qt_imported_location Qt5::${__qt_tool} IMPORTED_LOCATION)
+        set_target_properties(Qt::${__qt_tool}
+                              PROPERTIES IMPORTED_LOCATION \"${__qt_imported_location}\")
+    endif()
+endforeach()

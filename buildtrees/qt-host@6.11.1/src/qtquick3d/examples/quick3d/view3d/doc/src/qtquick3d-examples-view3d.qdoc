@@ -1,0 +1,45 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example view3d
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - View3D Example
+    \examplecategory {3D}
+    \brief Demonstrates the use of View3D to show a scene from multiple cameras.
+    \image view3d-example.png
+           {Four camera views of teapot with camera selection buttons}
+
+    This example demonstrates using four separate \l {View3D}s with different cameras in an
+    application.
+
+    \section1 Defining the Cameras
+
+    First we define the \l {Camera}{cameras}. We're going to define several different cameras, even
+    though we will only add 4 views. We're doing this because we want to be able to switch the
+    camera in one of the views.
+
+    The cameras have to be defined inside the root \l Node. This is how the cameras are defined:
+
+    \snippet view3d/main.qml rootnode
+    \dots
+    \snippet view3d/main.qml cameras start
+    \dots
+    \snippet view3d/main.qml cameras end
+
+    \section1 Adding the Views
+
+    After defining the cameras we can add the \l {View3D}{views}. We divide the screen to four
+    parts, and add views one-by-one like this:
+
+    \snippet view3d/main.qml views
+    \dots
+
+    The top-right view has three buttons in it. The buttons can be used to switch the camera used
+    in that view on the fly. The switching is done just by settings the camera property:
+
+    \snippet view3d/main.qml buttons
+    \dots
+*/
+
+

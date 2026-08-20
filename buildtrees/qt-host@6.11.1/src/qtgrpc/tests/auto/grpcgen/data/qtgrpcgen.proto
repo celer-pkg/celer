@@ -1,0 +1,16 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+syntax = "proto3";
+
+package qtgrpc.tests;
+
+message IntMessage {
+    sint32 field = 1;
+}
+
+service TestService {
+    rpc testMethod(IntMessage) returns (IntMessage) {}
+    rpc testMethodServerStream(IntMessage) returns (stream IntMessage) {}
+    rpc testMethodClientStream(stream IntMessage) returns (IntMessage) {}
+    rpc testMethodBiStream(stream IntMessage) returns (stream IntMessage) {}
+}

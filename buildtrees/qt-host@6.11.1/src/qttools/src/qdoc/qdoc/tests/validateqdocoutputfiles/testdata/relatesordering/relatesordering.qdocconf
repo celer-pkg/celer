@@ -1,0 +1,8 @@
+project = RelatesOrdering
+productname = Qt
+
+{sourcedirs,headerdirs} = .
+
+locationinfo         = false
+warninglimit         = 0
+warninglimit.enabled = true

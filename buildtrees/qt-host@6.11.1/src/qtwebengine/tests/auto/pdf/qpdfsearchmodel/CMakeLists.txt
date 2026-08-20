@@ -1,0 +1,16 @@
+# Copyright (C) 2022 The Qt Company Ltd.
+# SPDX-License-Identifier: BSD-3-Clause
+
+qt_internal_add_test(tst_qpdfsearchmodel
+    SOURCES
+        tst_qpdfsearchmodel.cpp
+    LIBRARIES
+        Qt::Gui
+        Qt::Network
+        Qt::PdfPrivate
+    TESTDATA
+        rotated_text.pdf
+        search_string_context.pdf
+        tagged_mcr_multipage.pdf
+        test.pdf
+)

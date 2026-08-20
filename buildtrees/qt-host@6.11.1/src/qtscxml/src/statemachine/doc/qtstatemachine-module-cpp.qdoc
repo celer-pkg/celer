@@ -1,0 +1,16 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \module QtStateMachine
+    \title Qt State Machine C++ Classes
+    \ingroup modules
+    \ingroup technology-apis
+    \qtvariable statemachine
+    \qtcmakepackage StateMachine
+
+    \brief The Qt State Machine module provides classes for creating and executing state graphs.
+
+    The \l {Qt State Machine} page contains information about how to use the module.
+
+*/

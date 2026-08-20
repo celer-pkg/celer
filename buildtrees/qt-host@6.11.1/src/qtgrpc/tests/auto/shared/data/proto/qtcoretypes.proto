@@ -1,0 +1,62 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+syntax = "proto3";
+
+package qtprotobufnamespace.qttypes.tests;
+import "QtCore/QtCore.proto";
+
+message QUrlMessage {
+    QtCore.QUrl testField = 1;
+}
+
+message QUuidMessage {
+    QtCore.QUuid testField = 1;
+}
+
+message QCharMessage {
+    QtCore.QChar testField = 1;
+}
+
+message QTimeZoneMessage {
+    QtCore.QTimeZone testField = 1;
+}
+
+message QTimeMessage {
+    QtCore.QTime testField = 1;
+}
+
+message QDateMessage {
+    QtCore.QDate testField = 1;
+}
+
+message QDateTimeMessage {
+    QtCore.QDateTime testField = 1;
+}
+
+message QSizeMessage {
+    QtCore.QSize testField = 1;
+}
+
+message QSizeFMessage {
+    QtCore.QSizeF testField = 1;
+}
+
+message QPointMessage {
+    QtCore.QPoint testField = 1;
+}
+
+message QPointFMessage {
+    QtCore.QPointF testField = 1;
+}
+
+message QRectMessage {
+    QtCore.QRect testField = 1;
+}
+
+message QRectFMessage {
+    QtCore.QRectF testField = 1;
+}
+
+message QVersionNumberFMessage {
+    QtCore.QVersionNumber testField = 1;
+}

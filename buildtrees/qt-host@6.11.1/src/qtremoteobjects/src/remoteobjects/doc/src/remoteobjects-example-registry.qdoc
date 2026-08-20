@@ -1,0 +1,42 @@
+// Copyright (C) 2019 Ford Motor Company
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+
+\page remoteobjects-example-registry.html
+\title Example 3: Connections to Remote Nodes using a Registry
+\brief Describes how the Qt Remote Objects registry establishes connections between nodes.
+\target qtro-example3
+
+This example illustrates the use of a \l {Registry} to build the node topology.
+For simple networks, we use a QUrl to create a direct connection between two
+nodes. For complex networks, we use a registry, where you use a different QUrl
+to point both the host and replica nodes to the registry. For only two nodes,
+the benefits of using a registry are minimal. But, as the network grows, using
+a registry means that all nodes only need to connect to the registry via a single
+QUrl. In comparison, with direct connections, nodes would have to maintain a
+list of QUrls for every single node that they link to.
+
+\section2 Set up the Source
+
+The \c simpleswitch.h and \c simpleswitch.cpp sources from \l {qtro-example1}
+{Example} can be used without modification. The difference is in the way a host
+node is created and connected to the registry:
+
+\c main.cpp
+\snippet doc_src_simpleswitch.cpp simpleSwitch_registrymaincpp_example3
+
+\section2 Set up the Replica
+
+The requestor object used for this example is the dynamic replica client
+discussed in \l {qtro-example2}{Example 2}.
+
+The only modification is in \c main.cpp: a \l {Registry} node is created
+to acquire a \l {Replica}:
+
+\snippet doc_src_simpleswitch.cpp simpleSwitch_registrydynamicclientmaincpp_example3
+
+When run together with the source-side example, the output is identical
+to \l {qtro-example1}{Example 1}.
+
+*/

@@ -1,0 +1,59 @@
+Qt 5.13 introduces many new features and improvements as well as bugfixes
+over the 5.12.x series. For more details, refer to the online documentation
+included in this distribution. The documentation is also available online:
+
+https://doc.qt.io/qt-5/index.html
+
+The Qt version 5.13 series is binary compatible with the 5.12.x series.
+Applications compiled for 5.12 will continue to run with 5.13.
+
+Some of the changes listed in this file include issue tracking numbers
+corresponding to tasks in the Qt Bug Tracker:
+
+https://bugreports.qt.io/
+
+Each of these identifiers can be entered in the bug tracker to obtain more
+information about a particular change.
+
+****************************************************************************
+*                         Qt 5.13.0 Changes                                *
+****************************************************************************
+
+QtBluetooth
+-----------
+
+ - [QTBUG-58660] Added ability to connect to BLE devices on WinRT without
+   pairing.
+
+ - [QTBUG-69954] Fixed potential crash due to late callbacks on WinRT.
+
+ - Improved WinRT implementation signficantly. This incorporates a large
+   number of patches (each improving the stability and general robustness of
+   the code base). During the process the number of potential asserts was
+   reduced as well.
+
+ - Deprecated QBluetoothDeviceInfo::DataCompleteness related APIs.
+
+ - Replaced QBluetoothDeviceInfo::LanAccessDevice with QBluetoothDeviceInfo::NetworkDevice.
+   LanAccessDevice was deprecated.
+
+ - Implemented support for QBluetoothDeviceDiscoveryAgent::deviceUpdated() on Apple and WinRT
+   platforms.
+
+ - [QTBUG-71943] Implemented RSSI and manufacturer data discovery on WinRT.
+
+ - [QTBUG-74394] Fixed broken QLowEnergyController::disconnectFromDevice() on WinRT.
+
+ - Added a compile fix for g++ 8.
+
+ - [QTBUG-73717] Fixed warnings in QDeclarativeBluetoothDiscoveryModel.
+
+QtNfc
+-----
+
+ - QNearFieldManager:
+   * adapterStateChanged() now has a fully qualified parameter
+     QNearFieldManager::AdapterState. This can cause a problem if the
+     connection/method invocation was done with just AdapterState as the
+     parameter type, in which case these need to be changed to use
+     QNearFieldManager::AdapaterState instead.

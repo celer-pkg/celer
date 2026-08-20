@@ -1,0 +1,65 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  template: ../../probe-config.hjson
+  args: {
+    TRACE_PROCESSOR_QUERIES: [
+      ../../common-metrics/v1/comment_opened.hjson
+      ../../common-metrics/v1/scroll_duration.hjson
+      ../../common-metrics/v1/scroll_distance.hjson
+      ../../common-metrics/v1/cpu_usage_stat.hjson
+      {
+        template: ../../common-metrics/v1/uma_histogram_times.hjson
+        args: {
+          NAME: EventLatency.KeyPressed.TotalLatency
+          UNITS_IN_MS: 1000
+        }
+      }
+      {
+        template: ../../common-metrics/v1/uma_histogram_times.hjson
+        args: {
+          NAME: EventLatency.GestureScrollUpdate.Touchscreen.TotalLatency
+          UNITS_IN_MS: 1000
+        }
+      }
+      {
+        template: ../../common-metrics/v1/uma_histogram_times.hjson
+        args: {
+          NAME: PageLoad.InteractiveTiming.TimeToNextPaint
+          UNITS_IN_MS: 1
+        }
+      }
+      {
+        template: ../../common-metrics/v1/uma_histogram_count.hjson
+        args: {
+          NAME: Browser.MainThreadsCongestion
+        }
+      }
+      {
+        template: ../../common-metrics/v1/uma_histogram_count.hjson
+        args: {
+          NAME: Browser.MainThreadsCongestion.RunningOnly
+        }
+      }
+      {
+        template: ../../common-metrics/v1/uma_histogram_count.hjson
+        args: {
+          NAME: Graphics.Smoothness.PercentDroppedFrames3.AllSequences
+        }
+      }
+      {
+        template: ../../common-metrics/v1/uma_histogram_enum.hjson
+        args: {
+          NAME: Viz.DisplayCompositor.OverlayStrategy
+        }
+      }
+    ]
+    METRIC_DEFINITIONS: [
+      ../../common-metrics/v2/comment_opened.textproto
+      ../../common-metrics/v2/scroll_distance.textproto
+      ../../common-metrics/v2/scroll_duration.textproto
+    ]
+    TRACE_CONFIG: ../../trace-config/detailed-trace-config.pbtxt
+  }
+}

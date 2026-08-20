@@ -1,0 +1,18 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+
+/*!
+    \title UI Components: Dial Control Example
+    \example customitems/dialcontrol
+    \brief The Dial Control Example shows how to create a speedometer-type dial.
+    \examplecategory {User Interface Components}
+
+    This example shows how to create a dial-type control. It combines
+    \l Image elements with \l Rotation transforms and \l SpringAnimation behaviors
+    to produce an interactive speedometer-type dial.
+
+    \image qml-dialcontrol-example.png
+*/
+
+

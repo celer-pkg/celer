@@ -1,0 +1,16 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>random1.mesh</file>
+        <file>random2.mesh</file>
+        <file>random3.mesh</file>
+        <file>random4.mesh</file>
+        <file>noise1.jpg</file>
+        <file>noise2.jpg</file>
+        <file>noise3.jpg</file>
+        <file>noise4.jpg</file>
+        <file>noise5.jpg</file>
+        <file>RiggedFigure.qml</file>
+        <file>riggedfigure.mesh</file>
+    </qresource>
+</RCC>

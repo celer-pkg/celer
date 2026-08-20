@@ -1,0 +1,145 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtqml-cppintegration-overview.html
+\title Overview - QML and C++ Integration
+\brief Highlights important points about integrating C++ with QML.
+\ingroup explanations-programminglanguages
+
+QML is designed to be easily extensible through C++ code. The classes in the \l {Qt Qml} module
+enable QML objects to be loaded and manipulated from C++, and the nature of QML engine's
+integration with Qt's \l{Meta Object System}{meta object system} enables C++ functionality to be
+invoked directly from QML. This allows the development of hybrid applications which are implemented
+with a mixture of QML, JavaScript and C++ code.
+
+Integrating QML and C++ provides a variety of opportunities, including the ability to:
+
+\list
+\li Separate the user interface code from the application logic code, by implementing the former
+with QML and JavaScript within \l{qtqml-documents-topic.html}{QML documents}, and the latter with
+C++
+\li Use and invoke some C++ functionality from QML (for example, to invoke your application logic,
+use a data model implemented in C++, or call some functions in a third-party C++ library)
+\li Access functionality in the \l {Qt Qml} or \l {Qt Quick} C++ API (for example, to dynamically generate
+images using QQuickImageProvider)
+\li Implement your own \l{qtqml-typesystem-objecttypes.html}{QML object types} from C++
+\unicode{0x2014} whether for use within your own specific application, or for distribution to others
+\endlist
+
+To provide some C++ data or functionality to QML, it must be made available from a QObject-derived
+class. Due to the QML engine's integration with the meta object system, the properties, methods and
+signals of any QObject-derived class are accessible from QML, as described in
+\l{qtqml-cppintegration-exposecppattributes.html}{Exposing Attributes of C++ Types to QML}. Once the
+required functionality is provided by such a class, it can be exposed to QML in a variety of ways:
+
+\list
+\li The class can be
+\l{qtqml-cppintegration-definetypes.html#registering-an-instantiable-object-type}{
+registered as an instantiable QML type}, so that it can be instantiated and used like any ordinary
+\l{qtqml-typesystem-objecttypes.html}{QML object type} from QML code
+\li The class can be registered as a
+\l{qtqml-cppintegration-definetypes.html#registering-singleton-objects-with-a-singleton-type}
+{Singleton Type} so that a single instance of the class may be imported from QML code, allowing the
+instance's properties, methods and signals to be accessed from QML
+\endlist
+
+These are the most common methods of accessing C++ functionality from QML code. The
+\l{qqmlintegration.h}{QML Type Registration Macros} offer a number of other options and variants.
+Additionally, aside from the ability to access C++ functionality from QML, the \l {Qt Qml} module also
+provides ways to do the reverse and manipulate QML objects from C++ code. See
+\l{qtqml-cppintegration-interactqmlfromcpp.html}{Interacting with QML Objects from C++} for more
+details.
+
+It is often desirable to expose some state as global properties to QML.
+\l{qtqml-cppintegration-exposecppstate.html}{Exposing State from C++ to QML}
+describes how to do this.
+
+The C++ code may be integrated into either a C++ application or a standalone QML module,
+depending on whether it is to be distributed as a standalone application or a library. A QML module
+can contain a C++ plugin that can then be dynamically loaded by the QML engine. This allows an
+application to use QML modules that weren't linked into the binary.
+
+You can also manually create standalone plugins. See
+\l{qtqml-modules-cppplugins.html}{Providing Types and Functionality in a C++ Plugin} for more
+information. This is not recommended.
+
+Finally An instance of the class can be \l{qtqml-cppintegration-contextproperties.html}{embedded
+into QML code} as a \e {context property} or \e {context object}, allowing the instance's
+properties, methods and signals to be accessed from QML. Context properties should be avoided.
+
+\section1 Choosing the Correct Integration Method Between C++ and QML
+
+To quickly determine which integration method is appropriate for your situation, the following
+flowchart can be used:
+
+\image cpp-qml-integration-flowchart.png {Flow chart helps user to select the
+ correct integration}
+
+For a description of the macros in the flowchart, see the
+\l {qtqml-cppintegration-definetypes.html}{Defining QML Types from C++} documentation.
+
+\section1 Exposing Attributes of C++ Classes to QML
+
+QML can easily be extended from C++ due to the QML engine's integration with the Qt meta object
+system. This integration allows the properties, methods and signals of any QObject-derived class to
+be accessible from QML: properties can be read and modified, methods can be invoked from JavaScript
+expressions and signal handlers are automatically created for signals as necessary. Additionally,
+enumeration values of a QObject-derived class are accessible from QML.
+
+See \l{qtqml-cppintegration-exposecppattributes.html}{Exposing Attributes of C++ Types to QML} for
+more information.
+
+
+\section1 Defining QML Types from C++
+
+QML types can be defined in C++ and then registered with the \l{qtqml-typesystem-topic.html}{QML
+type system}. This allows a C++ class to be instantiated as a \l {QML Object Types}{QML object type}, enabling custom
+object types to be implemented in C++ and integrated into existing QML code. A C++ class may be also
+registered for other purposes: for example, it could be registered as a \e {Singleton Type} to enable a
+single class instance to be imported by QML code, or it could be registered to enable the
+enumeration values of a non-instantiable class to be accessible from QML.
+
+Additionally, the \l {Qt Qml} module provides mechanisms to define QML types that integrate with QML
+concepts like attached properties and default properties.
+
+For more information on registering and creating custom QML types from C++, see the \l
+{qtqml-cppintegration-definetypes.html}{Defining QML Types from C++} documentation.
+
+
+\section1 Embedding C++ Objects into QML with Context Properties
+
+C++ objects and values can be embedded directly into the context (or \e scope) of loaded QML objects
+using \e {context properties} and \e {context objects}. This is achieved through the QQmlContext
+class provided by the \l {Qt Qml} module, which exposes data to the context of a QML component, allowing
+data to be injected from C++ into QML.
+
+See \l{qtqml-cppintegration-contextproperties.html}{Embedding C++ Objects into QML with Context
+Properties} for more information.
+
+
+\section1 Interacting with QML Objects from C++
+
+QML object types can be instantiated from C++ and inspected in order to access their properties,
+invoke their methods and receive their signal notifications. This is possible due to the fact that
+all QML object types are implemented using QObject-derived classes, enabling the QML engine to
+dynamically load and introspect objects through the Qt meta object system.
+
+\include warning.qdocinc
+
+For more information on accessing QML objects from C++, see the documentation on
+\l{qtqml-cppintegration-interactqmlfromcpp.html}{Interacting with QML Objects from C++},
+and the \l {Exposing Data from C++ to QML} section of the Best Practices page.
+
+
+\section1 Data Type Conversion Between QML and C++
+
+When data values are exchanged between QML and C++, they are converted by the QML engine to have the
+correct data types as appropriate for use from QML or C++, providing the data types involved are
+known to the engine.
+
+See \l{qtqml-cppintegration-data.html}{Data Type Conversion Between QML and C++} for information on
+the built-in types supported by the engine and how these types are converted for use when exchanged
+between QML and C++.
+
+*/

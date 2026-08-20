@@ -1,0 +1,12 @@
+// Copyright (C) 2016 Klarälvdalens Datakonsult AB, a KDAB Group company, info@kdab.com, author Milian Wolff <milian.wolff@kdab.com>
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Qt WebChannel Examples
+    \group qtwebchannel-examples
+    \brief List of Qt WebChannel examples.
+
+    The examples show how to use the QWebChannel C++ and \l [QML] WebChannel QML
+    API.
+
+*/

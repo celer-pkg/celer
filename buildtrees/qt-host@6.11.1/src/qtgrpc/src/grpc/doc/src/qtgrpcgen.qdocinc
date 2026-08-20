@@ -1,0 +1,7 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [qml-li]
+\li \c {QML}
+    enables the generation of a QML client for the \gRPC service.
+//! [qml-li]

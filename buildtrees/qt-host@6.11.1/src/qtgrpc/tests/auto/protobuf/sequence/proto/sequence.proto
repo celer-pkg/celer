@@ -1,0 +1,45 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+syntax = "proto3";
+
+package qtprotobufnamespace.tests.sequence;
+
+message TestMessageSequence {
+    TestMessageSequence2 testField = 1;
+}
+
+message TestMessageSequence2 {
+    bool testField = 1;
+}
+
+message CyclingSecondDependency {
+    CyclingFirstDependency testField = 1;
+}
+
+message CyclingFirstDependency {
+    CyclingSecondDependency testField = 1;
+}
+
+message RepeatedFieldSequence {
+    repeated RepeatedFieldSequence2 testField = 1;
+}
+
+message RepeatedFieldSequence2 {
+    bool testField = 1;
+}
+
+message MapFieldSequence {
+    map<uint32, MapFieldSequence2> testField = 1;
+}
+
+message MapFieldSequence2 {
+    bool testField = 1;
+}
+
+message lowerCaseSequence {
+    lowerCaseSequence2 testField = 1;
+}
+
+message lowerCaseSequence2 {
+    bool testField = 1;
+}

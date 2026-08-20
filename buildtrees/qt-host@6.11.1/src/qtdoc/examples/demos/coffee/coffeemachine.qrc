@@ -1,0 +1,56 @@
+<RCC>
+    <qresource prefix="/qt/qml/demos/coffee">
+        <file>Colors.qml</file>
+        <file>CoffeeCard.qml</file>
+        <file>CoffeeConfig.qml</file>
+        <file>Config.qml</file>
+        <file>Ready.qml</file>
+        <file>Progress.qml</file>
+        <file>CustomToolBar.qml</file>
+        <file>Insert.qml</file>
+        <file>Home.qml</file>
+        <file>Settings.qml</file>
+        <file>CustomButton.qml</file>
+        <file>ChoosingCoffee.qml</file>
+        <file>ApplicationFlowForm.ui.qml</file>
+        <file>CustomSlider.qml</file>
+        <file>ApplicationFlow.qml</file>
+        <file>Main.qml</file>
+        <file>qtquickcontrols2.conf</file>
+        <file>qmldir</file>
+        <file>Cup.ui.qml</file>
+        <file>SettingsForm.ui.qml</file>
+        <file>ReadyForm.ui.qml</file>
+        <file>InsertForm.ui.qml</file>
+        <file>HomeForm.ui.qml</file>
+        <file>CustomToolBarForm.ui.qml</file>
+        <file>CustomSliderForm.ui.qml</file>
+        <file>CustomButtonForm.ui.qml</file>
+        <file>CoffeeCardForm.ui.qml</file>
+        <file>ChoosingCoffeeForm.ui.qml</file>
+        <file>ProgressForm.ui.qml</file>
+        <file>images/icons/light_mode_black_24dp.svg</file>
+        <file>images/icons/dark_mode_black_24dp.svg</file>
+        <file>images/icons/Qt-logo-white-transparent.svg</file>
+        <file>images/icons/Polygon.svg</file>
+        <file>images/icons/keyboard_backspace_white_right.svg</file>
+        <file>images/icons/keyboard_backspace_white_left.svg</file>
+        <file>images/icons/keyboard_backspace_black_right.svg</file>
+        <file>images/icons/keyboard_backspace_black_left.svg</file>
+        <file>images/icons/keyboard_backspace_black.svg</file>
+        <file>images/icons/ellipse_light.svg</file>
+        <file>images/icons/ellipse_dark.svg</file>
+        <file>images/icons/check.svg</file>
+        <file>images/Ingredients/Milk_foam.svg</file>
+        <file>images/Ingredients/sugar.svg</file>
+        <file>images/Ingredients/milk.svg</file>
+        <file>images/Ingredients/espresso_coffee.svg</file>
+        <file>images/Cups/light_cup.svgz</file>
+        <file>images/Cups/home_light.svg</file>
+        <file>images/Cups/home_dark.svg</file>
+        <file>images/Cups/dark_cup.svgz</file>
+        <file>images/Cups/card_cup_light.svg</file>
+        <file>images/Cups/card_cup_dark.svg</file>
+    </qresource>
+    <qresource prefix="/"/>
+</RCC>

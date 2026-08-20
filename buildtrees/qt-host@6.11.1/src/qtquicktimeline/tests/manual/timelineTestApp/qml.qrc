@@ -1,0 +1,20 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>test01.qml</file>
+        <file>test02.qml</file>
+        <file>test03.qml</file>
+        <file>test04.qml</file>
+        <file>test05.qml</file>
+        <file>test06.qml</file>
+        <file>test07.qml</file>
+        <file>test08.qml</file>
+        <file>Circle.qml</file>
+        <file>test09.qml</file>
+        <file>test10.qml</file>
+        <file>animate_color.cbor</file>
+        <file>animate_vector3d.cbor</file>
+        <file>animate_bool.cbor</file>
+        <file>animate_real.cbor</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,6 @@
+[snapToDefaultButton]
+macos
+[showFullScreen]
+macos ci
+[showAsTool]
+wayland

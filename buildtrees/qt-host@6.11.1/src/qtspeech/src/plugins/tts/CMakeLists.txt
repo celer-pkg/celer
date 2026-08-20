@@ -1,0 +1,22 @@
+# Copyright (C) 2022 The Qt Company Ltd.
+# SPDX-License-Identifier: BSD-3-Clause
+
+add_subdirectory(mock)
+if(QT_FEATURE_speechd AND UNIX)
+    add_subdirectory(speechdispatcher)
+endif()
+if(WIN32)
+    add_subdirectory(sapi)
+    if(NOT MINGW)
+        add_subdirectory(winrt)
+    endif()
+endif()
+if(APPLE)
+    add_subdirectory(darwin)
+endif()
+if(ANDROID)
+    add_subdirectory(android)
+endif()
+if(QT_FEATURE_flite)
+    add_subdirectory(flite)
+endif()

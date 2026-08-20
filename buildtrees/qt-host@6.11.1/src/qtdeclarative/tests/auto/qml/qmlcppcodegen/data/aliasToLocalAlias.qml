@@ -1,0 +1,11 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+pragma Strict
+import QtQml
+
+QtObject {
+    id: option
+
+    property alias label: option.description
+    property alias description: option.objectName
+}

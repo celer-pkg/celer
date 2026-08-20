@@ -1,0 +1,25 @@
+# Copyright (C) 2022 The Qt Company Ltd.
+# SPDX-License-Identifier: BSD-3-Clause
+
+
+add_subdirectory(signatureServer)
+add_subdirectory(matchAndQuit)
+add_subdirectory(differentGlobalEnum)
+add_subdirectory(differentClassEnum)
+add_subdirectory(differentPropertyCount)
+add_subdirectory(differentPropertyCountChild)
+add_subdirectory(differentPropertyType)
+add_subdirectory(scrambledProperties)
+add_subdirectory(differentSlotCount)
+add_subdirectory(differentSlotType)
+add_subdirectory(differentSlotParamCount)
+add_subdirectory(differentSlotParamType)
+add_subdirectory(scrambledSlots)
+add_subdirectory(differentSignalCount)
+add_subdirectory(differentSignalParamCount)
+add_subdirectory(differentSignalParamType)
+add_subdirectory(scrambledSignals)
+add_subdirectory(state)
+if(QT_FEATURE_process)
+    add_subdirectory(signatureTests)
+endif()

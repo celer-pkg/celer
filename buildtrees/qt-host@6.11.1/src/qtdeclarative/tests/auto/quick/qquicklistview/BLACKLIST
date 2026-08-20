@@ -1,0 +1,29 @@
+# QTBUG-75202
+[contentHeightWithDelayRemove]
+macos ci
+
+# QTBUG-103089
+[QTBUG_48044_currentItemNotVisibleAfterTransition]
+android
+[contentHeightWithDelayRemove]
+android
+[sectionsDragOutsideBounds]
+wayland
+[marginsResize]
+wayland
+[snapToItem]
+wayland
+[snapOneItemResize_QTBUG_43555]
+wayland
+[snapOneItem]
+wayland
+[flickBeyondBounds]
+wayland
+[flickBothDirections]
+wayland
+[outsideViewportChangeNotAffectingView]
+wayland
+[testProxyModelChangedAfterMove]
+wayland
+[dragOverFloatingHeaderOrFooter]
+wayland

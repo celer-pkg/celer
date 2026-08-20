@@ -1,0 +1,3 @@
+import QQmlJSScopeTests
+
+TypeWithProperties {}

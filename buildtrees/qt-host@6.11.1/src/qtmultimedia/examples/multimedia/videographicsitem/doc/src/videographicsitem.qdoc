@@ -1,0 +1,21 @@
+// Copyright (C) 2015 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example videographicsitem
+    \title Video Graphics Item Example
+    \ingroup multimedia_examples
+    \examplecategory {Multimedia}
+    \brief Streaming video on a graphics scene.
+    \meta {tag} {widgets}
+
+    \e{Video Graphics Item} demonstrates how to implement a QGraphicsItem that
+    displays video on a graphics scene using QVideoSink.
+
+    \image video-videographicsitem.png
+           {Video interface with control panel}
+
+    \sa {Video Widget Example}
+
+    \include examples-run.qdocinc
+*/

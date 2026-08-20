@@ -1,0 +1,57 @@
+# Copyright (C) 2022 The Qt Company Ltd.
+# SPDX-License-Identifier: BSD-3-Clause
+
+# Generated from src.pro.
+add_subdirectory(core)
+if(QT_FEATURE_qt3d_logic)
+    add_subdirectory(logic)
+endif()
+if(QT_FEATURE_qt3d_input)
+    add_subdirectory(input)
+endif()
+if(QT_FEATURE_qt3d_render)
+    add_subdirectory(render)
+
+    if(QT_FEATURE_qt3d_extras)
+        add_subdirectory(extras)
+    endif()
+endif()
+if(QT_FEATURE_qt3d_animation)
+    add_subdirectory(animation)
+endif()
+
+if(TARGET Qt::Quick)
+    # Quick3D libs
+    if (TARGET Qt::3DRender)
+        add_subdirectory(quick3d/quick3d)
+        add_subdirectory(quick3d/quick3drender)
+        add_subdirectory(quick3d/quick3dscene2d)
+        add_subdirectory(quick3d/quick3dscene3d)
+    endif()
+    if (TARGET Qt::3DExtras)
+        add_subdirectory(quick3d/quick3dextras)
+    endif()
+    if (TARGET Qt::3DInput)
+        add_subdirectory(quick3d/quick3dinput)
+    endif()
+    if (TARGET Qt::3DLogic)
+        add_subdirectory(quick3d/quick3dlogic)
+    endif()
+    if (TARGET Qt::3DAnimation)
+        add_subdirectory(quick3d/quick3danimation)
+    endif()
+
+    # Quick3D imports
+    if (TARGET Qt::3DInput)
+        add_subdirectory(quick3d/imports/input)
+    endif()
+endif()
+
+## Plugins
+add_subdirectory(plugins/sceneparsers)
+add_subdirectory(plugins/geometryloaders)
+add_subdirectory(plugins/renderers)
+
+if(TARGET Qt::Quick)
+    add_subdirectory(plugins/renderplugins)
+endif()

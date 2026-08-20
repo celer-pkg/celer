@@ -1,0 +1,9 @@
+{
+    "Keys": ["wasm"],
+    "Provider": "wasm",
+    "Position": true,
+    "Satellite": false,
+    "Monitor" : false,
+    "Priority": 1000,
+    "Testable": false
+}

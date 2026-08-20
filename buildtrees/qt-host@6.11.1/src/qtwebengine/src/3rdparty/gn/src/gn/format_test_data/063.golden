@@ -1,0 +1,71 @@
+source_set("test") {
+  a = "a"
+  b = "b"
+  c = {
+    d = "d"
+    e = "e"
+  }
+  f = [
+    "f0",
+    "f1",
+    "f2",
+  ]
+  deps = [
+    ":a",
+    ":b",
+    "a",
+    "a:b",
+    "a/a",
+    "a/b",
+    "b",
+    "//a",
+    "//a:b",
+    "//a/a",
+    "//a/b",
+    "//b",
+    a,
+    b,
+    c.d,
+    c.e,
+    f[0],
+    f[1],
+    f[2],
+  ]
+
+  public_deps = []
+  if (condition) {
+    public_deps += [
+      ":a",
+      "a",
+      "a/a",
+      "//a",
+      "//a/a",
+      a,
+    ]
+
+    deps += [
+      # Some comment attached to an item. Should be moved with the item
+      # when it is sorted.
+      # Comment attached to a duplicated item. Should be concatenated to
+      # the comment from the other item.
+      ":a",
+      ":b",
+      ":d",
+      ":e",
+    ]
+  }
+
+  # Sort lists with "deps" suffix as "deps".
+  foo_deps = [
+    ":z",
+    "//a",
+  ]
+
+  # Likewise for visibility
+  visibility = [
+    ":z",
+    "//a",
+    "//b:*",
+    "//b/*",
+  ]
+}

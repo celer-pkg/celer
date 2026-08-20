@@ -1,0 +1,13 @@
+{
+    "Id": "android-compass",
+    "Name": "Android getRotationMatrix and getOrientation",
+    "QDocModule": "qtsensors",
+    "Description": "Code to calculate the rotation matrix and orientation of a compass, adopted from Android sources.",
+    "Comment": "no relevant PURL or CPE found",
+    "QtUsage": "Used on Android, in the Android Sensor plugin.",
+    "Files": "androidcompass.cpp",
+
+    "License": "Apache License 2.0",
+    "LicenseId": "Apache-2.0",
+    "Copyright": "Copyright (C) 2008 The Android Open Source Project"
+}

@@ -1,0 +1,76 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qt-generate-foreign-qml-types.html
+\ingroup cmake-commands-qtqml
+
+\title qt_generate_foreign_qml_types
+\keyword qt6_generate_foreign_qml_types
+
+\summary{Registers types from one target in a QML module.}
+
+\include cmake-find-package-qml.qdocinc
+
+\section1 Synopsis
+
+\code [cmake]
+qt_generate_foreign_qml_types(
+    source_target
+    destination_qml_target
+)
+\endcode
+
+\versionlessCMakeCommandsNote qt6_generate_foreign_qml_types()
+
+\section1 Description
+
+\c qt_generate_foreign_qml_types extracts types marked via QML registration
+macros (like \l QML_ELEMENT) from \c source_target and registers them as foreign
+types in the QML module \c destination_qml_target.
+
+This can be useful when one wants to create a library with optional QML integration, without
+depending directly on QML.
+
+\code
+// myclass.h
+#include <QtQmlIntegration/qqmlintegration.h>
+
+class MyClass : public QObject
+{
+    QML_ELEMENT
+    Q_OBJECT
+
+    // [...]
+};
+\endcode
+
+\code [cmake]
+# CMakeLists.txt
+qt_add_library(mylib myclass.h ...)
+target_link_libraries(mylib PRIVATE Qt::Core Qt::QmlIntegration)
+
+qt_add_qml_module(mylib_declarative
+  VERSION 1.0
+  URI "mylib"
+  ...
+)
+qt_generate_foreign_qml_types(mylib mylib_declarative)
+\endcode
+
+\note In the example above, \c mylib does not depend on \c QtQml or \c QtQuick,
+but only on the header-only \c QmlIntegration target (for the \l{qqmlintegration.h}
+header, which provides the \l QML_ELEMENT macro).
+
+The effect is equivalent to using \c QML_FOREIGN with custom structs in the QML library to expose
+the types.
+
+\note In order to implement custom behavior, such as exposing an existing
+singleton instance with its own life cycle to QML, you should add custom types
+to your QML library (mylib_declarative in the above example). In turn, you
+should omit the \l QML_ELEMENT and similar macros from the original C++ classes
+so that qt_generate_foreign_qml_types() does not generate more QML integration
+structs for them. The QML macros, as well as any singleton factory functions,
+can be added to the structs that contain the \l QML_FOREIGN.
+
+*/

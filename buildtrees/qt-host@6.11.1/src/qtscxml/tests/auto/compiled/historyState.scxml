@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" binding="early" xmlns:qt="http://www.qt.io/2015/02/scxml-ext" name="HistoryState" qt:editorversion="4.9.0">
+    <state id="Off">
+        <transition type="external" event="toOn" target="On">
+        </transition>
+        <transition type="external" event="toHistory" target="History_1">
+        </transition>
+        <onentry>
+            <log label="Off" expr="onentry"/>
+        </onentry>
+        <onexit>
+            <log label="Off" expr="onexit"/>
+        </onexit>
+    </state>
+    <state id="On" initial="Beta">
+        <state id="Alpha">
+            <transition type="external" event="toBeta" target="Beta">
+            </transition>
+            <onentry>
+                <log label="Alpha" expr="onentry"/>
+            </onentry>
+            <onexit>
+                <log label="Alpha" expr="onexit"/>
+            </onexit>
+        </state>
+        <state id="Beta">
+            <transition type="external" event="toDelta" target="Delta">
+            </transition>
+            <onentry>
+                <log label="Beta" expr="onentry"/>
+            </onentry>
+            <onexit>
+                <log label="Beta" expr="onexit"/>
+            </onexit>
+        </state>
+        <history type="shallow" id="History_1">
+        </history>
+        <state id="Delta">
+            <transition type="external" event="toAlpha" target="Alpha">
+            </transition>
+            <onentry>
+                <log label="Delta" expr="onentry"/>
+            </onentry>
+            <onexit>
+                <log label="Delta" expr="onexit"/>
+            </onexit>
+        </state>
+        <transition type="external" event="toOff" target="Off">
+        </transition>
+        <onentry>
+            <log label="On" expr="onentry"/>
+        </onentry>
+        <onexit>
+            <log label="On" expr="onexit"/>
+        </onexit>
+    </state>
+</scxml>

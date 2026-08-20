@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.1">
+<context>
+    <name>Dialog2</name>
+    <message>
+        <location filename="main.cpp" line="14"/>
+        <source>prefix&#xa0;&#xa0;postfix</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="main.cpp" line="15"/>
+        <source>before&#xa0;middle&#xa0;after</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="main.cpp" line="16"/>
+        <source>before&#xa0;&#xa0;middle<byte value="x1f"/>&#xa0;&#xa0;after</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+</TS>

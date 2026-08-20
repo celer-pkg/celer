@@ -1,0 +1,30 @@
+// Copyright (C) 2013 Aaron McCarthy <mccarthy.aaron@gmail.com>
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+
+\module QtNfc
+\ingroup modules
+\qtcmakepackage Nfc
+\qtvariable nfc
+
+\title Qt NFC C++ Classes
+\brief An API for accessing NFC Forum Tags.
+
+The \l{Qt NFC} C++ API enables an application to access NFC Forum Tags.
+
+\include module-use.qdocinc using qt module
+
+\badcode
+find_package(Qt6 REQUIRED COMPONENTS Nfc)
+target_link_libraries(mytarget PRIVATE Qt::Nfc)
+\endcode
+
+\include module-use.qdocinc building with qmake
+
+\badcode
+QT += nfc
+\endcode
+
+*/
+

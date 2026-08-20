@@ -1,0 +1,173 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  args: {
+    // SCROLL args
+    SCROLL_DISTANCE: 300
+    SCROLL_DURATION: 0.5s
+    SCROLL_SOURCE: touch
+  }
+  unbound_args: [
+    TARGET
+  ]
+  template: {
+    pages: {
+      page-load-and-scroll-1: {
+        blocks: {
+          template: ./page-load-and-scroll.hjson
+          args: {
+            PAGE_URL: https://www.amazon.com/Pampers-Sensitive-Water-Based-Diaper-Pop-Top/dp/B01C3H4ZTY/
+          }
+          unbound_args: [
+            PAGE_LOAD_TIMEOUT
+            SCROLL_DISTANCE
+            SCROLL_SOURCE
+            SCROLL_DURATION
+            TARGET
+          ]
+        }
+      }
+      page-load-and-scroll-2: {
+        blocks: {
+          template: ./page-load-and-scroll.hjson
+          args: {
+            PAGE_URL: https://www.amazon.com/deals?ref_=nav_cs_gb
+          }
+          unbound_args: [
+            PAGE_LOAD_TIMEOUT
+            SCROLL_DISTANCE
+            SCROLL_SOURCE
+            SCROLL_DURATION
+            TARGET
+          ]
+        }
+      }
+      page-load-and-scroll-3: {
+        blocks: {
+          template: ./page-load-and-scroll.hjson
+          args: {
+            PAGE_URL: https://www.apple.com/
+          }
+          unbound_args: [
+            PAGE_LOAD_TIMEOUT
+            SCROLL_DISTANCE
+            SCROLL_SOURCE
+            SCROLL_DURATION
+            TARGET
+          ]
+        }
+      }
+      page-load-and-scroll-4: {
+        blocks: {
+          template: ./page-load-and-scroll.hjson
+          args: {
+            PAGE_URL: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/ebay.html
+          }
+          unbound_args: [
+            PAGE_LOAD_TIMEOUT
+            SCROLL_DISTANCE
+            SCROLL_SOURCE
+            SCROLL_DURATION
+            TARGET
+          ]
+        }
+      }
+      page-load-and-scroll-5: {
+        blocks: {
+          template: ./page-load-and-scroll.hjson
+          args: {
+            PAGE_URL: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/google.html
+          }
+          unbound_args: [
+            PAGE_LOAD_TIMEOUT
+            SCROLL_DISTANCE
+            SCROLL_SOURCE
+            SCROLL_DURATION
+            TARGET
+          ]
+        }
+      }
+      page-load-and-scroll-6: {
+        blocks: {
+          template: ./page-load-and-scroll.hjson
+          args: {
+            PAGE_URL: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/bbc.html
+          }
+          unbound_args: [
+            PAGE_LOAD_TIMEOUT
+            SCROLL_DISTANCE
+            SCROLL_SOURCE
+            SCROLL_DURATION
+            TARGET
+          ]
+        }
+      }
+      page-load-and-scroll-7: {
+        blocks: {
+          template: ./page-load-and-scroll.hjson
+          args: {
+            PAGE_URL: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/weather.html
+          }
+          unbound_args: [
+            PAGE_LOAD_TIMEOUT
+            SCROLL_DISTANCE
+            SCROLL_SOURCE
+            SCROLL_DURATION
+            TARGET
+          ]
+        }
+      }
+      page-load-and-scroll-8: {
+        blocks: {
+          template: ./page-load-and-scroll.hjson
+          args: {
+            PAGE_URL: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/yahoo.html
+          }
+          unbound_args: [
+            PAGE_LOAD_TIMEOUT
+            SCROLL_DISTANCE
+            SCROLL_SOURCE
+            SCROLL_DURATION
+            TARGET
+          ]
+        }
+      }
+      page-load-and-scroll-9: {
+        blocks: {
+          template: ./page-load-and-scroll.hjson
+          args: {
+            PAGE_URL: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/stackoverflow.html
+          }
+          unbound_args: [
+            PAGE_LOAD_TIMEOUT
+            SCROLL_DISTANCE
+            SCROLL_SOURCE
+            SCROLL_DURATION
+            TARGET
+          ]
+        }
+      }
+      page-load-and-scroll-10: {
+        blocks: {
+          template: ./page-load-and-scroll.hjson
+          args: {
+            PAGE_URL: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/wikipedia.html
+          }
+          unbound_args: [
+            PAGE_LOAD_TIMEOUT
+            SCROLL_DISTANCE
+            SCROLL_SOURCE
+            SCROLL_DURATION
+            TARGET
+          ]
+        }
+        teardown: [
+          {
+            action: close_all_tabs
+          }
+        ]
+      }
+    }
+  }
+}

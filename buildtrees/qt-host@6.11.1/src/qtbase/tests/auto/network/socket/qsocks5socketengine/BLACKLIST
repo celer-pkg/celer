@@ -1,0 +1,10 @@
+[udpTest]
+*
+[passwordAuth]
+ubuntu
+# QTBUG-101274
+qnx ci
+# QTBUG-74162
+[passwordAuth2]
+ubuntu
+

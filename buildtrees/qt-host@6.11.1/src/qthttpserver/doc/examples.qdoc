@@ -1,0 +1,10 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\group qthttpserver-examples
+\title Qt HTTP Server Examples
+\brief Examples of how to use the QtHttpServer module
+
+The examples below can be used as a guide to using the \l{QtHttpServer} API.
+*/

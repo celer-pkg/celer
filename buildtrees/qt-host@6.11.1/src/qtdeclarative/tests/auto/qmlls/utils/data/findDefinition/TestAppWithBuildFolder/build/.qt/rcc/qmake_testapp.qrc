@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="/TestApp">
+    <file alias="qmldir">../../TestApp/qmldir</file>
+  </qresource>
+</RCC>

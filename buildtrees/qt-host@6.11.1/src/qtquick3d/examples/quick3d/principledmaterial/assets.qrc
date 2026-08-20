@@ -1,0 +1,23 @@
+<RCC>
+    <qresource prefix="/">
+        <file>maps/OpenfootageNET_garage-1024.hdr</file>
+        <file>maps/metallic/roughness.jpg</file>
+        <file>maps/metallic/normal.jpg</file>
+        <file>maps/metallic/metallic.jpg</file>
+        <file>maps/metallic/basecolor.jpg</file>
+        <file>meshes/curtain.mesh</file>
+        <file>meshes/frame.mesh</file>
+        <file>meshes/suzanne.mesh</file>
+        <file>maps/alpha_gradient.png</file>
+        <file>maps/curtain_normal.jpg</file>
+        <file>maps/grid.png</file>
+        <file>maps/monkey_ao.jpg</file>
+        <file>maps/monkey_thickness.jpg</file>
+        <file>maps/noise.png</file>
+        <file>maps/normal_stamp.png</file>
+        <file>maps/small_envmap.jpg</file>
+        <file>maps/tilepattern.png</file>
+        <file>meshes/logo_lines.mesh</file>
+        <file>meshes/logo_points.mesh</file>
+    </qresource>
+</RCC>

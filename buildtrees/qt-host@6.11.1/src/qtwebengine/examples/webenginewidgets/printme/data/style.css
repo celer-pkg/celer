@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Titillium+Web:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700&display=swap');
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+html,body {
+     height: 100%;
+     width: 100%;
+}
+
+ body {
+     display: flex;
+}
+
+ .header {
+     display: inline
+}
+
+ .form {
+     width: 50%;
+     background: #fff;
+     border: 0.5px solid #999;
+     border-radius: 8px;
+     color: #46a;
+     font-family: 'Titillium Web', sans-serif;
+     font-size: 1rem;
+     margin: auto;
+     padding: 1.5rem;
+     position: relative;
+     text-decoration: none;
+}
+
+h1 {
+    color: #00414A;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-top: -0.85rem;
+    margin-bottom: 2rem;
+}
+
+h2 {
+    color: #00414A;
+    font-size: 1.125rem;
+    font-weight: 400;
+    font-style: italic;
+    margin-bottom: 1rem;
+}
+
+ .button{
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     padding: 0.4444em 0.8889em;
+     height: 2.4em;
+     cursor: pointer;
+     background: #00414A;
+     color: #fff;
+     border-radius: 4px;
+     margin-top: 2rem;
+     font-family: 'Titillium Web', sans-serif;
+     font-size: 1.125rem;
+     font-weight: 400;
+     transition: color 300ms ease-out, border 300ms ease-out;
+}
+
+ .button:hover {
+    background: #19545C;
+}
+
+ .button:active {
+     background-color: #19545C;
+}

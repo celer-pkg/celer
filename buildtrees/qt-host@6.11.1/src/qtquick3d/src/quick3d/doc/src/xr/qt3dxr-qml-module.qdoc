@@ -1,0 +1,15 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \qmlmodule QtQuick3D.Xr
+    \title \qxr QML Types
+    \since 6.8
+    \preliminary
+
+    \brief Provides QML types for XR and VR applications.
+
+    This module provides QML types that enable you to develop XR applications and
+    use XR APIs such as spatial anchors, pass-through, and hand tracking.
+
+*/

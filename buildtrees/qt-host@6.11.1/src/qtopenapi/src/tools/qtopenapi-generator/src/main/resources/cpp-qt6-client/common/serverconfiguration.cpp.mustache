@@ -1,0 +1,115 @@
+{{>licenseInfo}}
+
+#include "{{prefixLowerCase}}serverconfiguration.h"
+
+#include <QtCore/qmap.h>
+#include <QtCore/qset.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qurl.h>
+
+{{#buildingQtSources}}
+QT_BEGIN_NAMESPACE
+{{/buildingQtSources}}
+
+{{#cppCommonNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppCommonNamespaceDeclarations}}
+
+class {{prefix}}ServerConfigurationPrivate : public QSharedData
+{
+public:
+    QString m_urlTemplate;
+    QString m_description;
+    QMap<QString, {{prefix}}ServerVariable> m_variables;
+};
+
+{{prefix}}ServerConfiguration::{{prefix}}ServerConfiguration()
+    : d_ptr(new {{prefix}}ServerConfigurationPrivate)
+{}
+
+{{prefix}}ServerConfiguration::{{prefix}}ServerConfiguration(const QString &urlTemplate, const QString &description,
+                                                             const QMap<QString, {{prefix}}ServerVariable> &variables)
+    : {{prefix}}ServerConfiguration()
+{
+    d_ptr->m_urlTemplate = urlTemplate;
+    d_ptr->m_description = description;
+    d_ptr->m_variables = variables;
+}
+
+{{prefix}}ServerConfiguration::~{{prefix}}ServerConfiguration()
+    = default;
+
+{{prefix}}ServerConfiguration::{{prefix}}ServerConfiguration(const {{prefix}}ServerConfiguration &other)
+    = default;
+
+{{prefix}}ServerConfiguration &{{prefix}}ServerConfiguration::operator=(const {{prefix}}ServerConfiguration &other)
+{
+    if (this != &other)
+        d_ptr = other.d_ptr;
+    return *this;
+}
+
+{{prefix}}ServerConfiguration::{{prefix}}ServerConfiguration({{prefix}}ServerConfiguration &&other) noexcept
+    = default;
+
+{{prefix}}ServerConfiguration &{{prefix}}ServerConfiguration::operator=({{prefix}}ServerConfiguration &&other) noexcept
+{
+    swap(other);
+    return *this;
+}
+
+void {{prefix}}ServerConfiguration::swap({{prefix}}ServerConfiguration &other) noexcept
+{
+    d_ptr.swap(other.d_ptr);
+}
+
+QString {{prefix}}ServerConfiguration::urlTemplate() const
+{
+    return d_ptr->m_urlTemplate;
+}
+
+QUrl {{prefix}}ServerConfiguration::url() const
+{
+    if (d_ptr->m_variables.empty())
+        return QUrl(d_ptr->m_urlTemplate); // nothing to substitute
+
+    QString url = d_ptr->m_urlTemplate;
+    // go through variables and replace placeholders
+    for (const auto &[name, serverVariable] : d_ptr->m_variables.asKeyValueRange()) {
+        const QString value = serverVariable.value();
+        const auto enumValues = serverVariable.enumValues();
+        if (!enumValues.empty() && !enumValues.contains(value)) {
+            qWarning("The variable %s in the server URL has an invalid value %s.",
+                     qPrintable(name), qPrintable(value));
+        }
+        const QString varTemplate = u'{' + name + u'}';
+        url = url.replace(varTemplate, value);
+    }
+    return QUrl(url);
+}
+
+{{prefix}}ServerVariable::ServerError
+{{prefix}}ServerConfiguration::setVariableValue(const QString &variable, const QString &value)
+{
+    d_ptr.detach();
+    auto it = d_ptr->m_variables.find(variable);
+    if (it == d_ptr->m_variables.end())
+        return {{prefix}}ServerVariable::ServerError::ServerVariableNotFound;
+    return it->setValue(value);
+}
+
+bool
+comparesEqual(const {{prefix}}ServerConfiguration &lhs, const {{prefix}}ServerConfiguration &rhs) noexcept
+{
+    return lhs.d_ptr->m_urlTemplate == rhs.d_ptr->m_urlTemplate
+        && lhs.d_ptr->m_description == rhs.d_ptr->m_description
+        && lhs.d_ptr->m_variables == rhs.d_ptr->m_variables;
+}
+
+{{#cppCommonNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppCommonNamespaceDeclarations}}
+
+{{#buildingQtSources}}
+QT_END_NAMESPACE
+{{/buildingQtSources}}

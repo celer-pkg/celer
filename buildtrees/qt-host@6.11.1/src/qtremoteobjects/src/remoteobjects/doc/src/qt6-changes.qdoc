@@ -1,0 +1,77 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page remoteobjects-changes-qt6.html
+    \title Changes to Qt Remote Objects
+    \ingroup changes-qt-5-to-6
+    \brief Migrate Qt Remote Objects to Qt 6.
+
+    Qt 6 is a result of the conscious effort to make the framework more
+    efficient and easy to use.
+
+    We try to maintain binary and source compatibility for all the public
+    APIs in each release. But some changes were inevitable in an effort to
+    make Qt a better framework.
+
+    In this topic we summarize those changes in Qt Remote Objects, and provide
+    guidance to handle them.
+
+    \section1 API changes
+
+    \section2 Functions taking const-ref QString changing to QStringView
+
+    QRemoteObjectHostBase::proxy, QRemoteObjectHostBase::reverseProxy and
+    QRemoteObjectNode::instances now accept a QStringView instead
+    of \c{const QString &}. The largest difference caused by this is that it
+    no longer accepts implicit conversion from string literals
+    (i.e. \c{node.instances("abc");}). Instead, you could use a UTF-16
+    string literal (\c{node.instances(u"abc")}).
+
+    \section2 Changes to classes for custom transport backend support
+
+    The "semi-private" \c IoDeviceBase, \c ServerIoDevice, and \c ClientIoDevice
+    classes are now renamed to \c QtROIoDeviceBase, \c QtROServerIoDevice, and
+    \c QtROClientIoDevice respectively, to be consistent with naming in Qt.
+    They are also moved from the private \c qconnectionfactories_p.h header to
+    \c qconnectionfactories.h.
+
+    \note These classes are provided to give more flexibility for implementing
+    custom communication protocols for Qt Remote Objects, but there are no
+    source or binary compatibility guarantees for them. We recommend using the
+    QRemoteObjectNode::addClientSideConnection() and
+    QRemoteObjectHostBase::addHostSideConnection() methods, if you need
+    support for \l {External QIODevices} {external} communication channels.
+
+    \section1 CMake changes
+
+    The \c cmake instructions for calling \l repc and adding the generated
+    \c .rep files to a CMake project have slightly changed. Instead of the
+    \c qt5_generate_repc macro, you should now use \c qt6_add_repc_sources,
+    \c qt6_add_repc_replicas and \c qt6_add_repc_merged functions.
+    For example, the following code:
+
+    \code
+    set(SOURCES
+        main.cpp
+        simpleswitch.cpp
+    )
+
+    qt5_generate_repc(SOURCES simpleswitch.rep SOURCE)
+    add_executable(directconnectserver ${SOURCES})
+    \endcode
+
+    Should change to:
+
+    \code
+    set(SOURCES
+        main.cpp
+        simpleswitch.cpp
+    )
+    add_executable(directconnectserver ${SOURCES})
+    qt6_add_repc_sources(directconnectserver simpleswitch.rep)
+    \endcode
+
+    More detailed descriptions for these CMake functions can be found
+    \l {CMake functions} {here}.
+*/

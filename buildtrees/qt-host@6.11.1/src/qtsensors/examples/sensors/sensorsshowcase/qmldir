@@ -1,0 +1,9 @@
+module SensorShowcaseModule
+prefer :/qt/qml/SensorShowcaseModule/
+Main 1.0 Main.qml
+Accelerometer 1.0 Accelerometer.qml
+Compass 1.0 Compass.qml
+Gyroscope 1.0 Gyroscope.qml
+Magnetometer 1.0 Magnetometer.qml
+Proximity 1.0 Proximity.qml
+ProgressXYZBar 1.0 ProgressXYZBar.qml

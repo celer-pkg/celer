@@ -1,0 +1,16 @@
+Name: Anonymous Tokens
+Short Name: anonymous_tokens
+URL: https://github.com/google/anonymous-tokens
+Version: N/A
+Revision: 50b2ee441f1c3bad73ab7430c41fd1ea5a7a06a6
+License: Apache-2.0
+License File: src/LICENSE
+Security Critical: yes
+Shipped: yes
+CPEPrefix: unknown
+
+Description:
+Implementation of the RSA Blind Signatures and RSA Blind Signatures with Public Metadata IETF draft standards, which enable propagating trust in a cryptographically secure manner while maintaining anonymity.
+
+Local Modifications:
+No modifications.

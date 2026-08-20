@@ -1,0 +1,65 @@
+<svg
+  width="360"
+  height="760"
+  viewBox="0 0 180 380"
+  preserveAspectRatio="xMidYMid meet"
+  xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink">
+  <!-- ref -->
+  <defs>
+    <g id="rect1">
+        <rect id="rect11" x="10" y="30" width="20" height="20" fill="#ff0000" fill-opacity="1" />
+        <rect id="rect12" x="30" y="30" width="20" height="20" fill="#00ff00" fill-opacity="1" />
+        <rect id="rect13" x="10" y="50" width="20" height="20" fill="#0000ff" fill-opacity="1" />
+        <rect id="rect14" x="30" y="50" width="20" height="20" fill="#990099" fill-opacity="1" />
+    </g>
+  </defs>
+  <use href="#rect1" />
+  <text x="70" y="50">Reference</text>
+
+  <!-- Combine RGB into green matrix -->
+  <filter id="colorMeGreen">
+    <feColorMatrix
+      in="SourceGraphic"
+      type="matrix"
+      color-interpolation-filters="sRGB"
+      values="0 0 0 0 0
+              0.5 0 0 0 0
+              0.5 0 0 0 0
+              0 0 0 1 0" />
+  </filter>
+  <use
+    href="#rect1"
+    transform="translate(0 70)"
+    filter="url(#colorMeGreen)" />
+  <text x="70" y="120">rgbToGreen</text>
+
+
+  <!-- saturate -->
+  <filter id="colorMeSaturate">
+    <feColorMatrix in="SourceGraphic" type="saturate" values="0" color-interpolation-filters="sRGB"/>
+  </filter>
+  <use
+    href="#rect1"
+    transform="translate(0 140)"
+    filter="url(#colorMeSaturate)" />
+  <text x="70" y="190">saturate</text>
+
+  <!-- hueRotate -->
+  <filter id="colorMeHueRotate">
+    <feColorMatrix in="SourceGraphic" type="hueRotate" values="180" color-interpolation-filters="sRGB"/>
+  </filter>
+  <use
+    href="#rect1"
+    transform="translate(0 210)"
+    filter="url(#colorMeHueRotate)" />
+  <text x="70" y="260">hueRotate</text>
+
+  <!-- luminanceToAlpha -->
+  <filter id="colorMeLTA">
+    <feColorMatrix in="SourceGraphic" type="luminanceToAlpha" color-interpolation-filters="sRGB"/>
+  </filter>
+  <use href="#rect1" transform="translate(0 280)" filter="url(#colorMeLTA)" />
+  <text x="70" y="330">luminanceToAlpha</text>
+  
+</svg>

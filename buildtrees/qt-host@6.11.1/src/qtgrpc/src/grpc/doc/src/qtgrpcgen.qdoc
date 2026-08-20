@@ -1,0 +1,70 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtgrpcgen-qt-tool.html
+\brief An overview of the qtgrpcgen tool and how to use it.
+\title The qtgrpcgen Tool
+
+The \c qtgrpcgen tool can be used to generate Qt GRPC service classes from a
+protobuf schema. The tool is provided by the CMake \c {Qt6::GrpcTools}
+package. It works as an extension to Google's \c protoc tool.
+
+\badcode
+    find_package(Qt6 COMPONENTS GrpcTools REQUIRED)
+\endcode
+
+\section1 Usage
+
+Qt provides CMake functions that ease the use of the \c qtgrpcgen tool.
+When using CMake as a build tool, it's better to utilize the
+\l{CMake Commands in Qt6 GRPC}{Qt CMake API}.
+For build systems other than CMake, you can adjust the commands outlined in the
+\l{Running qtgrpcgen manually}.
+
+\note There is no explicit support for building \gRPC and Protobuf
+applications using the Qt GRPC module with \e qmake.
+
+\section2 CMake
+The following CMake commands integrate a \gRPC service into a Qt project.
+
+\target cmake-commands-qtgrpc
+\annotatedlist cmake-commands-qtgrpc
+
+Usually \c qtgrpcgen would be invoked through CMake using the
+\c{qt_add_grpc} macro, as shown in the following example:
+
+\include qt-add-grpc-example.qdocinc 0
+
+\section2 Running \c qtgrpcgen manually
+
+\badcode
+    protoc --plugin=protoc-gen-qtgrpc=<path/to/bin/>qtgrpcgen \
+        --qtgrpc_out="[<options>:]<output_dir>" \
+        [--qtgrpc_opt="<options>"] \
+        [-I/extra/proto/include/path] \
+        <protofile>.proto
+\endcode
+
+The \c{options} argument is a semicolon-separated list of \l{Options}.
+It can be passed by adding \c options to the \c{--qtgrpc_out} argument,
+separated by a colon, or through a separate argument, \c{--qtgrpc_opt}.
+You also can pass the corresponding keys as the \c{QT_GRPC_OPTIONS}
+environment variable. Keys must be presented as a semicolon-separated list:
+\badcode
+    export QT_GRPC_OPTIONS="COPY_COMMENTS;GENERATE_PACKAGE_SUBFOLDERS"
+\endcode
+
+\section2 Options
+The generator supports options that can be provided to tune generation.
+Options have direct aliases in the \l{qt_add_grpc} function. The following
+options are supported:
+
+\list
+    \include qtprotoccommon.qdocinc copy_comments-li
+    \include qtprotoccommon.qdocinc generate_package_subfolders-li
+    \include qtprotoccommon.qdocinc export_macro-cli-li
+    \include qtprotoccommon.qdocinc header_guard-li
+    \include qtgrpcgen.qdocinc qml-li
+\endlist
+*/

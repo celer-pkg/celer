@@ -1,0 +1,508 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+\page qtqml-documents-structure.html
+\title Structure of a QML Document
+\brief Description of the structure of QML documents
+
+
+A QML document is a self contained piece of QML source code that consists of three parts:
+
+    \list
+    \li An optional list of pragmas
+    \li Its \e import statements
+    \li A single root object declaration
+    \endlist
+
+By convention, a single empty line separates the imports from the object hierarchy definition.
+
+QML documents are always encoded in UTF-8 format.
+
+
+
+\keyword QML.pragma
+\section1 Pragmas
+
+Pragmas are instructions to the QML engine itself that can be used to specify
+certain characteristics of objects in the current file or to modify how the
+engine interprets code. The following pragmas are explained in details below.
+
+\table
+\header
+    \li pragma
+    \li values
+    \li default value
+    \li since
+\row
+    \li \l{Structure of a QML Document#Singleton}{Singleton}
+    \li
+    \li
+    \li 5.2 //! 200a869441562d62e7fc0867599097e0599f0411
+\row
+    \li {1, 3} \l{Structure of a QML Document#ListPropertyAssignBehavior}{ListPropertyAssignBehavior}
+    \li Append
+    \li X
+    \li 6.3 //! f2a15482ddd289a36b04316a2b6ebed83eb017c5
+\row
+    \li Replace
+    \li
+    \li 6.3
+\row
+    \li ReplaceIfNotDefault
+    \li
+    \li 6.3
+\row
+    \li {1, 2} \l{Structure of a QML Document#ComponentBehavior}{ComponentBehavior}
+    \li Bound
+    \li
+    \li 6.4 //! 4d71091a198fbbd3f84c61af0f2915493f2dad1a
+\row
+    \li Unbound
+    \li X
+    \li 6.4 //! 4d71091a198fbbd3f84c61af0f2915493f2dad1a
+\row
+    \li {1, 2} \l{Structure of a QML Document#FunctionSignatureBehavior}{FunctionSignatureBehavior}
+    \li Ignored
+    \li
+    \li 6.5 //! de2d7cba76bcfbe0a29271df1178c176d00bf9b4
+\row
+    \li Enforced
+    \li X
+    \li 6.5
+\row
+    \li {1, 2} \l{Structure of a QML Document#NativeMethodBehavior}{NativeMethodBehavior}
+    \li AcceptThisObject
+    \li
+    \li 6.5 //! 3fd3a2a9d06505d549cc4a7c18819a17c6622dfd
+\row
+    \li RejectThisObject
+    \li X
+    \li 6.5
+\row
+    \li {1, 5} \l{Structure of a QML Document#ValueTypeBehavior}{ValueTypeBehavior}
+    \li Reference
+    \li X
+    \li 6.5 //! ec58c0ddb7fe1ebf33c80335ab9435e53fd00274
+\row
+    \li Copy
+    \li
+    \li 6.5
+\row
+    \li Addressable
+    \li
+    \li 6.6 //! 35152b432e82fc274c3983d0f369666a899cde49
+\row
+    \li Inaddressable
+    \li X
+    \li 6.6
+\row
+    \li Assertable
+    \li
+    \li 6.8 //! 71e259837967f1eee50c057229094c2a971a1a61
+\row
+    \li \l{Structure of a QML Document#Translator}{Translator}
+    \li <translation context>
+    \li <file name>
+    \li 6.7 //! d6e0d5630a49e9614a70bf960a213b3eff03a68e
+\endtable
+
+\keyword QML.Singleton
+\section2 Singleton
+
+\c{pragma Singleton} declares the component defined at the root of the QML
+document as singleton. See \l {Singletons in QML} for more information.
+
+\keyword QML.ListPropertyAssignBehavior
+\keyword QML.Append
+\keyword QML.ReplaceIfNotDefault
+\section2 ListPropertyAssignBehavior
+
+With this pragma you can define how assignments to list properties shall be
+handled in components defined in the QML document. By default, assigning to a
+list property appends to the list. You can explicitly request this behavior
+using the value \c{Append}. Alternatively, you can request the contents of list
+properties to always be replaced using \c{Replace}, or replaced if the property
+is not the default property using \c{ReplaceIfNotDefault}.
+
+Consider a base type in a document Base.qml:
+\qml
+pragma ListPropertyAssignBehavior: ReplaceIfNotDefault
+import QtQuick
+
+Item {
+    objectName: "outer"
+
+    default property list<Item> d: [
+        Item { objectName: "inner" }
+    ]
+
+    property list<Item> notDefault: [
+        Item { objectName: "one" }
+    ]
+}
+\endqml
+
+Then, if you derive from Base and modify its list properties, the
+ListPropertyAssignBehavior takes effect. In this case:
+
+\qml
+Base {
+    // The new item is appended to the list even though you're assigning.
+    // The (default) property "d" now contains "inner" and "inner2".
+    d: [
+        Item { objectName: "inner2" }
+    ]
+
+    // The list is replaced by the list given here.
+    // The (non-default) property "notDefault" now contains only "two".
+    notDefault: [
+        Item { objectName: "two" }
+    ]
+}
+\endqml
+
+If no \c{ListPropertyAssignBehavior} is given or if \c{Append} is given, the
+"two" object will be appended to the \c{notDefault} property instead, resulting
+in a list that contains both, "one" and "two".
+
+If \c{Replace} is given, the contents of the default property "d" will also be
+replaced, resulting in a list that contains only "inner2".
+
+\note The same declaration can also be given for C++-defined types, by adding
+the \l{QML_LIST_PROPERTY_ASSIGN_BEHAVIOR_APPEND},
+\l{QML_LIST_PROPERTY_ASSIGN_BEHAVIOR_REPLACE}, and
+\l{QML_LIST_PROPERTY_ASSIGN_BEHAVIOR_REPLACE_IF_NOT_DEFAULT} macros to the
+class declaration. For example:
+
+\code
+class MyType : public QObject
+{
+    Q_OBJECT
+    QML_ELEMENT
+    QML_LIST_PROPERTY_ASSIGN_BEHAVIOR_REPLACE
+
+    Q_PROPERTY(QQmlListProperty<QObject> a READ a)
+    [...]
+};
+\endcode
+
+\keyword QML.ComponentBehavior
+\keyword QML.Bound
+\keyword QML.Unbound
+\section2 ComponentBehavior
+
+You may have multiple components defined in the same QML file. The root
+scope of the QML file is a component, and you may additionally have
+elements of type \l QQmlComponent, explicitly or implicitly created
+as properties, or inline components. Those components are nested. Each
+of the inner components is within one specific outer component. Most of
+the time, IDs defined in an outer component are accessible within all
+its nested inner components. You can, however, create elements from a
+component in any a different context, with different IDs available.
+Doing so breaks the assumption that outer IDs are available. Therefore,
+the engine and the QML tooling cannot generally know in advance what
+type, if any, such IDs will resolve to at run time.
+
+With the ComponentBehavior pragma you can restrict all inner components
+defined in a file to only create objects within their original context.
+If a component is bound to its context, you can safely use IDs from
+outer components in the same file within the component. QML tooling will
+then assume the outer IDs with their specific types to be available.
+
+In order to bind the components to their context specify the \c{Bound}
+argument:
+
+\qml
+pragma ComponentBehavior: Bound
+\endqml
+
+This implies that, in case of name clashes, IDs defined outside a bound
+component override local properties of objects created from the
+component. Otherwise it wouldn't actually be safe to use the IDs since
+later versions of a module might add more properties to the component.
+If the component is not bound, local properties override IDs defined
+outside the component, but not IDs defined inside the component.
+
+The example below prints the \e r property of the ListView object with
+the id \e color, not the \e r property of the rectangle's color.
+
+\qml
+pragma ComponentBehavior: Bound
+import QtQuick
+
+ListView {
+ id: color
+ property int r: 12
+ model: 1
+
+ delegate: Rectangle {
+  Component.onCompleted: console.log(color.r)
+ }
+}
+\endqml
+
+The default value of \c ComponentBehavior is \c{Unbound}. You can also
+specify it explicitly. In a future version of Qt the default will change
+to \c{Bound}.
+
+Delegate components bound to their context don't receive their own
+private contexts on instantiation. This means that model data can only
+be passed via \l{Required Properties}{required properties} in this case.
+Passing model data via context properties will not work. This concerns
+delegates to e.g. \l{Instantiator}, \l{Repeater}, \l{ListView},
+\l{TableView}, \l{GridView}, \l{TreeView} and in general anything that
+uses \l{DelegateModel} internally.
+
+For example, the following will \e{not} work:
+
+\qml
+pragma ComponentBehavior: Bound
+import QtQuick
+
+ListView {
+ delegate: Rectangle {
+     color: model.myColor
+ }
+}
+\endqml
+
+The \c{delegate} property of \l{ListView} is a component. Therefore, a
+\l{Component} is implicitly created around the \l{Rectangle} here. That
+component is bound to its context. It doesn't receive the context property
+\c{model} provided by \l{ListView}. To make it work, you'd have to write
+it this way:
+
+\qml
+pragma ComponentBehavior: Bound
+import QtQuick
+
+ListView {
+ delegate: Rectangle {
+     required property color myColor
+     color: myColor
+ }
+}
+\endqml
+
+You can nest components in a QML file. The pragma holds for all components in
+the file, no matter how deeply nested.
+
+\keyword QML.FunctionSignatureBehavior
+\keyword QML.Ignored
+\keyword QML.Enforced
+\section2 FunctionSignatureBehavior
+
+With this pragma you can change the way type annotations on functions
+are handled. Since Qt 6.7 type annotations are enforced when calling
+functions. Before, only the \l{QML script compiler} enforced the type
+annotations. The interpreter and JIT compiler ignored them. Always
+enforcing the type annotations is a behavior change in comparison to
+earlier versions since you could call functions with mismatched
+arguments before.
+
+Specifying \c{Ignored} as value makes the QML engine and the
+\l{QML script compiler} ignore any type annotations and therefore
+restores the pre-6.7 behavior of the interpreter and JIT. As a result
+less code is compiled to C++ ahead of time, and more code has to be
+interpreted or JIT-compiled.
+
+Specifying \c{Enforced} as value explicitly states the default: Type
+annotations are always enforced.
+
+\sa {Type annotations and assertions}
+
+\keyword QML.NativeMethodBehavior
+\keyword QML.AcceptThisObject
+\keyword QML.RejectThisObject
+\section2 NativeMethodBehavior
+
+Calling C++ methods with \c this objects different from the one they were
+retrieved from is broken, due to historical reasons. The original object is
+used as \c this object. You can allow the given \c this object to be used by
+setting \c {pragma NativeMethodBehavior: AcceptThisObject}. Specifying
+\c RejectThisObject keeps the historical behavior.
+
+An example of this can be found under \l {C++ methods and the 'this' object}.
+
+\keyword QML.ValueTypeBehavior
+\keyword QML.Addressable
+\keyword QML.Inaddressable
+\keyword QML.Assertable
+\keyword QML.Copy
+\keyword QML.Reference
+\section2 ValueTypeBehavior
+
+With this pragma you can change the way value types and sequences are handled.
+
+Usually lower case names cannot be type names in JavaScript code. This is a
+problem because value type names are lower case. You can specify \c{Addressable}
+as value for this pragma to change this. If \c{Addressable} is specified a
+JavaScript value can be explicitly coerced to a specific, named, value type. This is
+done using the \c as operator, like you would do with object types. Furthermore,
+you can also check for value types using the \c instanceof operator:
+
+\qml
+pragma ValueTypeBehavior: Addressable
+import QtQml
+
+QtObject {
+ property var a
+ property real b: (a as rect).x
+ property bool c: a instanceof rect
+
+ property var rect // inaccessible. "rect" is a type name.
+}
+\endqml
+
+Since \c rect in the above example is now a type name, it will shadow any
+properties called \c{rect}.
+
+Explicitly casting to the desired type helps tooling. It can allow the
+\l{Qt Quick Compiler} generate efficient code where it otherwise would not be
+able to. You can use \l{qmllint} to find such occurrences.
+
+There is also a \c{Inaddressable} value you can use to explicitly specify the
+default behavior.
+
+Another attribute to the \c{ValueTypeBehavior} pragma is \c{Assertable},
+introduced in Qt 6.8. Due to a mistake in Qt 6.6 and 6.7 the \c{a as rect} above
+not only checks whether \c{a} is a \c{rect} but also constructs a \c{rect} if
+\c{a} is of a compatible type. This is obviously not what a type assertion
+should do. Specifying \c{Assertable} prevents this behavior and restricts type
+assertions for value types to only check for the type. You should always specify
+it if you are going to use value types with \c{as}. In any case, if the
+type assertion for a value type fails, the result is \c{undefined}.
+
+\c{instanceof} does not have this problem since it only checks for inheritance,
+not for all possible type coercions.
+
+\note Using \c{as} with the \c{int} and \c{double} types is not advisable since by
+JavaScript rules, the result of any calculation is a floating point number, even
+if it happens to hold the same value as its integer equivalent. Conversely, any
+integer constant you declare in JavaScript is not a double by QML's type mapping
+rules. Furthermore, \c{int} and \c{double} are reserved words. You can only
+address these types via type namespaces.
+
+Value types and sequences are generally treated as references. This means, if
+you retrieve a value type instance from a property into a local value, and then
+change the local value, the original property is also changed. Furthermore,
+if you write the original property explicitly, the local value is also updated.
+This behavior is rather unintuitive in many places, and you should not rely on
+it. The \c{Copy} and \c{Reference} values for the \c{ValueTypeBehavior} pragma
+are experimental options to change this behavior. You should not use them.
+Specifying \c{Copy} causes all value types to be treated as actual copies.
+Specifying \c{Reference} explicitly states the default behavior.
+
+Rather than using \c{Copy} you should explicitly re-load references to value
+types and sequences any time they can have been affected by side effects. Side
+effects can happen whenever you call a function or imperatively set a property.
+\l{qmllint} provides guidance on this. For example, in the following code
+the variable \c f is affected by side effects after writing \c width. This is
+because there may be a binding in a derived type or in a \c Binding element
+that updates \c font when \c width is changed.
+
+\qml
+import QtQuick
+Text {
+ function a() : real {
+     var f = font;
+     width = f.pixelSize;
+     return f.pointSize;
+ }
+}
+\endqml
+
+In order to address this, you can avoid holding \c f across the write operation
+on \c width:
+
+\qml
+import QtQuick
+Text {
+ function a() : real {
+     var f = font;
+     width = f.pixelSize;
+     f = font;
+     return f.pointSize;
+ }
+}
+\endqml
+
+This, in turn can be shortened to:
+
+\qml
+import QtQuick
+Text {
+ function a() : real {
+     width = font.pixelSize;
+     return font.pointSize;
+ }
+}
+\endqml
+
+You might assume that re-retrieving the \c font property is costly, but actually
+the QML engine automatically refreshes value type references each time you read
+from them. So this is not more expensive than the first version, but a clearer
+way to express the same operations.
+
+\sa {Type annotations and assertions}
+
+\keyword QML.Translator
+\section2 Translator
+
+With this pragma you can set the context for the translations in the file.
+
+\qml
+pragma Translator: myTranslationContext
+\endqml
+
+\qml
+pragma Translator: "myTranslationContext"
+\endqml
+
+For more information on internationalization with QML, see
+\l{Writing Source Code for Translation#QML}{Writing Source Code for Translation in QML}.
+
+\section1 Imports
+
+A document must import the necessary modules or type namespaces to enable the
+engine to load the QML object types referenced within the document. By default,
+a document can access any QML object types that have been defined through
+\c .qml files in the same directory; if a document needs to refer to any other
+object types, it must import the type namespace into which those types have
+been registered.
+
+QML does \e not have a preprocessor that modifies the document prior to
+presentation to the \l{QQmlEngine}{QML engine}, unlike C or C++.
+The \c import statements do not copy and prepend the code in the document, but
+instead instruct the QML engine on how to resolve type references found
+in the document. Any type reference present in a QML document - such as \c
+Rectangle and \c ListView - including those made within a \l {JavaScript
+Expressions in QML Documents}{JavaScript block} or \l {Property Binding}{property
+bindings}, are \e resolved based exclusively on the import statements. At least
+one \c import statement must be present such as \c{import QtQuick 2.0}.
+
+Please see the \l{qtqml-syntax-imports.html}{QML Syntax - Import Statements}
+documentation for in-depth information about QML imports.
+
+
+\section1 The Root Object Declaration
+
+A QML document describes a hierarchy of objects which can be instantiated.
+Each object definition has a certain structure; it has a type, it can have an
+id and an object name, it can have properties, it can have methods, it can have
+signals and it can have signal handlers.
+
+A QML file must only contain \b {a single root object definition}. The following
+is invalid and will generate an error:
+
+\qml
+// MyQmlFile.qml
+import QtQuick 2.0
+
+Rectangle { width: 200; height: 200; color: "red" }
+Rectangle { width: 200; height: 200; color: "blue" }    // invalid!
+\endqml
+
+This is because a .qml file automatically defines a QML type, which encapsulates a \e single QML object definition. This is discussed further in \l{qtqml-documents-definetypes.html}{Documents as QML object type definitions}.
+
+*/

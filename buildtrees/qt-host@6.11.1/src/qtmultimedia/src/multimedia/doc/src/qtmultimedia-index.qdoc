@@ -1,0 +1,323 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtmultimedia-index.html
+    \title Qt Multimedia
+    \image noun_Media_166644.svg "image of multimedia icons, courtesy of misirlou from the Noun Project"
+    \brief The Qt Multimedia module provides APIs for playing back and recording
+    audiovisual content
+
+    Qt Multimedia is an add-on module that provides a rich set of QML types
+    and C++ classes to handle multimedia content. It contains an easy to use
+    API for playing back audio and video files and rendering those on screen,
+    as well as a comprehensive API for recording audio and video from various
+    sources, including system cameras and microphones, screen or window
+    captures, and audio or video memory buffers.
+
+    The functionality of this module is divided into the following submodules:
+
+    \table
+     \row
+      \li \l{Multimedia Overview}{Qt Multimedia}
+      \li Provides an API for multimedia-specific use cases.
+     \row
+      \li \l{Qt Multimedia Widgets}
+      \li Provides a widget-based multimedia API.
+    \row
+      \li \l{Qt Spatial Audio}
+      \li Provides an API for implementing sound fields in 3D space.
+    \endtable
+
+    \section1 Getting started
+    If you are porting from Qt 5 to Qt 6, see \l{Changes to Qt Multimedia}.
+
+    If you are new to Qt Multimedia, the QML types can be
+    \l{qtqml import syntax}{imported} into an application using the following
+    statement in your \c {.qml} file.
+
+    \qml
+     import QtMultimedia
+    \endqml
+
+    To link against the C++ libraries, add the following to your project's
+    \c CMakeLists.txt file. Substitute \c my_project with the name of your
+    project.
+
+   \code
+        find_package(Qt6 REQUIRED COMPONENTS Multimedia)
+        target_link_libraries(my_project PRIVATE Qt6::Multimedia)
+   \endcode
+
+   See \l {Building Qt Multimedia from sources} for guidance on building
+   Qt Multimedia from sources.
+
+    \section1 Overviews and important topics
+
+     \list
+      \li \l{Changes to Qt Multimedia}{Changes in Qt 6}
+      \li \l{Multimedia Overview}
+      \li \l{Audio Overview}
+      \li \l{Spatial Audio Overview}
+      \li \l{Video Overview}
+      \li \l{Camera Overview}
+      \li \l{Supported Media Formats}
+     \endlist
+
+    \section1 QML types
+
+    The following table outlines some important QML types.
+
+    \table
+    \header
+     \li Type
+     \li Description
+    \row
+     \li \l{MediaPlayer}
+     \li Add audio/video playback functionality to a scene.
+    \row
+     \li \l {QtMultimedia::CaptureSession}{CaptureSession}
+     \li Create a session for capturing audio/video.
+    \row
+     \li \l {QtMultimedia::Camera}{Camera}
+     \li Access a camera connected to the system.
+    \row
+     \li \l {QtMultimedia::AudioInput}{AudioInput}
+     \li Access an audio input (microphone) connected to the system.
+    \row
+     \li \l {QtMultimedia::AudioOutput}{AudioOutput}
+     \li Access an audio output (speaker, headphone) connected to the system.
+    \row
+     \li \l {QtMultimedia::VideoOutput}{VideoOutput}
+     \li Display video content.
+    \row
+     \li \l {QtMultimedia::MediaRecorder}{MediaRecorder}
+     \li Record audio/video from the CaptureSession.
+    \row
+     \li \l {QtMultimedia::ImageCapture}{ImageCapture}
+     \li Capture still images from the Camera.
+    \row
+     \li \l {QtMultimedia::Video}{Video}
+     \li Add Video playback functionality to a scene. Uses MediaPlayer and
+     VideoOutput types to provide video playback functionality.
+    \row
+     \li \l {QtMultimedia::ScreenCapture}{ScreenCapture}
+     \li Captures a screen.
+    \row
+     \li \l {QtMultimedia::WindowCapture}{WindowCapture}
+     \li Captures a top-level window.
+    \endtable
+
+    \section1 C++ classes
+
+    The following table outlines some important C++ classes.
+
+    \table
+    \header
+     \li Class
+     \li Description
+    \row
+     \li QMediaPlayer
+     \li Playback media from a source.
+    \row
+     \li QVideoWidget
+     \li Display video from a media player or a capture session.
+    \row
+     \li QMediaCaptureSession
+     \li Capture audio and video.
+    \row
+     \li QCamera
+     \li Access a camera connected to the system
+    \row
+     \li QAudioInput
+     \li Access an audio input (microphone) connected to the system.
+    \row
+     \li QAudioOutput
+     \li Access an audio output (speaker, headphone) connected to the system.
+    \row
+     \li QImageCapture
+     \li Capture still images with a camera.
+    \row
+     \li QMediaRecorder
+     \li Record media content from a capture session.
+    \row
+     \li QVideoSink
+     \li Access and render individual video frames.
+    \row
+     \li QAudioSink
+     \li Sends raw audio data to an audio output device.
+    \row
+     \li QScreenCapture
+     \li Captures a screen.
+    \row
+     \li QWindowCapture
+     \li Captures a top-level window.
+    \row
+     \li QVideoFrameInput
+     \li Used to display or record video frames from memory buffers.
+    \row
+     \li QAudioBufferInput
+     \li Supports playing or recording audio from memory buffers.
+
+    \endtable
+
+    For playback of audio and video, QMediaPlayer, QAudioOutput, and
+    QVideoWidget contain all necessary functionality. Other classes are
+    dedicated to capturing audio and video content, with
+    QMediaCaptureSession serving as the central class that manages the
+    entire capture and recording process.
+
+    \section1 Licenses and attributions
+
+    The Qt Multimedia module is available under commercial licenses from
+    \l{The Qt Company}.
+    In addition, it is available under free software licenses. Since Qt 5.6,
+    these free software licenses are
+    \l{GNU Lesser General Public License, version 3}, or
+    the \l{GNU General Public License, version 2}.
+    See \l{Qt Licensing} for further details.
+
+    Furthermore, Qt Multimedia in Qt \QtVersion may contain third-party modules
+    under the following permissive licenses:
+
+    \annotatedlist attributions-qtmultimedia
+
+    Note that video compression standards, such as the H.264 media compression
+    standard, may be covered by patents and can incur royalty fees. This can
+    apply to any implementation, also if the implementation is provided as an
+    operating system service, through a third-party library, or any of
+    Qt Multimedia's backends. The Qt licenses do not cover such fees.
+
+    \section1 Target platform and backend notes
+    Qt Multimedia offers user-friendly, cross-platform APIs for media
+    playback, recording, and device management. The implementation of
+    core APIs, including QMediaDevices, QAudioDevice, QSoundEffect,
+    QAudioSink, and QAudioSource are integrated into the main Qt
+    Multimedia library, eliminating the need for additional libraries.
+    Other Qt Multimedia APIs are implemented using plugin libraries
+    known as media backends. The main media backend, built on \l
+    {http://ffmpeg.org}{FFmpeg}, ensures seamless cross-platform
+    functionality, and is the default on all platforms except
+    WebAssembly and embedded Linux/Boot2Qt. With Boot2Qt, the default
+    backend is built on top of \l
+    {https://gstreamer.freedesktop.org/}{GStreamer}, but the FFmpeg
+    media backend can be enabled using the \c{QT_MEDIA_BACKEND}
+    environment variable.
+
+    \section2 The FFmpeg backend
+
+    The FFmpeg media backend relies on the \b{FFmpeg \ffmpegversion} libraries,
+    which are included with the Qt Online Installer and tested by the
+    maintainers. The binary packages from the online installer use
+    dynamic linking to FFmpeg. Therefore, applications must either
+    bundle FFmpeg binaries in their installer or depend on FFmpeg being
+    installed on the operating system. The FFmpeg libraries are
+    automatically deployed using Qt's deployment tools as described in
+    the \l{Deploying Qt Applications} documentation, except for \l{Qt
+    for Linux/X11 - Deployment}{Linux/X11}. Applications can also deploy
+    their own build of FFmpeg, either as shared or static libraries,
+    provided the FFmpeg major version matches the version used by Qt.
+
+    While Qt Multimedia leverages the FFmpeg media backend on most
+    operating systems, platform specific functional or visual
+    differences may arise between applications on different platforms.
+    FFmpeg does not provide identical codec and format support across
+    all platforms, and the performance of Qt Multimedia features may
+    depend on hardware support that is only available on certain
+    platforms. For instance, FFmpeg encounters specific issues with
+    hardware acceleration on Linux targets with ARM architectures.
+    Therefore, it is recommended to test Qt Multimedia applications on
+    all target platforms.
+
+    \note The FFmpeg project provides features under various licenses.
+    The pre-built FFmpeg libraries that are provided through the Online
+    Installer are only including features that agree with the permissive
+    licenses listed under \l{Licenses and Attributions}.
+
+    To ease development and debugging, some FFmpeg functionality is
+    configurable via \l {advanced-ffmpeg-configuration}{environment
+    varibles} which are part of the private Qt Multimedia API.
+
+    \section2 Native backends
+
+    For compatibility with existing applications, we maintain native
+    media backends for each operating system:
+
+    \list
+        \li \l{Qt Multimedia GStreamer Backend}{GStreamer backend} on Embedded Linux
+        \li AVFoundation on macOS and iOS
+        \li Windows Media Foundation on Windows (deprecated since Qt 6.10)
+        \li MediaCodec framework on Android
+        \li WebAudio and WebVideo on WebAssembly
+    \endlist
+
+    \note The FFmpeg media backend is the default backend except on WebAssembly,
+    native backends are still available but with \b limited support. The
+    GStreamer backend is only available on Linux, and is only
+    recommended for embedded applications.
+    \note MediaCodec on Android is deprecated as of Qt 6.8 and will be
+    removed in the next major release.
+    \note The Windows media backend built on top of Windows Media
+    Foundation is deprecated as of Qt 6.10 and will be removed in the
+    next major release.
+
+    Qt Maintainers will strive to fix critical issues with the native
+    backends but don't guarantee fixing minor issues, including
+    inconsistent behavior across platforms. New features will only be
+    implemented on the FFmpeg media backend, with the exception of WebAssembly.
+
+    The GStreamer backend has some private APIs to allow more fine-grained control.
+    However, there are known bugs in the GStreamer backend. More details can be found
+    in \l{Qt Multimedia GStreamer Backend}{platform notes for the GStreamer backend}.
+
+    Backend limitations will be documented, and their status will be maintained in the
+    respective classes.
+
+    \section2 Changing backends
+
+    In the case of issues with the default FFmpeg backend, we suggest testing with a native backend.
+    You can switch to native backends by setting the \c{QT_MEDIA_BACKEND} environment variable
+    to \c windows, \c gstreamer (on Embedded Linux), \c darwin (on macOS and iOS), or \c android:
+
+    \code
+    export QT_MEDIA_BACKEND=darwin
+    \endcode
+
+    To force assign FFmpeg as the used backend, set the variable to \c ffmpeg:
+
+    \code
+    export QT_MEDIA_BACKEND=ffmpeg
+    \endcode
+
+    On the Qt Multimedia compilation stage, the default media backend can be configured
+    via cmake variable \c{QT_DEFAULT_MEDIA_BACKEND}.
+
+    \section2 Target platform notes
+    The following pages list issues for specific target platforms.
+
+    \list
+      \li \l{Qt Multimedia on macOS and iOS}{macOS and iOS}
+      \li \l{Qt Multimedia on WebAssembly}{WebAssembly}
+      \li \l{Qt Multimedia on Windows}{Windows}
+      \li \l{Qt Multimedia on Linux}{Linux}
+      \li \l{Qt Multimedia GStreamer Backend}{GStreamer backend for embedded Linux}
+    \endlist
+
+    \section1 Permissions
+
+    Starting from Qt 6.6, the Qt Multimedia module uses the new \l QPermission API
+    to handle \l {QCameraPermission}{camera} and
+    \l {QMicrophonePermission}{microphone} permissions. This means that Qt
+    itself no longer queries for these permissions, so this needs to be done
+    directly from the client application.
+
+    Please refer to the \l {Application Permissions} page for an example of how
+    to integrate the new \l QPermission API into the application.
+
+    \section1 Reference and examples
+    \list
+      \li \l{Qt Multimedia QML Types}{QML Types}
+      \li \l{Qt Multimedia C++ Classes}{C++ Classes}
+      \li \l{Qt Multimedia Examples}{Examples}
+    \endlist
+*/

@@ -1,0 +1,39 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtcharts-qmlcustomlegend-example.html
+    \title Customizing Legends
+    \brief Shows you how to create your own custom legend.
+    \include qmlchartsgallery.qdocinc
+
+    Here we show you how to create your own custom legend instead of using the
+    built-in legend of ChartView API.
+
+    The main view of the application shows a stacked area chart. This is how one of
+    the stacked areas is created. See ChartViewStacked.qml and AnimatedAreaSeries.qml.
+
+    \image examples_qmlcustomlegend1.png {Screenshot displaying the government taxes
+           as multiple area charts stacked on top of each other, the orange chart being
+           the social security, green being the municipal, and the blue being the state}
+
+    \snippet qmlchartsgallery/qml/customlegend/ChartViewStacked.qml 1
+
+    Hovering with mouse on top of the legend will highlight the hovered series.
+    (see CustomLegend.qml).
+
+    \image examples_qmlcustomlegend2.png {Screenshot showing if the mouse hovers above
+           one of the three legends (state, municipal, social security), the associated
+           area will be highlighted}
+    \snippet qmlchartsgallery/qml/customlegend/CustomLegend.qml 1
+    \snippet qmlchartsgallery/qml/customlegend/CustomLegend.qml 2
+    \dots
+    \snippet qmlchartsgallery/qml/customlegend/CustomLegend.qml 3
+
+    You can also select one of the stacked areas for a closer look as a line series by
+    a mouse click (see ChartViewHighlighted.qml).
+
+    \image examples_qmlcustomlegend3.png {Screenshot showing if one area chart of the
+           three is being pressed, the course of the area will be shown}
+    \snippet qmlchartsgallery/qml/customlegend/ChartViewHighlighted.qml 1
+*/

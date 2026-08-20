@@ -1,0 +1,62 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example layers
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - Layers Example
+    \examplecategory {3D}
+    \brief Demonstrates the use of layers in QtQuick3D.
+    \image layers-example.jpg
+           {Three stacked Qt logo layers in red, green, and blue with layer
+           toggle checkboxes}
+
+    In this example the different colored logo models are placed in different layers.
+    From the settings panel users can control the visibility of each layer by toggling the
+    checkboxes.
+
+    \section1 Preparing the Scene layers
+
+    \section2 Layers
+
+    For convenience we alias the \l {ContentLayer}{Layer} enums type to something that makes it easier to identify.
+
+    \snippet layers/Main.qml content layers
+
+    \section2 Camera
+
+    Since we want to filter the camera view based on the layers, we need to set the layers the
+    camera should render. We do this by setting the \l {Node::layers}{layers} property of the camera to one or
+    more layers. The camera will then only render those objects that are in the \l {Node::layers}{layers} specified.
+    By default the camera will render nodes from all \l {Node::layers}{layers}.
+
+    To be able to select the active layers we create a \c cameraFilter property and bind it to
+    the camera's \l {Node::layers}{layers} property.
+
+    \snippet layers/Main.qml camera filter
+
+    When the checkboxes in the settings panel are toggled, the \c cameraFilter property will
+    be updated to include or exclude the respective layers. This way, the camera will only render
+    the objects that are in the layers specified by the \c cameraFilter.
+
+    \snippet layers/Main.qml checkbox red layer
+
+    \section2 Models
+
+    The three different colored models now needs to be assigned to the respective layers.
+    As with the camera, we can use the \l {Node::layers}{layers} property of the model to assign it to a layer.
+    The red logo model is assigned to the \c redLayer, the green to the \c greenLayer,
+    and the blue to the \c blueLayer.
+
+    \snippet layers/Main.qml red models
+
+    \snippet layers/Main.qml green models
+
+    \snippet layers/Main.qml blue models
+
+    With the layers set up, the camera will now only render the models that are in the layers
+    specified by the \c cameraFilter. The user can toggle the visibility of each layer by
+    checking or unchecking the checkboxes in the settings panel.
+*/
+
+

@@ -1,0 +1,98 @@
+<html>
+<head>
+  <title>Memory iframe test</title>
+</head>
+
+<body>
+  <h1>Memory iframe test</h1>
+
+  <div>
+    <label for="load-time">Load time</label>
+    <input id="load-time" size="64" readonly /><br />
+  </div>
+
+  <div>
+    <label for="frame-count">Frame count</label>
+    <input id="frame-count" type="number" value="1" min="0" max="30" oninput="updateFrames()" /><br />
+    <label for="page-path">Page</label>
+    <input id="page-path" value="web-tests/main/synthetic/memory/?alloc=4" size=64 onchange="updateFrames()"/><br />
+  </div>
+
+  <div id="main">
+  </div>
+
+<script>
+  var maxFrame = 0;
+  var spans = [];
+
+  function frameHost(num) {
+    return `chromium-workloads-${num}.web.app`;
+  }
+
+  function frameURL(num, page) {
+    const host = frameHost(num);
+    return `https://${host}/${page}`;
+  }
+
+  function updateFrames() {
+    const count = document.getElementById('frame-count').value;
+
+    // Create elements to hold all the iframes.
+    for (; maxFrame < count; ++maxFrame) {
+      let element = document.createElement("span");
+      spans[maxFrame] = element;
+      document.getElementById("main").appendChild(element);
+    }
+
+    const page = document.getElementById('page-path').value;
+
+    for (let i = 0; i < maxFrame; ++i) {
+      // Each frame should come from a different host to trigger
+      // site isolation.
+      const url = frameURL(i, page);
+      element = spans[i];
+
+      if (i < count) {
+        // Add the frame if needed.
+        let frame = element.firstChild
+        if (!frame) {
+          frame = document.createElement("iframe");
+          frame.width = 500;
+          frame.height = 500;
+          element.appendChild(frame);
+        }
+
+        // Update the frame's url only if it's different to avoid
+        // unnecessary reloads.
+        if (frame.src != url) {
+          frame.src = url;
+        }
+      } else {
+        // Clear the span.
+        while (element.firstChild) {
+          element.removeChild(element.firstChild);
+        }
+      }
+    }
+  }
+
+  function startup() {
+    // Track when the page was initially loaded.
+    startTime = new Date();
+    document.getElementById('load-time').value = startTime.toString();
+
+    // Handle URL params.
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('page')) {
+      document.getElementById('page-path').value = params.get('page');
+    }
+    if (params.has('count')) {
+      document.getElementById('frame-count').value = params.get('count');
+    }
+
+    updateFrames();
+  }
+
+  startup();
+</script>
+</html>

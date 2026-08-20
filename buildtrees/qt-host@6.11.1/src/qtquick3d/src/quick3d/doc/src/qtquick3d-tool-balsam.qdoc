@@ -1,0 +1,181 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtquick3d-tool-balsam.html
+\title Balsam Asset Import Tool
+\brief Tool for importing assets for use with Qt Quick 3D
+
+The Balsam tool is an application that is part of Qt Quick 3D's
+asset conditioning pipeline. The purpose is to take assets created in digital
+content creation tools like
+\l{https://www.autodesk.com/products/maya/overview}{Maya},
+\l{https://www.autodesk.com/products/3ds-max/overview}{3ds Max}, or
+\l{https://www.blender.org/}{Blender} and convert them into an efficient runtime
+format for use with Qt Quick 3D. It is not possible, nor does it make sense to
+reference the interchange formats directly in applications because a large amount
+of resources are needed to parse and condition the content of the asset before it
+is usable for realtime rendering. Instead the interchange formats can be
+converted via the Balsam tool into QML Components and resources like geometry and
+textures.
+
+\section1 Balsam Command Line Tool
+
+To run Balsam through the command line, call the \c balsam executable like
+this:
+
+\code
+balsam [options] sourceFilename
+\endcode
+
+To convert a 3D asset contained in the file \c testModel.fbx with \c balsam
+the following command would be used:
+
+\code
+balsam testModel.fbx
+\endcode
+
+This would generate the following files:
+\list
+  \li \c meshes/testModel.mesh
+  \li \c TestModel.qml
+\endlist
+
+Which can then be used in a Qt Quick 3D project by using that QML Component:
+\code
+import QtQuick3D
+
+TestModel {
+   id: modelInstance
+}
+\endcode
+
+\note The generated mesh filename depends on the mesh name(s) defined in the
+source file (in this example, the FBX file) and may differ from
+\c{testModel.mesh}.
+
+\section1 Balsam UI
+
+There is also a GUI frontend for Balsam called \c balsamui that is shipped
+alongside the \c balsam executable. In \c balsamui you can select your input
+files and output directory and the command-line options of the \c balsam
+executable are mapped to interactive elements:
+
+\image balsamui.webp "A screenshot of the Balsam UI application."
+
+\section1 Supported 3D Asset Types
+
+\list
+  \li Wavefront (.obj)
+  \li COLLADA (.dae)
+  \li FBX (.fbx)
+  \li STL (.stl)
+  \li PLY (.ply)
+  \li GLTF2 (.gltf, .glb)
+\endlist
+
+Some of the formats supported also allow for either embedding or referencing of
+texture assets. These assets are also supported, provided Qt also has support
+for them.
+
+\section1 Baking for Image-Based Lighting
+
+Balsam also supports generating a pre-filtered cubemap image from .hdr
+files. Specifying a file with .hdr extension as the input results in generating
+a file with the same name but with an extension of .ktx. The application can
+then ship the resulting .ktx file and reference that from the \l Texture
+associated with \l SceneEnvironment::lightProbe. This avoids the costly runtime
+processing that is necessary for image-based lighting. See \l{Pre-generating IBL
+cubemap} for more details.
+
+\section1 Supported Options
+
+The following table lists the command-line options recognized by \c balsam when
+converting asset files:
+
+\note For each boolean option it is possible to use \c{--disable-<option-name>}.
+
+\table
+\header \li Option \li Description
+\row \li \c {--outputPath, -o <outputPath>} \li Sets the location to place the
+generated file(s). Default is the current directory.
+\row \li \c {--calculateTangentSpace} \li Calculates the tangents and
+bitangents for the imported meshes.
+\row \li \c {--joinIdenticalVertices} \li Identifies and joins identical vertex
+ data sets within all imported meshes.
+\row \li \c {--generateNormals} \li Generates normals for all faces of all
+meshes.
+\row \li \c {--generateSmoothNormals} \li Generates smooth normals for all
+vertices in the mesh.
+\row \li \c {--splitLargeMeshes} \li Splits large meshes into smaller
+sub-meshes.
+\row \li \c {--preTransformVertices} \li Removes the node graph and
+pre-transforms all vertices with the local transformation matrices of
+their nodes.
+\row \li \c {--improveCacheLocality} \li Reorders triangles for better vertex
+cache locality.
+\row \li \c {--removeRedundantMaterials} \li Searches for
+redundant/unreferenced materials and removes them.
+\row \li \c {--fixInfacingNormals} \li Tries to determine which meshes have
+normal vectors that are facing inwards and inverts them.
+\row \li \c {--findDegenerates} \li This step searches all meshes for
+degenerate primitives and converts them to proper lines or points.
+\row \li \c {--findInvalidData} \li This step searches all meshes for invalid
+data, such as zeroed normal vectors or invalid UV coords and removes/fixes
+them. This is intended to get rid of some common exporter errors.
+\row \li \c {--transformUVCoordinates} \li This step applies per-texture UV
+transformations and bakes them into stand-alone texture coordinate channels.
+\row \li \c {--findInstances} \li This step searches for duplicate meshes and
+replaces them with references to the first mesh.
+\row \li \c {--optimizeMeshes} \li A postprocessing step to reduce the number
+of meshes.
+\row \li \c {--optimizeGraph} \li A postprocessing step to optimize the scene
+hierarchy.
+\row \li \c {--useFloatJointIndices} \li Stores joint indices as floating point
+numbers for GLES 2.0.
+\row \li \c {--globalScale} \li This step will perform a global scale of the
+model.
+\row \li \c {--globalScaleValue <value>} \li Global Scale factor used by
+\c --globalScale.
+\row \li \c {--dropNormals} \li Drops normals for all faces of all meshes.
+\row \li \c {--removeComponentNormals} \li Removes Normal component from
+meshes.
+\row \li \c {--removeComponentTangentsAndBitangents} \li Removes Tangents and
+Bitangents components from meshes.
+\row \li \c {--removeComponentColors} \li Removes any Color components from
+meshes.
+\row \li \c {--removeComponentUVs} \li Removes any UV components from meshes.
+\row \li \c {--removeComponentBoneWeights} \li Removes any bone weights from
+meshes.
+\row \li \c {--removeComponentAnimations} \li Removes any animation components
+from meshes.
+\row \li \c {--removeComponentTextures} \li Removes any embedded texture
+components from meshes.
+\row \li \c {--fbxPreservePivots} \li Preserves extra pivot nodes created by
+FBX assets (can create deep node hierarchies)
+\row \li \c {--generateMipMaps} \li Force all imported texture components to
+generate mip maps for mip map texture filtering
+\row \li \c {--useBinaryKeyframes} \li Record keyframe data as binary files
+
+\row \li \c {--generateLightmapUV} \li Perform lightmap UV unwrapping and
+generate an additional UV channel for the meshes. This UV data is then used by
+the \l{Lightmaps and Global Illumination}{lightmap baker and during run-time
+lightmapping}.
+
+\row \li \c {--generateMeshLevelsOfDetail} \li When possible create mesh Levels
+of Detail by automatically simplifying the source mesh.
+
+\row \li \c {--recalculateLodNormals} \li Calculate new normals when necessary
+for Generated Mesh levels of detail.
+
+\row \li \c {--recalculateLodNormalsMergeAngle <value>} \li Maximum angle in
+degrees to consider for normal smoothing/merging when recalculating normals
+for Generated Mesh levels of detail.
+
+\row \li \c {--recalculateLodNormalsSplitAngle <value>} \li Maximum angle in
+degrees to consider for normal spliting when recalculating normals for
+Generated Mesh levels of detail.
+
+\endtable
+
+*/

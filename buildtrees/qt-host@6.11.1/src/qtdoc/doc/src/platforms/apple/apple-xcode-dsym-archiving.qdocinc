@@ -1,0 +1,41 @@
+Due to a bug in Xcode and certain
+\l {https://gitlab.kitware.com/cmake/cmake/-/issues/17897#note_1337299}{CMake limitations},
+a CMake-generated Xcode project will fail to include an application's \c dSYM bundle into an
+\c xcarchive, during Xcode's archiving task.
+
+Qt provides a workaround as an opt-in, so that the \c dSYM bundle is included in the
+\c xcarchive, but it comes with trade-offs. That is, the following CMake features will not work
+correctly:
+
+\list
+\li any \c {$<TARGET_FILE:app>} generator expressions might expand to an invalid path that does
+    not lead to the app binary
+\li the \c CMAKE_RUNTIME_OUTPUT_DIRECTORY variable and its associated \c RUNTIME_OUTPUT_DIRECTORY
+    target property will be ignored even if set
+\li other unknown issues
+\endlist
+
+To mitigate the issues above, you can:
+\list
+\li only enable the workaround when you intend to create the \c xcarchive and not during project
+    development
+\li make sure you only add executables and libraries in the root project directory, and not in
+    \c add_subdirectory calls.
+\endlist
+
+To enable the workaround, configure the project with the following option:
+
+\badcode
+cmake . -DQT_USE_RISKY_DSYM_ARCHIVING_WORKAROUND=ON
+\endcode
+
+or set the variable in the project before any \c qt_add_executable or
+\c qt_add_library calls:
+
+\badcode
+set(QT_USE_RISKY_DSYM_ARCHIVING_WORKAROUND ON)
+
+...
+
+qt_add_executable(app)
+\endcode

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="96" height="96" viewBox="0 0 96 96">
+  <defs>
+    <filter id="f1" width="127.3%" height="132.4%" x="-13.6%" y="-16.2%" filterUnits="objectBoundingBox">
+      <feOffset dy="1" />
+    </filter>
+  </defs>
+  <g filter="url(#f1)" transform="translate(4 11)">
+    <g transform="translate(6 17)">
+      <mask id="m1">
+		<rect x="0" y="0" height="100" width="100" fill="#fff" />
+      </mask>
+      <circle cx="44" cy="42" r="23.5" fill="green" stroke="blue" mask="url(#m1)"/>
+    </g>
+    <circle cx="44" cy="42" r="23.5" fill="blue" stroke="gray"/>
+  </g>
+  <circle cx="48" cy="54" r="23.5" fill="none" stroke="red"/>
+</svg>

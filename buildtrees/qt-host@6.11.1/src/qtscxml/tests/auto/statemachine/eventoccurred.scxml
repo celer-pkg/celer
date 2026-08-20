@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<!--
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+-->
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0"
+       name="EventOccurred" datamodel="ecmascript">
+    <state id="top">
+        <state id="a">
+            <onentry>
+                <raise event="internalEvent1"/>
+                <send event="internalEvent2"/>
+                <send event="externalEvent"/>
+                <send event="timeout" delay="1s"/>
+            </onentry>
+            <transition event="timeout" target="final"/>
+        </state>
+        <final id="final"/>
+
+        <!--
+            The done.state.* events are internal, so expose them to the spy too by re-sending them as
+            external events:
+        -->
+        <transition event="done.state.*" cond="_event.type === 'internal'">
+            <send eventexpr="_event.name"/>
+        </transition>
+    </state>
+</scxml>

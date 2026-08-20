@@ -1,0 +1,91 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+// Assimp's animMesh stores complete target attributes,
+// so it's littlebit different from the glTF's morphing operation
+
+vec4 getTargetTexValue(ivec3 texCoord)
+{
+    return texelFetch(qt_morphTargetTexture, texCoord, 0);
+}
+
+vec4 qt_getTargetValue(vec4 orgValue, int offset)
+{
+    vec4 result = orgValue;
+    ivec3 texCoord;
+    int texWidth = textureSize(qt_morphTargetTexture, 0).x;
+    texCoord.x = gl_VertexIndex % texWidth;
+    texCoord.y = (gl_VertexIndex - texCoord.x) / texWidth;
+
+    for (int i = 0; i < QT_MORPH_MAX_COUNT; ++i) {
+        texCoord.z = offset + i;
+        vec4 targetValue = getTargetTexValue(texCoord);
+        result += qt_morphWeights[i] * (targetValue - orgValue);
+    }
+
+    return result;
+}
+
+vec3 qt_getTargetPosition(vec3 pos)
+{
+#ifdef QT_TARGET_POSITION_OFFSET
+    return qt_getTargetValue(vec4(pos, 1.0), QT_TARGET_POSITION_OFFSET).xyz;
+#else
+    return pos;
+#endif
+}
+
+vec3 qt_getTargetNormal(vec3 norm)
+{
+#ifdef QT_TARGET_NORMAL_OFFSET
+    return qt_getTargetValue(vec4(norm, 1.0), QT_TARGET_NORMAL_OFFSET).xyz;
+#else
+    return norm;
+#endif
+}
+
+vec3 qt_getTargetTangent(vec3 tan)
+{
+#ifdef QT_TARGET_TANGENT_OFFSET
+    return qt_getTargetValue(vec4(tan, 1.0), QT_TARGET_TANGENT_OFFSET).xyz;
+#else
+    return tan;
+#endif
+}
+
+vec3 qt_getTargetBinormal(vec3 binorm)
+{
+#ifdef QT_TARGET_BINORMAL_OFFSET
+    return qt_getTargetValue(vec4(binorm, 1.0), QT_TARGET_BINORMAL_OFFSET).xyz;
+#else
+    return binorm;
+#endif
+}
+
+vec2 qt_getTargetTex0(vec2 tex)
+{
+#ifdef QT_TARGET_TEX0_OFFSET
+    return qt_getTargetValue(vec4(tex, 1.0, 1.0), QT_TARGET_TEX0_OFFSET).xy;
+#else
+    return tex;
+#endif
+}
+
+vec2 qt_getTargetTex1(vec2 tex)
+{
+#ifdef QT_TARGET_TEX1_OFFSET
+    return qt_getTargetValue(vec4(tex, 1.0, 1.0), QT_TARGET_TEX1_OFFSET).xy;
+#else
+    return tex;
+#endif
+}
+
+vec4 qt_getTargetColor(vec4 color)
+{
+#ifdef QT_TARGET_COLOR_OFFSET
+    return qt_getTargetValue(color, QT_TARGET_COLOR_OFFSET);
+#else
+    return color;
+#endif
+}
+

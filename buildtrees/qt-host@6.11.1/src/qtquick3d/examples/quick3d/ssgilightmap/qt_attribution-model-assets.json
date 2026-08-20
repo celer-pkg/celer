@@ -1,0 +1,63 @@
+[
+  {
+    "Id": "skfb-bedroominteriordesign-gozdemrl",
+    "Name": "Bedroom Interior Design",
+    "Homepage": "https://sketchfab.com/3d-models/bedroom-interior-design-d573616b117c4696895f8cb53a590630",
+    "LicenseId": "CC-BY-4.0",
+    "License": "Creative Commons Attribution 4.0 International (CC BY 4.0) ",
+    "Copyright": "gozdemrl",
+    "Source": "https://sketchfab.com/3d-models/bedroom-interior-design-d573616b117c4696895f8cb53a590630",
+    "Files": [
+      "assets/Bedroom/Bedroom.qml",
+      "assets/Bedroom/meshes/*",
+      "assets/Bedroom/maps/*"
+    ]
+  },
+  {
+    "Id": "polyhaven-bambanani_sunset",
+    "Name": "Bambanani Sunset",
+    "Homepage": "https://polyhaven.com/a/bambanani_sunset",
+    "LicenseId": "CC0",
+    "License": "CC0 Public Domain",
+    "Copyright": "Poly Haven",
+    "Source": "https://polyhaven.com/a/bambanani_sunset",
+    "Files": [ "assets/Bedroom/bambanani_sunset_4k.ktx" ]
+  },
+  {
+    "Id": "polyhaven-moonless_golf",
+    "Name": "Moonless Golf",
+    "Homepage": "https://polyhaven.com/a/moonless_golf",
+    "LicenseId": "CC0",
+    "License": "CC0 Public Domain",
+    "Copyright": "Poly Haven",
+    "Source": "https://polyhaven.com/a/moonless_golf",
+    "Files": [ "assets/Sponza/moonless_golf_4k.ktx" ]
+  },
+  {
+    "Id": "sponza",
+    "Name": "Sponza Atrium Model",
+    "QtUsage": "Used as a test/demo model for global illumination, lightmapping, and rendering benchmarks.",
+    "Files": [
+      "assets/Sponza/Sponza.qml",
+      "assets/Sponza/meshes/*",
+      "assets/Sponza/maps/*"
+    ],
+    "Homepage": "https://github.com/KhronosGroup/glTF-Sample-Models/tree/main/2.0/Sponza",
+    "LicenseId": "Custom",
+    "License": "Donated for research and rendering tests (see original copyright notices)",
+    "Copyright": "Original model © 2002 Marko Dabrović; Improved version © 2010 Frank Meinl (Crytek); Modifications © 2011 Morgan McGuire; PBR textures © Alexandre Pestana"
+  },
+  {
+    "Id": "qtquick3d-cornellbox",
+    "Name": "Cornell Box (OBJ Dataset)",
+    "QtUsage": "Used as a test/demo model for global illumination, lightmapping, and rendering benchmarks.",
+    "Files": [
+      "assets/CornellBox/cornellBox.mesh",
+      "assets/CornellBox/CornellBox.qml"
+    ],
+    "Homepage": "http://graphics.cs.williams.edu/data",
+    "LicenseId": "CC-BY-3.0",
+    "License": "Creative Commons Attribution 3.0 Unported",
+    "Copyright": "© 2011 Guedis Cárdenas and Morgan McGuire, Williams College"
+  }
+]

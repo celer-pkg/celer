@@ -1,0 +1,142 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [0]
+\section2 Using qt_add_protobuf
+
+\badcode
+cmake_minimum_required(VERSION 3.16...3.22)
+project(MyThings)
+
+find_package(Qt6 REQUIRED COMPONENTS Protobuf)
+qt_standard_project_setup()
+
+qt_add_protobuf(MyMessages
+    GENERATE_PACKAGE_SUBFOLDERS
+    PROTO_FILES
+        path/to/message.proto
+        path/to/other_message.proto
+    PROTO_INCLUDES
+        /path/to/proto/include
+)
+
+qt_add_executable(MyApp main.cpp)
+
+target_link_libraries(MyApp PRIVATE MyMessages)
+\endcode
+
+In the example above, we generate a library called \c{MyMessages}, which
+contains the message types defined in the paths passed to the
+\c{PROTO_FILES} option. The \c{GENERATE_PACKAGE_SUBFOLDERS} option
+to generate a folder structure for the generated files. And the
+\c{PROTO_INCLUDES} option tells protoc to look for dependencies or imports
+in the specified directories.
+We create a target for an executable called \c{MyApp}, which we link
+to the \c{MyMessages} library.
+//! [0]
+
+//! [1]
+\section2 QML extended protobuf example
+\badcode
+cmake_minimum_required(VERSION 3.16...3.22)
+project(MyThings)
+
+find_package(Qt6 REQUIRED COMPONENTS Protobuf ProtobufQuick Quick)
+qt_standard_project_setup()
+
+qt_add_protobuf(MyMessagesPlugin
+    QML
+    QML_URI my.messages.module.uri
+    PROTO_FILES
+        path/to/message.proto
+        path/to/other_message.proto
+    PROTO_INCLUDES
+        /path/to/proto/include
+)
+
+qt_add_protobuf(MyApp
+    QML
+    PROTO_FILES
+        path/to/internal_message.proto
+    PROTO_INCLUDES
+        /path/to/proto/include
+)
+
+qt_add_qml_module(MyApp
+    URI example.uri
+    VERSION 1.0
+    QML_FILES qml/main.qml
+)
+
+qt_add_executable(MyApp main.cpp)
+target_link_libraries(MyApp PRIVATE Quick)
+\endcode
+
+In the QML extended example above, by the first \c qt_add_protobuf call,
+we generate a QML module called \c{MyMessagesPlugin}, which contains
+the message types defined in the paths passed to the \c{PROTO_FILES} option.
+We use the \c QML option, that enables proto message types registration
+in the \c QML context. The registered types will be available in \c QML
+by importing a path that is set by the \c QML_URI.
+By second \c qt_add_protobuf call we add
+auto-generated code into the existing \c{MyApp} QML module.
+The \c QML_URI is not required in such cases.
+Finally, we create a target for an executable called \c{MyApp}, which
+has a QML module for the graphical part and loads \c MyMessagesPlugin
+into the main.qml file via the \c{my.messages.module.uri} import.
+
+\section2 Installing standalone Qt Protobuf library
+
+The \l{qt_add_protobuf} command also produces lists of artifacts for further
+installation. You can read these artifacts by specifying \c OUTPUT_HEADERS,
+and \c OUTPUT_TARGETS arguments as follows:
+\badcode
+qt_add_protobuf(MyProtoLib
+    PROTO_FILES
+        mylib.proto
+    OUTPUT_HEADERS
+        public_headers
+    OUTPUT_TARGETS
+        generated_targets
+)
+\endcode
+
+The command stores the list of the header files and targets produced by the
+\c qt_add_protobuf command to the \c public_headers and \c generated_targets
+variables accordingly.
+
+Use the standard CMake \c install command to install the artifacts and generate
+the \c config files for your library:
+\badcode
+include(GNUInstallDirs)
+set_target_properties(MyProtoLib PROPERTIES
+    PUBLIC_HEADER
+        "${public_headers}"
+    INTERFACE_INCLUDE_DIRECTORIES
+        "$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}>"
+)
+install(TARGETS ${generated_targets} EXPORT MyProtoLibTargets
+    PUBLIC_HEADER
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+)
+install(EXPORT MyProtoLibTargets NAMESPACE MyProtoLib:: DESTINATION lib/cmake/MyProtoLib)
+\endcode
+
+Then use the generated \c MyProtoLibTargets config in the package config file.
+You can read more about the package creation process in the official
+\l {Creating CMake packages}{CMake documentation}.
+
+After installation the library is available as the standalone CMake package:
+\badcode
+find_package(Qt6 COMPONENTS Protobuf)
+find_package(MyProtoLib CONFIG)
+
+add_executable(MyApp main.cpp)
+target_link_libraries(MyApp PRIVATE MyProtoLib::MyProtoLib Qt6::Protobuf)
+\endcode
+
+\note qt_add_protobuf doesn't implicitly add \c {Qt Protobuf} module as the
+transitive dependency, neither for the \c MyProtoLib target nor for the
+\c MyProtoLib CMake package. Therefore, the \c {Qt Protobuf} module lookup and
+the explicit linking of \c MyApp to \c {Qt6::Protobuf} are mandatory.
+//! [1]

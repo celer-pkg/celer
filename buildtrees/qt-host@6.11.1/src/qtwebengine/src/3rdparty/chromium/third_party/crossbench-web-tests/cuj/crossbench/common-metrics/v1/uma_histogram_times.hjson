@@ -1,0 +1,17 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  // Extracts metrics from one histogram logged with the UMA_HISTOGRAM_TIMES
+  // macro.
+  // Arguments:
+  //  NAME: Results will be saved to trace_processor/$[NAME].csv
+  //  UNITS_IN_MS: Conversion from the histogram's units to ms. E.g. if the
+  //    histogram logs in us, then 1000 because there are 1000 us in 1 ms.
+  name: $[NAME]
+  sql:
+    '''
+      INCLUDE PERFETTO MODULE sql_packages.queries.uma_histogram_summaries;
+      SELECT * FROM uma_histogram_times_macro!('$[NAME]', $[UNITS_IN_MS]);
+    '''
+}

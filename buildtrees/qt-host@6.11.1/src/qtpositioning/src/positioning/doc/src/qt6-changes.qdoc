@@ -1,0 +1,209 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtpositioning-changes-qt6.html
+    \title Changes to Qt Positioning
+    \ingroup changes-qt-5-to-6
+    \brief Migrate Qt Positioning to Qt 6.
+
+    Qt 6 is a result of the conscious effort to make the framework more
+    efficient and easy to use.
+
+    We try to maintain binary and source compatibility for all the public
+    APIs in each release. But some changes were inevitable in an effort to
+    make Qt a better framework.
+
+    In this topic we summarize those changes in Qt Positioning, and provide
+    guidance to handle them.
+
+    \section1 Breaking public API changes
+
+    This section contains information about API changes that break source
+    compatibility.
+
+    \section2 Rename QGeoPolygon::path()
+
+    The \c QGeoPolygon::path() and \c QGeoPolygon::setPath() methods are renamed
+    to \l QGeoPolygon::perimeter() and \l QGeoPolygon::setPerimeter()
+    respectively. On the QML side the \l QGeoPolygon::perimeter property can be
+    used without any changes.
+
+    \section2 Use \l QGeoShape for \l QGeoLocation bounding area
+
+    The \l QGeoLocation class and its \l [QML] Location QML counterpart are
+    updated to use \l QGeoShape instead of \l QGeoRectangle for a bounding area.
+
+    \section3 C++
+
+    The \c QGeoLocation::boundingBox() and \c QGeoLocation::setBoundingBox()
+    are replaced by \l QGeoLocation::boundingShape() and
+    \l QGeoLocation::setBoundingShape() respectively. A \l QGeoShape object
+    is now used as an underlying data storage.
+
+    \section3 QML
+
+    The \c QGeoLocation::boundingBox property is replaced by
+    \l QGeoLocation::boundingShape. This property is available since
+    QtPositioning 6.2, so make sure to update the import version in the QML
+    files.
+
+    \code
+    import QtPositioning 6.2
+    \endcode
+
+    \section2 Remove QGeoShape::extendShape()
+
+    The \c QGeoShape::extendShape() method was deprecated in Qt 5.9 and finally
+    removed in Qt 6. Use \l QGeoRectangle::extendRectangle() and
+    \l QGeoCircle::extendCircle() if you need this functionality for these
+    classes.
+
+    \section2 Rename signal error to errorOccurred
+
+    In Qt 5 multiple Qt Positioning classes had the \c error() signal, which was
+    clashing with the \c error() method. In Qt 6 we renamed these signals to
+    \c errorOccurred(). Specifically:
+
+    \list
+
+    \li \c QGeoAreaMonitorSource::error() is renamed to
+    \l QGeoAreaMonitorSource::errorOccurred().
+
+    \li \c QGeoPositionInfoSource::error() is renamed to
+    \l QGeoPositionInfoSource::errorOccurred().
+
+    \li \c QGeoSatelliteInfoSource::error() is renamed to
+    \l QGeoSatelliteInfoSource::errorOccurred().
+
+    \endlist
+
+    \section2 Remove update timeout signals
+
+    In Qt 5 \c {QGeoPositionInfoSource::updateTimeout()} and
+    \c {QGeoSatelliteInfoSource::requestTimeout()} signals were used to notify
+    about the cases when the current position or satellite information could
+    not be retrieved within specified timeout. These signals were removed in
+    Qt 6. The \c {errorOccurred()} signals with the new error types are
+    used instead. Specifically:
+
+    \list
+
+    \li \l QGeoPositionInfoSource uses an \l {QGeoPositionInfoSource::}
+    {errorOccurred()} signal with a new
+    \l QGeoPositionInfoSource::UpdateTimeoutError error code.
+
+    \li \l QGeoSatelliteInfoSource uses an \l {QGeoSatelliteInfoSource::}
+    {errorOccurred()} signal with a new
+    \l QGeoSatelliteInfoSource::UpdateTimeoutError error code.
+
+    \endlist
+
+    Same changes apply to \l [QML] PositionSource QML object. The
+    \c {PositionSource::updateTimeout()} signal is removed.
+    \l [QML] {PositionSource::sourceError} property with a
+    \c {PositionSource.UpdateTimeoutError} is used instead.
+
+    \section2 Redesign NMEA support
+
+    In Qt 5 we had a \b serialnmea positioning plugin and a \c nmeaSource
+    property in \l [QML] {PositionSource} object.
+
+    The plugin provided access to NMEA streams via serial port, while the QML
+    object was responsible for reading NMEA stream from TCP socket or local
+    file.
+
+    In Qt 6 we joined all these features in the plugin, which is now renamed to
+    \b nmea. It is now capable of working with all three NMEA data sources:
+    serial port, TCP socket and local file. See \l {Qt Positioning NMEA plugin}
+    {plugin description} for more details.
+
+    The \c nmeaSource property of \l [QML] {PositionSource} object is now
+    removed.
+
+    \section1 Other API changes
+
+    This section contains API improvements that do not break source
+    compatibility. However they might have an impact on the application logic,
+    so it is still useful to know about them.
+
+    \section2 Reset errors properly
+
+    In Qt 5 the errors for \l QGeoAreaMonitorSource, \l QGeoPositionInfoSource
+    and \l QGeoSatelliteInfoSource classes were never reset. This behavior is
+    not logical, as calling \c {startUpdates()}, \c {startMonitoring()} or
+    \c {requestUpdates()} on one of these classes or their subclasses
+    effectively means starting a new work sessions, which means that we should
+    not care about previous errors. Since Qt 6 we reset the error to \c NoError
+    once one of the aforementioned methods is called.
+
+    \section2 Add \l QGeoAddress::streetNumber
+
+    The \l QGeoAddress class is extended with \l {QGeoAddress::}{streetNumber}
+    property, which holds the information about street number, building name, or
+    anything else that might be used to distinguish one address from another.
+    Use \l {QGeoAddress::}{streetNumber()} and \l {QGeoAddress::}
+    {setStreetNumber()} to access this property from C++ code.
+
+    The \l QGeoAddress::street now holds only the street name.
+
+    Same applies to \l [QML] {Address} QML counterpart. The \l [QML]
+    {Address::street} property is now used only for street name, while the
+    \l [QML] {Address::streetNumber} property is used for other important
+    address details.
+
+    \section2 Add timeout argument to \l [QML] {PositionSource::update()}
+
+    The \c timeout is specified in milliseconds. If the \c timeout is zero
+    (the default value), it defaults to a reasonable timeout period as
+    appropriate for the source.
+
+    \section2 Refactor \l QGeoSatelliteInfo, \l QGeoPositionInfo and \l QGeoAreaMonitorInfo classes
+
+    These classes now use \l QExplicitlySharedDataPointer in their
+    implementation. It means that the classes implement copy-on-write. It makes
+    them cheap to copy, so that they can be passed by value.
+
+    Another improvement is the addition of support for the efficient move
+    operations.
+
+    \section1 Changes in Qt Positioning plugin implementation
+
+    This section provides information about the changes in plugin interface.
+
+    In Qt 5 for we had two versions of plugin interface:
+
+    \list
+
+    \li \c QGeoPositionInfoSourceFactory which provided the basic features.
+    \li \c QGeoPositionInfoSourceFactoryV2 which extended the base class with
+    the possibility to provide custom parameters for the created objects.
+
+    \endlist
+
+    In Qt 6 we merged these two implementations into one, leaving only the
+    \l QGeoPositionInfoSourceFactory class. Its methods now allow to pass
+    custom parameters.
+
+    \note The interface \e identifier is updated to reflect the major version
+    update. Use \c {"org.qt-project.qt.position.sourcefactory/6.0"} in your
+    Qt Positioning plugins.
+
+    Here is an example of plugin class declaration:
+
+    \code
+    class MyPlugin : public QObject, public QGeoPositionInfoSourceFactory
+    {
+        Q_OBJECT
+        Q_PLUGIN_METADATA(IID "org.qt-project.qt.position.sourcefactory/6.0"
+                          FILE "plugin.json")
+        Q_INTERFACES(QGeoPositionInfoSourceFactory)
+
+    public:
+        QGeoPositionInfoSource *positionInfoSource(QObject *parent, const QVariantMap &parameters) override;
+        QGeoSatelliteInfoSource *satelliteInfoSource(QObject *parent, const QVariantMap &parameters) override;
+        QGeoAreaMonitorSource *areaMonitor(QObject *parent, const QVariantMap &parameters) override;
+    };
+    \endcode
+
+*/

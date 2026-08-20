@@ -1,0 +1,103 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "options": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "object",
+                "properties": {
+                    "name": { "type": "string" },
+                    "description": { "type": "string" },
+                    "value": {
+                        "type": [
+                            "string",
+                            "number",
+                            "boolean",
+                            "integer"
+                        ]
+                    },
+                    "type": { "type": "string" },
+                    "range": {
+                        "type": "object",
+                        "properties": {
+                            "minimum": {
+                                "type": [
+                                    "number",
+                                    "integer"
+                                ]
+                            },
+                            "maximum": {
+                                "type": [
+                                    "number",
+                                    "integer"
+                                ]
+                            }
+                        },
+                        "required": [ "minimum", "maximum"]
+                    },
+                    "possibleValues": {
+                        "type": "array",
+                        "items": {
+                            "type": [
+                                "number",
+                                "integer",
+                                "string"
+                            ]
+                        },
+                        "uniqueItems": true,
+                        "minItems": 1
+                    },
+                    "conditions": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "property": { "type": "string" },
+                                "value": {
+                                    "type": [
+                                        "string",
+                                        "number",
+                                        "boolean",
+                                        "integer"
+                                    ]
+                                },
+                                "mode": {
+                                    "type": "string",
+                                    "enum": ["Equals", "NotEquals", "GreaterThan", "LessThan"]
+                                }
+                            },
+                            "required": [ "property", "value", "mode"],
+                            "minItems": 1
+                        }
+                    }
+                },
+                "required": [
+                    "name",
+                    "description",
+                    "value",
+                    "type"
+                ]
+            }
+        },
+        "groups": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "object",
+                "properties": {
+                    "name": { "type": "string" },
+                    "items": {
+                        "type": "array",
+                        "items": { "type": "string" },
+                        "uniqueItems": true,
+                        "minItems": 1
+                    }
+                },
+                "required": [
+                    "name",
+                    "items"
+                ]
+            }
+        }
+    }
+}

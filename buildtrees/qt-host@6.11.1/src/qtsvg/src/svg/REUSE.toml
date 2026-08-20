@@ -1,0 +1,8 @@
+version = 1
+
+[[annotations]]
+path = ["qsvghandler.cpp"]
+precedence = "aggregate"
+comment = "information from the qt_attribution.json are missing"
+SPDX-FileCopyrightText = "Copyright 2002 USC Information Sciences Institute"
+SPDX-License-Identifier = "HPND-sell-variant"

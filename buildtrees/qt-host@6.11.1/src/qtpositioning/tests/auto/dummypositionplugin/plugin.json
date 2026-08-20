@@ -1,0 +1,9 @@
+{
+    "Keys": ["dummy.source"],
+    "Provider": "dummy.source",
+    "Position": true,
+    "Satellite": true,
+    "Monitor": false,
+    "Priority": 1,
+    "Testable": true
+}

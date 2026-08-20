@@ -1,0 +1,104 @@
+{{>licenseInfo}}
+
+#include "{{prefixLowerCase}}servervariable.h"
+
+#include <QtCore/qset.h>
+#include <QtCore/qstring.h>
+
+{{#buildingQtSources}}
+QT_BEGIN_NAMESPACE
+{{/buildingQtSources}}
+
+{{#cppCommonNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppCommonNamespaceDeclarations}}
+
+class {{prefix}}ServerVariablePrivate : public QSharedData
+{
+public:
+    QString m_value;
+    QString m_description;
+    QSet<QString> m_enumValues;
+};
+
+{{prefix}}ServerVariable::{{prefix}}ServerVariable(const QString &description,
+                                                   const QString &defaultValue,
+                                                   const QSet<QString> &enumValues)
+    : {{prefix}}ServerVariable()
+{
+    d_ptr->m_value = defaultValue;
+    d_ptr->m_description = description;
+    d_ptr->m_enumValues = enumValues;
+}
+
+{{prefix}}ServerVariable::{{prefix}}ServerVariable()
+    : d_ptr(new {{prefix}}ServerVariablePrivate)
+{}
+
+{{prefix}}ServerVariable::~{{prefix}}ServerVariable()
+    = default;
+
+{{prefix}}ServerVariable::{{prefix}}ServerVariable(const {{prefix}}ServerVariable &other)
+    = default;
+
+{{prefix}}ServerVariable &{{prefix}}ServerVariable::operator=(const {{prefix}}ServerVariable &other)
+{
+    if (this != &other)
+        d_ptr = other.d_ptr;
+    return *this;
+}
+
+{{prefix}}ServerVariable::{{prefix}}ServerVariable({{prefix}}ServerVariable &&other) noexcept
+    = default;
+
+{{prefix}}ServerVariable &{{prefix}}ServerVariable::operator=({{prefix}}ServerVariable &&other) noexcept
+{
+    swap(other);
+    return *this;
+}
+
+void {{prefix}}ServerVariable::swap({{prefix}}ServerVariable &other) noexcept
+{
+    d_ptr.swap(other.d_ptr);
+}
+
+{{prefix}}ServerVariable::ServerError {{prefix}}ServerVariable::setValue(const QString& value)
+{
+    if (!d_ptr->m_enumValues.empty() && !d_ptr->m_enumValues.contains(value))
+        return ServerError::EnumValueNotFound;
+
+    d_ptr.detach();
+    d_ptr->m_value = value;
+    return ServerError::NoError;
+}
+
+QString {{prefix}}ServerVariable::value() const
+{
+    return d_ptr->m_value;
+}
+
+QSet<QString> {{prefix}}ServerVariable::enumValues() const
+{
+    return d_ptr->m_enumValues;
+}
+
+QString {{prefix}}ServerVariable::description() const
+{
+    return d_ptr->m_description;
+}
+
+bool
+comparesEqual(const {{prefix}}ServerVariable &lhs, const {{prefix}}ServerVariable &rhs) noexcept
+{
+    return lhs.d_ptr->m_value == rhs.d_ptr->m_value
+        && lhs.d_ptr->m_description == rhs.d_ptr->m_description
+        && lhs.d_ptr->m_enumValues == rhs.d_ptr->m_enumValues;
+}
+
+{{#cppCommonNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppCommonNamespaceDeclarations}}
+
+{{#buildingQtSources}}
+QT_END_NAMESPACE
+{{/buildingQtSources}}

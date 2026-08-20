@@ -1,0 +1,16 @@
+<RCC>
+    <qresource prefix="/demos/documentviewer">
+        <file>images/copy@2x.png</file>
+        <file>images/copy.png</file>
+        <file>images/cut@2x.png</file>
+        <file>images/cut.png</file>
+        <file>images/paste@2x.png</file>
+        <file>images/paste.png</file>
+        <file>images/qt-logo@2x.png</file>
+        <file>images/qt-logo.png</file>
+        <file>images/zoom-in@2x.png</file>
+        <file>images/zoom-in.png</file>
+        <file>images/zoom-out@2x.png</file>
+        <file>images/zoom-out.png</file>
+    </qresource>
+</RCC>

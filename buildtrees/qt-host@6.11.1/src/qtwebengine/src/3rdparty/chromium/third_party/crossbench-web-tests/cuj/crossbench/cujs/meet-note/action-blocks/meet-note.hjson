@@ -1,0 +1,232 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  pages: {
+    Meet-Note: {
+      login: google
+      blocks: {
+        start-new-meeting: {
+          template: ../../../common-action-blocks/meet/meet-setup.hjson
+          args: {
+            TTL_SECS: 180
+            POST_CREATION_ACTIONS: [
+              {
+                action: meet_script
+                script: @b1 start_presenting
+              }
+            ]
+          }
+          unbound_args: [
+            CLICK_INPUT_SOURCE
+            NUM_OF_BOTS
+          ]
+        }
+        switch-resolution: [
+          {
+            action: click
+            position: {
+              selector: "[aria-label='Call controls'] button[aria-label='More options'][aria-haspopup='menu']"
+              required: true
+              wait: true
+            }
+            source: $[CLICK_INPUT_SOURCE]
+            verify: xpath///*[text()='Settings']
+          }
+          {
+            action: click
+            position: {
+              selector: xpath///*[text()='Settings']
+              required: true
+              scroll_into_view: true
+              wait: true
+            }
+            source: $[CLICK_INPUT_SOURCE]
+            verify: button[aria-label='Video']
+          }
+          {
+            action: click
+            position: {
+              selector: button[aria-label='Video']
+              required: true
+              wait: true
+            }
+            source: $[CLICK_INPUT_SOURCE]
+          }
+          {
+            action: click
+            position: {
+              selector: "[aria-label='Send resolution (maximum)'][aria-haspopup='listbox']"
+              required: true
+              wait: true
+            }
+            source: $[CLICK_INPUT_SOURCE]
+            verify: "[aria-label='Send resolution (maximum)'][aria-haspopup='listbox'][aria-expanded='true']"
+            attempts: 3
+            timeout: 5s
+          }
+          // Wait for the dropdown combobox to finish the amination.
+          // TODO: Remove after click action supports waiting for stable position.
+          {
+            action: wait
+            duration: 0.5s
+          }
+          {
+            action: click
+            position: {
+              selector: "[aria-label='Send resolution (maximum)'] [role='option'][aria-label='High definition (720p)']"
+              required: true
+              wait: true
+            }
+            source: $[CLICK_INPUT_SOURCE]
+            verify: "[aria-label='Send resolution (maximum)'] span[aria-label='High definition (720p)']"
+          }
+          {
+            action: click
+            position: {
+              selector: "[aria-label='Receive resolution (maximum)'][aria-haspopup='listbox']"
+              required: true
+              wait: true
+            }
+            source: $[CLICK_INPUT_SOURCE]
+            verify: "[aria-label='Receive resolution (maximum)'][aria-haspopup='listbox'][aria-expanded='true']"
+            attempts: 3
+            timeout: 5s
+          }
+          // Wait for the dropdown combobox to finish the amination.
+          // TODO: Remove after click action supports waiting for stable position.
+          {
+            action: wait
+            duration: 0.5s
+          }
+          {
+            action: click
+            position: {
+              selector: "[aria-label='Receive resolution (maximum)'] [role='option'][aria-label='High definition (720p)']"
+              required: true
+              wait: true
+            }
+            source: $[CLICK_INPUT_SOURCE]
+            verify: "[aria-label='Receive resolution (maximum)'] span[aria-label='High definition (720p)']"
+          }
+          {
+            action: click
+            position: {
+              selector: button[aria-label='Close dialog']
+              required: true
+              wait: true
+            }
+            source: $[CLICK_INPUT_SOURCE]
+            verify: body:not(:has([aria-modal='true']))
+          }
+        ]
+        open-new-docs: {
+          actions: [
+            {
+              action: get
+              url: https://docs.new
+              ready_state: complete
+              target: _new_window
+              timeout: 2m
+            }
+          ]
+        }
+        setup-notes: {
+          actions: [
+            {
+              action: wait
+              duration: 5s
+            }
+            // Setting the title is not strictly necessary, but docs is picky about grabbing typing focus.
+            // A reliable way to grab focus is to first enter the title and then click somewhere on the document.
+            {
+              action: click
+              pos: {
+                selector: input[class='docs-title-input']
+                required: true
+              }
+              verify: input[class='docs-title-input']:focus
+              source: $[CLICK_INPUT_SOURCE]
+            }
+            {
+              action: text_input
+              text: My meeting notes
+              duration: 2s
+              source: keyboard
+            }
+            // Validate the title was entered properly.
+            {
+              action: wait_for_element
+              selector: xpath///span[contains(text(),'My meeting notes')]
+              timeout: 3s
+            }
+            {
+              action: click
+              position: {
+                selector: div[class='kix-page-paginated canvas-first-page']
+                required: true
+                wait: true
+              }
+              source: $[CLICK_INPUT_SOURCE]
+            }
+          ]
+        }
+        take-notes: {
+          args: {
+            NOTE_TEXT: "the quick brown fox jumps over the lazy dog. "
+            NOTE_DURATION: 20s
+          }
+          template: {
+            actions: [
+              {
+                action: text_input
+                text: $[NOTE_TEXT]
+                duration: $[NOTE_DURATION]
+                source: keyboard
+              }
+              {
+                action: text_input
+                text: $[NOTE_TEXT]
+                duration: $[NOTE_DURATION]
+                source: keyboard
+              }
+              {
+                action: text_input
+                text: $[NOTE_TEXT]
+                duration: $[NOTE_DURATION]
+                source: keyboard
+              }
+              {
+                action: text_input
+                text: $[NOTE_TEXT]
+                duration: $[NOTE_DURATION]
+                source: keyboard
+              }
+              {
+                action: text_input
+                text: $[NOTE_TEXT]
+                duration: $[NOTE_DURATION]
+                source: keyboard
+              }
+              {
+                action: text_input
+                text: $[NOTE_TEXT]
+                duration: $[NOTE_DURATION]
+                source: keyboard
+              }
+            ]
+          }
+        }
+        cleanup: {
+          template: ../../../common-action-blocks/workspace/cleanup-doc.hjson
+          args: {
+            ARIA_DISABLED: "[aria-disabled='false']"
+          }
+          unbound_args: [
+            CLICK_INPUT_SOURCE
+          ]
+        }
+      }
+    }
+  }
+}

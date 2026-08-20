@@ -1,0 +1,16 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+
+/*!
+    //! Misuse of QDoc commands that results in the generation of an orphaned
+    //! proxy page; Relate the topic command to itself.
+    \typealias StdPair
+    \relates StdPair
+*/
+
+/*!
+    \fn void globalFunc()
+    \relates Exists::Not
+
+    //! Creates a proxy for Exists::Not, and reports it as missing.
+*/

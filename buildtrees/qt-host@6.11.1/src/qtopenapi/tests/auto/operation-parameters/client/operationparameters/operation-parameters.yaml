@@ -1,0 +1,3046 @@
+# Copyright (C) 2025 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+openapi: 3.1.1
+servers:
+  - url: 'http://127.0.0.1:10203/v2'
+info:
+  title: Operation Parameters Test
+  description: >
+    This specification is intended for testing purposes. It demonstrates a wide range
+    of combinations of the `style` and `explode` attributes for parameters in various
+    locations: query, path, header, and cookie. The goal is to verify correct path
+    and parameter generation for each case.
+  version: 1.0.0
+tags:
+  - name: test
+    description: test operations
+
+paths:
+  /path/string/simple-explode/{stringParameter}:
+    get:
+      tags: [test]
+      operationId: simpleExplodeString
+      summary: Simple style with explode set to true for string path parameter.
+      parameters:
+        - name: stringParameter
+          in: path
+          required: true
+          style: simple
+          explode: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/string/simple-not-explode/{stringParameter}:
+    get:
+      tags: [test]
+      operationId: simpleNotExplodeString
+      summary: Simple style with explode set to false for string path parameter.
+      parameters:
+        - name: stringParameter
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/int/simple-explode/{intParameter}:
+    get:
+      tags: [test]
+      operationId: simpleExplodeInt
+      summary: Simple style with explode set to true for integer path parameter.
+      parameters:
+        - name: intParameter
+          in: path
+          required: true
+          style: simple
+          explode: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/int/simple-not-explode/{intParameter}:
+    get:
+      tags: [test]
+      operationId: simpleNotExplodeInt
+      summary: Simple style with explode set to false for integer path parameter.
+      parameters:
+        - name: intParameter
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/float/simple-explode/{floatParameter}:
+    get:
+      tags: [test]
+      operationId: simpleExplodeFloat
+      summary: Simple style with explode set to true for float path parameter.
+      parameters:
+        - name: floatParameter
+          in: path
+          required: true
+          style: simple
+          explode: true
+          schema:
+            type: number
+            format: float
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FloatResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/float/simple-not-explode/{floatParameter}:
+    get:
+      tags: [test]
+      operationId: simpleNotExplodeFloat
+      summary: Simple style with explode set to false for float path parameter.
+      parameters:
+        - name: floatParameter
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: number
+            format: float
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FloatResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/double/simple-explode/{doubleParameter}:
+    get:
+      tags: [test]
+      operationId: simpleExplodeDouble
+      summary: Simple style with explode set to true for double path parameter.
+      parameters:
+        - name: doubleParameter
+          in: path
+          required: true
+          style: simple
+          explode: true
+          schema:
+            type: number
+            format: double
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoubleResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/double/simple-not-explode/{doubleParameter}:
+    get:
+      tags: [test]
+      operationId: simpleNotExplodeDouble
+      summary: Simple style with explode set to false for double path parameter.
+      parameters:
+        - name: doubleParameter
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: number
+            format: double
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoubleResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/anytype/simple-explode/{anytypeParameter}:
+    get:
+      tags: [test]
+      operationId: simpleExplodeAnytype
+      summary: "simple anytype explode"
+      parameters:
+        - name: anytypeParameter
+          in: path
+          required: true
+          style: simple
+          explode: true
+          schema: {}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/anytype/simple-not-explode/{anytypeParameter}:
+    get:
+      tags: [test]
+      operationId: simpleNotExplodeAnytype
+      summary: "simple anytype not explode"
+      parameters:
+        - name: anytypeParameter
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema: {}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/array/simple-explode/{arrayParameter}:
+    get:
+      tags: [test]
+      operationId: simpleExplodeArray
+      summary: "simple array explode"
+      parameters:
+        - name: arrayParameter
+          in: path
+          required: true
+          style: simple
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/array/simple-not-explode/{arrayParameter}:
+    get:
+      tags: [test]
+      operationId: simpleNotExplodeArray
+      summary: "simple array not explode"
+      parameters:
+        - name: arrayParameter
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/object/simple-explode/{objectParameter}:
+    get:
+      tags: [test]
+      operationId: simpleExplodeObject
+      summary: "simple object explode"
+      parameters:
+        - name: objectParameter
+          in: path
+          required: true
+          style: simple
+          explode: true
+          schema:
+            $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/object/simple-not-explode/{objectParameter}:
+    get:
+      tags: [test]
+      operationId: simpleNotExplodeObject
+      summary: "simple object not explode"
+      parameters:
+        - name: objectParameter
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema:
+            $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/map/string-mapping/simple-explode/{mapParameter}:
+    post:
+      tags: [test]
+      operationId: simpleExplodeStringMap
+      summary: "simple style with explode=true for path map parameter of string values."
+      parameters:
+        - name: mapParameter
+          in: path
+          required: true
+          style: simple
+          explode: true
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/map/string-mapping/simple-not-explode/{mapParameter}:
+    post:
+      tags: [test]
+      operationId: simpleNotExplodeStringMap
+      summary: "simple style with explode=false for path map parameter of string values."
+      parameters:
+        - name: mapParameter
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/map/model-mapping/simple-explode/{mapParameter}:
+    post:
+      tags: [test]
+      operationId: simpleExplodeModelMap
+      summary: "simple style with explode=true for path map parameter of model values."
+      parameters:
+        - name: mapParameter
+          in: path
+          required: true
+          style: simple
+          explode: true
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/map/model-mapping/simple-not-explode/{mapParameter}:
+    post:
+      tags: [test]
+      operationId: simpleNotExplodeModelMap
+      summary: "simple style with explode=false for path map parameter of model values."
+      parameters:
+        - name: mapParameter
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/string/matrix-explode/{stringParameter}:
+    get:
+      tags: [test]
+      operationId: matrixExplodeString
+      summary: matrix style with explode set to true for string path parameter.
+      parameters:
+        - name: stringParameter
+          in: path
+          required: true
+          style: matrix
+          explode: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/string/matrix-not-explode/{stringParameter}:
+    get:
+      tags: [test]
+      operationId: matrixNotExplodeString
+      summary: matrix style with explode set to false for string path parameter.
+      parameters:
+        - name: stringParameter
+          in: path
+          required: true
+          style: matrix
+          explode: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/int/matrix-explode/{intParameter}:
+    get:
+      tags: [test]
+      operationId: matrixExplodeInt
+      summary: Matrix style with explode set to true for integer path parameter.
+      parameters:
+        - name: intParameter
+          in: path
+          required: true
+          style: matrix
+          explode: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/int/matrix-not-explode/{intParameter}:
+    get:
+      tags: [test]
+      operationId: matrixNotExplodeInt
+      summary: Matrix style with explode set to false for integer path parameter.
+      parameters:
+        - name: intParameter
+          in: path
+          required: true
+          style: matrix
+          explode: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/float/matrix-explode/{floatParameter}:
+    get:
+      tags: [test]
+      operationId: matrixExplodeFloat
+      summary: Matrix style with explode set to true for float path parameter.
+      parameters:
+        - name: floatParameter
+          in: path
+          required: true
+          style: matrix
+          explode: true
+          schema:
+            type: number
+            format: float
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FloatResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/float/matrix-not-explode/{floatParameter}:
+    get:
+      tags: [test]
+      operationId: matrixNotExplodeFloat
+      summary: Matrix style with explode set to false for float path parameter.
+      parameters:
+        - name: floatParameter
+          in: path
+          required: true
+          style: matrix
+          explode: false
+          schema:
+            type: number
+            format: float
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FloatResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/double/matrix-explode/{doubleParameter}:
+    get:
+      tags: [test]
+      operationId: matrixExplodeDouble
+      summary: Matrix style with explode set to true for double path parameter.
+      parameters:
+        - name: doubleParameter
+          in: path
+          required: true
+          style: matrix
+          explode: true
+          schema:
+            type: number
+            format: double
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoubleResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/double/matrix-not-explode/{doubleParameter}:
+    get:
+      tags: [test]
+      operationId: matrixNotExplodeDouble
+      summary: Matrix style with explode set to false for double path parameter.
+      parameters:
+        - name: doubleParameter
+          in: path
+          required: true
+          style: matrix
+          explode: false
+          schema:
+            type: number
+            format: double
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoubleResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/anytype/matrix-explode/{anytypeParameter}:
+    get:
+      tags: [test]
+      operationId: matrixExplodeAnytype
+      summary: "matrix anytype explode"
+      parameters:
+        - name: anytypeParameter
+          in: path
+          required: true
+          style: matrix
+          explode: true
+          schema: {}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/anytype/matrix-not-explode/{anytypeParameter}:
+    get:
+      tags: [test]
+      operationId: matrixNotExplodeAnytype
+      summary: "matrix anytype not explode"
+      parameters:
+        - name: anytypeParameter
+          in: path
+          required: true
+          style: matrix
+          explode: false
+          schema: {}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/array/matrix-explode/{arrayParameter}:
+    get:
+      tags: [test]
+      operationId: matrixExplodeArray
+      summary: "matrix array explode"
+      parameters:
+        - name: arrayParameter
+          in: path
+          required: true
+          style: matrix
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/array/matrix-not-explode/{arrayParameter}:
+    get:
+      tags: [test]
+      operationId: matrixNotExplodeArray
+      summary: "matrix array not explode"
+      parameters:
+        - name: arrayParameter
+          in: path
+          required: true
+          style: matrix
+          explode: false
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/object/matrix-explode/{objectParameter}:
+    get:
+      tags: [test]
+      operationId: matrixExplodeObject
+      summary: "matrix object explode"
+      parameters:
+        - name: objectParameter
+          in: path
+          required: true
+          style: matrix
+          explode: true
+          schema:
+            $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/object/matrix-not-explode/{objectParameter}:
+    get:
+      tags: [test]
+      operationId: matrixNotExplodeObject
+      summary: "matrix object not explode"
+      parameters:
+        - name: objectParameter
+          in: path
+          required: true
+          style: matrix
+          explode: false
+          schema:
+            $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/map/string-mapping/matrix-explode/{mapParameter}:
+    post:
+      tags: [test]
+      operationId: matrixExplodeStringMap
+      summary: "matrix style with explode=true for path map parameter of string values."
+      parameters:
+        - name: mapParameter
+          in: path
+          required: true
+          style: matrix
+          explode: true
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/map/string-mapping/matrix-not-explode/{mapParameter}:
+    post:
+      tags: [test]
+      operationId: matrixNotExplodeStringMap
+      summary: "matrix style with explode=false for path map parameter of string values."
+      parameters:
+        - name: mapParameter
+          in: path
+          required: true
+          style: matrix
+          explode: false
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/map/model-mapping/matrix-explode/{mapParameter}:
+    post:
+      tags: [test]
+      operationId: matrixExplodeModelMap
+      summary: "matrix style with explode=true for path map parameter of model values."
+      parameters:
+        - name: mapParameter
+          in: path
+          required: true
+          style: matrix
+          explode: true
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/map/model-mapping/matrix-not-explode/{mapParameter}:
+    post:
+      tags: [test]
+      operationId: matrixNotExplodeModelMap
+      summary: "matrix style with explode=false for path map parameter of model values."
+      parameters:
+        - name: mapParameter
+          in: path
+          required: true
+          style: matrix
+          explode: false
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/string/label-explode/{stringParameter}:
+    get:
+      tags: [test]
+      operationId: labelExplodeString
+      summary: label style with explode set to true for string path parameter.
+      parameters:
+        - name: stringParameter
+          in: path
+          required: true
+          style: label
+          explode: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/string/label-not-explode/{stringParameter}:
+    get:
+      tags: [test]
+      operationId: labelNotExplodeString
+      summary: label style with explode set to false for string path parameter.
+      parameters:
+        - name: stringParameter
+          in: path
+          required: true
+          style: label
+          explode: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/int/label-explode/{intParameter}:
+    get:
+      tags: [test]
+      operationId: labelExplodeInt
+      summary: Label style with explode set to true for integer path parameter.
+      parameters:
+        - name: intParameter
+          in: path
+          required: true
+          style: label
+          explode: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/int/label-not-explode/{intParameter}:
+    get:
+      tags: [test]
+      operationId: labelNotExplodeInt
+      summary: Label style with explode set to false for integer path parameter.
+      parameters:
+        - name: intParameter
+          in: path
+          required: true
+          style: label
+          explode: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/float/label-explode/{floatParameter}:
+    get:
+      tags: [test]
+      operationId: labelExplodeFloat
+      summary: Label style with explode set to true for float path parameter.
+      parameters:
+        - name: floatParameter
+          in: path
+          required: true
+          style: label
+          explode: true
+          schema:
+            type: number
+            format: float
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FloatResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/float/label-not-explode/{floatParameter}:
+    get:
+      tags: [test]
+      operationId: labelNotExplodeFloat
+      summary: Label style with explode set to false for float path parameter.
+      parameters:
+        - name: floatParameter
+          in: path
+          required: true
+          style: label
+          explode: false
+          schema:
+            type: number
+            format: float
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FloatResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/double/label-explode/{doubleParameter}:
+    get:
+      tags: [test]
+      operationId: labelExplodeDouble
+      summary: Label style with explode set to true for double path parameter.
+      parameters:
+        - name: doubleParameter
+          in: path
+          required: true
+          style: label
+          explode: true
+          schema:
+            type: number
+            format: double
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoubleResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/double/label-not-explode/{doubleParameter}:
+    get:
+      tags: [test]
+      operationId: labelNotExplodeDouble
+      summary: Label style with explode set to false for double path parameter.
+      parameters:
+        - name: doubleParameter
+          in: path
+          required: true
+          style: label
+          explode: false
+          schema:
+            type: number
+            format: double
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoubleResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/anytype/label-explode/{anytypeParameter}:
+    get:
+      tags: [test]
+      operationId: labelExplodeAnytype
+      summary: "label anytype explode"
+      parameters:
+        - name: anytypeParameter
+          in: path
+          required: true
+          style: label
+          explode: true
+          schema: {}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/anytype/label-not-explode/{anytypeParameter}:
+    get:
+      tags: [test]
+      operationId: labelNotExplodeAnytype
+      summary: "label anytype not explode"
+      parameters:
+        - name: anytypeParameter
+          in: path
+          required: true
+          style: label
+          explode: false
+          schema: {}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/array/label-explode/{arrayParameter}:
+    get:
+      tags: [test]
+      operationId: labelExplodeArray
+      summary: "label array explode"
+      parameters:
+        - name: arrayParameter
+          in: path
+          required: true
+          style: label
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/array/label-not-explode/{arrayParameter}:
+    get:
+      tags: [test]
+      operationId: labelNotExplodeArray
+      summary: "label array not explode"
+      parameters:
+        - name: arrayParameter
+          in: path
+          required: true
+          style: label
+          explode: false
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/object/label-explode/{objectParameter}:
+    get:
+      tags: [test]
+      operationId: labelExplodeObject
+      summary: "label object explode"
+      parameters:
+        - name: objectParameter
+          in: path
+          required: true
+          style: label
+          explode: true
+          schema:
+            $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/object/label-not-explode/{objectParameter}:
+    post:
+      tags: [test]
+      operationId: labelNotExplodeObject
+      summary: "label object not explode"
+      parameters:
+        - name: objectParameter
+          in: path
+          required: true
+          style: label
+          explode: false
+          schema:
+            $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/map/string-mapping/label-explode/{mapParameter}:
+    post:
+      tags: [test]
+      operationId: labelExplodeStringMap
+      summary: "label style with explode=true for path map parameter of string values."
+      parameters:
+        - name: mapParameter
+          in: path
+          required: true
+          style: label
+          explode: true
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/map/string-mapping/label-not-explode/{mapParameter}:
+    post:
+      tags: [test]
+      operationId: labelNotExplodeStringMap
+      summary: "label style with explode=false for path map parameter of string values."
+      parameters:
+        - name: mapParameter
+          in: path
+          required: true
+          style: label
+          explode: false
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/map/model-mapping/label-explode/{mapParameter}:
+    post:
+      tags: [test]
+      operationId: labelExplodeModelMap
+      summary: "label style with explode=true for path map parameter of model values."
+      parameters:
+        - name: mapParameter
+          in: path
+          required: true
+          style: label
+          explode: true
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/map/model-mapping/label-not-explode/{mapParameter}:
+    post:
+      tags: [test]
+      operationId: labelNotExplodeModelMap
+      summary: "label style with explode=false for path map parameter of model values."
+      parameters:
+        - name: mapParameter
+          in: path
+          required: true
+          style: label
+          explode: false
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/strings/simple-explode/{stringParameter1}/{stringParameter2}:
+    get:
+      tags: [test]
+      operationId: simpleExplodeStrings
+      summary: Simple style with explode set to true for two string path parameters.
+      parameters:
+        - name: stringParameter1
+          in: path
+          required: true
+          style: simple
+          explode: true
+          schema:
+            type: string
+        - name: stringParameter2
+          in: path
+          required: true
+          style: simple
+          explode: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/string/label-not-explode/array/matrix-not-explode/{stringParameter}/{arrayParameter}:
+    get:
+      tags: [test]
+      operationId: labelStringMatrixArrayNotExplode
+      summary: label style with explode set to false for string path parameter and matrix style with explode set to false for array path parameter.
+      parameters:
+        - name: stringParameter
+          in: path
+          required: true
+          style: label
+          explode: false
+          schema:
+            type: string
+        - name: arrayParameter
+          in: path
+          required: true
+          style: matrix
+          explode: false
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/string/invalid-form-explode/formExplodeString/{stringParameter}:
+    post:
+      tags: [test]
+      operationId: invalidFormExplodeString
+      summary: "invalid form style for path string parameter with explode=true"
+      parameters:
+        - name: stringParameter
+          in: path
+          required: true
+          style: form # not allowed for path parameters
+          explode: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/string/form-explode/formExplodeString:
+    post:
+      tags: [test]
+      operationId: formExplodeString
+      summary: form style with explode set to true for string query parameter.
+      parameters:
+        - name: stringParameter
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/string/form-not-explode/formNotExplodeString:
+    post:
+      tags: [test]
+      operationId: formNotExplodeString
+      summary: form style with explode set to false for string query parameter.
+      parameters:
+        - name: stringParameter
+          in: query
+          style: form
+          explode: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/int/form-explode/formExplodeInt:
+    post:
+      tags: [test]
+      operationId: formExplodeInt
+      summary: Form style with explode set to true for integer query parameter.
+      parameters:
+        - name: intParameter
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/int/form-not-explode/formNotExplodeInt:
+    post:
+      tags: [test]
+      operationId: formNotExplodeInt
+      summary: Form style with explode set to false for integer query parameter.
+      parameters:
+        - name: intParameter
+          in: query
+          style: form
+          explode: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/float/form-explode/formExplodeFloat:
+    post:
+      tags: [test]
+      operationId: formExplodeFloat
+      summary: Form style with explode set to true for float query parameter.
+      parameters:
+        - name: floatParameter
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: number
+            format: float
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FloatResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/float/form-not-explode/formNotExplodeFloat:
+    post:
+      tags: [test]
+      operationId: formNotExplodeFloat
+      summary: Form style with explode set to false for float query parameter.
+      parameters:
+        - name: floatParameter
+          in: query
+          style: form
+          explode: false
+          schema:
+            type: number
+            format: float
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FloatResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/double/form-explode/formExplodeDouble:
+    post:
+      tags: [test]
+      operationId: formExplodeDouble
+      summary: Form style with explode set to true for double query parameter.
+      parameters:
+        - name: doubleParameter
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: number
+            format: double
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoubleResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/double/form-not-explode/formNotExplodeDouble:
+    post:
+      tags: [test]
+      operationId: formNotExplodeDouble
+      summary: Form style with explode set to false for double query parameter.
+      parameters:
+        - name: doubleParameter
+          in: query
+          style: form
+          explode: false
+          schema:
+            type: number
+            format: double
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoubleResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/anytype/form-explode/formExplodeAnytype:
+    post:
+      tags: [test]
+      operationId: formExplodeAnytype
+      summary: "form anytype explode"
+      parameters:
+        - name: anytypeParameter
+          in: query
+          required: true
+          style: form
+          explode: true
+          schema: {}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/anytype/form-not-explode/formNotExplodeAnytype:
+    post:
+      tags: [test]
+      operationId: formNotExplodeAnytype
+      summary: "form anytype not explode"
+      parameters:
+        - name: anytypeParameter
+          in: query
+          style: form
+          explode: false
+          schema: {}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/array/form-explode/formExplodeArray:
+    post:
+      tags: [test]
+      operationId: formExplodeArray
+      summary: "form array explode"
+      parameters:
+        - name: arrayParameter
+          in: query
+          required: true
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/array/form-not-explode/formNotExplodeArray:
+    post:
+      tags: [test]
+      operationId: formNotExplodeArray
+      summary: "form array not explode"
+      parameters:
+        - name: arrayParameter
+          in: query
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/object/form-explode/formExplodeObject:
+    post:
+      tags: [test]
+      operationId: formExplodeObject
+      summary: "form object explode"
+      parameters:
+        - name: objectParameter
+          in: query
+          required: true
+          style: form
+          explode: true
+          schema:
+            $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/object/form-not-explode/formNotExplodeObject:
+    post:
+      tags: [test]
+      operationId: formNotExplodeObject
+      summary: "form object not explode"
+      parameters:
+        - name: objectParameter
+          in: query
+          style: form
+          explode: false
+          schema:
+            $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/map/string-mapping/form-explode/formExplodeMap:
+    post:
+      tags: [test]
+      operationId: formExplodeStringMap
+      summary: "Form style with explode=true for query map parameter of string values."
+      parameters:
+        - name: mapParameter
+          in: query
+          required: true
+          style: form
+          explode: true
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/map/string-mapping/form-not-explode/formNotExplodeMap:
+    post:
+      tags: [test]
+      operationId: formNotExplodeStringMap
+      summary: "Form style with explode=false for query map parameter of string values."
+      parameters:
+        - name: mapParameter
+          in: query
+          style: form
+          explode: false
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/map/model-mapping/form-explode/formExplodeMap:
+    post:
+      tags: [test]
+      operationId: formExplodeModelMap
+      summary: "Form style with explode=true for query map parameter of model values."
+      parameters:
+        - name: mapParameter
+          in: query
+          required: true
+          style: form
+          explode: true
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/map/model-mapping/form-not-explode/formNotExplodeMap:
+    post:
+      tags: [test]
+      operationId: formNotExplodeModelMap
+      summary: "Form style with explode=false for query map parameter of model values."
+      parameters:
+        - name: mapParameter
+          in: query
+          style: form
+          explode: false
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/string/spaceDelimited-not-explode/spaceDelimitedNotExplodeString:
+    post:
+      tags: [test]
+      operationId: spaceDelimitedNotExplodeString
+      summary: spaceDelimited style with explode=false for query string parameter.
+      parameters:
+        - name: stringParameter
+          in: query
+          style: spaceDelimited
+          explode: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/anytype/spaceDelimited-explode/spaceDelimitedExplodeAnytype:
+    post:
+      tags: [test]
+      operationId: spaceDelimitedExplodeAnytype
+      summary: "spaceDelimited anytype explode"
+      parameters:
+        - name: anytypeParameter
+          in: query
+          required: true
+          style: spaceDelimited
+          explode: true
+          schema: {}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/anytype/spaceDelimited-not-explode/spaceDelimitedNotExplodeAnytype:
+    post:
+      tags: [test]
+      operationId: spaceDelimitedNotExplodeAnytype
+      summary: "spaceDelimited anytype not explode"
+      parameters:
+        - name: anytypeParameter
+          in: query
+          style: spaceDelimited
+          explode: false
+          schema: {}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/array/spaceDelimited-explode/spaceDelimitedExplodeArray:
+    post:
+      tags: [test]
+      operationId: spaceDelimitedExplodeArray
+      summary: "spaceDelimited array explode"
+      parameters:
+        - name: arrayParameter
+          in: query
+          required: true
+          style: spaceDelimited
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/array/spaceDelimited-not-explode/spaceDelimitedNotExplodeArray:
+    post:
+      tags: [test]
+      operationId: spaceDelimitedNotExplodeArray
+      summary: "spaceDelimited array not explode"
+      parameters:
+        - name: arrayParameter
+          in: query
+          style: spaceDelimited
+          explode: false
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/object/spaceDelimited-explode/spaceDelimitedExplodeObject:
+    post:
+      tags: [test]
+      operationId: spaceDelimitedExplodeObject
+      summary: "spaceDelimited object explode"
+      parameters:
+        - name: objectParameter
+          in: query
+          required: true
+          style: spaceDelimited
+          explode: true
+          schema:
+            $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/object/spaceDelimited-not-explode/spaceDelimitedNotExplodeObject:
+    post:
+      tags: [test]
+      operationId: spaceDelimitedNotExplodeObject
+      summary: "spaceDelimited object not explode"
+      parameters:
+        - name: objectParameter
+          in: query
+          style: spaceDelimited
+          explode: false
+          schema:
+            $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/map/string-mapping/spaceDelimited-not-explode/spaceDelimitedNotExplodeMap:
+    post:
+      tags: [test]
+      operationId: spaceDelimitedNotExplodeStringMap
+      summary: "spaceDelimited style with explode=false for query map parameter of string values."
+      parameters:
+        - name: mapParameter
+          in: query
+          style: spaceDelimited
+          explode: false
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/map/model-mapping/spaceDelimited-not-explode/spaceDelimitedNotExplodeMap:
+    post:
+      tags: [test]
+      operationId: spaceDelimitedNotExplodeModelMap
+      summary: "spaceDelimited style with explode=false for query map parameter of model values."
+      parameters:
+        - name: mapParameter
+          in: query
+          style: spaceDelimited
+          explode: false
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/anytype/pipeDelimited-explode/pipeDelimitedExplodeAnytype:
+    post:
+      tags: [test]
+      operationId: pipeDelimitedExplodeAnytype
+      summary: "pipeDelimited anytype explode"
+      parameters:
+        - name: anytypeParameter
+          in: query
+          required: true
+          style: pipeDelimited
+          explode: true
+          schema: {}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/anytype/pipeDelimited-not-explode/pipeDelimitedNotExplodeAnytype:
+    post:
+      tags: [test]
+      operationId: pipeDelimitedNotExplodeAnytype
+      summary: "pipeDelimited anytype not explode"
+      parameters:
+        - name: anytypeParameter
+          in: query
+          style: pipeDelimited
+          explode: false
+          schema: {}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/array/pipeDelimited-explode/pipeDelimitedExplodeArray:
+    post:
+      tags: [test]
+      operationId: pipeDelimitedExplodeArray
+      summary: "pipeDelimited array explode"
+      parameters:
+        - name: arrayParameter
+          in: query
+          required: true
+          style: pipeDelimited
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/array/pipeDelimited-not-explode/pipeDelimitedNotExplodeArray:
+    post:
+      tags: [test]
+      operationId: pipeDelimitedNotExplodeArray
+      summary: "pipeDelimited array not explode"
+      parameters:
+        - name: arrayParameter
+          in: query
+          style: pipeDelimited
+          explode: false
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/object/pipeDelimited-explode/pipeDelimitedExplodeObject:
+    post:
+      tags: [test]
+      operationId: pipeDelimitedExplodeObject
+      summary: "pipeDelimited object explode"
+      parameters:
+        - name: objectParameter
+          in: query
+          required: true
+          style: pipeDelimited
+          explode: true
+          schema:
+            $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/object/pipeDelimited-not-explode/pipeDelimitedNotExplodeObject:
+    post:
+      tags: [test]
+      operationId: pipeDelimitedNotExplodeObject
+      summary: "pipeDelimited object not explode"
+      parameters:
+        - name: objectParameter
+          in: query
+          style: pipeDelimited
+          explode: false
+          schema:
+            $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/map/string-mapping/pipeDelimited-not-explode/pipeDelimitedNotExplodeMap:
+    post:
+      tags: [test]
+      operationId: pipeDelimitedNotExplodeStringMap
+      summary: "pipeDelimited style with explode=false for query map parameter of string values."
+      parameters:
+        - name: mapParameter
+          in: query
+          style: pipeDelimited
+          explode: false
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/map/model-mapping/pipeDelimited-not-explode/pipeDelimitedNotExplodeMap:
+    post:
+      tags: [test]
+      operationId: pipeDelimitedNotExplodeModelMap
+      summary: "pipeDelimited style with explode=false for query map parameter of model values."
+      parameters:
+        - name: mapParameter
+          in: query
+          style: pipeDelimited
+          explode: false
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/anytype/deepObject-explode/deepObjectExplodeAnytype:
+    post:
+      tags: [test]
+      operationId: deepObjectExplodeAnytype
+      summary: "deepObject style with explode=true for query Anytype parameter."
+      parameters:
+        - name: anytypeParameter
+          in: query
+          required: true
+          style: deepObject
+          explode: true
+          schema: {}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/object/deepObject-explode/deepObjectExplodeObject:
+    post:
+      tags: [test]
+      operationId: deepObjectExplodeObject
+      summary: "deepObject object explode"
+      parameters:
+        - name: objectParameter
+          in: query
+          required: true
+          style: deepObject
+          explode: true
+          schema:
+            $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/object/deepObject-not-explode/deepObjectNotExplodeObject:
+    post:
+      tags: [test]
+      operationId: deepObjectNotExplodeObject
+      summary: "deepObject object not explode"
+      parameters:
+        - name: objectParameter
+          in: query
+          style: deepObject
+          explode: false
+          schema:
+            $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/strings/form-explode/formExplodeStringOptions:
+    post:
+      tags: [test]
+      operationId: formExplodeStringOptions
+      summary: style-form, explode=true
+      parameters:
+        - name: stringParameterA
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: [string, 'null']
+        - name: stringParameterB
+          in: query
+          style: form
+          explode: true
+          required: true
+          schema:
+            type: [string, 'null']
+        - name: stringParameterC
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: [integer, 'null']
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/strings/form-explode/formExplodeDifferentOptions:
+    post:
+      tags: [test]
+      operationId: formExplodeDifferentOptions
+      summary: style-form, explode=true
+      parameters:
+        - name: objectParameter
+          in: query
+          style: form
+          explode: true
+          schema:
+            $ref: '#/components/schemas/TestObject'
+        - name: stringParameterB
+          in: query
+          style: form
+          explode: true
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/map/string-mapping/deepObject-explode/deepObjectExplodeMap:
+    post:
+      tags: [test]
+      operationId: deepObjectExplodeStringMap
+      summary: "deepObject style with explode=true for query map parameter of string values."
+      parameters:
+        - name: mapParameter
+          in: query
+          required: true
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/map/model-mapping/deepObject-explode/deepObjectExplodeMap:
+    post:
+      tags: [test]
+      operationId: deepObjectExplodeModelMap
+      summary: "deepObject style with explode=true for query map parameter of model values."
+      parameters:
+        - name: mapParameter
+          in: query
+          required: true
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/array/invalid-deepObject-not-explode/deepObjectNotExplodeArray:
+    post:
+      tags: [test]
+      operationId: invalidDeepObjectNotExplodeArray
+      summary: "invalid deepObject style for query array parameter with explode=false"
+      parameters:
+        - name: arrayParameter
+          in: query
+          style: deepObject # not allowed for arrays
+          explode: false
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/string/invalid-deepObject-not-explode/deepObjectNotExplodeString:
+    post:
+      tags: [test]
+      operationId: invalidDeepObjectNotExplodeString
+      summary: "invalid deepObject style for query string parameter with explode=false"
+      parameters:
+        - name: stringParameter
+          in: query
+          style: deepObject # not allowed for primitives
+          explode: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /query/string/invalid-matrix-explode/matrixExplodeString:
+    post:
+      tags: [test]
+      operationId: invalidMatrixExplodeString
+      summary: "invalid matrix style for query string parameter with explode=true"
+      parameters:
+        - name: stringParameter
+          in: query
+          style: matrix # not allowed for query parameters
+          explode: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/string/matrix-explode/{stringParameter}/query/array/spaceDelimited-not-explode:
+    post:
+      tags: [test]
+      operationId: queryAndPathParams
+      summary: "matrix style for path string parameter with explode=true and spaceDelimited style for query array parameter with explode=false"
+      parameters:
+        - name: stringParameter
+          in: path
+          required: true
+          style: matrix
+          explode: true
+          schema:
+            type: string
+        - name: arrayParameter
+          in: query
+          style: spaceDelimited
+          explode: false
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /path/string/invalid-form-explode/{stringParameter}/query/array/invalid-label-explode:
+    post:
+      tags: [test]
+      operationId: invalidStylesQueryPathParams
+      summary: "invalid form style for path string parameter and invalid label style for query array parameter"
+      parameters:
+        - name: stringParameter
+          in: path
+          required: true
+          style: form # not allowed for path parameters
+          explode: true
+          schema:
+            type: string
+        - name: arrayParameter
+          in: query
+          required: true
+          style: label # not allowed for query parameters
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /header/string/simple-explode/stringParameter:
+    get:
+      tags: [test]
+      operationId: headerSimpleExplodeString
+      summary: Simple style with explode true.
+      parameters:
+        - name: String-Parameter
+          in: header
+          required: true
+          style: simple
+          explode: true
+          schema:
+            type: string
+        - name: queryParameter
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /header/string/simple-not-explode/stringParameter:
+    get:
+      tags: [test]
+      operationId: headerSimpleNotExplodeString
+      summary: Simple style with explode false.
+      parameters:
+        - name: String-Parameter
+          in: header
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: queryParameter
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /header/string/invalid-label-not-explode/stringParameter:
+    get:
+      tags: [test]
+      operationId: headerInvalidLabelNotExplodeString
+      summary: Invalid label style with explode false, replaced to simple.
+      parameters:
+        - name: String-Parameter
+          in: header
+          style: label # invalid, will fall back to simple
+          explode: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /header/anytype/simple-explode/anytypeParameter:
+    post:
+      tags: [test]
+      operationId: headerSimpleExplodeAnytype
+      summary: "simple anytype explode"
+      parameters:
+        - name: Any-Type-Parameter
+          in: header
+          required: true
+          style: simple
+          explode: true
+          schema: {}
+        - name: queryParameter
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /header/anytype/simple-not-explode/anytypeParameter:
+    get:
+      tags: [test]
+      operationId: headerSimpleNotExplodeAnytype
+      summary: "simple anytype not explode"
+      parameters:
+        - name: Any-Type-Parameter
+          in: header
+          style: simple
+          explode: false
+          schema: {}
+        - name: queryParameter
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /header/array/simple-explode/arrayParameter:
+    get:
+      tags: [test]
+      operationId: headerSimpleExplodeArray
+      summary: "simple array explode"
+      parameters:
+        - name: Array-Parameter
+          in: header
+          required: true
+          style: simple
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+        - name: queryParameter
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /header/array/simple-not-explode/arrayParameter:
+    post:
+      tags: [test]
+      operationId: headerSimpleNotExplodeArray
+      summary: "simple array not explode"
+      parameters:
+        - name: Array-Parameter
+          in: header
+          style: simple
+          explode: false
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+        - name: queryParameter
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /header/object/simple-explode/objectParameter:
+    get:
+      tags: [test]
+      operationId: headerSimpleExplodeObject
+      summary: "simple object explode"
+      parameters:
+        - name: Object-Parameter
+          in: header
+          required: true
+          style: simple
+          explode: true
+          schema:
+            $ref: '#/components/schemas/TestObject'
+        - name: queryParameter
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /header/object/simple-not-explode/objectParameter:
+    post:
+      tags: [test]
+      operationId: headerSimpleNotExplodeObject
+      summary: "simple object not explode"
+      parameters:
+        - name: Object-Parameter
+          in: header
+          style: simple
+          explode: false
+          schema:
+            $ref: '#/components/schemas/TestObject'
+        - name: queryParameter
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /header/map/simple-explode/mapParameter:
+    post:
+      tags: [test]
+      operationId: headerSimpleExplodeMap
+      summary: "simple map explode"
+      parameters:
+        - name: Map-Parameter
+          in: header
+          required: true
+          style: simple
+          explode: true
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+        - name: queryParameter
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /header/map/simple-not-explode/mapParameter:
+    get:
+      tags: [test]
+      operationId: headerSimpleNotExplodeMap
+      summary: "simple map not explode"
+      parameters:
+        - name: Map-Parameter
+          in: header
+          style: simple
+          explode: false
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+        - name: queryParameter
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /header/string-custom-devided/simple-not-explode/stringParameter:
+    get:
+      tags: [test]
+      # If you want to use ";" as a seperator between different values of the same header,
+      # you can manually compose required values into the string.
+      # See an example bellow.
+      operationId: headerSimpleNotExplodeCustom
+      summary: Simple style with explode false.
+      parameters:
+        - name: String-Parameter
+          in: header
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+          example: name=John; status=Sleep; age=34 # use ';' as a seperator inside the string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /header/bad-header-name/simple-not-explode/operatoinParameter:
+    get:
+      tags: [test]
+      operationId: headerSimpleNotExplodeContentType
+      summary: "simple not explode"
+      parameters:
+        - name: Content-Type # QTBUG-140168 Fix me! This should not be allowed as a CUSTOM header name!
+          in: header
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /header/several-headers/simple/severalHeaderParameters:
+    post:
+      tags: [test]
+      operationId: severalHeaderParametersOp
+      parameters:
+        - name: String-Parameter
+          in: header
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: int-Parameter
+          in: header
+          required: false
+          style: simple
+          explode: true
+          schema:
+            type: integer
+            format: int32
+        - name: Object-Parameter
+          in: header
+          required: false
+          explode: true
+          schema:
+            $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /cookie/string/form-explode/cookieExplodeString/{pathParam}:
+    post:
+      tags: [test]
+      operationId: cookieExplodeString
+      summary: form style with explode set to true for string query parameter.
+      parameters:
+        - name: stringParameter
+          in: cookie
+          style: form
+          explode: true
+          required: true
+          schema:
+            type: string
+        - name: pathParam
+          in: path
+          explode: true
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /cookie/string/form-not-explode/cookieNotExplodeString/{pathParam}:
+    post:
+      tags: [test]
+      operationId: cookieNotExplodeString
+      summary: form style with explode set to false for string query parameter.
+      parameters:
+        - name: stringParameter
+          in: cookie
+          style: form
+          explode: false
+          schema:
+            type: string
+        - name: pathParam
+          in: path
+          explode: false
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /cookie/string/invalid-simple-not-explode/cookieNotExplodeStringInvalidStyle:
+    post:
+      tags: [test]
+      operationId: cookieNotExplodeStringInvalidStyle
+      summary: simple style with explode set to false - fallback to form.
+      parameters:
+        - name: stringParameter
+          in: cookie
+          style: simple # incorrect - falls back to form
+          explode: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /cookie/int/form-explode/cookieExplodeInt:
+    post:
+      tags: [test]
+      operationId: cookieExplodeInt
+      summary: Form style with explode set to true for integer query parameter.
+      parameters:
+        - name: intParameter
+          in: cookie
+          style: form
+          explode: true
+          schema:
+            type: integer
+            format: int64
+        - name: queryParameter
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /cookie/int/form-not-explode/cookieNotExplodeInt:
+    post:
+      tags: [test]
+      operationId: cookieNotExplodeInt
+      summary: Form style with explode set to false for integer query parameter.
+      parameters:
+        - name: intParameter
+          in: cookie
+          style: form
+          explode: false
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: queryParameter
+          in: query
+          style: form
+          explode: true
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /cookie/anytype/form-explode/cookieExplodeAnytype:
+    post:
+      tags: [test]
+      operationId: cookieExplodeAnytype
+      summary: "form anytype explode"
+      parameters:
+        - name: anytypeParameter
+          in: cookie
+          required: true
+          style: form
+          explode: true
+          schema: {}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /cookie/anytype/form-not-explode/cookieNotExplodeAnytype:
+    post:
+      tags: [test]
+      operationId: cookieNotExplodeAnytype
+      summary: "form anytype not explode"
+      parameters:
+        - name: anytypeParameter
+          in: cookie
+          style: form
+          explode: false
+          schema: {}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /cookie/array/form-explode/cookieExplodeArray:
+    post:
+      tags: [test]
+      operationId: cookieExplodeArray
+      summary: "form array explode"
+      parameters:
+        - name: arrayParameter
+          in: cookie
+          required: true
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /cookie/array/form-not-explode/cookieNotExplodeArray:
+    post:
+      tags: [test]
+      operationId: cookieNotExplodeArray
+      summary: "form array not explode"
+      parameters:
+        - name: arrayParameter
+          in: cookie
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /cookie/object/form-explode/cookieExplodeObject:
+    post:
+      tags: [test]
+      operationId: cookieExplodeObject
+      summary: "form object explode"
+      parameters:
+        - name: objectParameter
+          in: cookie
+          required: true
+          style: form
+          explode: true
+          schema:
+            $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /cookie/object/form-not-explode/cookieNotExplodeObject:
+    post:
+      tags: [test]
+      operationId: cookieNotExplodeObject
+      summary: "form object not explode"
+      parameters:
+        - name: objectParameter
+          in: cookie
+          style: form
+          explode: false
+          schema:
+            $ref: '#/components/schemas/TestObject'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /cookie/map/string-mapping/form-explode/cookieExplodeMap:
+    post:
+      tags: [test]
+      operationId: cookieExplodeStringMap
+      summary: "Form style with explode=true for query map parameter of string values."
+      parameters:
+        - name: mapParameter
+          in: cookie
+          required: true
+          style: form
+          explode: true
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /cookie/map/string-mapping/form-not-explode/cookieNotExplodeMap:
+    post:
+      tags: [test]
+      operationId: cookieNotExplodeStringMap
+      summary: "Form style with explode=false for query map parameter of string values."
+      parameters:
+        - name: mapParameter
+          in: cookie
+          style: form
+          explode: false
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /cookie/several-cookies/form-not-explode/severalNotExplodeCookies:
+    post:
+      tags: [test]
+      operationId: severalNotExplodeCookies
+      parameters:
+        - name: mapParameter
+          in: cookie
+          style: form
+          explode: false
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+        - name: intParameter
+          in: cookie
+          style: form
+          explode: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /cookie/several-cookies/form-explode/severalExplodeCookies:
+    post:
+      tags: [test]
+      operationId: severalExplodeCookies
+      parameters:
+        - name: mapParameter
+          in: cookie
+          style: form
+          explode: true
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+        - name: intParameter
+          in: cookie
+          style: form
+          explode: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+components:
+  schemas:
+    TestObject:
+      properties:
+        name:
+          description: Updated name
+          type: string
+        status:
+          description: Updated status
+          type: string
+        age:
+          description: age number
+          type: integer
+          format: int32
+    FloatResponse:
+      type: object
+      properties:
+        stringValue:
+          type: string
+        value:
+          type: number
+          format: float
+    DoubleResponse:
+      type: object
+      properties:
+        stringValue:
+          type: string
+        value:
+          type: number
+          format: double

@@ -1,0 +1,18 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtquick3dphysics-toc.html
+    \title Qt Quick 3D Physics module topics
+
+    The following list has links to all the individual topics (HTML files)
+    in the Qt Quick 3D Physics module.
+
+    \list
+    \li \l {Qt Quick 3D Physics Shapes and Bodies}{Shapes and Bodies}
+    \li \l {Qt Quick 3D Physics Units}{Units}
+    \li \l {Qt Quick 3D Physics Cooking}{Cooking}
+    \li \l {Qt Quick 3D Physics API Changes from Tech Preview}{API Changes from Tech Preview}
+    \endlist
+
+*/

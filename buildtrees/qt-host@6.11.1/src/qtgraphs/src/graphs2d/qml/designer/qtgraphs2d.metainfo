@@ -1,0 +1,86 @@
+MetaInfo {
+    Type {
+        name: "QtGraphs.GraphsView"
+        icon: "images/areaseries-icon16.png"
+
+        ItemLibraryEntry {
+            name: "Area"
+            category: "Qt Graphs - GraphsView"
+            libraryIcon: "images/areaseries-icon.png"
+            version: "1.0"
+            requiredImport: "QtGraphs"
+
+            QmlSource { source: "default/AreaSeries.qml" }
+        }
+    }
+    Type {
+        name: "QtGraphs.GraphsView"
+        icon: "images/barseries-icon16.png"
+
+        ItemLibraryEntry {
+            name: "Bar"
+            category: "Qt Graphs - GraphsView"
+            libraryIcon: "images/barseries-icon.png"
+            version: "1.0"
+            requiredImport: "QtGraphs"
+
+            QmlSource { source: "default/BarSeries.qml" }
+        }
+    }
+    Type {
+        name: "QtGraphs.GraphsView"
+        icon: "images/lineseries-icon16.png"
+
+        ItemLibraryEntry {
+            name: "Line"
+            category: "Qt Graphs - GraphsView"
+            libraryIcon: "images/lineseries-icon.png"
+            version: "1.0"
+            requiredImport: "QtGraphs"
+
+            QmlSource { source: "default/LineSeries.qml" }
+        }
+    }
+    Type {
+        name: "QtGraphs.GraphsView"
+        icon: "images/pieseries-icon16.png"
+
+        ItemLibraryEntry {
+            name: "Pie"
+            category: "Qt Graphs - GraphsView"
+            libraryIcon: "images/pieseries-icon.png"
+            version: "1.0"
+            requiredImport: "QtGraphs"
+
+            QmlSource { source: "default/PieSeries.qml" }
+        }
+    }
+    Type {
+        name: "QtGraphs.GraphsView"
+        icon: "images/scatterseries-icon16.png"
+
+        ItemLibraryEntry {
+            name: "Scatter"
+            category: "Qt Graphs - GraphsView"
+            libraryIcon: "images/scatterseries-icon.png"
+            version: "1.0"
+            requiredImport: "QtGraphs"
+
+            QmlSource { source: "default/ScatterSeries.qml" }
+        }
+    }
+    Type {
+        name: "QtGraphs.GraphsView"
+        icon: "images/splineseries-icon16.png"
+
+        ItemLibraryEntry {
+            name: "Spline"
+            category: "Qt Graphs - GraphsView"
+            libraryIcon: "images/splineseries-icon.png"
+            version: "1.0"
+            requiredImport: "QtGraphs"
+
+            QmlSource { source: "default/SplineSeries.qml" }
+        }
+    }
+}

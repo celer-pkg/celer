@@ -1,0 +1,160 @@
+{
+    "QEP": {
+        "QQEM": "0.43",
+        "connections": [
+            {
+                "fromId": 0,
+                "toId": 3
+            },
+            {
+                "fromId": 3,
+                "toId": 2
+            },
+            {
+                "fromId": 2,
+                "toId": 4
+            },
+            {
+                "fromId": 4,
+                "toId": 1
+            }
+        ],
+        "exportDirectory": ".",
+        "exportFlags": 3,
+        "exportName": "AboutEffect1",
+        "nodes": [
+            {
+                "fragmentCode": [
+                    "void main() {",
+                    "    fragColor = vec4(0.0);",
+                    "    @nodes",
+                    "    fragColor = fragColor * qt_Opacity;",
+                    "}"
+                ],
+                "name": "Main",
+                "nodeId": 0,
+                "type": 0,
+                "vertexCode": [
+                    "void main() {",
+                    "    texCoord = qt_MultiTexCoord0;",
+                    "    fragCoord = qt_Vertex.xy;",
+                    "    vec2 vertCoord = qt_Vertex.xy;",
+                    "    @nodes",
+                    "    gl_Position = qt_Matrix * vec4(vertCoord, 0.0, 1.0);",
+                    "}"
+                ],
+                "x": 140,
+                "y": 35.20000076293945
+            },
+            {
+                "name": "Output",
+                "nodeId": 1,
+                "type": 1,
+                "x": 140,
+                "y": 588.7999877929688
+            },
+            {
+                "description": "This is an empty node for creating custom effects.",
+                "fragmentCode": [
+                    "@main",
+                    "{",
+                    "    vec2 uv = 2.0 * texCoord - vec2(1.0);",
+                    "    const vec2 uv0 = uv;",
+                    "    uv = fract(abs(uv) * (4.5 + 3.0 * sin(iTime * 0.22))) - 0.5;",
+                    "    vec3 fColor = vec3(0.0);",
+                    "    for(int c = 0; c < 3; c++) {",
+                    "        float dst = 1.0;",
+                    "        for(int j = 0; j < 3; j++) {",
+                    "            for (int i = 0; i < 3; i++) {",
+                    "                vec2 nuv = uv + vec2(i - 1.0, j - 1.0);",
+                    "                float cd = c * 0.3 * sin(0.05 * iTime);",
+                    "                float ic = length(uv0) - cd;",
+                    "                nuv = nuv * length(nuv) * rotate2D(ic) + vec2(0.5 * sin(iTime * 0.3), 0.5 * sin(iTime * 0.2));",
+                    "                dst = min(dst, length(nuv));",
+                    "            }",
+                    "        }",
+                    "        uv = mix(uv, uv + dst, 3.0 * sin(0.2 + iTime * 0.12));",
+                    "        fColor[c] = 1.0 - dst;",
+                    "    }",
+                    "    fragColor = vec4(fColor, 1.0);",
+                    "}"
+                ],
+                "name": "CustomBlobs",
+                "nodeId": 2,
+                "type": 2,
+                "x": 105,
+                "y": 327
+            },
+            {
+                "description": "This node contains commonly used math defines and helper methods.",
+                "fragmentCode": [
+                    "#define PI 3.14159265359",
+                    "#define TAU 6.28318530718",
+                    "",
+                    "mat2 rotate2D(float a) {",
+                    "    const float c = cos(a);",
+                    "    const float s = sin(a);",
+                    "    return mat2(c, -s, s, c);",
+                    "}",
+                    "@main"
+                ],
+                "name": "MathHelper",
+                "nodeId": 3,
+                "type": 2,
+                "x": 105,
+                "y": 187.60000610351562
+            },
+            {
+                "description": "Applies vignette effect to the source, so adds darkening / color towards the corners.",
+                "fragmentCode": [
+                    "@main",
+                    "{",
+                    "    float vigDist = distance(texCoord, vec2(0.5));",
+                    "    vec4 vigColor = vec4(vignetteColor.rgb, smoothstep(vignetteInnerRadius, vignetteOuterRadius, vigDist));",
+                    "    fragColor.rgb = mix(fragColor.rgb, vigColor.rgb * fragColor.a, vigColor.a * vignetteColor.a);",
+                    "}"
+                ],
+                "name": "Vignette",
+                "nodeId": 4,
+                "properties": [
+                    {
+                        "defaultValue": "0, 0, 0, 1",
+                        "description": "Defines the vignette color. The default value is black (0, 0, 0, 1).",
+                        "name": "vignetteColor",
+                        "type": "color",
+                        "value": "0, 0, 0, 1"
+                    },
+                    {
+                        "defaultValue": "0.2",
+                        "description": "Inner radius from the center where vignette effect starts from. The value should be smaller than vignetteOuterRadius. The default value is 0.2.",
+                        "maxValue": "1",
+                        "minValue": "0",
+                        "name": "vignetteInnerRadius",
+                        "type": "float",
+                        "value": "0.2"
+                    },
+                    {
+                        "defaultValue": "0.8",
+                        "description": "Outer radius from the center where vignette effect ends to. The value should be bigger than vignetteInnerRadius. The default value is 0.8.",
+                        "maxValue": "1",
+                        "minValue": "0",
+                        "name": "vignetteOuterRadius",
+                        "type": "float",
+                        "value": "0.8"
+                    }
+                ],
+                "type": 2,
+                "x": 105,
+                "y": 465.3999938964844
+            }
+        ],
+        "settings": {
+            "headings": [
+                "// Copyright (C) 2022 The Qt Company Ltd.",
+                "// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause",
+                ""
+            ]
+        },
+        "version": 1
+    }
+}

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200">
+  <style>
+  @keyframes translate {
+    0% {transform: translate(0, 0);}
+    100% {transform: translate(340px, 0);}
+  }
+  #ease {
+  animation-duration: 1s;
+  animation-name: translate;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease;
+  }
+  #easeIn {
+  animation-duration: 1s;
+  animation-name: translate;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in;
+  }
+  #easeOut {
+  animation-duration: 1s;
+  animation-name: translate;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-out;
+  }
+  #easeInOut {
+  animation-duration: 1s;
+  animation-name: translate;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+  }
+  </style>
+  <defs>
+    <circle id="dot" r="15" fill="orange" stroke="grey" stroke-width="3"/>
+  </defs>
+  <use id="ease" href="#dot" x="30" y="20"/>
+  <use id="easeIn" href="#dot" x="30" y="70"/>
+  <use id="easeOut" href="#dot" x="30" y="120"/>
+  <use id="easeInOut" href="#dot" x="30" y="170"/>
+</svg>

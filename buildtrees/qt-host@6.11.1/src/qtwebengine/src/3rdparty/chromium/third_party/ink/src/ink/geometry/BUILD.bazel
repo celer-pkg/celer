@@ -1,0 +1,721 @@
+# Copyright 2024-2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "affine_transform",
+    srcs = ["affine_transform.cc"],
+    hdrs = ["affine_transform.h"],
+    deps = [
+        ":angle",
+        ":point",
+        ":quad",
+        ":rect",
+        ":segment",
+        ":triangle",
+        ":vec",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_test(
+    name = "affine_transform_test",
+    srcs = ["affine_transform_test.cc"],
+    deps = [
+        ":affine_transform",
+        ":angle",
+        ":fuzz_domains",
+        ":point",
+        ":quad",
+        ":rect",
+        ":segment",
+        ":triangle",
+        ":type_matchers",
+        ":vec",
+        "@com_google_absl//absl/strings",
+        "@com_google_fuzztest//fuzztest",
+        "@com_google_fuzztest//fuzztest:fuzztest_gtest_main",
+    ],
+)
+
+cc_library(
+    name = "angle",
+    srcs = ["angle.cc"],
+    hdrs = ["angle.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//ink/geometry/internal:modulo",
+        "//ink/types:numbers",
+        "@com_google_absl//absl/strings:str_format",
+    ],
+)
+
+cc_test(
+    name = "angle_test",
+    srcs = ["angle_test.cc"],
+    deps = [
+        ":angle",
+        ":fuzz_domains",
+        "//ink/types:numbers",
+        "@com_google_absl//absl/hash:hash_testing",
+        "@com_google_absl//absl/strings",
+        "@com_google_fuzztest//fuzztest",
+        "@com_google_fuzztest//fuzztest:fuzztest_gtest_main",
+    ],
+)
+
+cc_library(
+    name = "distance",
+    srcs = ["distance.cc"],
+    hdrs = ["distance.h"],
+    deps = [
+        ":intersects",
+        ":point",
+        ":quad",
+        ":rect",
+        ":segment",
+        ":triangle",
+    ],
+)
+
+cc_test(
+    name = "distance_test",
+    srcs = ["distance_test.cc"],
+    deps = [
+        ":angle",
+        ":distance",
+        ":point",
+        ":quad",
+        ":rect",
+        ":segment",
+        ":triangle",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "fuzz_domains",
+    testonly = 1,
+    srcs = ["fuzz_domains.cc"],
+    hdrs = ["fuzz_domains.h"],
+    deps = [
+        ":angle",
+        ":mesh_format",
+        ":mutable_mesh",
+        ":point",
+        ":rect",
+        ":segment",
+        ":triangle",
+        ":vec",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/types:span",
+        "@com_google_fuzztest//fuzztest",
+    ],
+)
+
+cc_library(
+    name = "envelope",
+    srcs = ["envelope.cc"],
+    hdrs = ["envelope.h"],
+    deps = [
+        ":point",
+        ":quad",
+        ":rect",
+        ":segment",
+        ":triangle",
+        "@com_google_absl//absl/strings:str_format",
+    ],
+)
+
+cc_test(
+    name = "envelope_test",
+    srcs = ["envelope_test.cc"],
+    deps = [
+        ":angle",
+        ":envelope",
+        ":point",
+        ":quad",
+        ":rect",
+        ":segment",
+        ":triangle",
+        ":type_matchers",
+        "@com_google_absl//absl/strings",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "intersects",
+    srcs = ["intersects.cc"],
+    hdrs = ["intersects.h"],
+    deps = [
+        ":affine_transform",
+        ":partitioned_mesh",
+        ":point",
+        ":quad",
+        ":rect",
+        ":segment",
+        ":triangle",
+        "//ink/geometry/internal:algorithms",
+        "//ink/geometry/internal:intersects_internal",
+    ],
+)
+
+cc_test(
+    name = "intersects_test",
+    srcs = ["intersects_test.cc"],
+    deps = [
+        ":affine_transform",
+        ":angle",
+        ":intersects",
+        ":mesh_test_helpers",
+        ":partitioned_mesh",
+        ":point",
+        ":quad",
+        ":rect",
+        ":segment",
+        ":triangle",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "quad",
+    srcs = ["quad.cc"],
+    hdrs = ["quad.h"],
+    deps = [
+        ":angle",
+        ":point",
+        ":rect",
+        ":segment",
+        ":vec",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/log:absl_log",
+    ],
+)
+
+cc_test(
+    name = "quad_test",
+    srcs = ["quad_test.cc"],
+    deps = [
+        ":angle",
+        ":point",
+        ":quad",
+        ":rect",
+        ":segment",
+        ":type_matchers",
+        ":vec",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "rect",
+    srcs = ["rect.cc"],
+    hdrs = ["rect.h"],
+    deps = [
+        ":point",
+        ":segment",
+        ":vec",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/strings:str_format",
+    ],
+)
+
+cc_test(
+    name = "rect_test",
+    srcs = ["rect_test.cc"],
+    deps = [
+        ":fuzz_domains",
+        ":point",
+        ":rect",
+        ":segment",
+        ":type_matchers",
+        ":vec",
+        "@com_google_absl//absl/strings",
+        "@com_google_fuzztest//fuzztest",
+        "@com_google_fuzztest//fuzztest:fuzztest_gtest_main",
+    ],
+)
+
+cc_library(
+    name = "segment",
+    srcs = ["segment.cc"],
+    hdrs = ["segment.h"],
+    deps = [
+        ":point",
+        ":vec",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_test(
+    name = "segment_test",
+    srcs = ["segment_test.cc"],
+    deps = [
+        ":fuzz_domains",
+        ":segment",
+        ":type_matchers",
+        "@com_google_absl//absl/strings",
+        "@com_google_fuzztest//fuzztest",
+        "@com_google_fuzztest//fuzztest:fuzztest_gtest_main",
+    ],
+)
+
+cc_library(
+    name = "triangle",
+    srcs = ["triangle.cc"],
+    hdrs = ["triangle.h"],
+    deps = [
+        ":point",
+        ":segment",
+        ":vec",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/strings:str_format",
+    ],
+)
+
+cc_test(
+    name = "triangle_test",
+    srcs = ["triangle_test.cc"],
+    deps = [
+        ":fuzz_domains",
+        ":point",
+        ":rect",
+        ":segment",
+        ":triangle",
+        "@com_google_absl//absl/strings",
+        "@com_google_fuzztest//fuzztest",
+        "@com_google_fuzztest//fuzztest:fuzztest_gtest_main",
+    ],
+)
+
+cc_library(
+    name = "vec",
+    srcs = ["vec.cc"],
+    hdrs = ["vec.h"],
+    deps = [
+        ":angle",
+        "//ink/types:numbers",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/strings:str_format",
+    ],
+)
+
+cc_library(
+    name = "type_matchers",
+    testonly = 1,
+    srcs = ["type_matchers.cc"],
+    hdrs = ["type_matchers.h"],
+    deps = [
+        ":affine_transform",
+        ":angle",
+        ":envelope",
+        ":mesh",
+        ":mesh_format",
+        ":mesh_packing_types",
+        ":partitioned_mesh",
+        ":point",
+        ":quad",
+        ":rect",
+        ":segment",
+        ":triangle",
+        ":vec",
+        "//:gtest_for_library_testonly",
+        "//ink/types:small_array",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_test(
+    name = "type_matchers_test",
+    srcs = ["type_matchers_test.cc"],
+    deps = [
+        ":angle",
+        ":mesh",
+        ":mesh_format",
+        ":mesh_packing_types",
+        ":mesh_test_helpers",
+        ":partitioned_mesh",
+        ":point",
+        ":quad",
+        ":triangle",
+        ":type_matchers",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/types:span",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "vec_test",
+    srcs = ["vec_test.cc"],
+    deps = [
+        ":angle",
+        ":fuzz_domains",
+        ":type_matchers",
+        ":vec",
+        "@com_google_absl//absl/hash:hash_testing",
+        "@com_google_absl//absl/strings",
+        "@com_google_fuzztest//fuzztest",
+        "@com_google_fuzztest//fuzztest:fuzztest_gtest_main",
+    ],
+)
+
+cc_test(
+    name = "vec_benchmark",
+    srcs = ["vec_benchmark.cc"],
+    deps = [
+        ":vec",
+        "@com_google_benchmark//:benchmark_main",
+    ],
+)
+
+cc_library(
+    name = "point",
+    srcs = ["point.cc"],
+    hdrs = ["point.h"],
+    deps = [
+        ":vec",
+        "@com_google_absl//absl/strings:str_format",
+    ],
+)
+
+cc_test(
+    name = "point_test",
+    srcs = ["point_test.cc"],
+    deps = [
+        ":point",
+        ":type_matchers",
+        ":vec",
+        "@com_google_absl//absl/hash:hash_testing",
+        "@com_google_absl//absl/strings",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "mesh_format",
+    srcs = ["mesh_format.cc"],
+    hdrs = ["mesh_format.h"],
+    deps = [
+        "//ink/geometry/internal:mesh_constants",
+        "//ink/types:small_array",
+        "@com_google_absl//absl/algorithm:container",
+        "@com_google_absl//absl/container:flat_hash_set",
+        "@com_google_absl//absl/log:absl_log",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "mesh_format_test",
+    srcs = ["mesh_format_test.cc"],
+    deps = [
+        ":fuzz_domains",
+        ":mesh_format",
+        "@com_google_absl//absl/hash:hash_testing",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:status_matchers",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:span",
+        "@com_google_fuzztest//fuzztest",
+        "@com_google_fuzztest//fuzztest:fuzztest_gtest_main",
+    ],
+)
+
+cc_library(
+    name = "mesh_packing_types",
+    hdrs = ["mesh_packing_types.h"],
+    deps = ["//ink/types:small_array"],
+)
+
+cc_library(
+    name = "mutable_mesh",
+    srcs = ["mutable_mesh.cc"],
+    hdrs = ["mutable_mesh.h"],
+    deps = [
+        ":envelope",
+        ":mesh",
+        ":mesh_format",
+        ":mesh_packing_types",
+        ":point",
+        ":rect",
+        ":triangle",
+        ":vec",
+        "//ink/geometry/internal:mesh_packing",
+        "//ink/types:small_array",
+        "//ink/types/internal:float",
+        "@com_google_absl//absl/algorithm:container",
+        "@com_google_absl//absl/base:nullability",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/container:flat_hash_set",
+        "@com_google_absl//absl/container:inlined_vector",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "mutable_mesh_test",
+    testonly = 1,
+    srcs = ["mutable_mesh_test.cc"],
+    deps = [
+        ":fuzz_domains",
+        ":mesh",
+        ":mesh_format",
+        ":mesh_packing_types",
+        ":mesh_test_helpers",
+        ":mutable_mesh",
+        ":point",
+        ":rect",
+        ":triangle",
+        ":type_matchers",
+        "//ink/geometry/internal:mesh_packing",
+        "//ink/types:small_array",
+        "@com_google_absl//absl/container:inlined_vector",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:span",
+        "@com_google_fuzztest//fuzztest",
+        "@com_google_fuzztest//fuzztest:fuzztest_gtest_main",
+    ],
+)
+
+cc_library(
+    name = "mesh",
+    srcs = ["mesh.cc"],
+    hdrs = ["mesh.h"],
+    deps = [
+        ":envelope",
+        ":mesh_format",
+        ":mesh_packing_types",
+        ":point",
+        ":triangle",
+        "//ink/geometry/internal:mesh_packing",
+        "//ink/types:small_array",
+        "//ink/types/internal:float",
+        "@com_google_absl//absl/algorithm:container",
+        "@com_google_absl//absl/base:nullability",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "mesh_test",
+    srcs = ["mesh_test.cc"],
+    deps = [
+        ":mesh",
+        ":mesh_format",
+        ":mesh_packing_types",
+        ":mesh_test_helpers",
+        ":point",
+        ":rect",
+        ":type_matchers",
+        "//ink/geometry/internal:mesh_packing",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/types:span",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "mesh_test_helpers",
+    testonly = 1,
+    srcs = ["mesh_test_helpers.cc"],
+    hdrs = ["mesh_test_helpers.h"],
+    deps = [
+        ":affine_transform",
+        ":angle",
+        ":mesh_format",
+        ":mutable_mesh",
+        ":partitioned_mesh",
+        ":point",
+        ":vec",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/status:statusor",
+    ],
+)
+
+cc_test(
+    name = "mesh_test_helpers_test",
+    srcs = ["mesh_test_helpers_test.cc"],
+    deps = [
+        ":affine_transform",
+        ":angle",
+        ":mesh_format",
+        ":mesh_test_helpers",
+        ":mutable_mesh",
+        ":point",
+        ":type_matchers",
+        ":vec",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "partitioned_mesh",
+    srcs = ["partitioned_mesh.cc"],
+    hdrs = ["partitioned_mesh.h"],
+    deps = [
+        ":affine_transform",
+        ":envelope",
+        ":mesh",
+        ":mesh_format",
+        ":mesh_packing_types",
+        ":mutable_mesh",
+        ":point",
+        ":quad",
+        ":rect",
+        ":segment",
+        ":triangle",
+        "//ink/geometry/internal:algorithms",
+        "//ink/geometry/internal:intersects_internal",
+        "//ink/geometry/internal:mesh_packing",
+        "//ink/geometry/internal:static_rtree",
+        "@com_google_absl//absl/base:core_headers",
+        "@com_google_absl//absl/base:nullability",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/container:inlined_vector",
+        "@com_google_absl//absl/functional:function_ref",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "partitioned_mesh_test",
+    srcs = ["partitioned_mesh_test.cc"],
+    deps = [
+        ":affine_transform",
+        ":angle",
+        ":mesh",
+        ":mesh_format",
+        ":mesh_packing_types",
+        ":mesh_test_helpers",
+        ":mutable_mesh",
+        ":partitioned_mesh",
+        ":point",
+        ":quad",
+        ":rect",
+        ":segment",
+        ":triangle",
+        ":type_matchers",
+        "@com_google_absl//absl/container:inlined_vector",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:status_matchers",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:span",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "convex_hull",
+    hdrs = ["convex_hull.h"],
+    deps = [
+        ":point",
+        "//ink/geometry/internal:convex_hull_helper",
+        "//ink/geometry/internal:point_tessellation_helper",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "convex_hull_test",
+    srcs = ["convex_hull_test.cc"],
+    deps = [
+        ":convex_hull",
+        ":point",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "tessellator",
+    srcs = ["tessellator.cc"],
+    hdrs = ["tessellator.h"],
+    deps = [
+        "//ink/geometry:mesh",
+        "//ink/geometry:mesh_format",
+        "//ink/geometry:point",
+        "//ink/geometry/internal:generic_tessellator",
+        "//ink/geometry/internal:point_tessellation_helper",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "tessellator_test",
+    srcs = ["tessellator_test.cc"],
+    deps = [
+        ":mesh",
+        ":mesh_format",
+        ":point",
+        ":tessellator",
+        ":type_matchers",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:status_matchers",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+# Separate target because the fuzz-test currently fails extremely easily, thus want to make it
+# available for fuzzing infrastructure without blocking presubmit CI.
+cc_test(
+    name = "tessellator_fuzz_test",
+    srcs = ["tessellator_fuzz_test.cc"],
+    tags = [
+        "manual",
+    ],
+    deps = [
+        ":fuzz_domains",
+        ":point",
+        ":tessellator",
+        "@com_google_fuzztest//fuzztest",
+        "@com_google_fuzztest//fuzztest:fuzztest_gtest_main",
+    ],
+)

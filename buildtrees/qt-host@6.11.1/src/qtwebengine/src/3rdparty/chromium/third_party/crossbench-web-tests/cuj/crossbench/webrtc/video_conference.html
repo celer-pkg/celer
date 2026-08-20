@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>WebRTC VideoConference</title>
+</head>
+
+<body>
+  <div id="container">
+    <div id="cameraOverlay">
+      <video id="gum" autoplay></video>
+    </div>
+  </div>
+  <script src="video_conference.js"></script>
+  <script>
+    const VC = new VideoConference();
+  </script>
+  <script src="measure_webrtc_perf.js"></script>
+</body>
+
+</html>

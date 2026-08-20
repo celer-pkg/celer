@@ -1,0 +1,82 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/config/exampleurl-qtlocation.qdocconf)
+
+project           = QtLocation
+description    = Qt Location Reference Documentation
+version          = $QT_VERSION
+
+qhp.projects            = QtLocation
+
+qhp.QtLocation.file                = qtlocation.qhp
+qhp.QtLocation.namespace           = org.qt-project.qtlocation.$QT_VERSION_TAG
+qhp.QtLocation.virtualFolder       = qtlocation
+qhp.QtLocation.indexTitle          = Qt Location
+qhp.QtLocation.indexRoot           =
+
+qhp.QtLocation.subprojects = manual examples classes qml
+
+qhp.QtLocation.subprojects.classes.title = C++ Classes
+qhp.QtLocation.subprojects.classes.indexTitle = Qt Location C++ Classes
+qhp.QtLocation.subprojects.classes.selectors = class fake:headerfile
+qhp.QtLocation.subprojects.classes.sortPages = true
+
+qhp.QtLocation.subprojects.qml.title = QML Types
+qhp.QtLocation.subprojects.qml.indexTitle = Qt Location QML Types
+qhp.QtLocation.subprojects.qml.selectors = qmlclass
+qhp.QtLocation.subprojects.qml.sortPages = true
+
+qhp.QtLocation.subprojects.examples.title = Qt Location Examples
+qhp.QtLocation.subprojects.examples.indexTitle = Qt Location Examples
+qhp.QtLocation.subprojects.examples.selectors = fake:example
+
+qhp.QtLocation.subprojects.manual.title = Qt Location
+qhp.QtLocation.subprojects.manual.indexTitle = Qt Location module topics
+qhp.QtLocation.subprojects.manual.type = manual
+tagfile                 = ../../../doc/qtlocation/qtlocation.tags
+
+depends += qtcore \
+           qtdoc \
+           qtgui \
+           qtwidgets \
+           qtquick \
+           qtquickcontrols \
+           qtqml \
+           qtqmlmodels \
+           qtnetwork \
+           qtpositioning \
+           qtlinguist \
+           qtcmake
+
+headerdirs  +=  ..
+
+sourcedirs  +=  ..
+
+examplesinstallpath = location
+
+# Path to the root of qtlocation (for automatic linking to source code)
+url.sources.rootdir     = ../../..
+
+exampledirs += ../../../examples/location \
+               snippets/
+
+imagedirs   += images
+
+navigation.landingpage = "Qt Location"
+navigation.cppclassespage = "Qt Location C++ Classes"
+navigation.qmltypespage = "Qt Location QML Types"
+# Auto-generate navigation linking based on "Qt Location module topics":
+navigation.toctitles = "Qt Location module topics"
+navigation.toctitles.inclusive = false
+
+manifestmeta.highlighted.names = \
+    "QtLocation/GeoJson Viewer (QML)" \
+    "QtLocation/Map Viewer (QML)" \
+    "QtLocation/Places Map (QML)"
+
+# Enforce zero documentation warnings
+warninglimit = 0
+
+# Supress all warnings for members that are documented, but
+# their parents are not. This leads to 'No output generated for...'
+# warnings, for every such member documentation.
+spurious += "No output generated for .*"

@@ -1,0 +1,22 @@
+# Copyright 2025 The Chromium Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+query: {
+  id: "meminfo_per_iteration_query"
+  table {
+    table_name: "meminfo_per_iteration_output"
+    module_name: "sql_packages.queries.meminfo_per_iteration"
+    column_names: "title"
+    column_names: "per_iteration_mb"
+  }
+}
+
+metric_spec: {
+  id: "cuj.common-metrics.meminfo.per_iteration_mb"
+  query {
+    inner_query_id: "meminfo_per_iteration_query"
+  }
+  dimensions: "title"
+  value: "per_iteration_mb"
+}

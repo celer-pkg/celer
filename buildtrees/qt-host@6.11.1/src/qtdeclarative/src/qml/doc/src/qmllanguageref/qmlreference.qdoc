@@ -1,0 +1,24 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qmlreference.html
+\title The QML Reference
+\brief A multi-paradigm language for application development
+
+QML is a multi-paradigm language for creating highly dynamic applications. With
+QML, application building blocks such as UI components are \e declared and
+various properties set to define the application behavior. Application behavior
+can be further scripted through JavaScript, which is a subset of the language.
+In addition, QML heavily uses Qt, which allows types and other Qt features to
+be accessible directly from QML applications.
+
+This reference guide describes the features of  the QML language. Many of the
+QML types in the guide originate from the \l{Qt Qml} or \l{Qt Quick}
+modules.
+
+\list
+\include includes/qml-language-reference.qdocinc qml-language-reference-structure
+\endlist
+
+*/

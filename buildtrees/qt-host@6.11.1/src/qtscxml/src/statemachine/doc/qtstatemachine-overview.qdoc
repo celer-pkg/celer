@@ -1,0 +1,40 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+  \page qtstatemachine-overview.html
+  \title Qt State Machine Overview
+  \brief An overview of the State Machine framework for constructing and executing state graphs.
+  \ingroup technology-apis
+  \ingroup explanation
+
+  The State Machine framework provides classes for creating and executing
+  state graphs. The concepts and notation are based on those from Harel's
+  \l{http://www.wisdom.weizmann.ac.il/~dharel/SCANNED.PAPERS/Statecharts.pdf}{Statecharts: A visual formalism for complex systems}, which
+  is also the basis of UML state diagrams. The semantics of state machine
+  execution are based on \l{State Chart XML: State Machine Notation for
+  Control Abstraction}{State Chart XML (SCXML)}.
+
+  Statecharts provide a graphical way of modeling how a system reacts to
+  stimuli. This is done by defining the possible \e states that the system can
+  be in, and how the system can move from one state to another (\e transitions
+  between states). A key characteristic of event-driven systems (such as Qt
+  applications) is that behavior often depends not only on the last or current
+  event, but also the events that preceded it. With statecharts, this
+  information is easy to express.
+
+  The State Machine framework provides an API and execution model that can be
+  used to effectively embed the elements and semantics of statecharts in Qt
+  applications. The framework integrates tightly with Qt's meta-object system;
+  for example, transitions between states can be triggered by signals, and
+  states can be configured to set properties and invoke methods on {QObject}s.
+  Qt's event system is used to drive the state machines.
+
+  The state graph in the State Machine framework is hierarchical. States can be nested inside of
+  other states, and the current configuration of the state machine consists of the set of states
+  which are currently active. All the states in a valid configuration of the state machine will
+  have a common ancestor.
+
+  \sa {Qt State Machine C++ Guide}, {Qt State Machine QML Guide}, {Qt SCXML Overview}
+
+  */

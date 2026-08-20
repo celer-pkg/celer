@@ -1,0 +1,20 @@
+// Copyright (C) 2018 The Qt Company Ltd and/or its subsidiary(-ies).
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+   \qmlmodule QtQuick.Scene3D 2.\QtMinorVersion
+   \preliminary
+   \title Qt 3D Scene3D QML Types
+   \ingroup qmlmodules
+   \ingroup qt3d-qmlmodules-preliminary
+   \modulestate Deprecated
+   \deprecated [6.8]
+
+   \brief Provides Qt 3D QML types for the Scene3D module.
+
+   To import and use the module's QML types, use the following statement:
+
+   \qml \QtMinorVersion
+   import QtQuick.Scene3D 2.\1
+   \endqml
+*/

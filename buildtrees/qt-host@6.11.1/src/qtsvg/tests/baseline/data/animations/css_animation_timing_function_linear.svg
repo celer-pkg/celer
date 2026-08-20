@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="150">
+  <style>
+  @keyframes translate {
+    0% {transform: translate(0, 0);}
+    100% {transform: translate(340px, 0);}
+  }
+  #linear {
+  animation-duration: 1s;
+  animation-name: translate;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+  }
+  </style>
+  <defs>
+    <circle id="dot" r="15" fill="orange" stroke="grey" stroke-width="3"/>
+  </defs>
+  <use id="linear" href="#dot" x="30" y="20"/>
+</svg>

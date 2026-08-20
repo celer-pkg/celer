@@ -1,0 +1,124 @@
+{
+    "designer/asphalt.metainfo": [
+        "AsphaltMaterial.qml"
+    ],
+    "designer/carbonfiber.metainfo": [
+        "CarbonFiberMaterial.qml"
+    ],
+    "designer/carpaintglitter.metainfo": [
+        "CarPaintGlitterMaterial.qml"
+    ],
+    "designer/concrete.metainfo": [
+        "ConcreteMaterial.qml"
+    ],
+    "designer/copper.metainfo": [
+        "CopperMaterial.qml"
+    ],
+    "designer/fabric.metainfo": [
+        "FabricMaterial.qml"
+    ],
+    "designer/glass.metainfo": [
+        "GlassMaterial.qml"
+    ],
+    "designer/gold.metainfo": [
+        "GoldMaterial.qml"
+    ],
+    "designer/leather.metainfo": [
+        "LeatherMaterial.qml"
+    ],
+    "designer/plastictextured.metainfo": [
+        "PlasticTexturedMaterial.qml"
+    ],
+    "designer/silver.metainfo": [
+        "SilverMaterial.qml"
+    ],
+    "designer/steelbrushed.metainfo": [
+        "SteelBrushedMaterial.qml"
+    ],
+    "designer/stone.metainfo": [
+        "StoneMaterial.qml"
+    ],
+    "designer/wax.metainfo": [
+        "WaxMaterial.qml"
+    ],
+    "designer/wood.metainfo": [
+        "WoodMaterial.qml"
+    ],
+    "images/Asphalt010_2K_NormalGL.png": [
+        "AsphaltMaterial.qml"
+    ],
+    "images/Asphalt010_2K_Roughness.png": [
+        "AsphaltMaterial.qml"
+    ],
+    "images/Concrete032_2K_NormalGL.png": [
+        "ConcreteMaterial.qml"
+    ],
+    "images/Concrete032_2K_Roughness.png": [
+        "ConcreteMaterial.qml"
+    ],
+    "images/Fabric004_2K_NormalGL.png": [
+        "CarbonFiberMaterial.qml"
+    ],
+    "images/Fabric030_2K_Displacement.png": [
+        "FabricMaterial.qml"
+    ],
+    "images/Fabric030_2K_NormalGL.png": [
+        "FabricMaterial.qml"
+    ],
+    "images/Fabric030_2K_Roughness.png": [
+        "FabricMaterial.qml"
+    ],
+    "images/LDR_RGB1_3.png": [
+        "CarPaintGlitterMaterial.qml"
+    ],
+    "images/Leather005_2K_Displacement.png": [
+        "LeatherMaterial.qml"
+    ],
+    "images/Leather005_2K_NormalGL.png": [
+        "LeatherMaterial.qml"
+    ],
+    "images/Leather005_2K_Roughness.png": [
+        "LeatherMaterial.qml"
+    ],
+    "images/Metal009_2K_NormalGL.png": [
+        "SteelBrushedMaterial.qml"
+    ],
+    "images/Metal009_2K_Roughness.png": [
+        "SteelBrushedMaterial.qml"
+    ],
+    "images/Metal029_2K_Displacement.jpg": [
+        "GoldMaterial.qml",
+        "SilverMaterial.qml",
+        "CopperMaterial.qml"
+    ],
+    "images/Rock003_2K_NormalGL.png": [
+        "StoneMaterial.qml"
+    ],
+    "images/Rock003_2K_Roughness.png": [
+        "StoneMaterial.qml"
+    ],
+    "images/Wood052_2K_Color.png": [
+        "WoodMaterial.qml"
+    ],
+    "images/Wood052_2K_NormalGL.png": [
+        "WoodMaterial.qml"
+    ],
+    "images/Wood052_2K_Roughness.png": [
+        "WoodMaterial.qml"
+    ],
+    "images/noisenormal.png": [
+        "PlasticTexturedMaterial.qml"
+    ],
+    "shaders/carmat_simple.frag": [
+        "CarPaintGlitterMaterial.qml"
+    ],
+    "shaders/carmat_simple.vert": [
+        "CarPaintGlitterMaterial.qml"
+    ],
+    "shaders/glass.frag": [
+        "GlassMaterial.qml"
+    ],
+    "shaders/glass.vert": [
+        "GlassMaterial.qml"
+    ]
+}

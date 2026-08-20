@@ -1,0 +1,74 @@
+From cb7e44afcb474bce9050aceeb6fd38271aeee90c Mon Sep 17 00:00:00 2001
+From: Jonas Karlsson <jonas.karlsson@qt.io>
+Date: Thu, 1 Dec 2022 13:30:21 +0100
+Subject: [PATCH 1/1] Fix Windows openapi icx compilation
+
+Pick-to: 6.4
+Fixes: QTBUG-109015
+Change-Id: Iac37dda4deba489ff5ff5dd16548485573957474
+---
+ .../include/windows/PsWindowsInlineAoS.h      | 22 +++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+diff --git a/src/3rdparty/PhysX/source/foundation/include/windows/PsWindowsInlineAoS.h b/src/3rdparty/PhysX/source/foundation/include/windows/PsWindowsInlineAoS.h
+index 14f93eed..d5389698 100644
+--- a/src/3rdparty/PhysX/source/foundation/include/windows/PsWindowsInlineAoS.h
++++ b/src/3rdparty/PhysX/source/foundation/include/windows/PsWindowsInlineAoS.h
+@@ -3043,6 +3043,16 @@ PX_FORCE_INLINE VecU16V V4U16CompareGt(VecU16V a, VecU16V b)
+ 	// _mm_cmpgt_epi16 doesn't work for unsigned values unfortunately
+ 	// return m128_I2F(_mm_cmpgt_epi16(internalWindowsSimd::m128_F2I(a), internalWindowsSimd::m128_F2I(b)));
+ 	VecU16V result;
++#ifdef __INTEL_LLVM_COMPILER
++	result[0] = PxU16(a[0] > b[0]);
++	result[1] = PxU16(a[1] > b[1]);
++	result[2] = PxU16(a[2] > b[2]);
++	result[3] = PxU16(a[3] > b[3]);
++	result[4] = PxU16(a[4] > b[4]);
++	result[5] = PxU16(a[5] > b[5]);
++	result[6] = PxU16(a[6] > b[6]);
++	result[7] = PxU16(a[7] > b[7]);
++#else
+ 	result.m128_u16[0] = PxU16((a).m128_u16[0] > (b).m128_u16[0]);
+ 	result.m128_u16[1] = PxU16((a).m128_u16[1] > (b).m128_u16[1]);
+ 	result.m128_u16[2] = PxU16((a).m128_u16[2] > (b).m128_u16[2]);
+@@ -3051,6 +3061,7 @@ PX_FORCE_INLINE VecU16V V4U16CompareGt(VecU16V a, VecU16V b)
+ 	result.m128_u16[5] = PxU16((a).m128_u16[5] > (b).m128_u16[5]);
+ 	result.m128_u16[6] = PxU16((a).m128_u16[6] > (b).m128_u16[6]);
+ 	result.m128_u16[7] = PxU16((a).m128_u16[7] > (b).m128_u16[7]);
++#endif //  __INTEL_LLVM_COMPILER
+ 	return result;
+ }
+ 
+@@ -3062,7 +3073,11 @@ PX_FORCE_INLINE VecU16V V4I16CompareGt(VecU16V a, VecU16V b)
+ 
+ PX_FORCE_INLINE Vec4V Vec4V_From_VecU32V(VecU32V a)
+ {
++#ifdef __INTEL_LLVM_COMPILER
++	Vec4V result = V4LoadXYZW(PxF32(a[0]), PxF32(a[1]), PxF32(a[2]), PxF32(a[3]));
++#else
+ 	Vec4V result = V4LoadXYZW(PxF32(a.m128_u32[0]), PxF32(a.m128_u32[1]), PxF32(a.m128_u32[2]), PxF32(a.m128_u32[3]));
++#endif
+ 	return result;
+ }
+ 
+@@ -3113,10 +3128,17 @@ PX_FORCE_INLINE Vec4V V4SplatElement(Vec4V a)
+ PX_FORCE_INLINE VecU32V U4LoadXYZW(PxU32 x, PxU32 y, PxU32 z, PxU32 w)
+ {
+ 	VecU32V result;
++#ifdef __INTEL_LLVM_COMPILER
++	result[0] = x;
++	result[1] = y;
++	result[2] = z;
++	result[3] = w;
++#else
+ 	result.m128_u32[0] = x;
+ 	result.m128_u32[1] = y;
+ 	result.m128_u32[2] = z;
+ 	result.m128_u32[3] = w;
++#endif
+ 	return result;
+ }
+ 
+-- 
+2.38.1
+

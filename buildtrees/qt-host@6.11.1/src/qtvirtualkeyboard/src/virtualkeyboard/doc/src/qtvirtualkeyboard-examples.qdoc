@@ -1,0 +1,72 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \group qtvirtualkeyboard-examples
+    \brief Examples for Qt Virtual Keyboard
+    \title Qt Virtual Keyboard Examples
+*/
+
+/*!
+    \title Virtual Keyboard in Qt Quick
+    \example basic
+    \examplecategory {Embedded}
+    \brief This example shows how to use the virtual keyboard in a Qt Quick application.
+    \ingroup qtvirtualkeyboard-examples
+    \image basic-example.webp
+    \meta tags {quick}
+
+    The example has two implementations: one for desktop
+    platforms and another for embedded platforms. The former version
+    enables text input into several text fields using the virtual keyboard,
+    whereas the latter version uses the same UI but with a custom virtual
+    keyboard InputPanel. The following snippets show how to set up the project
+    to choose the appropriate implementation based on the CONFIG options:
+
+    \list
+    \li In qmake (\c basic.pro):
+
+        \quotefromfile basic/basic.pro
+        \skipto vkb-desktop
+        \printuntil /^\}$/
+
+    \li In CMake (\c CMakeLists.txt):
+
+        \quotefromfile basic/CMakeLists.txt
+        \skipto QT_FEATURE_vkb_desktop
+        \printuntil endif()
+        \dots
+        \skipto QT_FEATURE_vkb_desktop
+        \printuntil endif()
+
+    \endlist
+
+    The example enables the virtual keyboard by setting the \c QT_IM_MODULE
+    environment variable before loading the \c .qml file:
+
+    \quotefromfile basic/main.cpp
+    \skipto #include
+    \printuntil }
+
+    Besides this, it uses custom TextField and TextArea items to configure the
+    \e[ENTER] key behavior using the EnterKeyAction attached property.
+
+    \quotefromfile basic/Basic.qml
+    \skipto import
+    \printuntil Rectangle
+    \dots
+    \skipto TextField
+    \printuntil }
+    \dots
+    \skipto TextArea
+    \printuntil }
+    \skipto /^\}$/
+    \printuntil }
+
+    The TextField and TextArea controls extend the respective
+    \l {Qt Quick Controls 2} types with \c enterKeyEnabled and
+    \c enterKeyAction properties. The TextField and TextArea instances in the
+    snippet can set these properties to change the default behavior.
+
+    \include examples-run.qdocinc
+*/

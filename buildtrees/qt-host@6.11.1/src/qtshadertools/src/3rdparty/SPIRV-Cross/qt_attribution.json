@@ -1,0 +1,19 @@
+[
+    {
+        "Id": "spirvcross",
+        "Name": "SPIRV-Cross",
+        "QDocModule": "qtshadertools",
+        "Description": "A practical tool and library for performing reflection on SPIR-V and disassembling SPIR-V back to high level languages.",
+        "QtUsage": "Shader code generation.",
+
+        "Homepage": "https://github.com/KhronosGroup/SPIRV-Cross",
+        "PURL": [
+            "pkg:github/KhronosGroup/SPIRV-Cross@$<VERSION>"
+        ],
+        "Comment": "No relevant CPE found",
+        "Version": "998146d76fc5cbb2726f44c55e25fa28a573a782",
+        "License": "Apache License 2.0 and MIT Khronos - old variant",
+        "LicenseId": "Apache-2.0 AND LicenseRef-MIT-Khronos-old",
+        "CopyrightFile": "COPYRIGHT.txt"
+    }
+]

@@ -1,0 +1,111 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#ifndef LIGHTS_DATA_GLSLLIB
+#define LIGHTS_DATA_GLSLLIB
+
+#ifdef QQ3D_SHADER_META
+/*{
+    "uniforms": [
+        { "type": "vec4", "name": "qt_lightAndShadowCounts" }
+    ]
+}*/
+#endif // QQ3D_SHADER_META
+
+// Including the qt_lightAndShadowCounts uniform here since to use
+// the lighting/shadow data you need the count uniform as well
+//qt_lightAndShadowCounts.x = positionalLightCount
+//qt_lightAndShadowCounts.y = directionalLightCount
+//qt_lightAndShadowCounts.z = positionalShadowCount
+//qt_lightAndShadowCounts.w = directionalShadowCount
+
+#if QSSG_REDUCE_MAX_NUM_LIGHTS
+# define MAX_NUM_LIGHTS 8
+# define MAX_NUM_DIRECTIONAL_LIGHTS 2
+#else
+# define MAX_NUM_LIGHTS 16
+# define MAX_NUM_DIRECTIONAL_LIGHTS 4
+#endif
+
+// This contains data for point and spot lights
+struct LightData {
+    vec3 position;
+    float coneAngle;
+
+    vec3 direction;
+    float innerConeAngle;
+
+    vec3 diffuseColor;
+    float constantAttenuation;
+
+    vec3 specularColor;
+    float linearAttenuation;
+
+    uint lightmapState;
+    uint pcfSamples;
+    float quadraticAttenuation;
+    float shadowTextureSize;
+
+    vec2 shadowAtlasUV0;
+    vec2 shadowAtlasUV1;
+
+    float shadowAtlasLayer0;
+    float shadowAtlasLayer1;
+    float pcfFactor;
+    float enableShadows;
+
+    float shadowBias;
+    float shadowFactor;
+    float clipNear;
+    float shadowMapFar;
+
+    mat4 shadowMatrix;
+}; // 192 bytes (12 x vec4)
+
+struct DirectionalLightData {
+    vec3 direction;
+    float shadowBias;
+
+    vec3 diffuseColor;
+    float shadowFactor;
+
+    vec3 specularColor;
+    float enableShadows;
+
+    mat4 matrices[4]; // (4 x 4 vec4)
+
+    vec4 dimensionsInverted[4]; // (x, y, z, 0) 4 vec4
+
+    vec4 csmSplits;
+
+    vec4 csmActive;
+
+    vec4 atlasLocations[4];     // (u, v, size, layer) 4 vec4
+
+    uint lightmapState;
+    uint pcfSamples;
+    uint csmNumSplits;
+    float pcfFactor;
+
+    float shadowMapFar;
+    float csmBlendRatio;
+    // padding[2]
+
+}; // 496 bytes (31 x vec4)
+
+struct ShadowResult {
+    float illumination; // 0.0 = fully occluded, 1.0 = fully visible
+    bool isLit; // is the fragment hit by any direct light (used for specular computation)
+};
+
+layout (std140, binding = 1) uniform cbLights
+{
+    LightData lights[MAX_NUM_LIGHTS];
+} ubLights;
+
+layout (std140, binding = 2) uniform cbDirectionalLights
+{
+    DirectionalLightData directionalLights[MAX_NUM_DIRECTIONAL_LIGHTS];
+} ubDirectionalLights;
+
+#endif //LIGHTS_DATA_GLSLLIB

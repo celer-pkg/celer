@@ -1,0 +1,16 @@
+{
+  pages: {
+    "Google": [
+      {
+        "action": "get",
+        "url": "https://www.google.com/search?q=puppies",
+        "duration": "4s"
+      },
+      {
+        "action": "get",
+        "url": "about:blank",
+        "duration": "1s"
+      },
+    ],
+  }
+}

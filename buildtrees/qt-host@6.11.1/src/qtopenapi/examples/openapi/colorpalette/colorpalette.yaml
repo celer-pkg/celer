@@ -1,0 +1,378 @@
+# Copyright (C) 2025 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+
+openapi: 3.1.0
+info:
+  title: Qt Quick Demo - RESTful API client
+  description:
+    This specification defines the RESTful API for the imaginary color palette service used by the QHttpServer example and the colorpalette QML application.
+  version: 1.0.0
+
+servers:
+  - url: http://127.0.0.1:49425/api
+    description: Qt-based REST API server
+  - url: https://reqres.in/api
+    description: Public REST API test service
+tags:
+  - name: register
+    description: Register new users
+  - name: users
+    description: Login and logout users & List users
+  - name: colors
+    description: Modify and create new colors & List colors
+
+paths:
+  /register:
+    post:
+      tags:
+        - register
+      operationId: registerPost
+      requestBody:
+        $ref: '#/components/requestBodies/Credentials'
+      responses:
+        '200':
+          description: Token received
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: Undefined users
+          content:
+            application/json:
+              example:
+                error: "Note: Only defined users succeed registration"
+  /users:
+    get:
+      tags:
+        - users
+      summary: Get the list of users from the database.
+      operationId: getUsersByPage
+      parameters:
+        - name: page # e.g. /users?page=1
+          in: query
+          description: The page number to retrieve.
+          required: true
+          schema:
+            type: [integer, 'null'] # adding null for testing purpose
+            default: 1
+            minimum: 1
+      responses:
+        '200':
+          description: The list of users and information about pages
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPage'
+  /users/{id}:
+    get:
+      tags:
+        - users
+      summary: Get a single User by id
+      operationId: getUserById
+      parameters:
+        - in: path # Path parameters (id in this case) have to be mandatorily described in the parameters object under the method.
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: User data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+    patch:
+      tags:
+        - users
+      summary: Update the user's avatar
+      operationId: updateUser
+      security:
+        - token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        $ref: '#/components/requestBodies/UpdateAvatarRequest'
+      responses:
+        '200':
+          description: User updated successfully
+        '404':
+          description: User not found
+  /login:
+    post:
+      tags:
+        - users
+      summary: Logs user into the system
+      operationId: loginUser
+      requestBody:
+        $ref: '#/components/requestBodies/Credentials'
+      responses:
+        '200':
+          description: Token received
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: Invalid credentials supplied
+  /logout:
+    post:
+      tags:
+        - users
+      summary: Logs out current logged in user session
+      operationId: logoutUser
+      security:
+        - token: []
+      responses:
+        '200':
+          description: Successful operation
+  /unknown:
+    description: unknown is used instead of colors to be compatible with Qt colorpalette RESTful API Server.
+    get:
+      tags:
+        - colors
+      summary: Get the list of colors from the database.
+      operationId: getColors
+      parameters:
+        - name: page
+          in: query
+          description: The page number to retrieve.
+          required: true
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+      responses:
+        '200':
+          description: The list of colors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ColorPage'
+    post:
+      tags:
+        - colors
+      summary: Add a color
+      operationId: addColor
+      security:
+        - token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Color'
+      responses:
+        '201':
+          description: Color added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Color'
+  /unknown/{id}:
+    description: This path represents colors/{id}. unknown is used instead of colors resource to be compatible with Qt colorpalette RESTful API Server.
+    get:
+      tags:
+        - colors
+      summary: Get a color information by Id
+      operationId: getColorById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Color'
+        '404':
+          description: Color not found
+    put:
+      tags:
+        - colors
+      summary: Update an existing color
+      operationId: updateColorById
+      security:
+        - token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Color'
+      responses:
+        '200':
+          description: Color updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Color'
+        '400':
+          description: Invalid input
+        '404':
+          description: Color not found
+    delete:
+      tags:
+        - colors
+      summary: Delete an existing color by Id
+      operationId: deleteColorById
+      security:
+        - token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Deleted successfully
+components:
+  securitySchemes:
+    token:
+      type: apiKey
+      in: header
+      name: token
+  requestBodies:
+    Credentials:
+      description: User's credentials
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Credentials'
+    UpdateAvatarRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            properties:
+              avatar:
+                type: string
+                example: "https://reqres.in/img/faces/7-image.jpg"
+  schemas:
+    Color:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          example: "cute green"
+        year:
+          type: integer
+        color:
+          type: string
+          example: "#41cd52"
+        pantone_value:
+          type: string
+          example: "PMS 802"
+    ColorPage:
+      type: object
+      properties:
+        page:
+          type: integer
+          description: The current page number.
+          example: 1
+        per_page:
+          type: integer
+          description: Number of users per page.
+          example: 1
+        total:
+          type: integer
+          description: Total number of users.
+          example: 1
+        total_pages:
+          type: integer
+          description: Total number of pages.
+          example: 1
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Color'
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 7
+        email:
+          type: string
+          example: "michael.lawson@reqres.in"
+        first_name:
+          type: string
+          example: "Michael"
+        last_name:
+          type: string
+          example: "Lawson"
+        avatar:
+          type: string
+          example: "https://reqres.in/img/faces/7-image.jpg"
+    UserPage:
+      type: object
+      properties:
+        page:
+          type: integer
+          description: The current page number.
+          example: 1
+        per_page:
+          type: integer
+          description: Number of users per page.
+          example: 1
+        total:
+          type: integer
+          description: Total number of users.
+          example: 1
+        total_pages:
+          type: integer
+          description: Total number of pages.
+          example: 1
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+    Credentials:
+      type: object
+      properties:
+          email:
+            type: string
+            example: "eve.holt@reqres.in"
+            description: The email for login
+          password:
+            type: string
+            example: "cityslicka"
+            description: The password
+    TokenResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: User Id
+        token:
+          type: string
+          description: Authentication token returned after login

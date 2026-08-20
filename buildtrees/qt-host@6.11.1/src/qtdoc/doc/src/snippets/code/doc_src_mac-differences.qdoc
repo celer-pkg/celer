@@ -1,0 +1,20 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [0]
+QMAKE_LFLAGS_SONAME  = -Wl,-install_name,@executable_path/../Frameworks/
+//! [0]
+
+
+//! [1]
+#ifdef Q_OS_MACOS
+    CFURLRef appUrlRef = CFBundleCopyBundleURL(CFBundleGetMainBundle());
+    CFStringRef macPath = CFURLCopyFileSystemPath(appUrlRef,
+                                           kCFURLPOSIXPathStyle);
+    const char *pathPtr = CFStringGetCStringPtr(macPath,
+                                           CFStringGetSystemEncoding());
+    qDebug("Path = %s", pathPtr);
+    CFRelease(appUrlRef);
+    CFRelease(macPath);
+#endif
+//! [1]

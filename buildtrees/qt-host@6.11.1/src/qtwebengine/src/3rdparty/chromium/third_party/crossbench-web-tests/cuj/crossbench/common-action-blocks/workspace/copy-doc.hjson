@@ -1,0 +1,80 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  actions: [
+    {
+      action: get
+      url: $[DOC_URL]
+      ready_state: complete
+    }
+    {
+      // Clicking the file menu while the JS is still loading stuff can make the
+      // file menu dissappear. Sometimes this allows the verify to pass, but the
+      // make a copy click to fail. So add a wait here.
+      action: wait
+      duration: 10s
+    }
+    {
+      action: click
+      pos: {
+        selector: "#docs-file-menu[role='menuitem']$[ARIA_DISABLED]"
+        required: true
+        scroll_into_view: true
+        wait: true
+      }
+      verify: $[ARIA_DISABLED] [aria-label='Make a copy c']
+      source: $[CLICK_INPUT_SOURCE]
+      timeout: 10s
+      attempts: 3
+    }
+    {
+      action: click
+      pos: {
+        selector: $[ARIA_DISABLED] [aria-label='Make a copy c']
+        required: true
+        scroll_into_view: true
+        wait: true
+      }
+      source: $[CLICK_INPUT_SOURCE]
+      timeout: 15s
+    }
+    $[...AFTER_MAKE_COPY_CLICK_ACTIONS]
+    {
+      action: wait_for_element
+      selector: "[aria-modal='true'] input[type='text']:focus"
+    }
+    {
+      action: text_input
+      text: $[TEST_NAME]
+      source: keyboard
+    }
+    {
+      action: js
+      script: performance.mark('setup-complete');
+    }
+    {
+      action: click
+      pos: {
+        selector: "[data-mdc-dialog-action='ok']"
+        required: true
+        scroll_into_view: true
+      }
+      verify: body:not(:has([aria-modal='true'][role='dialog']))
+      source: $[CLICK_INPUT_SOURCE]
+    }
+    {
+      action: switch_tab
+      title: ^$[TEST_NAME]
+      timeout: 45s
+    }
+    {
+      action: wait_for_ready_state
+      ready_state: complete
+    }
+    {
+      action: wait
+      duration: 2s
+    }
+  ]
+}

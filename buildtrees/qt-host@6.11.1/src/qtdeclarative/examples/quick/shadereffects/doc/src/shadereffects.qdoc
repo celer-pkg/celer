@@ -1,0 +1,48 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+    \title Qt Quick Examples - Shader Effects
+    \example shadereffects
+    \image qml-shadereffects-example.png
+    \brief A Qt Quick example demonstrating the use of shader effects.
+    \ingroup qtquickexamples
+    \examplecategory {Graphics}
+
+    This example demonstrates a couple of visual effects that you can perform
+    with shaders in Qt Quick. It applies five different effects on a text and
+    a couple of images. For more information, visit
+    \l{Important Concepts In Qt Quick - Graphical Effects}
+
+    \include examples-run.qdocinc
+
+    \section1 Using ShaderEffect
+
+    The \l ShaderEffect type typically operates on other types, using a
+    \l ShaderEffectSource:
+    \snippet shadereffects/shadereffects.qml source
+
+    In the above snippet, \c theItem is the ID of a complex QML object in the
+    file.
+
+    ShaderEffects can use this ShaderEffectSource as a texture in their fragment
+    shader:
+    \snippet shadereffects/shadereffects.qml fragment
+
+    In order to support multiple graphics APIs, not just OpenGL, the
+    shader source is not embedded into QML.  The referenced \c{.qsb}
+    file is a pre-generated shader pack containing multiple variants
+    of the shader code. The appropriate shader is then chosen by Qt
+    Quick at run time, depending on the graphics API (Vulkan, Metal,
+    Direct3D 11, or OpenGL) used at run time. The .qsb file is
+    generated offline and is bundled with the executable via the Qt
+    Resource System.
+
+    You can use any custom property on the ShaderEffect in your shader. This
+    makes animated shader code very easy:
+    \snippet shadereffects/shadereffects.qml properties
+
+    ShaderEffects can also have a custom vertext shader. Setting the mesh
+    property on ShaderEffect provides more vertices for you to manipulate,
+    enabling more effects.
+    \snippet shadereffects/shadereffects.qml vertex
+*/

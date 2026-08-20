@@ -1,0 +1,59 @@
+version: 2
+accept_configuration:
+  condition: or
+  conditions:
+    # Include all windows targets
+    - condition: property
+      property: target.os
+      equals_value: "Windows"
+
+instructions:
+  Build:
+    - type: EnvironmentVariable
+      variableName: VERIFY_SOURCE_SBOM
+      variableValue: "ON"
+    - type: EnvironmentVariable
+      variableName: QT_CI_SKIP_MODULE_BUILD
+      variableValue: "1"
+      enable_if:
+        condition: property
+        property: features
+        contains_value: Documentation
+    - type: AppendToEnvironmentVariable
+      variableName: NON_QTBASE_CONFIGURE_ARGS
+      variableValue: " -DQT_NO_AX_SERVER_REGISTRATION=ON"
+      disable_if:
+        condition: property
+        property: features
+        contains_value: UseConfigure
+    - type: AppendToEnvironmentVariable
+      variableName: NON_QTBASE_TARGET_CONFIGURE_ARGS
+      variableValue: " -DQT_NO_AX_SERVER_REGISTRATION=ON"
+      disable_if:
+        condition: property
+        property: features
+        contains_value: UseConfigure
+    - type: AppendToEnvironmentVariable
+      variableName: NON_QTBASE_CMAKE_ARGS
+      variableValue: " -DQT_NO_AX_SERVER_REGISTRATION=ON"
+      enable_if:
+        condition: property
+        property: features
+        contains_value: UseConfigure
+    - type: AppendToEnvironmentVariable
+      variableName: NON_QTBASE_TARGET_CMAKE_ARGS
+      variableValue: " -DQT_NO_AX_SERVER_REGISTRATION=ON"
+      enable_if:
+        condition: property
+        property: features
+        contains_value: UseConfigure
+    - !include "{{qt/qtbase}}/coin_module_build_template_v2.yaml"
+
+  Test:
+    - type: Group
+      instructions:
+        - !include "{{qt/qtbase}}/coin_module_test_template_v3.yaml"
+      disable_if:
+        condition: property
+        property: features
+        contains_value: Documentation

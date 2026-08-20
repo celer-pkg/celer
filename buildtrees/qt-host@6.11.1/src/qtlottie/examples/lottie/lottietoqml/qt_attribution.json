@@ -1,0 +1,109 @@
+[
+    {
+        "Id": "fingerprint-icon",
+        "Name": "Fingerprint Icon",
+        "QDocModule": "qtlottieanimation",
+        "QtUsage": "Used in the lottietoqml Example",
+        "QtParts": [ "examples" ],
+        "Files": [ "original/FingerprintIcon.json"  ],
+        "LicenseId": "LicenseRef-Lottie-Simple-License-9.13.21",
+        "License": "Lottie Simple License 9.13.21",
+        "Copyright": "Copyright (C) 2025 Solitudinem"
+    },
+
+    {
+        "Id": "google-icons",
+        "Name": "Google Icons",
+        "QDocModule": "qtlottieanimation",
+        "QtUsage": "Used in the lottietoqml Example",
+        "QtParts": [ "examples" ],
+        "Files": [ "original/GoogleIcons.json" ],
+        "LicenseId": "LicenseRef-Lottie-Simple-License-9.13.21",
+        "License": "Lottie Simple License 9.13.21",
+        "Copyright": "Copyright (C) 2025 Jeffrey Christopher"
+    },
+
+    {
+        "Id": "happy-star",
+        "Name": "Happy Star",
+        "QDocModule": "qtlottieanimation",
+        "QtUsage": "Used in the lottietoqml Example",
+        "QtParts": [ "examples" ],
+        "Files": [ "original/HappyStar.json" ],
+        "LicenseId": "LicenseRef-Lottie-Simple-License-9.13.21",
+        "License": "Lottie Simple License 9.13.21",
+        "Copyright": "Copyright (C) 2025 Natalia Świerz"
+    },
+
+    {
+        "Id": "heartbeat-medical",
+        "Name": "Heartbeat | Medical",
+        "QDocModule": "qtlottieanimation",
+        "QtUsage": "Used in the lottietoqml Example",
+        "QtParts": [ "examples" ],
+        "Files": [ "original/HeartMedical.json" ],
+        "LicenseId": "LicenseRef-Lottie-Simple-License-9.13.21",
+        "License": "Lottie Simple License 9.13.21",
+        "Copyright": "Copyright (C) 2025 Sarpreet Kalyan"
+    },
+
+    {
+        "Id": "surprised-boy",
+        "Name": "Surprised Boy",
+        "QDocModule": "qtlottieanimation",
+        "QtUsage": "Used in the lottietoqml Example",
+        "QtParts": [ "examples" ],
+        "Files": [ "original/SurprisedBoy.json" ],
+        "LicenseId": "LicenseRef-Lottie-Simple-License-9.13.21",
+        "License": "Lottie Simple License 9.13.21",
+        "Copyright": "Copyright (C) 2025 Hizen"
+    },
+
+    {
+        "Id": "usa-map-with-outlines-blue",
+        "Name": "USA Map with outlines blue",
+        "QDocModule": "qtlottieanimation",
+        "QtUsage": "Used in the lottietoqml Example",
+        "QtParts": [ "examples" ],
+        "Files": [ "original/USAMapWithOutlines.json" ],
+        "LicenseId": "LicenseRef-Lottie-Simple-License-9.13.21",
+        "License": "Lottie Simple License 9.13.21",
+        "Copyright": "Copyright (C) 2025 Marina Trajkovska"
+    },
+
+    {
+        "Id": "user-authentication",
+        "Name": "User Authentication",
+        "QDocModule": "qtlottieanimation",
+        "QtUsage": "Used in the lottietoqml Example",
+        "QtParts": [ "examples" ],
+        "Files": [ "original/UserAuthentication.json" ],
+        "LicenseId": "LicenseRef-Lottie-Simple-License-9.13.21",
+        "License": "Lottie Simple License 9.13.21",
+        "Copyright": "Copyright (C) 2025 Musa Adanur"
+    },
+
+    {
+        "Id": "user-interaction",
+        "Name": "User Interaction",
+        "QDocModule": "qtlottieanimation",
+        "QtUsage": "Used in the lottietoqml Example",
+        "QtParts": [ "examples" ],
+        "Files": [ "original/UserInteractionAnimation.json" ],
+        "LicenseId": "LicenseRef-Lottie-Simple-License-9.13.21",
+        "License": "Lottie Simple License 9.13.21",
+        "Copyright": "Copyright (C) 2025 Mahendra Bhunwal"
+    },
+
+    {
+        "Id": "user-interface",
+        "Name": "User Interface",
+        "QDocModule": "qtlottieanimation",
+        "QtUsage": "Used in the lottietoqml Example",
+        "QtParts": [ "examples" ],
+        "Files": [ "original/UserInterface.json" ],
+        "LicenseId": "LicenseRef-Lottie-Simple-License-9.13.21",
+        "License": "Lottie Simple License 9.13.21",
+        "Copyright": "Copyright (C) 2025 Bashir Ahmad"
+    }
+]

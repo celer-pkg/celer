@@ -1,0 +1,17 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+syntax = "proto3";
+
+package qtgrpc.examples;
+
+message AnswerRequest {
+    string question = 1;
+}
+
+message AnswerResponse {
+    string message = 1;
+}
+
+service ExampleService {
+    rpc answerMethod(AnswerRequest) returns (AnswerResponse) {}
+}

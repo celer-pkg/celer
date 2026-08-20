@@ -1,0 +1,4 @@
+# Copyright (C) 2025 The Qt Company Ltd.
+# SPDX-License-Identifier: BSD-3-Clause
+
+qt_commandline_option(openapi_generator TYPE boolean)

@@ -1,0 +1,14 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example relationaltablemodel
+    \title Relational Table Model Example
+    \ingroup sql_examples
+    \examplecategory {Data Processing & I/O}
+
+    \brief The Relational Table Model example shows how to use table views with a relational
+    model to visualize the relations between items in a database.
+
+    \image relationaltablemodel-example.png {The main window displays the relationship between a user's name, the city that that they are from, as well as the corresponding country}
+*/

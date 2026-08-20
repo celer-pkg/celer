@@ -1,0 +1,211 @@
+version = 1
+
+[[annotations]]
+path = ["src/quick3dparticles/designer/images/*.png",
+        "src/quick3d/designer/images/*.png",
+        "src/runtimerender/res/rhishaders/*.frag",
+        "src/quick3dparticleeffects/designer/images/*.png",
+        "src/quick3d/designer/source/*.frag",
+        "src/helpers/**.png",
+        "src/helpers/**.jpeg",
+        "src/**.mesh",
+        "src/effects/shaders/*.frag",
+        "src/assetutils/designer/images/*.png",
+        "src/effects/**.png",
+        "src/glslparser/specification/**",
+        "src/assetimport/**",
+        "src/quick3d/**",
+        "src/plugins/**",
+        "src/plugins/**"]
+precedence = "closest"
+comment = "module and plugin"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GPL-3.0-only"
+
+[[annotations]]
+path = ["tests/**.png", "tests/**.jpg", "tests/**.mesh", "tests/**.frag",
+        "tests/**.vert", "tests/**.qml", "tests/**.xml",
+        "tests/auto/assetimport/**", "tests/**.cpp", "tests/**.qsb",
+        "tests/**.bin",
+        "tests/baseline/data/lighting/lightmaps/qlm_box.exr",
+        "tests/baseline/data/particles3d/qt_logo_in_4096.cbor",
+        "tests/baseline/scenegrabber_xr/testscenes/maps/oulu_2.jpeg",
+        "tests/baseline/data/shared/maps/oulu_2.jpeg"]
+precedence = "closest"
+comment = "test"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GPL-3.0-only"
+
+[[annotations]]
+path = ["tools/**.png", "tools/**.frag",
+        "tools/**.DS_Store", "tools/**.mesh"]
+precedence = "closest"
+comment = "tools and utils according to licenseRule.json"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0"
+
+[[annotations]]
+path = ["**.pro", "**.qrc", "**CMakeLists.txt", ".cmake.conf", "**.yaml",
+        "**.cfg", "**.plist.in", "**.conf", "**.cmake", "**.pri", "**BLACKLIST",
+        "**ci_config_linux.json", ".tag"]
+precedence = "closest"
+comment = "build system"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
+path = ["**/.gitattributes", "**.gitignore", "**.gitreview",
+        "tests/baseline/data/Ignore", ".gitmodules", ]
+precedence = "closest"
+comment = "version control system. Licensed as build system"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
+
+[[annotations]]
+path = ["examples/**"]
+comment = "this must be after the build system table because example and snippets take precedence over build system"
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
+
+[[annotations]]
+path = ["**/doc/images/**", "**/README*", "**.qdocconf", "**.metainfo", "config_help.txt",
+        "tests/baseline/INSTRUCTIONS.txt"]
+comment = "documentation"
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only"
+
+[[annotations]]
+path = ["**.toml", "licenseRule.json"]
+comment = "infrastructure"
+precedence = "override"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"
+
+[[annotations]]
+path = ["**/qt_attribution.json"]
+comment = "documentation"
+precedence = "override"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only"
+
+[[annotations]]
+path = [".clang-format"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) 2016 Olivier Goffart <ogoffart@woboq.com>"
+SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
+path = ["tests/manual/volumetric/custom.frag",
+        "tests/manual/volumetric/custom.vert"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (c) 2018 Will Usher"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "tests/baseline/data/lighting/maps/OpenfootageNET_Gerlos-512.hdr"
+precedence = "override"
+SPDX-FileCopyrightText = "https://www.openfootage.net/hdri-360-gerlos-austria/"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = "tests/baseline/data/lighting/maps/OpenfootageNET_fieldairport-512.hdr"
+precedence = "override"
+SPDX-FileCopyrightText = "https://www.openfootage.net/hdri-360-field-airport-salzburg-austria/"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = ["tests/baseline/data/lighting/maps/OpenfootageNET_garage-1024.hdr",
+        "tests/manual/principledmaterial/maps/OpenfootageNET_garage-1024.hdr",
+        "tests/baseline/data/lighting/maps/OpenfootageNET_garage-1024.hdr",
+        "tests/baseline/data/reflectionprobe/maps/OpenfootageNET_garage-1024.hdr",
+        "tests/manual/reflectionprobe/OpenfootageNET_garage-1024.hdr",
+        "tests/manual/volumetric/OpenfootageNET_garage-1024.hdr",
+        "examples/quick3d/principledmaterial/maps/OpenfootageNET_garage-1024.hdr",
+        "tests/baseline/data/reflectionprobe/maps/OpenfootageNET_garage-1024.hdr",
+        "tests/manual/principledmaterial/maps/OpenfootageNET_garage-1024.hdr",
+        "tests/manual/reflectionprobe/OpenfootageNET_garage-1024.hdr",
+        "tests/manual/volumetric/OpenfootageNET_garage-1024.hdr",
+        "tests/baseline/data/lighting/maps/garage-bc1.ktx"]
+precedence = "override"
+comment = "The ktx file has been converted by us."
+SPDX-FileCopyrightText = "https://www.openfootage.net/hdri-360-degree-garage/"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = ["tests/baseline/data/lighting/maps/OpenfootageNET_lowerAustria01-512.hdr",
+        "tests/baseline/data/shared/maps/OpenfootageNET_lowerAustria01-1024.hdr",
+        "tools/materialeditor/assets/skybox/OpenfootageNET_lowerAustria01-1024.hdr",
+        "examples/quick3d/custommaterial/maps/OpenfootageNET_lowerAustria01-1024.hdr",
+        "examples/quick3d/reflectionprobes/res/OpenfootageNET_lowerAustria01-1024.hdr",
+        "examples/quick3d/reflectionprobes/res/OpenfootageNET_lowerAustria01-1024.hdr",
+        "examples/quick3d/screenspacereflections/maps/OpenfootageNET_lowerAustria01-1024.hdr",
+        "tests/baseline/data/lighting/maps/OpenfootageNET_lowerAustria01-512.hdr",
+        "tests/baseline/data/shared/maps/OpenfootageNET_lowerAustria01-1024.hdr"]
+precedence = "override"
+SPDX-FileCopyrightText = "https://www.openfootage.net/hdri-360-lower-austria/"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = ["tests/baseline/data/shared/maps/fishpond_bc1.ktx",
+        "tests/baseline/data/shared/maps/fishpond_bc1.txt"]
+precedence = "override"
+SPDX-FileCopyrightText = "Copyright (c) Emil Persson https://www.humus.name"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = ["tests/manual/principledmaterial/maps/metallic/basemetal.astc",
+        "tests/manual/principledmaterial/maps/metallic/normalrough.astc"]
+precedence = "override"
+comment = "These have been converted by us from the principled material example. Original source is lost."
+SPDX-FileCopyrightText = "Unknown"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = ["tests/baseline/data/shared/maps/TestEnvironment-512.hdr",
+        "tests/baseline/data/shared/maps/TestEnvironment-512.exr",
+        "tests/baseline/scenegrabber_xr/testscenes/maps/TestEnvironment-512.hdr",
+        "tests/baseline/data/lighting/maps/TestEnvironment-512_R.exr",
+        "tests/baseline/data/lighting/maps/TestEnvironment-512_tiled.exr"]
+precedence = "override"
+comment = "Copyright DD?"
+SPDX-FileCopyrightText = "Unknown"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = ["tests/baseline/scenegrabber_xr/testscenes/maps/skybox/skybox-image.txt",
+        "tests/manual/qmlxr/testscenes/maps/skybox/*.jpg"]
+precedence = "override"
+SPDX-FileCopyrightText = "https://learnopengl.com/About"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = ["tests/baseline/data/shared/maps/cubemap_bc1.ktx",
+        "tests/manual/reflectionprobe/cubemap_bc1.ktx",
+        "tests/baseline/data/shared/maps/miptester_etc2.ktx"]
+precedence = "override"
+SPDX-FileCopyrightText = "Unknown"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = ["tests/baseline/data/shared/maps/o1_bc1.ktx",
+        "tests/baseline/data/shared/maps/t2_bc2.ktx"]
+precedence = "override"
+comment = "These are from the qtdeclarative repo from its Lancelot tests."
+SPDX-FileCopyrightText = "Unknown"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = "tests/baseline/scenegrabber/trim.ttf"
+precedence = "override"
+comment = "Released under the terms of the Unlicense.TrimRegularTrim - RegularTrim1.0Trim-Regula"
+SPDX-FileCopyrightText = "Unknown"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = "examples/quick3d/xr_shared/assets/arrows.gltf"
+precedence = "override"
+comment = "can't be read in file"
+SPDX-FileCopyrightText = "Copyright (C) The Qt Company Ltd."
+SPDX-License-Identifier = "LicenseRef-Qt-Commercial OR BSD-3-Clause"

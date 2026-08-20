@@ -1,0 +1,260 @@
+// Copyright (C) 2026 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example common/aerospacehub
+    \meta tags {Graphs, GraphsView, AreaSeries, BarSeries, PieSeries, SplineSeries, Bars3D, Scatter3D, Surface3D}
+    \examplecategory {Data Visualization}
+    \title Wind Turbine Dashboard
+    \ingroup qtgraphs_qmlexamples
+    \ingroup qtgraphs_qmlexamples_3D
+    \brief A wind turbine dashboard with 2D and 3D graphs.
+
+    The \e {Wind Turbine Dashboard} example demonstrates how to use both 2D and 3D graphs
+    in a simulated real-world application.
+
+    \image aerospacehub-example.webp
+
+    \include examples-run.qdocinc
+
+    \section1 Overview of the Application
+
+    The example demonstrates a wind turbine monitoring dashboard, referred to as the Aerospace
+    Hub, which displays simulated data from an imaginary wind turbine field. A variety of graph
+    types are employed to visualize different kinds of data. For example, a 2D graph with a
+    spline series illustrates hourly power output, while an accompanying area series represents
+    the accumulated power over the same period. Multiple data views are available, allowing
+    users to explore and analyze the information from different perspectives.
+
+    The main interface features a settings toolbar on the left. Depending on the selected mode,
+    the layout may include a status pane, a dashboard of smaller graphs, a primary large graph,
+    or a detailed settings panel - either individually or in combination. This flexible design
+    enables users to customize their view and focus on the most relevant data for their
+    current analysis.
+
+    \section2 Dashboard View
+
+    The dashboard view presents the current system status alongside a scrollable pane that
+    displays miniature previews of the various graphs. Up to four graphs are shown
+    simultaneously, allowing users to conveniently browse through all six available
+    visualizations and quickly assess key performance metrics at a glance.
+
+    \image aerospacehub-dashboard.webp
+
+    \section2 Detail View
+
+    The detail view, accessible by selecting a miniature graph from the dashboard, enables
+    users to examine the chosen visualization in greater depth and at a larger scale.
+    Depending on the graph type, users can zoom, pan, or rotate the view to explore the
+    data interactively. Additionally, individual data points can be hovered over or clicked
+    to reveal more detailed information about the specific item of interest.
+
+    \image aerospacehub-detailview.webp
+
+    \section2 Settings View
+
+    The settings view, accessible by clicking either the settings button in the toolbar or
+    in a miniature graph, allows users to adjust the visual theme of the graphs and modify
+    settings specific to each graph type. Certain configurations persist after exiting the
+    settings view, while others apply only within the current view, providing
+    flexibility for both temporary and permanent adjustments.
+
+    \image aerospacehub-settingsview.webp
+
+\omit
+    \section1 Data Simulation
+
+    TODO
+\endomit
+
+    \section1 Implementation Details
+
+    Everything in the application has been designed in a modular fashion. Main view, which is
+    the \c {Main.qml} file, is an \l {ApplicationWindow}, which instantiates the data simulators
+    for each graph, as well as the root \l Item holding all of the UI elements.
+
+    The \l {FontLoader} is used for applying a global font for the whole UI.
+
+    \qml
+    ApplicationWindow {
+        ...
+
+        FontLoader { ... }
+        font.family: interFont.name
+
+        // Data simulators
+        PieSimulator {
+            id: piesim
+            ...
+        }
+
+        BarSimulator {
+            id: barsim
+            ...
+        }
+
+        LineSimulator {
+            id: linesim
+            ...
+        }
+
+        Data3DSimulator {
+            id: barDataSimulator
+            ...
+        }
+
+        Data3DSimulator {
+            id: scatterDataSimulator
+            ...
+        }
+
+        Data3DSimulator {
+            id: surfaceDataSimulator
+            ...
+        }
+
+        // Root item
+        Item {...}
+    }
+    \endqml
+
+    The root item holds the background graphics and a \l Layout handling the placement of
+    each UI element in the view:
+
+    \snippet common/aerospacehub/Main.qml rootitem
+    \dots
+
+    Most of the elements have been taken out of the \c {Main.qml} file itself into their own
+    QML components to be used in the layouts, like the \c ToolBarItem in the snippet below:
+
+    \snippet common/aerospacehub/Main.qml toolbar
+    \dots
+
+    Transitions between different view is handled using \c states and \c {transitions}:
+
+    \snippet common/aerospacehub/Main.qml states
+    \dots
+
+    \snippet common/aerospacehub/Main.qml transitions
+
+    \section2 Dashboard
+
+    Dashboard is a part of the main content, another \l RowLayout inside the \l Layout hierarchy:
+
+    \snippet common/aerospacehub/Main.qml maincontent
+    \dots
+
+    It is made up of a status pane and a dashboard pane:
+
+    \snippet common/aerospacehub/Main.qml dashboard
+
+    \section3 Status Pane
+
+    Status pane has also been made up of smaller elements, implemented in their own QML
+    components:
+
+    \snippet common/aerospacehub/qml/StatusPane.qml statuspane
+    \dots
+
+    The implementation of these is not relevant, so that part will be skipped.
+
+    \section3 Dashboard Pane
+
+    Dashboard is the element holding the six small graph previews. Only four of those are
+    visible at a time, so they have to be added inside an element that can be scrolled.
+    In this case, it is done with a \l {Flickable}, which holds a \l {GridLayout}:
+
+    \snippet common/aerospacehub/qml/DashboardPane.qml dashboard
+    \dots
+
+    The graph previews are added inside the grid layout, and like most other elements,
+    they have been implemented inside their own elements:
+
+    \snippet common/aerospacehub/qml/DashboardPane.qml previews
+    \dots 0
+
+    The \c SmallGraphItem element is a generic one, holding all different graph types
+    inside it, and the required type is given to it as a \c {state}.
+
+    SmallGraphItem has:
+    \list
+    \li A header element
+    \li An instance of each graph type, for which visibility is set to false by default using an
+        opacity trigger
+    \li A rectangle to darken the preview
+    \li A mouse area to handle hover and mouse clicks on the preview
+    \endlist
+
+    \snippet common/aerospacehub/qml/SmallGraphItem.qml previewgraphs
+    \dots 0
+
+    Opacities are used for transition animations, which is why they have been set to 0 in the
+    previews by default. When opacity is animated above 0.5, the preview graph itself is set
+    visible:
+
+    \snippet common/aerospacehub/qml/Bar3DGraph.qml bargraph
+    \dots
+
+    \section2 Details
+
+    Details is also a part of the main content, using the same \l RowLayout inside the
+    \l Layout hierarchy. It is made up of the same status pane as the \l {Dashboard}, and
+    a details pane:
+
+    \snippet common/aerospacehub/Main.qml detail
+
+    The details pane, \c {BigGraphItem}, is similar to the \c SmallGraphItem in a sense that
+    it also holds an instance of each graph in it, in addition to other elements:
+
+    \snippet common/aerospacehub/qml/BigGraphItem.qml graphs
+    \dots 0
+
+    Other elements included are a dropdown combobox for selecting the graph type, control
+    buttons for rotating, panning, and zooming - depending on the graph type - and  a tooltip
+    for the buttons. Like \c {SmallGraphItem}, the graph type shown is decided based on
+    the state.
+
+    \section2 Settings
+
+    Settings has been taken outside the main content \l {Layout}, as it is not using any parts
+    of the \l Dashboard or \l Details views:
+
+    \snippet common/aerospacehub/Main.qml settings
+    \dots
+
+    Settings view holds another \c BigGraphItem for displaying the graph, and a settings pane
+    for adjusting either the \l GraphsTheme properties or some properties sepcific to the
+    selected graph type.
+
+    \snippet common/aerospacehub/qml/SettingsItem.qml settingsview
+    \dots
+
+    \section3 Global Theme
+
+    The settings on the \uicontrol {General Settings} tab affect all graphs in the application.
+    A global \l GraphsTheme has been implemented as a \c Singleton in \c {GlobalSettings.qml}:
+
+    \snippet common/aerospacehub/qml/GlobalSettings.qml singleton
+    \dots 0
+    \snippet common/aerospacehub/qml/GlobalSettings.qml global
+    \dots
+    \snippet common/aerospacehub/qml/GlobalSettings.qml sharedtheme
+
+    This global shared theme is set to each graph as the theme:
+
+    \snippet common/aerospacehub/qml/Area2DGraph.qml theme
+
+    As a singleton, the \c GlobalSettings.qml needs to be tagged as one in the \c {CMakeLists.txt}
+    as well, to be usable in the application:
+
+    \code
+    set_source_files_properties(qml/GlobalSettings.qml
+        PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+    \endcode
+
+    \section3 Graph Settings
+
+    The settings in the \uicontrol {Graph Settings} tab only affect the currently selected
+    graph. These settings do not change the global theme, but the series in the active
+    graph only.
+*/

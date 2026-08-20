@@ -1,0 +1,65 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qt-edu-raspberry-pi.html
+    \title Developing on Raspberry Pi
+
+    With \l {Qt Edu for Developers} package, you can also develop for embedded
+    devices with Raspberry Pi as target hardware. This is done by adding a
+    \e {Qt Board Support Package} (QBSP) to your existing Qt installation, and
+    flashing an SD card used by Raspberry Pi with a \e {Boot to Qt} system
+    image.
+
+    \note Windows and Linux are supported as development hosts, but \macos is
+          not supported.
+
+    First, complete the \l {Qt Edu for Developers} installation steps before
+    continuing.
+
+    \section1 1. Download QBSP
+
+    Log in to your \l {https://login.qt.io/login}{Qt Account}. Go to the
+    \uicontrol Downloads section and select \e {Qt for Device Creation QBSP
+    for the EDU license} from the drop-down menu in the \uicontrol {Product}
+    field.
+
+    \image qt-edu-qbsp.png
+
+    Download the correct version of the \e {.qbsp} file for your development
+    host (Windows or Linux).
+
+    \image qt-edu-qbsp-download.png
+
+    \section1 2. Run the maintenance tool
+
+    Go to Qt's installation folder, and run \uicontrol {MaintenanceTool}.
+
+    \image qt-edu-maintenancetool.png
+
+    Maintenance tool allows you to modify your existing Qt installation.
+    Navigate to \uicontrol {Custom installation} and select
+    \uicontrol {Next}.
+
+    \image qt-edu-custominstallation.png
+
+    Select \uicontrol {Browse QBSP files}. In the file dialog window, locate
+    and select the \c {.qbsp} file you downloaded from your Qt Account.
+
+    \image qt-edu-browse-qbsp.png
+
+    After this, the list of available components is updated. Under
+    \uicontrol {Boot to Qt Software Stack}, select \uicontrol {Raspberry Pi}
+    and then \uicontrol {Next}. This will install the Boot to Qt system image
+    and toolchain for Raspberry Pi.
+
+    \section1 3. Open \QC
+
+    To complete the setup, the Boot to Qt system image needs to be flashed to
+    an SD card used as the boot drive for Raspberry Pi. In addition, \QC
+    needs to be configured for connecting to the device running the Boot to Qt
+    software stack, using either a wired or wireless network connection.
+
+    These steps are performed in \QC, see
+    \l {\QC: Connect \B2Q devices} for details.
+*/

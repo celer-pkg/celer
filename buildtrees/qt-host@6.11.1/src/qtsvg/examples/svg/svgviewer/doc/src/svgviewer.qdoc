@@ -1,0 +1,37 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+    \title SVG Viewer
+    \example svgviewer
+    \image svgviewer-example.png {Screenshot of SVG Viever tool displaying a svg file}
+    \brief A Qt Widgets example for rendering and viewing SVG files.
+    \examplecategory {Graphics}
+
+    The \l{Qt SVG} module uses \l{QPainter} to render SVG files, and this example demonstrates how to use Qt Widgets
+    to display the rendered SVG files. The entire drawing area is places inside a \l{QScrollArea}. This way,
+    when the user wants to zoom in an SVG image, two scrollbars automatically appear to make navigation easy.
+    Moreover, there is an option to export the rendered SVG file to a rasterized image.
+
+    \section1 Rendering
+
+    To open a file, click the file icon or go to the \e{File menu} and click Open. Then, navigate through
+    the file system and choose an SVG file. \l{Qt SVG} uses a software renderer to draw the contents of the file.
+    This delivers pixel-perfect antialiasing and a rich set of features. But for complex SVG files, it can require
+    significant processing on the CPU. For a hardware-accelerated SVG renderer, use \l{VectorImage} instead. Check
+    the \l{2D Graphics in Qt} page for the different ways to load an SVG file in Qt.
+
+    The SVG viewer provides a refresh button to reload the currently opened SVG file. The same button is available from
+    the \e{View menu}. Futhermore, there is an \b{Auto Refresh} option in the \e{View menu} which tells the viewer to
+    automatically re-render the file whenever it is modified.
+
+    The SVG Viewer offers three different backgrounds options: \b{White}, \b{Black}, and \b{Chequered}. Those options
+    can be accessed from the icons in the tool bar or from the \e{Background menu}. Additionally, the same menu
+    has a button to enable or disable the outline around the rendered SVG file.
+
+    \section1 Features
+
+    \b{Since Qt 6.7}, the module has gained additional features. Previously, the module supported only SVG Tiny 1.2.
+    The \e{Features menu} allows you to enable or disable these new features. For example, you can restrict the
+    renderer to the SVG Tiny 1.2 feature set or disable animations entirely. For a full descirption of these features,
+    see the  \l{QtSvg::Option} documentation page.
+*/

@@ -1,0 +1,5 @@
+function(qtquick_compiler_add_resources)
+    message(WARNING "Use qt_add_qml_module instead of qtquick_compiler_add_resources."
+                    "QML and JavaScript files are automatically compiled when creating a QML"
+                    " module.")
+endfunction()

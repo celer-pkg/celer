@@ -1,0 +1,64 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+    \page qtserialbus-changes-qt6.html
+
+    \title Changes to Qt SerialBus
+    \ingroup changes-qt-5-to-6
+    \brief Migrate Qt SerialBus to Qt 6.
+
+    Qt 6 is a result of the conscious effort to make the framework more
+    efficient and easy to use.
+    We try to maintain binary and source compatibility for all the public
+    APIs in each release. But some changes were inevitable in an effort to
+    make Qt a better framework.
+    In this topic, we summarize those changes in Qt SerialBus module and
+    provide guidance to handle them.
+
+    \section1 Changes overview
+    The Qt SerialBus module is generally speaking source compatible with the
+    Qt 5 version and users of the library should be able to continue with no or
+    minor changes to their project.
+
+    \section1 Build system
+    As with Qt 6 in general, the Qt SerialBus module has CMake support in
+    addition to qmake.
+
+    \section1 API changes
+
+    \section2 Qt CAN bus
+
+    \section3 Removal of QCanBusFactoryV2
+    In Qt 6 the QCanBusFactoryV2 has been removed and is no longer part of the
+    public API. Instead QCanBusFactory has gained the additional method
+    QCanBusFactory::availableDevices that needs to be implemented by sub-classes
+    of QCanBusFactory.
+
+    \section3 Changes to QCanBusDevice
+    QCanBusDevice got the following changes:
+    \list
+        \li setConfigurationParameter() and configurationParameter() now use
+            the distinct type ConfigurationKey instead int.
+        \li The functions resetController(), hasBusStatus() and busStatus()
+            are now virtual functions. They have been internal callbacks in
+            Qt 5 due to binary compatibility.
+        \li Custom plugins using one of the private API function
+            QCanBusDevice::createDeviceInfo() need small adoptions as these
+            functions now have the \c plugin name as first parameter and
+            slighly adopted parameter lists.
+    \endlist
+
+    \section3 Changes to QCanBusFrame
+    QCanBusFrame now uses the distinct type \c FrameId, which is a typedef
+    to quint32, so existing code should still work. Anyway, it is recommended
+    to use \c FrameId when upgrading.
+
+    \section2 Qt Modbus
+
+    \section3 Renaming of QModbusRtuSerialMaster and QModbusRtuSerialSlave
+    Following the recommendation of the Modbus organization the class
+    \c QModbusRtuSerialMaster has been renamed to \l QModbusRtuSerialClient and
+    the class \c QModbusRtuSerialSlave has been renamed to \l QModbusRtuSerialServer.
+    It is advised to use the new class names in new or ported code to adhere to
+    the Modbus naming scheme.
+*/

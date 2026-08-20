@@ -1,0 +1,385 @@
+# Copyright 2024-2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This package contains internal helpers for //ink/strokes/internal:brush_tip_extruder
+
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+package(
+    default_visibility = [
+        "//ink/strokes/internal:__pkg__",
+    ],
+)
+
+cc_library(
+    name = "mutable_mesh_view",
+    srcs = ["mutable_mesh_view.cc"],
+    hdrs = ["mutable_mesh_view.h"],
+    deps = [
+        ":extruded_vertex",
+        "//ink/geometry:mesh_format",
+        "//ink/geometry:mutable_mesh",
+        "//ink/geometry:point",
+        "//ink/geometry:triangle",
+        "//ink/geometry:vec",
+        "//ink/strokes/internal:legacy_vertex",
+        "//ink/strokes/internal:stroke_vertex",
+        "@com_google_absl//absl/log:absl_check",
+    ],
+)
+
+cc_test(
+    name = "mutable_mesh_view_test",
+    srcs = ["mutable_mesh_view_test.cc"],
+    deps = [
+        ":extruded_vertex",
+        ":mutable_mesh_view",
+        "//ink/geometry:mutable_mesh",
+        "//ink/geometry:type_matchers",
+        "//ink/strokes/internal:legacy_vertex",
+        "//ink/strokes/internal:stroke_vertex",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "derivative_calculator",
+    srcs = ["derivative_calculator.cc"],
+    hdrs = ["derivative_calculator.h"],
+    deps = [
+        ":mutable_mesh_view",
+        "//ink/geometry:point",
+        "//ink/geometry:segment",
+        "//ink/geometry:triangle",
+        "//ink/geometry:vec",
+        "//ink/geometry/internal:algorithms",
+        "//ink/strokes/internal:stroke_vertex",
+        "@com_google_absl//absl/algorithm:container",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "derivative_calculator_test",
+    srcs = ["derivative_calculator_test.cc"],
+    deps = [
+        ":derivative_calculator",
+        ":mutable_mesh_view",
+        "//ink/geometry:mutable_mesh",
+        "//ink/geometry:point",
+        "//ink/geometry:type_matchers",
+        "//ink/geometry:vec",
+        "//ink/strokes/internal:stroke_vertex",
+        "@com_google_absl//absl/types:span",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "derivative_calculator_helpers",
+    srcs = ["derivative_calculator_helpers.cc"],
+    hdrs = ["derivative_calculator_helpers.h"],
+    deps = [
+        ":mutable_mesh_view",
+        ":side",
+        "//ink/geometry:point",
+        "//ink/strokes/internal:stroke_vertex",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "derivative_calculator_helpers_test",
+    srcs = ["derivative_calculator_helpers_test.cc"],
+    deps = [
+        ":derivative_calculator_helpers",
+        ":mutable_mesh_view",
+        ":side",
+        "//ink/geometry:mutable_mesh",
+        "//ink/geometry:point",
+        "//ink/strokes/internal:stroke_vertex",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "directed_partial_outline",
+    srcs = ["directed_partial_outline.cc"],
+    hdrs = ["directed_partial_outline.h"],
+    deps = [
+        ":mutable_mesh_view",
+        ":side",
+        "//ink/geometry:point",
+        "//ink/geometry:segment",
+        "//ink/geometry:triangle",
+        "//ink/geometry:vec",
+        "//ink/geometry/internal:legacy_segment_intersection",
+        "@com_google_absl//absl/log:absl_check",
+    ],
+)
+
+cc_test(
+    name = "directed_partial_outline_test",
+    srcs = ["directed_partial_outline_test.cc"],
+    deps = [
+        ":directed_partial_outline",
+        ":mutable_mesh_view",
+        ":side",
+        "//ink/geometry:segment",
+        "//ink/geometry:triangle",
+        "//ink/strokes/internal:legacy_vertex",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "extruded_vertex",
+    srcs = ["extruded_vertex.cc"],
+    hdrs = ["extruded_vertex.h"],
+    deps = [
+        "//ink/color",
+        "//ink/geometry:point",
+        "//ink/geometry:triangle",
+        "//ink/geometry/internal:algorithms",
+        "//ink/strokes/internal:legacy_vertex",
+        "//ink/strokes/internal:stroke_vertex",
+        "@com_google_absl//absl/log:absl_check",
+    ],
+)
+
+cc_test(
+    name = "extruded_vertex_test",
+    srcs = ["extruded_vertex_test.cc"],
+    deps = [
+        ":extruded_vertex",
+        "//ink/color:type_matchers",
+        "//ink/geometry:point",
+        "//ink/geometry:type_matchers",
+        "//ink/strokes/internal:legacy_vertex",
+        "//ink/strokes/internal:stroke_vertex",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "find_clockwise_winding_segment",
+    srcs = ["find_clockwise_winding_segment.cc"],
+    hdrs = ["find_clockwise_winding_segment.h"],
+    deps = [
+        ":mutable_mesh_view",
+        ":side",
+        "//ink/geometry:point",
+        "//ink/geometry:segment",
+        "//ink/geometry:triangle",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "find_clockwise_winding_segment_test",
+    srcs = ["find_clockwise_winding_segment_test.cc"],
+    deps = [
+        ":find_clockwise_winding_segment",
+        ":mutable_mesh_view",
+        ":side",
+        "//ink/geometry:point",
+        "//ink/geometry:type_matchers",
+        "//ink/strokes/internal:legacy_vertex",
+        "@com_google_absl//absl/types:span",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "side",
+    hdrs = ["side.h"],
+    deps = [
+        ":extruded_vertex",
+        ":mutable_mesh_view",
+        "//ink/geometry:point",
+    ],
+)
+
+cc_library(
+    name = "geometry",
+    srcs = ["geometry.cc"],
+    hdrs = ["geometry.h"],
+    deps = [
+        ":derivative_calculator",
+        ":derivative_calculator_helpers",
+        ":directed_partial_outline",
+        ":extruded_vertex",
+        ":find_clockwise_winding_segment",
+        ":mutable_mesh_view",
+        ":side",
+        ":simplify",
+        "//ink/geometry:distance",
+        "//ink/geometry:envelope",
+        "//ink/geometry:point",
+        "//ink/geometry:segment",
+        "//ink/geometry:triangle",
+        "//ink/geometry:vec",
+        "//ink/geometry/internal:algorithms",
+        "//ink/geometry/internal:legacy_segment_intersection",
+        "//ink/geometry/internal:legacy_triangle_contains",
+        "//ink/strokes/internal:brush_tip_state",
+        "//ink/strokes/internal:legacy_vertex",
+        "//ink/strokes/internal:stroke_vertex",
+        "@com_google_absl//absl/algorithm:container",
+        "@com_google_absl//absl/base:core_headers",
+        "@com_google_absl//absl/base:nullability",
+        "@com_google_absl//absl/cleanup",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "geometry_non_position_attributes_test",
+    srcs = ["geometry_non_position_attributes_test.cc"],
+    deps = [
+        ":geometry",
+        ":mutable_mesh_view",
+        "//ink/geometry:mutable_mesh",
+        "//ink/geometry:point",
+        "//ink/geometry:type_matchers",
+        "//ink/strokes/internal:brush_tip_state",
+        "//ink/strokes/internal:stroke_vertex",
+        "//ink/types:small_array",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "geometry_extrusion_break_test",
+    srcs = ["geometry_extrusion_break_test.cc"],
+    deps = [
+        ":geometry",
+        ":mutable_mesh_view",
+        ":side",
+        "//ink/geometry:envelope",
+        "//ink/geometry:mutable_mesh",
+        "//ink/geometry:point",
+        "//ink/geometry:rect",
+        "//ink/geometry:type_matchers",
+        "//ink/strokes/internal:stroke_vertex",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:span",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "geometry_save_test",
+    srcs = ["geometry_save_test.cc"],
+    deps = [
+        ":extruded_vertex",
+        ":geometry",
+        ":mutable_mesh_view",
+        ":side",
+        "//ink/geometry:envelope",
+        "//ink/geometry:point",
+        "//ink/geometry:rect",
+        "//ink/geometry:type_matchers",
+        "//ink/strokes/internal:brush_tip_state",
+        "//ink/strokes/internal:legacy_vertex",
+        "@com_google_absl//absl/base:nullability",
+        "@com_google_absl//absl/types:span",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "geometry_test",
+    srcs = ["geometry_test.cc"],
+    deps = [
+        ":extruded_vertex",
+        ":geometry",
+        ":mutable_mesh_view",
+        ":side",
+        ":simplify",
+        "//ink/geometry:distance",
+        "//ink/geometry:envelope",
+        "//ink/geometry:point",
+        "//ink/geometry:rect",
+        "//ink/geometry:segment",
+        "//ink/geometry:type_matchers",
+        "//ink/strokes/internal:brush_tip_state",
+        "//ink/strokes/internal:legacy_vertex",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "geometry_vertex_label_test",
+    srcs = ["geometry_vertex_label_test.cc"],
+    deps = [
+        ":geometry",
+        ":mutable_mesh_view",
+        ":side",
+        "//ink/geometry:mutable_mesh",
+        "//ink/geometry:point",
+        "//ink/geometry:rect",
+        "//ink/geometry:type_matchers",
+        "//ink/strokes/internal:brush_tip_state",
+        "//ink/strokes/internal:stroke_vertex",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "geometry_mesh_derivatives_test",
+    srcs = ["geometry_mesh_derivatives_test.cc"],
+    deps = [
+        ":geometry",
+        ":mutable_mesh_view",
+        "//ink/geometry:mutable_mesh",
+        "//ink/geometry:point",
+        "//ink/geometry:rect",
+        "//ink/geometry:type_matchers",
+        "//ink/geometry:vec",
+        "//ink/strokes/internal:brush_tip_state",
+        "//ink/types:small_array",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "simplify",
+    srcs = ["simplify.cc"],
+    hdrs = ["simplify.h"],
+    deps = [
+        ":extruded_vertex",
+        "//ink/geometry:distance",
+        "//ink/geometry:segment",
+    ],
+)
+
+cc_test(
+    name = "simplify_test",
+    srcs = ["simplify_test.cc"],
+    deps = [
+        ":extruded_vertex",
+        ":simplify",
+        "//ink/geometry:point",
+        "//ink/geometry:type_matchers",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

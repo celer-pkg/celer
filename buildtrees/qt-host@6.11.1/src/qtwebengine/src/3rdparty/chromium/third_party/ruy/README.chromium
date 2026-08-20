@@ -1,0 +1,18 @@
+Name: The ruy matrix multiplication library
+Short Name: ruy
+URL: https://github.com/google/ruy
+Version: 9940fbf1e0c0863907e77e0600b99bb3e2bc2b9f
+Date: 2025-07-22
+License: Apache-2.0
+License File: LICENSE
+Security Critical: Yes
+Shipped: yes
+CPEPrefix: unknown
+
+Description:
+ruy is a matrix multiplication library. Its focus is to cover the matrix
+multiplication needs of neural network inference engines. Its initial user
+has been TensorFlow Lite, where it is used by default on the ARM CPU
+architecture.
+
+ruy supports both floating-point and 8bit-integer-quantized matrices.

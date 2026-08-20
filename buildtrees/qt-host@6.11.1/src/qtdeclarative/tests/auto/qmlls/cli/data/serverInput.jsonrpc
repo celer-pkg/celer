@@ -1,0 +1,5 @@
+Content-Length: 366
+
+{"id":1,"jsonrpc":"2.0","method":"initialize","params":{"capabilities":{"textDocument":{"publishDiagnostics":{},"typeDefinition":{"dynamicRegistration":false,"linkSupport":false}}},"processId":null,"rootPath":null,"rootUri":null,"workspaceFolders":[{"name":"default","uri":"file:///Volumes/case-sensitive-workspace/qt/qtdeclarative/tests/auto/qmlls/modules/data"}]}}Content-Length: 52
+
+{"jsonrpc":"2.0","method":"initialized","params":{}}

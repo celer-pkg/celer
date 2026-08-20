@@ -1,0 +1,33 @@
+// Copyright (C) 2015 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*
+    The nolink entries prevent autolinking of each occurrence of 'WebChannel'
+    'WebEngine' or 'WebSocket' to the QML type.
+    To link to the QML type, use explicit linking. For example:
+        \l [QML] WebChannel
+        \sa {QtWebChannel::}{WebChannel}
+*/
+/*!
+    \externalpage nolink
+    \title WebChannel
+    \internal
+*/
+
+/*!
+    \externalpage nolink
+    \title WebEngine
+    \internal
+*/
+
+/*!
+    \externalpage nolink
+    \title WebSockets
+    \internal
+*/
+
+/*!
+    \externalpage nolink
+    \title WebSocket
+    \internal
+*/

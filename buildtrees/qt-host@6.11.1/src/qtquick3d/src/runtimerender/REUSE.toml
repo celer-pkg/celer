@@ -1,0 +1,9 @@
+version = 1
+
+[[annotations]]
+path = ["res/effectlib/fog.glsllib"]
+precedence = "aggregate"
+comment = "adding info from qt_attribution.json"
+SPDX-FileCopyrightText = ["Copyright (c) 2007-2022 Juan Linietsky, Ariel Manzur.",
+                          "Copyright (c) 2014-2022 Godot Engine contributors"]
+SPDX-License-Identifier = "MIT"

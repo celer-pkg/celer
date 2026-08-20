@@ -1,0 +1,8 @@
+https://www.w3.org/copyright/test-suites-licenses/
+
+The test cases are distributed under a 3-clause BSD license for software development, bug tracking, and other applications that do not require assertions of performance to the public or implied claims of conformance to a W3C Specification. See summary of 3-clause BSD License.
+
+Under the 3-clause BSD license, tests can be copied, altered, and integrated into software development tools, bug tracking tools, etc. This license allows developers, commercial vendors, and open source projects to copy tests and alter them as they wish to test and improve their software. However, if changes are made, the derivative work must not be distributed with W3C logos, unless W3C gives explicit permission.
+
+Note: It is explicitly understood that clause 3 of the BSD license prohibits the assertion of performance claims with respect to W3C Specifications by claiming successful passing of modified tests.
+

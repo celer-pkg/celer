@@ -1,0 +1,11 @@
+//! [file]
+\table
+    \row
+        \li \image qtquickcontrols-\2-light.png
+                   {Gallery of controls in \1 style light theme}
+            \caption The light theme of the \1 style.
+        \li \image qtquickcontrols-\2-dark.png
+                   {Gallery of controls in \1 style dark theme}
+            \caption The dark theme of the \1 style.
+\endtable
+//! [file]

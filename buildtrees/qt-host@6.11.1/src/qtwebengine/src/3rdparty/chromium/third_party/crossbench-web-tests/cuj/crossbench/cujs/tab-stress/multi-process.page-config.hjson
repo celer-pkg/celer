@@ -1,0 +1,30 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  template: ./action-blocks/100-tabs-template.hjson
+  args: {
+    READY_STATE: complete
+    TAB_TARGET: _new_tab
+    PAGE_URL0: https://chromium-workloads.web.app/web-tests/main/cuj/crossbench/cujs/tab-stress/multiprocess/frame-container/?count=5
+    PAGE_URL1: $[PAGE_URL0]
+    PAGE_URL2: $[PAGE_URL0]
+    PAGE_URL3: $[PAGE_URL0]
+    PAGE_URL4: $[PAGE_URL0]
+    PAGE_URL5: $[PAGE_URL0]
+    PAGE_URL6: $[PAGE_URL0]
+    PAGE_URL7: $[PAGE_URL0]
+    PAGE_URL8: $[PAGE_URL0]
+    PAGE_URL9: $[PAGE_URL0]
+    SWITCH_RE0: tab-stress/multiprocess/frame-container/\?count=5
+    SWITCH_RE1: $[SWITCH_RE0]
+    SWITCH_RE2: $[SWITCH_RE0]
+    SWITCH_RE3: $[SWITCH_RE0]
+    SWITCH_RE4: $[SWITCH_RE0]
+    SWITCH_RE5: $[SWITCH_RE0]
+    SWITCH_RE6: $[SWITCH_RE0]
+    SWITCH_RE7: $[SWITCH_RE0]
+    SWITCH_RE8: $[SWITCH_RE0]
+    SWITCH_RE9: $[SWITCH_RE0]
+  }
+}

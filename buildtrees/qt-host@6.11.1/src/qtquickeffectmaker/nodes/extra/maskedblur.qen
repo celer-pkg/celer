@@ -1,0 +1,97 @@
+{
+    "QEN": {
+        "description": "The MaskedBlur effect softens the source content by blurring it with algorithm which uses the source content downscaling and bilinear filtering.  The intensity of the blur can be controlled for each pixel so that some parts of the source are blurred more than others.",
+        "fragmentCode": [
+            "@requires BlurHelper",
+            "",
+            "float blurWeight(float v) {",
+            "    return max(0.0, min(1.0, 1.0 - v * 2.0));",
+            "}",
+            "",
+            "@main",
+            "{",
+            "#if MASKED_BLUR_IMAGE_MASKING == 1",
+            "    // Enable this to use image as a mask.",
+            "    float blurAmount = maskedBlurAmount * texture(maskedBlurMaskSource, texCoord).a;",
+            "#else",
+            "    // Enable these to use position & radius as a mask.",
+            "    float b = distance(texCoord, maskedBlurPos) / maskedBlurRadius;",
+            "    b = min(1.0, max(0.0, b));",
+            "    float blurAmount = maskedBlurAmount * b;",
+            "#endif",
+            "    // Enable this to invert the blur",
+            "    //blurAmount = 1.0 - blurAmount;",
+            "",
+            "    float blurLod = sqrt(blurAmount * (BLUR_HELPER_MAX_LEVEL / 64.0)) * 1.2 - 0.2;",
+            "    float bw1 = blurWeight(abs(blurLod - 0.1));",
+            "    float bw2 = blurWeight(abs(blurLod - 0.3));",
+            "    float bw3 = blurWeight(abs(blurLod - 0.5));",
+            "    float bw4 = blurWeight(abs(blurLod - 0.7));",
+            "    float bw5 = blurWeight(abs(blurLod - 0.9));",
+            "    float bw6 = blurWeight(abs(blurLod - 1.1));",
+            "",
+            "    float bsum = bw1 + bw2 + bw3 + bw4 + bw5 + bw6;",
+            "    vec4 blurWeight1 = vec4(bw1 / bsum, bw2 / bsum, bw3 / bsum, bw4 / bsum);",
+            "    vec2 blurWeight2 = vec2(bw5 / bsum, bw6 / bsum);",
+            "    ",
+            "    vec4 blurredColor = texture(iSource, texCoord) * blurWeight1[0];",
+            "    blurredColor += texture(iSourceBlur1, texCoord) * blurWeight1[1];",
+            "#if (BLUR_HELPER_MAX_LEVEL > 2)",
+            "    blurredColor += texture(iSourceBlur2, texCoord) * blurWeight1[2];",
+            "#endif",
+            "#if (BLUR_HELPER_MAX_LEVEL > 8)",
+            "    blurredColor += texture(iSourceBlur3, texCoord) * blurWeight1[3];",
+            "#endif",
+            "#if (BLUR_HELPER_MAX_LEVEL > 16)",
+            "    blurredColor += texture(iSourceBlur4, texCoord) * blurWeight2[0];",
+            "#endif",
+            "#if (BLUR_HELPER_MAX_LEVEL > 32)",
+            "    blurredColor += texture(iSourceBlur5, texCoord) * blurWeight2[1];",
+            "#endif",
+            "",
+            "    fragColor = blurredColor;",
+            "}",
+            ""
+        ],
+        "name": "MaskedBlur",
+        "properties": [
+            {
+                "defaultValue": "0",
+                "description": "Set this to 1 to use image as blur intensity instead of position and radius values.",
+                "name": "MASKED_BLUR_IMAGE_MASKING",
+                "type": "define"
+            },
+            {
+                "defaultValue": "0",
+                "description": "This value defines the softness of the shadow. A larger value causes the edges of the shadow to appear more blurry.",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "maskedBlurAmount",
+                "type": "float"
+            },
+            {
+                "defaultValue": "",
+                "description": "This property defines the item that is controlling the intensity of the blur. The pixel alpha channel value defines the actual blur radius that is going to be used for blurring the corresponding source pixel. Note: This is only functional when the MASKED_BLUR_IMAGE_MASKING is enabled.",
+                "name": "maskedBlurMaskSource",
+                "type": "image"
+            },
+            {
+                "defaultValue": "0.5, 0.5",
+                "description": "Center position of the masked blur.",
+                "maxValue": "1, 1",
+                "minValue": "0, 0",
+                "name": "maskedBlurPos",
+                "type": "vec2"
+            },
+            {
+                "defaultValue": "0.5",
+                "description": "Radius of the masked blur.",
+                "maxValue": "2",
+                "minValue": "0",
+                "name": "maskedBlurRadius",
+                "type": "float"
+            }
+        ],
+        "version": 1
+    }
+}

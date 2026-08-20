@@ -1,0 +1,109 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\indextitle
+\page index.html
+\keyword Qt Reference Documentation
+
+\div {class="landing"}
+    \div {class="col-1"}
+            \div {class="heading"}
+            \enddiv
+
+                Qt is a full development framework with tools designed to streamline
+                the creation of applications and user interfaces for desktop,
+                embedded, and mobile platforms.
+                See \l{What's New in Qt \QtVer}{what's new in Qt \QtVer}.
+
+                \section1 Essentials
+
+                \l {Qt Essentials} define the foundation of Qt on all platforms.
+
+                \include qtmodules.qdoc essentials
+
+                \section1 Add-ons and Extensions
+
+                Qt add-on and extension modules bring additional value for specific
+                purposes. For more information, see \l {All Modules}.
+
+                \include qtmodules.qdoc addons
+
+                Qt extension modules:
+
+                \include qtmodules.qdoc extensions
+
+                \section1 Technology Preview Add-ons
+
+                Qt modules still in development are available as
+                \l {Qt Add-Ons in Technology Preview}{technology preview} add-ons.
+
+                \include qtmodules.qdoc techpreview-addons
+
+                \section1 Tools
+
+                A cross-platform \l{\QC Documentation}{integrated development environment},
+                design tools, and \l {Development Tools}{more}.
+
+                \section1 Licenses Used in Qt
+
+                Qt Framework and tools are available under both open-source and
+                commercial \l{Qt Licensing}{licenses}.
+
+                The commercially licensed Qt contains additional functionality and
+                productivity tools. For details, see \l{https://www.qt.io/download/}.
+    \enddiv
+    \div {class="col-2 sidebar"}
+            \div {class="sectionlist normallist"}
+                \div {class="heading"}
+                     \section1 Reference
+                \enddiv
+                \div {class="indexboxcont indexboxbar"}
+                    \list
+                    \li \l{All Classes}{All Qt C++ Classes}
+                    \li \l{All QML Types}
+                    \li \l{All Modules}{All Qt Modules}
+                    \li \l{\QC Documentation}
+                    \endlist
+                    \list
+                    \li \l{Qt Reference Pages}{All Qt Reference Documentation}
+                    \endlist
+                \enddiv
+            \enddiv
+        \div {class="sectionlist normallist"}
+            \div {class="heading"}
+                \section1 Getting Started
+            \enddiv
+                \list
+                \li \l{Introduction to Qt}
+                \li \l{Getting Started with Qt}{Getting Started}
+                \li \l{Qt Examples and Tutorials}{Examples and Tutorials}
+                \li \l{Supported Platforms}
+                \li \l{Qt Licensing}
+                \endlist
+                \enddiv
+            \div {class="sectionlist normallist"}
+                \div {class="heading"}
+                     \section1 Overviews
+                \enddiv
+                \list
+                \li \l{Development Tools}
+                \li \l{User Interfaces}
+                \li \l{Core Internals}
+                \li \l{Data Input Output}
+                \li \l{Networking and Connectivity}
+                \li \l{Graphics}
+                \omit //! Not part of Qt 6
+                \li \l{Integrating Web Content}{Web Content}
+                \endomit //! Not part of Qt 6
+                \li \l{Mobile Development}
+                \li \l{Platform Integration}
+                \endlist
+                \list
+                \li \l{Qt Overviews}{All Qt Overviews}
+                \li \l{All Qt Examples}
+                \endlist
+            \enddiv
+    \enddiv
+\enddiv
+*/

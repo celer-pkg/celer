@@ -1,0 +1,166 @@
+{
+    "QEP": {
+        "QQEM": "0.43",
+        "connections": [
+            {
+                "fromId": 2,
+                "toId": 1
+            },
+            {
+                "fromId": 0,
+                "toId": 3
+            },
+            {
+                "fromId": 3,
+                "toId": 4
+            },
+            {
+                "fromId": 4,
+                "toId": 2
+            }
+        ],
+        "exportDirectory": "export",
+        "exportFlags": 11,
+        "exportName": "BarsEffect",
+        "nodes": [
+            {
+                "fragmentCode": [
+                    "void main() {",
+                    "    @nodes",
+                    "    fragColor = fragColor * qt_Opacity;",
+                    "}"
+                ],
+                "name": "Main",
+                "nodeId": 0,
+                "type": 0,
+                "vertexCode": [
+                    "void main() {",
+                    "    texCoord = qt_MultiTexCoord0;",
+                    "    fragCoord = qt_Vertex.xy;",
+                    "    vec2 vertCoord = qt_Vertex.xy;",
+                    "    @nodes",
+                    "    gl_Position = qt_Matrix * vec4(vertCoord, 0.0, 1.0);",
+                    "}"
+                ],
+                "x": 140,
+                "y": 35.400001525878906
+            },
+            {
+                "name": "Output",
+                "nodeId": 1,
+                "type": 1,
+                "x": 140,
+                "y": 592.5999755859375
+            },
+            {
+                "description": "This is a temporary overlay node, used during the shader development.",
+                "disabled": true,
+                "fragmentCode": [
+                    "vec4 overlay = texture(iSource, texCoord);",
+                    "fragColor = mix(fragColor, vec4(overlay.rgb, 1.0), overlay.a);"
+                ],
+                "name": "TempOverlay",
+                "nodeId": 2,
+                "type": 2,
+                "x": 105,
+                "y": 257.8800048828125
+            },
+            {
+                "description": "This is an empty node for creating custom effects.",
+                "fragmentCode": [
+                    "float px = 1.0 / iResolution.y;",
+                    "float sbar = iResolution.y / barSize * 0.5;",
+                    "float movement = -iTime * px * speed;",
+                    "float p = ((fragCoord.y + fragCoord.x * barAngle) * px + movement) * sbar;",
+                    "float bar = abs(2.0 * fract(p) - 1.0);",
+                    "float barSmoothness = 2.0 / barSize;",
+                    "bar = smoothstep(0.5 - barSmoothness, 0.5 + barSmoothness, bar);",
+                    "fragColor = mix(color1, color2, bar);"
+                ],
+                "name": "Bars",
+                "nodeId": 3,
+                "properties": [
+                    {
+                        "defaultValue": "0, 0, 0, 1",
+                        "name": "color1",
+                        "type": "color",
+                        "value": "0, 0, 0, 1"
+                    },
+                    {
+                        "defaultValue": "1, 1, 1, 1",
+                        "name": "color2",
+                        "type": "color",
+                        "value": "1, 1, 1, 1"
+                    },
+                    {
+                        "defaultValue": "30",
+                        "maxValue": "100",
+                        "minValue": "4",
+                        "name": "barSize",
+                        "type": "float",
+                        "value": "30"
+                    },
+                    {
+                        "defaultValue": "50",
+                        "maxValue": "200",
+                        "minValue": "-200",
+                        "name": "speed",
+                        "type": "float",
+                        "value": "50"
+                    },
+                    {
+                        "defaultValue": "0.5",
+                        "maxValue": "1",
+                        "minValue": "-1",
+                        "name": "barAngle",
+                        "type": "float",
+                        "value": "0.5"
+                    }
+                ],
+                "type": 2,
+                "x": 105,
+                "y": 129.55999755859375
+            },
+            {
+                "description": "Masks the source item with another item.",
+                "fragmentCode": [
+                    "@main",
+                    "{",
+                    "    float opacityMaskAmount = texture(opacityMaskSource, texCoord).a;",
+                    "    opacityMaskAmount *= step(1.0 - texCoord.y, value);",
+                    "    fragColor = fragColor * opacityMaskAmount;",
+                    "}"
+                ],
+                "name": "OpacityMask",
+                "nodeId": 4,
+                "properties": [
+                    {
+                        "defaultValue": "../../../../../../Qt/6.6.0/msvc2019_64/qml/QtQuickEffectMaker/defaultnodes/images/mask2.png",
+                        "description": "This property defines the item that is going to be used as the mask. The mask item alpha values are used to determine the source item's pixels visibility in the display.",
+                        "name": "opacityMaskSource",
+                        "type": "image",
+                        "value": "../images/bar_mask.png"
+                    },
+                    {
+                        "defaultValue": "1",
+                        "maxValue": "1",
+                        "minValue": "0",
+                        "name": "value",
+                        "type": "float",
+                        "value": "0.5561"
+                    }
+                ],
+                "type": 2,
+                "x": 105,
+                "y": 193.72000122070312
+            }
+        ],
+        "settings": {
+            "headings": [
+                "// Copyright (C) 2024 The Qt Company Ltd.",
+                "// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only"
+            ]
+        },
+        "version": 1
+    }
+}

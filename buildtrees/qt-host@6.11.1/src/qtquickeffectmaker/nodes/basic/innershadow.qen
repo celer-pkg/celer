@@ -1,0 +1,103 @@
+{
+    "QEN": {
+        "description": "Generates a colorized and blurred shadow inside the source.",
+        "fragmentCode": [
+            "@requires BlurHelper",
+            "float linearstep(float e0, float e1, float x) {",
+            "    return clamp((x - e0) / (e1 - e0), 0.0, 1.0);",
+            "}",
+            "@main",
+            "{",
+            "    float shadow = texture(iSource, innerShadowTexCoord).a * innerShadowBlurWeight1[0];",
+            "    shadow += texture(iSourceBlur1, innerShadowTexCoord).a * innerShadowBlurWeight1[1];",
+            "#if (BLUR_HELPER_MAX_LEVEL > 2)",
+            "    shadow += texture(iSourceBlur2, innerShadowTexCoord).a * innerShadowBlurWeight1[2];",
+            "#endif",
+            "#if (BLUR_HELPER_MAX_LEVEL > 8)",
+            "    shadow += texture(iSourceBlur3, innerShadowTexCoord).a * innerShadowBlurWeight1[3];",
+            "#endif",
+            "#if (BLUR_HELPER_MAX_LEVEL > 16)",
+            "    shadow += texture(iSourceBlur4, innerShadowTexCoord).a * innerShadowBlurWeight2[0];",
+            "#endif",
+            "#if (BLUR_HELPER_MAX_LEVEL > 32)",
+            "    shadow += texture(iSourceBlur5, innerShadowTexCoord).a * innerShadowBlurWeight2[1];",
+            "#endif",
+            "",
+            "    vec4 shadowColor = innerShadowColor  - innerShadowColor * shadow;",
+            "    vec4 originalColor = fragColor;",
+            "    float spread = 1.0 - (innerShadowSpread * 0.98);",
+            "    shadowColor.rgb = mix(originalColor.rgb, innerShadowColor.rgb * originalColor.a, linearstep(0.0, spread, shadowColor.a));",
+            "    fragColor = vec4(shadowColor.rgb, originalColor.a) * originalColor.a;",
+            "}"
+        ],
+        "name": "InnerShadow",
+        "properties": [
+            {
+                "defaultValue": "1",
+                "description": "This property defines how much blur (radius) is applied to the shadow.\n\nThe value ranges from 0.0 (no blur) to 1.0 (full blur). By default, the property is set to 0.0 (no change). The amount of full blur is affected by BlurHelper blurMultiplier property.",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "innerShadowBlurAmount",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0",
+                "description": "HorizontalOffset and verticalOffset properties define the offset for the rendered shadow compared to the InnerShadow item position.",
+                "maxValue": "30",
+                "minValue": "-30",
+                "name": "innerShadowHorizontalOffset",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0",
+                "description": "HorizontalOffset and verticalOffset properties define the offset for the rendered shadow compared to the InnerShadow item position.",
+                "maxValue": "30",
+                "minValue": "-30",
+                "name": "innerShadowVerticalOffset",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0, 0, 0, 1",
+                "description": "This property defines the RGBA color value which is used for the shadow.",
+                "name": "innerShadowColor",
+                "type": "color"
+            },
+            {
+                "defaultValue": "0",
+                "description": "This property defines how large part of the shadow color is strengthened near the source edges.\n\nThe value ranges from 0.0 to 1.0. By default, the property is set to 0.0.",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "innerShadowSpread",
+                "type": "float"
+            }
+        ],
+        "version": 1,
+        "vertexCode": [
+            "out vec2 innerShadowTexCoord;",
+            "out vec4 innerShadowBlurWeight1;",
+            "out vec2 innerShadowBlurWeight2;",
+            "",
+            "float innerShadowBlurWeight(float v) {",
+            "    return max(0.0, min(1.0, 1.0 - v * 2.0));",
+            "}",
+            "",
+            "@main",
+            "{",
+            "    float shadowBlurLod = sqrt(innerShadowBlurAmount * (BLUR_HELPER_MAX_LEVEL / 64.0)) * 1.2 - 0.2;",
+            "    float sbw1 = innerShadowBlurWeight(abs(shadowBlurLod - 0.1));",
+            "    float sbw2 = innerShadowBlurWeight(abs(shadowBlurLod - 0.3));",
+            "    float sbw3 = innerShadowBlurWeight(abs(shadowBlurLod - 0.5));",
+            "    float sbw4 = innerShadowBlurWeight(abs(shadowBlurLod - 0.7));",
+            "    float sbw5 = innerShadowBlurWeight(abs(shadowBlurLod - 0.9));",
+            "    float sbw6 = innerShadowBlurWeight(abs(shadowBlurLod - 1.1));",
+            "",
+            "    float sbsum = sbw1 + sbw2 + sbw3 + sbw4 + sbw5 + sbw6;",
+            "    innerShadowBlurWeight1 = vec4(sbw1 / sbsum, sbw2 / sbsum, sbw3 / sbsum, sbw4 / sbsum);",
+            "    innerShadowBlurWeight2 = vec2(sbw5 / sbsum, sbw6 / sbsum);",
+            "",
+            "    vec2 shadowOffset = vec2(innerShadowHorizontalOffset / iResolution.x, innerShadowVerticalOffset / iResolution.y);",
+            "    innerShadowTexCoord = qt_MultiTexCoord0 - shadowOffset;",
+            "}"
+        ]
+    }
+}

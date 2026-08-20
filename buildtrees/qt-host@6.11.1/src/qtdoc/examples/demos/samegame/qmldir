@@ -1,0 +1,15 @@
+module SameGameModule
+Block 254.0 content/Block.qml
+BlockEmitter 254.0 content/BlockEmitter.qml
+Button 254.0 content/Button.qml
+GameArea 254.0 content/GameArea.qml
+LogoAnimation 254.0 content/LogoAnimation.qml
+MenuEmitter 254.0 content/MenuEmitter.qml
+PaintEmitter 254.0 content/PaintEmitter.qml
+PrimaryPack 254.0 content/PrimaryPack.qml
+PuzzleBlock 254.0 content/PuzzleBlock.qml
+SamegameText 254.0 content/SamegameText.qml
+singleton Settings 254.0 content/Settings.qml
+SimpleBlock 254.0 content/SimpleBlock.qml
+SmokeText 254.0 content/SmokeText.qml
+Main 254.0 Main.qml

@@ -1,0 +1,106 @@
+// Copyright (C) 2018 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtquick-tools-and-utilities.html
+\title Qt Quick Tools and Utilities
+\brief Lists the tools and utilities that enhance developer experience.
+
+Qt offers several tools and utilities to enable a rich developer experience,
+especially for Qt Quick developers. The following sections provide a brief
+introduction to those tools and utilities, and provide links to further
+information about them.
+
+\section1 \QC
+
+The \l{\QC Documentation}{\QC} IDE is the key tool that enhances the overall developer
+experience of working with Qt and Qt Quick. Its editing, formatting, profiling and
+debugging features for Qt Quick make working with Qt Quick easier.
+
+\section1 \QDS
+
+\l{\QDS Manual}{\QDS} enables designing Qt Quick-based
+UIs using simple drag-n-drop gestures that most designers are familiar with.
+It offers UI elements from the Qt Quick and Qt Quick Controls modules, as well
+as integration for custom UI elements.
+
+\section1 Qt Quick Effect Maker (QQEM)
+
+\l{\QQEM} is a tool for creating shader effects for Qt Quick with
+high productivity and performance. You can run Qt Quick Effect Maker as a
+standalone tool.
+
+\section1 QML Debugging
+
+\l{\QC: Debugging Qt Quick Projects}{Qt Quick debugging} enables:
+\list
+ \li debugging JavaScript functions,
+ \li executing JavaScript expressions,
+ \li and inspecting QML properties.
+\endlist
+
+The QML debugger is part of both \QC and \QDS.
+
+\section1 QML Profiler
+
+The \l{\QC: Profiling QML Applications}{QML Profiler} enables you to get necessary
+diagnostic information, allowing you to analyze the application code for
+performance issues. For example, too much JavaScript in each frame,
+long-running C++ functions, and so on.
+
+The profiler is part of both \QC and \QDS.
+
+\section1 Felgo QML Hot Reload
+
+\l{Felgo QML Hot Reload Tool}{Felgo QML Hot Reload} is a third-party tool that
+updates QML and JavaScript code in your running application without recompiling
+and redeploying after each change. Unlike Live Reload, it preserves the
+application's current state after a reload and can run on multiple devices
+simultaneously to test and iterate code. Felgo Hot Reload supports all Qt
+target platforms and architectures.
+
+\section1 GammaRay
+
+\l{GammaRay Manual}{GammaRay} is a useful utility that provides diagnostic
+information about your application. It is similar to the QML Profiler described
+in the earlier section, but offers a lot more. For example, the number of items
+or QObjects created, function calls made, time taken by each function call,
+property value introspection at runtime, and so on. Such information is very
+handy, especially while debugging QML applications.
+
+\section1 Squish
+
+\l{Squish GUI Test Automation Tool}{Squish} is a well-known testing tool that
+automates UI testing by recording your actions or running scripts. Once the
+tests are setup, UI tests are a lot easier to run.
+
+\section1 The qmllint tool
+
+\l{qmllint} is a tool shipped with Qt that verifies
+the syntactic validity of QML files. It also warns about some QML anti-patterns.
+If you want to disable a specific warning type, you can find the appropriate
+flag for doing so by passing \c{--help} on the command line.
+
+\section1 qmlformat
+
+\l [QtQml] {qmlformat} is a tool that automatically formats QML files in accordance
+with the \l{QML Coding Conventions}.
+
+\section1 Qt Quick Compiler
+
+The Qt Quick Compiler consist of two components:
+\list
+    \li \l {QML type compiler}
+    \li \l {QML script compiler}
+\endlist
+
+\section1 The \QMLLS tool
+
+\l{\QMLLS} is a tool shipped with Qt that helps you edit
+QML code in your favorite (LSP-compatible) editor.
+
+\section1 SVG to QML converter [tech preview]
+
+The \l{svgtoqml} tool converts an SVG document to a QML file that can be used as a component.
+
+*/

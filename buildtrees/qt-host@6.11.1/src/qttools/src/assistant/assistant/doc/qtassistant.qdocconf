@@ -1,0 +1,43 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/config/exampleurl-qttools.qdocconf)
+
+project                 = QtAssistant
+description             = Qt Assistant Manual
+examplesinstallpath     = assistant
+moduleheader            =
+
+qhp.projects            = QtAssistant
+
+qhp.QtAssistant.file                = qtassistant.qhp
+qhp.QtAssistant.namespace           = org.qt-project.qtassistant.$QT_VERSION_TAG
+qhp.QtAssistant.virtualFolder       = qtassistant
+qhp.QtAssistant.indexTitle          = Qt Assistant Manual
+
+qhp.QtAssistant.subprojects         = manual examples
+qhp.QtAssistant.subprojects.manual.title = Manual
+qhp.QtAssistant.subprojects.manual.indexTitle = Qt Assistant Manual
+qhp.QtAssistant.subprojects.manual.selectors = fake:page
+qhp.QtAssistant.subprojects.examples.title = Examples
+qhp.QtAssistant.subprojects.examples.indexTitle = Qt Assistant Examples
+qhp.QtAssistant.subprojects.examples.selectors = fake:example
+qhp.QtAssistant.subprojects.examples.sortPages = true
+
+language                = Cpp
+
+sourcedirs              += ..
+
+exampledirs             = ../../../../examples/assistant \
+                          snippets
+
+imagedirs               = images
+
+depends                 += qtdoc qmake
+
+# Use a generic thumbnail image for examples that have no images in their docs
+manifestmeta.thumbnail.names += "QtAssistant/Remote Control Example"
+
+# Highlighted example for Desktop category
+manifestmeta.highlighted.names = "QtAssistant/Simple Text Viewer Example"
+
+navigation.landingpage = "Qt Assistant Manual"
+

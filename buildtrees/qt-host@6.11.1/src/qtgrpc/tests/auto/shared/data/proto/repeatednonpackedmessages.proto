@@ -1,0 +1,62 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+syntax = "proto3";
+
+package qtprotobufnamespace.tests;
+
+message RepeatedNonPackedIntMessage {
+    repeated int32 testRepeatedInt = 1 [packed = false];
+}
+
+message RepeatedNonPackedSIntMessage {
+    repeated sint32 testRepeatedInt = 1 [packed = false];
+}
+
+message RepeatedNonPackedUIntMessage {
+    repeated uint32 testRepeatedInt = 1 [packed = false];
+}
+
+message RepeatedNonPackedInt64Message {
+    repeated int64 testRepeatedInt = 1 [packed = false];
+}
+
+message RepeatedNonPackedSInt64Message {
+    repeated sint64 testRepeatedInt = 1 [packed = false];
+}
+
+message RepeatedNonPackedUInt64Message {
+    repeated uint64 testRepeatedInt = 1 [packed = false];
+}
+
+message RepeatedNonPackedFixedIntMessage {
+    repeated fixed32 testRepeatedInt = 1 [packed = false];
+}
+
+message RepeatedNonPackedSFixedIntMessage {
+    repeated sfixed32 testRepeatedInt = 1 [packed = false];
+}
+
+message RepeatedNonPackedFixedInt64Message {
+    repeated fixed64 testRepeatedInt = 1 [packed = false];
+}
+
+message RepeatedNonPackedSFixedInt64Message {
+    repeated sfixed64 testRepeatedInt = 1 [packed = false];
+}
+
+message RepeatedNonPackedBoolMessage {
+    repeated bool testRepeatedBool = 1 [packed = false];
+}
+
+message RepeatedNonPackedDoubleMessage {
+    repeated double testRepeatedDouble = 1 [packed = false];
+}
+
+message RepeatedNonPackedFloatMessage {
+    repeated float testRepeatedFloat = 1 [packed = false];
+}
+
+message NonPackedIntMessageWithExtraMember {
+    repeated int32 testRepeatedInt = 1 [packed = false];
+    string extra = 2;
+}

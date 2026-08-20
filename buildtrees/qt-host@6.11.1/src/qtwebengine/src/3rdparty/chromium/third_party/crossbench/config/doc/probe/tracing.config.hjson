@@ -1,0 +1,8 @@
+// tracing probe example config
+{
+  "probes": {
+    "tracing": {
+      "trace_config": "./trace_config_file.json"
+    }
+  }
+}

@@ -1,0 +1,74 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Qt Charts
+    \page qtcharts-index.html
+
+    The Qt Charts module provides a set of easy-to-use chart components. It uses
+    the Qt Graphics View Framework to integrate charts with modern user
+    interfaces. Qt Charts can be used as QWidgets, QGraphicsWidget, or QML
+    types. Users can easily create impressive charts by selecting one of the
+    themes.
+
+    \include deprecation-phase.qdocinc
+
+    The Qt Charts QML API is an intuitive and simple way to show charts in your
+    QML applications.
+
+    This example shows how to create a simple line chart:
+
+    \image examples_qmlchart2.png
+    \snippet qmlchartsgallery/qml/LineSeries.qml 1
+
+    \section1 Using the Module
+
+    \section2 QML API
+
+    \include {module-use.qdocinc} {using the qml api} {QtCharts}
+
+    \note An instance of QApplication is required for the QML types as the module
+    depends on Qt's \l{Graphics View Framework} for rendering. QGuiApplication
+    is not sufficient. However, projects created with Qt Creator's
+    Qt Quick Application wizard are based on the Qt Quick template that
+    uses QGuiApplication by default. All the QGuiApplication instances
+    in such projects must be replaced with QApplication.
+
+    \section2 C++ API
+
+    \include {module-use.qdocinc} {using the c++ api}
+
+    \section3 Building with CMake
+
+    \include {module-use.qdocinc} {building with cmake} {Charts}
+
+    \section3 Building with qmake
+
+    \include {module-use.qdocinc} {building_with_qmake} {charts}
+
+    \section1 Module Evolution
+    \l{Changes to Qt Charts} lists important changes in the module API
+    and functionality that were done for the Qt 6 series of Qt.
+
+    \section1 Articles and Guides
+    \list
+        \li \l{Qt Charts Overview}
+    \endlist
+
+    \section1 Examples
+    \list
+        \li \l{Qt Charts Examples}
+    \endlist
+
+    \section1 API Reference
+    \list
+        \li \l{Qt Charts C++ Classes}{C++ Classes}
+        \li \l{Qt Charts QML Types}{QML Types}
+    \endlist
+
+    \section1 Licenses
+
+    Qt Charts is available under commercial licenses from \l{The Qt Company}.
+    In addition, it is available under the \l{GNU General Public License, version 3}.
+    See \l{Qt Licensing} for further details.
+*/

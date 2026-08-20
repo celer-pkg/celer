@@ -1,0 +1,59 @@
+{
+  "browsers": {
+    "linux-ssh-chrome": {
+      "path": "/path/to/google/chrome",
+      "driver": {
+        "type": "ssh",
+        "settings": {
+          "host": "my-linux-machine",
+          "port": 9515,
+          "ssh_port": 22,
+          "ssh_user": "user"
+        }
+      }
+    },
+    // Automatically start chromedriver and forward the port by omitting
+    // driver.settings.port.
+    // Provide the location of chromedriver on the remote machine with
+    // driver.path. If no path is provided, chromedriver must be in $PATH.
+    "linux-ssh-chrome-auto-start-driver": {
+      "path": "/path/to/google/chrome",
+      "driver": {
+        "type": "ssh",
+        "path": "/path/to/chromedriver",
+        "settings": {
+          "host": "my-linux-machine",
+          "ssh_port": 22,
+          "ssh_user": "user"
+        }
+      }
+    },
+    "chromeos-ssh-chrome": {
+      "path": "/opt/google/chrome/chrome",
+      "driver": {
+        "type": "chromeos-ssh",
+        "settings": {
+          "host": "my-chromeos-machine",
+          "port": 9515,
+          "ssh_port": 22,
+          "ssh_user": "root"
+        }
+      }
+    },
+    // Also automatically start chromedriver on ChromeOS if the port is missing.
+    // If no path to chromedriver is provided, then the default chromedriver
+    // in ChromeOS test images is used.
+    "chromeos-ssh-chrome-auto-start-driver": {
+      "path": "/opt/google/chrome/chrome",
+      "driver": {
+        "type": "chromeos-ssh",
+        "path": "/path/to/chromedriver",
+        "settings": {
+          "host": "my-chromeos-machine",
+          "ssh_port": 22,
+          "ssh_user": "root"
+        }
+      }
+    },
+  }
+}

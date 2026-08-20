@@ -1,0 +1,55 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+package(
+    default_visibility = ["//ink_stroke_modeler:__subpackages__"],
+)
+
+licenses(["notice"])
+
+cc_test(
+    name = "axis_predictor_test",
+    srcs = ["axis_predictor_test.cc"],
+    deps = [
+        ":kalman_filter",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "kalman_filter",
+    srcs = [
+        "axis_predictor.cc",
+        "kalman_filter.cc",
+    ],
+    hdrs = [
+        "axis_predictor.h",
+        "kalman_filter.h",
+    ],
+    deps = [":matrix"],
+)
+
+cc_library(
+    name = "matrix",
+    hdrs = ["matrix.h"],
+)
+
+cc_test(
+    name = "matrix_test",
+    srcs = ["matrix_test.cc"],
+    deps = [
+        ":matrix",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

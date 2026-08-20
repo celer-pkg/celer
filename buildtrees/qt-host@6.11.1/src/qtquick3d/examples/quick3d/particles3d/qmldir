@@ -1,0 +1,31 @@
+module Example
+AlignedParticles 1.0 AlignedParticles.qml
+AnimatedSprite 1.0 AnimatedSprite.qml
+AttractorShapes 1.0 AttractorShapes.qml
+ColorfulParticles 1.0 ColorfulParticles.qml
+CustomCheckBox 1.0 CustomCheckBox.qml
+CustomLabel 1.0 CustomLabel.qml
+CustomSlider 1.0 CustomSlider.qml
+CustomSelectionBox 1.0 CustomSelectionBox.qml
+DynamicBursts 1.0 DynamicBursts.qml
+EmitAndBurst 1.0 EmitAndBurst.qml
+EmitterCustomShapes 1.0 EmitterCustomShapes.qml
+EmitterShapes 1.0 EmitterShapes.qml
+FadingInOut 1.0 FadingInOut.qml
+Fire 1.0 Fire.qml
+HeartTrail 1.0 HeartTrail.qml
+Lights 1.0 Lights.qml
+LoggingView 1.0 LoggingView.qml
+ModelBlendParticles 1.0 ModelBlendParticles.qml
+OceanSpider 1.0 OceanSpider.qml
+QtLogoAnimation 1.0 QtLogoAnimation.qml
+SettingsView 1.0 SettingsView.qml
+Snowing 1.0 Snowing.qml
+Sorting 1.0 Sorting.qml
+Speedometer 1.0 Speedometer.qml
+StartupView 1.0 StartupView.qml
+SystemPlayPause 1.0 SystemPlayPause.qml
+TrailEmitterBurst 1.0 TrailEmitterBurst.qml
+ModelShape 1.0 ModelShape.qml
+LineParticles 1.0 LineParticles.qml
+singleton AppSettings 1.0 AppSettings.qml

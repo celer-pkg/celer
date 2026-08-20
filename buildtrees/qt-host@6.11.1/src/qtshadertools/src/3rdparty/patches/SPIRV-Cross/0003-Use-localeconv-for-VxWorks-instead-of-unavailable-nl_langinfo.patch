@@ -1,0 +1,22 @@
+From 38ded2f53221fc51d6802746820c06d5f1d7c21c Mon Sep 17 00:00:00 2001
+From: Krzysztof Sommerfeld <krzysztof.sommerfeld@siili.com>
+Date: Thu, 10 Aug 2023 10:49:45 +0200
+Subject: [PATCH] Use localeconv for VxWorks instead of unavailable nl_langinfo
+
+Task-number: QTBUG-115777
+Change-Id: I4bb5c22b35928813aee9524706632f7db6995dca
+---
+
+diff --git a/src/3rdparty/SPIRV-Cross/spirv_glsl.cpp b/src/3rdparty/SPIRV-Cross/spirv_glsl.cpp
+index dc5aeb3..5dd601c 100644
+--- a/src/3rdparty/SPIRV-Cross/spirv_glsl.cpp
++++ b/src/3rdparty/SPIRV-Cross/spirv_glsl.cpp
+@@ -178,7 +178,7 @@
+ 	const struct lconv *conv = localeconv();
+ 	if (conv && conv->decimal_point)
+ 		current_locale_radix_character = *conv->decimal_point;
+-#elif defined(__ANDROID__) && __ANDROID_API__ < 26 || defined(__ghs__) || defined(__QNXNTO__)
++#elif defined(__ANDROID__) && __ANDROID_API__ < 26 || defined(__ghs__) || defined(__QNXNTO__) || defined(__VXWORKS__)
+ 	// nl_langinfo is not supported on this platform, fall back to the worse alternative.
+ 	const struct lconv *conv = localeconv();
+ 	if (conv && conv->decimal_point)

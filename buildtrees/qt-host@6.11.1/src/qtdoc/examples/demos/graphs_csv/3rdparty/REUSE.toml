@@ -1,0 +1,32 @@
+version = 1
+
+[[annotations]]
+# Apply to everything in the csv-parser repo
+path = ["csv-parser/**"]
+comment = "Vince's CSV Parser library"
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (c) 2017-2019 Vincent La"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ["csv-parser/include/external/hedley.h"]
+comment = "Hedley - public domain (CC0)"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = ["csv-parser/include/external/mio.hpp"]
+comment = "Mio - memory mapped IO"
+SPDX-FileCopyrightText = "Copyright 2017 https://github.com/mandreyel"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ["csv-parser/include/external/string_view.hpp"]
+comment = "String View (BSL)"
+SPDX-FileCopyrightText = "Copyright 2017-2019 by Martin Moene"
+SPDX-License-Identifier = "BSL-1.0"
+
+[[annotations]]
+path = ["csv-parser/include/internal/csv_row_json.cpp"]
+comment = "JSON serialization adapted from JSON for Modern C++"
+SPDX-FileCopyrightText = "Copyright © 2013-2015 Niels Lohmann."
+SPDX-License-Identifier = "MIT"

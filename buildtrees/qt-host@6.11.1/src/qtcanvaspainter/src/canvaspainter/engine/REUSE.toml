@@ -1,0 +1,7 @@
+version = 1
+
+[[annotations]]
+path = ["qcpainterengine.cpp", "qcpainterrhirenderer.cpp"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Copyright (c) 2013 Mikko Mononen"
+SPDX-License-Identifier = "Zlib"

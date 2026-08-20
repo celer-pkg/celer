@@ -1,0 +1,171 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+  \page qtwaylandcompositor-index.html
+  \title Qt Wayland Compositor
+  \brief An API to develop display servers that support the Wayland protocol.
+
+  The Qt Wayland Compositor is a module that provides convenient and powerful
+  QML and C++ APIs for developing custom display servers based on the
+  \l {https://wayland.freedesktop.org/}{Wayland} protocol. The display server,
+  often called a compositor, displays content from client applications that
+  support the Wayland protocol.
+
+  Wayland's design philosophy is to keep the core protocol simple and minimal.
+  Developers can then expand on this core protocol with use-case-specific
+  extensions. Qt Wayland Compositor supports many common extensions by default,
+  and also has APIs to enable the creation of new, custom extensions.
+
+  Typically, a compositor written with Qt Wayland Compositor becomes a
+  subsystem inside a larger application manager process. Qt Wayland Compositor
+  provides the APIs to communicate with clients and display their content on
+  the screen. The QML APIs contain high-level APIs that easily integrate with
+  the rest of Qt, enabling convenient animations, effects, and UI through
+  Qt Quick. There are also C++ APIs available - if you need more low-level
+  access.
+
+  An application manager would typically implement additional features such as
+  application life cycle, virtual keyboard input, security, and Inter-Process
+  Communication (IPC). Qt provides the APIs that can be used to develop the
+  remaining parts of an application manager in other modules. The
+  \l {https://www.qt.io/qt-automotive-suite/}{Qt Automotive Suite} provides
+  \l{https://doc.qt.io/QtApplicationManager}{Qt Application Manager}, which is a complete application manager that
+  includes a compositor developed using Qt Wayland Compositor.
+
+  For more information on Wayland, see \l{Wayland and Qt}.
+
+  \section1 Features of Qt Wayland Compositor
+
+  The Qt Wayland Compositor includes features necessary to create a compositor:
+
+  \list
+    \li A QML API to display and manipulate client content, fully integrated
+        with all the features in Qt Quick.
+    \li A C++ API for low-level access and control.
+    \li Support for common extensions, including XDG Shell and IVI Application.
+    \li APIs to easily expand the support for custom extensions.
+  \endlist
+
+  \section1 Environment Variables and Command-line Arguments
+
+  The Qt Wayland Compositor recognizes the following environment variables and
+  command-line arguments:
+
+  \list
+  \li Environment variables:
+      \list
+      \li \b QT_WAYLAND_HARDWARE_INTEGRATION Selects the hardware integration
+          plugin to use.
+      \li \b QT_WAYLAND_CLIENT_BUFFER_INTEGRATION Selects the client buffer
+          integration plugin to use.
+      \li \b QT_WAYLAND_SERVER_BUFFER_INTEGRATION Selects the server
+          integration plugin to use.
+      \li \b QT_IVI_SURFACE_ID Specifies the IVI surface ID for the client's surface
+          in IVI-compositor environments.
+      \endlist
+  \li Command-line arguments:
+      \list
+      \li \c{--wayland-socket-name} Overrides the default socket name used for
+          communicating with clients.
+      \endlist
+  \endlist
+
+  \section1 Running the Wayland compositor
+
+  As long as it does not depend on any unavailable platform-specific features, the compositor can
+  easily be tested on an X11-based desktop system. This can be useful during development, both for
+  simplified debugging and efficient turn-around on trying out new features.
+
+  Qt Wayland supports several backends for sharing graphics buffers between clients and the
+  server. The main one is:
+
+  \list
+    \li \c{wayland-egl}: This is the default backend and should be preferred whenever possible.
+  It requires support in the OpenGL driver on the system for this to work.
+  \endlist
+
+  Other backends may be selected by setting the \c QT_WAYLAND_CLIENT_BUFFER_INTEGRATION environment variable.
+
+  \note If Qt Wayland Compositor is unable to initialize the client buffer backend, then it will
+  fall back to using the "shared memory" backend (based on \c{wl_shm}) as a fail-safe. This backend
+  will use CPU memory for sharing the graphics buffers and copy the data back and forth as needed.
+  This has performance implications, especially on high density screens and limited graphics
+  hardware. When investigating performance issues with Qt Wayland Compositor, start by checking that
+  the correct client buffer integration is used.
+
+  Also bear in mind that if your system is already running a Wayland compositor, you may have to set
+  \c XDG_RUNTIME_DIR to point to a different location. If this is the case, you will see warnings
+  when starting the compositor. The \c XDG_RUNTIME_DIR can point to any accessible location which
+  is not already in use.
+
+  For instance, if you want to run the \l{Fancy Compositor}{fancy-compositor}
+  example with the \c wayland-egl backend, you could use the following command line:
+
+  \code
+  % XDG_RUNTIME_DIR=~/my_temporary_runtime QT_XCB_GL_INTEGRATION=xcb_egl QT_WAYLAND_CLIENT_BUFFER_INTEGRATION=wayland-egl ./fancy-compositor
+  \endcode
+
+  The client can subsequently be run on the compositor by setting the same \c XDG_RUNTIME_DIR and
+  by passing "-platform wayland" as a command line argument. The \c QT_QPA_PLATFORM environment
+  variable can also be used to select the Wayland QPA plugin on the client side.
+
+  \note In most cases, the client will adapt to the same OpenGL as the server when it connects.
+  However, when running with the EGL backend on some specific drivers, it is required that the
+  initialization happens earlier. If you encounter this problem, you may pass
+  "-platform wayland-egl" instead to pre-initialize the client to EGL.
+
+  \section1 Troubleshooting
+
+  Sometimes, when you are developing a complex compositor, you may encounter issues that require
+  further investigation.
+
+  Setting the \c WAYLAND_DEBUG environment variable to "1" will enable log output for the Wayland
+  library itself. This can be very useful, for example, when debugging custom extensions to the
+  Wayland protocol. It will show you exactly which events and requests are being passed between
+  the client and the server, as well as timestamps for these.
+
+  In addition, Qt has logging categories \c qt.waylandcompositor.* and \c qt.qpa.wayland.* to
+  enable additional logging. The latter should be set on the client side, as it enables logging
+  from the Wayland QPA plugin.
+
+  \section1 Examples
+
+  Take a look at the \l{Qt Wayland Compositor Examples} to learn how these APIs
+  can be used to write custom compositors.
+
+  \section1 API Reference
+
+  The Qt Wayland Compositor can be used from C++ or QML:
+
+  \list
+    \li \l{Qt Wayland Compositor QML Types}
+    \li \l{Qt Wayland Compositor C++ Classes}
+  \endlist
+
+  In addition, the module provides the CMake function
+  \l{qt_generate_wayland_protocol_server_sources}{qt_generate_wayland_protocol_server_sources()}.
+
+  \section1 Module Evolution
+  \l{Porting to Qt 6 - Qt Wayland Compositor} lists important changes in the
+  module API and functionality that were done for the Qt 6 series of Qt.
+
+  \section1 Licenses and Attributions
+
+  Qt Wayland Compositor and the Qt Wayland integration plugin
+  are available under commercial licenses from \l{The Qt Company}.
+
+  In addition, Qt Wayland Compositor is available under the
+  \l{GNU General Public License, version 3}, while
+  the Qt Wayland integration plugin is available under the
+  \l{GNU Lesser General Public License, version 3} or the
+  \l{GNU General Public License, version 2}.
+
+  See \l{Qt Licensing} for further details.
+
+  Qt Wayland Compositor and the Qt Wayland integration plugin
+  use protocol definitions under following permissive licenses:
+
+  \annotatedlist attributions-qtwaylandcompositor
+
+*/

@@ -1,0 +1,22 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \qmlmodule QtQuick.Dialogs
+    \title Qt Quick Dialogs QML Types
+    \ingroup qmlmodules
+    \brief Provides QML types for creating and interacting with system dialogs.
+
+    The Qt Quick Dialogs module allows to create and interact with system dialogs
+    from QML. The module was introduced in Qt 6.2.
+
+    The QML types can be imported into your
+    application using the following import statement in your \c {.qml} file:
+
+    \qml
+    import QtQuick.Dialogs
+    \endqml
+
+    \section1 QML Types
+
+*/

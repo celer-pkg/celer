@@ -1,0 +1,68 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qmllint-warnings-and-errors-invalid-lint-directive.html
+\ingroup qmllint-warnings-and-errors
+
+\title Invalid qmllint directives
+\brief [invalid-lint-directive] Invalid qmllint comments.
+
+\qmllintwarningcategory invalid-lint-directive
+
+\section1 Invalid qmllint directive provided
+
+\section2 What happened?
+You used an invalid \l{qtqml-tooling-qmllint.html#disabling-warnings-inline}{qmllint directive}
+in a qmllint comment. This is probably due to a typo.
+
+\section2 Why is this bad?
+The qmllint directive has no effect.
+
+\section2 Example
+\qml
+import QtQuick
+
+Item {
+    // qmllint diasble with
+}
+
+\endqml
+To fix this warning, correct the typo:
+\qml
+import QtQuick
+
+Item {
+    // qmllint disable with
+}
+\endqml
+
+\section1 Qmllint directive on unknown category
+
+\section2 What happened?
+You used an unknown category in a
+\l{qtqml-tooling-qmllint.html#disabling-warnings-inline}{qmllint directive}
+inside a qmllint comment. This is probably due to a typo.
+
+\section2 Why is this bad?
+The qmllint directive has no effect.
+
+\section2 Example
+\qml
+import QtQuick
+
+Item {
+    // qmllint disable woth
+}
+
+\endqml
+To fix this warning, correct the typo:
+\qml
+import QtQuick
+
+Item {
+    // qmllint disable with
+}
+\endqml
+*/
+

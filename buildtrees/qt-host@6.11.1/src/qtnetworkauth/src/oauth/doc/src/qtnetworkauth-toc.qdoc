@@ -1,0 +1,15 @@
+
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+    \page qtnetworkauth-toc.html
+    \title Qt Network Authorization module topics
+    The following list has links to all the individual topics (HTML files)
+    in the Qt Network Authorization module.
+
+    \list
+    \li \l {OAuth 2.0 Overview}{Overview}
+    \li \l {Qt OAuth2 Browser Support}{Browser Support}
+    \li \l {Qt Network Authorization Security Considerations}{Security Considerations}
+\endlist
+*/

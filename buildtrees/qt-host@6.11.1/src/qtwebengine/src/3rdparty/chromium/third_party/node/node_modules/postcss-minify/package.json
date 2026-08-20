@@ -1,0 +1,36 @@
+{
+  "name": "postcss-minify",
+  "version": "1.1.0",
+  "description": "PostCSS plugin to remove comments and unnecessary whitespace from CSS files",
+  "main": "index.js",
+  "author": "Jake Low <hello@jakelow.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/jake-low/postcss-minify#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jake-low/postcss-minify.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jake-low/postcss-minify/issues"
+  },
+  "keywords": [
+    "css",
+    "postcss",
+    "postcss-plugin",
+    "minify"
+  ],
+  "scripts": {
+    "test": "postcss-tape"
+  },
+  "peerDependencies": {
+    "postcss": "^8.0"
+  },
+  "devDependencies": {
+    "postcss": "^8.0",
+    "postcss-tape": "^6.0"
+  },
+  "dependencies": {
+    "postcss-selector-parser": "^6.0",
+    "postcss-value-parser": "^4.1"
+  }
+}

@@ -1,0 +1,7 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+// Qt-Security score:insignificant reason:docs
+
+//! [0]
+xmlReader.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
+//! [0]

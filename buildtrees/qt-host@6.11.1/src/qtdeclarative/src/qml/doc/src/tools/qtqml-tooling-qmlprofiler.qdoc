@@ -1,0 +1,21 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtqml-tooling-qmlprofiler.html
+\title qmlprofiler
+\brief A tool that retrieves QML tracing data from your application.
+\ingroup qtqml-tooling
+\ingroup qtqml-tooling-devtools
+
+\section1 qmlprofiler
+
+The \c qmlprofiler retrieves QML tracing data from an application. The collected
+data can then be visualized in \QC.
+
+To profile an application, enable QML debugging.
+
+See the \l{\QC: Profiling QML Applications}{QML Profiler} to learn
+more.
+
+*/

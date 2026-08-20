@@ -1,0 +1,98 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \qmlvaluetype webEngineScript
+    \nativetype QWebEngineScript
+    \brief Enables the programmatic injection of scripts in the JavaScript engine.
+    \since QtWebEngine 1.1
+    \ingroup qmlvaluetypes
+    \inqmlmodule QtWebEngine
+
+    The webEngineScript value type enables the programmatic injection of so called
+    \e {user scripts} in the JavaScript engine at different points, determined by
+    injectionPoint, during the loading of web content.
+
+    Scripts can be executed either in the main JavaScript \e world, along with the rest of the
+    JavaScript coming from the web contents, or in their own isolated world. While the DOM of the
+    page can be accessed from any world, JavaScript variables of a function defined in one world are
+    not accessible from a different one. The worldId property provides some predefined IDs for this
+    purpose.
+
+    The following \l Greasemonkey  attributes are supported:
+    \c @exclude, \c @include, \c @name, \c @match, and \c @run-at.
+
+    Use \l{WebEngineScriptCollection} to access a list of scripts attached to the web view.
+*/
+
+/*!
+    \qmlproperty string webEngineScript::name
+
+    The name of the script. Can be useful to retrieve a particular script from
+    \l{WebEngineScriptCollection::find}{WebEngineScriptCollection.find} method.
+*/
+
+/*!
+    \qmlproperty url webEngineScript::sourceUrl
+
+    This property holds the remote source location of the user script (if any).
+
+    Unlike \l sourceCode, this property allows referring to user scripts that
+    are not already loaded in memory, for instance, when stored on disk.
+
+    Setting this property will change the \l sourceCode of the script.
+
+    \note At present, only file-based sources are supported.
+
+    \sa sourceCode
+*/
+
+/*!
+    \qmlproperty string webEngineScript::sourceCode
+
+    This property holds the JavaScript source code of the user script.
+
+    \sa sourceUrl
+*/
+
+/*!
+    \qmlproperty enumeration webEngineScript::injectionPoint
+
+    The point in the loading process at which the script will be executed.
+    The default value is \c Deferred.
+
+    \value WebEngineScript.DocumentCreation
+           The script will be executed as soon as the document is created. This is not suitable for
+           any DOM operation.
+    \value WebEngineScript.DocumentReady
+           The script will run as soon as the DOM is ready. This is equivalent to the
+           \c DOMContentLoaded event firing in JavaScript.
+    \value WebEngineScript.Deferred
+           The script will run when the page load finishes, or 500 ms after the document is ready,
+           whichever comes first.
+*/
+
+/*!
+    \qmlproperty enumeration webEngineScript::worldId
+
+    The world ID defining which isolated world the script is executed in.
+
+    \value WebEngineScript.MainWorld
+           The world used by the page's web contents. It can be useful in order to expose custom
+           functionality to web contents in certain scenarios.
+    \value WebEngineScript.ApplicationWorld
+           The default isolated world used for application level functionality implemented in
+           JavaScript.
+    \value WebEngineScript.UserWorld
+           The first isolated world to be used by scripts set by users if the application is not
+           making use of more worlds. As a rule of thumb, if that functionality is exposed to the
+           application users, each individual script should probably get its own isolated world.
+*/
+
+/*!
+    \qmlproperty bool webEngineScript::runsOnSubFrames
+
+    Set this property to \c true if the script is executed on every frame in the page, or \c false
+    if it is only ran for the main frame.
+    The default value is \c{false}.
+*/

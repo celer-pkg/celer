@@ -1,0 +1,8 @@
+version = 1
+
+[[annotations]]
+path = ["*.jpg", "wine*"]
+precedence = "closest"
+comment = "assuming the info in qt_attribution.json applies to all in directory."
+SPDX-FileCopyrightText = "Copyright (c) 2012, Motorola Mobility, Inc."
+SPDX-License-Identifier = "BSD-3-Clause"

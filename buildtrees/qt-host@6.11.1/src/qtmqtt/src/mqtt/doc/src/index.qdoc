@@ -1,0 +1,63 @@
+// Copyright (C) 2018 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+
+/*!
+    \page qtmqtt-index.html
+    \title Qt MQTT
+    \brief Provides classes and functions to make MQTT programming simple and
+    portable.
+
+    \l{MQTT} is a machine-to-machine (M2M) protocol utilizing the
+    publish-and-subscribe paradigm. Its purpose is to provide a channel with
+    minimal communication overhead.
+
+    Generally, MQTT is used on top of a TCP connection. However, the base
+    requirement is defined as an ordered, lossless, bidirectional connection.
+
+    The Qt MQTT module provides a standard compliant implementation of the MQTT
+    protocol specification. It enables applications to act as telemetry displays
+    and devices to publish telemetry data. The supported versions are MQTT 3.1,
+    MQTT 3.1.1, and MQTT 5.0.
+
+    \include module-use.qdocinc using qt module
+
+    \code
+    find_package(Qt6 REQUIRED COMPONENTS Mqtt)
+    target_link_libraries(mytarget PRIVATE Qt6::Mqtt)
+    \endcode
+
+    See also the \l {Build with CMake} overview.
+
+    \include module-use.qdocinc building with qmake
+
+    \code
+    QT += mqtt
+    \endcode
+
+    \section1 Articles and Guides
+
+    \list
+        \li \l{Qt MQTT Overview}{Overview}
+    \endlist
+
+    \section1 Examples
+
+    \list
+        \li \l{Qt MQTT Examples}
+    \endlist
+
+    \section1 Reference
+
+    \list
+         \li \l{Qt MQTT C++ Classes}{C++ Classes}
+    \endlist
+
+    \section1 Licenses and Attributions
+
+    Qt MQTT is available under commercial licenses from \l{The Qt Company}.
+    In addition, it is available under the
+    \l{GNU General Public License, version 3}.
+
+    \annotatedlist attributions-qtmqtt
+*/

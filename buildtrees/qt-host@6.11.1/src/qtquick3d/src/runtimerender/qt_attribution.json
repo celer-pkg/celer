@@ -1,0 +1,46 @@
+[
+    {
+        "Id": "fog",
+        "Name": "Godot Engine: Fog",
+        "QDocModule": "qtquick3d",
+        "QtUsage": "Used in the Qt Quick 3D module.",
+        "Files": "res/effectlib/fog.glsllib",
+
+        "Description": "Simple fog support.",
+        "Homepage": "https://godotengine.org/",
+        "Comment": "no relevant PURL or CPE found",
+        "License": "MIT License",
+        "LicenseId": "MIT",
+        "LicenseFile": "LICENSE.GODOT.txt",
+        "Copyright": ["Copyright (c) 2007-2022 Juan Linietsky, Ariel Manzur.",
+        "Copyright (c) 2014-2022 Godot Engine contributors"]
+    },
+    {
+        "Id": "closest-point-on-triangle",
+        "Name": "closestPointOnTriangle",
+        "QDocModule": "qtquick3d",
+        "QtUsage": "Used in the Qt Quick 3D module.",
+        "Files": "rendererimpl/qssgrenderer.cpp",
+
+        "Description": "Closest point on triangle algorithm from Intel® Embree",
+        "DownloadLocation": "https://github.com/RenderKit/embree/blob/master/tutorials/common/math/closest_point.h",
+        "License": "Apache License Version 2.0",
+        "LicenseId": "Apache-2.0",
+        "Copyright": "Copyright 2009-2021 Intel Corporation"
+    },
+    {
+        "Id": "blue-noise-texture",
+        "Name": "Blue Noise Texture",
+        "QDocModule": "qtquick3d",
+        "QtUsage": "Blue noise texture used for shadow mapping",
+        "Files": "res/textures/blue_noise.png",
+
+        "Description": "A blue noise texture used for shadow mapping",
+        "Homepage": "https://momentsingraphics.de/BlueNoise.html",
+        "Comment": "Generated blue noise texture distributed under CC0-1.0.",
+        "License": "Creative Commons Zero v1.0 Universal",
+        "LicenseId": "CC0-1.0",
+        "Copyright": "Public Domain (CC0-1.0)"
+    }
+
+]

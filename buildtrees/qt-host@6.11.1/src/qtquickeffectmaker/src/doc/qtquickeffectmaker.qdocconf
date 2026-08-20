@@ -1,0 +1,48 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+
+project                       = QtQuickEffectMaker
+description                   = Qt Quick Effect Maker Documentation
+version                       = $QT_VERSION
+buildversion                  = Qt Quick Effect Maker | Commercial or GPLv3
+moduleheader                  =
+
+sourcedirs                   += src
+imagedirs                    += images
+
+examplesinstallpath           = quickeffectmaker
+exampledirs                  += ../../examples/${examplesinstallpath}
+
+qhp.projects                  = QtQuickEffectMaker
+
+qhp.QtQuickEffectMaker.file                = qtquickeffectmaker.qhp
+qhp.QtQuickEffectMaker.namespace           = org.qt-project.qtquickeffectmaker.$QT_VERSION_TAG
+qhp.QtQuickEffectMaker.virtualFolder       = qtquickeffectmaker
+qhp.QtQuickEffectMaker.indexTitle          = Qt Quick Effect Maker
+qhp.QtQuickEffectMaker.indexRoot           =
+
+qhp.QtQuickEffectMaker.filterAttributes    = qtquickeffectmaker $QT_VERSION qtrefdoc
+qhp.QtQuickEffectMaker.customFilters.Qt.name = QtQuickEffectMaker $QT_VERSION
+qhp.QtQuickEffectMaker.customFilters.Qt.filterAttributes = qtquickeffectmaker $QT_VERSION
+
+qhp.QtQuickEffectMaker.subprojects                   = manual
+qhp.QtQuickEffectMaker.subprojects.manual.title      = Qt Quick Effect Maker
+qhp.QtQuickEffectMaker.subprojects.manual.indexTitle = Qt Quick Effect Maker topics
+qhp.QtQuickEffectMaker.subprojects.manual.type       = manual
+
+tagfile                       = qtquickeffectmaker.tags
+
+depends += \
+     qtdoc \
+     qtcore \
+     qtgui \
+     qtquick \
+     qtquickcontrols \
+     qtqml
+
+buildversion = "Qt Quick Effect Maker $QT_VERSION"
+
+navigation.landingpage = "Qt Quick Effect Maker"
+navigation.toctitles = "Qt Quick Effect Maker topics"
+navigation.toctitles.inclusive = false
+
+macro.QQEM = "Qt Quick Effect Maker"

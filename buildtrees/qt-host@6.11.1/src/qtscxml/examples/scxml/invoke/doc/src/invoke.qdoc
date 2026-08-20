@@ -1,0 +1,77 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example invoke
+    \title SCXML Invoke
+    \examplecategory {Data Processing & I/O}
+    \ingroup examples-qtscxml
+
+    \brief Invokes a compiled nested state machine.
+
+    \image invoke.png
+           {Window with four panels: Go Nowhere, Go Somewhere, Go There,
+           and Go Here}
+
+    \e{Invoke} demonstrates how to use the \c <invoke> element
+    with generated nested state-machines, where the SCXML file is compiled to
+    a C++ class. The \c <invoke> element is used to create an instance of an
+    external service.
+
+    \include examples-run.qdocinc
+
+    \section1 Invoking the State Machine
+
+    In \e statemachine.scxml, we specify a state machine with the name
+    \e DirectionsStateMachine of type \e http://www.w3.org/TR/scxml/ to invoke:
+
+    \quotefromfile invoke/statemachine.scxml
+    \skipto scxml
+    \printuntil
+
+    \section1 Compiling the State Machine
+    We link against the Qt SCXML module by adding the following lines to the
+    example's build files.
+
+    \section2 \e invoke.pro when using qmake:
+
+    \quotefromfile invoke/invoke.pro
+    \skipto QT
+    \printline scxml
+
+    We then specify the state machine to compile:
+    \skipto STATECHARTS
+    \printline scxml
+
+    \section2 \e CMakeLists.txt when using cmake:
+    \quotefromfile invoke/CMakeLists.txt
+    \skipto find_package
+    \printline Scxml
+    \skipto target_link_libraries
+    \printuntil )
+
+    We then specify the state machine to compile:
+    \skipto qt6_add_statecharts
+    \printuntil )
+
+    The statechart directives \e STATECHARTS or \e qt6_add_statecharts invoke the Qt SCXML
+    Compiler, \c qscxmlc, which is run automatically to generate \e statemachine.h and
+    \e statemachine.cpp, which are then added appropriately as headers and sources for
+    compilation.
+
+    \section1 Declaring the state machine as QML element
+
+    The state machine is declared as a QML element as follows:
+    \quotefromfile invoke/invoke-qml.h
+    \skipto struct
+    \printuntil }
+
+    \section1 Instantiating the State Machine
+
+    We instantiate the generated \c DirectionsStateMachine element in the \e MainView.qml
+    file, as follows:
+
+    \quotefromfile invoke/MainView.qml
+    \skipto DirectionsStateMachine
+    \printuntil }
+*/

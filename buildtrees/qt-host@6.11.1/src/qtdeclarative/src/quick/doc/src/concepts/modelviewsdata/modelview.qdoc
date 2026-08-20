@@ -1,0 +1,619 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtquick-modelviewsdata-modelview.html
+\title Models and Views in Qt Quick
+\brief how to display and format data in Qt Quick
+
+Most applications need to format data and display the data. Qt Quick has the
+notion of \e models, \e views, and \e delegates to display data. They modularize
+the visualization of data in order to give the developer or designer control
+over the different aspects of the data. A developer can swap a list view with a
+grid view with little changes to the data. Similarly, encapsulating an instance
+of the data in a delegate allows the developer to dictate how to present or
+handle the data.
+
+\image modelview-overview.png
+\list
+\li \b Model - contains the data and its structure. There are several QML
+types for creating models.
+\li \b View - a container that displays the data. The view might
+display the data in a list or a grid.
+\li \b Delegate - dictates how the data should appear in the view.
+The delegate takes each unit of data in the model and encapsulates it. The data is
+accessible through the delegate. The delegate can also write data
+back into editable models (e.g. in a TextField's onAccepted Handler).
+\endlist
+
+To visualize data, bind the view's \c model property to a model and the
+\c delegate property to a component or another compatible type.
+
+\section1 Displaying Data with Views
+
+    Views are containers for collections of items. They are feature-rich and can be
+    customizable to meet style or behavior requirements.
+
+    \target qtquick-views
+    A set of standard views are provided in the basic set of Qt Quick
+    graphical types:
+
+    \list
+    \li \l{ListView} - arranges items in a horizontal or vertical list
+    \li \l{GridView} - arranges items in a grid within the available space
+    \li \l{PathView} - arranges items on a path
+    \li \l{TableView} - arranges data from a \l QAbstractTableModel in a table
+    \li \l{TreeView} - arranges data from a \l QAbstractItemModel in a tree
+    \endlist
+
+    These types have properties and behaviors exclusive to each type.
+    Visit their respective documentation for more information.
+
+    In addition, \l{Qt Quick Controls} contains some extra views and
+    delegates that are styled according to the application style, for
+    example \l HorizontalHeaderView and \l VerticalHeaderView.
+
+    \section2 Decorating Views
+
+    Views allow visual customization through \e decoration properties such as
+    the \c header, \c footer, and \c section properties. By binding an object,
+    usually another visual object, to these properties, the views are
+    decoratable. A footer may include a \l Rectangle type showing borders
+    or a header that displays a logo on top of the list.
+
+    Suppose that a specific club wants to decorate its members list with its brand
+    colors. A member list is in a \c model and the \c delegate will display the
+    model's content.
+    \snippet qml/listview-decorations.qml model
+    \snippet qml/listview-decorations.qml delegate
+
+    The club may decorate the members list by binding visual objects to the \c
+    header and \c footer properties. The visual object may be defined inline, in
+    another file, or in a \l {Component} type.
+
+    \snippet qml/listview-decorations.qml decorations
+    \image listview-decorations.png
+
+    \section2 Mouse and Touch Handling
+
+    The views handle dragging and flicking of their content, however they do
+    not handle touch interaction with the individual delegates.  In order for the
+    delegates to react to touch input, e.g. to set the \c currentIndex, a MouseArea
+    with the appropriate touch handling logic must be provided by the delegate.
+
+    Note that if \c highlightRangeMode is set to \c StrictlyEnforceRange the
+    currentIndex will be affected by dragging/flicking the view, since the view
+    will always ensure that the \c currentIndex is within the highlight range
+    specified.
+
+    \section2 ListView Sections
+
+    \l {ListView} contents may be grouped into \e sections, where related list
+    items are labeled according to their sections. Further, the sections may be
+    decorated with \l{qml-view-delegate}{delegates}.
+
+    A list may contain a list indicating people's names and the team on which
+    team the person belongs.
+    \snippet qml/listview-sections.qml model
+    \snippet qml/listview-sections.qml delegate
+
+    The ListView type has the \c section
+    \l{qtqml-syntax-objectattributes.html#Attached-properties-and-attached-signal-handlers}
+    {attached property} that can combine adjacent and related types into a
+    section.  The \c section.property determines which list
+    type property to use as sections. The \c section.criteria can dictate how the
+    section names are displayed and the \c section.delegate is similar to the views'
+    \l {qml-view-delegate}{delegate} property.
+    \snippet qml/listview-sections.qml section
+    \image listview-section.png
+
+\target qml-view-delegate
+\section1 View Delegates
+
+    Views need a \e delegate to visually represent an item in a list. A view will
+    visualize each item list according to the template defined by the delegate.
+    Items in a model are accessible through the \c index property as well as the
+    item's properties.
+    \snippet qml/listview.qml delegate
+    \image listview-setup.png
+
+    \section2 Positioning of View Delegates
+
+    The type of view will determine how the items are positioned. \l {ListView}
+    will position the items in a straight line, depending on the \l {ListView::}{orientation},
+    while a \l {GridView} can lay them out in a 2 dimentional grid. It's \b {not} recommended
+    to bind directly on \l {Item::x}{x} and \l {Item::y}{y}, since the view's layouting
+    behavior will always take precedence over any positional binding.
+
+    \section2 Accessing Views and Models from Delegates
+
+    The list view to which the delegate is bound is accessible from the delegate
+    through the \c{ListView.view} property. Likewise, the GridView
+    \c{GridView.view} is available to delegates. The corresponding model and its
+    properties, therefore, are available through \c{ListView.view.model}. In
+    addition, any defined signals or methods in the model are also accessible.
+
+    This mechanism is useful when you want to use the same delegate for a number
+    of views, for example, but you want decorations or other features to be
+    different for each view, and you would like these different settings to be
+    properties of each of the views. Similarly, it might be of interest to
+    access or show some properties of the model.
+
+    In the following example, the delegate shows the property \e{language} of
+    the model, and the color of one of the fields depends on the property
+    \e{fruit_color} of the view.
+
+    \snippet qml/models/views-models-delegates.qml rectangle
+
+\target qml-data-models
+\section1 Models
+
+    Data is provided to the delegate via named data roles which the delegate may
+    bind to. Here is a ListModel with two roles, \e type and \e age, and a
+    ListView with a delegate that binds to these roles to display their values:
+
+    \snippet qml/qml-data-models/listmodel-listview-required.qml document
+
+    In most cases you should use \l{Required Properties}{required properties} to
+    pass model data into your delegates. If a delegate contains required
+    properties, the QML engine will check if the name of a required property
+    matches that of a model role. If so, that property will be bound to the
+    corresponding value from the model.
+
+    In rare corner cases, you may want to transfer the model properties through
+    the QML context rather than as required properties. If no required
+    properties are present in your delegate, the named roles are provided as
+    context properties:
+
+    \snippet qml/qml-data-models/listmodel-listview.qml document
+
+    Context properties are invisible to tooling and prevent the
+    \l{Qt Quick Compiler} from optimizing your code. They make it harder to
+    reason about the specific data your delegate expects. There is no way to
+    explicitly populate the QML context from QML. If your component expects
+    data to be passed via the QML context, you can only use it in places
+    where the right context is made available via native means. This can be
+    your own C++ code or the specific implementations of surrounding elements.
+    Conversely, required properties can be set in a number of ways from QML or
+    via native means. Therefore, passing data via the QML context reduces the
+    re-usability of your components.
+
+    If there is a naming clash between the model's properties and the delegate's
+    properties, the roles can be accessed with the qualified \e model name
+    instead. For example, if a \l Text type had (non-required) \e type or \e age
+    properties, the text in the above example would display those property
+    values instead of the \e type and \e age values from the model item. In this
+    case, the properties could have been referenced as \c model.type and
+    \c model.age instead to ensure the delegate displays the property values from
+    the model item. For this to work, you need to require a \c model property in
+    your delegate (unless you are using context properties).
+
+    A special \e index role containing the index of the item in the model is
+    also available to the delegate. Note this index is set to -1 if the item is
+    removed from the model. If you bind to the index role, be sure that the
+    logic accounts for the possibility of index being -1, i.e. that the item is
+    no longer valid. (Usually the item will shortly be destroyed, but it is
+    possible to delay delegate destruction in some views via a \c delayRemove
+    attached property.)
+
+    Remember that you can use integers or arrays as model:
+
+    \qml
+    Repeater {
+        model: 5
+        Text {
+            required property int modelData
+            text: modelData
+        }
+    }
+    \endqml
+
+    \qml
+    Repeater {
+        model: ["one", "two", "three"]
+        Text {
+            required property string modelData
+            text: modelData
+        }
+    }
+    \endqml
+
+    Such models provide a singular, anonymous piece of data to each instance
+    of the delegate. Accessing this piece of data is the primary reason to
+    use \e modelData, but other models also provide \e modelData.
+
+    The object provided via the \e model role has a property with an empty name.
+    This anonymous property holds the \e modelData. Furthermore, the object
+    provided via the \e model role has another property called \e modelData.
+    This property is deprecated and also holds the \e modelData.
+
+    In addition to the \e model role, a \e modelData role is provided. The
+    \e modelData role holds the same data as the \e modelData property and the
+    anonymous property of the object provided via the \e model role.
+
+    The differences between the \e model role and the various means to access
+    \e modelData are as follows:
+
+    \list
+    \li Models that do not have named roles (such as integers or an array of
+        strings) have their data provided via the \e modelData role. The
+        \e modelData role does not necessarily contain an object in this case.
+        In the case of an integer model it would contain an integer (the index
+        of the current model item). In the case of an array of strings it would
+        contain a string. The \e model role still contains an object, but
+        without any properties for named roles. \e model still contains its
+        usual \e modelData and anonymous properties, though.
+    \li If the model has only one named role, the \e modelData role contains
+        the same data as the named role. It is not necessarily an object and it
+        does not contain the named role as a named property the way it usually
+        would. The \e model role still contains an object with the named role as
+        property, and the \e modelData and anonymous properties in this case.
+    \li For models with multiple roles, the \e modelData role is only provided as
+        a required property, not as a context property. This is due to backwards
+        compatibility with older versions of Qt.
+    \endlist
+
+    The anonymous property on \e model allows you to cleanly write delegates
+    that receive both their model data and the role name they should react
+    to as properties from the outside. You can provide a model without or
+    with only one named role, and an empty string as role. Then, a binding that
+    simply accesses \c{model[role]} will do what you expect. You don't have to
+    add special code for this case.
+
+    \note The \e model, \e index, and \e modelData roles are not accessible
+    if the delegate contains required properties, unless it has also required
+    properties with matching names.
+
+    QML provides several types of data models among the built-in set of QML
+    types. In addition, models can be created with Qt C++ and then made
+    available to \l{QQmlEngine} for use by
+    QML components. For information about creating these models, visit the
+    \l{Using C++ Models with Qt Quick Views}
+    and \l{qtqml-typesystem-topic.html#qml-object-types}
+    {creating QML types} articles.
+
+    Positioning of items from a model can be achieved using a \l{Repeater}.
+
+    \section2 List Model
+
+    ListModel is a simple hierarchy of types specified in QML.  The
+    available roles are specified by the \l ListElement properties.
+
+    \snippet qml/qml-data-models/listelements.qml model
+
+    The above model has two roles, \e name and \e cost.  These can be bound
+    to by a ListView delegate, for example:
+
+    \snippet qml/qml-data-models/listelements.qml view
+
+    ListModel provides methods to manipulate the ListModel directly via JavaScript.
+    In this case, the first item inserted determines the roles available
+    to any views that are using the model. For example, if an empty ListModel is
+    created and populated via JavaScript, the roles provided by the first
+    insertion are the only roles that will be shown in the view:
+
+    \snippet qml/qml-data-models/dynamic-listmodel.qml model
+    \dots
+    \snippet qml/qml-data-models/dynamic-listmodel.qml mouse area
+
+    When the MouseArea is clicked, \c fruitModel will have two roles, \e cost and \e name.
+    Even if subsequent roles are added, only the first two will be handled by views
+    using the model. To reset the roles available in the model, call ListModel::clear().
+
+    \section2 XML Model
+
+    XmlListModel allows construction of a model from an XML data source. The roles
+    are specified via the \l [QML]{XmlListModelRole} type. The type needs to be imported.
+
+    \code
+    import QtQml.XmlListModel
+    \endcode
+
+
+    The following model has three roles, \e title, \e link and \e pubDate:
+    \qml
+    XmlListModel {
+         id: feedModel
+         source: "http://rss.news.yahoo.com/rss/oceania"
+         query: "/rss/channel/item"
+         XmlListModelRole { name: "title"; elementName: "title" }
+         XmlListModelRole { name: "link"; elementName: "link" }
+         XmlListModelRole { name: "pubDate"; elementName: "pubDate" }
+    }
+    \endqml
+
+    The \c query property specifies that the XmlListModel generates a model item
+    for each \c <item> in the XML document.
+
+    The \l{Qt Quick Demo - RSS News}{RSS News demo} shows how XmlListModel can
+    be used to display an RSS feed.
+
+    \section2 Object Model
+
+    ObjectModel contains the visual items to be used in a view. When an ObjectModel
+    is used in a view, the view does not require a delegate because the ObjectModel
+    already contains the visual delegate (items).
+
+    The example below places three colored rectangles in a ListView.
+
+    \code
+    import QtQuick 2.0
+    import QtQml.Models 2.1
+
+    Rectangle {
+        ObjectModel {
+            id: itemModel
+            Rectangle { height: 30; width: 80; color: "red" }
+            Rectangle { height: 30; width: 80; color: "green" }
+            Rectangle { height: 30; width: 80; color: "blue" }
+        }
+
+        ListView {
+            anchors.fill: parent
+            model: itemModel
+        }
+    }
+    \endcode
+
+    \section2 Integers as Models
+
+    An integer can be used as a model that contains a certain number
+    of types. In this case, the model does not have any data roles.
+
+    The following example creates a ListView with five elements:
+    \qml
+    Item {
+        width: 200; height: 250
+
+        Component {
+            id: itemDelegate
+
+            Text {
+                required property int index
+                text: "I am item number: " + index
+            }
+        }
+
+        ListView {
+            anchors.fill: parent
+            model: 5
+            delegate: itemDelegate
+        }
+
+    }
+    \endqml
+
+    \note The limit on the number of items in an integer model is 100,000,000.
+
+    \section2 Object Instances as Models
+
+    An object instance can be used to specify a model with a single object
+    type. The properties of the object are provided as roles.
+
+    The example below creates a list with one item, showing the color of the \e
+    myText text. Note the use of the fully qualified \e model.color property to
+    avoid clashing with \e color property of the Text type in the delegate.
+
+    \qml
+    Rectangle {
+        width: 200; height: 250
+
+        Text {
+            id: myText
+            text: "Hello"
+            color: "#dd44ee"
+        }
+
+        Component {
+            id: myDelegate
+
+            Text {
+                required property var model
+                text: model.color
+            }
+        }
+
+        ListView {
+            anchors.fill: parent
+            anchors.topMargin: 30
+            model: myText
+            delegate: myDelegate
+        }
+    }
+    \endqml
+
+    \target qml-c++-models
+    \section2 C++ Data Models
+
+    Models can be defined in C++ and then made available to QML. This mechanism
+    is useful for exposing existing C++ data models or otherwise complex
+    datasets to QML.
+
+    For information, visit the
+    \l{Using C++ Models with Qt Quick Views}
+    article.
+
+    \section2 Array models
+
+    You can use JavaScript arrays and various kinds of QML lists as models.
+    The elements of the list will be made available as model and modelData
+    by the rules outlined above: Singular data like integers or strings are
+    made available as singular modelData. Structured data like JavaScript
+    objects or QObjects are made available as structured model and modelData.
+
+    The individual model roles are also made available if you request them as
+    required properties. Since we cannot know in advance what objects will
+    appear in an array, any required property in a delegate will be populated,
+    possibly with a coercion of \c undefined to the required type. The
+    individual model roles are not made available via the QML context, though.
+    They would shadow all other context properties.
+
+\section1 Repeaters
+
+\div {class="float-right"}
+\inlineimage repeater-index.png
+\enddiv
+
+Repeaters create items from a template for use with positioners, using data
+from a model. Combining repeaters and positioners is an easy way to lay out
+lots of items. A \l Repeater item is placed inside a positioner, and generates
+items that the enclosing positioner arranges.
+
+Each Repeater creates a number of items by combining each element of data
+from a model, specified using the \l{Repeater::model}{model} property, with
+the template item, defined as a child item within the Repeater.
+The total number of items is determined by the amount of data in the model.
+
+The following example shows a repeater used with a Grid item to
+arrange a set of Rectangle items. The Repeater item creates a series of 24
+rectangles for the Grid item to position in a 5 by 5 arrangement.
+
+\snippet qml/repeaters/repeater-grid-index.qml document
+
+The number of items created by a Repeater is held by its \l{Repeater::}{count}
+property. It is not possible to set this property to determine the number of
+items to be created. Instead, as in the above example, we use an integer as
+the model.
+
+For more details, see the \l{qtquick-modelviewsdata-modelview.html#integers-as-models}{QML Data Models} document.
+
+If the model is a string list, the delegate is also exposed to the usual
+read-only \c modelData property that holds the string. For example:
+
+\table
+   \row
+   \li \snippet qml/repeaters/repeater.qml modeldata
+   \li \image repeater-modeldata.png
+\endtable
+
+It is also possible to use a delegate as the template for the items created
+by a Repeater. This is specified using the \l{Repeater::}{delegate} property.
+
+\section1 Changing Model Data
+
+All the relevant views have a property called \e delegateModelAccess that governs
+if and how you can change model data from the delegate. For most use cases you
+should set it to \e{DelegateModel.ReadWrite}. This will allow your delegate to
+change model data in the most flexible way. Alternately, you can set it to
+\e{DelegateModel.ReadOnly} if you don't want the delegate to change any model data
+at all.
+
+The following table describes in detail all the values that the property can hold.
+
+\table
+    \row
+    \li \e{DelegateModel.Qt5ReadWrite}
+    \li The delegate \e can assign values to any context properties provided by the
+        view in order to change the relevant model item. Furthermore, it can also
+        assign values to properties of the \c model object provided as either a
+        context property or required property to the same effect. The delegate
+        \e can't change model data by assigning values to required properties
+        populated by the view, though. If you assign a value to a required
+        property of a delegate, the binding that updates the required property
+        from the model data breaks. This leaves the required property to hold the
+        value you've assigned even if the model changes later on.
+        \e{DelegateModel.Qt5ReadWrite} is the default value of
+        \e{delegateModelAccess}.
+    \row
+    \li \e{DelegateModel.ReadOnly}
+    \li The delegate \e can't assign values to context properties provided by the
+        view, nor can it assign values to properties of the \c model object.
+        Assigning a value to a required property populated by the view does not
+        break the internal binding, neither will it change any model data. The
+        required property will hold the value assigned to it until the model
+        item changes again.
+    \row
+    \li \e{DelegateModel.ReadWrite}
+    \li The delegate \e can assign values to any context properties provided by the
+        view in order to change the relevant model item. Furthermore, it can also
+        assign values to properties of the \c model object provided as either a
+        context property or required property to the same effect. The delegate
+        \e can also change model data by assigning values to required properties
+        populated by the view. Assigning a value to a required property will
+        propagate the value to the respective model item and \e not break internal
+        bindings.
+\endtable
+
+Some models are objects with independent identities that the view references.
+The original object is the sole source of truth for creating delegates. It
+is not copied. Such models will be visibly updated when writing through delegates.
+
+Other models do not have an independent identity and are copied when assigning
+them to the view. For such models, only the internals of the view are updated
+when writing through the delegate. The original model remains unchanged.
+
+In general \l{QML Object Types} have independent identities, while
+\l{QML Value Types} do not. So \l{ListModel}, anything derived from
+\l{QAbstractItemModel}, as well as either a single instance of an
+\l{QML Object Types}{object type} or a list of instances of
+\l{QML Object Types}{object types} will be updated when passed as a model and
+written through the delegate. However, JavaScript arrays, lists of value types,
+or simple numbers do not receive updates when you change model data via the
+delegate.
+
+Furthermore, when implementing your own C++ model, you need to implement
+\l{QAbstractItemModel::}{setData} to receive any updates passed from delegates.
+
+Supposed a \l{QAbstractItemModel} based C++ model that implements the
+\l{QAbstractItemModel::}{setData} method is registered as a QML type named
+\c EditableModel. Data could then be written to the model like this:
+
+\qml
+ListView {
+    anchors.fill: parent
+    model: EditableModel {}
+
+    // Make sure that changes to the required property are propagated
+    delegateModelAccess: DelegateModel.ReadWrite
+
+    delegate: TextEdit {
+        required property string edit
+
+        width: ListView.view.width
+        height: 30
+        text: edit
+        Keys.onReturnPressed: edit = text
+    }
+}
+\endqml
+
+You can also change model data by manipulating the \c model object like this:
+
+\qml
+ListView {
+    anchors.fill: parent
+    model: EditableModel {}
+    delegate: TextEdit {
+        required property QtObject model
+
+        width: ListView.view.width
+        height: 30
+        text: model.edit
+        Keys.onReturnPressed: model.edit = text
+    }
+}
+\endqml
+
+\note The \c edit role is equal to \l Qt::EditRole. See \l{QAbstractItemModel::}{roleNames}()
+for the built-in role names. However, real life models would usually register custom roles.
+
+For more information, visit the \l{qtquick-modelviewsdata-cppmodels.html#changing-model-data}{Using C++ Models with Qt Quick Views}
+article.
+
+\section1 Using Transitions
+
+Transitions can be used to animate items that are added to, moved within,
+or removed from a positioner.
+
+Transitions for adding items apply to items that are created as part of a
+positioner, as well as those that are reparented to become children of a
+positioner.
+
+Transitions for removing items apply to items within a positioner that are
+deleted, as well as those that are removed from a positioner and given new
+parents in a document.
+
+\note Changing the opacity of items to zero will not cause them to
+disappear from the positioner. They can be removed and re-added by changing
+the visible property.
+*/

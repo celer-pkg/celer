@@ -1,0 +1,179 @@
+<svg
+  width="550"
+  height="700"
+  viewBox="0 0 550 700"
+  xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink">
+  <filter id="f1" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse">
+      <feOffset in="SourceGraphic" dx="20" dy="20" />
+  </filter>
+  <filter id="f2" filterUnits="userSpaceOnUse" primitiveUnits="objectBoundingBox">
+      <feOffset in="SourceGraphic" dx="0.2" dy="0.2" />
+  </filter>  
+  <filter id="f3" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse">
+      <feOffset in="SourceGraphic" dx="20" dy="20" />
+  </filter>  
+  <filter id="f4" filterUnits="objectBoundingBox" primitiveUnits="objectBoundingBox">
+      <feOffset in="SourceGraphic" dx="0.2" dy="0.2" />
+  </filter>
+  
+  <filter id="b1" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="20" />
+  </filter>
+  <filter id="b2" filterUnits="userSpaceOnUse" primitiveUnits="objectBoundingBox">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="0.2" />
+  </filter>  
+  <filter id="b3" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="20" />
+  </filter>  
+  <filter id="b4" filterUnits="objectBoundingBox" primitiveUnits="objectBoundingBox">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="0.2" />
+  </filter>
+
+  <filter id="c1" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse">
+      <feColorMatrix in="SourceGraphic" type="matrix" values="0 1 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0" />
+  </filter>
+  <filter id="c2" filterUnits="userSpaceOnUse" primitiveUnits="objectBoundingBox">
+      <feColorMatrix in="SourceGraphic" type="matrix" values="0 1 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0" />
+  </filter>  
+  <filter id="c3" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse">
+      <feColorMatrix in="SourceGraphic" type="matrix" values="0 1 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0" />
+  </filter>  
+  <filter id="c4" filterUnits="objectBoundingBox" primitiveUnits="objectBoundingBox">
+      <feColorMatrix in="SourceGraphic" type="matrix" values="0 1 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0" />
+  </filter>
+
+  <filter id="m1" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse">
+    <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur2" />
+    <feOffset in="blur2" dx="-5" dy="-5" result="offset2" />
+    <feMerge>
+      <feMergeNode in="offset2" />
+      <feMergeNode in="SourceGraphic" />
+    </feMerge>
+  </filter>
+  <filter id="m2" filterUnits="userSpaceOnUse" primitiveUnits="objectBoundingBox">
+    <feGaussianBlur in="SourceAlpha" stdDeviation="0.02" result="blur2" />
+    <feOffset in="blur2" dx="-0.05" dy="-0.05" result="offset2" />
+    <feMerge>
+      <feMergeNode in="offset2" />
+      <feMergeNode in="SourceGraphic" />
+    </feMerge>
+  </filter>  
+  <filter id="m3" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse">
+    <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur2" />
+    <feOffset in="blur2" dx="-5" dy="-5" result="offset2" />
+    <feMerge>
+      <feMergeNode in="offset2" />
+      <feMergeNode in="SourceGraphic" />
+    </feMerge>
+  </filter>  
+  <filter id="m4" filterUnits="objectBoundingBox" primitiveUnits="objectBoundingBox">
+    <feGaussianBlur in="SourceAlpha" stdDeviation="0.02" result="blur2" />
+    <feOffset in="blur2" dx="-0.05" dy="-0.05" result="offset2" />
+    <feMerge>
+      <feMergeNode in="offset2" />
+      <feMergeNode in="SourceGraphic" />
+    </feMerge>
+  </filter>
+
+  <filter id="p1" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse">
+    <feOffset dx="15" dy="15" />
+    <feComposite in2="SourceAlpha" operator="xor" />
+  </filter>
+  <filter id="p2" filterUnits="userSpaceOnUse" primitiveUnits="objectBoundingBox">
+    <feOffset dx="0.2" dy="0.2" />
+    <feComposite in2="SourceAlpha" operator="xor" />
+  </filter>  
+  <filter id="p3" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse">
+    <feOffset dx="15" dy="15" />
+    <feComposite in2="SourceAlpha" operator="xor" />
+  </filter>  
+  <filter id="p4" filterUnits="objectBoundingBox" primitiveUnits="objectBoundingBox">
+    <feOffset dx="0.2" dy="0.2" />
+    <feComposite in2="SourceAlpha" operator="xor" />
+  </filter>
+
+
+  <filter id="d1" filterUnits="userSpaceOnUse" x="70" y="470" width="180" height="180" primitiveUnits="userSpaceOnUse">
+    <feFlood flood-color="purple" />
+  </filter>
+  <filter id="d2" filterUnits="userSpaceOnUse" x="170" y="470" width="180" height="180" primitiveUnits="objectBoundingBox">
+    <feFlood flood-color="purple" />
+  </filter>  
+  <filter id="d3" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse">
+    <feFlood flood-color="purple" />
+  </filter>  
+  <filter id="d4" filterUnits="objectBoundingBox" primitiveUnits="objectBoundingBox">
+    <feFlood flood-color="purple" />
+  </filter>
+
+  
+  <rect x="0" y="0" width="1000" height="1000" fill="white" />
+  <circle cx="60" cy="60" r="50" stroke="black" fill="none" />
+  <circle cx="160" cy="60" r="50" stroke="black" fill="none" />
+  <circle cx="260" cy="60" r="50" stroke="black" fill="none" />
+  <circle cx="360" cy="60" r="50" stroke="black" fill="none" />
+  <circle cx="460" cy="60" r="50" stroke="black" fill="none" />
+
+  <circle cx="60" cy="160" r="50" stroke="black" fill="none" />
+  <circle cx="160" cy="160" r="50" stroke="black" fill="none" />
+  <circle cx="260" cy="160" r="50" stroke="black" fill="none" />
+  <circle cx="360" cy="160" r="50" stroke="black" fill="none" />
+  <circle cx="460" cy="160" r="50" stroke="black" fill="none" />
+
+  <circle cx="60" cy="260" r="50" stroke="black" fill="none" />
+  <circle cx="160" cy="260" r="50" stroke="black" fill="none" />
+  <circle cx="260" cy="260" r="50" stroke="black" fill="none" />
+  <circle cx="360" cy="260" r="50" stroke="black" fill="none" />
+  <circle cx="460" cy="260" r="50" stroke="black" fill="none" />
+
+  <circle cx="60" cy="360" r="50" stroke="black" fill="none" />
+  <circle cx="160" cy="360" r="50" stroke="black" fill="none" />
+  <circle cx="260" cy="360" r="50" stroke="black" fill="none" />
+  <circle cx="360" cy="360" r="50" stroke="black" fill="none" />
+  <circle cx="460" cy="360" r="50" stroke="black" fill="none" />
+
+  <circle cx="60" cy="460" r="50" stroke="black" fill="none" />
+  <circle cx="160" cy="460" r="50" stroke="black" fill="none" />
+  <circle cx="260" cy="460" r="50" stroke="black" fill="none" />
+  <circle cx="360" cy="460" r="50" stroke="black" fill="none" />
+  <circle cx="460" cy="460" r="50" stroke="black" fill="none" />
+
+  <circle cx="60" cy="60" r="50" fill="green" opacity="0.5" />
+  <circle cx="160" cy="60" r="50" fill="red" opacity="0.5" filter="url(#f1)" />
+  <circle cx="260" cy="60" r="50" fill="blue" opacity="0.5" filter="url(#f2)" />
+  <circle cx="360" cy="60" r="50" fill="yellow" opacity="0.5" filter="url(#f3)" />
+  <circle cx="460" cy="60" r="50" fill="magenta" opacity="0.5" filter="url(#f4)" />
+  
+  <circle cx="60" cy="160" r="50" fill="green" opacity="0.5" />
+  <circle cx="160" cy="160" r="50" fill="red" opacity="0.5" filter="url(#b1)" />
+  <circle cx="260" cy="160" r="50" fill="blue" opacity="0.5" filter="url(#b2)" />
+  <circle cx="360" cy="160" r="50" fill="yellow" opacity="0.5" filter="url(#b3)" />
+  <circle cx="460" cy="160" r="50" fill="magenta" opacity="0.5" filter="url(#b4)" />
+
+  <circle cx="60" cy="260" r="50" fill="green" opacity="0.5" />
+  <circle cx="160" cy="260" r="50" fill="red" opacity="0.5" filter="url(#c1)" />
+  <circle cx="260" cy="260" r="50" fill="blue" opacity="0.5" filter="url(#c2)" />
+  <circle cx="360" cy="260" r="50" fill="yellow" opacity="0.5" filter="url(#c3)" />
+  <circle cx="460" cy="260" r="50" fill="magenta" opacity="0.5" filter="url(#c4)" />
+
+  <circle cx="60" cy="360" r="50" fill="green" opacity="0.5" />
+  <circle cx="160" cy="360" r="50" fill="red" opacity="0.5" filter="url(#m1)" />
+  <circle cx="260" cy="360" r="50" fill="blue" opacity="0.5" filter="url(#m2)" />
+  <circle cx="360" cy="360" r="50" fill="yellow" opacity="0.5" filter="url(#m3)" />
+  <circle cx="460" cy="360" r="50" fill="magenta" opacity="0.5" filter="url(#m4)" />
+
+  <circle cx="60" cy="460" r="50" fill="green" opacity="0.5" />
+  <circle cx="160" cy="460" r="50" fill="red" opacity="0.5" filter="url(#p1)" />
+  <circle cx="260" cy="460" r="50" fill="blue" opacity="0.5" filter="url(#p2)" />
+  <circle cx="360" cy="460" r="50" fill="yellow" opacity="0.5" filter="url(#p3)" />
+  <circle cx="460" cy="460" r="50" fill="magenta" opacity="0.5" filter="url(#p4)" />
+
+  <circle cx="60" cy="560" r="50" fill="green" opacity="0.5" />
+  <circle cx="160" cy="560" r="50" fill="red" opacity="0.5" filter="url(#d1)" />
+  <circle cx="260" cy="560" r="50" fill="blue" opacity="0.5" filter="url(#d2)" />
+  <circle cx="360" cy="560" r="50" fill="yellow" opacity="0.5" filter="url(#d3)" />
+  <circle cx="460" cy="560" r="50" fill="magenta" opacity="0.5" filter="url(#d4)" />
+
+  <rect x="170" y="470" width="180" height="180" fill="none" stroke="black" />
+</svg>

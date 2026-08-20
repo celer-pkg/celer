@@ -1,0 +1,57 @@
+{
+    "QEN": {
+        "description": "Bends the source to circle / arc in the vertex shader.",
+        "name": "CircleBend",
+        "properties": [
+            {
+                "defaultValue": "0",
+                "description": "Start angle for the circle bending in radians.",
+                "maxValue": "6.283",
+                "minValue": "0",
+                "name": "circleBendStartAngle",
+                "type": "float"
+            },
+            {
+                "defaultValue": "6.283",
+                "description": "Spanning angle for the circle bending in radians.",
+                "maxValue": "6.283",
+                "minValue": "0",
+                "name": "circleBendSpanAngle",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0.2",
+                "description": "Width of the bending ring. Values are between 0.0 and 1.0 (full size of the source item).",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "circleBendRingWidth",
+                "type": "float"
+            },
+            {
+                "customValue": "Qt.point(width, height)",
+                "defaultValue": "0, 0",
+                "maxValue": "1, 1",
+                "minValue": "0, 0",
+                "name": "circleBendTexSize",
+                "type": "vec2",
+                "useCustomValue": true
+            }
+        ],
+        "version": 1,
+        "vertexCode": [
+            "@mesh 512, 1",
+            "@main",
+            "{",
+            "    const float PI_H = 1.5707964;",
+            "    vec2 vPos = vec2(0.5);",
+            "    float s = 0.5 - 0.5 * circleBendRingWidth + texCoord.y * 0.5 * circleBendRingWidth;",
+            "    float spanX = texCoord.x * circleBendSpanAngle;",
+            "    vPos.x += s * sin(circleBendStartAngle + spanX);",
+            "    vPos.y += s * sin(circleBendStartAngle + spanX + PI_H);",
+            "    vPos *= circleBendTexSize;",
+            "    vertCoord = vPos;",
+            "}",
+            ""
+        ]
+    }
+}

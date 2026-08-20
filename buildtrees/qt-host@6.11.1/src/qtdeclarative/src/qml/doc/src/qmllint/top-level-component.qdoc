@@ -1,0 +1,38 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qmllint-warnings-and-errors-top-level-component.html
+\ingroup qmllint-warnings-and-errors
+
+\title Top level component
+\brief [top-level-component] Root QML type is a component
+
+\qmllintwarningcategory top-level-component
+
+\section1 QML top level type can't be \e Component
+
+\section2 What happened?
+You used the \l [QML] {Component} type as top level type for your
+QML file.
+
+\section2 Why is this bad?
+Your QML file already defines a component by itself. Using a \c Component type as
+a top level type will wrap your component into another unnecessary component.
+
+\section2 Example
+\qml
+import QtQuick
+
+Component {
+    Item { ... }
+}
+\endqml
+To fix this warning, remove the extra Component wrapping:
+\qml
+import QtQuick
+
+Item { ... }
+\endqml
+*/
+

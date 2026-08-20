@@ -1,0 +1,109 @@
+{
+    "QEN": {
+        "description": "The Glow effect adds soft glowing effect for the source content.",
+        "fragmentCode": [
+            "@requires BlurHelper",
+            "@main",
+            "{",
+            "    vec4 glow = texture(iSource, texCoord) * blurWeight1[0];",
+            "    glow += texture(iSourceBlur1, texCoord) * blurWeight1[1];",
+            "#if (BLUR_HELPER_MAX_LEVEL > 2)",
+            "    glow += texture(iSourceBlur2, texCoord) * blurWeight1[2];",
+            "#endif",
+            "#if (BLUR_HELPER_MAX_LEVEL > 8)",
+            "    glow += texture(iSourceBlur3, texCoord) * blurWeight1[3];",
+            "#endif",
+            "#if (BLUR_HELPER_MAX_LEVEL > 16)",
+            "    glow += texture(iSourceBlur4, texCoord) * blurWeight2[0];",
+            "#endif",
+            "#if (BLUR_HELPER_MAX_LEVEL > 32)",
+            "    glow += texture(iSourceBlur5, texCoord) * blurWeight2[1];",
+            "#endif",
+            "",
+            "    glow = min(glow * glowBloom, vec4(glowMaxBrightness));",
+            "    glow = mix(glow, glow.a * glowColor, glowColor.a);",
+            "    ",
+            "    // Blend in the Glow",
+            "    if (glowBlendMode == 0) {",
+            "        // Additive",
+            "        fragColor += glow;",
+            "    } else if (glowBlendMode == 1) {",
+            "        // Screen",
+            "        fragColor = clamp(fragColor, vec4(0.0), vec4(1.0));",
+            "        fragColor = max((fragColor + glow) - (fragColor * glow), vec4(0.0));",
+            "    } else if (glowBlendMode == 2) {",
+            "        // Replace",
+            "        fragColor = glow;",
+            "    } else {",
+            "        // Outer",
+            "        fragColor = mix(glow, fragColor, fragColor.a);",
+            "    }",
+            "}"
+        ],
+        "name": "Glow",
+        "properties": [
+            {
+                "defaultValue": "1",
+                "description": "Blending mode for the glow effect. 0 = Additive, 1 = Screen, 2 = Replace, 3 = Outer.",
+                "maxValue": "3",
+                "minValue": "0",
+                "name": "glowBlendMode",
+                "type": "int"
+            },
+            {
+                "defaultValue": "1",
+                "description": "This value defines the softness of the glow. Values are between 0..1.",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "glowBlurAmount",
+                "type": "float"
+            },
+            {
+                "defaultValue": "1",
+                "description": "This value defines the bloom strength of the glow. Suitable values are between 0..2.",
+                "maxValue": "2",
+                "minValue": "0",
+                "name": "glowBloom",
+                "type": "float"
+            },
+            {
+                "defaultValue": "1",
+                "description": "Sets the maximum brightness of the glow.",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "glowMaxBrightness",
+                "type": "float"
+            },
+            {
+                "defaultValue": "1, 1, 1, 0.5",
+                "description": "Color of the glow. Alpha chanel defines how much color is applied vs. using the colors of the source item. The default value is white with 0.5 alpha.",
+                "name": "glowColor",
+                "type": "color"
+            }
+        ],
+        "version": 1,
+        "vertexCode": [
+            "out vec4 blurWeight1;",
+            "out vec2 blurWeight2;",
+            "",
+            "float blurWeight(float v) {",
+            "    return max(0.0, min(1.0, 1.0 - v * 2.0));",
+            "}",
+            "",
+            "@main",
+            "{",
+            "    float blurLod = sqrt(glowBlurAmount * (BLUR_HELPER_MAX_LEVEL / 64.0)) * 1.2 - 0.2;",
+            "    float bw1 = blurWeight(abs(blurLod - 0.1));",
+            "    float bw2 = blurWeight(abs(blurLod - 0.3));",
+            "    float bw3 = blurWeight(abs(blurLod - 0.5));",
+            "    float bw4 = blurWeight(abs(blurLod - 0.7));",
+            "    float bw5 = blurWeight(abs(blurLod - 0.9));",
+            "    float bw6 = blurWeight(abs(blurLod - 1.1));",
+            "",
+            "    float bsum = bw1 + bw2 + bw3 + bw4 + bw5 + bw6;",
+            "    blurWeight1 = vec4(bw1 / bsum, bw2 / bsum, bw3 / bsum, bw4 / bsum);",
+            "    blurWeight2 = vec2(bw5 / bsum, bw6 / bsum);",
+            "}"
+        ]
+    }
+}

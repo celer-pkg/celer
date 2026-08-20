@@ -1,0 +1,227 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtwebengine-platform-notes.html
+    \title Qt WebEngine Platform Notes
+
+    \brief Contains information about issues that are specific to the \QWE module.
+
+    \section1 Building \QWE from Source
+
+    Static builds are not supported.
+
+    The requirements for building Qt modules from source are listed separately for each supported
+    platform:
+
+    \list
+        \li \l{Qt for Windows - Building from Source}
+        \li \l{Qt for X11 Requirements}
+        \li \l{Qt for macOS - Building from Source}
+    \endlist
+
+    In addition, the following tools are required for building the \l {Qt WebEngine} module:
+
+    \list
+        \li \l {All Platforms}
+        \li \l {Windows}
+        \li \l {Linux}
+        \li \l {macOS}
+    \endlist
+
+    \section2 All Platforms
+
+    \note Qt WebEngine requires a C++20-compatible compiler on all platforms, due to its
+    dependency on the Chromium project.
+    While Qt as a whole only requires C++17, Qt WebEngine is an exception.
+
+    On all platforms, the following tools are required at build time:
+
+    \list
+        @DOCUMENTATION_ALL_PLATFORMS@
+    \endlist
+
+    \section2 Windows
+
+    On Windows, the following additional tools are required:
+
+    \list
+        @DOCUMENTATION_WINDOWS_PLATFORM@
+    \endlist
+
+    \note It is not recommended to use tools from  \c msys2 or \c cygwin to build \QWE as it may result in build errors.
+
+    \note Currently, Qt WebEngine does not compile with MinGW.
+
+    \section2 Linux
+
+    On Linux, the following additional tools are required:
+
+    \list
+        @DOCUMENTATION_LINUX_PLATFORM@
+    \endlist
+
+
+    \QWE requires \c pkg-config to detect most of its dependencies. The
+    following \c pkg-config files are required:
+
+    \list
+        @DOCUMENTATION_LINUX_PKG_CONFIG@
+    \endlist
+
+    If Qt was configured for \c xcb, the following \c pkg-config files are also
+    required:
+
+    \list
+        @DOCUMENTATION_LINUX_XCB@
+    \endlist
+
+    \section2 \macos
+
+    On \macos, the following are required:
+
+    \list
+        \li \macos 10.14 or later
+        \li Xcode 12.0 or later
+        \li \macos 11 SDK or later
+    \endlist
+
+    \note \QWE cannot be built for the 32-bit mode of \macos (using the
+    \c macx-clang-32 \c mkspec).
+
+    \section1 Using Earlier Qt Versions to Build \QWE
+
+    Building \QWE with earlier Qt versions (down to the last LTS
+    version) is supported. It means that \QWE 6.4 can be built with
+    Qt 6.2.x, Qt 6.3.x, and Qt 6.4.
+
+    To use an earlier Qt version to build Qt Webengine:
+
+    \list 1
+        \li Download the qtwebengine sources.
+        \li From the earlier Qt version, run
+            \code
+            ../qtbase/bin/qt-configure-module .
+            cmake --build . --parallel
+            cmake --install .
+            \endcode
+    \endlist
+
+    \note You may also use \c qmake with \c make and \c make install,
+    but this method is considered legacy and not recommended for
+    Qt 6 and later.
+
+    \section1 Mac App Store Compatibility
+
+    Applications using \QWE are not compatible with the Mac App Store, because:
+
+    \list
+        \li The Chromium part of the code uses several private API methods, which are prohibited by
+            the App Store.
+        \li Applications submitted to the App Store must be code-signed with the App Sandbox feature
+            enabled. The App Sandbox feature interferes with Chromium's own sandbox
+            initialization, which results in Chromium not being properly initialized. This also
+            ties in with the private API usage. Furthermore, standalone Chromium itself is not
+            officially tested with the App Sandbox enabled, and even if work is done to bypass
+            the App Store's restrictions, that would not guarantee correct behavior of the library.
+
+    \endlist
+
+    \section1 macOS Airplay Support on MacBooks with Dual GPUs
+
+    To make \QWE work correctly when streaming to an AppleTV from a MacBook that supports
+    GPU switching, it is important to add the \c NSSupportsAutomaticGraphicsSwitching option to the
+    application Info.plist file, with the value set to \c YES. Otherwise rendering issues might
+    occur when creating new web engine view instances after Airplay is switched on or off.
+
+    \section1 Default QSurfaceFormat OpenGL Profile Support
+
+    If a new default QSurfaceFormat with a modified OpenGL profile has to be set, it should be set
+    before the application instance is declared, to make sure that all created OpenGL contexts use
+    the same OpenGL profile.
+
+    On \macos, if the default QSurfaceFormat is set after the application instance, the application
+    will exit with qFatal(), and print a message that the default QSurfaceFormat should be set
+    before the application instance.
+
+    \section1 Sandboxing Support
+
+    \QWE provides out-of-the-box sandboxing support for Chromium render
+    processes.
+
+    On Linux, note the following restrictions:
+
+    \list
+        \li The kernel has to support the anonymous namespaces feature
+            (kernel version 3.8 or later). However, on Debian, Ubuntu,
+            and other Debian-derived distributions, this feature is off
+            by default. It can be turned on by setting
+            \c /proc/sys/kernel/unprivileged_userns_clone to 1.
+        \li The kernel has to support the \c seccomp-bpf feature (kernel
+            version 3.5 or later).
+        \li Setuid sandboxes are not supported and are thus disabled.
+    \endlist
+
+    To explicitly disable sandboxing, use one of the following options:
+
+    \list
+        \li Set the \c QTWEBENGINE_DISABLE_SANDBOX environment variable to 1.
+        \li Pass the \c{--no-sandbox} command line argument to the user
+            application executable.
+        \li Set \c QTWEBENGINE_CHROMIUM_FLAGS to \c{--no-sandbox}.
+    \endlist
+
+    For more information, see \l{Using Command-Line Arguments}.
+
+    \section1 Memory Requirements in Docker Environment
+
+    When running Qt Web Engine examples in a Docker container and browsing
+    content-heavy sites, BUS errors (SIGBUS) might be reported. Typically,
+    this is caused by Docker running a container with a too small memory space
+    (such as 64MB). To fix this problem, increase the memory space size.
+
+    \section1 Accessibility and Performance
+
+    \QWE enables accessibility support for web pages when the following conditions
+    are met:
+
+    \list
+        \li Qt Core is configured and built with accessibility support enabled.
+        \li The QPA plugin is notified by the operating system that accessibility should be
+            activated. This happens for example when using a screen reader application on Windows
+            or VoiceOver on \macos.
+    \endlist
+
+    On some old Linux configurations, accessibility can cause a significant slowdown
+    on large HTML pages.
+
+    Because of that, \QWE accessibility support can be disabled on Linux, by setting the
+    \c QTWEBENGINE_ENABLE_LINUX_ACCESSIBILITY environment variable to 0.
+
+    \section1 Popups in Fullscreen Applications on Windows
+    Because of a limitation in the Windows compositor, applications that show a fullscreen web
+    engine view will not properly display popups or other top-level windows. The reason and
+    workaround is described in \l {Fullscreen OpenGL Based Windows}.
+
+    \target windows_manifest
+    \section1 Windows Application Manifest
+    A manifest is an XML file that is read when the program starts and informs Windows how to run the program.
+    Some \QWE features may require adding a manifest file for the user application to work correctly on Windows.
+
+    The following snippets show the manifest file's structure and how to embed it into the program.
+
+    \note These code snippets are taken from the \l {WebEngine Quick Nano Browser} example.
+
+    The manifest file defines which Windows versions the application supports.
+    \l {QWebEngineProfile::} {httpUserAgent} needs this information to report the correct Windows version.
+    \quotefile ../../../../examples/webenginequick/quicknanobrowser/quicknanobrowser.exe.manifest
+
+    To embed the file into the executable, add it to the sources:
+    \quotefromfile ../../../../examples/webenginequick/quicknanobrowser/CMakeLists.txt
+    \skipto qt_add_executable
+    \dots
+    \printuntil endif
+    \dots
+
+    For more information, see the \l {https://learn.microsoft.com/en-us/windows/win32/sbscs/application-manifests} {Application manifest documentation page}.
+*/

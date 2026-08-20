@@ -1,0 +1,19 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtwebview-changes-qt6.html
+    \title Changes to Qt WebView
+    \ingroup changes-qt-5-to-6
+    \brief Migrate Qt WebView to Qt 6.
+
+    Qt 6 is a result of the conscious effort to make the framework more
+    efficient and easy to use.
+
+    We try to maintain binary and source compatibility for all the public
+    APIs in each release. But some changes were inevitable in an effort to
+    make Qt a better framework.
+
+    No source breaking changes have been made to Qt WebView.
+
+*/

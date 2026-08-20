@@ -1,0 +1,78 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example ssl
+    \title SSL Server and Client
+    \brief Setting up a secure Remote Object network using QSslSockets.
+    \examplecategory {Connectivity}
+    \meta tag {rpc,network,tls}
+    \ingroup qtremoteobjects-examples
+
+    Encrypting communication is critical when you need to pass data
+    through a network you don't have full control over. The two applications
+    in this example show how to share remote objects over an SSL connection,
+    and how to access them.
+
+    \image ssl-example.webp
+           {Terminal running sslserver and displaying the current time}
+
+    Both \e sslserver and \e sslcppclient use a custom root CA certificate to
+    validate each other's certificates all located in sslserver/cert.
+
+    \section1 SSL Server
+
+    The \e sslserver is configured with certificates and a private key.
+
+    \snippet ssl/sslserver/main.cpp 0
+
+    Then it creates a QRemoteObjectHost object and a QSslServer object.
+    The QSslServer object listens on port 65511. Then setHostUrl is called
+    on the QRemoteObjectHost object with the URL of the QSslServer object.
+
+    \snippet ssl/sslserver/main.cpp 1
+
+    A lambda is used to handle the errorOccurred signal by outputting the
+    error to the terminal. A second lambda is connected to the
+    pendingConnectionAvailable signal, which connects an error handler,
+    and calls addHostSideConnection on the QRemoteObjectHost object with
+    the incoming socket as argument to make the host object use the socket
+    for communication.
+
+    \snippet ssl/sslserver/main.cpp 2
+
+    Finally, a MinuteTimer object is created and enableRemoting is called on
+    the QRemoteObjectHost object with the MinuteTimer object as argument to
+    enable it to be shared.
+
+    \snippet ssl/sslserver/main.cpp 3
+
+    \section1 SSL Client
+
+    The \e sslcppclient sets the root CA certificate and then creates a
+    Tester object.
+
+    \snippet ssl/sslcppclient/main.cpp 3
+
+    In the Tester constructor a temporary QRemoteObjectNode object is
+    created, and setupConnection is used to create and configure a
+    QSslSocket object. An error handler is connected, and the QSslSocket is
+    used by the QRemoteObjectNode object by calling addClientSideConnection
+    on it.
+
+    \snippet ssl/sslcppclient/main.cpp 0
+
+    Then three QScopedPointer that are members of the Tester class are
+    connected to three replicas of MinuteTimer by using acquire on the
+    QRemoteObjectNode object. Finally QTimer::singleShot is used four times
+    to call reset after a delay.
+
+    \snippet ssl/sslcppclient/main.cpp 1
+
+    When Tester::clear is called for the first three times, one pointer is
+    checked that it is bound and then reset, for a different pointer each
+    time. When it is called for the fourth time it causes the application
+    to quit.
+
+    \snippet ssl/sslcppclient/main.cpp 2
+*/

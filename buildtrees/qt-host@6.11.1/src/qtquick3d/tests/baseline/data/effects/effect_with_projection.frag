@@ -1,0 +1,4 @@
+void MAIN()
+{
+    FRAGCOLOR = texture(INPUT, INPUT_UV) / PROJECTION_MATRIX[0][0];
+}

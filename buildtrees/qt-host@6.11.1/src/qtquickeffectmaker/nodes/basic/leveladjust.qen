@@ -1,0 +1,66 @@
+{
+    "QEN": {
+        "description": "This effect adjusts the source item colors separately for each color channel. Source item contrast can be adjusted and color balance altered.",
+        "fragmentCode": [
+            "float linearstep2(float e0, float e1, float x)",
+            "{",
+            "    return clamp((x - e0) / (e1 - e0), 0.0, 1.0);",
+            "}",
+            "@main",
+            "{",
+            "    vec4 adjustedColor = vec4(fragColor.rgb / max(1.0/256.0, fragColor.a), fragColor.a);",
+            "",
+            "    adjustedColor.r = linearstep2(levelAdjustMinimumInput.r, levelAdjustMaximumInput.r, adjustedColor.r);",
+            "    adjustedColor.g = linearstep2(levelAdjustMinimumInput.g, levelAdjustMaximumInput.g, adjustedColor.g);",
+            "    adjustedColor.b = linearstep2(levelAdjustMinimumInput.b, levelAdjustMaximumInput.b, adjustedColor.b);",
+            "    adjustedColor.a = linearstep2(levelAdjustMinimumInput.a, levelAdjustMaximumInput.a, adjustedColor.a);",
+            "",
+            "    vec3 adjustedGamma = vec3(1.0 / max(levelAdjustGamma.x, 0.0001), 1.0 / max(levelAdjustGamma.y, 0.0001), 1.0 / max(levelAdjustGamma.z, 0.0001));",
+            "    adjustedColor.rgb = pow(adjustedColor.rgb, adjustedGamma);",
+            "",
+            "    adjustedColor.r = levelAdjustMinimumOutput.r + adjustedColor.r * (levelAdjustMaximumOutput.r - levelAdjustMinimumOutput.r);",
+            "    adjustedColor.g = levelAdjustMinimumOutput.g + adjustedColor.g * (levelAdjustMaximumOutput.g - levelAdjustMinimumOutput.g);",
+            "    adjustedColor.b = levelAdjustMinimumOutput.b + adjustedColor.b * (levelAdjustMaximumOutput.b - levelAdjustMinimumOutput.b);",
+            "    adjustedColor.a = levelAdjustMinimumOutput.a + adjustedColor.a * (levelAdjustMaximumOutput.a - levelAdjustMinimumOutput.a);",
+            "",
+            "    fragColor = vec4(adjustedColor.rgb * adjustedColor.a, adjustedColor.a);",
+            "}"
+        ],
+        "name": "LevelAdjust",
+        "properties": [
+            {
+                "defaultValue": "1, 1, 1",
+                "description": "This property defines the change factor for how the value of each pixel color channel is altered.\n\nSetting the gamma values under Qt.vector3d(1.0, 1.0, 1.0) makes the image darker, the values above Qt.vector3d(1.0, 1.0, 1.0) lighten it.\n\nThe value ranges from Qt.vector3d(0.0, 0.0, 0.0) (darkest) to inf (lightest). By default, the property is set to Qt.vector3d(1.0, 1.0, 1.0) (no change).",
+                "maxValue": "4, 4, 4",
+                "minValue": "0.25, 0.25, 0.25",
+                "name": "levelAdjustGamma",
+                "type": "vec3"
+            },
+            {
+                "defaultValue": "1, 1, 1, 1",
+                "description": "This property defines the maximum input level for each color channel. It sets the white-point, all pixels having higher value than this property are rendered as white (per color channel). Decreasing the value lightens the light areas.\n\nThe value ranges from \"#ffffffff\" to \"#00000000\". By default, the property is set to \"#ffffffff\" (no change).",
+                "name": "levelAdjustMaximumInput",
+                "type": "color"
+            },
+            {
+                "defaultValue": "1, 1, 1, 1",
+                "description": "This property defines the maximum output level for each color channel. Decreasing the value darkens the light areas, reducing the contrast.\n\nThe value ranges from \"#ffffffff\" to \"#00000000\". By default, the property is set to \"#ffffffff\" (no change).",
+                "name": "levelAdjustMaximumOutput",
+                "type": "color"
+            },
+            {
+                "defaultValue": "0, 0, 0, 0",
+                "description": "This property defines the minimum input level for each color channel. It sets the black-point, all pixels having lower value than this property are rendered as black (per color channel). Increasing the value darkens the dark areas.\n\nThe value ranges from \"#00000000\" to \"#ffffffff\". By default, the property is set to \"#00000000\" (no change).",
+                "name": "levelAdjustMinimumInput",
+                "type": "color"
+            },
+            {
+                "defaultValue": "0, 0, 0, 0",
+                "description": "This property defines the minimum output level for each color channel. Increasing the value lightens the dark areas, reducing the contrast.\n\nThe value ranges from \"#00000000\" to \"#ffffffff\". By default, the property is set to \"#00000000\" (no change).",
+                "name": "levelAdjustMinimumOutput",
+                "type": "color"
+            }
+        ],
+        "version": 1
+    }
+}

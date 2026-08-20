@@ -1,0 +1,49 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/config/exampleurl-qtwebview.qdocconf)
+
+project                                            = QtWebView
+description                                        = Qt WebView Reference Documentation
+version                                            = $QT_VERSION
+
+qhp.projects                                       = QtWebView
+
+qhp.QtWebView.file                              = qtwebview.qhp
+qhp.QtWebView.namespace                         = org.qt-project.qtwebview.$QT_VERSION_TAG
+qhp.QtWebView.virtualFolder                     = qtwebview
+qhp.QtWebView.indexTitle                        = Qt WebView
+qhp.QtWebView.indexRoot                         =
+
+qhp.QtWebView.subprojects                       = classes qmltypes examples
+qhp.QtWebView.subprojects.classes.selectors     = namespace
+qhp.QtWebView.subprojects.classes.title         = C++ Classes and Namespaces
+qhp.QtWebView.subprojects.classes.indexTitle    = Qt WebView C++ Classes and Namespaces
+qhp.QtWebView.subprojects.classes.sortPages     = true
+qhp.QtWebView.subprojects.qmltypes.title        = QML Types
+qhp.QtWebView.subprojects.qmltypes.indexTitle   = Qt WebView QML Types
+qhp.QtWebView.subprojects.qmltypes.selectors    = qmlclass
+qhp.QtWebView.subprojects.qmltypes.sortPages    = true
+qhp.QtWebView.subprojects.examples.title        = Examples
+qhp.QtWebView.subprojects.examples.indexTitle   = Qt WebView Examples
+qhp.QtWebView.subprojects.examples.selectors    = doc:example
+qhp.QtWebView.subprojects.examples.sortPages    = true
+
+headerdirs += ../../
+sourcedirs += ../../ src
+exampledirs += ../../../examples/webview
+imagedirs  += images
+
+examplesinstallpath = webview
+
+# Path to the root of qtwebview (for automatic linking to source code)
+url.sources.rootdir     = ../../..
+
+depends = qtcore qtdoc qtgui qtquick qtqml qtwebengine qmake qtcmake
+
+manifestmeta.highlighted.names = "QtWebView/Qt WebView Examples - Minibrowser"
+
+navigation.landingpage    = "Qt WebView"
+navigation.qmltypespage   = "Qt WebView QML Types"
+navigation.cppclassespage = "Qt WebView C++ Classes and Namespaces"
+
+# Allow zero warnings when testing documentation in CI
+warninglimit = 0

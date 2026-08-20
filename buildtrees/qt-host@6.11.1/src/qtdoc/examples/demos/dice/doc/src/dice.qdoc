@@ -1,0 +1,58 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Dice
+    \ingroup qtquickdemos
+    \example demos/dice
+    \brief A dice throwing application using Qt Quick 3D Physics and other
+    Qt Modules.
+    \examplecategory {Application Examples}
+    \examplecategory {Mobile}
+    \meta {tag} {quick,3d,physics, multimedia, sensors}
+    \meta {docdependencies} {QtQuick3DPhysics,QtMultimedia,QtSensors}
+
+    \image {dice-screenshot.webp} {}
+
+    This example application simulates rolling a number of dice on a table. The
+    application uses QML and relies on a number of Qt modules, including
+    \l {Qt Quick 3D}, \l {Qt Quick 3D Physics}, \l {Qt Multimedia}, and
+    \l {Qt Sensors}.
+
+    \include examples-run.qdocinc
+
+    \section1 Relevant modules and classes
+
+    The example makes use of the \l{Qt Quick 3D}, \l{Qt Multimedia},
+    \l{Qt Quick 3D Physics} and \l{Qt Sensors} modules that are separate items
+    in the \l{Get and Install Qt}{Qt Online Installer}. If the example fails to
+    compile or run, make sure that you have these required packages installed.
+
+    \section1 Simulating the physics of rolling dice
+
+    \e Dice demonstrates using \l{Qt Quick 3D Physics} for the physical simulation
+    of dice and a wooden table. The rendering is done with components from
+    \l{Qt Quick 3D}. For information on how this can be achieved, see the
+    \l{Qt Quick 3D Physics - Custom Shapes Example}.
+
+    \section1 Using sensor input to trigger a roll
+
+    On compatible targets, using \l{Qt Sensors} API enables using
+    accelerometer output to detect when the device is shaken, triggering a dice
+    roll. For more information on using an accelerometer, see the
+    \l{Sensors Showcase} example.
+
+    \section1 Adding sound effects
+
+    Using \l{Qt Multimedia}, sound effects are added for a more immersive
+    experience. See the \l{SoundEffect} QML type more for information.
+
+    \section1 Implementing a UI for changing simulation settings
+
+    A \l{Qt Quick} UI is provided for configuring the physical material of
+    the simulated dice, the magnitude of gravity, and the number and size of dice.
+
+    \section1 Source files
+
+    \sa {Qt Quick Examples and Tutorials} {All Qt Examples}
+*/

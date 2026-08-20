@@ -1,0 +1,82 @@
+{
+    "QEN": {
+        "description": "Bends the source item around a ring and applies some dimming to bent parts.",
+        "fragmentCode": [
+            "@main",
+            "{",
+            "    vec4 color = mix(fragColor * bendHighlightFactor, bendDimColor * fragColor.a, dim);",
+            "    fragColor = color;",
+            "}"
+        ],
+        "name": "Bend",
+        "properties": [
+            {
+                "defaultValue": "1",
+                "description": "This property defines how much the source image is bent. 1 equals to 180 degrees (half circle)",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "bendFactor",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0.5",
+                "description": "This property defines how much perspective is applied to the source. The perspective makes the source shrink vertically the further the pixels are due to bending. 1 is infinite, i.e. the furthest sides of the source become 0 pixels high if the bendFactor is 1.",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "bendPerspective",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0",
+                "description": "This property moves the viewpoint vertically. If the value equals the bendPerspecive the viewpoint is at the bottom edge of the source and if the value is opposite to the bendPerspective the viewpoint is at the top edge of the source",
+                "maxValue": "1",
+                "minValue": "-1",
+                "name": "bendOrigin",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0, 0, 0, 1",
+                "description": "This color is used to dim the source the further it bends. The alpha value adds translucency.",
+                "name": "bendDimColor",
+                "type": "color"
+            },
+            {
+                "defaultValue": "0.5",
+                "description": "This property defines how much the source is dimmed according to the distance. 1 makes the furthest edges to be fully DimColor if the bendFactor is 1.",
+                "maxValue": "2",
+                "minValue": "0",
+                "name": "bendDimFactor",
+                "type": "float"
+            },
+            {
+                "defaultValue": "1",
+                "description": "This property defines how much the colors are highlighted before dimming by simply multiplying the sources rgb values. This can be used to make the color appear brighter and counterbalance the dimming.",
+                "maxValue": "1.5",
+                "minValue": "1",
+                "name": "bendHighlightFactor",
+                "type": "float"
+            }
+        ],
+        "version": 1,
+        "vertexCode": [
+            "@mesh 50,50",
+            "",
+            "out float dim;",
+            "",
+            "#define PI 3.1415926538",
+            "",
+            "@main",
+            "{",
+            "    const float a = (texCoord.x + 1.) * PI;",
+            "    const float dx = 0.5 + 0.5 * cos(a);",
+            "    const float dy = -sin(a);",
+            "    const float ddy = 1. - dy;",
+            "    const float yBend = bendFactor * bendPerspective;",
+            "    vertCoord.x = iResolution.x * mix(texCoord.x, dx, bendFactor);",
+            "    vertCoord.y = iResolution.y * (texCoord.y * mix(1.0, dy, yBend) + (bendOrigin * bendFactor + yBend) * ddy * 0.5);",
+            "",
+            "    dim = ddy * bendDimFactor * bendFactor;",
+            "}"
+        ]
+    }
+}

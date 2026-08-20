@@ -1,0 +1,16 @@
+// Copyright (C) 2011-2012 Denis Shienkov <denis.shienkov@gmail.com>
+// Copyright (C) 2012 Laszlo Papp <lpapp@kde.org>
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Qt Serial Port Examples
+    \group qtserialport-examples
+    \brief List of serial port examples
+
+    The \l{Qt Serial Port} module provides the following examples for reference
+    to help understand the API usage.
+
+    \include examples-run.qdocinc
+
+*/

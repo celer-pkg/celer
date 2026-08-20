@@ -1,0 +1,49 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#ifdef QQ3D_SHADER_META
+/*{
+    "uniforms": [
+        { "type": "vec4", "name": "qt_lightAndShadowCounts" }
+    ]
+}*/
+#endif // QQ3D_SHADER_META
+
+#include "lightsData.glsllib"
+
+#if QSSG_ENABLE_SHADOWMAPPING
+#include "shadowMapping.glsllib"
+#endif
+
+// This function is just used for the Shaddow Occlusion debug view mode
+float qt_debugShadowOcclusion() {
+    float shadow = 1.0;
+
+#if QSSG_ENABLE_SHADOWMAPPING
+    // Directional Lights
+    float qt_zDepthViewSpace = 0.0;
+    if (qt_lightAndShadowCounts.y > 0) {
+# if QSHADER_VIEW_COUNT >= 2
+        qt_zDepthViewSpace = abs((qt_viewMatrix[0] * vec4(qt_varWorldPos, 1.0)).z);
+# else
+        qt_zDepthViewSpace = abs((qt_viewMatrix * vec4(qt_varWorldPos, 1.0)).z);
+# endif
+    }
+
+    for (int i = 0; i < qt_lightAndShadowCounts.y; ++i) {
+        if (ubDirectionalLights.directionalLights[i].enableShadows > 0.0) {
+            shadow *= qt_sampleDirectionalShadowMap(i, qt_zDepthViewSpace, qt_varWorldPos).illumination;
+        }
+    }
+
+    // Point and Spot Lights (positional)
+    for (int i = 0; i < qt_lightAndShadowCounts.x; ++i) {
+        if (ubLights.lights[i].enableShadows > 0.0) {
+            shadow *= qt_sampleLightShadowMap(i, qt_varWorldPos).illumination;
+        }
+    }
+
+#endif
+
+    return shadow;
+}

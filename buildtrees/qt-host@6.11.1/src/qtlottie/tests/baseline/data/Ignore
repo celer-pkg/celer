@@ -1,0 +1,4 @@
+# List of .json files that should NOT be rendered
+
+# Not a Lottie file
+qt_attribution.json

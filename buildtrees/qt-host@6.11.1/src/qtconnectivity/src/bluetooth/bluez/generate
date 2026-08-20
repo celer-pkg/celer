@@ -1,0 +1,65 @@
+#!/bin/sh
+# Copyright (C) 2024 The Qt Company Ltd.
+# SPDX-License-Identifier: BSD-3-Clause
+
+QGLOBAL_P_H=QtCore/private/qglobal_p.h
+
+generate_proxy() {
+    CPP_BASENAME=$1
+    shift
+    XML_FILE="$1"
+    shift
+
+    HEADER_FILE=${CPP_BASENAME}_p.h
+    CPP_FILE=${CPP_BASENAME}.cpp
+    qdbusxml2cpp "$@" -I "$QGLOBAL_P_H" -p $HEADER_FILE:$CPP_FILE "$XML_FILE" \
+    --namespace QtBluetoothPrivate --moc
+}
+
+#Bluez 5
+generate_proxy adapter1_bluez5  org.bluez.Adapter1.xml
+generate_proxy device1_bluez5   org.bluez.Device1.xml -i bluez5_helper_p.h
+generate_proxy profilemanager1  org.bluez.ProfileManager1.xml
+generate_proxy profile1         org.bluez.Profile1.xml
+
+generate_proxy objectmanager    org.freedesktop.dbus.objectmanager.xml -i bluez5_helper_p.h
+generate_proxy properties       org.freedesktop.dbus.properties.xml
+
+generate_proxy gattchar1        org.bluez.GattCharacteristic1.xml
+generate_proxy gattdesc1        org.bluez.GattDescriptor1.xml
+generate_proxy gattservice1     org.bluez.GattService1.xml
+generate_proxy battery1         org.bluez.Battery1.xml
+
+generate_proxy gattmanager1     org.bluez.GattManager1.xml
+generate_proxy leadvertisingmanager1 org.bluez.LEAdvertisingManager1.xml
+
+generate_adaptor() {
+    CPP_BASENAME=$1
+    shift
+    XML_FILE="$1"
+    shift
+
+    HEADER_FILE=${CPP_BASENAME}_p.h
+    CPP_FILE=${CPP_BASENAME}.cpp
+    qdbusxml2cpp "$@" -i bluez5_helper_p.h -a $HEADER_FILE:$CPP_FILE "$XML_FILE" \
+    --namespace QtBluetoothPrivate
+}
+
+# Note: The adaptors also have manual changes, so make sure to check git diff
+# before committing regenerated files
+generate_adaptor gattcharacteristic1adaptor org.bluez.GattCharacteristic1.xml \
+                 -c OrgBluezGattCharacteristic1Adaptor
+generate_adaptor gattdescriptor1adaptor org.bluez.GattDescriptor1.xml \
+                 -c OrgBluezGattDescriptor1Adaptor
+generate_adaptor gattservice1adaptor org.bluez.GattService1.xml \
+                 -c OrgBluezGattService1Adaptor
+generate_adaptor leadvertisement1adaptor org.bluez.LEAdvertisement1.xml \
+                 -c OrgBluezLEAdvertisement1Adaptor
+generate_adaptor objectmanageradaptor org.freedesktop.dbus.objectmanager.xml \
+                 -c OrgFreedesktopDBusObjectManagerAdaptor
+generate_adaptor propertiesadaptor org.freedesktop.dbus.properties.xml \
+                 -c OrgFreedesktopDBusPropertiesAdaptor
+
+# OrgBluezProfile1ContextInterface is generated from the org.bluez.Profile1.xml,
+# but it has way too many manual changes
+# generate_adaptor profile1context org.bluez.Profile1.xml

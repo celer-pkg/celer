@@ -1,0 +1,27 @@
+From 4245fd4922c9931fa2c19989fa8f0d2cad0512a0 Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Fri, 1 Sep 2023 11:49:50 -0700
+Subject: [PATCH] PhysX: Check for SSE to define __intXX_t
+
+This helps to compile on x86 platforms as these defines are not
+available there
+---
+ .../PhysX/source/foundation/include/unix/sse2/PsUnixSse2AoS.h   | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/3rdparty/PhysX/source/foundation/include/unix/sse2/PsUnixSse2AoS.h b/src/3rdparty/PhysX/source/foundation/include/unix/sse2/PsUnixSse2AoS.h
+index 847a21a..9a4fbb8 100644
+--- a/src/3rdparty/PhysX/source/foundation/include/unix/sse2/PsUnixSse2AoS.h
++++ b/src/3rdparty/PhysX/source/foundation/include/unix/sse2/PsUnixSse2AoS.h
+@@ -43,7 +43,7 @@ namespace shdfnd
+ namespace aos
+ {
+ 
+-#if PX_EMSCRIPTEN
++#if PX_EMSCRIPTEN || PX_SSE2
+ typedef int8_t   __int8_t;
+ typedef int16_t  __int16_t;
+ typedef int32_t  __int32_t;
+-- 
+2.42.0
+

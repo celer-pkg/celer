@@ -1,0 +1,74 @@
+import("//build/config/features.gni")
+
+config("qt_libpng_config") {
+    include_dirs =  [ @GN_PNG_INCLUDES@ ]
+    defines = [ "USE_SYSTEM_LIBPNG" ]
+}
+config ("qt_libjpeg_config") {
+    include_dirs = [ @GN_JPEG_INCLUDES@ ]
+}
+config("qt_harfbuzz_config") {
+    visibility = [
+      "//third_party:freetype_harfbuzz",
+      "//third_party/freetype:freetype_source",
+    ]
+    include_dirs = [ @GN_HARFBUZZ_INCLUDES@ ]
+}
+config("qt_freetype_config") {
+     visibility = [
+       "//build/config/freetype:freetype",
+       "//third_party:freetype_harfbuzz",
+       "//third_party/harfbuzz-ng:harfbuzz_source",
+     ]
+     include_dirs = [ @GN_FREETYPE_INCLUDES@ ]
+}
+
+config("QtPdf_config") {
+  cflags = [
+    @GN_CFLAGS_C@,
+  ]
+  cflags_cc = [
+    @GN_CFLAGS_CC@,
+  ]
+  defines = [
+    @GN_DEFINES@,
+  ]
+  include_dirs = [
+    @GN_INCLUDE_DIRS@,
+    rebase_path("${target_gen_dir}/.moc/")
+  ]
+}
+
+config("cpp20_config") {
+  # Chromium headers now use concepts and requires c++20
+  if (is_win) {
+    cflags_cc = [ "/std:c++20" ]
+  } else {
+    cflags_cc = [ "-std=c++20" ]
+  }
+}
+
+static_library("QtPdf") {
+  complete_static_lib = true
+  rsp_types = [ "objects", "archives", "libs", "ldir", "lflags" ]
+  lflags_remove = "(--sysroot=)(\\.\\./.*\\S*?)" # ignore sysroot with realative path
+  configs += [
+    ":cpp20_config",
+    ":QtPdf_config"
+  ]
+  deps = [
+    "//third_party/pdfium"
+  ]
+  if (is_msvc) {
+    libs = [
+      "dloadhelper.lib",
+      "winmm.lib",
+      "usp10.lib",
+    ]
+  }
+  if (is_mingw) {
+    libs = [
+      "winmm",
+    ]
+  }
+}

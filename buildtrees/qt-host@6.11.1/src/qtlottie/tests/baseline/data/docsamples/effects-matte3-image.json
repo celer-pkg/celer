@@ -1,0 +1,131 @@
+{
+    "v": "5.5.2",
+    "fr": 60,
+    "ip": 0,
+    "op": 60,
+    "w": 512,
+    "h": 512,
+    "ddd": 0,
+    "assets": [
+        {
+            "id": "blep",
+            "h": 512,
+            "w": 512,
+            "p": "blep.png",
+            "u": "",
+            "e": 1
+        },
+        {
+            "id": "thumbs-up",
+            "h": 512,
+            "w": 512,
+            "p": "thumbs-up.png",
+            "u": "",
+            "e": 1
+        }
+    ],
+    "layers": [
+        {
+            "ddd": 0,
+            "ty": 2,
+            "sr": 1,
+            "ks": {},
+            "ip": 0,
+            "op": 60,
+            "st": 0,
+            "ind": 0,
+            "ef": [
+                {
+                    "ty": 28,
+                    "nm": "Set Matte",
+                    "np": 8,
+                    "mn": "ADBE Set Matte3",
+                    "ix": 1,
+                    "en": 1,
+                    "ef": [
+                        {
+                            "ty": 10,
+                            "nm": "Take Matte From Layer",
+                            "mn": "ADBE Set Matte3-0001",
+                            "ix": 1,
+                            "v": {
+                                "a": 0,
+                                "k": 1,
+                                "ix": 1
+                            }
+                        },
+                        {
+                            "ty": 7,
+                            "nm": "Use For Matte",
+                            "mn": "ADBE Set Matte3-0002",
+                            "ix": 2,
+                            "v": {
+                                "a": 0,
+                                "k": 4,
+                                "ix": 2
+                            }
+                        },
+                        {
+                            "ty": 7,
+                            "nm": "Invert Matte",
+                            "mn": "ADBE Set Matte3-0003",
+                            "ix": 3,
+                            "v": {
+                                "a": 0,
+                                "k": 0,
+                                "ix": 3
+                            }
+                        },
+                        {
+                            "ty": 7,
+                            "nm": "If Layer Sizes Differ",
+                            "mn": "ADBE Set Matte3-0004",
+                            "ix": 4,
+                            "v": {
+                                "a": 0,
+                                "k": 1,
+                                "ix": 4
+                            }
+                        },
+                        {
+                            "ty": 7,
+                            "nm": "Composite Matte with Original",
+                            "mn": "ADBE Set Matte3-0005",
+                            "ix": 5,
+                            "v": {
+                                "a": 0,
+                                "k": 1,
+                                "ix": 5
+                            }
+                        },
+                        {
+                            "ty": 7,
+                            "nm": "Premultiply Matte Layer",
+                            "mn": "ADBE Set Matte3-0006",
+                            "ix": 6,
+                            "v": {
+                                "a": 0,
+                                "k": 1,
+                                "ix": 6
+                            }
+                        }
+                    ]
+                }
+            ],
+            "refId": "blep"
+        },
+        {
+            "ddd": 0,
+            "ty": 2,
+            "sr": 1,
+            "ks": {},
+            "ip": 0,
+            "op": 60,
+            "st": 0,
+            "ind": 1,
+            "refId": "thumbs-up"
+        }
+    ]
+}
+
+

@@ -1,0 +1,27 @@
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
+name: BazelTest
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  bazel_test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Test (Linux and Mac config)
+      if: runner.os != 'Windows'
+      run: bazel test --test_output=errors //...
+
+    - name: Test (Windows config)
+      if: runner.os == 'Windows'
+      run: bazel test --config=win_clang --test_output=errors //...

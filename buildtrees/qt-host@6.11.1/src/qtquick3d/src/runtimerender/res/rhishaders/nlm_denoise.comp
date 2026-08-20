@@ -1,0 +1,192 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+// NL-Means filter (NLM)
+//
+// Based on:
+// Antoni Buades, Bartomeu Coll, and Jean-Michel Morel,
+// Non-Local Means Denoising, Image Processing On Line, 1 (2011), pp. 208–212.
+// https://doi.org/10.5201/ipol.2011.bcm_nlm
+//
+// The notable difference in this implementation is the addition of a mask that
+// makes sure that only pixels in the same uv chart are used.
+//
+// The inputData[] is a f32 buffer and outputData[] is a u32 buffer to be
+// able to use atomicAdd for accumulation, which is then divded by
+// pixelCounts[]. To handle u32 all values are scaled by 1000.f
+
+#version 430 core
+layout (local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+
+layout(std140, binding = 0) uniform UniformBuffer
+{
+    float sigma;
+    float width; // int
+    float height; // int
+} ubuf;
+
+layout(std430, binding = 1) buffer InputBuffer {
+    float inputData[]; // Packed as: [y][x][rgb]
+};
+
+layout(rgba8, binding = 2) uniform image2D imgMask;
+
+layout(std430, binding = 3) buffer OutputBuffer {
+    uint outputData[]; // Using u32 for atomic add
+};
+
+layout(std430, binding = 4) buffer CountBuffer {
+    uint pixelCounts[];
+};
+
+bool isInsideImage(ivec2 coord) {
+    return coord.x >= 0 && coord.x < int(ubuf.width) &&
+           coord.y >= 0 && coord.y < int(ubuf.height);
+}
+
+bool isSameChart(ivec2 coord, vec4 referenceColor) {
+    return imageLoad(imgMask, coord) == referenceColor;
+}
+
+vec3 getPixel(ivec2 coord) {
+    int width = int(ubuf.width);
+    int pixelIndex = 3 * (coord.y * width + coord.x);
+    return vec3(inputData[pixelIndex], inputData[pixelIndex + 1], inputData[pixelIndex + 2]);
+}
+
+const float scale = 1000.0;
+
+void main() {
+    const int x = int(gl_GlobalInvocationID.x);
+    const int y = int(gl_GlobalInvocationID.y);
+    const vec4 chartColor = imageLoad(imgMask, ivec2(x, y));
+
+    // If this is not a lightmapped pixel, just return
+    if (chartColor == vec4(0, 0, 0, 0)) {
+        return;
+    }
+
+    float sigma = clamp(ubuf.sigma, 0.0f, 100.0f);
+    int searchWindowRadius;
+    int searchBlockRadius;
+    float filterMultiplier;
+
+    const int imgWidth = int(ubuf.width);
+    const int imgHeight = int(ubuf.height);
+
+    // Set window size and block radius based on sigma
+    if (sigma <= 25.0f) {
+        searchWindowRadius = 1;
+        searchBlockRadius = 10;
+        filterMultiplier = 0.55f;
+    } else if (sigma <= 55.0f) {
+        searchWindowRadius = 2;
+        searchBlockRadius = 17;
+        filterMultiplier = 0.4f;
+    } else {
+        searchWindowRadius = 3;
+        searchBlockRadius = 17;
+        filterMultiplier = 0.35f;
+    }
+
+    float sigmaSquared = sigma * sigma;
+    float h = filterMultiplier * sigma;
+    float hSquared = h * h;
+
+    int patchRadius = min(searchWindowRadius, min(min(x, y), min(imgWidth - 1 - x, imgHeight - 1 - y)));
+
+    int searchXStart = max(x - searchBlockRadius, patchRadius);
+    int searchXEnd = min(x + searchBlockRadius, imgWidth - 1 - patchRadius);
+    int searchYStart = max(y - searchBlockRadius, patchRadius);
+    int searchYEnd = min(y + searchBlockRadius, imgHeight - 1 - patchRadius);
+
+    int patchSize = 2 * patchRadius + 1;
+    int patchArea = patchSize * patchSize;
+
+    vec3 patchAccum[121]; // Max patch size 11x11 = 121
+    for (int i = 0; i < 121; i++) {
+        patchAccum[i] = vec3(0.0);
+    }
+
+    float maxWeight = 0.0f;
+    float totalWeight = 0.0f;
+
+    for (int sy = searchYStart; sy <= searchYEnd; sy++) {
+        for (int sx = searchXStart; sx <= searchXEnd; sx++) {
+            if (sx == x && sy == y) continue;
+            if (!isSameChart(ivec2(sx, sy), chartColor)) continue;
+
+            float distance = 0.0f;
+
+            for (int dy = -patchRadius; dy <= patchRadius; dy++) {
+                for (int dx = -patchRadius; dx <= patchRadius; dx++) {
+                    ivec2 refCoord = ivec2(x + dx, y + dy);
+                    ivec2 sampleCoord = ivec2(sx + dx, sy + dy);
+
+                    if (!isSameChart(refCoord, chartColor) ||
+                        !isSameChart(sampleCoord, chartColor)) {
+                        continue;
+                    }
+
+                    vec3 refPixel = getPixel(refCoord);
+                    vec3 samplePixel = getPixel(sampleCoord);
+                    distance += dot(refPixel - samplePixel, refPixel - samplePixel);
+                }
+            }
+
+            distance = max(distance - 2.0f * 3 * patchArea * sigmaSquared, 0.0f);
+            float weight = exp(-distance / hSquared);
+
+            maxWeight = max(maxWeight, weight);
+            totalWeight += weight;
+
+            for (int dy = -patchRadius; dy <= patchRadius; dy++) {
+                for (int dx = -patchRadius; dx <= patchRadius; dx++) {
+                    ivec2 coord = ivec2(sx + dx, sy + dy);
+                    if (!isSameChart(coord, chartColor)) continue;
+
+                    vec3 color = getPixel(coord);
+                    int px = dx + patchRadius;
+                    int py = dy + patchRadius;
+                    int patchIndex = py * patchSize + px;
+
+                    patchAccum[patchIndex] += weight * color;
+                }
+            }
+        }
+    }
+
+    // Add reference patch itself with maxWeight
+    for (int dy = -patchRadius; dy <= patchRadius; dy++) {
+        for (int dx = -patchRadius; dx <= patchRadius; dx++) {
+            vec3 refColor = getPixel(ivec2(x + dx, y + dy));
+            int px = dx + patchRadius;
+            int py = dy + patchRadius;
+            int patchIndex = py * patchSize + px;
+            patchAccum[patchIndex] += maxWeight * refColor;
+        }
+    }
+
+    totalWeight += maxWeight;
+    const float epsilon = 1e-8f;
+
+    if (totalWeight <= epsilon)
+        return;
+
+    for (int dy = -patchRadius; dy <= patchRadius; dy++) {
+        for (int dx = -patchRadius; dx <= patchRadius; dx++) {
+            int outX = x + dx;
+            int outY = y + dy;
+            int px = dx + patchRadius;
+            int py = dy + patchRadius;
+            int patchIndex = py * patchSize + px;
+            vec3 finalColor = patchAccum[patchIndex] / totalWeight;
+            int pixelIndex = outY * imgWidth + outX;
+            int outputIndex = pixelIndex * 3;
+            atomicAdd(pixelCounts[pixelIndex], 1);
+            atomicAdd(outputData[outputIndex],     uint(finalColor.r * scale));
+            atomicAdd(outputData[outputIndex + 1], uint(finalColor.g * scale));
+            atomicAdd(outputData[outputIndex + 2], uint(finalColor.b * scale));
+        }
+    }
+}

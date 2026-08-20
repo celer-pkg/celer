@@ -1,0 +1,18 @@
+Subject: [PATCH] Make RunCMake compatible with downstream projects
+---
+Index: src/testinternal/3rdparty/cmake/RunCMake.cmake
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/testinternal/3rdparty/cmake/RunCMake.cmake b/src/testinternal/3rdparty/cmake/RunCMake.cmake
+--- a/src/testinternal/3rdparty/cmake/RunCMake.cmake    (revision 5201a6f8063d7be8fee3d9cd01e7c5e195869467)
++++ b/src/testinternal/3rdparty/cmake/RunCMake.cmake    (revision 27aa47b3c906dbe263f23ff4abbdb535b504404f)
+@@ -1,5 +1,7 @@
+ # Distributed under the OSI-approved BSD 3-Clause License.  See accompanying
+ # file Copyright.txt or https://cmake.org/licensing for details.
++#
++# Original file location was Tests/RunCMake/RunCMake.cmake
+
+ foreach(
+   arg

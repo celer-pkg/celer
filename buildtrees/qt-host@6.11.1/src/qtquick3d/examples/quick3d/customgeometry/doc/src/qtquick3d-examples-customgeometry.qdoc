@@ -1,0 +1,61 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example customgeometry
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - Custom Geometry Example
+    \examplecategory {3D}
+    \brief Demonstrates providing custom vertex data from C++ and QML.
+    \image customgeometry-example.jpg
+           {Triangle with Qt logo texture demonstrating custom geometry}
+
+    This example makes use of QQuick3DGeometry and \l{Model::geometry}{the
+    geometry property} of Model to render a mesh with vertex, normal, and
+    texture coordinates specified from C++ and QML instead of a pre-baked asset.
+
+    In addition, the \l GridGeometry is also demonstrated. GridGeometry is a
+    built-in QQuick3DGeometry implementation that provides a mesh with line
+    primitives suitable for displaying a grid.
+
+    The focus on this example will be on the code that provides the custom
+    geometry, so let's first have a look at the \c ExampleTriangleGeometry C++
+    header file:
+
+    \snippet customgeometry/examplegeometry.h triangle geometry
+
+    The most important thing to notice is that our \c ExampleTriangleGeometry
+    class inherits from QQuick3DGeometry and that we call the \c
+    QML_NAMED_ELEMENT(ExampleTriangleGeometry) macro, making our class
+    accessible in QML. There are also a few properties defined through the \c
+    Q_PROPERTY macro which are automatically exposed in our QML object. Now,
+    let's look at the QML Model:
+
+    \snippet customgeometry/Main.qml model triangle
+
+    Note that we specify the \c geometry property to use our \c
+    ExampleTriangleGeometry class, with the relevant properties specified. This
+    is all that is needed on the QML side to use a custom geometry.
+
+    Now, lets look at the other important part of the C++ code, namely the \c
+    updateData() method. This method creates and uploads the data for our custom
+    geometry whenever a \c ExampleTriangleGeometry class is created or any of
+    its QML properties are updated.
+
+    \snippet customgeometry/examplegeometry.cpp update data
+
+    The method starts by calling \c clear() to clear all previously uploaded
+    data. It then computes the stride for the vertices, taking into account the
+    presence of normals and uv coordinates. Then a byte array is created to hold
+    the vertex buffer, which is then filled with vertices for a single triangle
+    with corners in (-1, -1, 0), (1, -1, 0) and (0, 1, 0).
+
+    Then the vertex data is uploaded and the stride is set by calling
+    \c setVertexData() and \c setStride(). The bounds of the geometry
+    is set by calling \c setBounds. Although not used in this example
+    setting the bounds is needed for shadows to work. Then the primitive
+    type is set by calling \c setPrimitiveType(). Lastly, we specify how
+    the attributes for position, normal and uv coords are laid out in
+    memory in the previously uploaded buffer by calling \c addAttribute()
+    for each attribute.
+*/

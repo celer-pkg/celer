@@ -1,0 +1,7 @@
+# QTBUG-87410
+[readStdin]
+android
+[readAllFromStdin]
+android
+[readLineFromStdin]
+android

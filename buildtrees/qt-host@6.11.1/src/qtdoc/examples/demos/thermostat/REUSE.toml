@@ -1,0 +1,40 @@
+version = 1
+
+[[annotations]]
+path = ["content/images/Auto.svg",
+        "content/images/stats.svg",
+        "content/images/settings.svg",
+        "content/images/schedule.svg",
+        "content/images/thermostat.svg",
+        "content/images/Cool.svg",
+        "content/images/Heat.svg",
+        "content/images/Dry.svg",
+        "content/images/Fan.svg",
+        "content/images/Eco.svg",
+        "content/images/energy.svg",
+        "content/images/drop.svg",
+        "content/images/power.svg",
+        "content/images/temperature.svg",
+        "content/images/up.svg",
+        "content/images/down.svg",
+        "content/images/edit.svg",
+        "content/images/minTemp.svg",
+        "content/images/maxTemp.svg",
+        "content/images/more.svg",
+        "imports/ThermostatCustomControls/images/thermometer.svg"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright Phosphor Icons"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = ["content/images/kitchen.svg",
+        "content/images/bedroom.svg",
+        "content/images/kid_room.svg",
+        "content/images/living_room.svg",
+        "content/images/home.svg",
+        "content/images/arrow.svg",
+        "content/images/theme.svg",
+        "imports/ThermostatCustomControls/images/keyboard.svg"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright Google"
+SPDX-License-Identifier = "Apache-2.0"

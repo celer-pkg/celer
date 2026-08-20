@@ -1,0 +1,94 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtsensors-changes-qt6.html
+    \title Changes to Qt Sensors
+    \ingroup changes-qt-5-to-6
+    \brief Migrate Qt Sensors to Qt 6.
+
+    Qt 6 is a result of the conscious effort to make the framework more
+    efficient and easy to use.
+
+    We try to maintain binary and source compatibility for all the public
+    APIs in each release. But some changes were inevitable in an effort to
+    make Qt a better framework.
+
+    In this topic we summarize those changes in Qt Sensors, and provide
+    guidance to handle them.
+
+    \section1 Sensor Gesture support
+
+    The Gesture support has been removed. In its current shape the gestures
+    needs rethinking to be of more use for the developers. To track this please
+    see \l {https://bugreports.qt.io/browse/QTBUG-95649}{QTBUG-95649}.
+
+    \section1 Platform notes
+
+    \section2 Windows
+
+    On Windows, sensors are supported in Qt installations that were built with MSVC.
+
+    \section2 sensorfw
+
+    The \l {https://git.sailfishos.org/mer-core/sensorfw}{sensorfw} does not yet have
+    a Qt 6 port and is therefore not yet supported by sensors in Qt 6.
+
+    \section2 TI Sensor Tag
+
+    Support for TI Sensor Tag has been removed.
+
+    \section2 Removed sensors
+
+    QAltimeter, QDistanceSensor, QHolsterSensor and their QML counterparts
+    did no longer have a backend implementation and have been removed.
+
+    QIRProximitySensor, QLidSensor, and QTapSensor have only sensorfw
+    backend, and as such they are not currently listed as supported sensor
+    types.
+
+    \section2 Linux
+
+    The Linux sysfs accelerometer support has been removed. The backend is
+    undocumented and has been without any real activity for almost 10 years.
+
+    \section1 API changes
+
+    \section2 Deleted typedef for qtimestamp
+
+    The typedef for the historical, QtMobility-era, \c qtimestamp has been
+    removed. Use the actual type \c quint64 directly.
+
+    \section2 Renamed \c sensor type string to \c sensorType
+
+    The subclasses of QSensor implement a \c {char const*} string which defines
+    the string that identifies the base sensor. This static \c type field
+    shadowed the baseclass \l QSensor::type() method, leading to unnecessary
+    compilation errors and consequent workarounds. The \c type string has been
+    now renamed as \c sensorType.
+
+    \section2 Renamed LidReading::backLidChanged property to \c backLidClosed
+
+    The property name is now aligned with the \c frontLidClosed property of
+    the same QML type.
+
+    \section2 Added parameter to QSensorBackend::sensorBusy() to be able to also clear
+    the busy state
+
+    The \c QSensor::busy property and its accessor, \c QSensor::isBusy(), can be used
+    to check if the sensor is busy or not. To allow this property to better reflect the
+    sensor backend's state, QSensorBackend::sensorBusy() now accepts a boolean parameter.
+    This \c busy parameter is used to set/unset the backend busy state and notify the
+    QSensor interface attached to it.
+
+    The default value for the QSensorBackend::sensorBusy() parameter is \e true which
+    results in the original behavior (except the added signal emission). This means
+    that in most if not all cases the changes are not mandatory. Instead it is up to the
+    individual sensor backend implementations to decide if the changes are useful.
+
+    \section2 Sensor::type and and QSensor::type properties marked as constant
+
+    The \c type property cannot change after instantiation and is marked as constant
+    in both C++ and QML.
+
+*/

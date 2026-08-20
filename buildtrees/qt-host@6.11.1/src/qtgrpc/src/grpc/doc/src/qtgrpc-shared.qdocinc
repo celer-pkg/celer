@@ -1,0 +1,43 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [move-note-desc]
+    \note The moved-from object \a other is placed in a partially-formed state,
+    in which the only valid operations are destruction and assignment of a new
+    value.
+//! [move-note-desc]
+
+//! [swap-desc]
+    Swaps \a other with this object. This operation is very fast and never
+    fails.
+//! [swap-desc]
+
+//! [qvariant-desc]
+    Constructs a new QVariant from this object.
+//! [qvariant-desc]
+
+//! [qhash-desc]
+    Returns the hash value of \a key, using \a seed to seed the calculation.
+//! [qhash-desc]
+
+//! [rpc-lifetime-note]
+    \note Users are responsible for managing the unique RPC handlers returned
+    by the \c Client interface, ensuring their existence at least until the
+    \l{QGrpcOperation::} {finished} signal is emitted. After receiving this
+    signal, the handler can be safely reassigned or destroyed.
+//! [rpc-lifetime-note]
+
+//! [http2-metadata-note]
+    \note QGrpcHttp2Channel transports metadata as HTTP/2 headers. \b{Keys} are
+    case-insensitive ASCII strings. You must avoid using the internal prefixes:
+    \c{:} (pseudo-header), \c{grpc-}, or \c{qtgrpc-}. \b{Values} may be either
+    ASCII strings or binary data. For more information, see
+    \l{https://www.rfc-editor.org/rfc/rfc7540.html#section-8.1.2}{RFC 7540,
+    Section 8.1.2}.
+//! [http2-metadata-note]
+
+//! [interceptors_overview_ref]
+    For an introduction to the interception mechanism and how interceptor
+    interfaces participate in the lifecycle of an RPC, see the
+    \l{Qt GRPC Interceptors Overview}.
+//! [interceptors_overview_ref]

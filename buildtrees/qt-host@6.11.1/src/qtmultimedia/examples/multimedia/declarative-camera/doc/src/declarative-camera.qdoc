@@ -1,0 +1,148 @@
+// Copyright (C) 2015 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\example declarative-camera
+\title QML Camera Application
+\ingroup multimedia_examples
+\ingroup camera_examples_qml
+\examplecategory {Multimedia}
+\examplecategory {Mobile}
+\brief This Qt Quick based application shows how to use the API to capture a
+still image or video.
+
+\image qml-camera.png
+       {Camera app in landscape mode showing live preview and capture controls}
+
+This example demonstrates how to access camera functions via QML.
+It shows how to change settings and capture images or video.
+
+\include examples-run.qdocinc
+
+\section1 Application structure
+
+Most of the QML code in this example supports the user interface. Custom types
+that support the requirements have been implemented using existing Qt Quick
+controls.
+
+\section1 Using screen orientation to select layout
+
+The orientation and control layout state logic is encapsulated in a separate
+Item, \c controlLayout like so:
+
+\snippet declarative-camera/declarative-camera.qml 1
+
+The \c stillControls and \c videoControls objects both bind to the \c state
+and \c buttonsWidth properties of this Item, as shown in \c stillControls:
+
+\snippet declarative-camera/declarative-camera.qml 2
+
+To support debugging, a message about layout state change is logged.
+
+Here is the portrait layout:
+
+\image qml-declarative-portrait.png
+       {Camera app in portrait mode showing live preview and capture controls}
+
+You can see the \c state property is initially set as \c PhotoCapture.
+
+Then the \c states themselves are defined like so:
+
+\snippet declarative-camera/declarative-camera.qml 0
+
+\section1 Controls for capturing
+
+Controls for capturing are implemented in \c PhotoCaptureControls.qml and
+VideoCaptureControls.qml. They each are based on a \l FocusScope that defines
+common buttons dimensions and margins that are used by the control buttons and
+then declares the buttons.
+
+This generates a column on the right hand side of the screen which includes,
+listed top to bottom, the following controls:
+\div {class="multi-column"}
+    \div {class="doc-column"}
+        \list
+        \li A \c Capture or \c Record button, which initiates capturing.
+        \li A \c{capture properties} button that displays the icon of the current
+        white balance mode selected and when pressed uses a pop-up to displays
+        the following option's icons:
+            \list
+            \li Flash mode (if available)
+            \li White balance modes
+            \li Exposure compensation
+            \endlist
+        \li A \c View button, once something has been captured.
+        \li A button which displays the currently selected capture device and
+        when pressed provides a list of available devices to switch to, using a
+        pop-up.
+        \li A \c{Switch To} button that displays the alternate capture mode
+        (video or photo) depending on the current active selection and switches
+        the mode when pressed.
+        \li A \c Quit button, that exits the application.
+        \endlist
+    \enddiv
+    \div {class="doc-column"}
+        \inlineimage CaptureControls.png
+                     {Photo capture control panel}
+    \enddiv
+    \div {class="doc-column"}
+        \inlineimage VideoCaptureControls.png
+                     {Video capture control panel}
+    \enddiv
+\enddiv
+
+\section1 Image capturing
+
+The button that triggers this is defined in CameraButton.qml:
+but its interaction with the camera is in the controls types, lets look at
+PhotoCaptureControls:
+
+\snippet declarative-camera/PhotoCaptureControls.qml 0
+
+\section1 Zoom control
+
+\div {class="multi-column"}
+    \div {class="doc-column"}
+    Implemented in \c ZoomControl.qml the ZoomControl type is based on an Item
+    and creates a bar that represents the zoom level, which can also be dragged.
+    It uses an exponential calculation method to determine the zoom factor given
+    the position of the \c grove.
+
+    The bar is only visible if the initialZoom is greater than 1. This means
+    the currently active camera has a zoom function.
+    \enddiv
+    \div {class="doc-column"}
+        \inlineimage ZoomControl.png
+                     {Adjustable zoom level bar}
+    \enddiv
+\enddiv
+
+\snippet declarative-camera/ZoomControl.qml 0
+
+In PhotoCaptureControls.qml and VideoCaptureControls.qml the signal \c zoomTo
+will set the selected camera's \l{Camera::}{zoomFactor} property to the
+calculated \c target value, as well as updating the ZoomControl bar.
+
+\snippet declarative-camera/VideoCaptureControls.qml 0
+
+\section1 Flash and torch control
+
+\image FlashControls.png
+       {Toggle between Flash and Torch mode}
+
+Defined in \c FlashControl.qml this enables flash mode selection and torch
+functionality to be toggled via a Switch. As with the zoom control, the switches
+are only visible on top of the preview window if the active device supports
+these functions.
+
+Here we check if the functions are supported:
+
+\snippet declarative-camera/FlashControl.qml 0
+
+Here we implement the \c flashModeControl switch, which also directly controls
+the Camera device.
+
+\snippet declarative-camera/FlashControl.qml 1
+
+Torch control is implemented in a similar way.
+*/

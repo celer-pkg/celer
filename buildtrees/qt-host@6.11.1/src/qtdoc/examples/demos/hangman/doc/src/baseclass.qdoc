@@ -1,0 +1,135 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+   \page qtpurchasing-baseclasses.html
+   \title Base Classes
+   \brief Base classes are used in purchasing demo to enable cross-platform for Android and iOS.
+
+   \section1 Classes
+   \table
+      \header
+         \li Class
+         \li Description
+      \row
+         \li \l InAppProduct
+         \li A product registered in the store.
+      \row
+         \li \l InAppStore
+         \li Main entry point for managing in-app purchases.
+      \row
+         \li \l InAppTransaction
+         \li Contains information about a transaction in the external app store.
+      \row
+         \li \l InAppPurchaseBackend
+         \li Communicates with the external store.
+   \endtable
+
+   \section1 InAppProduct
+
+   InAppProduct encapsulates a product in the external store after it has been registered in
+   InAppStore and confirmed to exist. It has an identifier which matches the identifier of the
+   product in the external store, it has a price which is retrieved from the external store,
+   and it has a product type.
+
+   The product type can be \c Consumable or \c Unlockable. Consumable products can be
+   purchased any number of times as long as each transaction is finalized explicitly by the
+   application. Unlockable types can only be purchased once.
+
+   InAppProduct has 5 returnable variables \c price, \c title, \c description \c identifier and
+   \c productType. All return a QString except productType.
+
+   ProductType is an enum type and returns \c 0 if it is Consumable and \c 1 if Unlockable.
+   \code
+   enum ProductType
+   {
+      Consumable,
+      Unlockable
+   };
+   \endcode
+
+   Check out the derived classes \c AndroidInAppProduct for Android and \c IosInAppProduct for iOS.
+
+   \section1 InAppStore
+
+   The main entry point for managing in-app purchases. It is the base class for \c AndroidInAppProduct and
+   \c IosInAppProduct.
+
+   InAppStore is used for managing in-app purchases in the application in a cross-platform way.
+   Depending on the compiler, InAppStore checks what platform is available using \c Macros.
+
+   \code
+   void InAppStore::setupBackend()
+   {
+      #ifdef Q_OS_ANDROID
+      d->backend = new AndroidInAppPurchaseBackend;
+      #endif
+
+      #ifdef Q_OS_IOS
+      d->backend = new IosInAppPurchaseBackend;
+      #endif
+
+      d->backend->setStore(this);
+
+      ...
+   \endcode
+
+   \section2 Initializing the store
+
+   Upon going to the store page in the demo, InAppStore connects all signals to related slots in
+   setupBackend() function. Then uses the registerProduct() function to register product ID and
+   productType of each product registered in the external store to a QHash registeredProducts.
+
+   Registering a product is asynchronous, and will at some point yield productRegistered()
+   signals when its found from external store.
+
+   \code
+   void InAppStore::registerProduct(InAppProduct *product)
+   {
+      d->registeredProducts[product->identifier()] = product;
+      emit productRegistered(product);
+   }
+   \endcode
+
+   \section2 Completing a purchase
+
+   Once the items have been successfully registered in the store, The user can purchase them by
+   pressing on of the products on the apps store page. QML will call product.purchase()
+   function in AndroidInAppProduct or \c IosInAppProduct which will open the external store's
+   purchasing flow.
+
+   When a purchase has been completed regardless of success, the transactionRedy signal will be
+   sent to \c InAppProductQmlType, to notify QML to start finalize the transaction.
+
+   \section2 Restoring purchases
+
+   In the demo unlockable purchases will be saved on the apps storage. By clearing the storage
+   the user will lose the unlockable purchase and it cannot be purchased again, as according to
+   the external store it is already owned.
+
+   You can use the  \c{restore purchases} button in the apps store page to restore your unlockable purchases.
+   The restore purchases button calls the restorePurchases() function and will check the external store for already owned
+   purchases. It emits the transactionRedy() signal to finalize and restore the purchase.
+
+   InAppStore has no derived classes.
+
+   \section1 InAppTransaction
+
+   InAppTransaction contains information about a transaction in the external app store and is
+   usually provided as a result of calling InAppProduct::purchase(). When the purchase flow has
+   been completed by the user (confirming the purchase, for instance by entering their password),
+   the InAppStore instance containing the product will emit a InAppStore::transactionReady()
+   signal with data about the transaction.
+
+   The status() function provides information on if the transaction was successful or not. If it was
+   successful, then the application should take appropriate action. When the necessary action has
+   been performed, finalize() should be called. The finalize() function should be called regardless
+   of the status of the transaction.
+
+   Check out the derived classes \c{AndroidInAppTransaction} for android and \c{IosInAppTransaction} for iOS.
+
+   \section1 InAppPurchaseBackend
+
+   \c InAppPurchaseBackend is used to create derived class for
+   \c AndroidInAppPurchaseBackend and \c IosInAppPurchaseBackend.
+*/

@@ -1,0 +1,79 @@
+
+This document explains the format of QQuickTimeline binary keyframes.
+Timeline KeyframeGroup 'keyframeSource' property can be used to load
+these keyframes into KeyframeGroup.
+
+Binary format is using CBOR binary data serialization format: https://cbor.io
+
+The format of keyframes CBOR data is following:
+
+[
+  "QTimelineKeyframes", // string
+  version, // integer
+  propertyType, // integer
+  [
+    frame, // double
+    easing, // integer
+    [n items depending on propertyType]
+    frame,
+    ...
+  ]
+]
+
+The content of keyframes array depend on propertyType. So for qreal
+each dataset is 3 numbers (frame + easing + qreal), for QVector3D
+5 numbers (frame + easing + QVector3D) and for QQuartenion
+6 numbers (frame + easing + QQuartenion).
+
+Value of propertyType is the QMetaType::Type of the keyframe property.
+
+Value of frame (time) is double.
+
+Value of easing is the QEasingCurve::Type of the keyframe easing.
+
+
+Example 1. CBOR content for qreal property (e.g. Item opacity):
+
+[
+  "QTimelineKeyframes",
+  1,
+  6,
+  [
+    0,
+    0,
+    0.0,
+    500,
+    0,
+    0.2,
+    1000,
+    0,
+    1.0
+  ]
+]
+
+
+Example 2. CBOR content for QVector3D property (e.g. Node position):
+
+[
+  "QTimelineKeyframes",
+  1,
+  83,
+  [
+    0,
+    0,
+    0.123,
+    0.123,
+    0.123,
+    10,
+    0,
+    0.234,
+    0.123,
+    0.123,
+    20,
+    0,
+    0.334,
+    0.334,
+    0.334,
+    ...
+  ]
+]

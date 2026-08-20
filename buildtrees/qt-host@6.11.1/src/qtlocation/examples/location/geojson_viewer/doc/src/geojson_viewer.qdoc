@@ -1,0 +1,157 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example geojson_viewer
+    \title GeoJson Viewer (QML)
+    \ingroup qtlocation-examples
+    \examplecategory {Positioning & Location}
+
+    \brief The GeoJson viewer example demonstrates how to manipulate MapItems, handle user input
+    and I/O to and from a GeoJson file.
+
+    \image geojson_viewer.png
+
+    The example displays a map with various MapItems. The MapItems are either imported from a
+    GeoJson file, using the \l {GeoJsonData} API of \l {QtLocation} or drawn by the user using
+    \l {TapHandler}{TapHandlers}.
+
+    Examples for GeoJson files can be found in the directory data within the example directory.
+
+    To draw a MapItem, right click on an empty part of the map and select an item type of your
+    choice in the appearing menu. The next clicks will define the chosen item. The example allows
+    to draw \l {MapCircle}{MapCircles}, \l {MapRectangle}{MapRectangles}, \l {MapPolygon}{MapPolygons}
+    and \l {MapPolyline}{MapPolylines}. Items that are fully defined by two points, i.e. circles
+    and rectangles, are drawn with two clicks of the left mouse button. Items that are defined by
+    multiple points, i.e. polygons and polylines, are created by an arbitrary amount of left button
+    clicks and completed with the right mouse button. Items drawn this way are saved as points,
+    polygons and polylines to fit the GeoJson specification, see \l {https://geojson.org/}.
+
+
+    \include examples-run.qdocinc
+
+
+    \section1 Creating a MapView
+
+    First we create a base map on which all items can be placed on. We take advantage of a
+    \l {MapView} element that combines a basic \l Map with input handling (mouse wheel, drag,
+    etc.). The underlying \l Map can be accessed with \l {MapView::map}{map} property. If you miss
+    a property in \l {MapView} it can be most likely accessed with \l {MapView::map}{MapView.map}.
+
+    \snippet geojson_viewer/main.qml MapView Creation
+    \snippet geojson_viewer/main.qml MapView Creation1
+
+
+    \section1 Setting up the GeoJson Model / Display MapItems
+
+    In order to display file contents on the map we will use a design pattern known as
+    \l {model-view-programming.html}{Model/View Programming}. First we need to set up a suitable view,
+    in this example a \l {MapItemView} element. Its parent must be set to the underlying map of the
+    \l {MapView} to correctly display all items placed in it.
+
+    \snippet geojson_viewer/main.qml MapItemView
+    \snippet geojson_viewer/main.qml MapItemView1
+
+    Next we need a suitable model, representing a GeoJSON document. For this purpose QtLocation offers
+    the \l {GeoJsonData} element that can read and write GeoJSON files. It can be easily instantiated
+
+    \snippet geojson_viewer/main.qml GeoJsonData Creation
+
+    and assigned to the MapItemView.
+
+    \snippet geojson_viewer/main.qml MapItemView Model
+
+    The file \c 11-full.json is loaded on start-up as an example.
+
+    Finally we need a \l {MapItemView::delegate}{delegate}, translating the model data into a
+    representation of items, filling the \l {MapItemView}.
+
+    \snippet geojson_viewer/main.qml MapItemView Delegate
+
+    The \c {GeoJsonDelegate} element is declared in the file \c {GeoJsonDelegate.qml}. It is a
+    \l {DelegateChooser} element, to take into account the varying properties of different
+    geometry types.
+
+    \snippet geojson_viewer/GeoJsonDelegate.qml DelegateChooser
+    \snippet geojson_viewer/GeoJsonDelegate.qml DelegateChooser1
+
+    The \l {DelegateChooser} contains a \l {DelegateChoice}{DelegateChoice} for each geometry
+    type that can be found in a GeoJson file. The property \l {DelegateChooser::role}{role} will
+    be matched with \l {DelegateChoice::roleValue}{DelegateChoice.roleValue} to determine the
+    correct delegate.
+
+    As an example, a point, described with \c {"type":"Point"} in GeoJson, is represented by a
+    \l {MapCircle} on the \l {MapItemView}:
+
+    \snippet geojson_viewer/GeoJsonDelegate.qml DelegateChoice Point
+    \snippet geojson_viewer/GeoJsonDelegate.qml DelegateChoice Point1
+
+    Properties of the \l {MapCircle}, such as \l {MapCircle::color}{color} or
+    \l{MapCircle::radius}{radius} are attempted to be read from the GeoJson file that is
+    available in form of the modelData property. However, this is not a strict standard of GeoJson
+    and fallback values are set for all properties.
+
+
+    \section1 Writing MapItems to GeoJson
+
+    To write MapItems to a GeoJson file we can simply call the \l{GeoJsonData::saveAs} function
+    with the designated filename. This writes all items in the current model to the designated file.
+    Any other items that should be written to the file have to be added to the model first using the
+    function \l{GeoJsonData::addItem} or \l{GeoJsonData::setModelToMapContents}.
+
+    \snippet geojson_viewer/main.qml Write File
+
+
+    \section1 User Interaction with MapItems
+
+    To handle user interactions we will use \l {PointHandler}{PointHandlers}. They are especially
+    well suited for the task as they conform to the exact shape of the underlying item, in contrast
+    to \l{MouseArea}{MouseArea}, which always covers a square shape. MapItems that are imported
+    from a GeoJson file get their own \l {HoverHandler} and \l {TapHandler} directly in the delegate:
+
+    \snippet geojson_viewer/GeoJsonDelegate.qml Handler Point
+
+    The \l {TapHandler} is used to write some information about the item on the console when the
+    item is tapped. The \l {HoverHandler} is used to highlight items that lie beneath the mouse
+    pointer. This is implemented by describing the property
+    \l {MapCircle::border.color}{border.color} depending on the property / state
+    \l {HoverHandler::hovered}{hovered} of the \l{HoverHandler}.
+
+
+    \section1 Adding new Items
+
+    A combination of \l {HoverHandler} and \l {TapHandler} for the \l {MapView} allows us to
+    react to mouse movements and clicks by the user.
+
+    If the \l{TapHandler} emits a \l{TapHandler::singleTapped}{singleTapped} signal, we will
+    create or modify a new MapItem on \l{Qt::LeftButton}{LeftButton} and finish the MapItem on
+    \l{Qt::RightButton}{RightButton}. If there is no item to finish then the
+    \l{Qt::RightButton}{RightButton} will open a menu.
+
+    \snippet geojson_viewer/main.qml Taphandler Map
+
+    The \l {SinglePointHandler::point}{pointChanged} signal is used to temporarily update a
+    MapItem, giving the user a preview.
+
+    \snippet geojson_viewer/main.qml Hoverhandler Map
+
+    Mapitems are generated from prototypes that are defined in separate qml files. They are created
+    using the \l{Qt::createComponent}{createComponent} function and added to the map with
+    \l {Map::addMapItem}{addMapItem}. A reference to the new item is stored for further manipulation
+    by the user.
+
+    \snippet geojson_viewer/main.qml add item
+
+
+    Adding the item to the \l {Map} is sufficient to display the item. However, in order to
+    further use the item (e.g. saving it to a file), it has to be added to the model.
+    This is done after editing is finished:
+
+    \snippet geojson_viewer/main.qml finish item
+
+    \section1 Removing Items
+
+    To remove all items from the map, we simply call the reset function of the GeoJsonData object
+
+    \snippet geojson_viewer/main.qml clearAllItems
+*/

@@ -1,0 +1,73 @@
+plugins {
+    alias(libs.plugins.androidApplication)
+    alias(libs.plugins.jetbrainsKotlinAndroid)
+}
+
+apply plugin: "kotlin-kapt"
+
+android {
+    namespace "org.qtproject.qt.qtjenny_general"
+    compileSdk 36
+
+    defaultConfig {
+        applicationId "org.qtproject.qt.qtjenny_general"
+        minSdk 28
+        targetSdk 36
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary true
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+    packaging {
+        resources {
+            excludes += '/META-INF/{AL2.0,LGPL2.1}'
+        }
+    }
+}
+
+import org.jetbrains.kotlin.gradle.internal.KaptTask
+
+tasks.withType(KaptTask).configureEach { task ->
+    def suffix = task.name.contains("kaptDebug") ? "_debug" : "_release"
+
+    annotationProcessorOptionProviders.add([new CommandLineArgumentProvider() {
+        @Override
+        Iterable<String> asArguments() {
+            return ["jenny.templateBuildSuffix=" + suffix]
+        }
+    }])
+}
+
+//! [2]
+kapt {
+    arguments {
+        // pass arguments to jenny
+        arg("jenny.outputDirectory", project.file("../../qtjenny_output"))
+        arg("jenny.templateDirectory", project.file("../templates"))
+        arg("jenny.headerOnlyProxy", "true")
+        arg("jenny.useJniHelper", "false")
+        arg("jenny.useTemplates", "true")
+    }
+}
+//! [2]
+
+dependencies {
+    implementation libs.qtjenny.annotation
+    kapt libs.qtjenny.compiler
+    implementation libs.androidx.activity
+}

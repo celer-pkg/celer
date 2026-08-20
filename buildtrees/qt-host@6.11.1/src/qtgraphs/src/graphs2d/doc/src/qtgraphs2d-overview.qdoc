@@ -1,0 +1,107 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Qt Graphs Overview for 2D
+    \page qtgraphs-overview-2D.html
+    \brief An overview of the 2D graphs in the Qt Graphs module.
+
+    The Qt Graphs module provides a way to develop rapidly responding, complex,
+    and dynamic 2D graphs for analytically demanding industries such as academic
+    research and medicine. Qt Graphs provides 2D bars, lines, and scatter
+    graphs. Combining user interaction and real-time 2D drawing graphs enables
+    the creation of user interfaces that use space effectively.
+
+    See \l{AreaSeries}, \l{BarSeries}, \l{LineSeries}, \l{PieSeries},
+    \l{ScatterSeries}, and \l{SplineSeries} for details.
+
+    \section1 Graph Types
+
+    The Qt Graphs module provides the following 2D graph types:
+
+    \list
+        \li \l{2D Area Graphs}{Area graphs}
+        \li \l{2D Bar Graphs}{Bar graphs}
+        \li \l{2D Donut Graphs}{Donut graphs}
+        \li \l{2D Line Graphs}{Line graphs}
+        \li \l{2D Pie Graphs}{Pie graphs}
+        \li \l{2D Scatter Graphs}{Scatter graphs}
+        \li \l{2D Spline Graphs}{Spline graphs}
+    \endlist
+
+    \l GraphsView is the base container for all 2D graph types, into which
+    graphs are added as series.
+
+    \section2 2D Area Graphs
+
+    The data is drawn as an area composed by points.
+    The points are defined by two series: \l{AreaSeries::upperSeries}{upper}
+    and \l{AreaSeries::lowerSeries}{lower}.
+
+    The area between the series is drawn as a graph. If only the upper series
+    is defined, the area is then between the bottom of the graph and the upper
+    series.
+
+    \image graphs2d-area-graph.png
+
+    See \l{AreaSeries} and \l{XYPoint} for more information.
+
+    \section2 2D Bar Graphs
+
+    The data is drawn as a series of vertical bars grouped by category, with one
+    bar per category from each bar set added to the series.
+
+    \image graphs2d-bar-graph.png
+
+    See \l{BarSeries} and \l{BarSet} for more information.
+
+    \section2 2D Donut Graphs
+
+    A donut graph is a special case of a \l{2D Pie Graphs}{Pie graph}, with an
+    additional property for defining the \l{PieSeries::holeSize}{hole size}.
+
+    \image graphs2d-donut-graph.png
+
+    See \l{PieSeries} and \l{PieSlice} for more information.
+
+    \section2 2D Line Graphs
+
+    A line graph is used to show information as a series of data points
+    connected by straight lines. For each point, two values are specified that
+    determine its position on the horizontal axis and the vertical axis.
+
+    \image graphs2d-line-graph.png
+
+    See \l{LineSeries} and \l{XYPoint} for more information.
+
+    \section2 2D Pie Graphs
+
+    A pie graph consists of slices that are defined using the \l PieSlice type.
+    The slices can have any values as the PieSeries type calculates the
+    percentage of a slice compared with the sum of all slices in the series to
+    determine the actual size of the slice in the graph.
+
+    \image graphs2d-pie-graph.png
+
+    See \l{PieSeries} and \l{PieSlice} for more information.
+
+    \section2 2D Scatter Graphs
+
+    The scatter data is displayed as a collection of points on the graph. For
+    each point, two values are specified that determine its position on the
+    horizontal axis and the vertical axis.
+
+    \image graphs2d-scatter-graph.png
+
+    See \l{ScatterSeries} and \l{XYPoint} for more information.
+
+    \section2 2D Spline Graphs
+
+    A spline graph is used to show information as a series of data points
+    connected by smooth spline segments that moves through all the points
+    defined in the graph.
+
+    \image graphs2d-spline-graph.png
+
+    See \l{SplineSeries} and \l{XYPoint} for more information.
+*/

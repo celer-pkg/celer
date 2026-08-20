@@ -1,0 +1,46 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example modelviewserver
+    \title Model-View Server
+    \examplecategory {Connectivity}
+    \brief Developing a simple server program that displays and makes changes to a QTreeView
+           which is made available on a Remote Objects network.
+    \ingroup qtremoteobjects-examples
+
+    This is the server-side application that accompanies the \l {Model-View Client}.
+
+    \snippet modelviewserver/main.cpp RegistryHost setup
+
+    We start by creating a QRemoteObjectRegistryHost with which other
+    Remote Objects will connect, be registered and then be advertised by.
+    The model we create can then be easily acquired from the client side by just
+    connecting to the registry.
+
+    \snippet modelviewserver/main.cpp Model-creation and role-selection
+
+    Now we have to create the model we need. The exact implementation is
+    available in the source code, to which you can navigate by pressing the
+    link further down on this page. We also define which \e roles we want to
+    expose to the \l{Replica} on the client side.
+
+    \snippet modelviewserver/main.cpp Model-remoting
+
+    Here, we create the QRemoteObjectHost that connects to, and shares all its
+    Remote Objects with, the Registry we created earlier. We then start remoting
+    the model we just created with the name \c{RemoteModel}. We also pass the
+    \e roles argument here.
+
+    \snippet modelviewserver/main.cpp TreeView-creation
+
+    We then display the model with a QTreeView widget.
+
+    \snippet modelviewserver/main.cpp Automated actions
+
+    For the sake of keeping the example light-weight it performs some
+    automated actions to affect the model shortly after the server application
+    launches. These changes can then be seen on both the server and client side.
+    You can also change the text in the fields on the server side and see it
+    update on the client side.
+*/

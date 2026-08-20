@@ -1,0 +1,325 @@
+// Copyright (C) 2026 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\group android
+\title Qt for Android
+\brief Provides information about Android support in Qt.
+\ingroup supportedplatform
+
+Qt has two ways for you to develop applications for Android:
+
+\list
+\li \l {qt-for-android-overview}{Qt for Android} for developing full Qt
+    applications.
+\li \l {qt-quick-for-android-overview}{Qt Quick for Android} for integrating
+    Qt Quick content into native Android applications.
+\endlist
+
+\section1 \Q4A
+\target qt-for-android-overview
+
+Qt for \tm Android enables you to develop Qt applications for Android devices,
+and supports a wide range of features and use-cases.
+
+Qt for Android provides the platform integration, runtime bridges, build and
+packaging support, and platform plugins that connect the cross-platform Qt
+libraries (such as Qt Core, Qt GUI, Qt Quick, and Qt Widgets) to
+Android-specific services and the Android SDK.
+
+Qt applications run on Android devices by handling the interaction between the
+native Android (Java/Kotlin) side and the Qt (C++) side, including event
+propagation, lifecycle management, and rendering.
+
+\image images/android_overview_apps.webp "Qt for Android demo applications running on an Android emulator"
+
+\section2 Key Features and Capabilities
+
+The main features of Qt for Android:
+
+\list
+\li \b{Cross-platform development.} A Qt application for Android is typically a
+    QML application with the code behind it written in C++. With minimal or no
+    adjustments, you can write your application code once and deploy it on
+    multiple platforms.
+\li \b{Native performance.} Since the Qt runtime is compiled for Android, it
+    provides native performance and access to native capabilities of Android
+    devices.
+\li \b{Rich UI components.} Use Qt's extensive set of \l{Qt Quick} components
+    for responsive interfaces.
+
+    You can also use the extensive module ecosystem of Qt to add features to
+    your application:
+    \list
+    \li \l {Qt Quick Controls} for ready-made UI controls that feature a
+        customizable \l {Material Style} that adapts to Android's look and feel.
+    \li \l {Qt Widgets} for traditional desktop-style widgets, if needed.
+    \li \l {Qt Quick 3D} for displaying 3D graphics in your applications.
+    \li \l {Qt Quick Shapes} for vector graphics and custom shapes.
+    \li \l {Important Concepts In Qt Quick - Graphical Effects}{Particles and graphical effects}
+        for advanced visual effects.
+    \li \l {Qt Multimedia} for audio and video playback and recording.
+    \li \l {Qt Graphs} for 2D and 3D data visualization.
+    \li \l {Qt Virtual Keyboard} for on-screen keyboard support.
+    \li \l {Qt Sensors} for accessing device sensors.
+    \li \l {Qt Location} for mapping and location-based services.
+    \li \l {Qt Bluetooth} for Bluetooth connectivity.
+    \li \l {Qt Network} for secure network communication and cryptography.
+    \endlist
+\li \b{C++ integration.} Ideal for applications that rely on existing C++
+    libraries or require high-performance native code.
+\li \b{Mature and consistent APIs.} Qt's stable modules reduce platform
+    fragmentation and make it easier to maintain feature parity between
+    platforms.
+\endlist
+
+\section2 Explore Qt for Android
+
+To learn about developing with Qt for Android, here are the main topics
+to check:
+
+\list
+    \li \l {Getting Started with Qt for Android}
+    \li \l {Qt for Android Prerequisites}
+    \li \l {How Qt for Android Works}
+    \li \l {Qt for Android Manifest File Configuration}
+    \li \l {Building Qt for Android Projects from Command Line}
+    \li \l {Deploying an Application on Android}
+    \li \l {The androiddeployqt Tool}
+    \li \l {Qt for Android - Building from Source}{Building Qt for Android from Source}
+    \li \l {Qt Jenny: Java Code Generator}
+\endlist
+
+\section2 Android Fragments
+
+You cannot use \l{Android: Fragments}{Android Fragments} in a Qt for Android
+application. However, Qt does offer its own modular components and views with
+QML. You can combine multiple components in one QML view. For more information,
+see \l{QML Documents}.
+
+If you are integrating \l{Qt Quick for Android} into an Android application, you
+can use the \l QtQuickView API inside Android Fragments.
+
+\section1 Qt Quick for Android
+\target qt-quick-for-android-overview
+
+The Qt Quick for Android lets you add Qt Quick components to your native
+Android application UI as a \l {Android: View}{View}. This is particularly
+useful for integrating complex UI elements, animations, or 3D graphics into
+specific parts of your app without rewriting the entire application in Qt.
+Unlike Qt for Android, which replaces the entire UI with Qt, Qt Quick for
+Android complements your existing native Android UI.
+
+With Qt Quick for Android, you can extend your native application's UI with
+these components:
+
+    \list
+    \li \l {Qt Quick} and \l {Qt Quick Controls} for ready-made UI controls that
+        feature a customizable \l {Material Style} that adapts to Android's look
+        and feel.
+    \li \l {Qt Quick 3D} for displaying 3D graphics in your applications.
+    \li \l {Qt Quick Shapes} for vector graphics and custom shapes.
+    \li \l {Important Concepts In Qt Quick - Graphical Effects}{Particles and graphical effects}
+        for advanced visual effects.
+    \li \l {Qt Graphs} for 2D and 3D data visualization.
+    \endlist
+
+Qt Quick for Android includes a \l{\QtTAS}{plugin} for Google's Android Studio.
+You can find it on the IntelliJ marketplace.
+
+\target android-supported-configurations
+\section1 Supported Configurations
+
+\include supported-platforms.qdocinc android
+*/
+
+/*!
+\page android-getting-started.html
+\title Getting Started with Qt for Android
+\brief A beginner's guide to install Qt and the Android toolchain and create your first Qt for Android app with Qt Creator IDE.
+
+The video below is a beginner's guide to using the Qt for Android toolchain,
+including the \QC IDE, to get you started developing Qt for Android apps.
+
+\youtube 5OiIqFTjUZI
+
+To learn the basics of getting started with Qt for Android, take the
+\l {Qt Academy - Getting Started with Qt for Android}{Getting Started with Qt for Android}
+course in the Qt Academy.
+
+To get started with Qt for Android:
+
+    \list 1
+    \li Download and install Qt. To do this, follow the instructions on the
+        \l{Get and Install Qt} page.
+    \li Install all the necessary tools and configure the development
+        environment. For details, see \l {Qt for Android Prerequisites}.
+    \li To develop a simple application from scratch, see
+        \l {\QC: Tutorial: Mobile application}.
+\endlist
+
+*/
+
+/*!
+    \page android-supported-versions-selection-guidelines.html
+    \title Qt for Android Supported Versions Selection Guidelines
+    \brief Provides information about supported Android versions under a Qt release.
+
+    To keep the supported versions to a level that’s maintainable
+    by Qt, especially for LTS releases which are expected to live for a period of
+    3 years, Qt for Android has guidelines for selecting the supported
+    versions for a given Qt release. This makes the selection clear and
+    transparent, and help shape proper expectations of support for each Qt for
+    Android release.
+
+    \section1 Minimum Supported Version
+
+    The guidelines for selecting the minimum supported version are:
+
+    \list
+        \li Evaluate the minimum version once a year for the fall release of Qt,
+            which would also cover LTS releases.
+        \li Target at least 90% of the cumulative usage in the market as listed
+            on \l {https://apilevels.com}{apilevels.com} at the time of the
+            platform freeze deadline of a given fall release.
+        \li The selection is done 1 month before the platform freeze, at which
+            time we check what versions would fit the 90% range, and decide
+            whether to select a more recent minimum version or not and to what
+            new minimum version.
+        \li The changes are communicated to the Qt development mailing list,
+            and reflected in the release change log and Qt for Android documentation.
+        \li In exceptional cases where a change is needed to a version that doesn’t
+            respect the criteria above, it will be announced at the time of the
+            platform freeze deadline along with reasons for the decision.
+    \endlist
+
+    The minimum version changes will be reflected in our CI test runs, and in
+    the build system (i.e. CMake and androiddeployqt), thus the released libraries
+    would require said minimum version to run. To target older versions a Qt
+    rebuild with appropriate build system changes would be needed. Even if such
+    builds might work for older versions, note that they would fall outside
+    of Qt official support scope. Although, the official Qt for Android libraries
+    might or might not work for builds targeting older versions than the minimum
+    for the release.
+
+    \section1 Maximum Supported Version
+
+    In a spring Qt release, we aim to support an Android version which was
+    released by Google in the fall of the year before. This becomes the new
+    maximum supported version by Qt.
+
+    Qt LTS releases would also support new Android versions coming out to market
+    for up to two years after the initial Qt LTS patch release. This allows users
+    to target newer Android versions to comply with Google Play Store target
+    SDK publishing policies. In effect, new Android versions released in this
+    two year period will become the maximum versions supported for the LTS
+    release in the following patch release of the Qt LTS version.
+
+    \section1 Target Devices used in Automated Testing
+    \target target-android-devices-in-rta
+
+    Below is a list of Android devices used in automated testing of
+    Qt for Android releases. The list is in API version order, then
+    alphabetically for each version. The list is inclusive of
+    \b {but not limited to} these devices:
+
+    \table 50%
+    \header \li Device \li OS Version \li Architecture \li Form Factor
+    \row \li \l{Huawei MediaPad M5 10 (CMR-W09)}
+        \li Android 9 (API 28)
+        \li arm64-v8a,armeabi-v7a
+        \li Mobile
+    \row \li \l{Pixel 3a}
+        \li Android 10 (API 29)
+        \li arm64-v8a,armeabi-v7a
+        \li Mobile
+    \row \li \l{Samsung Galaxy Tab S4 (SM-T835)}
+       \li Android 10 (API 29)
+       \li arm64-v8a,armeabi-v7a
+       \li Tablet
+    \row \li \l{Pixel 2}
+        \li Android 11 (API 30)
+        \li arm64-v8a,armeabi-v7a
+        \li Mobile
+    \row \li \l{Pixel 2 XL}
+        \li Android 11 (API 30)
+        \li arm64-v8a,armeabi-v7a
+        \li Mobile
+    \row \li \l{Pixel 6 Pro}
+        \li Android 12 (API 32)
+        \li arm64-v8a,armeabi-v7a
+        \li Mobile
+    \row \li \l{Samsung Galaxy S21 (SM-G990B2)}
+        \li Android 12 (API 31)
+        \li arm64-v8a,armeabi-v7a
+        \li Mobile
+    \row \li \l{Pixel 4}
+        \li Android 13 (API 33)
+        \li arm64-v8a,armeabi-v7a
+        \li Mobile
+    \row \li \l{Pixel 4A}
+        \li Android 13 (API 33)
+        \li arm64-v8a,armeabi-v7a
+        \li Mobile
+    \row \li \l{Pixel 7 Pro}
+        \li Android 13 (API 33)
+        \li arm64-v8a
+        \li Mobile
+    \row \li \l{Nothing Phone 1 (A063)}
+       \li Android 14 (API 34)
+       \li arm64-v8a,armeabi-v7a
+       \li Mobile
+    \row \li \l{Samsung Galaxy Tab A9+ (SM-X210)}
+       \li Android 14 (API 34)
+       \li arm64-v8a,armeabi-v7a
+       \li Tablet
+    \row \li \l{Pixel 8}
+        \li Android 15 (API 35)
+        \li arm64-v8a
+        \li Mobile
+    \row \li \l{Samsung Galaxy A26 (SM-A266B)}
+       \li Android 15 (API 35)
+       \li arm64-v8a,armeabi-v7a
+       \li Tablet
+    \row \li \l{Pixel 6a}
+        \li Android 16 (API 36)
+        \li arm64-v8a,armeabi-v7a
+        \li Mobile
+    \row \li \l{Pixel 6a}
+        \li Android 16 (API 36)
+        \li arm64-v8a,armeabi-v7a
+        \li Mobile
+    \row \li \l{Pixel 7}
+        \li Android 16 (API 36)
+        \li arm64-v8a
+        \li Mobile
+    \row \li \l{Pixel 7a}
+        \li Android 16 (API 36)
+        \li arm64-v8a
+        \li Mobile
+    \row \li \l{Pixel 8}
+        \li Android 16 (API 36)
+        \li arm64-v8a
+        \li Mobile
+    \row \li \l{Pixel Tablet}
+        \li Android 16 (API 36)
+        \li arm64-v8a
+        \li Tablet
+    \row \li \l{Samsung Galaxy Tab 10 Lite (SM-X400)}
+       \li Android 16 (API 36)
+       \li arm64-v8a,armeabi-v7a
+       \li Tablet
+    \row \li \l{Samsung Galaxy S21 (SM-G990B)}
+       \li Android 16 (API 36)
+       \li arm64-v8a,armeabi-v7a
+       \li Mobile
+    \row \li \l{Pixel 6a}
+        \li Android 17 Beta2 Cinnamonbun (API 36)
+        \li arm64-v8a,armeabi-v7a
+        \li Mobile
+    \endtable
+
+    \note The above table is accurate at the time of this Qt patch release only.
+    It may change during the patch release cycle and should only be used as a
+    reference for what The Qt Company can rapidly reproduce bugs on.
+*/

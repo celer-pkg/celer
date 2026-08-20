@@ -1,0 +1,139 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example itemviews/combowidgetmapper
+    \title Combo Widget Mapper Example
+    \examplecategory {User Interface Components}
+    \ingroup examples-itemviews
+    \brief The Combo Widget Mapper example shows how to use a QDataWidgetMapper
+    to map information from a model to specific widgets on a form.
+
+    \image combowidgetmapper-example.png
+           {Application with various fields such as Name, Address, and Type}
+
+    We create a \c Window class with an almost identical user interface,
+    except that, instead of providing a spin box so that each person's age
+    can be entered, we provide a combo box to allow their addresses to be
+    classified as "Home", "Work" or "Other".
+
+    \section1 Person Class Definition
+
+    We define a struct \c{Person} containing name, address and address type
+    to represent the model data:
+
+    \snippet itemviews/combowidgetmapper/person.h Person
+
+    It is declared to be a Q_GADGET with the members to be properties
+    of the same name to be able to conveniently populate a QRangeModel.
+
+    \section1 Window Class Definition
+
+    The class provides a constructor and a slot to keep the buttons up to date:
+
+    \snippet itemviews/combowidgetmapper/window.h Window definition
+
+    In addition to the QDataWidgetMapper object and the controls used to make
+    up the user interface, we use a QList<Person> to hold our data
+    and a QRangeModel operating on it.
+
+    \section1 Window Class Implementation
+
+    The constructor of the \c Window class can be explained in several parts.
+    In the first part, we set up the widgets used for the user interface:
+
+    \snippet itemviews/combowidgetmapper/window.cpp Set up widgets
+
+    The person list is populated using an initalizer list, which is then
+    passed to the QRangeModel:
+
+    \snippet itemviews/combowidgetmapper/window.cpp Set up the model
+
+    Note that we set up the mapping the combo box in the same way as for other
+    widgets, but that we apply its own model holding information about the
+    types of address to it, so that it will display the address type string
+    rather than the data from the model containing data about each person:
+
+    \snippet itemviews/combowidgetmapper/window.cpp Set up type combo box
+
+    Next, we set up the widget mapper, relating each input widget to a column
+    in the model specified by the call to \l{QDataWidgetMapper::}{setModel()}:
+
+    \snippet itemviews/combowidgetmapper/window.cpp Set up the mapper
+
+    For the combo box, we pass an extra argument to tell the widget mapper
+    which property to relate to values from the model. As a result, the user
+    is able to select an item from the combo box, and the corresponding
+    value stored in the widget's \c currentIndex property will be stored in
+    the model.
+
+    \omit
+    However, we also set a delegate on the mapper. As with \l{Delegate Classes},
+    this changes the way that data is presented to the user. In this case, the
+    delegate acts as a proxy between the mapper and the input widgets,
+    translating the data into a suitable form for the combo box but not
+    interfering with the other input widgets. The implementation is shown later.
+    \endomit
+
+    The rest of the constructor sets up connections and layouts:
+
+    \snippet itemviews/combowidgetmapper/window.cpp Set up connections and layouts
+
+    \image widgetmapper-combo-mapping.png
+    {Mapping of the model to the view using a delegate}
+
+    We show the implementation of the \c{updateButtons()} slot for
+    completeness:
+
+    \snippet itemviews/combowidgetmapper/window.cpp Slot for updating the buttons
+
+    \omit
+    \section1 Delegate Class Definition and Implementation
+
+    The delegate we use to mediate interaction between the widget mapper and
+    the input widgets is a small QStyledItemDelegate subclass:
+
+    \snippet itemviews/combowidgetmapper/delegate.h Delegate class definition
+
+    This provides implementations of the two standard functions used to pass
+    data between editor widgets and the model (see the \l{Delegate Classes}
+    documentation for a more general description of these functions).
+
+    Since we only provide an empty implementation of the constructor, we
+    concentrate on the other two functions.
+
+    The \l{QStyledItemDelegate::}{setEditorData()} implementation takes the data
+    referred to by the model index supplied and processes it according to
+    the presence of a \c currentIndex property in the editor widget:
+
+    \snippet itemviews/combowidgetmapper/delegate.cpp setEditorData implementation
+
+    If, like QComboBox, the editor widget has this property, it is set using
+    the value from the model. Since we are passing around QVariant values,
+    the strings stored in the model are automatically converted to the integer
+    values needed for the \c currentIndex property.
+
+    As a result, instead of showing "0", "1" or "2" in the combo box, one of
+    its predefined set of items is shown. We call QStyledItemDelegate::setEditorData()
+    for widgets without the \c currentIndex property.
+
+    The \l{QStyledItemDelegate::}{setModelData()} implementation performs the reverse
+    process, taking the value stored in the widget's \c currentIndex property
+    and storing it back in the model:
+
+    \snippet itemviews/combowidgetmapper/delegate.cpp setModelData implementation
+    \endomit
+
+    \section1 Summary and Further Reading
+
+    The use of a separate model for the combo box provides a menu of choices
+    that are separate from the data stored in the main model. Using a named
+    mapping that relates the combo box's \c currentIndex property to a column
+    in the model effectively allows us to store a look-up value in the model.
+
+    However, when reading the model outside the context of the widget mapper,
+    we need to know about the \c typeModel to make sense of these look-up
+    values. It would be useful to be able to store both the data and the
+    choices held by the \c typeModel in one place.
+    This is covered by the \l{SQL Widget Mapper Example}.
+*/

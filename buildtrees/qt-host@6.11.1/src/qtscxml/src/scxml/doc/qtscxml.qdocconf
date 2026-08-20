@@ -1,0 +1,69 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/config/exampleurl-qtscxml.qdocconf)
+
+project                 = QtScxml
+description             = Qt SCXML Reference Documentation
+version                 = $QT_VERSION
+
+# Install path for the examples
+examplesinstallpath     = scxml
+exampledirs             = ../../../examples/scxml .
+
+# Path to the root of qtscxml (for automatic linking to source code)
+url.sources.rootdir     = ../../..
+
+examples.fileextensions += "*.scxml"
+
+
+qhp.projects            = QtScxml
+
+qhp.QtScxml.file                = qtscxml.qhp
+qhp.QtScxml.namespace           = org.qt-project.qtscxml.$QT_VERSION_TAG
+qhp.QtScxml.virtualFolder       = qtscxml
+qhp.QtScxml.indexTitle          = Qt SCXML
+qhp.QtScxml.indexRoot           =
+
+qhp.QtScxml.subprojects = manual examples classes qmltypes
+
+qhp.QtScxml.subprojects.classes.title      = C++ Classes
+qhp.QtScxml.subprojects.classes.indexTitle = Qt SCXML C++ Classes
+qhp.QtScxml.subprojects.classes.selectors  = class headerfile
+qhp.QtScxml.subprojects.classes.sortPages  = true
+
+qhp.QtScxml.subprojects.qmltypes.title      = QML Types
+qhp.QtScxml.subprojects.qmltypes.indexTitle = Qt SCXML QML Types
+qhp.QtScxml.subprojects.qmltypes.selectors  = qmltype
+qhp.QtScxml.subprojects.qmltypes.sortPages  = true
+
+qhp.QtScxml.subprojects.examples.title = Examples
+qhp.QtScxml.subprojects.examples.indexTitle = Qt SCXML Examples
+qhp.QtScxml.subprojects.examples.selectors = example
+
+qhp.QtScxml.subprojects.manual.title = Qt SCXML
+qhp.QtScxml.subprojects.manual.indexTitle = Qt SCXML module topics
+qhp.QtScxml.subprojects.manual.type = manual
+
+depends += qtcore qtdoc qmake qtquick qtwidgets qtstatemachine qtcmake
+
+headerdirs = .. \
+             ../../scxmlqml \
+             ../../plugins/ecmascriptdatamodel
+
+sourcedirs += .. \
+              ../../scxmlqml \
+              ../../../tools/qscxmlc/doc \
+              ../../plugins/ecmascriptdatamodel
+
+excludefiles += "../qscxmlexecutablecontent_p.h"
+
+tagfile = qtscxml.tags
+
+navigation.landingpage = "Qt SCXML"
+navigation.cppclassespage = "Qt SCXML C++ Classes"
+navigation.qmltypespage = "Qt SCXML QML Types"
+# Auto-generate navigation linking based on "Qt SCXML module topics":
+navigation.toctitles = "Qt SCXML module topics"
+navigation.toctitles.inclusive = false
+
+# Highlighted examples in Data Processing & IO category
+manifestmeta.highlighted.names = "QtScxml/SCXML Sudoku"

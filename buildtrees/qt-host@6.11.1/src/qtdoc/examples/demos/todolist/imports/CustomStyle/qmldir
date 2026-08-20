@@ -1,0 +1,18 @@
+# Copyright (C) 2023 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+
+module CustomStyle
+TextField 1.0 TextField.qml
+TextArea 1.0 TextArea.qml
+Button 1.0 Button.qml
+CheckBox 1.0 CheckBox.qml
+SwitchDelegate 1.0 SwitchDelegate.qml
+Pane 1.0 Pane.qml
+ComboBox 1.0 ComboBox.qml
+Page 1.0 Page.qml
+ToolBar 1.0 ToolBar.qml
+ToolButton 1.0 ToolButton.qml
+ToolTip 1.0 ToolTip.qml
+RadioDelegate 1.0 RadioDelegate.qml
+ItemDelegate 1.0 ItemDelegate.qml
+Dialog 1.0 Dialog.qml

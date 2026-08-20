@@ -1,0 +1,10 @@
+version = 1
+
+[[annotations]]
+path = ["**/*.svg"]
+comment = ["Assuming it applies to every image below",
+           "qt_attribution.json file does not list the files the rule applies to",
+           "double check"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright Google"
+SPDX-License-Identifier = "Apache-2.0"

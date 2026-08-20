@@ -1,0 +1,402 @@
+{{>licenseInfo}}{{#models}}{{#model}}
+#include "{{#lambda.lowercase}}{{{classname}}}{{/lambda.lowercase}}.h"
+#include "{{prefixLowerCase}}helpers.h"
+
+using namespace Qt::StringLiterals;
+{{#cppCommonNamespaceDeclarations}}
+using namespace {{this}};
+{{/cppCommonNamespaceDeclarations}}
+
+{{#cppNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppNamespaceDeclarations}}
+
+{{classname}}::{{classname}}(const QString &json)
+{
+    this->initializeModel();
+    this->fromJson(json);
+}
+
+{{classname}}::{{classname}}()
+{
+    this->initializeModel();
+}
+
+{{classname}}::~{{classname}}()
+{
+}
+
+void {{classname}}::initializeModel()
+{
+{{^isEnum}}
+{{#vars}}
+    m_{{name}} = {};
+{{#complexType}}
+{{^isContainer}}
+    m_{{name}}IsValid = m_{{name}}.isValid();
+    m_{{name}}IsSet = m_{{name}}.isSet();
+{{/isContainer}}
+{{#isContainer}}
+    m_{{name}}IsSet = false;
+    m_{{name}}IsValid = !{{{required}}};
+{{/isContainer}}
+{{/complexType}}
+{{^complexType}}
+{{#isFreeFormObject}}
+    m_{{name}}IsValid = m_{{name}}.isValid();
+    m_{{name}}IsSet = m_{{name}}.isSet();
+{{/isFreeFormObject}}
+{{^isFreeFormObject}}
+    m_{{name}}IsSet = false;
+    // If value isn't set AND isn't required
+    // it's counted as valid
+    m_{{name}}IsValid = !{{{required}}};
+{{/isFreeFormObject}}
+{{/complexType}}
+{{^-last}}
+
+{{/-last}}
+{{/vars}}
+{{/isEnum}}
+{{#isEnum}}
+    m_valueIsSet = false;
+    m_valueIsValid = false;
+    m_value = e{{classname}}::INVALID_VALUE_OPENAPI_GENERATED;
+{{/isEnum}}
+}
+
+void {{classname}}::fromJson(const QString &jsonString)
+{
+{{^isEnum}}
+    QByteArray array(jsonString.toStdString().c_str());
+    QJsonDocument doc = QJsonDocument::fromJson(array);
+    QJsonObject jsonObject = doc.object();
+    this->fromJsonObject(jsonObject);
+{{/isEnum}}
+{{#isEnum}}
+{{#allowableValues}}
+{{#enumVars}}
+    {{#-first}}if{{/-first}}{{^-first}}else if{{/-first}} (jsonString.compare({{#isString}}u"{{value}}"_s{{/isString}}{{^isString}}QString::number({{value}}){{/isString}}, Qt::CaseInsensitive) == 0) {
+        m_value = e{{classname}}::{{name}};
+        m_valueIsSet = m_valueIsValid = true;
+    }{{#-last}} else {
+        m_value = e{{classname}}::INVALID_VALUE_OPENAPI_GENERATED;
+        m_valueIsSet = m_valueIsValid = false;
+    }{{/-last}}
+{{/enumVars}}
+{{/allowableValues}}
+{{/isEnum}}
+}
+
+void {{classname}}::fromJson{{^isEnum}}Object{{/isEnum}}{{#isEnum}}Value{{/isEnum}}(const QJson{{^isEnum}}Object{{/isEnum}}{{#isEnum}}Value{{/isEnum}} &json)
+{
+{{^isEnum}}
+    if (json.isEmpty()) {
+        initializeModel();
+        return;
+    }
+{{#vars}}
+{{#complexType}}
+{{^isContainer}}
+{{#isModel}}
+    {
+        const QJsonValue modelValue = json[u"{{baseName}}"_s];
+        if (modelValue.isObject()) {
+            ::{{cppCommonNamespace}}::fromJsonValue(m_{{name}}, modelValue);
+            m_{{name}}IsValid = m_{{name}}.isValid();
+            // NOTE: An empty JSON object is still a valid value
+            // for models without required properties.
+            // Users may intentionally set it for specific reasons.
+            m_{{name}}IsSet = m_{{name}}.isSet() || (m_{{name}}IsValid && modelValue.toObject().isEmpty());
+        } else {
+            m_{{name}} = {};
+            m_{{name}}IsValid = m_{{name}}.isValid();
+            m_{{name}}IsSet = m_{{name}}.isSet();
+        }
+    }
+{{/isModel}}
+{{^isModel}}
+    {
+        const bool result = ::{{cppCommonNamespace}}::fromJsonValue(m_{{name}}, json[u"{{baseName}}"_s]);
+        if (result) {
+            m_{{name}}IsValid = m_{{name}}IsSet = {{#isEnumRef}}m_{{name}}.isSet(){{/isEnumRef}}{{^isEnumRef}}result{{/isEnumRef}};
+        } else {
+            m_{{name}}IsValid = !{{required}};
+            m_{{name}}IsSet = result;
+        }
+    }
+{{/isModel}}
+{{/isContainer}}
+{{#isContainer}}
+{{^items.isContainer}}
+    if (json[u"{{baseName}}"_s].isArray() || json[u"{{baseName}}"_s].isObject()) {
+        m_{{name}}IsValid = ::{{cppCommonNamespace}}::fromJsonValue(m_{{name}}, json[u"{{baseName}}"_s]);
+        m_{{name}}IsSet = !json[u"{{baseName}}"_s].isNull() && m_{{name}}IsValid;
+    }
+{{/items.isContainer}}
+{{#isArray}}
+{{#items.isContainer}}
+    if (json[u"{{baseName}}"_s].isArray()) {
+        const auto arr = json[u"{{baseName}}"_s].toArray();
+        m_{{name}}IsValid = true;
+        if (arr.size() == 0)
+            m_{{name}}IsSet = true;
+
+        for (const QJsonValue &jval : arr) {
+{{#items.isArray}}
+            if (!jval.isArray()) {
+{{/items.isArray}}
+{{#items.isMap}}
+            if (!jval.isObject()) {
+{{/items.isMap}}
+                m_{{name}}.clear();
+                m_{{name}}IsValid = !{{required}};
+                m_{{name}}IsSet = false;
+                break;
+            }
+
+            {{{items.dataType}}} item;
+            const bool result = ::{{cppCommonNamespace}}::fromJsonValue(item, jval);
+            if (result) {
+                m_{{name}}IsValid = m_{{name}}IsSet = result;
+            } else {
+                m_{{name}}IsValid = !{{required}};
+                m_{{name}}IsSet = result;
+                m_{{name}}.clear();
+                break;
+            }
+            m_{{name}}.push_back(item);
+        }
+    }
+{{/items.isContainer}}
+{{/isArray}}
+{{#isMap}}
+{{#items.isContainer}}
+    if (json[u"{{baseName}}"_s].isObject()) {
+        const auto varmap = json[u"{{baseName}}"_s].toObject().toVariantMap();
+        m_{{name}}IsValid = true;
+        if (varmap.size() == 0)
+            m_{{name}}IsSet = true;
+
+        for (const auto &[key, value] : varmap.asKeyValueRange()) {
+{{#items.isArray}}
+            if (!value.canConvert<QJsonValue>()) {
+{{/items.isArray}}
+{{#items.isMap}}
+            if (!value.canConvert<QVariantMap>()) {
+{{/items.isMap}}
+                m_{{name}}.clear();
+                m_{{name}}IsValid = !{{{required}}};
+                m_{{name}}IsSet = false;
+                break;
+            }
+
+            {{{items.dataType}}} item;
+            const auto jval = QJsonValue::fromVariant(value);
+            const bool result = ::{{cppCommonNamespace}}::fromJsonValue(item, jval);
+            if (result) {
+                m_{{name}}IsValid = m_{{name}}IsSet = result;
+            } else {
+                m_{{name}}IsValid = !{{required}};
+                m_{{name}}IsSet = result;
+                m_{{name}}.clear();
+                break;
+            }
+            m_{{name}}.insert(key, item);
+        }
+    }
+{{/items.isContainer}}
+{{/isMap}}
+    else { // fallback for wrong data type
+        m_{{name}}.clear();
+        m_{{name}}IsValid = !{{required}};
+        m_{{name}}IsSet = false;
+    }
+{{/isContainer}}
+{{/complexType}}
+{{^complexType}}
+{{#isFreeFormObject}}
+    {
+        const QJsonValue modelValue = json[u"{{baseName}}"_s];
+        if (modelValue.isObject()) {
+            ::{{cppCommonNamespace}}::fromJsonValue(m_{{name}}, modelValue);
+            m_{{name}}IsValid = m_{{name}}.isValid();
+            // NOTE: An empty JSON object is still a valid value
+            // for models without required properties.
+            // Users may intentionally set it for specific reasons.
+            m_{{name}}IsSet = m_{{name}}.isSet() || (m_{{name}}IsValid && modelValue.toObject().isEmpty());
+        } else {
+            m_{{name}} = {};
+            m_{{name}}IsValid = m_{{name}}.isValid();
+            m_{{name}}IsSet = m_{{name}}.isSet();
+        }
+    }
+{{/isFreeFormObject}}
+{{^isFreeFormObject}}
+    {
+        const bool result = ::{{cppCommonNamespace}}::fromJsonValue(m_{{name}}, json[u"{{baseName}}"_s]);
+        if (result) {
+            m_{{name}}IsValid = m_{{name}}IsSet = result;
+        } else {
+            m_{{name}}IsValid = !{{required}};
+            m_{{name}}IsSet = result;
+        }
+    }
+{{/isFreeFormObject}}
+{{/complexType}}
+{{/vars}}
+{{/isEnum}}
+{{#isEnum}}
+{{#allowableValues}}
+{{#enumVars}}
+{{#-first}}
+    {{#isString}}fromJson(json.toString());{{/isString}}{{^isString}}m_value = static_cast<e{{classname}}>(json.toInt());{{/isString}}
+{{/-first}}
+{{/enumVars}}
+{{/allowableValues}}
+{{/isEnum}}
+}
+
+QString {{classname}}::asJson() const
+{
+{{^isEnum}}
+    QJsonObject obj = this->asJsonObject();
+    QJsonDocument doc(obj);
+    QByteArray bytes = doc.toJson(QJsonDocument::Compact);
+    return QString::fromUtf8(bytes);
+{{/isEnum}}
+{{#isEnum}}
+    QString val;
+{{#allowableValues}}
+    switch (m_value) {
+{{#enumVars}}
+        case e{{classname}}::{{name}}:
+            val = {{#isString}}u"{{value}}"_s{{/isString}}{{^isString}}QString::number({{value}}){{/isString}};
+            break;{{#-last}}
+        default:
+            break;{{/-last}}
+{{/enumVars}}
+    }
+{{/allowableValues}}
+    return val;
+{{/isEnum}}
+}
+
+QJson{{^isEnum}}Object{{/isEnum}}{{#isEnum}}Value{{/isEnum}} {{classname}}::asJson{{^isEnum}}Object{{/isEnum}}{{#isEnum}}Value{{/isEnum}}() const
+{
+{{^isEnum}}
+    QJsonObject obj;
+{{#vars}}
+    if (m_{{name}}IsSet) {
+        obj.insert(u"{{baseName}}"_s, ::{{cppCommonNamespace}}::toJsonValue(m_{{name}}));
+    }
+{{/vars}}
+    return obj;
+{{/isEnum}}
+{{#isEnum}}
+{{#allowableValues}}
+{{#enumVars}}
+{{#-first}}
+{{^isString}}
+    return QJsonValue(static_cast<int>(m_value));
+{{/isString}}
+{{#isString}}
+    return QJsonValue(asJson());
+{{/isString}}
+{{/-first}}
+{{/enumVars}}
+{{/allowableValues}}
+{{/isEnum}}
+}
+
+{{^isEnum}}{{#vars}}{{{dataType}}} {{classname}}::{{getter}}Value() const
+{
+    return m_{{name}};
+}
+
+void {{classname}}::{{setter}}(const {{{dataType}}} &{{name}})
+{
+    m_{{name}} = {{name}};
+    m_{{name}}IsValid = true{{#complexType}}{{^isContainer}} && {{name}}.isValid(){{/isContainer}}{{/complexType}}{{^complexType}}{{#isFreeFormObject}} && {{name}}.isValid(){{/isFreeFormObject}}{{/complexType}};
+{{#complexType}}
+{{#isModel}}
+    // NOTE: An empty JSON object is still a valid value
+    // for models without required properties.
+    // Users may intentionally set it for specific reasons.
+    m_{{name}}IsSet = m_{{name}}.isSet() || (m_{{name}}IsValid && {{name}}.asJsonObject().isEmpty());
+{{/isModel}}
+{{^isModel}}
+    m_{{name}}IsSet = {{#isEnumRef}}m_{{name}}.isSet(){{/isEnumRef}}{{^isEnumRef}}m_{{name}}IsValid{{/isEnumRef}};
+{{/isModel}}
+{{/complexType}}
+{{^complexType}}
+{{#isFreeFormObject}}
+    // NOTE: An empty JSON object is still a valid value
+    // for models without required properties.
+    // Users may intentionally set it for specific reasons.
+    m_{{name}}IsSet = m_{{name}}.isSet() || (m_{{name}}IsValid && {{name}}.asJsonObject().isEmpty());
+{{/isFreeFormObject}}
+{{^isFreeFormObject}}
+    m_{{name}}IsSet = m_{{name}}IsValid;
+{{/isFreeFormObject}}
+{{/complexType}}
+}
+
+bool {{classname}}::is{{#camelcase}}{{name}}{{/camelcase}}Set() const
+{
+    return m_{{name}}IsSet;
+}
+
+bool {{classname}}::is{{#camelcase}}{{name}}{{/camelcase}}Valid() const
+{
+    return m_{{name}}IsValid;
+}
+
+{{/vars}}{{/isEnum}}{{#isEnum}}
+{{classname}}::e{{classname}} {{classname}}::getValue() const
+{
+    return m_value;
+}
+
+void {{classname}}::setValue({{classname}}::e{{classname}} value)
+{
+    m_value = value;
+    m_valueIsSet = true;
+    m_valueIsValid = true;
+}
+{{/isEnum}}
+bool {{classname}}::isSet() const
+{
+{{^isEnum}}
+    bool isObjectUpdated = false;
+    do {
+{{#vars}}
+        if (m_{{name}}IsSet) {
+            isObjectUpdated = true;
+            break;
+        }
+{{/vars}}
+    } while (false);
+    return isObjectUpdated;
+{{/isEnum}}
+{{#isEnum}}
+    return m_valueIsSet;
+{{/isEnum}}
+}
+
+bool {{classname}}::isValid() const
+{
+{{^isEnum}}
+    // only required properties are required for the object to be considered valid
+    return {{#vars}}{{#required}}m_{{name}}IsValid && {{/required}}{{/vars}}true;
+{{/isEnum}}
+{{#isEnum}}
+    return m_valueIsValid;
+{{/isEnum}}
+}
+
+{{#cppNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppNamespaceDeclarations}}
+{{/model}}
+{{/models}}

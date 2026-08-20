@@ -1,0 +1,477 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page whatsnew65.html
+    \title What's New in Qt 6.5
+    \brief Lists the new features in Qt 6.5.
+    \ingroup whatsnewqt6
+    \meta sortkey 605
+
+    \section1 New and Restored Modules in Qt 6.5
+
+    Qt 6.5 adds the following modules and tools:
+
+    \list
+        \li \l {Qt Quick Effect Maker} - A tool to create high-performance
+            shader effects for Qt Quick.
+        \li \l {Qt Quick Effects QML Types}{Qt Quick Effects} - A module
+            containing \l{MultiEffect}, for applying one or more simple
+            graphical effects on a Qt Quick \l{Item}.
+        \li \l {Qt Quick 3D Physics} - A physics engine for use with Qt Quick
+            3D. This module is no longer in technology preview.
+        \li \l {Qt Qml Core} - A module that exposes various \l {Qt Core} APIs
+            to QML.
+    \endlist
+
+    \section2 New and Restored Modules in Technology Preview
+
+    \note API and ABI stability is not guaranteed.
+
+    \list
+        \li \l {Qt Location}'s \l {QtLocation::}{Map} renders 2D maps into a Qt Quick
+            application. \l {QtLocation::}{MapView} includes \l {Qt Quick Input Handlers}
+            to implement the typical interactive features (zoom, pan, tilt).
+        \li \l {Qt GRPC} supports communicating with gRPC services using classes
+            generated based on service descriptions from protobuf
+            .proto-specifications.
+        \li \l {Qt Protobuf} supports generating, serializing, and
+            deserializing Qt-based classes from protobuf .proto-specifications.
+    \endlist
+
+    \section1 New Features in Qt 6.5
+
+    \section2 Qt Core Module
+
+    \list
+        \li QTimeZone can now package a Qt::TimeSpec and, when relevant, an
+            offset in a lightweight time representation that unifies the various
+            APIs of QDateTime and QDate that took either a QTimeZone or a
+            Qt::TimeSpec and offset.
+        \li Introduced \l {Application Permissions}{application permissions}
+            API to allow applications to check or request permissions for
+            features that require user consent before use.
+        \li New cross-platform tracing backend in Common Trace Format (CTF).
+        \li QBindable can now be constructed from any property with a NOTIFY
+            signal. This lets you integrate existing, non-bindable
+            properties with \l [QtCore] {Qt Bindable Properties}
+            {bindable properties}.
+        \li The \l{qt_generate_deploy_app_script} CMake function preferably accepts
+            an argument called OUTPUT_SCRIPT now. Passing the old FILENAME_VARIABLE
+            is deprecated.
+    \endlist
+
+    \section2 Qt GUI Module
+
+    \list
+        \li Reintroduced classes QWindowsMimeConverter and QUtiMimeConverter
+            for handling drag'n'drop and clipboard data in platform specific
+            formats on Windows, macOS, and iOS.
+        \li QVulkanInstance now enables Vulkan Portability physical devices
+            by default. This is required to be operational with newer
+            MoltenVK versions on Apple platforms. Added a NoPortabilityDrivers
+            flag that lets you opt out from this.
+        \li The Vulkan rendering infrastructure is now using VK_EXT_debug_utils
+            instead of the deprecated VK_EXT_debug_report and
+            VK_EXT_debug_marker.
+        \li QTextLayout::glyphRuns() can now return the string index
+            corresponding to each glyph when this is requested. Made available
+            through the new function QGlyphRun::stringIndexes().
+        \li Checkbox list items can now be read and written in HTML as well as
+            Markdown, including conversions.
+        \li Added QGuiApplication::setBadgeNumber() to provide feedback to the
+            user about the number of unread messages or similar. The badge will
+            be overlaid the application's icon in the Dock on \macos, the home
+            screen icon on iOS, or the task bar on Windows.
+    \endlist
+
+    \section2 Qt Quick Module
+
+    \list
+        \li TableView got support for editing cells using an edit delegate.
+        \li TableView got support for resizing rows and columns using the mouse.
+        \li TableView got support for setting row and column sizes explicitly.
+        \li TableView got a new signal \c layoutChanged(). This signal can be
+            used to, for example, reposition overlay items.
+        \li TableView got support for doing multi-selections.
+        \li Added support for specifying separate RGB and alpha blend factors in
+            a QSGMaterial.
+        \li The Qt Quick scenegraph is now automatically using persistent,
+            disk-based caching of graphics pipelines or the intermediate format
+            shader bytecode, depending on the platform and the 3D graphics API
+            in use. This is expected to reduce the time spent on creating the
+            graphics pipeline in subsequent runs of the application. In
+            addition, QQuickGraphicsConfiguration provides explicit control over
+            if and where this data is written out and loaded from. This enables
+            advanced use cases such as shipping a pre-seeded cache file with an
+            application or device, which also accelerates first-time startup.
+        \li PinchHandler has new \l {PinchHandler::}{scaleAxis} and
+            \l {PinchHandler::}{rotationAxis} grouped properties, offering
+            several new values, including the \c activeValue property which is
+            new in all the handler axis groups. It also got the
+            \l {PinchHandler::}{activeTranslation} and
+            \l {PinchHandler::}{persistentTranslation} properties that DragHandler
+            already had.
+        \li DragHandler's \c xAxis and \c yAxis have new
+            \l {DragHandler::xAxis.activeValue}{activeValue} properties.
+        \li PinchHandler's \l {PinchHandler::}{activeScale} (which was
+            previously called \c scale) is no longer restricted to the range between
+            \l {PinchHandler::}{minimumScale} and \l {PinchHandler::}{maximumScale}:
+            these limits apply only to \l {PinchHandler::}{persistentScale}. Likewise,
+            \l {PinchHandler::}{activeRotation} (previously \c rotation) is no longer
+            restricted to the range between \l {PinchHandler::}{minimumRotation} and
+            \l {PinchHandler::}{maximumRotation}. These limits are applied the same
+            way for native touchpad pinch gestures as on touchscreens.
+        \li \l {TapHandler::exclusiveSignals} now lets you make the
+            \l {TapHandler::}{singleTapped} and \l {TapHandler::}{doubleTapped}
+            signals exclusive.
+
+    \endlist
+
+    \section2 Qt Labs Animation Module
+
+    \list
+        \li \l BoundaryRule now has a \l {BoundaryRule::}{returnedToBounds} signal.
+    \endlist
+
+    \section2 Qt Quick Controls Module
+
+    \list
+        \li TreeViewDelegate got support editing tree nodes
+        \li The Material style was updated to \l {Material 3}.
+            \list
+                \li Several controls received visual updates, so it is recommended
+                    to check how your application looks and adapt it accordingly:
+                    \list
+                    \li \l ApplicationWindow
+                    \li \l Button
+                    \li \l ComboBox
+                    \li \l DelayButton
+                    \li \l Dialog
+                    \li \l Drawer
+                    \li \l Menu
+                    \li \l Popup
+                    \li \l RangeSlider
+                    \li \l RoundButton
+                    \li \l Slider
+                    \li \l SpinBox
+                    \li \l Switch
+                    \li \l TextArea
+                    \li \l TextField
+                    \endlist
+
+                \li Some new API was added:
+                    \list
+                    \li \l {material-containerStyle-attached-prop}{Material.containerStyle}
+                        controls the style of the container used by the target control.
+                        It can be attached to any window or item, but only \l TextField and
+                        \l TextArea support it by default.
+                    \li \l {material-roundedScale-attached-prop}{Material.roundedScale}
+                        controls the radius of rounded corners used on the target control.
+                        It can be attached to any window or item, but only the following
+                        controls support it by default:
+                        \list
+                        \li \l Button
+                        \li \l Dialog
+                        \li \l DialogButtonBox
+                        \li \l Drawer
+                        \li \l Menu
+                        \li \l Popup
+                        \endlist
+                    \endlist
+            \endlist
+        \li The iOS style was finished
+            \list
+                \li The new controls that were implemented for the iOS style
+                    for 6.5 are:
+                \list
+                    \li \l BusyIndicator
+                    \li \l ComboBox
+                    \li \l DelayButton
+                    \li \l Dialog
+                    \li \l DialogButtonBox
+                    \li \l HorizontalHeaderView
+                    \li \l SelectionRectangle
+                    \li \l ToolTip
+                    \li \l ToolSeparator
+                    \li \l VerticalHeaderView
+                \endlist
+            \endlist
+    \endlist
+
+    \section2 Qt Test Module
+
+    \list
+        \li Added QTest::currentTestResolved() which returns true if the test
+            has failed or skipped. This can replace QTest::currentTestFailed()
+            as the condition to test on return from a helper function.
+        \li QTest::mouseRelease() and \l {QTest::}{mouseClick()} can now be
+            used to test double-clicks, by specifying a realistic timestamp delay,
+            in case you need to check intermediate state between the events.
+            \l {QTest::}{mouseDClick()} is still more convenient otherwise.
+    \endlist
+
+    \section2 Qt Widgets Module
+
+    \list
+        \li QKeySequenceEdit got two new properties:
+            \l {QKeySequenceEdit::}{maximumSequenceLength} allows applications
+            to control the length of a key sequence.
+            \l {QKeySequenceEdit::}{finishingKeyCombinations} defines key
+            combinations that end the recording.
+
+        \li Added stereoscopic rendering support to QOpenGLWidget, applicable
+            also to any QGraphicsView backed by a QOpenGLWidget viewport. Unlike
+            QOpenGLWindow, or the now-removed QGLWidget in Qt 5 and 4,
+            QOpenGLWidget needs explicit support for this with supporting APIs
+            in place, because applications do not directly render to the native
+            window in this case, and therefore do not have the same control
+            over the active draw buffers as they have with QOpenGLWindow.
+    \endlist
+
+    \section2 Qt Positioning Module
+
+    \list
+        \li Introduced \l SatelliteSource - a QML API for
+            \l QGeoSatelliteInfoSource.
+    \endlist
+
+    \section2 Qt Serial Bus Module
+
+    \list
+        \li Introduced \l QCanSignalDescription, \l QCanMessageDescription and
+            \l QCanUniqueIdDescription classes. These classes are used to
+            provide a set of rules to encode or decode CAN bus messages.
+        \li Introduced \l QCanFrameProcessor class. This class can be used to
+            decode the received QCanBusFrame into a map of key-value pairs and
+            compose a QCanBusFrame out of a map of key-value pairs.
+        \li Introduced \l QCanDbcFileParser class. This class is used to parse
+            DBC files and generate message descriptions, which can later be
+            used in \l QCanFrameProcessor.
+    \endlist
+
+    All new classes are experimental and are subject to change.
+
+    \section2 Qt Network Module
+
+    \list
+        \li Introduced QHttp1Configuration. The class can be used to configure
+            the maximum number of connections used per host when using
+            HTTP 1 (default: 6).
+        \li QNetworkRequest on Qt for WebAssembly gained the
+            UseCredentialsAttribute attribute, enabling withCredentials for the
+            underlying XMLHttpRequest.
+    \endlist
+
+    \section2 Qt QML Module
+
+    \list
+        \li Added API to \l QQmlApplicationEngine and \l QQmlComponent
+            to load/create QML elements via their module URI and type-name.
+            In contrast to the URL based functions, this also works with C++
+            types and inline components.
+        \li \l QQmlListProperty properties now behave more like arrays,
+            gaining support for methods like map(), reduce() and forEach().
+            The same holds for other sequence types, like QList<int> and
+            similar.
+        \li Extended the \l {QML type compiler}{qmltc} to support more
+            qml constructs, notably translation bindings, inline
+            components, singletons, and signal handlers for C++-defined
+            signals.
+        \li Introduced \c{pragma FunctionSignatureBehavior} to control enforcement
+            of type annotations on JavaScript functions. Previously, type annotations
+            were only hints; this pragma makes them enforceable for better type safety.
+        \li The \l {QML script compiler} can handle additional constructs. In
+            particular:
+            \list
+                \li console.log() and friends
+                \li \c{let} and \c{const}
+                \li qsTr() and friends
+                \li arg() for strings
+                \li all the remaining bitwise and
+                    shift operators
+                \li the exponentiation operator
+            \endlist
+        \li \l {The QML Disk Cache} can be controlled in a more fine-grained way
+            using the new environment variable \c {QML_DISK_CACHE}.
+        \li Added new public CMake API:
+            \list
+                \li Introduced a \l [QtCore] {qt_policy} {Qt CMake policy} to
+                    set a better default for the resource prefix. If
+                    \l{QTP0001} policy is set to \c NEW, the QML engine
+                    will always be able to find your QML modules in the
+                    resource file system.
+            \endlist
+        \li The \l{qt_generate_deploy_qml_app_script} CMake function preferably
+            accepts an argument called OUTPUT_SCRIPT now. Passing the old
+            FILENAME_VARIABLE is deprecated.
+        \li Introduced \c{pragma NativeMethodBehavior: AcceptThisObject} to control
+            how native methods handle the \c this object when called from QML.
+    \endlist
+
+    \section2 Qt Quick 3D Module
+
+    \list
+        \li Added automatic level of detail (LOD) support for models. This
+            allows generating simplified versions of the meshes during asset
+            import and then automatically picking the appropriate level when
+            rendering.
+
+        \li Added explicit level of detail (LOD) support to control the opacity
+            of models based on the camera distance.
+
+        \li Added \l ExtendedSceneEnvironment, with built-in effects for depth
+            of field, color grading, glow, vignette, lens flare, and others.
+            These effects are performed together, increasing efficiency compared
+            to individual, stand-alone post-processing effects, each requiring
+            one or more render passes.
+
+        \li Enhanced \l DebugView with rendering statistics, the list of
+            active mesh and texture assets, and live render pass information, as
+            well as controls to interactively toggle settings, such as wireframe
+            mode and material overrides from DebugSettings.
+
+        \li Added \l DebugSettings, available via \l SceneEnvironment, allowing
+            programmatic control over settings such as wireframe mode and
+            material overrides to only render certain aspects of physically
+            based materials.
+
+        \li Added \l InfiniteGrid, implementing an infinite grid in the
+            horizontal plane with fade out.
+
+        \li Added built-in, simple fog support, available via
+            \l SceneEnvironment. When enabled, this applies a depth or
+            height fog effect when rendering the models in the scene.
+
+        \li Improved picking when instanced rendering is used.
+
+        \li Added vertex color support for \l PrincipledMaterial and
+            \l SpecularGlossyMaterial
+
+        \li Reflection probe: added support for using a provided cubemap texture
+            instead of rendering the scene.
+
+        \li Post-processing effects were enhanced to properly react to changes
+            in shader source file URIs at run time.
+
+        \li Added persistent, disk-based caching of runtime-generated material
+            shader data. This is expected to improve application startup and
+            view change times.
+    \endlist
+
+    \section2 Qt WebView Module
+
+    \list
+       \li Added \l [QtWebView] {WebViewSettings} to
+       configure some of the common \l [QtWebView] {WebView} functionality.
+    \endlist
+
+    \section2 Qt Multimedia Module
+
+    \list
+        \li The ffmpeg media backend, being a technology preview in 6.4, becomes the default
+        for macOS, Windows, Android, and Linux except for Yocto distribution. The native backends
+        are still available with limited support.
+       \li Introduced \l QScreenCapture class that is a new type of video input.
+        It's possible to direct video from \l QScreenCapture through \l {QMediaCaptureSession} to outputs,
+        e.g. \l QMediaRecorder or \l QVideoWidget. The screen capture functionality is available only
+        with the ffmpeg media backend.
+    \endlist
+
+    \section1 Platform Changes
+
+    \section2 WebAssembly
+    \list
+        \li Added binary package with multithreading enabled to \QOI.
+        \li Added support for the \l{https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API}
+            {File System Access} API. File dialog calls such as QFileDialog::getOpenFileContent() and
+            QFileDialog::saveFileContent() will now use this API, if supported by the browser.
+        \li Added support for the \l{https://developer.mozilla.org/en-US/docs/Web/API/Local_Font_Access_API}
+            {Local Font Access} API. Qt will now use local fonts on browsers which support this API.
+        \li Added tech preview of video playback and camera support to Qt Multimedia.
+        \li Added configure option for WebAssembly SIMD: -feature-wasm-simd128
+        \li Added configure option for WebAssembly exceptions: -feature-wasm-exceptions
+        \li Published \l{https://git.qt.io/mosorvig/qt-web-utils}{Qt Web Utils} with utility functions and
+            Qt on web usage examples.
+        \li QTest for WebAssembly now uses emrun by default. A specialized script for WebAssembly drives
+            the execution of automatic tests.
+    \endlist
+
+    \section2 Desktop Platforms
+
+    \section3 Windows
+
+    \list
+        \li The environment variable QT_WIN_DEBUG_CONSOLE can be set to see
+            stdout/stderr messageges in a console window for GUI applications
+            that are started from the command line.
+            Set it to \c new or \c attach.
+    \endlist
+
+    \section3 \macos
+
+    \list
+        \li Added native backend for QMessageBox and QErrorMessage.
+    \endlist
+
+    \section3 Wayland Client on Linux
+
+    \list
+        \li Now supports fractional_scale_v1 protocol for compositors that suggest fractional scale factors for the client.
+    \endlist
+
+    \section2 Mobile Platforms
+
+    \section3 Android
+
+    \list
+        \li Updated Gradle to 8.0 and the Android Gradle Plugin (AGP) to 7.4.1
+            (requires JDK 11 or above).
+        \li Updated NDK to r25b (25.1.8937393).
+        \li The list of supported versions is now Android 8.0 (API 26) or later.
+        \li Bump the minimum platform build sdk version to 33 (QT_ANDROID_API_VERSION).
+        \li Support more operations on content scheme URIs with Qt file/dir facilities.
+        \li Fixes and documentation updates for QStandardPaths under Android Scoped Storage.
+        \li Print Qt JNI exceptions from Qt and not the Android System.
+        \li Fixed support for APK Signature Scheme v2.
+    \endlist
+
+    \section3 iOS
+
+    \list
+        \li Added native implemementation for QColorDialog and QFontDialog.
+    \endlist
+
+    \section2 Embedded Platforms
+
+    \section3 Boot to Qt
+
+    \list
+        \li Boot to Qt stack was updated to use yocto 4.1.2 (langdale).
+        \li Support for macOS host using Docker-based toolchains.
+        \li The \l{Support Levels for Target Hardware} were updated and there
+            are now multiple levels of support that apply across
+            specific hardware and OS combinations.
+    \endlist
+
+    \section1 List of API Changes
+
+    These pages contain an overview of API changes in Qt 6.5:
+    \list
+        \li \l {New Classes and Functions in Qt 6.5}
+        \li \l {Obsolete Classes}
+    \endlist
+*/
+
+/*!
+    \page newclasses65.html
+    \title New Classes and Functions in Qt 6.5
+    \brief A list of new APIs in Qt 6.5.
+    \meta sortkey 605
+    \ingroup whatsnewqt6-api
+
+    This page contains a comprehensive list of all new classes and functions
+    introduced in Qt 6.5.
+
+    \sincelist 6.5
+*/

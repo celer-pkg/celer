@@ -1,0 +1,62 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example bakedlightmap
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - Baked Lightmap Example
+    \examplecategory {3D}
+    \brief Demonstrates the use of baked lightmaps in a 3D scene.
+    \image bakedlightmap-example.jpg
+           {Cornell box with two boxes and ceiling light showing baked
+           lightmap lighting}
+
+    This example demonstrates using fully baked lighting in a scene. As a
+    result, the rendered scene looks a lot more realistic, mainly because of
+    the added indirect illumination. With the help of a checkbox it also allows
+    disabling lightmapping, thus allowing comparing the rendering results of
+    the real-time and fully baked approaches.
+
+    \section1 Setting up the Light
+
+    The scene has a single point light. When the checkbox is checked, the
+    \l{Light::bakeMode}{bakeMode} of the light is set to Light.BakeModeAll.
+
+    \snippet bakedlightmap/main.qml light
+
+    Setting the property to a value other than
+    \l{Light::bakeMode}{Light.BakeModeDisabled} serves a double purpose: at
+    lightmap baking time it indicates that the light is part of the lightmapped
+    scene, contributing to it. At run time, when rendering the scene normally,
+    it indicates the light is a fully or partially baked light, which leads to
+    disabling certain real time calculations in materials for lightmapped
+    models. This is why the checkbox toggles \c both the bakeMode property on
+    the Light and also the enabled property of the BakedLightmap associated
+    with the Model objects.
+
+    \section1 Setting up the Model
+
+    The \l{https://en.wikipedia.org/wiki/Cornell_box}{Cornell box} is a Model
+    with 8 submeshes. This is encapsulated as the Box type, an instance of
+    which is instantiated in the main scene.
+
+    \snippet bakedlightmap/main.qml model
+
+    This model both \e{participates} in the lightmapped scene, and has a
+    lightmap \e{baked for it}. The former is indicated by the
+    \l{Model::usedInBakedLighting}{usedInBakedLighting} property. This alone
+    does not ensure our box miniscene gets a lightmap baked for it, only that
+    it participates in lightmapping (i.e. the light rays can bounce off the
+    model when calculating indirect illumination).
+
+    To get the lightmap fully generated and then stored during the baking
+    process, a \l BakedLightmap object with \l{BakedLightmap::enabled}{enabled}
+    set to \c true is set as well. The \l{BakedLightmap::key}{key} specifies a
+    unique identifier.
+
+    For simple deployment, the application can pack the generated lightmaps
+    (\c{lightmaps.bin} file) into the execuatble via the Qt resource system.
+    When rebaking the lightmap, the application needs to be built again so the
+    changed file is picked up. The source for the lightmaps file is set in
+    \l{Lightmapper} through the \l{Lightmapper::source}{source} property.
+*/

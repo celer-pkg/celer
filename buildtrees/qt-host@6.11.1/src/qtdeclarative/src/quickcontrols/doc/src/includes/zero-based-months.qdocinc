@@ -1,0 +1,18 @@
+Calendar-related types in \l{Qt Quick Controls} use 0-based month numbers,
+like the JavaScript Date objects. However, this differs from
+\l QDate, where the months are numbered starting from 1.
+
+To avoid confusion, you can use the following enumeration values:
+
+\value Calendar.January January (0)
+\value Calendar.February February (1)
+\value Calendar.March March (2)
+\value Calendar.April April (3)
+\value Calendar.May May (4)
+\value Calendar.June June (5)
+\value Calendar.July July (6)
+\value Calendar.August August (7)
+\value Calendar.September September (8)
+\value Calendar.October October (9)
+\value Calendar.November November (10)
+\value Calendar.December December (11)

@@ -1,0 +1,62 @@
+# Copyright 2025 The Chromium Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+query {
+  id: "cpu_usage_stat_output_query"
+  table {
+    table_name: "cpu_usage_stat_output"
+    module_name: "sql_packages.queries.cpu_usage_stat"
+    column_names: "name"
+    column_names: "max_cputime"
+    column_names: "mean_cputime"
+    column_names: "total_cputime"
+    column_names: "p90_cputime"
+    column_names: "p50_cputime"
+  }
+}
+
+metric_spec: {
+  id: "cuj.common-metrics.cpu_usage_stat.max_cputime"
+  dimensions: "name"
+  value: "max_cputime"
+  query: {
+    inner_query_id: "cpu_usage_stat_output_query"
+  }
+}
+
+metric_spec: {
+  id: "cuj.common-metrics.cpu_usage_stat.mean_cputime"
+  dimensions: "name"
+  value: "mean_cputime"
+  query: {
+    inner_query_id: "cpu_usage_stat_output_query"
+  }
+}
+
+metric_spec: {
+  id: "cuj.common-metrics.cpu_usage_stat.total_cputime"
+  dimensions: "name"
+  value: "total_cputime"
+  query: {
+    inner_query_id: "cpu_usage_stat_output_query"
+  }
+}
+
+metric_spec: {
+  id: "cuj.common-metrics.cpu_usage_stat.p90_cputime"
+  dimensions: "name"
+  value: "p90_cputime"
+  query: {
+    inner_query_id: "cpu_usage_stat_output_query"
+  }
+}
+
+metric_spec: {
+  id: "cuj.common-metrics.cpu_usage_stat.p50_cputime"
+  dimensions: "name"
+  value: "p50_cputime"
+  query: {
+    inner_query_id: "cpu_usage_stat_output_query"
+  }
+}

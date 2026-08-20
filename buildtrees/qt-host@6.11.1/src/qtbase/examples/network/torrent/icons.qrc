@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/peertopeer.svg</file>
+        <file>icons/1uparrow.svg</file>
+        <file>icons/1downarrow.svg</file>
+        <file>icons/bottom.svg</file>
+        <file>icons/player_pause.svg</file>
+        <file>icons/player_play.svg</file>
+        <file>icons/player_stop.svg</file>
+        <file>icons/exit.svg</file>
+        <file>icons/about.svg</file>
+    </qresource>
+</RCC>

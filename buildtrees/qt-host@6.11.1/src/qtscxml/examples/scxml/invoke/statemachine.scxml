@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+-->
+<scxml
+    xmlns="http://www.w3.org/2005/07/scxml"
+    version="1.0"
+    name="DirectionsStateMachine"
+    initial="anyplace"
+>
+    <state id="anyplace">
+        <transition event="goNowhere" target="nowhere"/>
+        <transition event="goSomewhere" target="somewhere"/>
+
+        <state id="nowhere"/>
+        <state id="somewhere">
+            <invoke type="http://www.w3.org/TR/scxml/">
+                <content>
+                    <scxml name="anywhere" version="1.0">
+                        <state id="here">
+                            <transition event="goThere" target="there"/>
+                        </state>
+                        <state id="there">
+                            <transition event="goHere" target="here"/>
+                        </state>
+                    </scxml>
+                </content>
+            </invoke>
+        </state>
+    </state>
+</scxml>

@@ -1,0 +1,59 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+
+project                 = QtCanvasPainter
+description             = Qt Canvas Painter Reference Documentation
+version                 = $QT_VERSION
+buildversion            = Qt Canvas Painter | Commercial or GPLv3
+
+examplesinstallpath     = canvaspainter
+url.examples            = "https://code.qt.io/cgit/qt/qtcanvaspainter.git/tree/examples/\1?h=$QT_VER"
+url.sources             = "https://code.qt.io/cgit/qt/qtcanvaspainter.git/tree/\1?h=$QT_VER#n\2"
+# Path to the root of qtcanvaspainter (for automatic linking to source code)
+url.sources.rootdir     = ../../..
+
+qhp.projects            = QtCanvasPainter
+
+qhp.QtCanvasPainter.file                = qtcanvaspainter.qhp
+qhp.QtCanvasPainter.namespace           = org.qt-project.qtcanvaspainter.$QT_VERSION_TAG
+qhp.QtCanvasPainter.virtualFolder       = qtcanvaspainter
+qhp.QtCanvasPainter.indexTitle          = Qt Canvas Painter
+qhp.QtCanvasPainter.indexRoot           =
+
+qhp.QtCanvasPainter.subprojects = examples classes
+
+#qhp.QtCanvasPainter.subprojects.manual.title = Qt Canvas Painter
+#qhp.QtCanvasPainter.subprojects.manual.indexTitle = Qt Canvas Painter module topics
+#qhp.QtCanvasPainter.subprojects.manual.type = manual
+
+qhp.QtCanvasPainter.subprojects.examples.title = Examples
+qhp.QtCanvasPainter.subprojects.examples.indexTitle = Qt Canvas Painter Examples and Tutorials
+qhp.QtCanvasPainter.subprojects.examples.selectors = doc:example
+qhp.QtCanvasPainter.subprojects.examples.sortPages  = true
+
+qhp.QtCanvasPainter.subprojects.classes.title      = C++ Classes
+qhp.QtCanvasPainter.subprojects.classes.indexTitle = Qt Canvas Painter C++ Classes
+qhp.QtCanvasPainter.subprojects.classes.selectors  = class doc:headerfile
+qhp.QtCanvasPainter.subprojects.classes.sortPages  = true
+
+tagfile                 = ../../../doc/qtcanvaspainter/qtcanvaspainter.tags
+
+depends += qtdoc qtcmake qmake qtcore qtgui qtwidgets qtqml qtquick
+
+headerdirs  += ..
+
+sourcedirs  += ..
+
+exampledirs += snippets ../../../examples/canvaspainter
+
+imagedirs   += images
+
+# Exclude private header files from the documentation build
+excludefiles += "*_p.h"
+
+navigation.landingpage = "Qt Canvas Painter"
+navigation.cppclassespage = "Qt Canvas Painter C++ Classes"
+
+macro.cmakeoptionsince = "\n\nThis option was introduced in Qt \1.\n\n"
+
+# Allow zero warnings when testing documentation in CI
+warninglimit = 0

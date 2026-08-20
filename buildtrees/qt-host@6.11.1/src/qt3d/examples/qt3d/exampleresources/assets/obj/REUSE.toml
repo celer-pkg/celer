@@ -1,0 +1,8 @@
+version = 1
+
+[[annotations]]
+path = ["*"]
+precedence = "closest"
+comment = "assuming the info in qt_attribution.json applies to all in directory."
+SPDX-FileCopyrightText = "Copyright (c) 2016, Allegorithmic"
+SPDX-License-Identifier = "CC-BY-4.0"

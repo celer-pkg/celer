@@ -1,0 +1,20 @@
+MetaInfo {
+    Type {
+        name: "ComponentBundles.MaterialBundle.AsphaltMaterial"
+        icon: "images/material16.png"
+
+        Hints {
+            visibleInNavigator: false
+            canBeDroppedInNavigator: true
+            canBeDroppedInFormEditor: false
+        }
+
+        ItemLibraryEntry {
+            name: "Asphalt"
+            category: "Architectural"
+            libraryIcon: "images/material.png"
+            version: "1.0"
+            requiredImport: "ComponentBundles.MaterialBundle"
+        }
+    }
+}

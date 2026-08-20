@@ -1,0 +1,85 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+package(
+    default_visibility = ["//ink_stroke_modeler:__subpackages__"],
+)
+
+licenses(["notice"])
+
+cc_library(
+    name = "input_predictor",
+    hdrs = ["input_predictor.h"],
+    deps = [
+        "//ink_stroke_modeler:params",
+        "//ink_stroke_modeler:types",
+        "//ink_stroke_modeler/internal:internal_types",
+    ],
+)
+
+cc_library(
+    name = "kalman_predictor",
+    srcs = ["kalman_predictor.cc"],
+    hdrs = ["kalman_predictor.h"],
+    deps = [
+        ":input_predictor",
+        "//ink_stroke_modeler:params",
+        "//ink_stroke_modeler:types",
+        "//ink_stroke_modeler/internal:internal_types",
+        "//ink_stroke_modeler/internal:utils",
+        "//ink_stroke_modeler/internal/prediction/kalman_filter",
+    ],
+)
+
+cc_test(
+    name = "kalman_predictor_test",
+    srcs = ["kalman_predictor_test.cc"],
+    deps = [
+        ":input_predictor",
+        ":kalman_predictor",
+        "//ink_stroke_modeler:params",
+        "//ink_stroke_modeler:types",
+        "//ink_stroke_modeler/internal:internal_types",
+        "//ink_stroke_modeler/internal:type_matchers",
+        "@com_google_absl//absl/strings:str_format",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "stroke_end_predictor",
+    srcs = ["stroke_end_predictor.cc"],
+    hdrs = ["stroke_end_predictor.h"],
+    deps = [
+        ":input_predictor",
+        "//ink_stroke_modeler:params",
+        "//ink_stroke_modeler:types",
+        "//ink_stroke_modeler/internal:internal_types",
+        "//ink_stroke_modeler/internal:position_modeler",
+    ],
+)
+
+cc_test(
+    name = "stroke_end_predictor_test",
+    srcs = ["stroke_end_predictor_test.cc"],
+    deps = [
+        ":input_predictor",
+        ":stroke_end_predictor",
+        "//ink_stroke_modeler:params",
+        "//ink_stroke_modeler:types",
+        "//ink_stroke_modeler/internal:internal_types",
+        "//ink_stroke_modeler/internal:type_matchers",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

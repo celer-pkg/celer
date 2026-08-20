@@ -1,0 +1,12 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#if QSHADER_VIEW_COUNT >= 2
+#define SAMPLE(s, uv) texture(s, vec3(uv, qt_viewIndex))
+#define SAMPLE_LOD(s, uv, lod) textureLod(s, vec3(uv, qt_viewIndex), lod)
+#define SAMPLE_LOD_OFFSET(s, uv, lod, offset) textureLodOffset(s, vec3(uv, qt_viewIndex), lod, offset)
+#else
+#define SAMPLE(s, uv) texture(s, uv)
+#define SAMPLE_LOD(s, uv, lod) textureLod(s, uv, lod)
+#define SAMPLE_LOD_OFFSET(s, uv, lod, offset) textureLodOffset(s, uv, lod, offset)
+#endif

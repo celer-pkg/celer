@@ -1,0 +1,15 @@
+{
+    "Id": "protobuf-tests",
+    "Name": "protobuf-tests",
+    "QDocModule": "qtprotobuf",
+    "QtUsage": "Used in the qtprotobufgen conformance tests.",
+    "QtParts": [ "tests" ],
+    "Files": ["conformance.proto", "test_messages_proto3.proto"],
+
+    "SecurityCritical": false,
+    "Homepage": "https://protobuf.dev",
+    "License": "BSD 3-clause \"New\" or \"Revised\" License",
+    "LicenseId": "BSD-3-Clause",
+    "Copyright": "Copyright 2008 Google Inc.",
+    "Version": "21.9"
+}

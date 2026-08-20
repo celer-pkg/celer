@@ -1,0 +1,82 @@
+// Copyright (C) 2018 Ford Motor Company
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\qmlmodule QtRemoteObjects 6.\QtMinorVersion
+\title Qt Remote Objects QML Types
+\ingroup qmlmodules
+\brief Provides QML types for remote objects support.
+
+The QML types for \l{Qt Remote Objects} provide the helper pieces needed to build a remote objects network.
+They are typically used in conjunction with custom-registered replica types that make up a specific
+network.
+
+As an example, consider the following .rep file:
+\code
+class MyType {
+    PROP(QString myProp="Hello World")
+};
+\endcode
+
+The generated replica can be registered as a QML type:
+\code
+qmlRegisterType<MyTypeReplica>("custom",1,0,"MyTypeReplica")
+\endcode
+
+And then used from QML in conjunction with the base type Node:
+\qml
+import QtQuick
+import QtRemoteObjects
+import custom 1.0
+
+Item {
+    MyTypeReplica {
+        id: myType
+        node: Node { registryUrl: "local:registry" }
+    }
+
+    Text { text: myType.myProp }
+
+    MouseArea {
+        anchors.fill: parent
+        onClicked: myType.pushMyProp("Updated Text")
+    }
+}
+\endqml
+
+Note that by default you cannot directly assign to a replica property, but rather use a \c push function.
+This is due to the potential problems that arise from the mix of declarative programming and asynchronous updates.
+Specifically, we want to avoid issues like the following:
+\badcode
+myType.myProp = "Updated Text"
+console.log(myType.myProp) // logs "Hello World", as the new text has not yet been round-tripped
+\endcode
+
+The QML types in this module can be imported into your application using the following import
+statement in your .qml file:
+\qml
+import QtRemoteObjects
+\endqml
+
+\section1 QML Types
+*/
+
+/*!
+\qmltype QtRemoteObjects
+\inqmlmodule QtRemoteObjects
+\since 5.14
+\brief The QtRemoteObjects global object provides useful functions for working with remote
+       types in QML.
+*/
+
+/*!
+    \qmlmethod Promise QtRemoteObjects::QtRemoteObjects::watch(QRemoteObjectPendingCall reply, int timeout = 30000)
+    Encapsulates the return value, represented by \a reply, from a replica in a JavaScript Promise.
+    A timeout can be set with \a timeout. The default timeout value is 30 seconds.
+
+    \qml
+    QtRemoteObjects.watch(replica.fetchDetails(identifier))
+                   .then(function(value) { details = value },
+                         function(error) { console.log("error fetching details:", error) })
+    \endqml
+*/

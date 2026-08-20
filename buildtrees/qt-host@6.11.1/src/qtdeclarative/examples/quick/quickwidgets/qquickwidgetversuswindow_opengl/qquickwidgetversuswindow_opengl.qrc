@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/qquickwidgetversuswindow_opengl">
+        <file>test.qml</file>
+        <file>wobble.frag.qsb</file>
+    </qresource>
+</RCC>

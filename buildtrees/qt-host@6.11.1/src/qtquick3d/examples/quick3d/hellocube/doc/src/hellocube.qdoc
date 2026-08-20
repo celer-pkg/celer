@@ -1,0 +1,47 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example hellocube
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - HelloCube Example
+    \examplecategory {3D}
+    \brief Demonstrates how to render 2D and 3D objects together in Qt Quick 3D.
+    \image hellocube.png
+           {Cube with Qt logo and text on each face showing 2D items
+           rendered on 3D object}
+
+    \e {HelloCube} demonstrates how to render a 3D cube with 2D items in
+    Qt Quick 3D.
+
+    \section1 Draw 2D Items
+
+    We set up the entire scene in the \e main.qml file.
+
+    To be able to use the types in the QtQuick3D module, we must import it:
+
+    \quotefromfile hellocube/main.qml
+    \skipto import QtQuick3D
+    \printuntil QtQuick3D
+
+    We define simple QtQuick Items with an Image and a Text on a Rectangle.
+    \snippet hellocube/main.qml 2d
+
+    This simple rectangle has two animations for flipping vertically.
+    \snippet hellocube/main.qml 2danimation
+
+    \section1 Draw a 3D Cube
+
+    Drawing a cube is very simple. After defining a \l Camera, and a \l Light,
+    we make a cube with a built-in \l Model. In this example, we render the
+    previous 2D Rectangle on this cube surface as a diffuse \l Texture. In our
+    Rectangle, we set \c {layer.enabled} to \c true.
+
+    \snippet hellocube/main.qml offscreenSurface
+
+    When enabled, this property makes the 2D
+    item render into a offscreen surface, which we then use as a texture for our
+    cube.
+
+    \snippet hellocube/main.qml 3dcube
+*/

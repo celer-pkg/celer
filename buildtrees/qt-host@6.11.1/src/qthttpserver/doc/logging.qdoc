@@ -1,0 +1,54 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qthttpserver-logging.html
+\title Qt HTTP Server Logging
+\brief Shows how the QtHttpServer module logging can be configured.
+
+The Qt HTTP Server logs using the \l {QLoggingCategory} {QLoggingCategory}
+class. The logging categories starting with \c "qt.httpserver" are used by
+the different parts of the Qt Http Server. These can be enabled and disabled
+as described in \l{QLoggingCategory}.
+
+To dynamically enable or disable what is being logged call
+\l {QLoggingCategory::setFilterRules()}. A server can add a URL to change
+the filter rules, by using the \l QHttpServer::route() function as shown below.
+
+\code
+#include <QCoreApplication>
+#include <QHttpServer>
+#include <QLoggingCategory>
+
+int main(int argc, char** argv)
+{
+    QCoreApplication app(argc, argv);
+    QHttpServer server;
+    auto tcpserver = std::make_unique<QTcpServer>();
+    if (!tcpserver->listen(QHostAddress::LocalHost, 8000) || !server.bind(tcpserver.get()))
+        return -1;
+    tcpserver.release();
+
+    server.route("/loggingFilter", [] (const QHttpServerRequest &request) {
+        QString filter;
+        QTextStream result(&filter);
+        for (auto pair : request.query().queryItems()) {
+            if (!filter.isEmpty())
+                result << "\n";
+            result << pair.first << "=" << pair.second;
+        }
+        QLoggingCategory::setFilterRules(filter);
+        return filter;
+    });
+
+    return app.exec();
+}
+\endcode
+
+The filter rules can now be set using: \c
+{"http://127.0.0.1:8000/loggingFilter?qt.httpserver=true&appname.access=true"}.
+In this case all Qt HTTP Server logging will be enabled, and in addition the
+hypothetical logging category \c{appname.access} is enabled.
+
+\sa QLoggingCategory, QHttpServer
+*/

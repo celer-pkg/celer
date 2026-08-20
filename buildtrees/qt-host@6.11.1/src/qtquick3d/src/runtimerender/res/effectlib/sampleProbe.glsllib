@@ -1,0 +1,121 @@
+// Copyright (C) 2014 NVIDIA Corporation.
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#include "bsdf.glsllib"
+#include "tonemapping.glsllib"
+
+#ifndef SAMPLE_PROBE_GLSLLIB
+#define SAMPLE_PROBE_GLSLLIB 1
+
+#ifndef QSSG_ENABLE_RGBE_LIGHT_PROBE
+#define QSSG_ENABLE_RGBE_LIGHT_PROBE 0
+#endif
+
+#ifdef QQ3D_SHADER_META
+/*{
+    "uniforms": [
+        { "type": "samplerCube", "name": "qt_lightProbe" },
+        { "type": "vec4", "name": "qt_lightProbeProperties" },
+        { "type": "mat3", "name": "qt_lightProbeOrientation", "condition": "QSSG_ENABLE_IBL_ORIENTATION" }
+    ]
+}*/
+#endif // QQ3D_SHADER_META
+
+vec3 qt_textureProbe(samplerCube lightProbe, vec3 dir, float lod)
+{
+#if QSSG_ENABLE_RGBE_LIGHT_PROBE
+    vec4 ret = textureLod(lightProbe, dir, lod);
+    return ret.rgb * pow(2.0, ret.a * 255.0 - 128.0);
+#else
+    return textureLod(lightProbe, dir, lod).rgb;
+#endif
+}
+
+vec4 qt_sampleDiffuse(vec3 normal)
+{
+    // Note: qt_lightProbeProperties.w = Exposure
+    if (qt_lightProbeProperties.w < 0.005)
+        return vec4(0.0);
+    vec3 smpDir = normal;
+    #if QSSG_ENABLE_IBL_ORIENTATION
+        smpDir = qt_lightProbeOrientation * smpDir;
+    #endif
+    float baseLevel = qt_lightProbeProperties.y;
+    // Irradiance map is contained in mip at baseLevel
+    vec3 val = qt_textureProbe(qt_lightProbe, smpDir, baseLevel);
+
+    if (qt_lightProbeProperties.z > -1.0) {
+        float ctr = 0.5 + 0.5 * qt_lightProbeProperties.z;
+        float vertWt = smoothstep(ctr * 0.25, ctr + 0.25, smpDir.y);
+        float wtScaled = mix(1.0, vertWt, qt_lightProbeProperties.z + 1.0);
+        val *= wtScaled;
+    }
+
+    return vec4(qt_exposure(val, qt_lightProbeProperties.w), 1.0);
+}
+
+// This method is used by DefaultMaterial for the specular term
+vec4 qt_sampleGlossy(vec3 normal, vec3 viewDir, float rough)
+{
+    // Note: qt_lightProbeProperties.w == Exposure
+    if (qt_lightProbeProperties.w < 0.005)
+        return vec4(0.0);
+
+    float sigma = smoothstep(0.0, 1.0, clamp(rough, 0.0001, 1.0));
+    vec3 ret = vec3(0, 0, 0);
+    vec3 smpDir = reflect(-viewDir, normal);
+#if QSSG_ENABLE_IBL_ORIENTATION
+    smpDir = qt_lightProbeOrientation * smpDir;
+#endif
+
+    // Compute the Geometric occlusion/self-shadowing term
+    float NdotL = clamp(dot(smpDir, normal), 0.0, 0.999995);
+    float k = sigma * 0.31830988618;    // roughness / pi
+    float Gl = clamp((NdotL / (NdotL*(1.0-k) + k) + (1.0 - k*k)) * 0.5, 0.0, 1.0 );
+    float levels = qt_lightProbeProperties.y - 1.0;
+
+    vec3 outColor = qt_textureProbe(qt_lightProbe, smpDir, sigma * levels);
+    if (qt_lightProbeProperties.z > -1.0) {
+        float ctr = 0.5 + 0.5 * qt_lightProbeProperties.z;
+        float vertWt = smoothstep(ctr * 0.25, ctr + 0.25, smpDir.y);
+        float wtScaled = mix(1.0, vertWt, qt_lightProbeProperties.z + 1.0);
+        outColor *= wtScaled;
+    }
+
+    outColor = qt_exposure(outColor, qt_lightProbeProperties.w);
+
+    return vec4(Gl * outColor, 1.0);
+}
+
+// This method is used by the PrincipledMaterial for the IBL specular term.
+vec4 qt_sampleGlossyPrincipled(vec3 normal, vec3 viewDir, vec3 F, float roughness)
+{
+    if (qt_lightProbeProperties.w < 0.005)
+        return vec4(0.0);
+
+    // pre-filtered maps for each roughnesses level are stored in the mips
+    // higher than the value of qt_lightProbeOffset.w
+    float levels = qt_lightProbeProperties.y - 1.0;
+
+    float lod = clamp((roughness * 5), 0.0, levels);
+    vec3 smpDir = normalize(reflect(-viewDir, normal));
+#if QSSG_ENABLE_IBL_ORIENTATION
+    smpDir = qt_lightProbeOrientation * smpDir;
+#endif
+
+    vec3 specularSample = qt_textureProbe(qt_lightProbe, smpDir, lod);
+    vec2 brdf = qt_brdfApproximation(normal, viewDir, roughness);
+    if (qt_lightProbeProperties.z > -1.0) {
+        float ctr = 0.5 + 0.5 * qt_lightProbeProperties.z;
+        float vertWt = smoothstep(ctr * 0.25, ctr + 0.25, smpDir.y);
+        float wtScaled = mix(1.0, vertWt, qt_lightProbeProperties.z + 1.0);
+        specularSample *= wtScaled;
+    }
+
+    vec3 sampleColor = (specularSample * (F * brdf.x + brdf.y));
+
+    return vec4(qt_exposure(sampleColor, qt_lightProbeProperties.w), 1.0);
+}
+
+#endif

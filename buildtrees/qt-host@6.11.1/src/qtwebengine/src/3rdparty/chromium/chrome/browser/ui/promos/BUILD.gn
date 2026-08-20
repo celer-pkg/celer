@@ -1,0 +1,30 @@
+# Copyright 2024 The Chromium Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+source_set("utils") {
+  sources = [ "ios_promos_utils.h" ]
+
+  deps = [ "//base" ]
+}
+
+source_set("impl") {
+  sources = [ "ios_promos_utils.cc" ]
+
+  deps = [
+    ":utils",
+    "//chrome/browser/feature_engagement",
+    "//chrome/browser/profiles:profile",
+    "//chrome/browser/promos:utils",
+    "//chrome/browser/segmentation_platform",
+    "//chrome/browser/sync",
+    "//chrome/browser/ui",
+    "//chrome/browser/ui/views/frame:toolbar_button_provider",
+    "//components/feature_engagement/public",
+    "//components/segmentation_platform/embedder/default_model",
+    "//components/segmentation_platform/public",
+    "//components/sync/service",
+  ]
+
+  public_deps = [ "//chrome/browser:browser_public_dependencies" ]
+}

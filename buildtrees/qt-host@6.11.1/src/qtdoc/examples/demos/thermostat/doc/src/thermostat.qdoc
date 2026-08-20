@@ -1,0 +1,92 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Thermostat
+    \examplecategory {Application Examples}
+    \examplecategory {Embedded}
+    \ingroup qtquickdemos
+    \example demos/thermostat
+    \brief The \e{Thermostat} example demonstrates how to implement different
+    designs depending on the window size.
+    \meta {tag} {demo,quick,charts,emdedded}
+    \meta {docdependencies} {QtCharts}
+
+    A user interface for a home thermostat, demonstrating how to create
+    responsive applications in Qt Quick that scale from large desktop displays
+    to mobile and small embedded displays.
+
+    \if defined(onlinedocs)
+      \tab {thermostat}{light-wider}{Light wider screen}{}
+      \tab {thermostat}{light-narrower}{Light narrower screens}{checked}
+      \tab {thermostat}{dark-wider}{Dark wider screen}{}
+      \tab {thermostat}{dark-narrower}{Dark narrower screens}{}
+
+    \tabcontent {light-narrower}
+    \else
+      \section1 Light narrower screens
+    \endif
+    \inlineimage {mobile_light.png} {Light UI theme on mobile vertical screen}
+    \inlineimage {small_light.png} {Light UI theme on mobile horizontal screen}
+
+    \if defined(onlinedocs)
+      \endtabcontent
+      \tabcontent {light-wider}
+    \else
+      \section1 Light wider screen
+    \endif
+    \inlineimage {desktop_light.png} {Light UI theme on desktop screen}
+
+    \if defined(onlinedocs)
+      \endtabcontent
+      \tabcontent {dark-narrower}
+    \else
+      \section1 Dark narrower screens
+    \endif
+    \inlineimage {mobile_dark.png} {Dark UI theme on mobile vertical screen}
+    \inlineimage {small_dark.png} {Dark UI theme on mobile vertical screen}
+
+    \if defined(onlinedocs)
+      \endtabcontent
+      \tabcontent {dark-wider}
+    \else
+      \section1 Dark wider screens
+    \endif
+    \inlineimage {desktop_dark.png} {Dark UI theme on desktop screen}
+
+    \if defined(onlinedocs)
+        \endtabcontent
+    \endif
+
+    \include examples-run.qdocinc
+
+    \section1 Responsive Design
+    The application has support for a variety of display sizes. It can scale
+    dynamically when the user changes the window size, or the application will
+    select the correct sizes based on the available display on mobile targets.
+    \c Constants.qml contains properties that specify the display size and
+    control which layout is currently in use:
+
+    \quotefromfile demos/thermostat/imports/Thermostat/Constants.qml
+    \skipto isBigDesktopLayout
+    \printuntil isSmallLayout
+
+    In \c App.qml, the properties are bound to the window height and width at
+    application startup:
+
+    \quotefromfile demos/thermostat/content/App.qml
+    \skipto Component.onCompleted
+    \printuntil })
+    \printuntil }
+
+    The states are then used to control the components' properties, such as
+    width, height, fontSize, position, and layout (column or row).
+
+    \quotefromfile demos/thermostat/content/StatisticsScrollViewForm.ui.qml
+    \skipto states
+    \printuntil ]
+
+    \section1 Source files
+
+    \sa {All Qt Examples}, {Qt Quick Examples and Tutorials}
+*/

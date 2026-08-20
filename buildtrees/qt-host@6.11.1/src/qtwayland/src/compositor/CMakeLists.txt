@@ -1,0 +1,250 @@
+# Copyright (C) 2022 The Qt Company Ltd.
+# SPDX-License-Identifier: BSD-3-Clause
+
+include(QtWaylandSetup)
+qt_internal_get_wayland_protocols_dir(protocols_dir)
+qt_internal_get_wayland_extensions_dir(extensions_dir)
+
+# Generated from compositor.pro.
+
+#####################################################################
+## WaylandCompositor Module:
+#####################################################################
+
+qt_internal_add_module(WaylandCompositor
+    PLUGIN_TYPES wayland-graphics-integration-server wayland-hardware-layer-integration
+    SOURCES
+        compat/removed_api.cpp
+        ../shared/qwaylandinputmethodeventbuilder.cpp ../shared/qwaylandinputmethodeventbuilder_p.h
+        ../shared/qwaylandmimehelper.cpp ../shared/qwaylandmimehelper_p.h
+        ../shared/qwaylandsharedmemoryformathelper_p.h
+        compositor_api/qwaylandbufferref.cpp compositor_api/qwaylandbufferref.h
+        compositor_api/qwaylandclient.cpp compositor_api/qwaylandclient.h
+        compositor_api/qwaylandcompositor.cpp compositor_api/qwaylandcompositor.h compositor_api/qwaylandcompositor_p.h
+        compositor_api/qwaylanddestroylistener.cpp compositor_api/qwaylanddestroylistener.h compositor_api/qwaylanddestroylistener_p.h
+        compositor_api/qwaylandkeyboard.cpp compositor_api/qwaylandkeyboard.h compositor_api/qwaylandkeyboard_p.h
+        compositor_api/qwaylandkeymap.cpp compositor_api/qwaylandkeymap.h compositor_api/qwaylandkeymap_p.h
+        compositor_api/qwaylandoutput.cpp compositor_api/qwaylandoutput.h compositor_api/qwaylandoutput_p.h
+        compositor_api/qwaylandoutputmode.cpp compositor_api/qwaylandoutputmode.h compositor_api/qwaylandoutputmode_p.h
+        compositor_api/qwaylandpointer.cpp compositor_api/qwaylandpointer.h compositor_api/qwaylandpointer_p.h
+        compositor_api/qwaylandresource.cpp compositor_api/qwaylandresource.h
+        compositor_api/qwaylandseat.cpp compositor_api/qwaylandseat.h compositor_api/qwaylandseat_p.h
+        compositor_api/qwaylandsurface.cpp compositor_api/qwaylandsurface.h compositor_api/qwaylandsurface_p.h
+        compositor_api/qwaylandsurfacegrabber.cpp compositor_api/qwaylandsurfacegrabber.h
+        compositor_api/qwaylandtouch.cpp compositor_api/qwaylandtouch.h compositor_api/qwaylandtouch_p.h
+        compositor_api/qwaylandview.cpp compositor_api/qwaylandview.h compositor_api/qwaylandview_p.h
+        extensions/qwaylandidleinhibitv1.cpp extensions/qwaylandidleinhibitv1.h extensions/qwaylandidleinhibitv1_p.h
+        extensions/qwaylandiviapplication.cpp extensions/qwaylandiviapplication.h extensions/qwaylandiviapplication_p.h
+        extensions/qwaylandivisurface.cpp extensions/qwaylandivisurface.h extensions/qwaylandivisurface_p.h
+        extensions/qwaylandqttextinputmethod.cpp extensions/qwaylandqttextinputmethod.h extensions/qwaylandqttextinputmethod_p.h
+        extensions/qwaylandqttextinputmethodmanager.cpp extensions/qwaylandqttextinputmethodmanager.h extensions/qwaylandqttextinputmethodmanager_p.h
+        extensions/qwaylandqtwindowmanager.cpp extensions/qwaylandqtwindowmanager.h extensions/qwaylandqtwindowmanager_p.h
+        extensions/qwaylandshell.cpp extensions/qwaylandshell.h extensions/qwaylandshell_p.h
+        extensions/qwaylandshellsurface.cpp extensions/qwaylandshellsurface.h extensions/qwaylandshellsurface_p.h
+        extensions/qwaylandtextinput.cpp extensions/qwaylandtextinput.h extensions/qwaylandtextinput_p.h
+        extensions/qwaylandtextinputmanager.cpp extensions/qwaylandtextinputmanager.h extensions/qwaylandtextinputmanager_p.h
+        extensions/qwaylandtextinputv3.cpp extensions/qwaylandtextinputv3.h extensions/qwaylandtextinputv3_p.h
+        extensions/qwaylandtextinputmanagerv3.cpp extensions/qwaylandtextinputmanagerv3.h extensions/qwaylandtextinputmanagerv3_p.h
+        extensions/qwaylandviewporter.cpp extensions/qwaylandviewporter.h extensions/qwaylandviewporter_p.h
+        extensions/qwaylandwlshell.cpp extensions/qwaylandwlshell.h extensions/qwaylandwlshell_p.h
+        extensions/qwaylandxdgdecorationv1.cpp extensions/qwaylandxdgdecorationv1.h extensions/qwaylandxdgdecorationv1_p.h
+        extensions/qwaylandxdgoutputv1.cpp extensions/qwaylandxdgoutputv1.h extensions/qwaylandxdgoutputv1_p.h
+        extensions/qwaylandxdgshell.cpp extensions/qwaylandxdgshell.h extensions/qwaylandxdgshell_p.h
+        extensions/qwaylandxdgdialogv1.cpp extensions/qwaylandxdgdialogv1_p.h
+        global/qtwaylandcompositorglobal.h global/qtwaylandcompositorglobal_p.h
+        global/qtwaylandqmlinclude.h
+        global/qwaylandcompositorextension.cpp global/qwaylandcompositorextension.h global/qwaylandcompositorextension_p.h
+        global/qwaylandutils_p.h
+        hardware_integration/qwlclientbufferintegration.cpp hardware_integration/qwlclientbufferintegration_p.h
+        wayland_wrapper/qwlbuffermanager.cpp wayland_wrapper/qwlbuffermanager_p.h
+        wayland_wrapper/qwlclientbuffer.cpp wayland_wrapper/qwlclientbuffer_p.h
+        wayland_wrapper/qwlregion.cpp wayland_wrapper/qwlregion_p.h
+    INCLUDE_DIRECTORIES
+        ../shared
+        compositor_api
+        extensions
+        global
+        wayland_wrapper
+    LIBRARIES
+        Qt::CorePrivate
+        Qt::GuiPrivate
+        Qt::WaylandGlobalPrivate
+    PUBLIC_LIBRARIES
+        Qt::Core
+        Qt::Gui
+        Wayland::Server
+    PRIVATE_MODULE_INTERFACE
+        Qt::CorePrivate
+        Qt::GuiPrivate
+        Qt::WaylandGlobalPrivate
+    PRIVATE_HEADER_FILTERS
+        "^qwayland-.*\.h|^wayland-.*-protocol\.h"
+    ATTRIBUTION_FILE_DIR_PATHS
+        ../3rdparty/protocol/ivi
+        ${protocols_dir}/presentation-time
+        ${protocols_dir}/scaler
+        ${protocols_dir}/text-input/v2
+        ${protocols_dir}/text-input/v3
+        ${protocols_dir}/viewporter
+        ${protocols_dir}/wayland
+        ${protocols_dir}/xdg-decoration
+        ${protocols_dir}/xdg-output
+        ${protocols_dir}/xdg-shell
+        ${protocols_dir}/xdg-dialog
+)
+
+# all those macros define structs with Q_OBJECT macros, and should be picked up by moc
+set_target_properties(WaylandCompositor WaylandCompositorPrivate
+    PROPERTIES
+        INTERFACE_AUTOMOC_MACRO_NAMES  "Q_COMPOSITOR_DECLARE_QUICK_EXTENSION_NAMED_ELEMENT;Q_COMPOSITOR_DECLARE_QUICK_EXTENSION_NAMED_CLASS;Q_COMPOSITOR_DECLARE_QUICK_EXTENSION_CLASS;Q_COMPOSITOR_DECLARE_QUICK_EXTENSION_CONTAINER_CLASS"
+)
+
+set(compositor_no_pch_sources
+    compat/removed_api.cpp
+)
+
+foreach(src ${compositor_no_pch_sources})
+    qt_update_ignore_pch_source(WaylandCompositor ${src})
+endforeach()
+
+# Resources:
+set(compositor_resource_files
+    "shaders/surface.vert.qsb"
+    "shaders/surface_rgba.frag.qsb"
+    "shaders/surface_rgbx.frag.qsb"
+    "shaders/surface_y_u_v.frag.qsb"
+    "shaders/surface_y_uv.frag.qsb"
+    "shaders/surface_y_xuxv.frag.qsb"
+    "shaders/surface_oes_external.frag"
+)
+
+qt_internal_add_resource(WaylandCompositor "compositor"
+    PREFIX
+        "/qt-project.org/wayland/compositor"
+    FILES
+        ${compositor_resource_files}
+)
+
+qt6_generate_wayland_protocol_server_sources(WaylandCompositor
+    PRIVATE_CODE
+    FILES
+        ${protocols_dir}/idle-inhibit/idle-inhibit-unstable-v1.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/protocol/ivi/ivi-application.xml
+        ${protocols_dir}/presentation-time/presentation-time.xml
+        ${protocols_dir}/scaler/scaler.xml
+        ${protocols_dir}/text-input/v2/text-input-unstable-v2.xml
+        ${protocols_dir}/text-input/v3/text-input-unstable-v3.xml
+        ${protocols_dir}/viewporter/viewporter.xml
+        ${protocols_dir}/wayland/wayland.xml
+        ${protocols_dir}/xdg-decoration/xdg-decoration-unstable-v1.xml
+        ${protocols_dir}/xdg-output/xdg-output-unstable-v1.xml
+        ${protocols_dir}/xdg-shell/xdg-shell.xml
+        ${protocols_dir}/xdg-dialog/xdg-dialog-v1.xml
+        ${extensions_dir}/hardware-integration.xml
+        ${extensions_dir}/qt-text-input-method-unstable-v1.xml
+        ${extensions_dir}/qt-texture-sharing-unstable-v1.xml
+        ${extensions_dir}/qt-windowmanager.xml
+        ${extensions_dir}/server-buffer-extension.xml
+)
+
+#### Keys ignored in scope 1:.:.:compositor.pro:<TRUE>:
+# MODULE = "waylandcompositor"
+
+## Scopes:
+#####################################################################
+
+qt_internal_extend_target(WaylandCompositor CONDITION QT_FEATURE_opengl
+    SOURCES
+        hardware_integration/qwlclientbufferintegrationfactory.cpp hardware_integration/qwlclientbufferintegrationfactory_p.h
+        hardware_integration/qwlclientbufferintegrationplugin.cpp hardware_integration/qwlclientbufferintegrationplugin_p.h
+        hardware_integration/qwlhardwarelayerintegration.cpp hardware_integration/qwlhardwarelayerintegration_p.h
+        hardware_integration/qwlhardwarelayerintegrationfactory.cpp hardware_integration/qwlhardwarelayerintegrationfactory_p.h
+        hardware_integration/qwlhardwarelayerintegrationplugin.cpp hardware_integration/qwlhardwarelayerintegrationplugin_p.h
+        hardware_integration/qwlhwintegration.cpp hardware_integration/qwlhwintegration_p.h
+        hardware_integration/qwlserverbufferintegration.cpp hardware_integration/qwlserverbufferintegration_p.h
+        hardware_integration/qwlserverbufferintegrationfactory.cpp hardware_integration/qwlserverbufferintegrationfactory_p.h
+        hardware_integration/qwlserverbufferintegrationplugin.cpp hardware_integration/qwlserverbufferintegrationplugin_p.h
+        hardware_integration/qwltextureorphanage.cpp hardware_integration/qwltextureorphanage_p.h
+    PUBLIC_LIBRARIES
+        Qt::OpenGL
+)
+
+qt_internal_extend_target(WaylandCompositor CONDITION TARGET Qt::Quick
+    PUBLIC_LIBRARIES
+        Qt::Quick
+)
+
+qt_internal_extend_target(WaylandCompositor CONDITION QT_FEATURE_wayland_compositor_quick
+    SOURCES
+        compositor_api/qwaylandcompositorquickextensions.cpp compositor_api/qwaylandcompositorquickextensions_p.h
+        compositor_api/qwaylandmousetracker.cpp compositor_api/qwaylandmousetracker_p.h
+        compositor_api/qwaylandquickchildren.h
+        compositor_api/qwaylandquickcompositor.cpp compositor_api/qwaylandquickcompositor.h
+        compositor_api/qwaylandquickitem.cpp compositor_api/qwaylandquickitem.h compositor_api/qwaylandquickitem_p.h
+        compositor_api/qwaylandquickoutput.cpp compositor_api/qwaylandquickoutput.h
+        compositor_api/qwaylandquicksurface.cpp compositor_api/qwaylandquicksurface.h compositor_api/qwaylandquicksurface_p.h
+        extensions/qwaylandivisurfaceintegration.cpp extensions/qwaylandivisurfaceintegration_p.h
+        extensions/qwaylandquickshellintegration.cpp extensions/qwaylandquickshellintegration.h
+        extensions/qwaylandquickshellsurfaceitem.cpp extensions/qwaylandquickshellsurfaceitem.h extensions/qwaylandquickshellsurfaceitem_p.h
+        extensions/qwaylandquickxdgoutputv1.cpp extensions/qwaylandquickxdgoutputv1.h
+        extensions/qwaylandwlshellintegration.cpp extensions/qwaylandwlshellintegration_p.h
+        extensions/qwaylandxdgshellintegration.cpp extensions/qwaylandxdgshellintegration_p.h
+        extensions/qwaylandpresentationtime.cpp extensions/qwaylandpresentationtime_p.h extensions/qwaylandpresentationtime_p_p.h
+        global/qwaylandquickextension.cpp global/qwaylandquickextension.h
+    LIBRARIES
+        Qt::QmlPrivate
+        Qt::QuickPrivate
+    PUBLIC_LIBRARIES
+        Qt::Qml
+        Qt::Quick
+    PRIVATE_MODULE_INTERFACE
+        Qt::QmlPrivate
+        Qt::QuickPrivate
+)
+
+
+qt_internal_extend_target(WaylandCompositor CONDITION QT_FEATURE_wayland_datadevice
+    SOURCES
+        wayland_wrapper/qwldatadevice.cpp wayland_wrapper/qwldatadevice_p.h
+        wayland_wrapper/qwldatadevicemanager.cpp wayland_wrapper/qwldatadevicemanager_p.h
+        wayland_wrapper/qwldataoffer.cpp wayland_wrapper/qwldataoffer_p.h
+        wayland_wrapper/qwldatasource.cpp wayland_wrapper/qwldatasource_p.h
+)
+
+qt_internal_extend_target(WaylandCompositor CONDITION QT_FEATURE_im
+    SOURCES
+        compositor_api/qwaylandinputmethodcontrol.cpp compositor_api/qwaylandinputmethodcontrol.h compositor_api/qwaylandinputmethodcontrol_p.h
+)
+
+qt_internal_extend_target(WaylandCompositor CONDITION QT_FEATURE_draganddrop
+    SOURCES
+        compositor_api/qwaylanddrag.cpp compositor_api/qwaylanddrag.h
+)
+
+qt_internal_extend_target(WaylandCompositor CONDITION QT_FEATURE_opengl AND QT_FEATURE_wayland_compositor_quick
+    SOURCES
+        compositor_api/qwaylandquickhardwarelayer.cpp compositor_api/qwaylandquickhardwarelayer_p.h
+        extensions/qwltexturesharingextension.cpp extensions/qwltexturesharingextension_p.h
+)
+qt_internal_add_docs(WaylandCompositor
+    doc/qtwaylandcompositor.qdocconf
+)
+
+if (TARGET Qt::Qml)
+    qt_internal_add_qml_module(WaylandCompositor
+        URI QtWayland.Compositor
+        VERSION ${PROJECT_VERSION}
+        CLASS_NAME QWaylandCompositorPlugin
+        PLUGIN_TARGET qwaylandcompositorplugin
+        PAST_MAJOR_VERSIONS 1
+        QML_FILES
+            qmlfiles/WaylandCursorItem.qml
+            qmlfiles/WaylandOutputWindow.qml
+        DEPENDENCIES
+            QtQuick
+        NO_GENERATE_CPP_EXPORTS
+    )
+endif()
+
+qt_record_extra_qt_main_tools_package_dependency(WaylandCompositor WaylandScannerTools "${PROJECT_VERSION}")
+qt_internal_register_target_dependencies(WaylandCompositor PUBLIC Qt6::WaylandGlobalPrivate)

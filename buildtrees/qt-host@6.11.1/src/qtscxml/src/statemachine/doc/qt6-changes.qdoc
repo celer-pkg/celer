@@ -1,0 +1,43 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtstatemachine-changes-qt6.html
+    \title Changes to Qt State Machine
+    \ingroup changes-qt-5-to-6
+    \brief Migrate Qt State Machine to Qt 6.
+
+    Qt 6 is a result of the conscious effort to make the framework more
+    efficient and easy to use.
+
+    We try to maintain binary and source compatibility for all the public
+    APIs in each release. But some changes were inevitable in an effort to
+    make Qt a better framework.
+
+    In this topic we summarize those changes in Qt State Machine module, and provide
+    guidance to handle them.
+
+    \section1 Changes
+
+    The Qt StateMachine module is generally speaking source compatible with the Qt5
+    version and users of the library should be able to continue with no or
+    minor changes to their project.
+
+    \section2 QSignalTransition
+
+    The \l [CPP] QSignalTransition::senderObject() getter and the related
+    Q_PROPERTY now also use const QObject*. These are now better aligned
+    with the setter \l [CPP] QSignalTransition::setSenderObject(const QObject*) that takes a
+    const QObject* as a parameter.
+
+    \section1 Build system
+
+    As with Qt 6 in general, the Qt State Machine module has cmake support in addition
+    to qmake.
+
+    \section1 QML imports
+
+    The QML import versioning is optional unless one has a specific
+    reason for not using the latest. Generally speaking the versioned imports
+    work from version 5.8 to 6.x, where 'x' is the current minor release.
+*/

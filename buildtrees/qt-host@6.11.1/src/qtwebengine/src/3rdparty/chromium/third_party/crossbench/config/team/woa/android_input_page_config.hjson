@@ -1,0 +1,16 @@
+// Run with --action-runner=android
+{
+  pages: {
+    CNN: [
+      {action: "get", url: "https://edition.cnn.com"},
+      {action: "wait", duration: '5s'},
+      {action: "click", source: "touch", position: {
+        "required": false,
+        "selector": "button[id=onetrust-accept-btn-handler]",
+      }},
+      {action: "wait", duration: '5s'},
+      {action: "swipe", duration: '1s', startx: 500, starty: 1800, endx: 500, endy: 800},
+      {action: "wait", duration: '5s'},
+    ],
+  },
+}

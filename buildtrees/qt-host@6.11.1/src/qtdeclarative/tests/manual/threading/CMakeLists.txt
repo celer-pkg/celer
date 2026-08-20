@@ -1,0 +1,2 @@
+add_subdirectory(threadedlistmodel)
+add_subdirectory(workerscript)

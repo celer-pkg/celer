@@ -1,0 +1,619 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+
+\page porting-qt3d-to-qtquick3d.html
+\title Porting Qt 3D to Qt Quick 3D: A Migration Guide
+\brief Guide for porting Qt 3D applications to Qt Quick 3D.
+
+This guide is intended for developers currently using \l{Qt 3D} who wish to
+migrate to \l{Qt Quick 3D}.
+
+\section1 Scope Differences
+
+While \l{Qt 3D} and \l{Qt Quick 3D} may appear similar as both provide 3D APIs,
+they are designed with fundamentally different approaches.
+
+Qt 3D is a flexible API for implementing custom 3D renderers, offering
+low-level abstractions for the various aspects of the rendering process. As a
+result, Qt 3D provides APIs for both \l{qt3d-cpp.html}{C++} and \l{qt3d-qml.html}{QML}.
+
+In contrast, Qt Quick 3D is a high-level API focused on the rendering of 3D
+content, and designed as an extension of Qt Quick. Consequently, the majority of its APIs
+are \l{Qt Quick 3D#QML API}{QML-based}. Therefore, if your current Qt 3D
+application relies heavily on C++, migrating to Qt Quick 3D will require transitioning to QML.
+
+\section1 Architectural Differences
+
+Qt 3D and Qt Quick 3D differ significantly in their architecture. Qt Quick 3D
+follows the same design patterns as Qt Quick, extending its capabilities to
+support 3D rendering.
+
+The first major difference is in the use of design patterns. Qt 3D uses an
+\l{Qt 3D Overview#Using an ECS}{Entity-Component System} (ECS) pattern.
+In this system, a generic entity class is used, which can be specialized by
+adding various components to the entity,
+following a pattern of composition. In contrast, Qt Quick 3D uses an
+inheritance-based API that aligns with the broader Qt framework, where
+specialized nodes are subclasses of a common base class. Due to these
+fundamental differences, there is no direct 1:1 mapping between the two APIs.
+
+Another significant difference is in the threading models. Qt 3D introduces the
+concept of \l{Qt 3D Overview#Qt 3D's Aspects}{Aspects}, which provide different
+entry points for various types of components attached to entities. Each aspect
+can create tasks that are processed
+by a thread pool, following a tree of providers and dependencies to complete
+all work necessary for rendering a frame. On the other hand, Qt Quick 3D uses
+the same \l{Qt Quick 3D Architecture#Scene Synchronization}{threading model}
+as Qt Quick. It has a frontend API, accessible from
+the main GUI thread for managing scene state, and a backend API on the render
+thread. While the render thread may utilize additional threads for certain
+tasks, the conceptual model from the user's perspective involves only two
+threads. There is no distinct concept of Aspects in Qt Quick 3D, although much
+of the functionality provided by Qt 3D's aspects is still available.
+
+From a rendering perspective, Qt 3D offers a highly customizable approach,
+allowing for the creation of bespoke rendering pipelines. However, this
+flexibility comes with complexity; by default, Qt 3D does not provide a
+pre-configured rendering pipeline. In contrast, Qt Quick 3D is designed to be
+more user-friendly, with an out-of-the-box rendering pipeline that
+automatically adapts to the needs of the scene. For instance, if a
+directional light in Qt Quick 3D is set to cast shadows, the rendering pipeline will
+automatically include a shadow map generation pass, which is then used by the
+materials in the scene. In Qt 3D, such functionality would require manual
+configuration of the frame graph and extension of the materials to support the
+shadow mapping pass. Additionally, for different light types, such as point or
+spotlights, further modifications to the frame graph and material definitions
+would be necessary. While Qt 3D offers powerful customization options for
+shadow mapping techniques, this can result in a significant overhead compared
+to Qt Quick 3D, where enabling shadows is as simple as setting a single
+property on a light.
+
+\section1 Per Module Details
+
+\section2 Qt 3D Core
+
+The Qt 3D Core module provides the fundamental primitives upon which other
+Qt 3D modules are built. Most classes in Qt 3D Core have equivalent components
+in Qt Quick 3D, except for those classes that specifically support the
+Entity-Component-System (ECS) architecture. Qt Quick 3D offers pre-assembled
+components that correspond to common entity-component combinations used in
+Qt 3D, simplifying the development process.
+
+As an example this is the setup for a renderable entity in Qt3D:
+\qml
+PhongMaterial {
+    id: material
+}
+
+TorusMesh {
+    id: torusMesh
+    radius: 5
+    minorRadius: 1
+    rings: 100
+    slices: 20
+}
+
+Transform {
+    id: torusTransform
+    scale3D: Qt.vector3d(1.5, 1, 0.5)
+    rotation: fromAxisAndAngle(Qt.vector3d(1, 0, 0), 45)
+}
+
+Entity {
+    id: torusEntity
+    components: [ torusMesh, material, torusTransform ]
+}
+\endqml
+
+In the above code you can see that the entity is composed of a mesh, a material
+and a transform. In Qt Quick 3D the equivalent code would look like this:
+
+\qml
+
+Model {
+    id: torusModel
+    scale: Qt.vector3d(1.5, 1, 0.5)
+    eulerRotation.x: 45
+    geometry: TorusGeometry {
+        radius: 5
+        tubeRadius: 1
+        rings: 100
+        segments: 20
+    }
+    materials: [
+        PrincipledMaterial {
+            id: material
+    ]
+}
+\endqml
+
+In this example, the entity is replaced by a \l[QtQuick3D]{Model}, which is a
+subclass of the \l[QtQuick3D]{Node} component
+which inherits the equivalent of the \l[Qt3D]{Transform} component from Qt 3D.
+In addition any Node subclass will be part of a scene graph, with parent-child
+relationships. The Model component is a renderable entity that can have a geometry
+and material(s). In this case we use the \l[QtQuick3D]{Model::geometry}{geometry}
+property to match the procedural API used by the Qt 3D code, but it's also possible
+to specify geometry from a static file using the \l[QtQuick3D]{Model::source}{source}
+property. The \l[QtQuick3D]{Model::materials}{materials} property of the Model
+component is a list of materials to be used to shade the geometry. This is a
+list because it's possible for geometries to contain multiple subsets, each of
+which may use a separate material. The \l{PrincipledMaterial} component is a
+PBR (Physically Based Rendering) material that uses the Metallic-Roughness
+workflow, and in the case of this example replaces the \l[Qt3D]{PhongMaterial}
+used by the Qt 3D snippet.
+
+\section2 Qt 3D Input
+
+Qt 3D provides a range of input classes through its own custom input system.
+In contrast, Qt Quick 3D primarily reuses input classes from Qt Quick. For
+interacting with a 3D scene, Qt Quick 3D provides additional APIs to perform
+ray casting and object picking.
+
+View3D is the main class for handling picking operations in Qt Quick 3D,
+offering both explicit and implicit picking methods. The explicit picking API
+allows you to pick directly from 2D space by specifying the x and y
+coordinates in the View3D. This operation returns a pickResult value
+that contains details about the object hit and the hit location. The API is
+synchronous, meaning the result is available immediately after the ray is
+cast. Additionally, it is possible to cast rays from any point in the scene.
+Both explicit and implicit picking methods can return a list of all hits,
+not just the first one.
+
+\qml
+import QtQuick
+import QtQuick.Controls
+import QtQuick3D
+
+ApplicationWindow {
+    width: 640
+    height: 480
+    visible: true
+
+    View3D {
+        id: view
+        anchors.fill: parent
+
+        PerspectiveCamera {
+            z: 200
+        }
+
+        DirectionalLight {
+
+        }
+
+        PrincipledMaterial {
+            id: material
+            baseColor: "red"
+        }
+        PrincipledMaterial {
+            id: selectedMaterial
+            baseColor: "blue"
+        }
+
+        Model {
+            id: sphereModel
+            source: "#Sphere"
+            pickable: true
+            materials: [
+                material
+            ]
+        }
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        onClicked: (mouse) => {
+            let result = view.pick(mouse.x, mouse.y)
+            if (result.hitType == PickResult.Model) {
+                if (result.objectHit == sphereModel) {
+                    // toggle selection
+                    if (sphereModel.materials[0] == material)
+                        sphereModel.materials[0] = selectedMaterial
+                    else
+                        sphereModel.materials[0] = material
+                }
+            } else {
+                // deselect
+                sphereModel.materials[0] = material
+            }
+        }
+    }
+}
+\endqml
+
+In this example code snippet, a simple scene is created with a sphere model.
+The sphere model is set to be \l[QtQuick3D]{Model::pickable}{pickable},
+which means that when a ray is cast into the scene, this model
+will be considered for picking. On top of the View3D is a
+MouseArea that listens for clicks. When a click is detected,
+the \l[QtQuick3D]{View3D::pick}{pick} method is
+called with the x and y coordinates of the click. The result of the pick operation
+is then used to determine if the sphere model was hit. If it was, the material of
+the sphere model is toggled between the red and blue materials.
+
+\qml
+import QtQuick
+import QtQuick.Controls
+import QtQuick3D
+
+ApplicationWindow {
+    width: 640
+    height: 480
+    visible: true
+
+    View3D {
+        id: view
+        anchors.fill: parent
+
+        Node {
+            eulerRotation.y: 45
+            PerspectiveCamera {
+                z: 200
+
+            }
+        }
+
+        DirectionalLight {
+
+        }
+
+        Node {
+            id: anchorItem
+            Item {
+                anchors.centerIn: parent
+                width: 250
+                height: 250
+                Button {
+                    anchors.centerIn: parent
+                    text: "Click Me"
+                }
+
+            }
+        }
+    }
+}
+\endqml
+
+In this example code snippet, a simple scene is created with a \l[QML]{Button} in the
+center of the screen. Button is a 2D item, but since it's parent is a \l[QtQuick3D]{Node}, it
+will be projected into 3D space. Such components can be interacted with the
+same way as in 2D space. View3D will automatically handle casting rays into
+the scene and forwarding input events to any 2D items that are part of the scene.
+
+\qml
+import QtQuick
+import QtQuick.Controls
+import QtQuick3D
+
+ApplicationWindow {
+    width: 640
+    height: 480
+    visible: true
+
+    View3D {
+        id: view
+        anchors.fill: parent
+
+        Node {
+            eulerRotation.y: 25
+            PerspectiveCamera {
+                z: 200
+
+            }
+            DirectionalLight {
+
+            }
+        }
+
+        Model {
+            source: "#Cube"
+            pickable: true
+            materials: [
+                PrincipledMaterial {
+                    baseColorMap: Texture {
+                        sourceItem: Pane {
+                            width: 250
+                            height: 250
+                            Button {
+                                anchors.centerIn: parent
+                                text: "Click Me"
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
+\endqml
+
+Similarly in the above code snippet, a cube \l[QtQuick3D]{Model} is created with
+a texture that is a \l[QtQuickControls]{Pane} containing a \l[QtQuickControls]{Button}.
+In this case a 250x250 pixel \l[QtQuick3D]{Texture} is created by rendering a
+\l[QtQuickControls]{Pane} component containing a \l[QtQuickControls]{Button}. Normally this
+texture would be non-interactive, but by setting \l[QtQuick3D]{Model::pickable}{pickable}
+to true on the \l[QtQuick3D]{Model}, the same implicit picking mechanism
+that forwarded input events to the \l[QtQuickControls]{Button} in the previous example
+will be used to forward input events to the \l[QtQuickControls]{Button}
+in this example. In the case of the cube \l[QtQuick3D]{Model}, each face of
+the cube will now be interactive with the \l[QtQuickControls]{Button}.
+
+Most of the input classes in Qt 3D are not directly translatable to Qt
+Quick 3D, so some porting effort is required, but the implicit picking
+mechanism in Qt Quick 3D makes it easy to interact with 2D items in a 3D scene.
+
+\section2 Qt 3D Logic
+
+The Qt 3D Logic module contains a single component that provides a callback for
+each frame rendered. In Qt Quick 3D, the equivalent approach is to use the
+FrameAnimation component, a general Qt Quick component that provides timing
+information and a callback mechanism for each rendered frame.
+
+\qml
+FrameAnimation {
+    running: true
+    onTriggered: {
+        console.log(`currentFrame: ${currentFrame}, frameTime: ${frameTime}`)
+    }
+}
+\endqml
+
+This component can be used anywhere in your scene, including as a child of an object where
+you want to perform some action each frame.
+
+It is worth noting though that this pattern is only needed when you want to perform some action
+each frame. While FrameAnimation makes it possible to recreate the polling behavior in
+some game engines it is also possible to use the same event driving patterns in
+Qt Quick 3D as in Qt Quick.
+
+\section2 Qt 3D Render
+
+The Qt 3D Render module contains most of the critical classes needed for
+rendering. In Qt Quick 3D, most of the equivalent functionality is provided as
+internal implementation details that are not directly exposed to the user. There are
+however some classes that are exposed to the user as API's that can be used to extend
+and customize the functionality of Qt Quick 3D.
+
+\section3 Geometry
+
+Geometry or mesh data in Qt 3D is represented by the
+\l[Qt3D]{Qt3DRender::QGeometryRenderer}{QGeometryRenderer} class or the \l[Qt3D]{GeometryRenderer}
+component. In Qt Quick 3D, the equivalents are the
+\l[QtQuick3d]{QQuick3DGeometry} class and the \l[QtQuick3d]{ProceduralMesh} component.
+In Qt 3D, the \l[Qt3D]{Qt3DRender::QGeometryRenderer}{QGeometryRenderer} class is
+lower level and expects the user to provide the vertex attribute layouts
+as part of the geometry data. In Qt Quick 3D, you get control over which
+built-in vertex attributes to use, but the layout of the buffers is handled
+internally as implementation details.
+
+For more details on how this is done, check out the
+\l{Qt Quick 3D - Custom Geometry Example}{Qt Quick 3D Custom Geometry Example}.
+
+\section3 Textures
+
+Textures in Qt 3D are represented by the subclasses of
+\l[Qt3D]{Qt3DRender::QAbstractTexture}{QAbstractTexture}. In Qt Quick 3D, the equivalent
+is the \l[QtQuick3D]{Texture} component, which is the frontend representation
+of a texture and sampler. The data used by the texture component can come
+from various sources though. The simplest way is to just set
+the \l[QtQuick3D]{Texture::source}{source} property to an image file, and that will
+get uploaded to the GPU as a textures data. It is also possible to procedurally
+generate texture data at runtime by either using 2D qml content as
+the source, or by subclassing QQuick3DTextureData or using the ProceduralTextureData component.
+These types let you specify texture data by providing size, format, and raw image data.
+There is also the possibility to create textures on the GPU through the use of
+\l[QtQuick3D]{QQuick3DRenderExtension}{render extensions}.
+
+For more details on how this is done, check out the
+\l{Qt Quick 3D - Procedural Texture Example}{Qt Quick 3D Procedural Texture Example}.
+
+\section3 Materials
+
+While it was possible to use some built-in materials in Qt 3D, when doing so
+you were limited to the built in \l{Qt3DExtras::QForwardRenderer}{framegraphs}
+they could work with. Qt Quick 3D is a similar situation in that it provides a
+selection of builtin materials that work with the internal render strategy.
+However for both Qt 3D and Qt Quick 3D it is possible to create custom materials.
+
+In Qt 3D, this was a fairly involved process involving a tree of
+\l{Qt3DRender::QMaterial}{QMaterial}, \l{Qt3DRender::QEffect}{QEffect},
+\l{Qt3DRender::QTechnique}{QTechnique}, \l{Qt3DRender::QRenderPass}{QRenderPass},
+and \l{Qt3DRender::QShaderProgram}{QShaderProgram}. In Qt Quick 3D, for materials
+this process is simplified to a single CustomMaterial component. This component
+allows you to specify custom shader code for the material, and the rest of the
+of the setup is done by the renderer. There are two modes for CustomMaterial,
+shaded and unshaded. In shaded mode the custom shader code API allows you to
+customize the built in PrincipledMaterial shader, and in unshaded mode you can
+write your own shader code from scratch. In both cases the shader language
+is GLSL, with some Qt specific keyword extensions to facilitate the
+integration with the rest of the Qt Quick 3D API.
+
+For more details on how this is done, check out the
+\l {Qt Quick 3D - Custom Materials Example}{Shaded Mode} and
+\l {Qt Quick 3D - Custom Shaders Example}{Unshaded Mode} examples, as well
+as this overview on using Qt Quick 3D's custom
+\l{Programmable Materials, Effects, Geometry, and Texture data}{GLSL shader language}.
+
+\section3 Effects
+
+From the Qt3D perspective, there is no difference between rendering a 3D
+scene and rendering post processing effects, and from a low level perspective
+this is correct. However there is a distinction made by Qt Quick 3D.
+\l[QtQuick3D]{Model}{Models} part of a 3D scene will contain a list of
+\l[QtQuick3D]{Model::materials}{materials}, and these get rendered during the
+\l{Qt Quick 3D Architecture#Scene Rendering}{main passes}. The result of
+these main passes are the 3D content rendered either directly to a
+window surface or a texture. \l[QtQuick3D]{Effect}{Effects} are different in that in
+Qt Quick 3D they refer to \l{Qt Quick 3D Architecture#Post-Processing}{post processing}
+effects in which each \l[QtQuick3D]{Pass}{pass} ends up being a single quad that covers the
+entire render target. The resulting texture of the main color pass is then passed
+to the first effect pass as a texture, and the result of that pass is then passed
+to the next \l[QtQuick3D]{Effect} pass as a texture, and so on. The final pass
+is then rendered to the output render target, which is usually the window surface.
+Some \l[QtQuick3D]{Effect}{Effects} require \l[QtQuick3D]{Buffer}{buffers}
+created during the main passes, like the depth texture, and other will require
+intermediate steps, all of which can be defined using the Effects APIs in Qt Quick 3D.
+
+Qt Quick 3D specializes this post processing effect chain with API's that allow you to
+define as many render passes as you need to achieve the desired effect.
+
+For more details on how this is done, check out the
+\l{Qt Quick 3D - Custom Effect Example}{Qt Quick 3D Post Processing Example}.
+
+\section3 Instance Buffers
+
+In Qt 3D, the usage of instancing and instance buffers is quite low level,
+and so how it is used will depend on the specific use case. In Qt Quick 3D,
+the built-in materials have some fixed instancing properties that can be set,
+but to do so you need to provide the instance data as a buffer. There are
+several ways to provide this data and once it is provided, its just a matter of
+setting the \l[QtQuick3D]{Model::instancing}{instancing} property on
+the \l[QtQuick3D]{Model} component to associate the instance buffer data with
+what you want to instance.
+
+For more details, check out
+\l[QtQuick3D]{Instanced Rendering}{this article} specific to instancing in Qt Quick 3D.
+
+\section3 Renderer Extensions
+
+The purpose of Qt 3D is to provide a powerful way to define a custom rendering
+solution for your application. Qt Quick 3D does not provide this level of
+customization, since it aims to be easy to use instead of easy to
+customize, but it does provide some ways to extend the rendering pipeline in
+addition to all of the ways listed above. This is done by implementing
+\l[QtQuick3D]{QQuick3DRenderExtension}{render extensions}, which allow you to
+add custom render passes to the renderer using the same data as the renderer.
+This is a low level API that requires a good understanding of the
+Qt Quick 3D \l{Qt Quick 3D Architecture#Scene Rendering}{rendering pipeline},
+as well as the \l[CPP]{QRhi}{Qt Rendering Hardware Interface} (RHI) API.
+
+For an example of how this is done, check out the
+\l{Qt Quick 3D - Stencil Outline Extension Example}{Stencil Outline Extension Example}
+
+\section2 Qt 3D Extras
+
+The Qt 3D Extras module provides various utilities to facilitate an
+“out-of-the-box” experience, such as materials, geometry generators, and camera
+controllers. It also includes a forward renderer frame graph. In Qt Quick 3D,
+you do not need to explicitly define a frame graph; instead, a frame graph is
+generated automatically based on the scene's requirements.
+
+\section3 Builtin Materials
+
+In Qt Quick 3D, materials are provided either by using PrincipledMaterial
+or SpecularGlossyMaterial, or by defining a CustomMaterial with custom
+shader code. The PrincipledMaterial is a PBR (Physically Based Rendering)
+shader that uses the Metallic-Roughness workflow. The complexity of the
+generated shader increases based on the properties set by the user and the
+contents of the scene. For example, if a light casts shadows, the generated
+shader will include code for shadow reception; if a light probe or reflection
+probe is present, the shader will incorporate that lighting information. This
+dynamic adaptation also applies to CustomMaterial in shaded mode. However,
+unshaded CustomMaterial shaders do not automatically consider scene
+information, such as lighting.
+
+\section3 Geometry Helpers
+
+Similar to Qt 3D, Qt Quick 3D also provides many built-in geometry primitives,
+as well as many procedural geometry generators.
+
+The following table provides a mapping of geometry classes from Qt 3D to their
+equivalents in Qt Quick 3D:
+
+\table
+\header
+    \li Qt 3D
+    \li Qt Quick 3D
+\row
+    \li ConeMesh
+    \li \l[QtQuick3D]ConeGeometry
+\row
+    \li CuboidMesh
+    \li \l[QtQuick3D]CuboidGeometry
+\row
+    \li CylinderMesh
+    \li \l[QtQuick3D]CylinderGeometry
+\row
+    \li ExtrudedTextMesh
+    \li \l[QtQuick3D]ExtrudedTextGeometry
+\row
+    \li PlaneMesh
+    \li \l[QtQuick3D]PlaneGeometry
+\row
+    \li SphereMesh
+    \li \l[QtQuick3D]SphereGeometry
+\row
+    \li TorusMesh
+    \li \l[QtQuick3D]TorusGeometry
+\endtable
+
+\section3 Camera Controllers
+
+For camera control, Qt Quick 3D provides comparable options with
+\l[QtQuick3D]OrbitCameraController and WasdController. The WasdController is similar to the
+FirstPersonCameraController in Qt3D but it can control any item in the scene,
+not just cameras.
+
+\table
+\header
+    \li Qt 3D
+    \li Qt Quick 3D
+\row
+    \li FirstPersonCameraController
+    \li \l[QtQuick3D]WasdController
+\row
+    \li \l[Qt3D]OrbitCameraController
+    \li \l[QtQuick3D]OrbitCameraController
+\endtable
+
+\section2 Qt 3D Animation
+
+The Qt 3D Animation module defines how different types of animations are
+handled in 3D. In Qt Quick 3D, equivalent functionality is spread across
+several modules, often leveraging existing classes from Qt Quick when possible.
+For instance, you can use the various
+\l{Animation and Transitions in Qt Quick}{animation} classes from the \l[QML]{QtQuick}
+import to animate properties of 3D nodes.
+
+When importing animations from 3D content creation tools, they are typically
+defined using timelines. The \l{Qt Quick Timeline} module provides the necessary
+classes for defining such animations, and any imported content with animations
+will require this module to function.
+
+In addition to basic transformations (such as translation, rotation, and
+scaling) for items in a scene, Qt Quick 3D supports armature-based animations,
+where you animate bones in a skeleton, affecting the vertices associated with
+each joint or bone. This is achieved through the \l[QtQuick3D]{Skin} component, which
+connects \l[QtQuick3D]{Node} objects representing bones in the scene with corresponding bone
+weights in a \l[QtQuick3D]{Model}{Model's} geometry. In this case, animating the
+skeleton is done by animating the bones using transformations.
+
+Qt Quick 3D also supports morph target animations, where you can animate
+changes in the geometry of a model directly. Morph targets are predefined
+snapshots of a model's geometry, and you can animate between them using the
+\l[QtQuick3D]{MorphTarget} component.
+
+For combining multiple animations or blending them together, the components in
+the Qt Quick Timeline Blend Trees module are used. This module allows you to
+define complex trees for managing how different animations interact. Most of
+these generic animation classes are not specific to Qt Quick 3D but are part of
+the broader Qt Quick framework, leveraging existing functionality instead of
+introducing new methods.
+
+\section2 Qt 3D Scene2D
+
+In Qt 3D, the Scene2D component is used to render 2D Qt Quick scenes into
+textures that can be used within a 3D scene. In Qt Quick 3D, this is achieved
+using the \l[QtQuick3D]{Texture::sourceItem}{sourceItem} property of the
+\l[QtQuick3D]{Texture} component. The sourceItem
+property can reference an existing \l[QML]{Item} or define an inline item. The
+top-level item determines the texture size, and the Qt Quick scene is rendered
+to a layer that maps onto the \l[QtQuick3D]{Texture} component.
+
+Additionally, it is possible to use \l[QML]{Item}{Item-based} components directly within a
+3D scene, where they are projected in 3D space without needing a texture.
+
+*/

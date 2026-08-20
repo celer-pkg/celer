@@ -1,0 +1,106 @@
+From d99fc8961341d494597a62f5513573660a7f076f Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?J=C3=B8ger=20Hanseg=C3=A5rd?= <joger.hansegard@qt.io>
+Date: Tue, 18 Feb 2025 16:07:45 +0100
+Subject: [PATCH 3/3] Adapt tl::expected to q23::expected
+
+---
+ include/tl/{expected.hpp => qexpected_p.h} | 33 ++++++++++++++++++----
+ 1 file changed, 27 insertions(+), 6 deletions(-)
+ rename include/tl/{expected.hpp => qexpected_p.h} (99%)
+
+diff --git a/include/tl/expected.hpp b/include/tl/qexpected_p.h
+similarity index 99%
+rename from include/tl/expected.hpp
+rename to include/tl/qexpected_p.h
+index 83920bd..a54aea1 100644
+--- a/include/tl/expected.hpp
++++ b/include/tl/qexpected_p.h
+@@ -16,15 +16,32 @@
+ #ifndef TL_EXPECTED_HPP
+ #define TL_EXPECTED_HPP
+ 
++//
++//  W A R N I N G
++//  -------------
++//
++// This file is not part of the Qt API.  It exists purely as an
++// implementation detail.  This header file may change from version to
++// version without notice, or even be removed.
++//
++// We mean it.
++//
++
+ #define TL_EXPECTED_VERSION_MAJOR 1
+ #define TL_EXPECTED_VERSION_MINOR 1
+ #define TL_EXPECTED_VERSION_PATCH 0
+ 
++#include <QtCore/private/qglobal_p.h>
++#include <QtCore/qassert.h>
++#include <QtCore/qtconfigmacros.h>
++
+ #include <exception>
+ #include <functional>
+ #include <type_traits>
+ #include <utility>
+ 
++#define TL_ASSERT Q_ASSERT
++
+ #if defined(__EXCEPTIONS) || defined(_CPPUNWIND)
+ #define TL_EXPECTED_EXCEPTIONS_ENABLED
+ #endif
+@@ -81,7 +98,8 @@
+ #elif (defined(__GNUC__) && __GNUC__ < 8 && !defined(__clang__))
+ #ifndef TL_GCC_LESS_8_TRIVIALLY_COPY_CONSTRUCTIBLE_MUTEX
+ #define TL_GCC_LESS_8_TRIVIALLY_COPY_CONSTRUCTIBLE_MUTEX
+-namespace tl {
++QT_BEGIN_NAMESPACE
++namespace q23 {
+ namespace detail {
+ template <class T>
+ struct is_trivially_copy_constructible
+@@ -91,11 +109,12 @@ template <class T, class A>
+ struct is_trivially_copy_constructible<std::vector<T, A>> : std::false_type {};
+ #endif
+ } // namespace detail
+-} // namespace tl
++} // namespace q23
++QT_END_NAMESPACE
+ #endif
+ 
+ #define TL_EXPECTED_IS_TRIVIALLY_COPY_CONSTRUCTIBLE(T)                         \
+-  tl::detail::is_trivially_copy_constructible<T>
++  q23::detail::is_trivially_copy_constructible<T>
+ #define TL_EXPECTED_IS_TRIVIALLY_COPY_ASSIGNABLE(T)                            \
+   std::is_trivially_copy_assignable<T>
+ #define TL_EXPECTED_IS_TRIVIALLY_DESTRUCTIBLE(T)                               \
+@@ -132,7 +151,8 @@ struct is_trivially_copy_constructible<std::vector<T, A>> : std::false_type {};
+ #define TL_EXPECTED_11_CONSTEXPR constexpr
+ #endif
+ 
+-namespace tl {
++QT_BEGIN_NAMESPACE
++namespace q23 {
+ template <class T, class E> class expected;
+ 
+ #ifndef TL_MONOSTATE_INPLACE_MUTEX
+@@ -396,7 +416,7 @@ struct is_nothrow_swappable
+ #endif
+ #endif
+ 
+-// Trait for checking if a type is a tl::expected
++// Trait for checking if a type is a q23::expected
+ template <class T> struct is_expected_impl : std::false_type {};
+ template <class T, class E>
+ struct is_expected_impl<expected<T, E>> : std::true_type {};
+@@ -2474,6 +2494,7 @@ void swap(expected<T, E> &lhs,
+           expected<T, E> &rhs) noexcept(noexcept(lhs.swap(rhs))) {
+   lhs.swap(rhs);
+ }
+-} // namespace tl
++} // namespace q23
++QT_END_NAMESPACE
+ 
+ #endif
+-- 
+2.44.0.windows.1
+

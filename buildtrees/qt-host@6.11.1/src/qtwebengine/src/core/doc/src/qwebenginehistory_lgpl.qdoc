@@ -1,0 +1,272 @@
+// Copyright (C) 2015 The Qt Company Ltd.
+// Copyright (C) 2008 Nokia Corporation and/or its subsidiary(-ies)
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+// The documentation in this file was imported from QtWebKit and is thus constrained
+// by its LGPL license. Documentation written from scratch for new methods should be
+// placed inline in the code as usual.
+
+/*!
+    \class QWebEngineHistoryItem
+    \brief The QWebEngineHistoryItem class represents one item in the history of a web engine page.
+    \since 5.4
+    \inmodule QtWebEngineCore
+
+    Each web engine history item represents an entry in the history stack of a web page,
+    containing information about the page, its location, and the time when it was last visited.
+
+    \sa QWebEngineHistory, QWebEnginePage::history()
+*/
+
+/*!
+    \fn QWebEngineHistoryItem::QWebEngineHistoryItem(const QWebEngineHistoryItem &other)
+    Constructs a history item from \a other. The new item and \a other
+    will share their data, and modifying either this item or \a other will
+    modify both instances.
+*/
+
+/*!
+    \fn QWebEngineHistoryItem &QWebEngineHistoryItem::operator=(const QWebEngineHistoryItem &other)
+    Assigns the \a other history item to this. This item and \a other
+    will share their data, and modifying either this item or \a other will
+    modify both instances.
+*/
+
+/*!
+    \fn QWebEngineHistoryItem::~QWebEngineHistoryItem()
+    Destroys the history item.
+*/
+
+/*!
+    \fn QUrl QWebEngineHistoryItem::originalUrl() const
+    Returns the original URL associated with the history item.
+
+    \sa url()
+*/
+
+/*!
+    \fn QUrl QWebEngineHistoryItem::url() const
+    Returns the URL associated with the history item.
+
+    \sa originalUrl(), title(), lastVisited()
+*/
+
+/*!
+    \fn QString QWebEngineHistoryItem::title() const
+    Returns the title of the page associated with the history item.
+
+    \sa url(), lastVisited()
+*/
+
+/*!
+    \fn QDateTime QWebEngineHistoryItem::lastVisited() const
+    Returns the date and time when the page associated with the item was last visited.
+
+    \sa title(), url()
+*/
+
+/*!
+    \fn bool QWebEngineHistoryItem::isValid() const
+    Returns whether this is a valid history item.
+*/
+
+/*!
+    \class QWebEngineHistoryModel
+    \inmodule QtWebEngineCore
+    \since 6.2
+
+    \brief A data model that represents the history of a web engine page.
+
+    The QWebEngineHistoryModel type exposes the \e title, \e url, \e icon, and \e offset roles.
+    The \e title, \e url and \e icon specify the title, URL, and favicon of the visited page.
+    The \e offset specifies the position of the page in respect to the current page (0).
+    A positive number indicates that the page was visited after the current page, whereas a
+    negative number indicates that the page was visited before the current page.
+
+    This type is uncreatable, but it can be accessed by using the QWebEngineHistory::itemsModel,
+    QWebEngineHistory::backItemsModel, QWebEngineHistory::forwardItemsModel methods.
+
+    \sa QWebEngineHistory
+*/
+
+/*!
+    \enum QWebEngineHistoryModel::Roles
+
+    This enum describes specific roles, which history data model supports.
+
+    \value UrlRole URL of the visited page
+    \value TitleRole Title of the visited page
+    \value OffsetRole The offset of the page in respect to the current page (0)
+    \value IconUrlRole Favicon of the visited page
+*/
+
+/*!
+    \class QWebEngineHistory
+    \brief The QWebEngineHistory class represents the history of a web engine page.
+    \since 5.4
+    \inmodule QtWebEngineCore
+
+    Each web engine page contains a history of visited pages that can be accessed
+    by QWebEnginePage::history().
+
+    The history uses the concept of a \e{current item}, dividing the pages visited
+    into those that can be visited by navigating \e back and \e forward using the
+    back() and forward() functions. The current item can be obtained by calling
+    currentItem(), and an arbitrary item in the history can be made the current
+    item by passing it to goToItem().
+
+    A list of items describing the pages that can be visited by going back can be
+    obtained by calling the backItems() function; similarly, items describing the
+    pages ahead of the current page can be obtained with the forwardItems() function.
+    The total list of items is obtained with the items() function.
+
+    Also, the following QWebEngineHistoryModel data model objects are provided:
+
+    \list
+        \li \c backItemsModel(), which contains the URLs of visited pages.
+        \li \c forwardItemsModel(), which contains the URLs of the pages that were visited after visiting
+            the current page.
+        \li \c itemsModel(), which contains the URLs of the back and forward items, as well as the URL of
+            the current page.
+    \endlist
+
+    Just as with containers, functions are available to examine the history in terms
+    of a list. Arbitrary items in the history can be obtained with itemAt(), the total
+    number of items is given by count(), and the history can be cleared with the
+    clear() function.
+
+    QWebEngineHistory's state can be saved to a QDataStream using the >> operator and loaded
+    by using the << operator.
+
+    \sa QWebEngineHistoryItem, QWebEnginePage
+*/
+
+/*!
+    \fn void QWebEngineHistory::clear()
+    Clears the history.
+
+    \sa count(), items()
+*/
+
+/*!
+    \fn QList<QWebEngineHistoryItem> QWebEngineHistory::items() const
+    Returns a list of all items currently in the history.
+
+    \sa count(), clear()
+*/
+
+/*!
+    \fn QList<QWebEngineHistoryItem> QWebEngineHistory::backItems(int maxItems) const
+    Returns the list of items in the backwards history list.
+    At most \a maxItems entries are returned.
+
+    \sa forwardItems()
+*/
+
+/*!
+    \fn QList<QWebEngineHistoryItem> QWebEngineHistory::forwardItems(int maxItems) const
+    Returns the list of items in the forward history list.
+    At most \a maxItems entries are returned.
+
+    \sa backItems()
+*/
+
+/*!
+    \fn QWebEngineHistoryModel *QWebEngineHistory::itemsModel() const
+    Returns the data model, which represents URLs of back items, forward items,
+    and the current item in the history.
+*/
+
+/*!
+    \fn QWebEngineHistoryModel *QWebEngineHistory::backItemsModel() const
+    Return the data model, which represents URLs of visited pages.
+*/
+
+/*!
+    \fn QWebEngineHistoryModel *QWebEngineHistory::forwardItemsModel() const
+    Return the data model, which represents URLs of the pages
+    that were visited after visiting the current page.
+*/
+
+/*!
+    \fn bool QWebEngineHistory::canGoBack() const
+    Returns \c true if there is an item preceding the current item in the history;
+    otherwise returns \c false.
+
+    \sa canGoForward()
+*/
+
+/*!
+    \fn bool QWebEngineHistory::canGoForward() const
+    Returns \c true if we have an item to go forward to; otherwise returns \c false.
+
+    \sa canGoBack()
+*/
+
+/*!
+    \fn void QWebEngineHistory::back()
+    Sets the current item to be the previous item in the history and goes to the
+    corresponding page; that is, goes back one history item.
+
+    \sa forward(), goToItem()
+*/
+
+/*!
+    \fn void QWebEngineHistory::forward()
+    Sets the current item to be the next item in the history and goes to the
+    corresponding page; that is, goes forward one history item.
+
+    \sa back(), goToItem()
+*/
+
+/*!
+    \fn void QWebEngineHistory::goToItem(const QWebEngineHistoryItem &item)
+    Sets the current item to be the specified \a item in the history and goes to the page.
+
+    \sa back(), forward()
+*/
+
+/*!
+    \fn QWebEngineHistoryItem QWebEngineHistory::backItem() const
+    Returns the item before the current item in the history.
+*/
+
+/*!
+    \fn QWebEngineHistoryItem QWebEngineHistory::currentItem() const
+    Returns the current item in the history.
+*/
+
+/*!
+    \fn QWebEngineHistoryItem QWebEngineHistory::forwardItem() const
+    Returns the item after the current item in the history.
+*/
+
+/*!
+    \fn int QWebEngineHistory::currentItemIndex() const
+    Returns the index of the current item in history.
+*/
+
+/*!
+    \fn QWebEngineHistoryItem QWebEngineHistory::itemAt(int i) const
+    Returns the item at index \a i in the history.
+*/
+
+/*!
+    \fn int QWebEngineHistory::count() const
+    Returns the total number of items in the history.
+*/
+
+/*!
+    \fn QDataStream& operator<<(QDataStream& stream, const QWebEngineHistory& history)
+    \relates QWebEngineHistory
+
+    Saves the web engine history \a history into \a stream.
+*/
+
+
+/*!
+    \fn QDataStream& operator>>(QDataStream& stream, QWebEngineHistory& history)
+    \relates QWebEngineHistory
+
+    Loads the web engine history from \a stream into \a history.
+*/

@@ -1,0 +1,116 @@
+{
+    "QEP": {
+        "QQEM": "0.41",
+        "connections": [
+            {
+                "fromId": 0,
+                "toId": 3
+            },
+            {
+                "fromId": 3,
+                "toId": 1
+            }
+        ],
+        "exportDirectory": ".",
+        "exportFlags": 2,
+        "exportName": "lineshaderhorizontal",
+        "nodes": [
+            {
+                "fragmentCode": [
+                    "void main() {",
+                    "    @nodes",
+                    "    fragColor = fragColor * qt_Opacity;",
+                    "}"
+                ],
+                "name": "Main",
+                "nodeId": 0,
+                "type": 0,
+                "vertexCode": [
+                    "void main() {",
+                    "    texCoord = qt_MultiTexCoord0;",
+                    "    fragCoord = qt_Vertex.xy;",
+                    "    vec2 vertCoord = qt_Vertex.xy;",
+                    "    @nodes",
+                    "    gl_Position = qt_Matrix * vec4(vertCoord, 0.0, 1.0);",
+                    "}"
+                ],
+                "x": 140,
+                "y": 35.20000076293945
+            },
+            {
+                "name": "Output",
+                "nodeId": 1,
+                "type": 1,
+                "x": 140,
+                "y": 588.7999877929688
+            },
+            {
+                "fragmentCode": [
+                    "float createBars(float coord, float spacing, float strokeWidth) {",
+                    "    float sbar = 1.0 / spacing;",
+                    "    float barWidth = strokeWidth / spacing;",
+                    "    float firstPos = ((barWidth + smoothing / spacing) * 1.0);",
+                    "    float p = firstPos + coord * sbar;",
+                    "    //float p = (coord - 0.5) * sbar;",
+                    "    float bar = abs(2.0 * fract(p) - 1.0);",
+                    "    float barSmoothness = smoothing / spacing;",
+                    "    bar = smoothstep(1.0 - barWidth - barSmoothness, 1.0 - barWidth + barSmoothness, bar);",
+                    "    return bar;",
+                    "}",
+                    "",
+                    "@main",
+                    "{",
+                    "    float line = 0.0;",
+                    "#if (HORIZONTAL == 1)",
+                    "    float spacing = iResolution.y * 0.5 + lineWidth + smoothing;",
+                    "    line += createBars(fragCoord.y, spacing, lineWidth);",
+                    "#else",
+                    "    float spacing = iResolution.x * 0.5 + lineWidth + smoothing;",
+                    "    line += createBars(fragCoord.x, spacing, lineWidth);",
+                    "#endif",
+                    "    vec3 lineColor = vec3(0.0);",
+                    "    float alpha = line * color.a;",
+                    "    lineColor = mix(lineColor, color.rgb, alpha);",
+                    "    fragColor = vec4(lineColor, alpha);",
+                    "}"
+                ],
+                "name": "Line",
+                "nodeId": 3,
+                "properties": [
+                    {
+                        "defaultValue": "0",
+                        "name": "HORIZONTAL",
+                        "type": "define",
+                        "value": "1"
+                    },
+                    {
+                        "defaultValue": "1, 1, 1, 1",
+                        "name": "color",
+                        "type": "color",
+                        "value": "1, 1, 1, 1"
+                    },
+                    {
+                        "defaultValue": "1",
+                        "maxValue": "5",
+                        "minValue": "0",
+                        "name": "lineWidth",
+                        "type": "float",
+                        "value": "1"
+                    },
+                    {
+                        "defaultValue": "1",
+                        "maxValue": "5",
+                        "minValue": "0",
+                        "name": "smoothing",
+                        "type": "float",
+                        "value": "1"
+                    }
+                ],
+                "type": 2,
+                "x": 105,
+                "y": 450.6993408203125
+            }
+        ],
+        "version": 1
+    }
+}

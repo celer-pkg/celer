@@ -1,0 +1,12 @@
+Name: readability
+Short Name (OPTIONAL): readability
+URL: https://github.com/mozilla/readability
+Version: 0.6.0
+Revision: 1f0ec42686c89a4a1c71789849f7ffde349ab197
+Update Mechanism: Manual (https://crbug.com/422813143)
+License: Apache-2.0
+License File: LICENSE
+Shipped: yes
+Security Critical: no
+Description: A javascript library to distill the dom.
+Local Modifications: None

@@ -1,0 +1,20 @@
+module demos.coffee
+typeinfo coffeemachine.qmltypes
+prefer :/qt/qml/demos/coffee/
+ApplicationFlow 254.0 ApplicationFlow.qml
+ApplicationFlowForm 254.0 ApplicationFlowForm.ui.qml
+ChoosingCoffee 254.0 ChoosingCoffee.qml
+CoffeeCard 254.0 CoffeeCard.qml
+CoffeeConfig 254.0 CoffeeConfig.qml
+singleton Config 254.0 Config.qml
+singleton Colors 254.0 Colors.qml
+CustomButton 254.0 CustomButton.qml
+CustomSlider 254.0 CustomSlider.qml
+CustomToolBar 254.0 CustomToolBar.qml
+Cup 254.0 Cup.ui.qml
+Home 254.0 Home.qml
+Insert 254.0 Insert.qml
+Main 254.0 Main.qml
+Progress 254.0 Progress.qml
+Ready 254.0 Ready.qml
+Settings 254.0 Settings.qml

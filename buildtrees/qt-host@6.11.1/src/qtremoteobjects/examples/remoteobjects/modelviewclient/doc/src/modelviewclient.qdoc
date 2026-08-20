@@ -1,0 +1,32 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example modelviewclient
+    \title Model-View Client
+    \examplecategory {Connectivity}
+    \brief Developing a very simple client program which displays the content and changes
+           made on a server.
+    \ingroup qtremoteobjects-examples
+
+    This is the client-side application that accompanies the \l {Model-View Server}.
+
+    \snippet modelviewclient/main.cpp ObjectNode creation
+
+    We start by creating a QRemoteObjectNode and connecting it to a registry
+    found on the local machine. We also set a
+    \l{QRemoteObjectNode::heartbeatInterval}{heartbeat interval}.
+    The heartbeat is useful to detect if the connection to the \l{Source} has
+    been disrupted. In this case, since all the traffic is local, it would
+    detect when the server has been closed.
+
+    \snippet modelviewclient/main.cpp Model acquisition
+
+    We then \l {QRemoteObjectNode::acquireModel}{acquire} the model which
+    contains all of our data. In this case, we're looking to acquire a model
+    named \c{RemoteModel} from the remote object network we are connected to.
+
+    \snippet modelviewclient/main.cpp QTreeView-creation
+
+    And finally, we display the model in a very basic application.
+*/

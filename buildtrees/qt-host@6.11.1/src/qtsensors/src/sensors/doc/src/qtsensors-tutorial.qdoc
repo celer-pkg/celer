@@ -1,0 +1,36 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtsensors-tutorial.html
+    \title How to create your own Sensor
+    \brief Steps for creating your own sensors
+
+    The Qt Sensors module provides access to sensor hardware via QML and C++
+    interfaces.
+
+    The API is supported on \l{Qt for Android}{Android}, \l{Qt for iOS}{iOS}, and
+    \l {Qt for Windows}{Windows (MSVC)}.
+
+    \section1 Creating your own sensor using C++ API
+
+    Using a Qt module's C++ API requires linking against the module library, either
+    directly or through other dependencies.
+    \section2 Creating a sensor
+
+    To create your own sensor you can use the following steps:
+
+    \list
+        \li Create your own MySensor and MySensorReading classes
+            \snippet sensors/tutorial.cpp MySensor
+        \li Create a MySensorBackend by inheriting from QSensorBackend
+        \li Create MySensorBackendFactory factory class for instantiating that
+            backend by inheriting a class QSensorBackendFactory
+        \li Register the backend factory by calling
+            QSensorManager::registerBackend ("MySensorType", "MySensorId", &myfactory)
+        \li Instantiate the new MySensor and start using it
+     \endlist
+
+    As an another option the sensors are put into a \l {Creating a sensor plugin}
+    that you can use on demand.
+*/

@@ -1,0 +1,17 @@
+PATCH /qqmlxmlhttprequest.cpp HTTP/1.1
+accept-language: {{Ignore}}
+if-match: "ETagNumber"
+content-type: application/example
+content-length: 247
+connection: Keep-Alive{{Ignore}}
+http2-settings: {{Ignore}}
+accept-encoding: {{Ignore}}
+user-agent: Mozilla/5.0
+host: {{ServerHostUrl}}
+
+--- a/qqmlxmlhttprequest.cpp
++++ b/qqmlxmlhttprequest.cpp
+@@ -1238,11 +1238,13 @@
+-    } else if (m_method == QLatin1String("OPTIONS")) {
++    } else if (m_method == QLatin1String("OPTIONS") ||
++            (m_method == QLatin1String("PATCH"))) {

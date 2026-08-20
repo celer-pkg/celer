@@ -1,0 +1,69 @@
+<svg width="400" height="450" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <style>
+  #dot1 {
+  offset-path: path(&quot;M200 50 L150 100 L250 100 Z&quot;);
+  animation: 6000ms triangle-path infinite;
+  offset-rotate: auto;
+  }
+  #dot2 {
+  offset-path: path(&quot;M200 50 L150 100 L250 100 Z&quot;);
+  offset-rotate:35deg;
+  animation: 6000ms triangle-path infinite;
+  }
+  #dot3 {
+  offset-path: path(&quot;M200 50 L150 100 L250 100 Z&quot;);
+  offset-rotate: auto 35deg;
+  animation: 6000ms triangle-path infinite;
+  }
+  #dot4 {
+  offset-path: path(&quot;M200 50 L150 100 L250 100 Z&quot;);
+  offset-rotate: reverse;
+  animation: 6000ms triangle-path infinite;
+  }
+  #dot5 {
+  offset-path: path(&quot;M200 50 L150 100 L250 100 Z&quot;);
+  offset-rotate: reverse 35deg;
+  animation: 6000ms triangle-path infinite;
+  }
+  @keyframes triangle-path {
+  0% {offset-distance: 0;}
+  99% {offset-distance: 0;}
+  100% {offset-distance: 100%;}
+  }
+  @keyframes transform-animation {
+  0% {transform: translate(-40px, 0);}
+  100% {transform: translate(200px, 0);}
+  }
+}
+  </style>
+
+  <text y="80" fill="black"> Auto </text>
+  <g transform="translate(80, 0)">
+  <path stroke="green" stroke-width="1" d="M200 50 L150 100 L250 100 Z"/>
+  <rect id="dot1" width="6" height="8" fill="red"/>
+  </g>
+
+  <text y="160" fill="black"> Angle = 35deg </text>
+  <g transform="translate(80, 80)">
+  <path stroke="green" stroke-width="1" d="M200 50 L150 100 L250 100 Z"/>
+  <rect id="dot2" width="6" height="8" fill="red"/>
+  </g>
+
+  <text y="240" fill="black"> Auto with angle = 35deg </text>
+  <g transform="translate(80, 160)">
+  <path stroke="green" stroke-width="1" d="M200 50 L150 100 L250 100 Z"/>
+  <rect id="dot3" width="6" height="8" fill="red"/>
+  </g>
+
+  <text y="320" fill="black"> Reverse </text>
+  <g transform="translate(80, 240)">
+  <path stroke="green" stroke-width="1" d="M200 50 L150 100 L250 100 Z"/>
+  <rect id="dot4" width="6" height="8" fill="red"/>
+  </g>
+
+  <text y="400" fill="black"> Reverse with angle = 35deg </text>
+  <g transform="translate(80, 320)">
+  <path stroke="green" stroke-width="1" d="M200 50 L150 100 L250 100 Z"/>
+  <rect id="dot5" width="6" height="8" fill="red"/>
+  </g>
+</svg>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.1">
+<context>
+    <name>MyClass</name>
+    <message>
+        <location filename="my_class.cpp" line="13"/>
+        <source>My window title</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="my_class.cpp" line="20"/>
+        <source>translation in method</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+</TS>

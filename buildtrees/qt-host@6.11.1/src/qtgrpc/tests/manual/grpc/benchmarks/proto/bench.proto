@@ -1,0 +1,56 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package qt.bench;
+
+service BenchmarkService {
+    rpc UnaryCall(UnaryCallRequest) returns (UnaryCallResponse);
+    rpc ServerStreaming(ServerStreamingRequest) returns (stream ServerStreamingResponse);
+    rpc ClientStreaming(stream ClientStreamingRequest) returns (ClientStreamingResponse);
+    rpc BiDiStreaming(stream BiDiStreamingRequest) returns (stream BiDiStreamingResponse);
+}
+
+message UnaryCallRequest {
+    google.protobuf.Timestamp timestamp = 1;
+    optional bytes payload = 2;
+}
+
+message UnaryCallResponse {
+    uint64 request_latency_nanos = 1;
+    google.protobuf.Timestamp timestamp = 2;
+    optional bytes payload = 3;
+}
+
+message ServerStreamingRequest {
+    uint64 ping = 1;
+    optional bytes payload = 2;
+}
+
+message ServerStreamingResponse {
+    uint64 pong = 1;
+    optional bytes payload = 2;
+}
+
+message ClientStreamingRequest {
+    uint64 ping = 1;
+    optional bytes payload = 2;
+}
+
+message ClientStreamingResponse {
+    uint64 pong = 1;
+    optional bytes payload = 2;
+}
+
+message BiDiStreamingRequest {
+    uint64 num = 1;
+    optional bytes payload = 2;
+}
+
+message BiDiStreamingResponse {
+    uint64 num = 1;
+    optional bytes payload = 2;
+}

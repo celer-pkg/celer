@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/surfacegallery/heightmap.png</file>
+        <file>qml/surfacegallery/main.qml</file>
+        <file>qml/surfacegallery/SpectrogramData.qml</file>
+        <file>qml/surfacegallery/SurfaceHeightMap.qml</file>
+        <file>qml/surfacegallery/SurfaceOscilloscope.qml</file>
+        <file>qml/surfacegallery/SurfaceSpectrogram.qml</file>
+    </qresource>
+</RCC>

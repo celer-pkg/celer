@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<db:article xmlns:db="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.2" xml:lang="en">
+<db:info>
+<db:title>TOC</db:title>
+<db:productname>Qt</db:productname>
+<db:edition>OutputFromQDocFiles - A test project for QDoc build artifacts</db:edition>
+<db:titleabbrev>A test project for QDoc build artifacts</db:titleabbrev>
+<db:abstract>
+<db:para>A test project for QDoc build artifacts.</db:para></db:abstract>
+</db:info>
+<db:itemizedlist role="group3">
+<db:listitem>
+<db:para><db:link xlink:href="group3-member.xml" xlink:role="page">Group 3 member</db:link></db:para>
+</db:listitem>
+</db:itemizedlist>
+<db:itemizedlist>
+<db:listitem>
+<db:para><db:link xlink:href="qdoctests-qdocfileoutput.xml">QDoc Testing</db:link></db:para>
+<db:itemizedlist>
+<db:listitem>
+<db:para><db:link xlink:href="qdoctests-qdocfileoutput-exhaustive.xml">Exhaustive testing of QDoc commands</db:link></db:para>
+</db:listitem>
+</db:itemizedlist>
+</db:listitem>
+<db:listitem>
+<db:para>Linking</db:para>
+<db:itemizedlist>
+<db:listitem>
+<db:para><db:link xlink:href="qdoctests-qdocfileoutput-linking.xml">QDoc Linking Test</db:link></db:para>
+<db:itemizedlist>
+<db:listitem>
+<db:para><db:link xlink:href="qdoctests-qdocfileoutput-linking.xml#link-targets">Link targets</db:link></db:para>
+</db:listitem>
+</db:itemizedlist>
+</db:listitem>
+<db:listitem>
+<db:para><db:link xlink:href="crash.xml">Random page</db:link></db:para>
+</db:listitem>
+<db:listitem>
+<db:para><db:link xlink:href="toc.xml">Table of Contents</db:link></db:para>
+</db:listitem>
+</db:itemizedlist>
+</db:listitem>
+<db:listitem>
+<db:para>Group <db:itemizedlist role="group">
+<db:listitem>
+<db:para><db:link xlink:href="a.xml" xlink:role="page">Page A</db:link></db:para>
+</db:listitem>
+<db:listitem>
+<db:para><db:link xlink:href="http://localhost" xlink:role="">Page B</db:link></db:para>
+</db:listitem>
+<db:listitem>
+<db:para><db:link xlink:href="c.xml" xlink:role="page">Page C</db:link></db:para>
+</db:listitem>
+</db:itemizedlist>
+</db:para>
+</db:listitem>
+<db:listitem>
+<db:para><db:link xlink:href="group2.xml">Group2</db:link> <db:itemizedlist role="group2">
+<db:listitem>
+<db:para><db:link xlink:href="e.xml" xlink:role="page">Page E</db:link></db:para>
+</db:listitem>
+<db:listitem>
+<db:para><db:link xlink:href="d.xml" xlink:role="page">Page D</db:link></db:para>
+</db:listitem>
+</db:itemizedlist>
+</db:para>
+</db:listitem>
+<db:listitem>
+<db:para>Test exclusion of external links</db:para>
+<db:itemizedlist>
+<db:listitem>
+<db:para><db:link xlink:href="page.xml">Page</db:link></db:para>
+</db:listitem>
+<db:listitem>
+<db:para><db:link xlink:href="https://doc.qt.io">Docs</db:link></db:para>
+</db:listitem>
+<db:listitem>
+<db:para><db:link xlink:href="http://localhost:9000/">http://localhost:9000/</db:link></db:para>
+</db:listitem>
+<db:listitem>
+<db:para><db:link xlink:href="https://what.ever">External</db:link></db:para>
+</db:listitem>
+<db:listitem>
+<db:para><db:link xlink:href="qdoctests-qdocmanuallikefileoutput.xml">Document Navigation</db:link></db:para>
+</db:listitem>
+</db:itemizedlist>
+</db:listitem>
+</db:itemizedlist>
+</db:article>

@@ -1,0 +1,41 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+    \page qqem-creating-blur-effect.html
+
+    \title Creating a blur effect
+
+    To create a blur effect in \QQEM:
+
+    \list 1
+      \li Add a \uicontrol FastBlur node to the node tree.
+      \li Add a \uicontrol BlurHelper node to the node tree. You need the
+      \uicontrol BlurHelper node for all effects that contains a blur effect.
+      \image blur-effect-nodes.png
+             {Node graph with Main, BlurHelper, FastBlur, and Output nodes connected vertically}
+      \li Select the \uicontrol FastBlur node and in the settings, change
+      the \uicontrol fastBlurAmount value to control the amount of blur.
+      \image blur-effect-step-1.webp {Qt logo with blur effect applied}
+    \endlist
+
+    \section3 Adjusting item borders
+
+    The effect appears cropped. You need to adjust item borders:
+
+    \list 1
+      \li Select \inlineimage effect-item-borders-icon.png {Cross icon}
+      to display item borders.
+      \image blur-effect-step-2.webp
+             {Qt logo with blur effect and visible item borders}
+      \li Go to \uicontrol Edit > \uicontrol {Project Settings}.
+      \li Set the item padding for all sides to 100.
+      \image effect-item-padding-dialog.png
+             {Project Settings dialog with item padding set to 100}
+    \endlist
+
+    Now, you can see the complete blur effect.
+
+    \image blur-effect-step-3.webp
+           {Qt logo with complete blur effect and expanded padding}
+
+*/

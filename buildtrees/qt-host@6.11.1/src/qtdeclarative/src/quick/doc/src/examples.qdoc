@@ -1,0 +1,198 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+
+\page qtquick-codesamples.html
+\title Qt Quick Examples and Tutorials
+\brief Building UIs with QML
+\ingroup qtquick
+\keyword qtquick-samples
+
+Qt includes several examples to demonstrate a particular usage. The examples
+run as applications or as non-GUI examples in \l{\QC Documentation}{\QC}. Qt tutorials show
+the step-by-step information and give insight to particular code snippets.
+
+This page lists the \l{Qt Qml} and \l{Qt Quick} examples, however, many other
+\l{All Modules}{Qt modules} contain examples related to their QML API.
+
+\section1 Running the Examples and Demos
+
+The examples are packaged with the \l{Getting Started with Qt}{Qt installers}
+and are accessed through \QC. For more information about running
+examples in \QC, see \l{\QC: Tutorial: Build and run}.
+
+Open and run examples in the \QC \uicontrol {Welcome} mode. Most of the
+examples run on various platforms and to search for platform-specific
+examples, type the platform name (or any keywords) in the search field. For
+example, typing \c mobile in the search field lists the examples that are
+fully compatible with the \l{Platform Support}{mobile} platforms.
+
+To view other examples and tutorials, visit the \l{Qt Examples And Tutorials}
+page.
+
+\section1 Qt Quick Demos
+
+Here is a list of fully-functional demo applications. They are full applications
+that show how a deployable Qt application is built and structured. Many of the
+demos are deployable to mobile and desktop platforms.
+
+\annotatedlist{qtquickdemos}
+
+\section1 Developing Qt Quick Applications
+
+The following pages show how to develop Qt applications using
+\l{\QC Documentation}{\QC} and Qt Quick. The pages demonstrate various
+steps such as use cases and introductory material. For more information about
+Qt Quick Applications and related modules, visit the \l{QML Applications} page.
+
+\div {class="multi-column"}
+    \div {class="doc-column"}
+        \b{Development Environment}
+        \list
+        \li \l{\QC: Create Qt Quick Applications}
+        \li \l{\QC: Using QML Modules with Plugins}
+        \endlist
+    \enddiv
+    \div {class="doc-column"}
+        \b{Beginning with QML and Qt Quick}
+        \list
+        \li \l{First Steps with QML}
+        \li \l{Getting Started programming with Qt Quick: An Alarm Application}{Alarms Application}
+        \li \l{\QDS: Your First UI}{\QDS Tutorials}
+        \li \l{QML Advanced Tutorial}{SameGame}
+        \endlist
+    \enddiv
+    \div {class="doc-column"}
+        \b{Use Cases}
+        \list
+        \li \l{qtquick-usecase-visual.html}{Visual types in QML}
+        \li \l{qtquick-usecase-userinput.html}{Responding to User Input in QML}
+        \li \l{qtquick-usecase-animations.html}{Animations in QML}
+        \li \l{qtquick-usecase-text.html}{Displaying Text in QML}
+        \li \l{qtquick-usecase-layouts.html}{Layouts in QML}
+        \li \l{qtquick-usecase-integratingjs.html}{Integrating JavaScript in QML}
+        \endlist
+    \enddiv
+\enddiv
+
+\section2 Extending QML
+
+The following tutorials show how a QML-based application can be combined and
+exteneded with C++ code using the \l{Qt Qml} module.
+\list
+    \li \l {Writing QML Extensions with C++}
+    \li \l {Writing advanced QML Extensions with C++}
+\endlist
+
+\section1 Examples
+
+Examples are small applications which show how to implement various Qt Quick
+features. The examples run on various platforms and are opened from within Qt
+Creator.
+
+\div {class="multi-column"}
+    \div {class="doc-column"}
+        \b{QML Types and Controls}
+        \list
+        \li \l{Qt Quick Controls - Gallery}{Controls Gallery}
+        \li \l{tableview/gameoflife}{TableView}
+        \li \l{Qt Quick Examples - Text}{Text and Fonts}
+        \li \l{Qt Quick Controls - Table of Contents}
+        \endlist
+    \enddiv
+    \div {class="doc-column"}
+        \b{Layouts and Views}
+        \list
+        \li \l{Qt Quick Layouts - Basic Example}
+        \li \l{Qt Quick Layouts - Responsive Layout Example}
+        \li \l{Qt Quick Examples - Positioners}{Positioners}
+        \li \l{Qt Quick Examples - Views}{Views}
+        \li \l{Qt Quick Examples - Window and Screen}{Windows and Screen}
+        \li \l{Models and Views: List Model using a worker thread for data fetching}{Threaded List Model Example}
+        \endlist
+    \enddiv
+    \div {class="doc-column"}
+        \b{Image and Graphics}
+        \list
+        \li \l{Qt Quick Examples - Image Elements}{Image Elements}
+        \li \l{Qt Quick Examples - Animation}{Animation}
+        \li \l{Qt Quick Examples - Canvas}{Canvas API}
+        \li \l{Qt Quick Examples - Shader Effects}{Shader Effects}
+        \li \l{Qt Quick Examples - MultiEffect Test Bed}{MultiEffect}
+        \li \l{Qt Quick Examples - MultiEffect Item Switcher}{MultiEffect-based Item Transitions}
+        \li \l{Qt Quick Examples - RectangularShadow NeumorphicPanel}{RectangularShadow Effect}
+        \endlist
+    \enddiv
+    \div {class="doc-column"}
+        \b{Shapes}
+        \list
+        \li \l{Qt Quick Examples - Shapes}{Shapes}
+        \li \l{Weather Forecast Example}{Weather Forecast}
+        \endlist
+    \enddiv
+\enddiv
+
+\div {class="multi-column"}
+    \div {class="doc-column"}
+        \b{Keyboard, Focus, and Touch}
+        \list
+        \li \l{Qt Quick Examples - Key Interaction}{Key Interaction}
+        \li \l{Qt Quick Examples - Pointer Handlers}{Pointer Handlers}
+        \endlist
+    \enddiv
+    \div {class="doc-column"}
+        \b{System and Events}
+        \list
+        \li \l{Qt Quick Examples - Accessibility}{Accessibility}
+        \li \l{Qt Quick Examples - Drag and Drop}{Drag and Drop}
+        \li \l{Qt Quick Examples - Item Variable Refresh Rate}{Item Variable Refresh Rate}
+        \endlist
+    \enddiv
+    \div {class="doc-column"}
+        \b{Scene Graph}
+        \list
+        \li \l{Scene Graph - Custom Material}{Custom Material}
+        \li \l{Scene Graph - RHI Under QML}{Portable QRhi-based 3D rendering as a scene underlay}
+        \li \l{Scene Graph - RHI Texture Item}{Displaying a QRhi-rendered image in a QQuickItem}
+        \li \l{Scene Graph - Custom QSGRenderNode}{Implementing a QRhi-based QSGRenderNode}
+        \li \l{QQuickRenderControl RHI Example}{Redirecting Qt Quick rendering into a QRhiTexture}
+        \li \l{Scene Graph - Two Texture Providers}{Texture Providers and Materials}
+        \li \l{Scene Graph - Custom Geometry}{Custom Geometry}
+        \li \l{Scene Graph - Graph}{Graph}
+        \endlist
+    \enddiv
+\enddiv
+
+\div {class="multi-column"}
+    \div {class="doc-column"}
+        \b{Extending the Scene Graph using native 3D APIs}
+        \list
+        \li \l{Scene Graph - Vulkan Under QML}{Vulkan-based 3D rendering as a scene underlay}
+        \li \l{Scene Graph - Vulkan Texture Import}{Implementing a custom QQuickItem that displays a native Vulkan image}
+        \li \l{Scene Graph - Metal Under QML}{Metal-based 3D rendering as a scene underlay}
+        \li \l{Scene Graph - Metal Texture Import}{Implementing a custom QQuickItem that displays a native Metal texture}
+        \li \l{Scene Graph - Direct3D 11 Under QML}{Direct3D 11-based rendering as a scene underlay}
+        \li \l{Scene Graph - OpenGL Under QML}{OpenGL-based rendering as a scene underlay}
+        \li \l{QQuickRenderControl OpenGL Example}{Redirecting Qt Quick rendering into an OpenGL texture}
+        \li \l{QQuickRenderControl D3D11 Example}{Redirecting Qt Quick rendering into a Direct 3D texture}
+        \endlist
+    \enddiv
+    \div {class="doc-column"}
+        \b{Adding Qt Quick scenes in QWidget applications}
+        \list
+        \li \l{Qt Quick Widgets Example}{Using QQuickWidget}
+        \li \l{QQuickWidget - QQuickView Comparison Example}{QQuickWidget - QQuickView Comparison (OpenGL)}
+        \li \l{Qt Quick Examples - Embedded in Widgets}{Embedding a QQuickView as Native Window}
+        \endlist
+    \enddiv
+        \div {class="doc-column"}
+        \b{Qt Quick for Android}
+        \list
+        \li \l{Qt Quick for Android Studio Projects}
+        \li \l{Exposing QtAbstractListModel to QML}
+        \li \l{Using QtAbstractItemModel in Android Studio Projects}
+        \endlist
+    \enddiv
+\enddiv
+*/

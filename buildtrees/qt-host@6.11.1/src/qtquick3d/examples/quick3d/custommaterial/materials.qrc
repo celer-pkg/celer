@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>maps/OpenfootageNET_lowerAustria01-1024.hdr</file>
+        <file>material_distortion.vert</file>
+        <file>material_customspecular.frag</file>
+        <file>material_metallic.frag</file>
+        <file>material_customlights.frag</file>
+        <file>material_simple.frag</file>
+        <file>material_transparent.frag</file>
+        <file>screen.frag</file>
+    </qresource>
+</RCC>

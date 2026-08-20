@@ -1,0 +1,169 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtquick3d-changes-qt6.html
+    \title Changes to Qt Quick 3D
+    \ingroup changes-qt-5-to-6
+    \brief Migrate Qt Quick 3D to Qt 6.
+
+    Qt 6 is a result of the conscious effort to make the framework more
+    efficient and easy to use.
+
+    We try to maintain binary and source compatibility for all the public
+    APIs in each release. But some changes were inevitable in an effort to
+    make Qt a better framework. Parts of the Qt Quick 3D API have been
+    substantially modified.
+
+    In this topic we summarize those changes in Qt Quick 3D, and provide
+    guidance to handle them.
+
+    \section1 RHI
+
+    From Qt 6.0 onwards, the default adaptation of Qt Quick always renders via a
+    graphics abstraction layer, the Qt Rendering Hardware Interface (RHI),
+    provided by the \l QtGui module. This means that, unlike Qt 5, no direct
+    OpenGL calls are made by the scene graph. Rather, it records resource and
+    draw commands by using the RHI APIs, which then translate the command stream
+    into OpenGL, Vulkan, Metal, or Direct 3D calls. Shader handling is also
+    unified by writing shader code once, compiling to
+    \l{https://www.khronos.org/spir/}{SPIR-V}, and then translating to the
+    language appropriate for the various graphics APIs.
+
+    For Qt Quick 3D the biggest change in Qt 6.0 is the migration to the common
+    Rendering Hardware Interface, which allows Qt Quick 3D to run on Direct3D,
+    Metal and Vulkan in addition to OpenGL and OpenGL ES.
+
+    Qt Quick and Qt Quick 3D are now fully unified in this regard. Any
+    configuration setting related to the RHI, for example, which graphics API to
+    choose to render with, are applicable to both.
+
+    See \l{Qt Quick 3D Graphics Requirements} for further details.
+
+    \section1 Other API changes
+
+    \section2 QML import version
+
+    Starting with Qt 6.0, the version number for QML import statements is the
+    same as the Qt version number. It is now also possible to import a module
+    without specifying a version: this will import the latest version of the module.
+
+
+    \section2 Lighting
+
+    \l {Light::brightness}{Light brightness} now represents an energy multiplier defaulting to 1.0, where
+    Qt 5 would use a percentage value defaulting to 100. In practice this
+    means that all \c brightness values should be divided by 100.
+
+    \c SceneEnvironment.probeBrightness is renamed to
+    \l {SceneEnvironment::probeExposure}{probeExposure} and is also redefined to
+    be a multiplier with a default value of 1.0. That is, all \c probeBrightness values
+    should be renamed to \c probeExposure and divided by 100.
+
+
+    \c AreaLight has been removed for performance reasons. In many cases it can be replaced
+    with \l SpotLight, which was added in Qt Quick 3D 5.15.
+
+    \section2 Custom Materials
+
+    The custom materials API has been completely reworked in 6.0.  This means
+    any existing custom materials will have to be substantially rewritten.
+    See the \l CustomMaterial documentation for details of the new API.
+
+    \section2 Post-processing Effects
+
+    \l Effect has been enhanced to allow for shader code that is very close to
+    what \l CustomMaterial supports, following the same patterns when it comes
+    to structure and built-in keywords. This means that existing effects
+    involving custom shader code will need to be migrated before they can
+    function in Qt 6.0. See the \l Effect documentation for details.
+
+    \section2 Principled Material
+
+    The \l PrincipledMaterial QML type has been greatly improved in Qt Quick
+    6.0, and now more closely follows the principles of Physically Based
+    Rendering. Imported models should now render correctly without changing
+    properties of the materials. Existing materials will need to be changed to
+    undo any compensations for previous inaccuracies.
+
+    \table
+    \header
+    \li PrincipledMaterial in Qt 5
+    \li PrincipledMaterial in Qt 6
+    \row
+    \li \image quick3d-principled-qt5.png
+              {Teapot rendered with Qt 5 principled material}
+    \li \image quick3d-principled-qt6.png
+              {Teapot rendered with Qt 6 principled material}
+    \endtable
+
+    Some properties change their defaults:
+
+    \list
+    \li \l{PrincipledMaterial::metalness}{metalness} defaults to 0 instead of 1.
+    \li \l{PrincipledMaterial::specularAmount}{specularAmount} defaults to 0.5 instead of 0.
+    \endlist
+
+    \section2 Default Material
+
+    Some properties change their defaults:
+
+    \list
+    \li \l{DefaultMaterial::specularRoughness}{specularRoughness} defaults to 0 instead of 50.
+    \endlist
+
+    \section2 Predefined materials
+
+    There are no predefined materials included in QtQuick3D 6.0.  Any
+    materials added in future releases will probably not be compatible with
+    the old ones. The Materials import does not exist. (The CustomMaterial
+    type is moved to the base QtQuick3D import.)
+
+    These are the material QML types that have been removed in Qt 6.0:
+
+    \list
+      \li AluminumAnodizedEmissiveMaterial
+      \li AluminumAnodizedMaterial
+      \li AluminumBrushedMaterial
+      \li AluminumEmissiveMaterial
+      \li AluminumMaterial
+      \li CopperMaterial
+      \li FrostedGlassMaterial
+      \li FrostedGlassSinglePassMaterial
+      \li GlassMaterial
+      \li GlassRefractiveMaterial
+      \li PaperArtisticMaterial
+      \li PaperOfficeMaterial
+      \li PlasticStructuredRedEmissiveMaterial
+      \li PlasticStructuredRedMaterial
+      \li SteelMilledConcentricMaterial
+    \endlist
+
+    \section2 Tessellation and displacement maps
+
+    Model tesselation mode is gone due to increased focus on supporting
+    embedded hardware. In addition, as a result, displacement map support has
+    been removed from materials. Similar effects can be achieved with a
+    \l {CustomMaterial}{custom material}.
+
+    \section2 Qt Quick \l{Item}s as children of 3D \l{Node}s
+
+    While syntactically identical, the way 2D child items are handled is quite
+    different internally. In Qt 6.0 there is no implicit render to texture
+    step. Rather, the 2D Qt Quick content is rendered in line, with the
+    appropriate perspective projection, in the same render pass, which provides
+    better performance, lower resource usage, and in some cases potentially
+    improved visual fidelity (with \l Text, for example). See \l{Qt Quick 3D
+    Scenes with 2D Content} for an overview.
+
+    If going through a texture is important for some reason (clipping, opacity),
+    make the 2D \l Item subtree a layer explicitly by setting \c{layer.enabled:
+    true}. This way the behavior is closer to what Qt 5.15 provided.
+
+    The 2D content is no longer centered at the parent Node's origin. Rather, it
+    is the top-level 2D Item's top-left corner that is placed to the 3D Node's
+    origin. Therefore, the top-level 2D Item will often want to specify an
+    anchor, such as, \c{anchors.centerIn: parent}, to get results matching Qt
+    5.15.
+
+*/

@@ -1,0 +1,40 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example trafficlight-qml-static
+    \title SCXML Traffic Light (Static, QML)
+    \examplecategory {Data Processing & I/O}
+    \ingroup examples-qtscxml
+
+    \brief A Qt Quick application that uses a compiled state machine to
+    implement a traffic light.
+
+    \image trafficlight.png {Traffic light with green light illuminated}
+
+    \e{Traffic Light} demonstrates how to connect to the
+    active properties of a state in a state machine that is compiled to a class.
+
+    The UI is created using Qt Quick.
+
+    \include examples-run.qdocinc
+
+    \include trafficlight-compiling.qdocinc
+
+    \section1 Instantiating the State Machine
+
+    We instantiate the state machine as follows:
+
+    \quotefromfile trafficlight-qml-static/MainView.qml
+
+    \skipto TrafficLight
+    \printuntil }
+
+    \include trafficlight-state-machine.qdocinc
+
+    We connect to the states as follows:
+
+    \quotefromfile trafficlight-qml-static/Lights.ui.qml
+    \skipto states
+    \printuntil ]
+*/

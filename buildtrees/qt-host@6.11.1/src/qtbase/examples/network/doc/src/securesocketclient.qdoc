@@ -1,0 +1,17 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example securesocketclient
+    \title Secure Socket Client
+    \examplecategory {Networking}
+    \meta tags {tcp,network,tls,ssl}
+    \ingroup examples-network
+    \brief Demonstrates how to communicate over an encrypted (SSL) connection.
+
+    This example uses QSslSocket to demonstrate how to communicate over an
+    encrypted connection, deal with authenticity problems, and display security
+    and certificate information.
+
+    \image securesocketclient-example.webp {The user enters the host name and port that they want to connect to, and are then able to view the security certificate}
+*/

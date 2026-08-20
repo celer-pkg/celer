@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/cockpit/airplane-ico.png</file>
+        <file>qml/cockpit/ArtificialHorizon.qml</file>
+        <file>qml/cockpit/bar.frag.qsb</file>
+        <file>qml/cockpit/circleMarker.frag.qsb</file>
+        <file>qml/cockpit/ControlPanel.qml</file>
+        <file>qml/cockpit/main.qml</file>
+        <file>qml/cockpit/Map.qml</file>
+        <file>qml/cockpit/pitchbar.frag.qsb</file>
+        <file>qml/cockpit/plane-fro.png</file>
+        <file>qml/cockpit/Speedometer.qml</file>
+        <file>qml/cockpit/VibrationSensor.qml</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,9 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [ninja-note]
+\note configure always uses the \b Ninja generator and build tool if a \c ninja
+executable is available. Ninja is cross-platform, feature-rich, performant, and
+recommended on all platforms. The use of other generators might work but is not
+officially supported.
+//! [ninja-note]

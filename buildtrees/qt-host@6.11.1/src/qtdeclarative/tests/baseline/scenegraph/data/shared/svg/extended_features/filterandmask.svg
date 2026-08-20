@@ -1,0 +1,59 @@
+<svg viewBox="-10 -10 560 230" xmlns="http://www.w3.org/2000/svg">
+  <mask id="myMask">
+        <!-- Everything under a white pixel will be visible -->
+    <g>
+        <rect x="0" y="0" width="100" height="100" fill="white" />
+
+        <!-- Everything under a black pixel will be invisible -->
+        <path
+          d="M10,35 A20,20,0,0,1,50,35 A20,20,0,0,1,90,35 Q90,65,50,95 Q10,65,10,35 Z"
+          fill="black" />
+    </g>
+  </mask>
+  
+  <mask x="0" y="0" width="0.5" height="1" id="myMask2">
+        <!-- Everything under a white pixel will be visible -->
+    <g>
+        <rect x="0" y="0" width="100" height="100" fill="white" />
+
+        <!-- Everything under a black pixel will be invisible -->
+        <path
+          d="M10,35 A20,20,0,0,1,50,35 A20,20,0,0,1,90,35 Q90,65,50,95 Q10,65,10,35 Z"
+          fill="black" />
+    </g>
+  </mask>
+
+  <filter id="blur">
+    <feGaussianBlur stdDeviation="3"/>
+  </filter>  
+  
+  <polygon points="-10,110 110,110 110,-10" fill="orange" />
+  <polygon transform="translate(110, 0)" points="-10,110 110,110 110,-10" fill="orange" />
+  <polygon transform="translate(220, 0)" points="-10,110 110,110 110,-10" fill="orange" />
+  <polygon transform="translate(330, 0)" points="-10,110 110,110 110,-10" fill="orange" />
+  <polygon transform="translate(440, 0)" points="-10,110 110,110 110,-10" fill="orange" />
+  <polygon transform="translate(0, 110)" points="-10,110 110,110 110,-10" fill="orange" />
+  <polygon transform="translate(110, 110)" points="-10,110 110,110 110,-10" fill="orange" />
+  <polygon transform="translate(220, 110)" points="-10,110 110,110 110,-10" fill="orange" />
+  <polygon transform="translate(330, 110)" points="-10,110 110,110 110,-10" fill="orange" />
+  <polygon transform="translate(440, 110)" points="-10,110 110,110 110,-10" fill="orange" />
+
+  <!-- with this mask applied, we "punch" a heart shape hole into the circle -->
+  <rect filter="url(#blur)" transform="translate(0, 0)" x="0" y="0" width="100" height="100" opacity="0.5" mask="url(#myMask)" />
+  <circle filter="url(#blur)" transform="translate(110, 0)" cx="50" cy="50" r="50" mask="url(#myMask)" />
+  <ellipse filter="url(#blur)" transform="translate(220, 0)" cx="50" cy="50" rx="40" ry="70" mask="url(#myMask)" />
+  <line filter="url(#blur)" transform="translate(330, 0)" x1="0" y1="0" x2="100" y2="100" style="stroke:rgb(255,0,0);stroke-width:2" mask="url(#myMask)" />
+  <polygon filter="url(#blur)" transform="translate(440, 0)" points="-10,110 -10,-10 110,110" fill="green" mask="url(#myMask)" />
+  <polyline filter="url(#blur)" transform="translate(0, 110)" points="10,90 10,10 90,90, 10,90" style="fill:none;stroke:black;stroke-width:3" mask="url(#myMask)" />
+  <path filter="url(#blur)" transform="translate(110, 110)" d="M10,90 L10,10 L90,90, Z" fill="black" mask="url(#myMask)" />
+  <text filter="url(#blur)" transform="translate(220, 110)" fill="blue" x="0" y="20" mask="url(#myMask)" font-family="Arial" font-size="16"> Stupid SVG! </text>
+  <g filter="url(#blur)" transform="translate(330, 110)" mask="url(#myMask)">
+    <rect x="5" y="10" width="40" height="80" />
+    <ellipse cx="75" cy="50" ry="40" rx="20" />
+  </g>
+  <rect filter="url(#blur)" transform="translate(440, 110)" x="0" y="0" width="100" height="100" fill="yellow" />
+  <rect filter="url(#blur)" transform="translate(440, 110)" x="0" y="0" width="100" height="100" fill="red" mask="url(#myMask)" />
+  <rect filter="url(#blur)" transform="translate(440, 110)" x="0" y="0" width="100" height="100" fill="blue" mask="url(#myMask2)" />
+  <rect filter="url(#blur)" transform="translate(440, 110)" x="0" y="0" width="50" height="100" fill="green" mask="url(#myMask)" />
+
+</svg>

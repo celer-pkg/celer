@@ -1,0 +1,14 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+    \page modules-cpp.html
+    \title All Classes by Module
+    \ingroup classlists
+
+    \brief A list of all C++ API components in Qt
+
+    These are the C++ API pages for Qt's \l{All Modules}{modules}. For
+    a list of all classes on a single page, visit the \l{All Classes} page.
+
+    \annotatedlist {modules}
+*/

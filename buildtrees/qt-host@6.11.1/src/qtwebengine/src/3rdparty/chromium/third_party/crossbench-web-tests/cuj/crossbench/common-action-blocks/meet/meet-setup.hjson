@@ -1,0 +1,48 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  actions: [
+    {
+      action: meet_create
+      bots: {
+        num_of_bots: $[NUM_OF_BOTS]
+        ttl_secs: $[TTL_SECS]
+      }
+      timeout: 30s
+    }
+    {
+      action: js
+      script: performance.mark("meet-created")
+    }
+    $[...POST_CREATION_ACTIONS]
+    // With the flag --use-fake-ui-for-media-stream, the camera would
+    // start by itself.
+    {
+      action: wait_for_element
+      // At least self video and one bot should be visible before continuing.
+      expected_count: "2"
+      or_more: true
+      selector: video:not([data-meet-pip-feed]):not([style*='display: none'])
+    }
+    {
+      action: js
+      script:
+        '''
+        performance.mark("camera-start");
+        performance.measure("camera-ready", "meet-created", "camera-start");
+        '''
+    }
+    {
+      action: click
+      position: {
+        selector: "[aria-modal='true'][role='dialog'] button[data-mdc-dialog-action='ok']"
+        required: false
+        wait: true
+      }
+      source: $[CLICK_INPUT_SOURCE]
+      timeout: 5s
+      verify: body:not(:has([aria-modal='true'][role='dialog']))
+    }
+  ]
+}

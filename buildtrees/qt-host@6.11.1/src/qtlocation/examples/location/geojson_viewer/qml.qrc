@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>GeoJsonDelegate.qml</file>
+        <file>mapitems/CircleItem.qml</file>
+        <file>mapitems/PolygonItem.qml</file>
+        <file>mapitems/PolylineItem.qml</file>
+        <file>mapitems/RectangleItem.qml</file>
+        <file>data/11-full.json</file>
+    </qresource>
+</RCC>

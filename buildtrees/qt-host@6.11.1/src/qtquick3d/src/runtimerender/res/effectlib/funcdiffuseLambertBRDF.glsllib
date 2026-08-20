@@ -1,0 +1,9 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+vec4 qt_diffuseLambertBRDF(in vec3 N, in vec3 L, in vec3 lightDiffuse)
+{
+    // Assuming that N and L are normalized
+    float cNdotL = max(0.0, dot(N, L));
+    return vec4(cNdotL * lightDiffuse, 1.0);
+}

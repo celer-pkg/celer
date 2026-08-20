@@ -1,0 +1,17 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#include "../effectlib/oitcommon.glsllib"
+
+#if QSSG_OIT_METHOD == QSSG_OIT_WEIGHTED_BLENDED
+
+float qt_transparencyWeight(const float z, const float a, const float depthRange)
+{
+    const float colorResistance = 1.0;
+    const float rangeAdjustment = 0.3;
+    const float orderingRange = 4.0;
+    return pow(a, colorResistance) * clamp(rangeAdjustment / (1e-5 + pow(z / depthRange, orderingRange)), 1e-2, 3e3);
+}
+
+#endif // QSSG_OIT_METHOD == QSSG_OIT_WEIGHTED_BLENDED
+

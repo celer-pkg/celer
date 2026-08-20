@@ -1,0 +1,47 @@
+{
+  // An example of how to use config templates to enable parameterized tests.
+  //
+  // This example uses page config, but config templates are supported for any
+  // config types.
+  //
+  // For readability the template config is included inline in this example, but
+  // the template can also be a filepath to a different file.
+  //
+  // Parameters can be declared using the $[PARAM_NAME] notation and will be
+  // substituted using the corresponding entry in "args". Parameters can be any
+  // type - including complex types like lists or dicts.
+  //
+  // To escape parameter substitution, use the escape sequence "$[[ARG]".
+  // For example: "$[[DONT_SUBSTITUTE]" will result in
+  // "$[DONT_SUBSTITUTE]" in the final config.
+
+  "args": {
+    "GOOGLE_URL": "https://www.google.com",
+    "COOKIE_BANNER_ACTION": {
+        "action": "click",
+        "position": {
+          "required": false,
+          "selector": "xpath///button/div[contains(text(),'akzeptieren')]",
+        },
+    },
+    "SCROLL_DISTANCE": 500,
+    "SCROLL_DURATION": "10s"
+  },
+  "template": {
+    pages: {
+        "Google": [
+            {
+                "action": "get",
+                "url": "$[GOOGLE_URL]",
+                "duration": "2s"
+            },
+            "$[COOKIE_BANNER_ACTION]",
+            {
+                "action": "scroll",
+                "distance": "$[SCROLL_DISTANCE]",
+                "duration": "$[SCROLL_DURATION]"
+            }
+        ]
+    }
+  }
+}

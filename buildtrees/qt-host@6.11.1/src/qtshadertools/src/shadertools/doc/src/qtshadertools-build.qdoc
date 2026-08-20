@@ -1,0 +1,406 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Qt Shader Tools Build System Integration
+    \page qtshadertools-build.html
+    \ingroup cmake-commands-qtshadertools
+    \summary {Compiles shaders and adds them to a Qt resource}
+
+    \section1 Introduction
+
+    The \l{Qt Shader Tools} module provides a CMake macro file that provides
+    useful functions applications can take into use in their \c{CMakeLists.txt}.
+
+    When using the \c{qt6_add_shaders} function, the \l{QSB Manual}{qsb} tool
+    will get invoked automatically by the build system, and the resulting
+    \c{.qsb} files get added to the resource system implicitly.
+
+    \section1 First Example
+
+    Let's look at a simple example. Assume that we have a Qt Quick application
+    that wants to provides its own wobble effect via \l ShaderEffect. The
+    fragment shader is implemented in \c{wobble.frag}. The ShaderEffect item's
+    fragmentShader property refers to \c{wobble.frag.qsb}. How do we ensure this
+    .qsb file gets generated at build time?
+
+    \badcode
+...
+project(exampleapp LANGUAGES CXX)
+...
+find_package(Qt6 COMPONENTS ShaderTools)
+...
+qt6_add_executable(exampleapp
+    main.cpp
+)
+...
+qt6_add_resources(exampleapp "exampleapp"
+    PREFIX
+        "/"
+    FILES
+        "main.qml"
+)
+
+qt6_add_shaders(exampleapp "exampleapp_shaders"
+    PREFIX
+        "/"
+    FILES
+        "wobble.frag"
+)
+\endcode
+
+    The above is sufficient to enable the application to access
+    \c{:/wobble.frag.qsb} at run time. The original Vulkan-style GLSL source
+    code (wobble.frag) is not included in the application's executable and does
+    not need to be shipped. If there are errors in the shader code, the \c
+    glslang compiler messages are printed at build time and the build
+    fails. When changing the shader source file, the changes are picked up
+    automatically in the next build, like they would for C++ and other source
+    files.
+
+    The key is the \c qt6_add_shaders function, which shares similarity with \c
+    qt6_add_resources. Without specifying further parameters, the function will
+    lead to running qsb with a reasonable set of default arguments that are
+    suitable for fragment shaders when targeting Vulkan, Metal, Direct 3D, and
+    OpenGL or OpenGL ES.
+
+    \note Watch out for the \c find_package line. It is important to include the
+    \c find_package for \c ShaderTools, otherwise \c qt6_add_shaders will not be
+    available.
+
+    \note The target that is passed as the first argument of the
+    \c qt6_add_shaders function must exist before the function is called.
+
+    \note Multiple \c qt6_add_shaders calls are supported. In complex
+    applications it is not unlikely that different sets of shaders need
+    different settings. The name after the project (\c{"exampleapp_shaders"} in
+    the above example) has to be unique for each call.
+
+    \section1 Configuration
+
+    By default \c qt6_add_shaders invokes \l{QSB Manual}{qsb} as follows:
+    \badcode
+    qsb --glsl "100 es,120,150" --hlsl 50 --msl 12 -o <output>.qsb <input>
+    \endcode
+
+    This means that the resulting package will contain SPIR-V (for Vulkan 1.0),
+    GLSL ES 100 (for OpenGL ES 2.0 and newer), GLSL 120 (for non-core profile
+    OpenGL contexts), GLSL 150 (for core profile OpenGL contexts), HLSL source
+    for Shader Model 5.0 (for Direct3D 11.1), and Metal Shading Language 1.2
+    source (for Metal).
+
+    This is a good set of defaults for Qt Quick, and creates applications that
+    are highly portable to a wide variety of systems. These defaults are not
+    always suitable however.  If the shader uses functions or constructs that do
+    not have an equivalent in these targets, the process, and so the build, will
+    fail. If that is the case, the targets will need to be adjusted, and this
+    also means that the application's minimum system requirements get adjusted
+    implicitly. As an example, take the \c textureLod GLSL function that is only
+    available with OpenGL ES 3.0 and up (meaning GLSL ES 300 or higher). When
+    requesting GLSL \c{300 es} instead of \c{100 es}, the build will succeed, but
+    the resulting application will now require OpenGL ES 3.0 or higher and will
+    not be compatible with OpenGL ES 2.0 based systems.
+
+    On WebAssembly \c qt6_add_shaders invokes \l{QSB Manual}{qsb} as follows:
+    \badcode
+    qsb --glsl "100 es, 300 es" <output>.qsb <input>
+    \endcode
+
+    This generates shaders compatible with WebGL 1 and WebGL 2.
+
+    \section2 Shader type
+
+    The type of shader is deduced from the file extension. Thus, the extension
+    must be one of the following:
+
+    \list
+    \li \c .vert - for vertex shaders
+    \li \c .tesc - for tessellation control shaders
+    \li \c .tese - for tessellation evaluation shaders
+    \li \c .frag - for fragment (pixel) shaders
+    \li \c .comp - for compute shaders
+    \endlist
+
+    \note Tessellation control and evaluation shaders are not currently
+    supported with Direct 3D (HLSL). A possible workaround to this is to
+    manually create hull and domain shaders and inject them via the
+    \l{Substituting Hand-Crafted Shaders}{file subsitution syntax} in the \c
+    FILES section.
+
+    \section2 Targets
+
+    The following keywords are available:
+
+    \list
+
+    \li \c GLSL - Requests generating source code for the given list of GLSL
+    versions. Watch out that the list follows the comma-separated \c qsb
+    syntax. For example, a compute shader will want to specify \c{"310 es,430"}
+    here as the defaults are not suitable for it.
+
+    \li \c NOGLSL - This argument-less keyword disables generating GLSL
+    source. Suitable for applications that do not wish to function with OpenGL
+    at all.
+
+    \li \c HLSL - Requests generating source code for the given list of HLSL
+    (shader model) versions. The \c qsb tool follows GLSL-style version numbers
+    and therefore \c 50 corresponds to Shader Model 5.0, \c 51 is 5.1.
+
+    \li \c NOHLSL - This argument-less keyword disables generating HLSL
+    source. Suitable for applications that do not wish to function with Direct 3D
+    at all.
+
+    \li \c MSL - Requests generating source code for the given version of the
+    Metal Shading Language. \c 12 corresponds to 1.2, \c 20 to 2.0.
+
+    \li \c NOMSL - This argument-less keyword disables generating MSL
+    source. Suitable for applications that do not wish to function with Metal at
+    all.
+
+    \endlist
+
+    The most commonly overridden setting is \c GLSL. For example, if the
+    application's shaders use OpenGL 3.x features, it will likely want to
+    specify something higher than \c{100 es} or \c{120}:
+
+    \badcode
+    qt_add_shaders(exampleapp "res_gl3shaders"
+        GLSL "300es,330"
+        PREFIX
+            "/shaders"
+        FILES
+           shaders/ssao.vert
+           shaders/ssao.frag
+           shaders/skybox.vert
+           shaders/skybox.frag
+    )
+    \endcode
+
+    \note The space before the \c es suffix is optional.
+
+    \section2 Tessellation
+
+    \list
+
+    \li \c TESSELLATION - This argument-less keyword indicates that the shaders
+    are used in a pipeline that uses tessellation. This is relevant only when
+    there are vertex shaders listed and Metal shader generation is not
+    disabled. See \l{Tessellation Example}{this snippet} for an example.
+    \cmakeoptionsince 6.5
+
+    \li \c TESSELLATION_VERTEX_COUNT - This option takes a number which
+    indicates the output vertex count from the tessellation control stage.
+    Specifying this is mandatory for tessellation evaluation shaders used with
+    Metal. The default value is 3. If it does not match the tessellation
+    control stage, the generated MSL code will not function as expected.
+    \cmakeoptionsince 6.5
+
+    \li \c TESSELLATION_MODE - This option specifies the tessellation mode. It
+    can take one of two values: \c{"triangles"} or \c{"quads"}. The default
+    value is \c triangles. The option must be specified when a tessellation
+    control shader is in the \c FILES list. It must match the tessellation
+    evaluation stage.
+    \cmakeoptionsince 6.5
+
+    \endlist
+
+    \section2 Multiview
+
+    \list
+
+    \li \c VIEW_COUNT - This option specifies the number of views a vertex
+    shader is used with. When working with multiview (GL_OVR_multiview2,
+    VK_KHR_multiview, D3D12 view instancing, etc.), always specify the correct
+    VIEW_COUNT with a value >= 2 for the relevant shaders in order to enable
+    generating correct GLSL shader code. Note however that setting VIEW_COUNT
+    should be avoided for vertex shaders that do not rely on multiview, since
+    setting the value effectively makes the generated GLSL code
+    multiview-dependent. To overcome this, group the vertex shaders accordingly
+    into multiple qt_add_shaders() calls. Setting \c VIEW_COUNT automatically
+    injects a preprocessor define, \c{QSHADER_VIEW_COUNT}, with the same value
+    into the shader source code. In addition, the \c{#extension GL_EXT_multiview
+    : require} line is injected automatically in vertex shaders when a view
+    count of 2 or greater is set. Note that for multiview the minimum GLSL
+    version is \c 330 and \c{300 es}. For HLSL, the minimum version is \c 61.
+    Applications are advised to set up the language targets accordingly (or to
+    newer versions). \cmakeoptionsince 6.7
+
+    \li \c MULTIVIEW - Requests generating \b both a non-multiview and a view
+    count 2 set of shaders. This is effectively a convenience for manually
+    creating two qt_add_shaders() calls with the appropriate
+    GLSL/HLSL/MSL/VIEW_COUNT arguments. This option is meant mainly for Qt's own
+    use, but applications can use it too as long as the implicit settings for
+    the multiview variants are sufficient for the application's shaders; these
+    are: GLSL 330,300es HLSL 61 MSL 12. VIEW_COUNT is set to 2 for the multiview
+    variants. The multiview variants are stored in files with a \c{.mv2qsb}
+    suffix added (in addition to \c{.qsb}).
+    \cmakeoptionsince 6.8
+
+    \endlist
+
+    \section2 Qt Quick specifics
+
+    \list
+
+    \li \c BATCHABLE - Specifying this single, argument-less keyword is
+    essential for vertex shaders that are used with Qt Quick, either in a \l
+    ShaderEffect or in a \l QSGMaterialShader. It has no effect for fragment or
+    compute shaders, and different types can safely be included in the same list
+    since the keyword is taken into account only for the \c{.vert}
+    files. Equivalent to the \c{-b} argument of \l{QSB Manual}{qsb}.
+
+    \li \c ZORDER_LOC - When \c BATCHABLE is specified, an additional vertex input
+    is injected with location \c 7 by default. This keyword is used to change this
+    location to another value. This becomes relevant if the vertex shader has many
+    inputs and 7 is in use and would clash.
+
+    \endlist
+
+    \section2 Invoking external tools
+
+    \list
+
+    \li \c PRECOMPILE - Equivalent to the \c{-c} or \c{-t} options of \l{QSB
+    Manual}{qsb}, depending on the platform. When building on Windows, this
+    leads to invoking \c fxc from the Windows SDK to do the first phase of
+    compilation (HLSL source to DXBC bytecode) at build time instead of at run
+    time. The resulting \c{.qsb} file will only include the compilation results
+    (the intermediate shader format), not the original shader source code.
+
+    \li \c OPTIMIZED - Invokes \c spirv-opt (which must be available from the
+    Vulkan SDK or elsewhere) to perform optimizations on the SPIR-V
+    bytecode. Equivalent to the \c{-O} argument of \l{QSB Manual}{qsb}.
+
+    \endlist
+
+    \section2 Other settings
+
+    \list
+
+    \li \c DEFINES - Defines macros that are active during shader
+    compilation. Equivalent to the \c{-D} argument of \l{QSB Manual}{qsb}. The
+    list has the form of \c{"name1=value1;name2=value2"}. Alternatively, just
+    like \c FILES, the list can be separated by newlines.
+
+    \li \c OUTPUTS - When the name of the generated .qsb file needs to be
+    different from the source, for example because one shader file serves as the
+    source for multiple .qsb files due to differentiating via \c DEFINES, this
+    list can contain an entry for each item in \c FILES, specifying a file name
+    typically ending in \c{.qsb}. The specified name is then passed in the
+    \c{-o} argument to qsb instead of just appending \c{.qsb} to the source file
+    name.
+
+    \li \c ORIGINAL_FILES - When the .qsb file should depend on a shader source
+    file that is different from \c FILES, specify \c ORIGINAL_FILES and an entry
+    for each item in \c FILES. When present, it changes the behavior in two
+    ways: A \c{--orig-file} argument is passed to qsb, leading to writing the
+    filename from \c ORGINAL_FILES into the CMake dependency files instead of
+    the corresponding input filename from \c FILES. Also, the
+    add_custom_command() that triggers invoking qsb will pass the filename from
+    \c ORIGINAL_FILES to its DEPENDS clause. This is useful when the files
+    passed to qt_add_shaders() are intermediate, generate assets, and the final
+    .qsb files should rather depend on the original shader source files, which
+    qt_add_shaders() would know nothing about without \c ORIGINAL_FILES.
+
+    \li \c DEBUGINFO - Enables generating full debug information for SPIR-V,
+    thus enabling tools like \l{https://renderdoc.org/}{RenderDoc} to display
+    the full source when inspecting a pipeline or when performing vertex or
+    fragment debugging. Equivalent to the \c{-g} argument of \l{QSB
+    Manual}{qsb}. Also has an effect for Direct 3D in case the \c PRECOMPILE
+    keyword has been specified, as \c fxc is then instructed to include debug
+    information in the generated intermediate bytecode.
+
+    \li \c QUIET - Suppresses debug and warning output from qsb. Only fatal
+    errors are printed.
+
+    \li \c OUTPUT_TARGETS - When using qt_add_shaders with static libraries,
+    one or more special targets will be generated. Should you wish to perform
+    additional processing on these targets pass a value to the OUTPUT_TARGETS
+    parameter.
+
+    \li \c MEDIUMP - Requests defaulting to medium precision for floats in GLSL
+    ES fragment shaders. Ignored for any other targets, including (non-ES) GLSL.
+
+    \endlist
+
+    \section1 Substituting Hand-Crafted Shaders
+
+    The CMake integration also supports specifying replacements for
+    given versions of the shader in the resulting .qsb file. This in
+    effect is equivalent to running \l{QSB Manual}{qsb} with the
+    \c{-r} command-line option.
+
+    This is enabled by the following special syntax in the FILES list:
+
+    \badcode
+    FILES
+        "shaders/externalsampler.frag@glsl,100es,shaders/externalsampler_gles.frag"
+    \endcode
+
+    The filename can be followed by any number of @-separated
+    replacement specifications. Each of these specifies the shading
+    language, the version, and the file from which the data is to be
+    read separated by commas. See the \l{QSB Manual} for details.
+
+    \section2 Tessellation Example
+
+    Take a graphics pipeline consisting of four stages, the vertex stage with
+    the shader \c{vertex.vert}, the tessellation control stage with the shader
+    \c{tess.tesc}, the tessellation evaluation stage with the shader
+    \c{tess.tese}, and the fragment stage with the shader \c{fragment.frag}.
+
+    To build a fully portable application that is able to function with any of
+    Vulkan, OpenGL, Metal, and Direct 3D, there are two main things to take
+    care of: The HLSL versions of the tessellation shaders must be created
+    manually and then injected. Whereas with Metal, the appropriate keyword
+    must be specified.
+
+    First, the vertex and fragment shaders are listed. In order to support
+    Metal, the \c TESSELLATION keyword is added. This enables special
+    processing and translation for \c{vertex.vert} when generating the Metal
+    shader code. For OpenGL, we restrict the GLSL language version since
+    tessellation support is only available in newer OpenGL versions.
+
+    \badcode
+    qt6_add_shaders(project "shaders_tessellation_part1"
+        PREFIX
+            "/shaders"
+        GLSL
+            "410,320es"
+        TESSELLATION
+        FILES
+            "vertex.vert"
+            "fragment.frag"
+    )
+    \endcode
+
+    Second, the tessellation shaders are listed in a separate qt6_add_shaders()
+    call. This is due to the \c NOHLSL keyword. The vertex and fragment shaders
+    should still get translated to HLSL as usual, so keeping all four shaders
+    in one single qt6_add_shaders() call is not feasible. For Metal, some
+    tessellation settings (output vertex count, mode) are specified since these
+    will need to be known upfront, unlike with Vulkan and OpenGL.
+
+    \badcode
+    qt6_add_shaders(project "shaders_tessellation_part2"
+        PREFIX
+            "/shaders"
+        NOHLSL
+        GLSL
+            "410,320es"
+        TESSELLATION_VERTEX_COUNT
+            3
+        TESSELLATION_MODE
+            "triangles"
+        FILES
+            "tess.tesc@hlsl,50,tess_hull.hlsl"
+            "tess.tese@hlsl,50,tess_domain.hlsl"
+    )
+    \endcode
+
+    \note Manually writing hull and domain HLSL shaders is recommended for
+    advanced users only. Certain constructs, such as constant buffers, will
+    need special care so that all resource interfaces and layouts stay
+    compatible with the SPIR-V/GLSL/MSL shaders.
+
+*/

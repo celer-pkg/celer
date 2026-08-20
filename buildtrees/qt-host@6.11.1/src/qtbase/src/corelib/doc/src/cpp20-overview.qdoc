@@ -1,0 +1,121 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page cpp20-overview.html
+    \title C++20 Overview
+    \brief An overview of C++20 features available in Qt.
+
+    Qt 6 officially requires C++17, however we are constantly working on
+    supporting new C++ language features to make Qt faster and safer, and
+    provide a better experience for our users.
+
+    This page gives a brief overview of C++20 features available in Qt.
+
+    \section1 WebEngine and Module-Specific Requirements
+
+    While Qt 6 only requires a C++17-compatible compiler in general,
+    the \l{Qt WebEngine} module requires a C++20-compatible compiler
+    due to its dependencies (such as Chromium).
+
+    If you are building Qt WebEngine, ensure that your compiler fully supports C++20.
+
+    See \l{qtwebengine-platform-notes.html}{Qt WebEngine Platform Notes} for detailed requirements.
+
+    \section1 Support for \c{std::chrono}
+
+    Various classes related to date and time have support for \l
+    {https://en.cppreference.com/w/cpp/chrono} {std::chrono} features from older
+    versions of C++. With the arrival of C++20, \c{std::chrono} has added new \l
+    {https://en.cppreference.com//w/cpp/chrono#Calendar} {calendar types}, such
+    as \l {https://en.cppreference.com/w/cpp/chrono/year_month_day}
+    {year_month_day}, plus \l
+    {https://en.cppreference.com//w/cpp/chrono#Time_point} {date and time
+    representations}, such as the \l
+    {https://en.cppreference.com/w/cpp/chrono/system_clock} {system_clock} and
+    its \l {https://en.cppreference.com/w/cpp/chrono/time_point} {time_point}
+    types. It also now provides access to the IANA database of \l
+    {https://en.cppreference.com/w/cpp/chrono#Time_zone} {timezone-related
+    information}. When Qt is built with C++20, it can now make use of these
+    additions.
+
+    QDate and QDateTime now support conversion to and from the various calendar,
+    date and date-time types, along with addition of \l
+    {https://en.cppreference.com/w/cpp/chrono/duration} {duration
+    types}. QTimeZone now supports construction from a \l
+    {https://en.cppreference.com/w/cpp/chrono/time_zone} {time_zone}.
+
+    QTimeZone can also, when built with feature \c timezone_tzdb enabled, use
+    the C++20 \l {https://en.cppreference.com/w/cpp/chrono/tzdb} {tzdb}
+    facilities in place of platform-specific backends to access timezone
+    information. This remains experimental in Qt 6.9 as some standard library
+    implementations do not faithfully represent the IANA data for timezones.
+
+    \section1 QSpan - a Qt version of \c {std::span}
+
+    The \l {https://en.cppreference.com/w/cpp/container/span}{std::span} class
+    template is an addition to the standard library that provides a uniform
+    way to access a contiguous portion of any contiguous container.
+
+    Using \c {std::span} in the public APIs of Qt could provide significant
+    advantages. However, Qt 6 only requires C++17, meaning it cannot have C++20
+    types in the API and ABI.
+
+    Qt 6.7 introduced \l QSpan - a Qt version of \c {std::span}. The API of the
+    class is compatible with the std version. \l QSpan and \c {std::span} can be
+    implicitly converted into each other. However, there are some differences
+    between the classes. See the corresponding section in the
+    \l {span-STL} {QSpan class documentation} for more details.
+
+    \section1 Three-way comparison operator
+
+    C++20 introduced \c {operator<=>()}, also known as the
+    \l {https://en.cppreference.com/w/cpp/language/operator_comparison#Three-way_comparison}
+    {three-way comparison operator}, and three ordering types to represent
+    the results of the comparison:
+
+    \list
+        \li \l {https://en.cppreference.com/w/cpp/utility/compare/strong_ordering}
+            {std::strong_ordering};
+        \li \l {https://en.cppreference.com/w/cpp/utility/compare/weak_ordering}
+            {std::weak_ordering};
+        \li \l {https://en.cppreference.com/w/cpp/utility/compare/partial_ordering}
+            {std::partial_ordering}.
+    \endlist
+
+    In Qt 6.8, many of the QtCore classes got support for \c {operator<=>()}.
+    To use the new operator, the user project must be compiled in C++20 mode.
+
+    However, starting from Qt 6.7, C++17 users can use
+    \l {Comparison types overview}{our own equivalents} of the std ordering
+    types.
+
+    As a C++20 language feature, backporting \c {operator<=>()} to C++17 is not
+    possible, but you can use the \l Qt::compareThreeWay() function, which acts
+    like a C++17 version of \c {operator<=>()} for built-in C++ types (such as
+    integers, floating-point, and enumeration types).
+
+    Qt also defines helper functions \c {compareThreeWay()} for various classes
+    in QtCore. These are all implemented as \l {https://wg21.link/p1601}
+    {hidden friends}. Users can implement their own \c {compareThreeWay()}
+    functions for custom types.
+
+    Finally, Qt provides a \l qCompareThreeWay() function template, which serves
+    as a generic three-way comparison implementation. It relies on
+    \l {Qt::compareThreeWay()} and the above-mentioned free
+    \c {compareThreeWay()} functions in its implementation.
+
+    \section1 Additional important features
+
+    Qt has also adopted a few more features from C++20, such as:
+
+    \list
+        \li \l Q_CONSTINIT macro that expands to the C++20 \c {constinit}
+            keyword, or to compiler-specific attributes if they are available
+        \li \l Q_NODISCARD_CTOR macro that expands to the \c {[[nodiscard]]}
+            attribute if the compiler supports \c {[[nodiscard]]} on
+            constructors
+        \li \l Q_NODISCARD_X and \l Q_NODISCARD_CTOR_X macros for
+            \c {[[nodiscard("reason")]]}
+    \endlist
+*/

@@ -1,0 +1,17 @@
+[
+    {
+        "Id": "webgradients",
+        "Name": "WebGradients",
+        "QDocModule": "qtgui",
+        "QtUsage": "Used in Qt GUI to provide presets for QGradient.",
+        "Files": "webgradients.css",
+
+        "Description": "WebGradients is a free collection of 180 linear gradients.",
+        "Homepage": "https://webgradients.com/",
+        "PURL": "pkg:generic/webgradients?download_url=https://webgradients.com/",
+        "License": "MIT License",
+        "LicenseId": "MIT",
+        "LicenseFile": "LICENSE.WEBGRADIENTS.txt",
+        "Copyright": "Copyright (c) 2017 itmeo"
+    }
+]

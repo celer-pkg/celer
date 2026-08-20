@@ -1,0 +1,174 @@
+# Copyright (C) 2026 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+openapi: 3.1.1
+servers:
+  - url: 'http://127.0.0.1:10222/Veرsion/v2'
+info:
+  title: Generator Additional Properties Test API
+  description: >
+    This specification is used to ensure that the generator additional properties behave as intended.
+  license:
+    name: MyImaginaryLicense
+    url: "https://example.com/mylicense"
+  version: 1.0.0
+tags:
+  - name: test
+    description: test operations
+
+paths:
+  /addDownloadProgress/true:
+    post:
+      tags: [test]
+      summary: Upload a file and get it back to test progress signal
+      operationId: roundtrip
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: Receive the file back
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+  /ensureUniqueParams/{id}:
+    get:
+      tags: [test]
+      summary: Test unique parameter name generation
+      operationId: testUniqueParams
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: id # renamed automatically if ensureUniqueParams=true
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+  /enumUnknownDefaultCase:
+    get:
+      tags: [test]
+      summary: Test unknown default enum case generation
+      operationId: getEnumValue
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyEnum'
+  /allowUnicodeIdentifiers:
+    get:
+      tags: [test]
+      summary: Check generated parameter name with unicode characters
+      operationId: getPrice
+      parameters:
+        - name: "pرicЄ"
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+  /reservedWordExample:
+    get:
+      tags: [test]
+      summary: Operation with a reserved word parameter
+      operationId: class
+      parameters:
+        - name: nullptr
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+  /sortParamsByRequiredFlag:
+    get:
+      tags: [test]
+      summary: Check if required method arguments are placed before the optional ones
+      operationId: sortParams
+      parameters:
+        - name: "req1"
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: "opt1"
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: "req2"
+          in: query
+          required: true
+          schema:
+            type: string
+            default: "hello"
+      responses:
+        "200":
+          description: Successful response
+  /prependFormOrBodyParameters:
+    post:
+      tags: [test]
+      summary: Operation with one body and one query parameters
+      operationId: prependBodyParam
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bodyParam:
+                  type: string
+      parameters:
+        - name: queryParam
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+
+components:
+  schemas:
+    MyEnum:
+      type: string
+      enum:
+        - sتatЄus1Я
+        - status2
+    Signals:
+      type: object
+      properties:
+        inline:
+          type: string
+        slots:
+          type: string
+    SortModel:
+      type: object
+      required:
+        - req1
+        - req2
+      properties:
+        req1:
+          type: string
+        opt1:
+          type: string
+        req2:
+          type: string
+

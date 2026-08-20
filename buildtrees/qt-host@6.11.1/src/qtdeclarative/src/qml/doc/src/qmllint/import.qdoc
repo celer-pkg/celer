@@ -1,0 +1,167 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qmllint-warnings-and-errors-import.html
+\ingroup qmllint-warnings-and-errors
+
+\title Warnings occurred while importing
+\brief [import] The imported module was not found.
+
+\qmllintwarningcategory import
+
+\section1 Failed to import module
+
+\section2 What happened?
+The module imported via \l{Import Statements}{import statement} was not found.
+
+This can be caused, for example, by
+\list
+    \li a typo in the import statement, or
+    \li a user-defined module that was not built, or
+    \li a wrong \l{Import Statements#qml-import-path}{import path}, or
+    \li a missing module
+\endlist
+
+\section2 Why is this bad?
+The application can't run because it can't find a module it relies on.
+
+\section2 Examples
+
+\section3 Typo In The Import Statement
+\qml
+import QtQuicky // not ok: typo in module name
+
+Item {
+}
+\endqml
+To fix this warning, correct the typo:
+\qml
+import QtQuick // ok: no typo in module name
+
+Item {
+}
+\endqml
+
+\section3 User-defined module that was not built
+
+Some tooling like \l{\QMLLS} or \l{qmllint}
+can't find user-defined modules when they
+are not built. If your project defines the QML Module you are trying to import, then
+the QML tooling will not find it until you build it.
+
+\note If building the module does not help when using \l{\QMLLS}, follow the
+instructions in
+\l{Setting up \QMLLS in Your Editor}{\QMLLS setup instructions}
+and make sure that you communicate the correct build folder to \QMLLS.
+
+\section3 Wrong import path
+
+Please refer to \l{Import Statements#qml-import-path}{the QML import path documentation} and to
+\l{Debugging QML Applications#debugging-module-imports}{the debugging module import documentation}
+for more information about import paths.
+
+\section3 Missing module
+
+If the previous sections did not help to find the imported module, it might be missing.
+This might be caused by a missing dependency. When using external libraries, verify that they are
+actually installed, and that their modules end up in an
+\l{Import Statements#qml-import-path}{import path}.
+
+\section1 Component was not found
+
+\section2 What happened?
+Some component was not found.
+
+\section2 Why is this bad?
+The application can't run because it can't instantiate the non-found component.
+
+\section2 Examples
+
+\section3 Typo in the component name
+\qml
+import QtQuick
+
+Item {
+    Itemy {} // not ok: typo in name
+}
+\endqml
+To fix this warning, correct the typo:
+\qml
+import QtQuick
+
+Item {
+    Item {} // ok: no typo in name
+}
+\endqml
+
+\section3 Missing import statement
+
+\qml
+
+Item { // not ok: must be imported from QtQuick first
+}
+\endqml
+To fix this warning, add the missing module import:
+\qml
+import QtQuick
+
+Item { // ok: was imported from QtQuick
+}
+\endqml
+
+\section1 Import qualifier must start with a capital letter
+
+\section2 What happened?
+Some imported module has an invalid qualifier.
+
+\section2 Why is this bad?
+The module imported with this invalid qualifier can't be used.
+
+\section2 Examples
+
+\qml
+import QtQuick as qq
+
+qq.Item {
+}
+\endqml
+To fix this warning, make the import qualifier start with an upper case letter:
+\qml
+import QtQuick as Qq
+
+Qq.Item {
+}
+\endqml
+
+\section1 Unknown import syntax
+
+\section2 What happened?
+An import statement is using an invalid \l{Import Statements}{import syntax}.
+
+\section2 Why is this bad?
+The application can't run because it can't import a module it relies on.
+
+\section2 Examples
+
+\qml
+import "¯\(ツ)/¯:/path/to/Module"
+import QtQuick
+
+Item {
+}
+\endqml
+To fix this warning, use URLs that have an allowed scheme:
+\qml
+import "qrc:/path/to/Module"
+import QtQuick
+
+Item {
+}
+\endqml
+
+\note This example assumes that you are not using \l{QQmlAbstractUrlInterceptor}{URL handlers}.
+
+\sa{Import Statements}
+
+*/

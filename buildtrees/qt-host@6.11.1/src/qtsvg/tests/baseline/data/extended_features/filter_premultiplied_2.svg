@@ -1,0 +1,17 @@
+<!--SVG standard filter primitives equations assume that color values are premultiplied by alpha.
+This test is intended to check if an object with transparency is rendered correctly
+when it uses <filter>-->
+<svg width="100%" height="100%" viewBox="0 0 80 160" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!--original-->
+  <defs>
+    <g id="circles">
+      <circle cx="40" cy="50" r="30" fill="green" fill-opacity="0.5"/>
+    </g>
+  </defs>
+  <use href="#circles"/>
+  <filter id="filter1">
+    <feOffset dx="5" dy="5"/>
+    <feBlend type="matrix" in2="SourceGraphic"/>
+  </filter>
+  <use href="#circles" transform="translate(0 70)" filter="url(#filter1)"/>
+</svg>

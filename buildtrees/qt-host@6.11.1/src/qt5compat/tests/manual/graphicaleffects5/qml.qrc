@@ -1,0 +1,35 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file alias="images/bug.jpg">../../../src/imports/graphicaleffects5/doc/images/bug.jpg</file>
+        <file alias="images/butterfly.png">../../../src/imports/graphicaleffects5/doc/images/butterfly.png</file>
+        <file>BrightnessContrastEffect.qml</file>
+        <file>ColorOverlayEffect.qml</file>
+        <file>ColorizeEffect.qml</file>
+        <file>DesaturateEffect.qml</file>
+        <file>GammaAdjustEffect.qml</file>
+        <file>HueSaturationEffect.qml</file>
+        <file>LevelAdjustEffect.qml</file>
+        <file>ConicalGradientEffect.qml</file>
+        <file>LinearGradientEffect.qml</file>
+        <file>RadialGradientEffect.qml</file>
+        <file>DisplaceEffect.qml</file>
+        <file alias="images/glass_normal.png">../../../src/imports/graphicaleffects5/doc/images/glass_normal.png</file>
+        <file>DropShadowEffect.qml</file>
+        <file>FastBlurEffect.qml</file>
+        <file>GlowEffect.qml</file>
+        <file>RectangularGlowEffect.qml</file>
+        <file>OpacityMaskEffect.qml</file>
+        <file alias="images/fog.png">../../../src/imports/graphicaleffects5/doc/images/fog.png</file>
+        <file>ThresholdMaskEffect.qml</file>
+        <file>GaussianBlurEffect.qml</file>
+        <file>MaskedBlurEffect.qml</file>
+        <file>BlendEffect.qml</file>
+        <file>DirectionalBlurEffect.qml</file>
+        <file>InnerShadowEffect.qml</file>
+        <file>InnerShadowFastEffect.qml</file>
+        <file>RadialBlurEffect.qml</file>
+        <file>RecursiveBlurEffect.qml</file>
+        <file>ZoomBlurEffect.qml</file>
+    </qresource>
+</RCC>

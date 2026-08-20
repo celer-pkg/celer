@@ -1,0 +1,68 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+    \title Qt Quick TableViews examples - Pixelator
+    \example tableview/pixelator
+    \brief The Pixelator example shows how a QML TableView and a delegate
+    can be used for custom table models.
+    \examplecategory {Graphics}
+
+    \image qt-pixelator.png
+    \ingroup qtquickexamples
+
+    \include examples-run.qdocinc
+
+    \snippet tableview/pixelator/imagemodel.h model
+
+    We only require a simple, read-only table model. Thus, we need to implement
+    functions to indicate the dimensions of the image and supply data to the
+    TableView.
+    We use the \l{The Property System}{Qt Property System} and a source property
+    as \c QString to set the path of the image.
+    We also add the QML_ELEMENT macro to expose the model to QML.
+
+    \snippet tableview/pixelator/imagemodel.cpp setsource
+
+    Here we load the image when the source path is set.
+    When the source path has changed, we need to call \c beginResetModel() before.
+    After the image has been loaded, we need to call \c endResetModel().
+
+    \snippet tableview/pixelator/imagemodel.cpp rowcolcount
+
+    The row and column count is set to image height and width, respectively.
+
+    \snippet tableview/pixelator/imagemodel.cpp data
+
+    This overloaded function allows us to access the pixel data from the image.
+    When we call this function with the display role, we return the pixel's
+    gray value.
+
+    \snippet tableview/pixelator/main.qml pixelcomponent
+
+    Each pixel in the \c TableView is displayed via a delegate component.
+    It contains an item that has an implicit height and width defining the
+    cell size of the table.
+    It also has a property for the gray value of the pixel that is retrieved
+    from the model.
+
+    \snippet tableview/pixelator/main.qml rectshape
+
+    Inside the \c Item, there is a rounded \c Rectangle with the size and
+    radius according to the pixel's gray value.
+
+    \snippet tableview/pixelator/main.qml interaction
+
+    For a little bit of interaction, we place a \c MouseArea inside the \c Item
+    and change the Rectangle's color on mouse over.
+
+    \snippet tableview/pixelator/main.qml animation
+
+    The \c Rectangle also has a short color animation to fade between the
+    colors when it is changed.
+
+    \snippet tableview/pixelator/main.qml tableview
+
+    The \c TableView spans over the whole window and has an instance of our
+    custom \c ImageModel attached.
+
+*/

@@ -1,0 +1,101 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+vec3 qt_getTargetPositionFromTargetId(int targetId)
+{
+#ifdef QT_TARGET_POSITION_OFFSET
+    ivec3 texCoord;
+    int texWidth = textureSize(qt_morphTargetTexture, 0).x;
+    texCoord.x = gl_VertexIndex % texWidth;
+    texCoord.y = (gl_VertexIndex - texCoord.x) / texWidth;
+    texCoord.z = QT_TARGET_POSITION_OFFSET + targetId;
+    return texelFetch(qt_morphTargetTexture, texCoord, 0).xyz;
+#else
+    return vec3(0.0);
+#endif
+}
+
+vec3 qt_getTargetNormalFromTargetId(int targetId)
+{
+#ifdef QT_TARGET_NORMAL_OFFSET
+    ivec3 texCoord;
+    int texWidth = textureSize(qt_morphTargetTexture, 0).x;
+    texCoord.x = gl_VertexIndex % texWidth;
+    texCoord.y = (gl_VertexIndex - texCoord.x) / texWidth;
+    texCoord.z = QT_TARGET_NORMAL_OFFSET + targetId;
+    return texelFetch(qt_morphTargetTexture, texCoord, 0).xyz;
+#else
+    return vec3(0.0);
+#endif
+}
+
+vec3 qt_getTargetTangentFromTargetId(int targetId)
+{
+#ifdef QT_TARGET_TANGENT_OFFSET
+    ivec3 texCoord;
+    int texWidth = textureSize(qt_morphTargetTexture, 0).x;
+    texCoord.x = gl_VertexIndex % texWidth;
+    texCoord.y = (gl_VertexIndex - texCoord.x) / texWidth;
+    texCoord.z = QT_TARGET_TANGENT_OFFSET + targetId;
+    return texelFetch(qt_morphTargetTexture, texCoord, 0).xyz;
+#else
+    return vec3(0.0);
+#endif
+}
+
+vec3 qt_getTargetBinormalFromTargetId(int targetId)
+{
+#ifdef QT_TARGET_BINORMAL_OFFSET
+    ivec3 texCoord;
+    int texWidth = textureSize(qt_morphTargetTexture, 0).x;
+    texCoord.x = gl_VertexIndex % texWidth;
+    texCoord.y = (gl_VertexIndex - texCoord.x) / texWidth;
+    texCoord.z = QT_TARGET_BINORMAL_OFFSET + targetId;
+    return texelFetch(qt_morphTargetTexture, texCoord, 0).xyz;
+#else
+    return vec3(0.0);
+#endif
+}
+
+vec2 qt_getTargetTexCoord0FromTargetId(int targetId)
+{
+#ifdef QT_TARGET_TEX0_OFFSET
+    ivec3 texCoord;
+    int texWidth = textureSize(qt_morphTargetTexture, 0).x;
+    texCoord.x = gl_VertexIndex % texWidth;
+    texCoord.y = (gl_VertexIndex - texCoord.x) / texWidth;
+    texCoord.z = QT_TARGET_TEX0_OFFSET + targetId;
+    return texelFetch(qt_morphTargetTexture, texCoord, 0).xy;
+#else
+    return vec2(0.0);
+#endif
+}
+
+vec2 qt_getTargetTexCoord1FromTargetId(int targetId)
+{
+#ifdef QT_TARGET_TEX1_OFFSET
+    ivec3 texCoord;
+    int texWidth = textureSize(qt_morphTargetTexture, 0).x;
+    texCoord.x = gl_VertexIndex % texWidth;
+    texCoord.y = (gl_VertexIndex - texCoord.x) / texWidth;
+    texCoord.z = QT_TARGET_TEX1_OFFSET + targetId;
+    return texelFetch(qt_morphTargetTexture, texCoord, 0).xy;
+#else
+    return vec2(0.0);
+#endif
+}
+
+vec4 qt_getTargetColorFromTargetId(int targetId)
+{
+#ifdef QT_TARGET_COLOR_OFFSET
+    ivec3 texCoord;
+    int texWidth = textureSize(qt_morphTargetTexture, 0).x;
+    texCoord.x = gl_VertexIndex % texWidth;
+    texCoord.y = (gl_VertexIndex - texCoord.x) / texWidth;
+    texCoord.z = QT_TARGET_COLOR_OFFSET + targetId;
+    return texelFetch(qt_morphTargetTexture, texCoord, 0);
+#else
+    return vec4(0.0);
+#endif
+}
+

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+-->
+<scxml
+    xmlns="http://www.w3.org/2005/07/scxml"
+    version="1.0"
+    name="MediaPlayerStateMachine"
+    initial="stopped"
+    datamodel="ecmascript"
+>
+    <datamodel>
+        <data id="media"/>
+    </datamodel>
+
+    <script>
+        function isValidMedia() {
+            var m = _event.data.media
+            return (m + "").length > 0
+        }
+    </script>
+
+    <state id="stopped">
+        <transition event="tap" cond="isValidMedia()" target="playing"/>
+    </state>
+
+    <state id="playing">
+        <onentry>
+            <assign location="media" expr="_event.data.media"/>
+            <send event="playbackStarted">
+                <param name="media" expr="media"/>
+            </send>
+        </onentry>
+
+        <onexit>
+            <send event="playbackStopped">
+                <param name="media" expr="media"/>
+            </send>
+        </onexit>
+
+        <transition event="tap" cond="!isValidMedia() || media === _event.data.media" target="stopped"/>
+        <transition event="tap" cond="isValidMedia() &amp;&amp; media !== _event.data.media" target="playing"/>
+    </state>
+</scxml>

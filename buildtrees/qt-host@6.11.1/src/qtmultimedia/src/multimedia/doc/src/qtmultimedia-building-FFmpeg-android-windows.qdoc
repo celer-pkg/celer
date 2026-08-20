@@ -1,0 +1,14 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtmultimedia-building-ffmpeg-android-windows.html
+\title Building FFmpeg from source for Android on Windows
+\brief This document describes how to build FFmpeg from source code.
+
+\include building-FFmpeg-contents.qdocinc {android-windows}
+\include building-FFmpeg-source.qdocinc {android-windows}
+\include building-FFmpeg-prerequisites.qdocinc {android-windows}
+\include building-FFmpeg-configure.qdocinc {android-windows}
+
+*/

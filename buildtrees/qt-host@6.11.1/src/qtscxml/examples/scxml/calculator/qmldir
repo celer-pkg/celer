@@ -1,0 +1,5 @@
+module Calculator
+prefer :/qt/qml/Calculator/
+MainWindow 1.0 MainWindow.qml
+Button 1.0 Button.qml
+

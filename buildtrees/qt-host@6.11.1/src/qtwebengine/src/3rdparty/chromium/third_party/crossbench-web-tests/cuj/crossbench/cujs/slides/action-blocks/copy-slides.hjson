@@ -1,0 +1,28 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  template: ../../../common-action-blocks/workspace/copy-doc.hjson
+  args: {
+    TEST_NAME: slide-test
+    DOC_URL: https://docs.google.com/presentation/d/1ZG8bS0IlQyePSWlflh22_GJVrQsjMJntbL-oTz3crkM/edit#slide=id.g3182d87bbe9_0_0
+    AFTER_MAKE_COPY_CLICK_ACTIONS: [
+      // There are sub-menu items for slides - not the same as google doc.
+      {
+        action: wait_for_element
+        selector: span[aria-label='Entire presentation e']
+        timeout: 15s
+      }
+      {
+        action: click
+        selector: span[aria-label='Entire presentation e']
+        source: $[CLICK_INPUT_SOURCE]
+        verify: "[aria-modal='true'] input[type='text']:focus"
+      }
+    ]
+  }
+  unbound_args: [
+    CLICK_INPUT_SOURCE
+    ARIA_DISABLED
+  ]
+}

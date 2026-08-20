@@ -1,0 +1,254 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Getting Started programming with Qt Quick: An Alarm Application
+    \brief A tutorial for Qt Quick based on an alarms application.
+    \examplecategory {Application Examples}
+    \example tutorials/alarms
+    \meta {tag} {quick,alarm,getting started}
+
+    This tutorial shows how to develop a simple alarm application as
+    an introduction to Qt Quick and Qt Quick Controls.
+
+    In this tutorial you can enter, edit, or delete alarms. An alarm can trigger
+    on a given date, and you can set it to repeat on a series of subsequent days.
+    This application is similar to the alarm application usually
+    found on an Android phone.
+
+    \include examples-run.qdocinc
+
+    \section1 Creating the Alarms Project
+
+    This section shows how to create the project in \QC. It discusses
+    the files generated automatically by \QC, and the two files
+    the programmer has to create in \QC or some other editor.
+    The latter two files are included with the source code for this
+    tutorial.
+
+    \note The UI text in \QC and the contents of the generated files
+    depend on the \QC version that you use.
+
+    \section1 \QC
+
+    Setting up a new project in \QC is aided by a wizard that
+    guides you step-by-step through the project creation process. The
+    wizard prompts you to enter the settings needed for that particular
+    type of project and creates the project for you.
+
+    To create the Alarms project, select \uicontrol{File} >
+    \uicontrol{New Project} > \uicontrol{Application (Qt)} >
+    \uicontrol{Qt Quick Application} > \uicontrol{Choose}.
+    Type \e alarms in the \uicontrol{Name} field, and follow the instructions
+    of the wizard.
+    Use Qt Quick Application (compact) if you want to use other build systems
+    than CMake or Qt versions lower than 6.
+
+    \image alarms2.png
+           {Setting up the new project}
+
+    \image alarms3.png
+           {Setting the project Location}
+
+    The Qt Quick application wizard creates a project that contains
+    the following source files:
+
+    \table
+        \header
+            \li Source file
+            \li Purpose
+        \row
+            \li CMakeLists.txt
+            \li The project file
+        \row
+            \li main.cpp
+            \li The main C++ code file for the application.
+       \row
+           \li Main.qml
+           \li The main QML code file for the application. We will instantiate
+               our custom QML types (\c AlarmDialog, \c AlarmModel,
+               \c AlarmDelegate, and \c TumblerDelegate) in this file.
+    \endtable
+
+    The wizard generates the code in the main.cpp file below.
+    This code block enables High DPI scaling and declares \c app
+    and \c engine. The engine then loads our main QML file.
+
+    \quotefromfile tutorials/alarms/main.cpp
+    \skipto main
+    \printuntil }
+
+    \section1 Additional source files
+
+    \table
+       \header
+           \li Source file
+           \li Purpose
+       \row
+           \li \c qtquickcontrols2.conf
+           \li Selects the \c Material style with the \c Dark theme.
+       \row
+           \li \c AlarmDialog.qml
+           \li Defines the dialog for adding new alarms.
+       \row
+           \li \c AlarmDelegate.qml
+           \li Defines the layout of the main screen of the app.
+       \row
+           \li \c AlarmModel.qml
+           \li Defines the ListModel used for storing the alarms' data.
+       \row
+           \li \c TumblerDelegate.qml
+           \li Defines the graphical layout of the Tumblers.
+        \row
+            \li \c qml.qrc
+            \li The resource file, which contains the names of the
+                source files, except main.cpp and the project file.
+    \endtable
+
+
+    \section2 \c qtquickcontrols2.conf
+
+    The following snippet shows how to set the \c Dark theme in the
+    \c Material style:
+
+    \quotefile tutorials/alarms/qtquickcontrols2.conf
+
+    \section2 \c Main.qml
+
+    \c mainWindow, an ApplicationWindow QML type, is the root item in
+    this app.
+
+    \quotefromfile tutorials/alarms/Main.qml
+    \skipto ApplicationWindow
+    \printuntil visible
+
+    The ListView \c alarmListView combines the data from \c alarmModel
+    with the layout defined in \c alarmDelegate.
+
+    \quotefromfile tutorials/alarms/Main.qml
+    \skipuntil visible
+    \printto RoundButton
+
+    New alarms can be added by clicking RoundButton \c addAlarmButton.
+    Clicking it opens a \l [QtQuickControls2] {Dialog} screen \c alarmDialog.
+
+    \printuntil alarmDialog.open
+    \printuntil alarmListView.model
+    \printline }
+
+    \section2 \c AlarmDialog.qml
+
+    This dialog screen has a RowLayout with a \l {Tumbler} each for hours
+    and minutes, and another RowLayout with a Tumbler each for day, month,
+    and year.
+
+    \quotefromfile tutorials/alarms/AlarmDialog.qml
+    \skipto contentItem
+    \printuntil /model\: years/
+    \printuntil /^\}/
+
+    If you click on \b OK in the dialog, the entered data will be
+    added to \c alarmModel:
+
+    \quotefromfile tutorials/alarms/AlarmDialog.qml
+    \skipto onAccepted
+    \printuntil onRejected
+
+    \section2 \c AlarmDelegate.qml
+
+    Each alarm in the main screen is an ItemDelegate. The ItemDelegate
+    \c root contains all fields on the main screen and the detail
+    screen. The detail screen's fields are only visible after an alarm
+    has been clicked on, i.e. when \c root.checked is \c true.
+
+    \quotefromfile tutorials/alarms/AlarmDelegate.qml
+    \skipto ItemDelegate
+    \printuntil /^\}/
+
+    \section2 \c AlarmModel.qml
+
+    This QML file contains the definition of \c alarmModel, the ListModel
+    that manages the alarm data.
+
+    It creates five \l {ListElement}{ListElements} with example alarms.
+
+    \quotefromfile tutorials/alarms/AlarmModel.qml
+    \skipto import
+    \printuntil /^\}/
+
+    \section2 \c TumblerDelegate.qml
+
+    TumblerDelegate defines the graphical properties of the Tumblers.
+
+    \quotefromfile tutorials/alarms/TumblerDelegate.qml
+    \skipto import
+    \printuntil /^\}/
+
+    \section1 Entering new alarms
+
+    At the bottom of the startup screen, you can see a Button for adding
+    alarms.  Click it to open the \b {Add new alarm} dialog.
+
+    \quotefromfile tutorials/alarms/Main.qml
+    \skipto RoundButton
+    \printto AlarmDialog
+
+    The dialog for new alarms:
+
+    \image addalarms.png
+           {Setting up the alarms}
+
+    All fields are entered using \l {Tumbler} QML types. If you press \c OK,
+    the values selected in the Tumblers are written to \c alarmModel.
+
+    \quotefromfile tutorials/alarms/AlarmDialog.qml
+    \skipto contentItem
+    \printuntil /^\}/
+
+    \section1 Editing alarms
+
+    If you click on a particular alarm, you can edit it in the detail
+    screen.
+
+    \image detailscreen.png
+          {Different alarms settings for different days}
+
+    Clicking on an alarm sets \c root.checked to \c true, which makes
+    visible the fields of the detail screen.
+
+    \code
+        visible: root.checked
+    \endcode
+
+    If you want the alarm to trigger also on other days, check \c alarmRepeat.
+    The Repeater will display a checkable RoundButton for each day of the week.
+
+    \quotefromfile tutorials/alarms/AlarmDelegate.qml
+    \skipto Flow
+    \printto TextField
+
+    If you modify the description of the alarm, it will be reflected in
+    the main screen afterwards.
+
+    \printto Button
+
+    \section1 Deleting alarms
+
+    The detail screen (see above) has a Button for deleting alarms.
+    When \c onClicked is emitted, the current ListElement is deleted
+    from \c alarmModel.
+
+    \printuntil root.ListView.view.model.remove
+    \printuntil }
+
+    \section1 Next Steps
+
+    The app has no code for adding sound or vibration to the alarm, nor does
+    it store the alarms in any format or database. Challenge yourself by adding
+    these features to the project. Storing the data could be done in
+    \l{JSON Support in Qt}{JSON format}.
+
+    \section1 Source files
+
+    \sa {JSON Support in Qt}, {All Qt Examples}, {Qt Quick Examples and Tutorials}
+*/

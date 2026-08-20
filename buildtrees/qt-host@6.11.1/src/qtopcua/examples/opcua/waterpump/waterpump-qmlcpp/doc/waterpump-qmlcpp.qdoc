@@ -1,0 +1,237 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// Copyright (C) 2018 basysKom GmbH, info@basyskom.com
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example waterpump/waterpump-qmlcpp
+    \meta tag {qtopcua,quick}
+    \ingroup qtopcua-examples
+    \title Water Pump
+    \examplecategory {Data Processing & I/O}
+    \brief Interacting with an OPC UA server to build a QML-based HMI for a
+    simple water pump machine.
+
+    \e{Water Pump} example shows how to use Qt OPC UA to interact
+    with an OPC UA server to build a QML based HMI for a simple machine.
+
+    \image tankexample.png
+           {Water pump application with two tanks, pump controls, and status panel}
+
+    \section1 Building the Server
+    Before you can use the Water Pump examples, you need to build the \l {Water Pump Simulation Server}.
+    You can open and build it in QtCreator or from the terminal as usual.
+
+    \section1 The Simulation
+    The OPC UA server included in this example runs a simulation of a machine
+    containing two tanks, a water pump, and a valve. Water can be pumped from the
+    first tank into the second tank and then be flushed from the second tank
+    by opening the valve. Both operations have a user-configurable setpoint,
+    allowing control over the amount of water pumped into or flushed from the second tank.
+
+    The following nodes exist on the server:
+
+    \table
+        \header
+            \li NodeId
+            \li Function
+        \row
+            \li ns=2;s=Machine
+            \li The folder containing the method and variable nodes for the machine
+        \row
+            \li ns=2;s=Machine.State
+            \li The state of the machine
+        \row
+            \li ns=2;s=Machine.Tank1.PercentFilled
+            \li The current fill status of the first tank
+        \row
+            \li ns=2;s=Machine.Tank2.PercentFilled
+            \li The current fill status of the second tank
+        \row
+            \li ns=2;s=Machine.Tank2.TargetPercent
+            \li The setpoint for pumping and flushing
+        \row
+            \li ns=2;s=Machine.Tank2.ValveState
+            \li The state of the valve of the second tank
+        \row
+            \li ns=2;s=Machine.Designation
+            \li A human readable designation of the machine for display purposes
+        \row
+            \li ns=2;s=Machine.Start
+            \li Call this method to start the pump
+        \row
+            \li ns=2;s=Machine.Stop
+            \li Call this method to stop the pump
+        \row
+            \li ns=2;s=Machine.FlushTank2
+            \li Call this method to flush tank 2
+        \row
+            \li ns=2;s=Machine.Reset
+            \li Call this method to reset the simulation
+    \endtable
+
+    All methods return \l {QOpcUa::UaStatusCode} {Good} in case of success and
+    \l {QOpcUa::UaStatusCode} {BadUserAccessDenied} if the operation is illegal
+    (for example, trying to start the pump if the first tank is empty).
+
+    \section1 Client Features
+    This example uses read, write, method calls, and data change subscriptions
+    and shows how to set up handlers for the asynchronous operations offered
+    by QOpcUaClient and QOpcUaNode.
+
+    \section1 Implementation
+
+    A backend class is used to handle the communication with the OPC UA server
+    and expose the content of this server by means of properties and \c Q_INVOKABLE
+    methods wrapping the OPC UA method calls.
+
+    \section2 Member Variables
+    A pointer to \l QOpcUaClient is required for connection management. An
+    additional pointer to a \l QOpcUaNode object is needed for each OPC UA
+    node the HMI interacts with. For the values of these nodes, member variables
+    containing the last value reported by the server are added.
+
+    \quotefromfile waterpump/waterpump-qmlcpp/opcuamachinebackend.h
+    \dots
+    \skipto m_client
+    \printuntil m_machineDesignation;
+    \codeline
+    \dots
+
+    For each value used in the HMI, a getter, a changed signal, and a
+    property are added to enable property bindings in QML
+
+    \quotefromfile waterpump/waterpump-qmlcpp/opcuamachinebackend.h
+    \dots
+    \skipto Q_PROPERTY
+    \printuntil QString message
+    \dots
+
+    \section2 Asynchronous Handlers
+
+    The asynchronous API of Qt OPC UA requires signal handlers for all operations.
+
+    Data change subscriptions report their updates using \l QOpcUaNode::attributeUpdated.
+    A handler connected to this signal gets the new value as QVariant and can
+    write that value to a variable or emit a signal with the new value, for example.
+
+    \quotefromfile waterpump/waterpump-qmlcpp/opcuamachinebackend.cpp
+    \skipto void OpcUaMachineBackend::percentFilledTank1Updated
+    \printuntil }
+
+    A read operation emits the \l QOpcUaNode::attributeRead signal on completion.
+    The client has to check the status code and then get the result from the node.
+
+    \skipto void OpcUaMachineBackend::machineDesignationRead
+    \printuntil }
+    \printuntil }
+    \printuntil }
+
+    \section2 Interaction with the Server
+
+    In the constructor, a QOpcUaProvider is created and the available backends
+    are saved to provide a model for the backend selection dropdown menu.
+
+    \quotefromfile waterpump/waterpump-qmlcpp/opcuamachinebackend.cpp
+    \dots
+    \skipto QOpcUaProvider provider
+    \printuntil setBackends
+    \dots
+
+    Before attempting a connection, a QOpcUaClient with the selected backend is created.
+    Its \l QOpcUaClient::endpointsRequestFinished signal is connected to the
+    backend's \c requestEndpointsFinished slot.
+    The \l QOpcUaClient::stateChanged signal must be connected to the backend's
+    \c clientStateHandler slot.
+
+    \quotefromfile waterpump/waterpump-qmlcpp/opcuamachinebackend.cpp
+    \skipto OpcUaMachineBackend::connectToEndpoint
+    \printuntil m_client->requestEndpoints
+    \printuntil }
+
+    The \c OpcUaMachineBackend::requestEndpointsFinished slot receives the list
+    of available endpoints on the server and starts a connection to the first
+    entry in the list. If there are no available endpoints, the connection
+    establishment is aborted.
+
+    \quotefromfile waterpump/waterpump-qmlcpp/opcuamachinebackend.cpp
+    \skipto void OpcUaMachineBackend::requestEndpointsFinished
+    \printuntil m_client->connectToEndpoint
+    \printuntil }
+
+    \c clientStateHandler acts on QOpcUaClient being connected or disconnected.
+    In case of a successful connection, the node member variables created before
+    are filled with node objects.
+
+    \dots
+    \quotefromfile waterpump/waterpump-qmlcpp/opcuamachinebackend.cpp
+    \skipto if (state == QOpcUaClient::ClientState::Connected) {
+    \printuntil m_machineDesignationNode
+    \dots
+
+    After all node objects have been created, the data change handlers are
+    connected to the node objects and monitoring is enabled.
+
+    \dots
+    \skipto Connect signal handlers
+    \printuntil m_tank2ValveStateNode->enableMonitoring
+    \dots
+
+    The machine designation is not supposed to change and will be read once at
+    startup.
+
+    \dots
+    \skipto Connect the handler for async reading
+    \printuntil m_machineDesignationNode->readAttributes
+    \codeline
+    \dots
+
+    A setter for the setpoint is added to the backend.
+
+    \skipto machineWriteTank2TargetPercent
+    \printuntil }
+
+    For the methods, wrappers which call the OPC UA server method are created.
+
+    \skipto startPump
+    \printuntil }
+
+    \section2 The HMI
+
+    A backend instance is created and handed to the QML part as a context property
+    named \c uaBackend.
+
+    \dots
+    \quotefromfile waterpump/waterpump-qmlcpp/main.cpp
+    \skipto     OpcUaMachineBackend backend
+    \printuntil setContextProperty
+    \dots
+
+    The properties, signals and \c Q_INVOKABLE methods of uaBackend can now be accessed by
+    the QML code. For example, the button to flush the second tank is enabled
+    only if the backend is connected to the server, the machine is idle and
+    the tank level is above the setpoint. On click, the \c flushTank2() method
+    is called on the server.
+
+    \quotefromfile waterpump/waterpump-qmlcpp/Tank2Unit.qml
+    \skipto     Button
+    \printuntil }
+    \printuntil }
+
+    Signals from the backend can also be used directly in the QML code.
+
+    \quotefromfile waterpump/waterpump-qmlcpp/Pump.qml
+    \skipto Connections
+    \printuntil }
+    \printuntil }
+
+    \section1 Usage
+    The server is started automatically by the HMI application.
+    After connecting to the server by clicking the \uicontrol Connect button,
+    drag the slider to set a setpoint. Then, click \uicontrol Start to begin pumping water
+    from the first tank to the second tank. If you set a setpoint lower than the current
+    value of the second tank, clicking \uicontrol Flush opens the valve.
+
+    If there is no water left, click \uicontrol {Reset simulation} to refill the first tank.
+
+    \sa {Qt Quick Water Pump}
+*/

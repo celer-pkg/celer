@@ -1,0 +1,65 @@
+/*
+ * Copyright 2017 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+.lh-root {
+  --report-menu-width: 0;
+
+  user-select: text;
+}
+/* for View Trace button */
+
+.lh-audit-group {
+  position: relative;
+}
+
+button.view-trace {
+  margin: 10px;
+}
+
+.lighthouse-results-container {
+  position: relative;
+}
+/** `window.opener` is null for windows opened from DevTools. This breaks
+    the LH viewer app, so disable this feature. */
+
+.lh-tools--viewer {
+  display: none !important; /* stylelint-disable-line declaration-no-important */
+}
+
+.lighthouse-settings-pane {
+  flex: none;
+  background-color: var(--sys-color-cdt-base-container);
+  border-bottom: 1px solid var(--sys-color-divider);
+}
+
+.lighthouse-settings-pane devtools-toolbar {
+  flex: 1 1;
+  flex-wrap: wrap;
+}
+
+select.lighthouse-report {
+  min-width: 140px;
+  /* Up to 180px wide, but if window is very small ensure dropdown arrow is visible */
+  max-width: min(180px, calc(100% - 30px));
+}
+
+.lighthouse-toolbar-container {
+  display: flex;
+  flex: none;
+}
+
+.lighthouse-toolbar-container > devtools-toolbar {
+  background-color: var(--sys-color-cdt-base-container);
+  border-bottom: 1px solid var(--sys-color-divider);
+}
+
+.lighthouse-toolbar-container > :first-child {
+  flex: 1 1 auto;
+}
+
+.lh-devtools .lh-element-screenshot__overlay {
+  position: absolute;
+}

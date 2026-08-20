@@ -1,0 +1,38 @@
+{
+    "name": "testPlugin",
+    "author": "Qt",
+    "description": "A test plugin for tst_qmllint",
+    "version": "1.0",
+    "isInternal": true,
+    "loggingCategories": [
+        {
+            "name": "test",
+            "settingsName": "TestWarning",
+            "description": "A warning type used in tests"
+        },
+        {
+            "name": "TestDefaultValue",
+            "settingsName": "TestDefaultValue",
+            "description": "A warning to test defaults",
+            "defaultLevel": "disable"
+        },
+        {
+            "name": "TestDefaultValue2",
+            "settingsName": "TestDefaultValue2",
+            "description": "A warning to test defaults",
+            "defaultLevel": "info"
+        },
+        {
+            "name": "TestDefaultValue3",
+            "settingsName": "TestDefaultValue3",
+            "description": "A warning to test defaults",
+            "defaultLevel": "warning"
+        },
+        {
+            "name": "TestDefaultValue4",
+            "settingsName": "TestDefaultValue4",
+            "description": "A warning to test defaults",
+            "defaultLevel": "error"
+        }
+    ]
+}

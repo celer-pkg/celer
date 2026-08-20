@@ -1,0 +1,26 @@
+TEMPLATE = app
+QT += qml quick waylandclient gui-private
+CONFIG += wayland-scanner
+
+CONFIG += qmltypes
+QML_IMPORT_NAME = io.qt.examples.customextension
+QML_IMPORT_MAJOR_VERSION = 1
+
+INCLUDEPATH += $$PWD/../client-common
+
+WAYLANDCLIENTSOURCES += ../protocol/custom.xml
+
+SOURCES += main.cpp \
+    ../client-common/customextension.cpp
+
+HEADERS += \
+    ../client-common/customextension.h
+
+TARGET = custom-extension-qml-client
+
+RESOURCES += qml.qrc
+
+target.path = $$[QT_INSTALL_EXAMPLES]/wayland/custom-extension/qml-client
+INSTALLS += target
+
+

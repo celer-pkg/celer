@@ -1,0 +1,50 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  actions: [
+    {
+      action: wait
+      duration: 5s
+    }
+
+    // Delete the sheet we created
+    {
+      action: click
+      pos: {
+        selector: "#docs-file-menu[role='menuitem'][aria-disabled='false']"
+        required: true
+      }
+      source: $[CLICK_INPUT_SOURCE]
+      verify: "[role='menuitem']$[ARIA_DISABLED] [aria-label='Move to trash t']"
+    }
+    {
+      action: click
+      pos: {
+        selector: "[role='menuitem']$[ARIA_DISABLED] [aria-label='Move to trash t']"
+        required: true
+      }
+      source: $[CLICK_INPUT_SOURCE]
+      verify: "[data-mdc-dialog-action='ok']"
+    }
+    {
+      action: click
+      pos: {
+        selector: "[data-mdc-dialog-action='ok']"
+        required: true
+      }
+      source: $[CLICK_INPUT_SOURCE]
+      verify: body:not(:has([aria-modal='true'][role='alertdialog']))
+    }
+
+    // Wait for the homepage to load
+    {
+      action: wait
+      duration: 1s
+    }
+    {
+      action: wait_for_ready_state
+      ready_state: complete
+    }
+  ]
+}

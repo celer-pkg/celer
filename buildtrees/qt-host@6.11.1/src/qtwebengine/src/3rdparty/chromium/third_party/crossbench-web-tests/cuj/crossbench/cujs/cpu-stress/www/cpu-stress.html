@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang=>
+  <head>
+    <title>CPU Stress</title>
+  </head>
+  <body>
+    count: <span id="count"></span><br />
+    throughput: <span id="throughput"></span><br />
+    visibilityState: <span id="visibilityState"></span><br />
+    ever hidden: <span id="everHidden">false</span><br />
+    <pre id="log"></pre>
+  </body>
+  <script>
+    const tabId = crypto.randomUUID();
+    const logElement = document.querySelector('#log');
+    const countElement = document.querySelector('#count');
+    const throughputElement = document.querySelector('#throughput');
+    const visibilityStateElement = document.querySelector('#visibilityState');
+    const everHiddenElement = document.querySelector('#everHidden');
+    let everHidden = false;
+
+    addEventListener('visibilitychange', (event) => {
+      visibilityStateElement.innerHTML = document.visibilityState;
+      if (document.visibilityState === 'hidden') {
+        everHiddenElement.innerHTML = 'true';
+        everHidden = true;
+      }
+    });
+
+    let throughput = 0;
+    logElement.innerHTML += `tabId ${tabId}\n`;
+    (async function () {
+      const response = await fetch('./perf.report');
+      if (!response.ok) {
+        throw new Error(`fetch failed with ${response.statusText}`);
+      }
+      const blob = await response.blob();
+      const size = blob.size;
+      logElement.innerHTML += `loaded ${size} bytes of perf report\n`;
+      for (let i = 0; true; i++) {
+        const compress = new CompressionStream("gzip");
+        const t0 = performance.now();
+        const compressed = await (new Response(blob.stream().pipeThrough(compress)).blob());
+        const t1 = performance.now();
+        const dt = t1 - t0;
+        const compressedSize = compressed.size;
+        const time = dt / 1000.0;
+        performance.mark('compress', { detail: {
+          tabId,
+          i,
+          everHidden,
+          size,
+          compressedSize,
+          time,
+        }});
+
+        countElement.innerHTML = i;
+        throughput = throughput * 0.95 + (size / dt) * 0.05;
+        throughputElement.innerHTML = (throughput * 1000 / 1048576).toFixed(3);
+      }
+    })();
+  </script>
+</html>

@@ -1,0 +1,64 @@
+// Copyright (C) 2015 BasysKom GmbH
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\ingroup connectivity-nfc
+\inmodule QtNfc
+\since 5.6
+\page nfc-android.html
+\title Qt NFC on Android
+\brief Notes on Nfc for Android.
+
+\section1 Automatically Launching NDEF Message Handlers on Android
+
+Android provides the possibility to automatically launch the application when
+touching the NDEF tag.
+
+This can be achieved by providing an
+\l {https://developer.android.com/guide/topics/manifest/manifest-intro.html}
+{Android manifest file} (AndroidManifest.xml) with proper
+\l{https://developer.android.com/guide/topics/connectivity/nfc/nfc.html#manifest}
+{NFC intent-filter}.
+
+\badcode
+<intent-filter>
+    <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
+    <category android:name="android.intent.category.DEFAULT"/>
+    <data android:mimeType="text/plain"/>
+</intent-filter>
+\endcode
+
+With this intent-filter enabled, the application will be automatically started
+once the NDEF NFC tag is touched.
+
+\note It's important to design your application in such a way that all the GUI
+is connected to the NFC classes before the target detection is actually started.
+Otherwise it will be impossible to show the information from the tag that caused
+application startup.
+
+\note It's important to touch the tag long enough for the application to start
+and read the information. If the tag is lost during application startup, no data
+will be available, and the tag needs to be touched again.
+
+See \l {annotatedurl}{Annotated URL} application as an example.
+
+\section2 Supported Tag Types
+
+Supported tag types in Android are
+\l {https://developer.android.com/reference/android/nfc/NfcAdapter.html#ACTION_NDEF_DISCOVERED}
+{ACTION_NDEF_DISCOVERED},
+\l {https://developer.android.com/reference/android/nfc/NfcAdapter.html#ACTION_TAG_DISCOVERED}
+{ACTION_TAG_DISCOVERED} and
+\l {https://developer.android.com/reference/android/nfc/NfcAdapter.html#ACTION_TECH_DISCOVERED}
+{ACTION_TECH_DISCOVERED} with
+\l {https://developer.android.com/reference/android/nfc/tech/TagTechnology.html}
+{TagTechnology} \e NdefFormatable or \e Ndef.
+
+If the application registers other types in the
+\l {https://developer.android.com/guide/topics/manifest/manifest-intro.html}
+{Android manifest file}, the application will be started, but the tag will never
+be processed.
+
+*/
+

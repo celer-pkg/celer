@@ -1,0 +1,126 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  args: {
+    TIMEOUT: 1m
+    INPUT_TEXT: the quick brown fox jumps over the lazy dog
+    INPUT_TEXT_DURATION: 5s
+    CLICK_INPUT_SOURCE: touch
+  }
+  template: {
+    pages: {
+      Gmail-Compose: {
+        login: google
+        blocks: {
+          // Load gmail home page.
+          page-load: {
+            actions: [
+              {
+                action: get
+                url: https://mail.google.com/
+                ready_state: complete
+                timeout: $[TIMEOUT]
+              }
+              // Close popup with 'Pause mobile notification while you're using this device'.
+              {
+                action: click
+                position: {
+                  selector: button[aria-label='Close']
+                  scroll_into_view: true
+                  wait: true
+                  required: false
+                }
+                source: $[CLICK_INPUT_SOURCE]
+              }
+              // Close popup with 'Enable desktop notification for Mail'.
+              {
+                action: click
+                position: {
+                  selector: div[tabindex='0'][role='button'].bBe > div.bBf
+                  scroll_into_view: true
+                  wait: true
+                  required: false
+                }
+                source: $[CLICK_INPUT_SOURCE]
+              }
+            ]
+          }
+          // Input text into subject and body of email.
+          compose: {
+            actions: [
+              {
+                action: js
+                script: performance.mark('compose-dialog-open');
+              }
+              // click "Compose"
+              {
+                action: click
+                position: {
+                  selector: xpath/(//div[text()='Compose'])
+                }
+                verify: xpath/(//div[@role='dialog'])
+              }
+              {
+                action: js
+                script:
+                  '''
+                    performance.mark('compose-dialog-loaded');
+                    performance.measure('compose-dialog-ready', 'compose-dialog-open', 'compose-dialog-loaded');
+                  '''
+              }
+              // input subject and body
+              {
+                action: click
+                position: {
+                  selector: input[name='subjectbox']
+                  wait: true
+                }
+                source: $[CLICK_INPUT_SOURCE]
+              }
+              {
+                action: text_input
+                text: $[INPUT_TEXT]
+                duration: $[INPUT_TEXT_DURATION]
+                source: keyboard
+              }
+              {
+                action: click
+                position: {
+                  selector: div[aria-label='Message Body']
+                  wait: true
+                }
+                source: $[CLICK_INPUT_SOURCE]
+              }
+              {
+                action: text_input
+                text: $[INPUT_TEXT]
+                duration: $[INPUT_TEXT_DURATION]
+                source: keyboard
+              }
+              // waits to discard the draft email
+              {
+                action: wait
+                duration: 10s
+              }
+            ]
+          }
+          // Click the 'trash bin' icon to discard the draft.
+          draft-discard: {
+            actions: [
+              {
+                action: click
+                position: {
+                  selector: div[data-tooltip*='Discard draft']
+                  wait: true
+                }
+                verify: body:not(:has(div[aria-label='Message Body']))
+                source: $[CLICK_INPUT_SOURCE]
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

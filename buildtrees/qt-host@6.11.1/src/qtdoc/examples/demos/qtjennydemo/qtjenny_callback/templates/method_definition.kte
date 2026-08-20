@@ -1,0 +1,75 @@
+<%--
+    Copyright (C) 2024 The Qt Company Ltd.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied
+    See the License for the specific language governing permissions and
+    limitations under the License.
+--%>
+
+@import org.qtproject.qt.qtjenny.JteData
+@import org.qtproject.qt.qtjenny.Constants
+@import org.qtproject.qt.qtjenny.HandyHelper
+@import org.qtproject.qt.qtjenny.MethodOverloadResolver.MethodRecord
+@import javax.lang.model.type.TypeKind
+@import javax.lang.model.element.Modifier
+
+@param jteData: JteData
+
+
+!{
+fun unbox(type: String, index: Int): String {
+    val argName = "arg$index"
+    return when (type) {
+        "int" -> "QJniObject(env->GetObjectArrayElement(args, $index)).callMethod<jint>(\"intValue\")"
+        "boolean" -> "QJniObject(env->GetObjectArrayElement(args, $index)).callMethod<jboolean>(\"booleanValue\")"
+        "double" -> "QJniOBject(env->GetObjectArrayElement(args, $index)).callMethod<jdouble>(\"doubleValue\")"
+        else -> "env->GetObjectArrayElement(args, $index)"
+    }
+}
+}
+
+    !{val classParam = if (jteData.rawStaticMod != "") "FULL_CLASS_NAME," else ""}
+    !{val thizParam = if (jteData.rawStaticMod != "") "QJniObject::" else "m_jniObject."}
+    !{val resultAssign = if (jteData.returnStatement != "") "res.result = " else ""}
+    !{val returnType = if (jteData.jniReturnType != "void") "jobject" else "void"}
+
+    @if (!jteData.method!!.method.modifiers.contains(Modifier.FINAL))
+
+    // method: ${jteData.handyHelper.getModifiers(jteData.method!!.method)} ${jteData.method!!.method.returnType.toString()} ${jteData.method!!.method.simpleName.toString()}(${
+                        jteData.handyHelper.getJavaMethodParam(
+                            jteData.method!!.method
+                        )
+                    })
+    virtual ${returnType} ${jteData.method!!.method.simpleName.toString()}${jteData.method!!.resolvedPostFix}(${jteData.param}) = 0;
+
+!{
+    val methodName = jteData.method!!.method.simpleName.toString()
+    val paramCount = jteData.method!!.method.parameters.size
+
+}
+    char ${methodName}${jteData.method!!.resolvedPostFix}_${paramCount}_var = [this] {
+      m_dispatch.push_back([this](jstring methodName, jobjectArray args) {
+        QJniEnvironment env;
+        qt_MethodReturn res{false, nullptr};
+        if (QJniObject(methodName).toString() == "${methodName}${jteData.method!!.resolvedPostFix}"
+        && (!args || env->GetArrayLength(args) == ${paramCount})) {
+          ${resultAssign}this->${methodName}${jteData.method!!.resolvedPostFix}(
+            @for (entry in jteData.method!!.method.parameters.withIndex())
+            ${unbox(entry.value.asType().toString(), entry.index)}@if (entry.index < (paramCount-1)), @endif
+            @endfor
+          );
+          res.matched = true;
+          return res;
+        }
+        return res;
+      });
+      return 0;
+    }();
+    @endif
+

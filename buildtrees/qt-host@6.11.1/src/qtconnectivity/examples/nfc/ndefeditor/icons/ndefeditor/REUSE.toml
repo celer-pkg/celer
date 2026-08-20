@@ -1,0 +1,7 @@
+version = 1
+
+[[annotations]]
+path = ["20x20/*", "20x20@2/*", "20x20@3/*", "20x20@4/*"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright 2018 Google, Inc. All Rights Reserved."
+SPDX-License-Identifier = "Apache-2.0"

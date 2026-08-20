@@ -1,0 +1,39 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qmllint-warnings-and-errors-unused-imports.html
+\ingroup qmllint-warnings-and-errors
+
+\title Unused imports
+\brief [unused-imports] Types of the imported module were not used.
+
+\qmllintwarningcategory unused-imports
+
+\section1 Unused import
+
+\section2 What happened?
+You used an \l{qtqml-syntax-imports.html}{import statement} to import a QML module,
+but did not use any of its types.
+
+\section2 Why is this bad?
+The import statement states a dependency to a QML module which is actually not needed.
+This affects the readability of the code and the performance of the
+QML engine and tooling by making them process an unnecessary QML module.
+
+\section2 Example
+\qml
+import QtQuick
+import QtQuick.Controls
+
+Item {}
+
+\endqml
+To fix this warning, remove the unused import:
+\qml
+import QtQuick
+
+Item {}
+
+\endqml
+*/

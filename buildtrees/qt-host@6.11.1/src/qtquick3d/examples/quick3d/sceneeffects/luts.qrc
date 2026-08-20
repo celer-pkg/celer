@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>luts/grayscale.png</file>
+        <file>luts/identity.png</file>
+        <file>luts/inverted.png</file>
+    </qresource>
+</RCC>

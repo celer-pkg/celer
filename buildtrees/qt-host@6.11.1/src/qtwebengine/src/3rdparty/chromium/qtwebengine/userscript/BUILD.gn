@@ -1,0 +1,38 @@
+import("//mojo/public/tools/bindings/mojom.gni")
+import("//chrome/common/features.gni")
+import("//tools/grit/grit_rule.gni")
+
+mojom("interfaces") {
+  sources = [
+    "userscript.mojom",
+  ]
+
+  deps = [
+    "//mojo/public/mojom/base",
+    "//url/mojom:url_mojom_gurl",
+  ]
+
+  cpp_typemaps = [
+    {
+      types = [
+        {
+          mojom = "qtwebengine.mojom.UserScriptData"
+          cpp = "QtWebEngineCore::UserScriptData"
+        },
+      ]
+      traits_headers = ["//qtwebengine/userscript/user_script_data_mojom_traits.h" ]
+      traits_sources = ["//qtwebengine/userscript/user_script_data_mojom_traits.cc" ]
+    },
+  ]
+}
+
+source_set("mojom_traits") {
+   sources = [ "user_script_data_mojom_traits.h",
+              "user_script_data_mojom_traits.cc",
+  ]
+}
+
+source_set("userscript") {
+  sources = [ "user_script_data.h" ]
+  deps = [ ":interfaces" ]
+}

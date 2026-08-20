@@ -1,0 +1,112 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+   \example demos/hangman
+   \title In-App purchasing demo
+   \brief A complete mobile application that demonstrates purchasing in-app products.
+   \meta {tag} {demo,quick,quickcontrols,purchasing,store,android,ios}
+
+    \note The Qt Purchasing module was one of the \l{Removed Modules in Qt 6.0},
+    and the code is now contained within this example as a guide on how you can
+    use Qt to integrate with common marketplaces.
+
+   \section1 What is this demo?
+   \image qthangman-example.png
+
+   This demo is a mobile game application based on the classic word guessing game
+   Hangman, where vowels can be purchased through the demo's internal store. In the
+   game you will be presented with a row of dashes, representing letters of the
+   word to guess. By guessing a correct letter that occurs in the given word, the
+   letter will be placed on the corresponding dash or dashes in the word. By
+   guessing every letter of the word or just guessing the whole word correctly at
+   any time the game is over and you have won. If the guess is wrong, one element
+   of a hanging stick figure is drawn. Once the figure is complete, you are out of
+   guesses and you lose.
+
+   The demo shows how it is possible to offer in-app products inside a Qt
+   application, for the Android and iOS platforms. In order to test the in-app
+   purchase functionality in the the demo, you must first register the application
+   and its products in the external store. For an introduction on how to do this,
+   see the guides for \l{Registering Products in Google Play}{Google Play} and
+   \l{Registering Products in App Store}{App Store} respectively.
+
+   \section1 3rd party app stores
+
+   The in-app products must be registered in the target stores, before they
+   can be queried or purchased in an application. We recommend using the same
+   identifiers for the products in each store, as it simplifies the code to
+   query and purchase the products.
+
+   \list
+   \li \l{Registering Products in Google Play}
+   \li \l{Registering Products in App Store}
+   \endlist
+
+   \section1 How does the demo work
+   The demo is a QML application that registers QML types to access information
+   about in-app products, as well as to request purchases for those products.
+   These are registered in the external store for the target platform
+
+   In-app purchasing are added to application by first adding a Store object. In
+   the demo the Store object is created by the MainView component that is loaded
+   on application startup.
+   \snippet demos/hangman/qml/MainView.qml 0
+
+   The demo defines a component for displaying a store for purchasing in-app
+   products made available. These products must be first registered with the
+   store object we created above in MainView. There are two products available,
+   the first being a consumable type.
+
+   \snippet demos/hangman/qml/StoreView.qml 0
+
+   This consumable product provides 100 additional vowels to be used when
+   guessing words in the game. When it is successfully purchased, we update the
+   state of the application to include 100 additional vowels. Then we call
+   finalize() on the transaction object to confirm to the platform store that the
+   consumable product has been provided.
+
+   The second product is a non-consumable type that will unlock vowels permanently
+   in the future. In addition to updating the application state on purchase, we
+   must make sure to provide a way to restore this purchase on other devices used
+   by the end user. In this case we create a signal handler for onPurchaseRestored.
+
+   \snippet demos/hangman/qml/StoreView.qml 1
+
+   \image qthangman-store-example.png
+
+   In addition to registering the products, the demo also provide an interface to
+   actually purchase the registered product. The demo defines a custom component
+   called \c StoreItem to display and handle the purchasing interaction.
+
+   \snippet demos/hangman/qml/StoreView.qml 1
+
+   The StoreItem component will display the product data that is queried from the
+   platform's store, and will call the purchase() method on the product when it is
+   clicked by the user.
+
+   \snippet demos/hangman/qml/StoreItem.qml 0
+
+   Android and iOS use the base classes. From base classes there are derivative
+   classes for android and ios:
+
+   \list
+   \li \l{Base Classes}
+   \li \l{Demo Android Classes}
+   \li \l{Demo iOS Classes}
+   \endlist
+
+   \section1 In-App purchases
+
+   In-app purchases are a way to monetize an application. These purchases are
+   made from inside the application and can include anything from unlocking
+   content to virtual items. The demo uses the system APIs
+   for in-app purchases, which means the purchase process is more familiar to
+   the user, and the information already stored by the platform (such as credit
+   card information) can be used to simplify the purchase process.
+
+   \section1 Licenses and attributions
+
+   In regards to deploying the demo on Android see
+   \l Android GNU C++ Run-time Licensing for more information.
+*/

@@ -1,0 +1,8 @@
+BO_ 1234 Test : 7 Vector__XXX
+ SG_ s0 : 0|8@1+ (1,0) [0.0|0] "unit" Vector__XXX
+ SG_ s1 : 8|8@1+ (1,0) [1|5 ] "unit" Vector__XXX
+ SG_ s2 : 16|8@1+ (1,0) [ -0.625|0.125] "unit" Vector__XXX
+ SG_ s3 : 24|8@1+ (1,0) [-1.234e-05 |1.234e05] "unit" Vector__XXX
+ SG_ s4 : 32|8@1+ (1,0) [-1 | 0.333] "unit" Vector__XXX
+ SG_ s5 : 40|8@1+ (1,0) [ 2.5 | 1.000123e01] "unit" Vector__XXX
+ SG_ s6 : 48|8@1+ (1,0) [ 0.333 | -0.333 ] "unit" Vector__XXX

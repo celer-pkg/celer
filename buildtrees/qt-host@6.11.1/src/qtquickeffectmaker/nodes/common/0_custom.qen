@@ -1,0 +1,13 @@
+{
+    "QEN": {
+        "description": "This is an empty node for creating custom effects.",
+        "fragmentCode": [
+            ""
+        ],
+        "name": "Custom",
+        "version": 1,
+        "vertexCode": [
+            ""
+        ]
+    }
+}

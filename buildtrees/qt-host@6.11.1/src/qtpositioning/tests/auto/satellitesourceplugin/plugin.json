@@ -1,0 +1,9 @@
+{
+    "Keys": ["satellitesource.test"],
+    "Provider": "satellitesource.test",
+    "Position": false,
+    "Satellite": true,
+    "Monitor": false,
+    "Priority": 2,
+    "Testable": true
+}

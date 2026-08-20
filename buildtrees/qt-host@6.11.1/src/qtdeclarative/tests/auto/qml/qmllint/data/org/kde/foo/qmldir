@@ -1,0 +1,4 @@
+module org.kde.foo
+typeinfo foo.qmltypes
+depends QtQuick
+

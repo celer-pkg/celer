@@ -1,0 +1,17 @@
+[
+    {
+        "Id": "wayland-session-management-protocol",
+        "Name": "Wayland Session Management Protocol",
+        "QDocModule": "qtwaylandcompositor",
+        "QtUsage": "Used in the Qt Wayland platform plugin.",
+        "Files": "xx-session-management-v1.xml",
+        "Description": "An extension to restore window positions",
+        "Homepage": "https://wayland.freedesktop.org",
+        "Version": "experimental V1",
+        "DownloadLocation": "https://gitlab.freedesktop.org/wayland/wayland-protocols/-/blob/main/experimental/xx-session-management/xx-session-management-v1.xml?ref_type=heads",
+        "LicenseId": "MIT",
+        "License": "MIT License",
+        "LicenseFile": "../MIT_LICENSE.txt",
+        "Copyright": "Copyright 2018 Mike Blumenkrantz\nCopyright 2018 Samsung Electronics Co., Ltd\nCopyright 2018 Red Hat Inc."
+    }
+]

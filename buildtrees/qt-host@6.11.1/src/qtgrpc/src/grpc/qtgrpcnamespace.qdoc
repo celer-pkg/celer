@@ -1,0 +1,157 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \inmodule QtGrpc
+    \namespace QtGrpc
+    \keyword QtGrpc Namespace
+    \inheaderfile QtGrpcNamespace
+
+    \brief The QtGrpc namespace contains miscellaneous identifiers
+    used throughout the QtGrpc library.
+*/
+
+/*!
+    \enum QtGrpc::SerializationFormat
+
+    \brief Contains preset values for setting the protobuf serializer format.
+
+    \sa QGrpcSerializationFormat
+
+    \value Default
+//! [serialization-format-default]
+    The default QGrpcSerializationFormat preset. This preset constructs a \l
+    QProtobufSerializer with an empty content type suffix.
+//! [serialization-format-default]
+
+    \value Protobuf
+//! [serialization-format-protobuf]
+    The embedded protobuf QGrpcSerializationFormat preset. This preset
+    constructs a \l QProtobufSerializer with the \c proto content type suffix.
+//! [serialization-format-protobuf]
+
+    \value Json
+//! [serialization-format-json]
+    The embedded JSON QGrpcSerializationFormat preset. This preset constructs a
+    \l QProtobufJsonSerializer with the \c json content type suffix.
+//! [serialization-format-json]
+*/
+
+/*!
+    \enum QtGrpc::StatusCode
+
+    \brief Channel's status codes.
+
+    \value Ok No error
+    \value Cancelled The operation was cancelled, typically by the caller.
+    \omitvalue Unknown
+    \value InvalidArgument The client specified an invalid argument,
+    \value DeadlineExceeded The deadline expired before the operation
+    could complete,
+    \value NotFound Some requested entity (e.g., file or directory) was
+    not found.
+    \value AlreadyExists The entity that a client attempted to create
+    (e.g., file or directory) already exists.
+    \value PermissionDenied  The caller does not have permission to execute
+    the specified operation.
+    \c PermissionDenied must not be used for rejections caused by exhausting
+    some resource (use \c ResourceExhausted instead for those errors).
+    \c PermissionDenied must not be used if the caller can not be identified
+    (use \c Unauthenticated instead for those errors).
+    This error code does not imply the request is valid or the requested
+    entity exists or satisfies other pre-conditions.
+    \value ResourceExhausted Some resource has been exhausted, perhaps
+    a per-user quota, or perhaps the entire file system is out of space.
+    \value FailedPrecondition The operation was rejected because the system
+    is not in a state required for the operation's execution.
+    \value Aborted The operation was aborted, typically due to
+    a concurrency issue such as a sequencer check failure or transaction abort.
+    \value OutOfRange The operation was attempted past the valid range.
+    \value Unimplemented The operation is not implemented or is
+    not supported/enabled in this service.
+    \value Internal This means that some invariants expected by
+    the underlying system have been broken.
+    \value Unavailable The service is currently unavailable.
+    This is most likely a transient condition, which can be corrected
+    by retrying with a backoff. Note that it is not always safe
+    to retry non-idempotent operations.
+    \value DataLoss Unrecoverable data loss or corruption.
+    \value Unauthenticated The request does not have valid authentication
+    credentials for the operation.
+
+    \sa{https://github.com/grpc/grpc/blob/master/doc/statuscodes.md}{gRPC status codes}
+*/
+
+/*!
+    \since 6.11
+    \enum QtGrpc::RpcType
+
+    \brief Describes the type of the RPC (Remote Procedure Call).
+
+    This enum specifies the communication pattern used by a gRPC method.
+
+    \value UnaryCall uses the QGrpcCallReply handler.
+
+    \value ServerStreaming uses the QGrpcServerStream handler.
+
+    \value ClientStreaming uses the QGrpcClientStream handler.
+
+    \value BidiStreaming uses the QGrpcBidiStream handler.
+
+    \sa QtGrpc::RpcDescriptor
+*/
+
+/*!
+    \since 6.11
+    \struct QtGrpc::RpcDescriptor
+    \inmodule QtGrpc
+    \inheaderfile QtGrpcNamespace
+    \compares strong
+
+    \brief Describes a gRPC method with its service name, method name,
+    and RPC type.
+
+    The RpcDescriptor struct holds identifying information about a gRPC
+    method used to initiate and describe RPC calls. It allows QtGrpc to
+    associate each operation with its service, method, and communication
+    pattern.
+
+    \sa QtGrpc::RpcType
+*/
+/*!
+    \variable QtGrpc::RpcDescriptor::service
+    The name of the gRPC service this method belongs to.
+*/
+/*!
+    \variable QtGrpc::RpcDescriptor::method
+    The name of the gRPC method within the service.
+*/
+/*!
+    \variable QtGrpc::RpcDescriptor::type
+    The type of RPC, as defined by \l QtGrpc::RpcType.
+*/
+
+/*!
+    \fn size_t QtGrpc::RpcDescriptor::qHash(const QtGrpc::RpcDescriptor &key, size_t seed) noexcept
+    \qhash{RpcDescriptor}
+*/
+
+/*!
+    \since 6.10
+    \struct QtGrpc::MultiValue_t
+    \inmodule QtGrpc
+    \inheaderfile QtGrpcNamespace
+    \brief Tag type used to access QMultiHash metadata.
+    \note This type is an implementation detail. Use QtGrpc::MultiValue for public API access.
+
+    \sa QtGrpc::MultiValue, QGrpcChannelOptions::metadata(QtGrpc::MultiValue_t),
+        QGrpcCallOptions::metadata(QtGrpc::MultiValue_t)
+*/
+
+/*!
+    \since 6.10
+    \variable QtGrpc::MultiValue
+    \brief Tag used to access QMultiHash metadata.
+    \sa QGrpcChannelOptions::metadata(QtGrpc::MultiValue_t),
+        QGrpcCallOptions::metadata(QtGrpc::MultiValue_t)
+*/

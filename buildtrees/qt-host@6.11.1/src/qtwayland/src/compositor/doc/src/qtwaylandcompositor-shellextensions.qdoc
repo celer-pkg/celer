@@ -1,0 +1,51 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtwaylandcompositor-shellextensions.html
+    \title Shell Extensions - Qt Wayland Compositor
+
+    In Wayland, \e{shells} are extensions which provide \e{surface semantics}. This means that they
+    provide ways for the server and client to communicate about surfaces. Surfaces, in this context,
+    are often also referred to as "windows", which is typically the representation of the surface in
+    the compositor.
+
+    Shell extensions provide tools for the client and server to communicate about certain things:
+    \list
+      \li They can provide a way for the client to inform the server about the purpose of a surface:
+          Is it a tool-tip, a pop-up menu, or a regular application window, for instance? Based on
+          this, the server can decide on the geometry of the window and how the user can interact
+          with it.
+      \li They can also provide protocols for manipulating the surface, such as resizing, moving,
+          and hiding them.
+    \endlist
+
+    Like other extensions, support for shells is added to a compositor by instantiating them
+    as direct children of the \l WaylandCompositor top-level object. The shell extensions supported
+    by Qt are: \l{WlShell}, \l{XdgShell} and \l{IviApplication}.
+
+    \list
+      \li \l XdgShell is an appropriate shell for desktop-style systems, where any number of
+          applications can connect and where windows can be manually resized and repositioned by
+          the user.
+      \li \l IviApplication is a minimalistic protocol, originally intended for In-vehicle
+          Infotainment systems. It is useful for embedded systems, where a pre-defined set of
+          applications can run, often with pre-assigned screen real estate. For some more details
+          on this protocol, see the \l{IVI Compositor}{IVI Compositor example}.
+      \li \l QtShell is a specialized shell for Qt applications which supports the window management
+          features available in Qt. It may be suitable on a platform where both the compositor and
+          client applications are written with Qt, and where applications are trusted not to abuse
+          features such as manual window positioning and "bring-to-front".
+      \li \l WlShell is mostly useful for compatibility with third-party applications. This is also
+          a desktop-style shell, but it has been deprecated and replaced by \l XdgShell.
+    \endlist
+
+    When designing an embedded system from the bottom up, there are no rules determining which
+    shell extension to use. It will typically be either \l XdgShell or \l{IviApplication}. The
+    decision should be influenced by what features the system will need, and whether there are
+    applications involved which are not written in Qt and which have their own requirements.
+
+    A Qt Wayland Compositor can also support multiple shell extensions at once. See the
+    \l{Minimal QML}{Minimal QML example} for an example where all three shell extensions listed
+    above are supported.
+*/

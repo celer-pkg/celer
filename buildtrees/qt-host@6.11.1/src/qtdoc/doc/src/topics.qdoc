@@ -1,0 +1,72 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page overviews-main.html
+\title Qt Overviews
+\brief Qt development topics
+
+Qt features a wide range of different technologies. The following topics are key areas of
+functionality and can be used as a starting point for learning how to to get the most of Qt.
+
+        \list
+            \li \l {User Interfaces}{UI Frameworks}
+            \li \l {Desktop Integration}
+            \li \l {Networking and Connectivity}
+            \li \l {Inter-process communication in Qt}{Inter-process communication}
+            \li \l {Overview of Qt's Undo Framework}{Qt's Undo Framework}
+            \li \l {Unicode in Qt}{Unicode Support in Qt}
+            \li \l {Multi-threading in Qt}
+                \list
+                    \li \l {Multithreading Technologies in Qt}{Multithreading Technologies}
+                    \li \l {Synchronizing Threads}
+                    \li \l {Reentrancy and Thread-Safety}
+                    \li \l {Threads and QObjects}
+                    \li \l {Thread Support in Qt Modules}{Thread Support}
+                    \li \l {Threading and Concurrent Programming Examples}{Examples}
+                \endlist
+            \li \l {Data Input & Output}
+                \list
+                    \li \l {XML Processing}
+                    \li \l {XML Examples}
+                    \li \l {SQL Examples}
+                \endlist
+            \li \l {Graphics}{Graphics and Printing}
+                \list
+                    \li \l {High DPI}
+                \endlist
+            \li \l {Internationalization with Qt}{Internationalization}
+                \list
+                    \li \l {Writing Source Code for Translation}
+                    \li \l {Translation Rules for Plural Forms}
+                    \li \l {Localizing Applications}
+                \endlist
+            \li \l {Accessibility}
+                \list
+                    \li \l {Accessibility for QWidget Applications}
+                    \li \l {Accessibility for Qt Quick Applications}
+                \endlist
+            \li \l {Testing and Debugging}{Testing and Debugging}
+            \li \l {Debugging Techniques}
+            \li \l {Deploying Qt Applications}
+                \list
+                    \li \l {Deploying Plugins}
+                    \li \l {Using qt.conf}
+                \endlist
+            \li \l {Qt Languages}
+            \li \l {Qt Releases}
+\endlist
+
+\section1 Best Practices
+
+These pages give guidance on how to use Qt technologies best to create
+applications that excel in usability and software design.
+
+\annotatedlist best-practices
+
+\section1 Reference
+
+Also see \l {All Overviews} for lists of overview articles, C++
+modules, and QML modules on one page.
+
+*/

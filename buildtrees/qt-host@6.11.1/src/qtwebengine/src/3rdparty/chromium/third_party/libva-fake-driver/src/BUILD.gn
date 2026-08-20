@@ -1,0 +1,101 @@
+# Copyright 2022 The Chromium Authors
+# Copyright 2024 The ChromiumOS Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+shared_library("fake_gbm") {
+  sources = [ "fake_gbm.cc" ]
+  configs += [ ":libgbm" ]
+}
+
+group("all") {
+  deps = [
+    ":fake_drv_video",
+    ":fake_gbm",
+  ]
+}
+
+pkg_config("dav1d") {
+  pkg_deps = [ "dav1d" ]
+}
+
+pkg_config("libdrm") {
+  pkg_deps = [ "libdrm" ]
+}
+
+pkg_config("libgbm") {
+  pkg_deps = [ "gbm" ]
+}
+
+pkg_config("libva") {
+  pkg_deps = [ "libva" ]
+}
+
+pkg_config("libvpx") {
+  pkg_deps = [ "vpx" ]
+}
+
+pkg_config("libyuv") {
+  pkg_deps = [ "libyuv" ]
+}
+
+pkg_config("openh264") {
+  pkg_deps = [ "openh264" ]
+}
+
+shared_library("fake_drv_video") {
+  sources = [ "fake_drv_video.cc" ]
+
+  deps = [
+    ":fake_libva_driver_internals",
+  ]
+}
+
+source_set("fake_libva_driver_internals") {
+  visibility = [ ":fake_drv_video" ]
+  sources = [
+    "base/byte_conversions.h",
+    "base/logging.h",
+    "base/lru_cache.h",
+    "base/ptr_util.h",
+    "base/scoped_fd.cc",
+    "base/scoped_fd.h",
+    "av1_decoder_delegate.cc",
+    "av1_decoder_delegate.h",
+    "context_delegate.h",
+    "fake_buffer.cc",
+    "fake_buffer.h",
+    "fake_config.cc",
+    "fake_config.h",
+    "fake_context.cc",
+    "fake_context.h",
+    "fake_driver.cc",
+    "fake_driver.h",
+    "fake_image.cc",
+    "fake_image.h",
+    "fake_surface.cc",
+    "fake_surface.h",
+    "h264_decoder_delegate.cc",
+    "h264_decoder_delegate.h",
+    "no_op_context_delegate.cc",
+    "no_op_context_delegate.h",
+    "object_tracker.h",
+    "scoped_bo_mapping_factory.cc",
+    "scoped_bo_mapping_factory.h",
+    "vpx_decoder_delegate.cc",
+    "vpx_decoder_delegate.h",
+  ]
+
+  public_configs = [
+    ":libgbm",
+    ":libva",
+  ]
+
+  configs += [
+    ":dav1d",
+    ":libdrm",
+    ":libyuv",
+    ":libvpx",
+    ":openh264",
+  ]
+}

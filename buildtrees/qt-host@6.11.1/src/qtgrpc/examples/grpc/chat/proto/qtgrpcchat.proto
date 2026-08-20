@@ -1,0 +1,17 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+
+//! [proto-1]
+syntax = "proto3";
+
+package chat;
+
+import "chatmessages.proto";
+
+service QtGrpcChat {
+    // Register a user with \a Credentials.
+    rpc Register(Credentials) returns (None);
+    // Join as a registered user and exchange \a ChatMessage(s)
+    rpc ChatRoom(stream ChatMessage) returns (stream ChatMessage) {}
+}
+//! [proto-1]

@@ -1,0 +1,256 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page svgextensions.html
+    \title Extended Features
+    \brief Extended Features (relative to 1.2 Tiny) of the Qt SVG module
+
+    The Qt SVG module supports the \l{SVG 1.2 Tiny Static Features}
+    {static features} of \l{http://www.w3.org/TR/SVGMobile12}{SVG 1.2 Tiny}.
+
+    The module also supports a few extra features which might be useful.
+    The \l QSvgRenderer parses all features (including the extra feature
+    set) by default. You can instruct the render to ignore these extra
+    features by passing the QtSvg::Tiny12FeaturesOnly flag in
+    \l QSvgRenderer::setOptions().
+
+
+    \section1 Extended features
+
+    Qt supports the following extended elements and related attributes as of
+    Qt 6.7:
+
+    \list
+        \li mask
+        \l{https://www.w3.org/TR/SVG11/masking.html#MaskElement}{SVG 1.1}
+        \li symbol
+        \l{https://www.w3.org/TR/SVG11/struct.html#SymbolElement}{SVG 1.1} and
+        \l{https://www.w3.org/TR/SVG2/struct.html#SymbolElement}{SVG 2}
+        \li marker
+        \l{https://www.w3.org/TR/SVG11/painting.html#MarkerElement}{SVG 1.1}
+        \li pattern
+        \l{https://www.w3.org/TR/SVG11/pservers.html#PatternElement}{SVG 1.1}
+        \li filter
+        \l{https://www.w3.org/TR/SVG11/filters.html#FilterElement}{SVG 1.1}
+        \li feColorMatrix
+        \l{https://www.w3.org/TR/SVG11/filters.html#feColorMatrixElement}
+        {SVG 1.1}
+        \li feComposite
+        \l{https://www.w3.org/TR/SVG11/filters.html#feCompositeElement}
+        {SVG 1.1}
+        \li feFlood
+        \l{https://www.w3.org/TR/SVG11/filters.html#feFloodElement}{SVG 1.1}
+        \li feGaussianBlur
+        \l{https://www.w3.org/TR/SVG11/filters.html#feGaussianBlurElement}
+        {SVG 1.1}
+        \li feOffset
+        \l{https://www.w3.org/TR/SVG11/filters.html#feOffsetElement}{SVG 1.1}
+        \li feMerge
+        \l{https://www.w3.org/TR/SVG11/filters.html#feMergeElement}{SVG 1.1}
+    \endlist
+
+
+    \section1 Masking
+
+    Masking is supported in the form of the \c{<mask>} element and the mask
+    attribute.
+
+    \note <clipPath> is not supported.
+
+    \section2 <mask>
+
+    The following attributes of the \c{<mask>} element are supported:
+
+    \list
+        \li \c{x}
+        \li \c{y}
+        \li \c{width}
+        \li \c{height}
+        \li \c{maskUnits}
+        \li \c{maskContentUnits}
+    \endlist
+
+    The \c{mask} attribute is supported for all graphical and structural SVG
+    elements.
+
+
+    \section1 Symbols, Markers and Patterns
+
+    \section2 <symbol>
+
+    The following attributes of the \c{<symbol>} element are supported:
+
+    \list
+        \li \c{x} (from SVG 2)
+        \li \c{y} (from SVG 2)
+        \li \c{width} (from SVG 2)
+        \li \c{height} (from SVG 2)
+        \li \c{preserveAspectRatio}
+        \li \c{viewBox}
+    \endlist
+
+
+    \section2 <marker>
+
+    The following attributes of the \c{<marker>} element are supported:
+
+    \list
+        \li \c{markerUnits}
+        \li \c{refX}
+        \li \c{refY}
+        \li \c{markerWidth}
+        \li \c{markerHeight}
+        \li \c{orient}
+        \li \c{preserveAspectRatio}
+        \li \c{viewBox}
+    \endlist
+
+    The attributes
+
+    \list
+        \li \c{marker-start}
+        \li \c{marker-mid}
+        \li \c{marker-end}
+    \endlist
+
+    are supported for \c{<path>}, \c{<line>}, \c{<polyline>} and \c{<polygon>}.
+
+
+    \section2 <pattern>
+
+    The following attributes are supported:
+    \list
+        \li \c{x}
+        \li \c{y}
+        \li \c{width}
+        \li \c{height}
+        \li \c{patternUnits}
+        \li \c{patternContentUnits}
+        \li \c{patternTransform}
+        \li \c{viewBox}
+    \endlist
+
+    The following attributes are not supported:
+    \list
+        \li \c{preserveAspectRatio}
+        \li \c{xlink:href}
+    \endlist
+
+
+    \section1 Filter
+
+    Filters in SVG documents apply graphic effects on an element, parts of an
+    element, or the background below the element. Qt supports filter effects
+    applied to the whole element.
+    Qt does not support applying filters on only the element's fill or stroke
+    (\c FillPaint and \c StrokePaint), or its background (\c BackgroundImage
+    and \c BackgroundAlpha).
+
+    \section2 <filter>
+
+    The following attributes of the \c{<filter>} element are supported:
+
+    \list
+        \li \c{x}
+        \li \c{y}
+        \li \c{width}
+        \li \c{height}
+        \li \c{filterUnits}
+        \li \c{primitiveUnits}
+    \endlist
+
+    The following attributes of the \c{<filter>} element are not supported:
+
+    \list
+        \li \c{filterRes}
+        \li \c{xlink:href}
+    \endlist
+
+    The \c{filter} attribute is supported for all graphical and structural SVG
+    elements.
+
+
+    \section2 Filter primitives
+
+    The filter element contains various filter primitives. Qt supports the most
+    important filter primitives (see below).
+
+    All filter primitives share common set of attributes. The following are
+    supported:
+
+    \list
+        \li \c{x}
+        \li \c{y}
+        \li \c{width}
+        \li \c{height}
+        \li \c{in} (Supported are \c{SourceGraphic}, \c{SourceAlpha}, and all
+            references to filters)
+        \li \c{result}
+    \endlist
+
+    The following attributes are not supported:
+
+    \list
+        \li \c{in} (Not supported are \c{BackgroundImage}, \c{BackgroundAlpha},
+            \c{FillPaint}, and \c{StrokePaint})
+    \endlist
+
+    \section2 <feColorMatrix>
+
+    The following attributes are supported:
+
+    \list
+        \li \c{type}
+        \li \c{values}
+    \endlist
+
+    \section2 <feGaussianBlur>
+
+    The following attributes are supported:
+
+    \list
+        \li \c{stdDeviation}
+    \endlist
+
+    The following attributes are not supported:
+
+    \list
+        \li \c{edgeMode} (the implementation matches \c{none})
+    \endlist
+
+    \section2 <feOffset>
+
+    The following attributes are supported:
+
+    \list
+        \li \c{dx}
+        \li \c{dy}
+    \endlist
+
+    \section2 <feMerge> and <feMergeNode>
+
+    No additional attributes.
+
+    \section2 <feComposite>
+
+    The following attributes are supported:
+
+    \list
+        \li \c{operator}
+        \li \c{k1}
+        \li \c{k2}
+        \li \c{k3}
+        \li \c{k4}
+    \endlist
+
+    \section2 <feFlood>
+
+    The following attributes are supported:
+
+    \list
+        \li \c{flodd-color}
+        \li \c{flood-opacity}
+    \endlist
+
+*/

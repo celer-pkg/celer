@@ -1,0 +1,85 @@
+# Copyright 2023 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("../../../../scripts/build/ninja/devtools_entrypoint.gni")
+import("../../../../scripts/build/ninja/devtools_module.gni")
+import("../../../../scripts/build/typescript/typescript.gni")
+
+devtools_module("recorder") {
+  sources = [
+    "ConverterIds.ts",
+    "RecorderSettings.ts",
+    "RecorderShortcutHelper.ts",
+    "RecordingPlayer.ts",
+    "RecordingSession.ts",
+    "RecordingSettings.ts",
+    "RecordingStorage.ts",
+    "SDKUtils.ts",
+    "Schema.ts",
+    "SchemaUtils.ts",
+    "ScreenshotStorage.ts",
+    "ScreenshotUtils.ts",
+    "Section.ts",
+    "Tooltip.ts",
+  ]
+
+  deps = [
+    "../../../core/common:bundle",
+    "../../../core/sdk:bundle",
+    "../../../generated:protocol",
+    "../../../models/persistence:bundle",
+    "../../../panels/elements:bundle",
+    "../../../services/puppeteer:bundle",
+    "../../../third_party/puppeteer:bundle",
+    "../../../third_party/puppeteer-replay:bundle",
+    "../../../ui/legacy:bundle",
+    "../injected:bundle",
+    "../util:bundle",
+  ]
+
+  public_deps = [ "../injected:bundled_library" ]
+}
+
+devtools_entrypoint("bundle") {
+  entrypoint = "models.ts"
+
+  deps = [ ":recorder" ]
+
+  visibility = [
+    ":*",
+    "../*",
+    "../../../../test/e2e/recorder/*",
+    "../../../ui/components/docs/*",
+    "../../../ui/components/docs/recorder_injected/*",
+    "../../entrypoints/main/*",
+    "../../panels/sources/*",
+    "../../recorder/*",
+    "../../recorder/components/*",
+    "../../recorder/controllers/*",
+    "../../recorder/converters/*",
+    "../components/*",
+  ]
+}
+
+ts_library("unittests") {
+  testonly = true
+
+  sources = [
+    "RecorderSettings.test.ts",
+    "RecorderShortcutHelper.test.ts",
+    "RecordingPlayer.test.ts",
+    "SchemaUtils.test.ts",
+    "ScreenshotUtils.test.ts",
+    "Section.test.ts",
+    "recording-storage.test.ts",
+    "screenshot-storage.test.ts",
+  ]
+
+  deps = [
+    ":bundle",
+    "../../../generated:protocol",
+    "../../../testing",
+    "../testing",
+  ]
+}

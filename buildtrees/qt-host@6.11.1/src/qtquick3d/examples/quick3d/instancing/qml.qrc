@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>Asteroid.qml</file>
+        <file>SimpleSpaceship.qml</file>
+        <file>meshes/asteroid.mesh</file>
+        <file>meshes/ship.mesh</file>
+    </qresource>
+</RCC>

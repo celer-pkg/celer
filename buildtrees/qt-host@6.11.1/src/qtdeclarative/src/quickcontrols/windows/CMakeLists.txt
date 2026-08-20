@@ -1,0 +1,93 @@
+# Copyright (C) 2022 The Qt Company Ltd.
+# SPDX-License-Identifier: BSD-3-Clause
+
+#####################################################################
+## qtquickcontrols2windowsstyleplugin Plugin:
+#####################################################################
+
+add_subdirectory(impl)
+
+set(qml_files
+    "ApplicationWindow.qml"
+    "Button.qml"
+    "CheckBox.qml"
+    "CheckDelegate.qml"
+    "ComboBox.qml"
+    "DelayButton.qml"
+    "DoubleSpinBox.qml"
+    "Frame.qml"
+    "GroupBox.qml"
+    "ItemDelegate.qml"
+    "Menu.qml"
+    "MenuBar.qml"
+    "MenuBarItem.qml"
+    "MenuItem.qml"
+    "MenuSeparator.qml"
+    "ProgressBar.qml"
+    "RadioButton.qml"
+    "RadioDelegate.qml"
+    "RangeSlider.qml"
+    "ScrollIndicator.qml"
+    "SearchField.qml"
+    "SelectionRectangle.qml"
+    "Slider.qml"
+    "SpinBox.qml"
+    "Switch.qml"
+    "SwitchDelegate.qml"
+    "TextArea.qml"
+    "TextField.qml"
+    "ScrollBar.qml"
+    "ScrollView.qml"
+)
+
+set_source_files_properties(SearchField.qml PROPERTIES
+    QT_QML_SOURCE_VERSIONS "6.10"
+)
+
+qt_internal_add_qml_module(qtquickcontrols2windowsstyleplugin
+    URI "QtQuick.Controls.Windows"
+    VERSION "${PROJECT_VERSION}"
+    CLASS_NAME QtQuickControls2WindowsStylePlugin
+    IMPORTS
+        QtQuick.Controls.Fusion/auto
+    PAST_MAJOR_VERSIONS 2
+    PLUGIN_TARGET qtquickcontrols2windowsstyleplugin
+    NO_PLUGIN_OPTIONAL
+    NO_GENERATE_PLUGIN_SOURCE
+    SOURCES
+        qtquickcontrols2windowsstyleplugin.cpp
+    QML_FILES
+        ${qml_files}
+    RESOURCES
+        images/checkmark.png
+        images/checkmark@2x.png
+        images/checkmark@3x.png
+        images/menuarrow.png
+        images/menuarrow@2x.png
+        images/menuarrow@3x.png
+        images/close_big.png
+        images/close_big@2x.png
+        images/close_big@3x.png
+        images/search-magnifier.png
+        images/search-magnifier@2x.png
+        images/search-magnifier@3x.png
+    DEFINES
+        QT_NO_CAST_FROM_ASCII
+        QT_NO_CAST_TO_ASCII
+    LIBRARIES
+        Qt::CorePrivate
+        Qt::GuiPrivate
+        Qt::QmlPrivate
+        Qt::QuickControls2Private
+        Qt::QuickControls2WindowsStyleImpl
+        Qt::QuickPrivate
+        Qt::QuickTemplates2Private
+        Qt::QuickControls2FusionPrivate
+)
+
+# Native style is a dependency of the Windows style.
+_qt_internal_add_qml_static_plugin_dependency(qtquickcontrols2windowsstyleplugin
+                                              qtquickcontrols2nativestyleplugin)
+# Fusion style is the required fallback style.
+_qt_internal_add_qml_static_plugin_dependency(qtquickcontrols2windowsstyleplugin
+                                              qtquickcontrols2fusionstyleplugin)

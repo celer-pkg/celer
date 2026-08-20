@@ -1,0 +1,522 @@
+// Copyright (C) 2014 NVIDIA Corporation.
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#ifndef SHADOW_MAPPING_GLSLLIB
+#define SHADOW_MAPPING_GLSLLIB
+
+#ifdef QQ3D_SHADER_META
+/*{
+    "uniforms": [
+        { "type": "sampler2DArray", "name": "qt_shadowmap_texture" },
+        { "type": "sampler2D", "name": "qt_shadowmap_blue_noise_texture" }
+    ]
+}*/
+#endif // QQ3D_SHADER_META
+
+// POISSON_SAMPLES - // https://github.com/bartwronski/PoissonSamplingGenerator
+// CUBEMAP_SAMPLE_DIRECTIONS - https://github.com/matt77hias/fibpy
+
+#if QSSG_SHADOW_SOFTNESS == 4
+const vec2 POISSON_SAMPLES[4] = {
+    vec2( 0.23640461642415603f, -0.7455790794965167f ),
+    vec2( -0.524523693183717f, 0.8360051250157925f ),
+    vec2( -0.8303867012956179f, -0.22100142699203368f ),
+    vec2( 0.8316259303685443f, 0.3983087509528287f )
+};
+const vec3 CUBEMAP_SAMPLE_DIRECTIONS[4] = {
+    vec3(-0.4877236689784852, 0.44679483291345823, -0.75),
+    vec3(0.08464959396472493, -0.9645384628108966, -0.25),
+    vec3(0.5891183939391361, 0.7684006233226082, 0.25),
+    vec3(0.6614378277661477, 0.0, 0.75)
+};
+#elif QSSG_SHADOW_SOFTNESS == 8
+const vec2 POISSON_SAMPLES[8] = {
+    vec2( -0.0874674259750227f, -0.7211290298533339f ),
+    vec2( 0.12554010991848777f, 0.969408902746625f ),
+    vec2( 0.9267513490906857f, -0.24897870637254021f ),
+    vec2( -0.9054894676343846f, 0.34600599115357455f ),
+    vec2( -0.8178505628144991f, -0.40138762250327864f ),
+    vec2( 0.10942236848429054f, 0.07217625956749806f ),
+    vec2( 0.861975194360118f, 0.4425266420410188f ),
+    vec2( -0.33944946656315295f, 0.5509253616181038f )
+};
+const vec3 CUBEMAP_SAMPLE_DIRECTIONS[8] = {
+    vec3(-0.3569771731011225, 0.32702033252495366, -0.875),
+    vec3(0.06824668448324298, -0.7776357695329124, -0.625),
+    vec3(0.5640379200352061, 0.7356875863859321, -0.375),
+    vec3(-0.9769901230486042, -0.17281579634244423, -0.125),
+    vec3(0.8371375040503463, -0.5325183558454643, 0.125),
+    vec3(-0.2406596316567426, 0.8952418341938904, 0.375),
+    vec3(-0.359795430847844, -0.6927642080398022, 0.625),
+    vec3(0.4841229182759271, 0.0, 0.875)
+};
+#elif QSSG_SHADOW_SOFTNESS == 16
+const vec2 POISSON_SAMPLES[16] = {
+    vec2( -0.8706486263306604f, 0.29306121613135f ),
+    vec2( 0.9133375480173374f, 0.15086697583928435f ),
+    vec2( 0.02197503960070916f, -0.9340974876813268f ),
+    vec2( -0.026143912634373823f, 0.2642260889014032f ),
+    vec2( -0.5793670131538275f, -0.5167505662963623f ),
+    vec2( -0.23053981430283804f, 0.8077614627936293f ),
+    vec2( 0.39960043495074177f, -0.2045760409607943f ),
+    vec2( 0.5809502755699385f, 0.7696930884669377f ),
+    vec2( 0.6096170857392385f, -0.791637809856054f ),
+    vec2( -0.4788580330837991f, 0.3668196169738974f ),
+    vec2( -0.5400324102392389f, -0.1135665329722174f ),
+    vec2( -0.032606987036329485f, -0.30546143641964013f ),
+    vec2( 0.41507180983866865f, 0.23290979538051837f ),
+    vec2( -0.39037522026642774f, -0.8645330401408355f ),
+    vec2( 0.2285381977385323f, 0.7940269386679456f ),
+    vec2( 0.8696012264365776f, -0.33202273416645656f )
+};
+const vec3 CUBEMAP_SAMPLE_DIRECTIONS[16] = {
+    vec3(-0.2565935101015265, 0.2350606742391798, -0.9375),
+    vec3(0.05096580458913004, -0.5807290562410173, -0.8125),
+    vec3(0.44183879545435206, 0.5763004674919561, -0.6875),
+    vec3(-0.8141584358738368, -0.1440131636187035, -0.5625),
+    vec3(0.758720295154371, -0.4826357464184188, -0.4375),
+    vec3(-0.24660273969406132, 0.9173498998612161, -0.3125),
+    vec3(-0.45273265557802134, -0.8717091788969947, -0.1875),
+    vec3(0.9374848892962336, 0.3423679779728655, -0.0625),
+    vec3(-0.9225384272223549, 0.3808104519286515, 0.0625),
+    vec3(0.4163289179926954, -0.8896707155139094, 0.1875),
+    vec3(0.28429505799735505, 0.9063774434518329, 0.3125),
+    vec3(-0.7780138488858889, -0.4508749282692101, 0.4375),
+    vec3(0.8075128776755531, -0.17752944090529632, 0.5625),
+    vec3(-0.4176500064322479, 0.5940641565749807, 0.6875),
+    vec3(-0.07491674475807025, -0.5781273487345623, 0.8125),
+    vec3(0.34798527267687634, 0.0, 0.9375)
+};
+#endif
+
+ShadowResult fullyVisible() {
+    ShadowResult result;
+    result.illumination = 1.0f;
+    result.isLit = true;
+    return result;
+}
+
+ShadowResult normalizedShadowResult(float illumination, float factor) {
+    ShadowResult result;
+    float normalizedFactor = clamp(factor, 0, 100) * 0.01;
+    result.illumination = min(1.0, 1.0 - normalizedFactor * (1.0 - illumination));
+    result.isLit = illumination > 0.0f;
+    return result;
+}
+
+// Directional
+int findSplitIndex(in float depth, in vec4 splits, in vec4 splitActive, in uint numSplits) {
+    // Create comparison vector - 1.0 if depth < split, 0.0 otherwise
+    vec4 depthVec = vec4(depth);
+    vec4 lessThan = step(depthVec, splits);
+
+    // Mask by active splits
+    vec4 valid = lessThan * splitActive;
+
+    // Find first valid split using cascading mix operations
+    // Work with floats to avoid needing GL_EXT_shader_integer_mix
+    float result = -1.0;
+
+    // Check each split in order, only updating result if current split is valid
+    // and no previous split was valid
+    float notFoundYet = 1.0;
+
+    result = mix(result, 0.0, valid.x * notFoundYet);
+    notFoundYet *= (1.0 - valid.x);
+
+    result = mix(result, 1.0, valid.y * notFoundYet);
+    notFoundYet *= (1.0 - valid.y);
+
+    result = mix(result, 2.0, valid.z * notFoundYet);
+    notFoundYet *= (1.0 - valid.z);
+
+    result = mix(result, 3.0, valid.w * notFoundYet);
+
+    return int(result);
+}
+#if QSSG_SHADOW_SOFTNESS > 0
+
+#define BLUE_NOISE_TEXTURE_SIZE 64.0
+
+mat2 randomRotation2D(in vec2 pixelPos)
+{
+    vec2 blueNoiseUV = pixelPos / BLUE_NOISE_TEXTURE_SIZE;
+
+    // Sample precomputed cos/sin theta & phi from RGBA
+    vec4 noiseSample = texture(qt_shadowmap_blue_noise_texture, blueNoiseUV);
+
+    // Convert from [0,1] to [-1,1]
+    float cosTheta = noiseSample.r * 2.0 - 1.0;
+    float sinTheta = noiseSample.g * 2.0 - 1.0;
+
+    return mat2(cosTheta, -sinTheta, sinTheta, cosTheta);
+}
+
+mat3 randomRotation3D(in vec2 pixelPos) {
+    vec2 blueNoiseUV = pixelPos / BLUE_NOISE_TEXTURE_SIZE;
+
+    // Sample precomputed cos/sin theta & phi from RGBA
+    vec4 noiseSample = texture(qt_shadowmap_blue_noise_texture, blueNoiseUV);
+
+    // Convert from [0,1] to [-1,1]
+    float cosTheta = noiseSample.r * 2.0 - 1.0;
+    float sinTheta = noiseSample.g * 2.0 - 1.0;
+    float cosPhi   = noiseSample.b * 2.0 - 1.0;
+    float sinPhi   = noiseSample.a * 2.0 - 1.0;
+
+    // Build rotation matrix for Poisson disk sampling
+    return mat3(vec3(cosTheta * cosPhi, -sinTheta, cosTheta * sinPhi),
+                vec3(sinTheta * cosPhi, cosTheta , sinTheta * sinPhi),
+                vec3(-sinPhi          , 0.0      , cosPhi));
+}
+
+// Core directional light sampling function
+ShadowResult qt_sampleDirectionalLight_splitIndex(
+        in int splitIndex,
+        in float shadowBias,
+        in float shadowFactor,
+        in vec3 dimensionsInverted,
+        in float pcfFactor,
+        in uint numSamples,
+        in vec4 projCoord,
+        in vec3 worldPos,
+        in float layerIndex,
+        in vec2 uvAtlasOffset,
+        in float uvAtlasScale)
+{
+    vec3 smpCoord = projCoord.xyz / projCoord.w;
+
+    // Handle Y-axis flip based on RHI properties
+    float flipY = step(qt_rhi_properties.x, -0.5); // 1.0 if negative, 0.0 otherwise
+    smpCoord.y = mix(smpCoord.y, 1.0 - smpCoord.y, flipY);
+
+    // Check bounds - create a validity mask instead of early return
+    // inBounds will be 1.0 if all coordinates are valid, 0.0 otherwise
+    float inBounds = step(0.0, smpCoord.x) * step(smpCoord.x, 1.0) *
+            step(0.0, smpCoord.y) * step(smpCoord.y, 1.0) *
+            step(0.0, smpCoord.z) * step(smpCoord.z, 1.0);
+
+    // Compute illumination regardless of bounds (will be masked later)
+    float illumination = 0.0;
+    vec2 radiusUV = pcfFactor * dimensionsInverted.xy;
+    float bias = shadowBias * dimensionsInverted.z;
+    mat2 randomRotation = randomRotation2D(gl_FragCoord.xy);
+
+    // Unified loop for both PCF and hard shadows
+    // For hard shadows, numSamples should be 1 and radiusUV should be 0
+    for (uint i = 0u; i < QSSG_SHADOW_SOFTNESS; ++i) {
+        vec2 sampleOffset = randomRotation * (POISSON_SAMPLES[i] * radiusUV);
+        vec3 atlasCoord = vec3((smpCoord.xy + sampleOffset) * uvAtlasScale + uvAtlasOffset, layerIndex);
+
+        float pcfDepth = textureLod(qt_shadowmap_texture, atlasCoord, 0.0).r + bias;
+        illumination += step(smpCoord.z, pcfDepth);
+    }
+    illumination /= float(QSSG_SHADOW_SOFTNESS);
+
+    // Blend with fully visible (1.0) based on bounds check
+    // If out of bounds, illumination becomes 1.0 (fully visible)
+    illumination = mix(1.0, illumination, inBounds);
+
+    return normalizedShadowResult(illumination, shadowFactor);
+}
+
+// Main PCF sampling function with cascade blending
+ShadowResult qt_sampleDirectionalLight_pcf(in int lightIndex, in float zDepthViewSpace, in vec3 worldPos)
+{
+    const uint numSamples = ubDirectionalLights.directionalLights[lightIndex].pcfSamples;
+
+    int splitIndex = findSplitIndex(zDepthViewSpace,
+                                    ubDirectionalLights.directionalLights[lightIndex].csmSplits,
+                                    ubDirectionalLights.directionalLights[lightIndex].csmActive,
+                                    ubDirectionalLights.directionalLights[lightIndex].csmNumSplits);
+
+    // If no valid split found, return fully visible
+    // Using a mask instead of early return
+    float validSplit = step(0.0, float(splitIndex)); // 1.0 if splitIndex >= 0, 0.0 otherwise
+
+    // Get current split shadow data
+    vec4 projCoord = ubDirectionalLights.directionalLights[lightIndex].matrices[splitIndex] * vec4(worldPos, 1.0);
+    vec3 dimensions = ubDirectionalLights.directionalLights[lightIndex].dimensionsInverted[splitIndex].xyz;
+    vec4 shadowAtlasInfo = ubDirectionalLights.directionalLights[lightIndex].atlasLocations[splitIndex];
+    float layerIndex = shadowAtlasInfo.w;
+    vec2 uvAtlasOffset = shadowAtlasInfo.xy;
+    float uvAtlasScale = shadowAtlasInfo.z;
+
+    ShadowResult shadow = qt_sampleDirectionalLight_splitIndex(splitIndex,
+                                                               ubDirectionalLights.directionalLights[lightIndex].shadowBias,
+                                                               ubDirectionalLights.directionalLights[lightIndex].shadowFactor,
+                                                               dimensions,
+                                                               ubDirectionalLights.directionalLights[lightIndex].pcfFactor,
+                                                               numSamples,
+                                                               projCoord,
+                                                               worldPos,
+                                                               layerIndex,
+                                                               uvAtlasOffset,
+                                                               uvAtlasScale);
+
+    // Cascade blending for smooth transitions
+    // Only blend if we're in split 1, 2, or 3 (not split 0)
+    float shouldBlend = step(1.0, float(splitIndex)); // 1.0 if splitIndex >= 1
+
+    float splitPrev = ubDirectionalLights.directionalLights[lightIndex].csmSplits[max(splitIndex - 1, 0)];
+    float bandLength = ubDirectionalLights.directionalLights[lightIndex].shadowMapFar *
+            ubDirectionalLights.directionalLights[lightIndex].csmBlendRatio;
+
+    // Check if we're in the blend region
+    float inBlendRegion = step(zDepthViewSpace, splitPrev + bandLength);
+    float prevSplitActive = ubDirectionalLights.directionalLights[lightIndex].csmActive[max(splitIndex - 1, 0)];
+
+    // Combined blend condition: should blend AND in blend region AND previous split is active
+    float doBlend = shouldBlend * inBlendRegion * prevSplitActive;
+
+    // Compute previous split shadow (will be ignored if doBlend is 0.0)
+    vec4 shadowAtlasInfoPrev = ubDirectionalLights.directionalLights[lightIndex].atlasLocations[max(splitIndex - 1, 0)];
+    float layerIndexPrev = shadowAtlasInfoPrev.w;
+    vec2 uvAtlasOffsetPrev = shadowAtlasInfoPrev.xy;
+    float uvAtlasScalePrev = shadowAtlasInfoPrev.z;
+
+    vec4 projCoordPrev = ubDirectionalLights.directionalLights[lightIndex].matrices[max(splitIndex - 1, 0)] * vec4(worldPos, 1.0);
+    vec3 dimensionsPrev = ubDirectionalLights.directionalLights[lightIndex].dimensionsInverted[max(splitIndex - 1, 0)].xyz;
+
+    ShadowResult shadowPrev = qt_sampleDirectionalLight_splitIndex(max(splitIndex - 1, 0),
+                                                                   ubDirectionalLights.directionalLights[lightIndex].shadowBias,
+                                                                   ubDirectionalLights.directionalLights[lightIndex].shadowFactor,
+                                                                   dimensionsPrev,
+                                                                   ubDirectionalLights.directionalLights[lightIndex].pcfFactor,
+                                                                   numSamples,
+                                                                   projCoordPrev,
+                                                                   worldPos,
+                                                                   layerIndexPrev,
+                                                                   uvAtlasOffsetPrev,
+                                                                   uvAtlasScalePrev);
+
+    // Compute blend factor
+    float t = clamp((splitPrev + bandLength - zDepthViewSpace) / max(bandLength, 1e-6), 0.0, 1.0);
+
+    // Apply blending only if doBlend is active
+    float blendedIllumination = mix(shadow.illumination, shadowPrev.illumination, t);
+    shadow.illumination = mix(shadow.illumination, blendedIllumination, doBlend);
+
+    // Blend final result with fully visible based on validSplit mask
+    shadow.illumination = mix(1.0, shadow.illumination, validSplit);
+
+    // Handle isLit separately (can't use mix with bool)
+    if (validSplit < 0.5)
+        shadow.isLit = true;
+
+    return shadow;
+}
+#else // aka QSSG_SHADOW_SOFTNESS == 0
+// Hard shadow variant (no PCF)
+ShadowResult qt_sampleDirectionalLight_hard(in int lightIndex, in float zDepthViewSpace, in vec3 worldPos)
+{
+    // Check if beyond last split
+    float beyondLastSplit = step(ubDirectionalLights.directionalLights[lightIndex].csmSplits[3], zDepthViewSpace);
+
+    int splitIndex = findSplitIndex(zDepthViewSpace,
+                                    ubDirectionalLights.directionalLights[lightIndex].csmSplits,
+                                    ubDirectionalLights.directionalLights[lightIndex].csmActive,
+                                    ubDirectionalLights.directionalLights[lightIndex].csmNumSplits);
+
+    float validSplit = step(0.0, float(splitIndex)); // 1.0 if splitIndex >= 0
+    float shouldCompute = validSplit * (1.0 - beyondLastSplit);
+
+    vec4 projCoord = ubDirectionalLights.directionalLights[lightIndex].matrices[max(splitIndex, 0)] * vec4(worldPos, 1.0);
+    vec3 smpCoord = projCoord.xyz / projCoord.w;
+
+    float flipY = step(qt_rhi_properties.x, -0.5);
+    smpCoord.y = mix(smpCoord.y, 1.0 - smpCoord.y, flipY);
+
+    vec4 shadowAtlasInfo = ubDirectionalLights.directionalLights[lightIndex].atlasLocations[max(splitIndex, 0)];
+    float layerIndex = shadowAtlasInfo.w;
+    vec2 uvAtlasOffset = shadowAtlasInfo.xy;
+    float uvAtlasScale = shadowAtlasInfo.z;
+
+    float depth = texture(qt_shadowmap_texture, vec3(smpCoord.xy * uvAtlasScale + uvAtlasOffset, layerIndex)).x +
+                          ubDirectionalLights.directionalLights[lightIndex].shadowBias *
+                          ubDirectionalLights.directionalLights[lightIndex].dimensionsInverted[max(splitIndex, 0)].z;
+
+    float illumination = step(smpCoord.z, depth);
+
+    // If not valid split or beyond last split, return fully visible
+    illumination = mix(1.0, illumination, shouldCompute);
+
+    return normalizedShadowResult(illumination, ubDirectionalLights.directionalLights[lightIndex].shadowFactor);
+}
+#endif //#if QSSG_SHADOW_SOFTNESS > 0
+
+// Main entry point for directional shadow sampling
+ShadowResult qt_sampleDirectionalShadowMap(in int lightIndex, in float zDepthViewSpace, in vec3 worldPos)
+{
+#if QSSG_SHADOW_SOFTNESS == 0
+    return qt_sampleDirectionalLight_hard(lightIndex, zDepthViewSpace, worldPos);
+#else
+    return qt_sampleDirectionalLight_pcf(lightIndex, zDepthViewSpace, worldPos);
+#endif
+}
+
+// Point Lights
+ShadowResult qt_samplePointLight(in int lightIndex, in vec3 worldPos) {
+    const vec3 lightPosition = ubLights.lights[lightIndex].position;
+    const vec3 L = worldPos - lightPosition;
+    const float dist = length(L);
+
+    const float nearZ = ubLights.lights[lightIndex].clipNear;
+    const float farZ = ubLights.lights[lightIndex].shadowMapFar;
+    const float mapSizeInv = 1.0 / (farZ - nearZ);
+    const float bias = ubLights.lights[lightIndex].shadowBias * mapSizeInv;
+
+    const uint numSamples = ubLights.lights[lightIndex].pcfSamples;
+    const float uvAtlasScale = ubLights.lights[lightIndex].shadowTextureSize;
+
+    // Center direction and hemisphere selection (needed for both modes)
+    vec3 d = (dist > 0.0) ? (L / dist) : vec3(0.0, 0.0, 1.0);
+    float forward = step(0.0, d.z);
+
+    float denom = mix(1.0 - d.z, 1.0 + d.z, forward);
+    denom = max(denom, 1e-8);
+
+    float u = 0.5 * (d.x / denom + 1.0);
+    float v = 0.5 * (d.y / denom + 1.0);
+
+    float flipY = step(qt_rhi_properties.y, 0.5);
+    v = mix(v, 1.0 - v, flipY);
+
+    float layer = mix(ubLights.lights[lightIndex].shadowAtlasLayer1,
+                      ubLights.lights[lightIndex].shadowAtlasLayer0,
+                      forward);
+    vec2 uvAtlasOffset = mix(ubLights.lights[lightIndex].shadowAtlasUV1,
+                             ubLights.lights[lightIndex].shadowAtlasUV0,
+                             forward);
+
+    float illumination;
+
+#if QSSG_SHADOW_SOFTNESS > 0
+    // PCF mode: multiple samples with bias subtracted from current depth
+    float currentDepth = clamp((dist - nearZ) / (farZ - nearZ), 0.0, 1.0) - bias;
+    const float pcfRadius = ubLights.lights[lightIndex].pcfFactor;
+    float shadowAccumulator = 0.0;
+    mat3 randomRotation = randomRotation3D(gl_FragCoord.xy);
+
+    for (uint i = 0u; i < QSSG_SHADOW_SOFTNESS; ++i) {
+        vec3 offsetDir = randomRotation * CUBEMAP_SAMPLE_DIRECTIONS[i] * pcfRadius;
+        vec3 worldPosPCF = worldPos + offsetDir;
+
+        vec3 Lpcf = worldPosPCF - lightPosition;
+        float distPCF = length(Lpcf);
+        vec3 dPCF = (distPCF > 0.0) ? (Lpcf / distPCF) : vec3(0.0, 0.0, 1.0);
+
+        float forwardPCF = step(0.0, dPCF.z);
+        float layerPCF = mix(ubLights.lights[lightIndex].shadowAtlasLayer1,
+                             ubLights.lights[lightIndex].shadowAtlasLayer0,
+                             forwardPCF);
+        vec2 uvOffPCF = mix(ubLights.lights[lightIndex].shadowAtlasUV1,
+                            ubLights.lights[lightIndex].shadowAtlasUV0,
+                            forwardPCF);
+
+        float denomPCF = mix(1.0 - dPCF.z, 1.0 + dPCF.z, forwardPCF);
+        denomPCF = max(denomPCF, 1e-8);
+
+        float uPCF = 0.5 * (dPCF.x / denomPCF + 1.0);
+        float vPCF = 0.5 * (dPCF.y / denomPCF + 1.0);
+        vPCF = mix(vPCF, 1.0 - vPCF, flipY);
+
+        vec2 uvPCF = vec2(uPCF, vPCF) * uvAtlasScale + uvOffPCF;
+        float storedDepth = textureLod(qt_shadowmap_texture, vec3(uvPCF, layerPCF), 0.0).r;
+
+        shadowAccumulator += step(currentDepth, storedDepth);
+    }
+
+    illumination = shadowAccumulator / float(QSSG_SHADOW_SOFTNESS);
+#else
+    // Hard shadow: single sample with bias added to stored depth
+    const float currentDepth = clamp((dist - nearZ) / (farZ - nearZ), 0.0, 1.0);
+    vec2 uvCoords = vec2(u, v) * uvAtlasScale + uvAtlasOffset;
+
+    float storedDepth = textureLod(qt_shadowmap_texture, vec3(uvCoords, layer), 0.0).r;
+    illumination = step(currentDepth, storedDepth + bias);
+#endif
+
+    return normalizedShadowResult(illumination, ubLights.lights[lightIndex].shadowFactor);
+}
+
+// Spot Lights
+ShadowResult qt_sampleSpotLight(in int lightIndex, in vec3 worldPos)
+{
+    // Early cone test - this is often coherent so the branch is beneficial
+    vec3 dir = worldPos - ubLights.lights[lightIndex].position;
+    vec3 Ldir = normalize(dir);
+    float lightAngle = dot(Ldir, normalize(ubLights.lights[lightIndex].direction));
+
+    if (lightAngle < ubLights.lights[lightIndex].coneAngle)
+        return fullyVisible();
+
+    // Depth setup
+    float dist = length(dir);
+    float nearZ = ubLights.lights[lightIndex].clipNear;
+    float farZ = ubLights.lights[lightIndex].shadowMapFar;
+    float mapSizeInv = 1.0 / (farZ - nearZ);
+    float bias = ubLights.lights[lightIndex].shadowBias * mapSizeInv;
+
+    // Shadow atlas params
+    float layerIndex = ubLights.lights[lightIndex].shadowAtlasLayer0;
+    vec2 uvAtlasOffset = ubLights.lights[lightIndex].shadowAtlasUV0;
+    float uvAtlasScale = ubLights.lights[lightIndex].shadowTextureSize;
+
+    uint numSamples = ubLights.lights[lightIndex].pcfSamples;
+
+    // Center projection (needed for both modes)
+    vec4 projCoord = ubLights.lights[lightIndex].shadowMatrix * vec4(worldPos, 1.0);
+    vec3 smpCoord = projCoord.xyz / projCoord.w;
+
+    float flipY = step(qt_rhi_properties.x, -0.5);
+    smpCoord.y = mix(smpCoord.y, 1.0 - smpCoord.y, flipY);
+
+    float illumination;
+
+#if QSSG_SHADOW_SOFTNESS > 0
+    // PCF mode: multiple samples
+    float currentDepth = clamp((dist - nearZ) / (farZ - nearZ), 0.0, 1.0) - bias;
+    float pcfRadius = ubLights.lights[lightIndex].pcfFactor;
+    float accum = 0.0;
+    mat3 randomRotation = randomRotation3D(gl_FragCoord.xy);
+
+    for (uint i = 0u; i < QSSG_SHADOW_SOFTNESS; ++i) {
+        vec3 offsetDir = randomRotation * CUBEMAP_SAMPLE_DIRECTIONS[i] * pcfRadius;
+        vec3 worldPosPCF = worldPos + offsetDir;
+
+        vec4 projPCF = ubLights.lights[lightIndex].shadowMatrix * vec4(worldPosPCF, 1.0);
+        vec3 smpPCF = projPCF.xyz / projPCF.w;
+        smpPCF.y = mix(smpPCF.y, 1.0 - smpPCF.y, flipY);
+
+        vec2 uvPCF = smpPCF.xy * uvAtlasScale + uvAtlasOffset;
+        float storedDepth = textureLod(qt_shadowmap_texture, vec3(uvPCF, layerIndex), 0.0).r;
+
+        accum += step(currentDepth, storedDepth);
+    }
+
+    illumination = accum / float(QSSG_SHADOW_SOFTNESS);
+#else
+    // Hard shadow: single sample
+    float currentDepth = clamp((dist - nearZ) / (farZ - nearZ), 0.0, 1.0);
+    vec2 uv = smpCoord.xy * uvAtlasScale + uvAtlasOffset;
+
+    float storedDepth = textureLod(qt_shadowmap_texture, vec3(uv, layerIndex), 0.0).r;
+    illumination = step(currentDepth, storedDepth + bias);
+#endif
+
+    return normalizedShadowResult(illumination, ubLights.lights[lightIndex].shadowFactor);
+}
+
+ShadowResult qt_sampleLightShadowMap(in int lightIndex, in vec3 worldPos)
+{
+    if (ubLights.lights[lightIndex].coneAngle > 180.0) {
+        // Point
+        return qt_samplePointLight(lightIndex, worldPos);
+    } else {
+        return qt_sampleSpotLight(lightIndex, worldPos);
+    }
+}
+
+#endif

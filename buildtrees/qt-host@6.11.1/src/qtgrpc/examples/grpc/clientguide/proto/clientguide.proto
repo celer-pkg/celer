@@ -1,0 +1,24 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+
+//! [0]
+syntax = "proto3";
+package client.guide; // enclosing namespace
+
+message Request {
+    int64 time = 1;
+    sint32 num = 2;
+}
+
+message Response {
+    int64 time = 1;
+    sint32 num = 2;
+}
+
+service ClientGuideService {
+    rpc UnaryCall (Request) returns (Response);
+    rpc ServerStreaming (Request) returns (stream Response);
+    rpc ClientStreaming (stream Request) returns (Response);
+    rpc BidirectionalStreaming (stream Request) returns (stream Response);
+}
+//! [0]

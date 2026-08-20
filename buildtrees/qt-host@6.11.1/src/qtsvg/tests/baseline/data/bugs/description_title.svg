@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+     xmlns:svg="http://www.w3.org/2000/svg"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="500.0"
+     height="100.0"
+     version="1.1">
+     <text style="font-size:50px" x="25.0" y="50.0">
+         <desc>desc text</desc>
+         <title>title text</title>
+         <tspan style="font-size:25px;">svg text</tspan>
+     </text>
+</svg>

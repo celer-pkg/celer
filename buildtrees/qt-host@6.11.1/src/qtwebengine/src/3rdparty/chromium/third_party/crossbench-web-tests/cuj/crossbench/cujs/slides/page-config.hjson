@@ -1,0 +1,64 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  args: {
+    CLICK_INPUT_SOURCE: touch
+    ARIA_DISABLED: ""
+  }
+  template: {
+    pages: {
+      SLIDES-CUJ: {
+        login: google
+        blocks: {
+          copy-slides: ./action-blocks/copy-slides.hjson
+          scroll: ./action-blocks/scroll-slides.hjson
+          find-text: {
+            args: {
+              // the text will be selected on the page 25, for example, there is testSlide on the page 25
+              // please make sure it is one word,because slide may split one sentence into different text tags.
+              SELECTED_TEXT: testSlide25
+            }
+            unbound_args: [
+              CLICK_INPUT_SOURCE
+            ]
+            template: [
+              {
+                action: click
+                position: {
+                  selector: xpath///*[local-name()='g' and @class='punch-filmstrip-thumbnail']//*[local-name()='text' and text()='25']
+                  wait: true
+                  scroll_into_view: true
+                }
+                verify: xpath///div[@id='pages']//*[local-name()='text' and text()[contains(.,'$[SELECTED_TEXT]')]]
+                source: $[CLICK_INPUT_SOURCE]
+              }
+              {
+                action: js
+                path: ./action-blocks/scripts/observe-selected-text.js
+                replacements: {
+                  SELECTED_TEXT: $[SELECTED_TEXT]
+                }
+              }
+              {
+                action: click
+                selector: xpath///div[@id='pages']//*[local-name()='text' and text()[contains(.,'$[SELECTED_TEXT]')]]
+                source: $[CLICK_INPUT_SOURCE]
+              }
+            ]
+          }
+          comment: {
+            template: ../../common-action-blocks/workspace/make-comment.hjson
+            args: {
+              COMMENT_TEXT: Prototyping Presentation - The best marketing tool for your business!
+            }
+            unbound_args: [
+              CLICK_INPUT_SOURCE
+            ]
+          }
+          cleanup: ../../common-action-blocks/workspace/cleanup-doc.hjson
+        }
+      }
+    }
+  }
+}

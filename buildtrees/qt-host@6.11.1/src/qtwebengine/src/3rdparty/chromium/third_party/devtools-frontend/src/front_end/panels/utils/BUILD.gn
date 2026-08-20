@@ -1,0 +1,47 @@
+# Copyright 2020 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("../../../scripts/build/ninja/devtools_entrypoint.gni")
+import("../../../scripts/build/typescript/typescript.gni")
+import("../visibility.gni")
+
+devtools_entrypoint("bundle") {
+  entrypoint = "utils.ts"
+
+  deps = [
+    "../../core/common:bundle",
+    "../../core/sdk:bundle",
+    "../../models/formatter:bundle",
+    "../../models/persistence:bundle",
+    "../../models/workspace:bundle",
+    "../../ui/components/diff_view:bundle",
+    "../../ui/components/icon_button:bundle",
+    "../../ui/legacy:bundle",
+    "../snippets:bundle",
+  ]
+
+  visibility = [
+    "../*",
+    "../../models/ai_assistance:ai_assistance",
+  ]
+
+  visibility += devtools_panels_visibility
+}
+
+ts_library("unittests") {
+  testonly = true
+
+  sources = [ "utils.test.ts" ]
+
+  deps = [
+    ":bundle",
+    "../../core/common:bundle",
+    "../../core/platform:bundle",
+    "../../core/sdk:bundle",
+    "../../generated:protocol",
+    "../../models/text_utils:bundle",
+    "../../testing",
+    "../../third_party/diff:bundle",
+  ]
+}

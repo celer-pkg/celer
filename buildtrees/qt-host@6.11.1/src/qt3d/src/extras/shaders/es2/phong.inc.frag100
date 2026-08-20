@@ -1,0 +1,103 @@
+// Copyright (C) 2017 Klaralvdalens Datakonsult AB (KDAB).
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+
+#pragma include light.inc.frag
+
+void adsModel(const in FP vec3 vpos, const in FP vec3 vnormal, const in FP vec3 vview, const in FP float shininess,
+              out FP vec3 ambientColor,
+              out FP vec3 diffuseColor, out FP vec3 specularColor)
+{
+    ambientColor = vec3(0.0);
+    diffuseColor = vec3(0.0);
+    specularColor = vec3(0.0);
+
+    FP vec3 n = normalize( vnormal );
+
+    // 0
+    if (lightCount < 1)
+        return;
+    FP vec3 s;
+    FP float att = 1.0;
+    if ( lights[0].type != TYPE_DIRECTIONAL ) {
+        s = lights[0].position - vpos;
+        if (lights[0].constantAttenuation != 0.0
+          || lights[0].linearAttenuation != 0.0
+          || lights[0].quadraticAttenuation != 0.0) {
+            FP float dist = length(s);
+            att = 1.0 / (lights[0].constantAttenuation + lights[0].linearAttenuation * dist + lights[0].quadraticAttenuation * dist * dist);
+        }
+        s = normalize( s );
+        if ( lights[0].type == TYPE_SPOT ) {
+            if ( degrees(acos(dot(-s, normalize(lights[0].direction))) ) > lights[0].cutOffAngle)
+                att = 0.0;
+        }
+    } else {
+        s = normalize( -lights[0].direction );
+    }
+
+    FP float diffuse = max( dot( s, n ), 0.0 );
+
+    FP float specular = 0.0;
+    if (diffuse > 0.0 && shininess > 0.0 && att > 0.0) {
+        FP vec3 r = reflect( -s, n );
+        FP float normFactor = ( shininess + 2.0 ) / 2.0;
+        specular = normFactor * pow( max( dot( r, vview ), 0.0 ), shininess );
+    }
+
+    diffuseColor += att * lights[0].intensity * diffuse * lights[0].color;
+    specularColor += att * specular;
+
+    // 1
+    if (lightCount < 2)
+        return;
+    att = 1.0;
+    if ( lights[1].type != TYPE_DIRECTIONAL ) {
+        s = lights[1].position - vpos;
+        if (lights[1].constantAttenuation != 0.0
+          || lights[1].linearAttenuation != 0.0
+          || lights[1].quadraticAttenuation != 0.0) {
+            FP float dist = length(s);
+            att = 1.0 / (lights[1].constantAttenuation + lights[1].linearAttenuation * dist + lights[1].quadraticAttenuation * dist * dist);
+        }
+        s = normalize( s );
+        if ( lights[1].type == TYPE_SPOT ) {
+            if ( degrees(acos(dot(-s, normalize(lights[1].direction))) ) > lights[1].cutOffAngle)
+                att = 0.0;
+        }
+    } else {
+        s = normalize( -lights[1].direction );
+    }
+
+    diffuse = max( dot( s, n ), 0.0 );
+
+    specular = 0.0;
+    if (diffuse > 0.0 && shininess > 0.0 && att > 0.0) {
+        FP vec3 r = reflect( -s, n );
+        FP float normFactor = ( shininess + 2.0 ) / 2.0;
+        specular = normFactor * pow( max( dot( r, vview ), 0.0 ), shininess );
+    }
+
+    ambientColor += att * lights[1].intensity * 1.0 * lights[1].color;
+    diffuseColor += att * lights[1].intensity * diffuse * lights[1].color;
+    specularColor += att * specular;
+}
+
+FP vec4 phongFunction(const in FP vec4 ambient,
+                      const in FP vec4 diffuse,
+                      const in FP vec4 specular,
+                      const in FP float shininess,
+                      const in FP vec3 worldPosition,
+                      const in FP vec3 worldView,
+                      const in FP vec3 worldNormal)
+{
+    // Calculate the lighting model, keeping the specular component separate
+    FP vec3 ambientColor, diffuseColor, specularColor;
+    adsModel(worldPosition, worldNormal, worldView, shininess, ambientColor, diffuseColor, specularColor);
+
+    // Combine ambient, diffuse and specular components for final fragment color
+    FP vec3 color = ambientColor * ambient.rgb
+                  + diffuseColor * diffuse.rgb
+                  + specularColor * specular.rgb;
+
+    return vec4(color, diffuse.a);
+}

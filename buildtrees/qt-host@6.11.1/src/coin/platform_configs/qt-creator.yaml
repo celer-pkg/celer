@@ -1,0 +1,74 @@
+Version: 2
+Module only: True
+Configurations:
+-
+    Template: 'qtci-windows-11_24H2-x86_64-71'
+    Compiler: 'MSVC2022'
+    Features: ['Sccache', 'DebugAndRelease']
+    Configure arguments: ''
+    Environment variables: []
+    Environment script: ['%ProgramFiles%\Microsoft Visual Studio\2022\Professional\VC\Auxiliary\Build\vcvarsall.bat', 'amd64']
+-
+    Template: 'qtci-linux-RHEL-9.6-x86_64-51'
+    Compiler: 'GCC'
+    Features: ['Sccache', 'DebugAndRelease']
+    Configure arguments: ''
+    Environment variables: []
+-
+    Template: 'qtci-linux-Ubuntu-24.04-aarch64-52'
+    Compiler: 'GCC'
+    Features: ['Sccache', 'DebugAndRelease']
+    Configure arguments: ''
+    Environment variables: []
+-
+    Template: 'qtci-macos-15-arm-104'
+    Compiler: 'Clang'
+    Features: ['Sccache', 'DebugAndRelease']
+    Configure arguments: ''
+    Environment variables: []
+# without tests
+-
+    Template: 'qtci-windows-11_24H2-x86_64-71'
+    Compiler: 'MSVC2022'
+    Features: ['Sccache', 'DebugAndRelease', 'DisableTests']
+    Configure arguments: ''
+    Environment variables: []
+    Environment script: ['%ProgramFiles%\Microsoft Visual Studio\2022\Professional\VC\Auxiliary\Build\vcvarsall.bat', 'amd64']
+# oldest Qt version
+-
+    Template: 'qtci-windows-11_24H2-x86_64-71'
+    Compiler: 'MSVC2022'
+    Features: ['Sccache', 'DebugAndRelease', 'OldestQt']
+    Configure arguments: ''
+    Environment variables: []
+    Environment script: ['%ProgramFiles%\Microsoft Visual Studio\2022\Professional\VC\Auxiliary\Build\vcvarsall.bat', 'amd64']
+-
+    Template: 'qtci-linux-RHEL-9.6-x86_64-51'
+    Compiler: 'GCC'
+    Features: ['Sccache', 'DebugAndRelease', 'OldestQt']
+    Configure arguments: ''
+    Environment variables: []
+-
+    Template: 'qtci-linux-RHEL-8.10-x86_64-51'
+    Compiler: 'GCC'
+    Features: ['Sccache', 'DebugAndRelease', 'OldestQt', 'QtC18AndEarlier']
+    Configure arguments: ''
+    Environment variables: []
+-
+    Template: 'qtci-macos-15-arm-104'
+    Compiler: 'Clang'
+    Features: ['Sccache', 'DebugAndRelease', 'OldestQt']
+    Configure arguments: ''
+    Environment variables: []
+# Tests GCC 11
+-
+    Template: 'qtci-linux-Ubuntu-22.04-x86_64-51'
+    Compiler: 'GCC'
+    Features: ['Sccache', 'DebugAndRelease', 'OldestQt']
+    Configure arguments: ''
+    Environment variables: []
+# license check
+-
+    Template: 'qtci-linux-Ubuntu-22.04-x86_64-51'
+    Compiler: 'GCC'
+    Features: ['TestOnly', 'LicenseCheck']

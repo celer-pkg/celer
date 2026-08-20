@@ -1,0 +1,26 @@
+include(repcclient.pri)
+include(repcserver.pri)
+include(repcmerged.pri)
+
+!isEmpty(QOBJECT_REP) {
+    qtPrepareLibExecTool(QMAKE_REPC, repc)
+
+    for (path, QT.remoteobjects.includes) {
+        REPC_INCLUDEPATH += -I $$shell_quote($$path)
+    }
+
+    qtPrepareLibExecTool(MOC_CREATE_JSON, moc)
+    moc_json.output = ${QMAKE_FILE_BASE}.json
+    moc_json.CONFIG = no_link moc_verify
+    moc_json.commands = $$MOC_CREATE_JSON -o ${QMAKE_FILE_BASE} ${QMAKE_FILE_NAME} --output-json
+    moc_json.depends = ${QMAKE_FILE_NAME}
+    moc_json.input = QOBJECT_REP
+    moc_json.variable_out = MOC_JSON
+
+    source2rep.input = MOC_JSON
+    source2rep.output = ${QMAKE_FILE_BASE}.rep
+    source2rep.commands = $$QMAKE_REPC $$REPC_INCLUDEPATH -o rep -i json ${QMAKE_FILE_NAME} ${QMAKE_FILE_OUT}
+    source2rep.depends = ${QMAKE_FILE_NAME} $$QT_TOOL.repc.binary
+    source2rep.CONFIG += target_predeps no_link
+    QMAKE_EXTRA_COMPILERS += moc_json source2rep
+}

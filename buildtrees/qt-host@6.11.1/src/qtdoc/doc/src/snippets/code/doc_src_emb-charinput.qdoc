@@ -1,0 +1,23 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [0]
+./configure -help
+//! [0]
+
+
+//! [1]
+configure -qt-kbd-linuxinput
+//! [1]
+
+
+//! [2]
+export QWS_KEYBOARD=<driver>[:<driver specific options>]
+//! [2]
+
+
+//! [3]
+export QWS_KEYBOARD="<driver>[:<driver specific options>]
+        <driver>[:<driver specific options>]
+        <driver>[:<driver specific options>]"
+//! [3]

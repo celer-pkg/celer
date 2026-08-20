@@ -1,0 +1,18 @@
+[
+    {
+        "Id": "proceduralsky",
+        "Name": "Godot Engine: ProceduralSky",
+        "QDocModule": "qtquick3d",
+        "QtUsage": "Used in the Qt Quick 3D module.",
+        "Files": "proceduralskytexturedata.cpp",
+
+        "Description": "Generates a procedural skymap.",
+        "Homepage": "https://godotengine.org/",
+        "Comment": "no relevant PURL or CPE found",
+        "License": "MIT License",
+        "LicenseId": "MIT",
+        "LicenseFile": "LICENSE.GODOT.txt",
+        "Copyright": ["Copyright (c) 2007-2022 Juan Linietsky, Ariel Manzur.",
+        "Copyright (c) 2014-2022 Godot Engine contributors"]
+    }
+]

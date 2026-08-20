@@ -1,0 +1,12 @@
+class Media
+{
+    ENUM state{Stopped, Paused, Playing}
+    PROP(QString currentTrack)
+    PROP(state playState)
+    MODEL tracks(display)
+}
+
+class OtherMedia
+{
+    MODEL tracks(display,decoration)
+}

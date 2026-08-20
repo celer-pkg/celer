@@ -1,0 +1,184 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qt-oauth2-browsersupport.html
+
+\title Qt OAuth2 Browser Support
+\ingroup explanations-networkauth
+\brief An overview of QtNetworkAuth OAuth2 browser support
+
+\section1 OAuth2 User-Agents
+
+OAuth2 \l{OAuth 2.0 Overview}{Authorization stage}
+\l{https://datatracker.ietf.org/doc/html/rfc6749#section-9}{relies on a user-agent},
+which is typically either the system browser or an embedded user-agent such as
+\l {Qt WebEngine Overview}{Qt WebEngine}.
+
+The choice between system browser and an embedded user-agent depends on several
+factors. The following describes few main considerations:
+\list
+    \li System browser may already have active logins by the user. Therefore
+        the user authentication during authorization stage may be more
+        straightforward as the existing login can be used. In contrast with
+        an embedded user-agent user typically needs to perform a new login.
+        On the other hand, leaving a login session behind in the system
+        browser may not always be desirable. System browsers may also
+        share application usage data with other parties.
+    \li System browser is typically familiar for the user, and provides a
+        familiar user experience for logging in. On the other hand, while
+        an embedded user-agent may provide less familiar look-and-feel,
+        the application developer is able to embed the login interaction
+        as part of the application window, rather than it occurring on a
+        separate browser window. Furthermore the application developer can
+        automate closing of the embedded user-agent when no longer needed.
+    \li System browsers provide familiar security visuals,
+        such as the address bar and certificate validation for the user. These
+        may not be visible on an embedded user-agent. Furthermore the system
+        browsers may better leverage security features of the underlying
+        operating system.
+    \li An embedded user-agent potentially has access to all security
+        credentials the user enters.
+    \li Not all platforms provide support for handling \c https or custom
+        uri-scheme redirect URLs (see \l {QOAuthUriSchemeReplyHandler}).
+        With these platforms an embedded user-agent can be used to work
+        around the limitation.
+    \li Including an embedded user-agent as part of the application is
+        typically a large component, increasing the storage footprint
+        of the application. On the other hand, all use cases may not have
+        a system browser available, or the application may use an embedded
+        user-agent already for other purposes.
+\endlist
+
+Given these considerations, using the system browser
+\l {https://www.rfc-editor.org/rfc/rfc8252#section-8.12}
+{is recommended for native applications}.
+But as hinted by some of the points above, there may still be valid
+use cases for using an embedded user-agent.
+
+\section2 Using System Browser
+
+Using the system browser requires opening it and navigating to the
+authorization URL configured by the application. Typical usage looks
+as follows:
+
+\snippet src_oauth_replyhandlers.cpp system-browser-usage
+
+The code connects \l {QAbstractOAuth::authorizeWithBrowser} signal and
+\l {QDesktopServices::openUrl} slot. This opens the
+system browser, where user performs the necessary authentication and
+authorization. The application or Qt libraries have no direct control over
+the system browser, and it typically remains open once the authorization is
+concluded.
+
+For further details and supported redirect URL schemes with
+system browser please see \l{OAuth 2.0 Overview},
+\l {QOAuthHttpServerReplyHandler}, and \l {QOAuthUriSchemeReplyHandler}.
+
+\section2 Using Qt WebEngine
+
+\l {Qt WebEngine Overview}{Qt WebEngine} provides a web browser engine
+to embed web content directly into the Qt application.
+
+Along with core control features, it comes with easy-to-use views
+for both QtWidgets and QtQuick applications. These views can be used
+as the user-agent in an OAuth2 authorization. \l {Qt WebEngine} is
+a large and versatile module, and the focus of this documentation
+is on using it with OAuth2 authorization.
+
+There are many ways to embed the Qt WebEngine as part of the application.
+From practical point of view the main considerations are:
+\list
+    \li QtQuick vs QtWidgets Applications. This impacts how to set up the
+        necessary integration with QtNetworkAuth classes.
+    \li Redirect URI scheme. This impacts which QtNetworkAuth reply handler
+        classes to use, and how (see \l {OAuth 2.0 Overview}).
+\endlist
+
+\section3 QtQuick and QtWidgets Applications
+
+Qt WebEngine can be used with both QtQuick and QtWidgets applications
+for OAuth2 authorization. The main difference is in how set up the
+few necessary enablers.
+
+Following illustrates a simplified \l {QWebEngineView} (QtWidget) setup.
+Error handling and any potential \l {Qt WebEngine} configuration is
+omitted for brevity.
+
+Assuming following widgets:
+\snippet src_oauth_replyhandlers_p.h webengine-widget-variables
+
+Instead of opening the system browser, we use the QWebEngineView
+to perform the authorization:
+\snippet src_oauth_replyhandlers.cpp webengine-widget-authorization-start
+
+Once the authorization is finished, we close the view:
+\snippet src_oauth_replyhandlers.cpp webengine-widget-authorization-finish
+
+For QtQuick applications the flow is in principle the same, but instead of
+\l {QWebEngineView} widget we use \l {WebEngineView} QML element:
+
+\snippet MainWindow.qml webengine-qml-view
+
+This simplified example exposes needed APIs from C++ class
+\snippet src_oauth_replyhandlers_p.h webengine-qml-control
+
+Which are then used on the QML-side for invoking \l {WebEngineView}
+to handle the authorization:
+
+\snippet MainWindow.qml webengine-qml-authorization
+
+\section3 Redirect URI Schemes
+
+The choice of redirect URI scheme (\c http, \c https, or \c custom-uri scheme)
+has an impact how to use \l {Qt WebEngine}.
+
+\section4 http Loopback URIs
+
+With \c http loopback redirect URI and QOAuthHttpServerReplyHandler
+the handling works similarly as with system browser. Qt WebEngine
+redirects the authorization to the reply handler's localhost server
+similarly as the system browser.
+
+\section4 Custom scheme URIs
+
+With custom-scheme URIs (such as \c {com.example.myqtapp:/redirect}) and
+QOAuthUriSchemeReplyHandler the flow works also similarly as with
+system browser.
+
+The main difference is that the application does not need to be configured
+similarly as the
+\l {https://developer.apple.com/ios/universal-links/}{Universal Links on iOS/macOS}
+or \l {https://developer.android.com/training/app-links}{App Links on Android},
+as described in QOAuthUriSchemeReplyHandler documentation.
+
+\snippet src_oauth_replyhandlers.cpp webengine-widgets-custom
+
+Technically this works so that \l {Qt WebEngine} calls the
+\l {QDesktopServices::openUrl()} for unhandled URI-schemes,
+whose counterpart QOAuthUriSchemeReplyHandler listens to.
+
+\section4 https URIs
+
+With \c {https} URIs and QOAuthUriSchemeReplyHandler the logic changes
+slightly. Similarly as with \l {Custom scheme URIs} the application
+doesn't need to be configured, but we need to supply the redirection
+at the end of authorization stage to the web engine.
+
+\snippet src_oauth_replyhandlers.cpp webengine-widgets-https
+
+This needs to be done because from \l {Qt WebEngine} point of view
+the redirect URL is a valid \c {https} URL, and by default will attempt to
+navigate to it.
+
+To prevent such navigation attempts and accidental authorization
+code exposure (consider the case the redirect URL domain isn't in
+your control), a more involved filtering should be used. Also the use
+of QOAuth2AuthorizationCodeFlow::PkceMethod is strongly recommended
+as it mitigates the impact of authorization code hijacking.
+
+For example:
+
+\snippet src_oauth_replyhandlers.cpp webengine-widget-https-filtering
+
+*/

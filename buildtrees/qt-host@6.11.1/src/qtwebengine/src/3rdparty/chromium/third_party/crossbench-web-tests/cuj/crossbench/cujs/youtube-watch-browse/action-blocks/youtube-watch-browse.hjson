@@ -1,0 +1,99 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  args: {
+    SCROLL_SOURCE: touch
+    SCROLL_DURATION: 0.5s
+    BASE_SCROLL_DISTANCE: 256
+  }
+  unbound_args: [
+    PAGE_URL
+    CHANGE_SCREEN_INPUT
+    RESOLUTION_TEXT
+  ]
+  template: {
+    pages: {
+      Youtube: {
+        blocks: {
+          play-video: ../../../common-action-blocks/youtube/load-and-play-video.hjson
+          open-new-window: [
+            {
+              action: get
+              url: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/bbc.html
+              target: _new_window
+              ready_state: complete
+              timeout: 2m
+            }
+          ]
+          page-scroll-1: {
+            template: ../../../common-action-blocks/basic/scroll-entire-page.hjson
+            args: {
+              SCROLL_DISTANCE: $[BASE_SCROLL_DISTANCE]
+            }
+            unbound_args: [
+              BASE_SCROLL_DISTANCE
+              SCROLL_SOURCE
+              SCROLL_DURATION
+            ]
+          }
+          page-scroll-2: {
+            template: ../../../common-action-blocks/basic/scroll-entire-page.hjson
+            args: {
+              SCROLL_DISTANCE: -$[BASE_SCROLL_DISTANCE]
+            }
+            unbound_args: [
+              BASE_SCROLL_DISTANCE
+              SCROLL_SOURCE
+              SCROLL_DURATION
+            ]
+          }
+          page-scroll-3: {
+            template: ../../../common-action-blocks/basic/scroll-entire-page.hjson
+            args: {
+              SCROLL_DISTANCE: $[BASE_SCROLL_DISTANCE]
+            }
+            unbound_args: [
+              BASE_SCROLL_DISTANCE
+              SCROLL_SOURCE
+              SCROLL_DURATION
+            ]
+          }
+          page-scroll-4: {
+            template: ../../../common-action-blocks/basic/scroll-entire-page.hjson
+            args: {
+              SCROLL_DISTANCE: -$[BASE_SCROLL_DISTANCE]
+            }
+            unbound_args: [
+              BASE_SCROLL_DISTANCE
+              SCROLL_SOURCE
+              SCROLL_DURATION
+            ]
+          }
+          page-scroll-5: {
+            template: ../../../common-action-blocks/basic/scroll-entire-page.hjson
+            args: {
+              SCROLL_DISTANCE: $[BASE_SCROLL_DISTANCE]
+            }
+            unbound_args: [
+              BASE_SCROLL_DISTANCE
+              SCROLL_SOURCE
+              SCROLL_DURATION
+            ]
+          }
+          page-scroll-6: {
+            template: ../../../common-action-blocks/basic/scroll-entire-page.hjson
+            args: {
+              SCROLL_DISTANCE: -$[BASE_SCROLL_DISTANCE]
+            }
+            unbound_args: [
+              BASE_SCROLL_DISTANCE
+              SCROLL_SOURCE
+              SCROLL_DURATION
+            ]
+          }
+        }
+      }
+    }
+  }
+}

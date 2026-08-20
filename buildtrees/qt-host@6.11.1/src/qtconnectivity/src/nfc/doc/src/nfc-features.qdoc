@@ -1,0 +1,64 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtnfc-features.html
+\title Supported NFC Features
+\ingroup connectivity-nfc
+\inmodule QtNfc
+\brief Summary of supported NFC features on different platforms.
+
+Qt NFC provides two options for reading and writing the data. These options are
+reflected in the \l {QNearFieldTarget::}{AccessMethod} enum.
+
+\list
+  \li \l {QNearFieldTarget::}{NdefAccess} - using NDEF messages via
+      \l {QNearFieldTarget::}{readNdefMessages()} and
+      \l {QNearFieldTarget::}{writeNdefMessages()}.
+  \li \l {QNearFieldTarget::}{TagTypeSpecificAccess} - sending custom commands
+      using \l {QNearFieldTarget::}{sendCommand()} and getting the results via
+      \l {QNearFieldTarget::}{requestResponse()}.
+\endlist
+
+\l {QNearFieldTarget::}{TagTypeSpecificAccess} implies that the
+user might need to send different data based on the NFC Tag Type. Tag types
+recognized by Qt NFC are defined in the \l {QNearFieldTarget::}{Type} enum.
+
+Qt NFC support for different access methods and tag types varies depending on
+the platform. The table below shows currently supported subsets of features
+for every platform.
+
+\table
+  \header
+    \li Platform
+    \li Recognized Tag Types
+    \li NDEF Support
+    \li Tag Specific Access
+  \row
+    \li \l {Qt NFC on Android}{Android}
+    \li All from the \l {QNearFieldTarget::}{Type} enum
+    \li Yes
+    \li Yes
+  \row
+    \li iOS
+    \li \list
+          \li \l {QNearFieldTarget::}{NfcTagType4}
+          \li \l {QNearFieldTarget::}{NfcTagType4A}
+          \li \l {QNearFieldTarget::}{NfcTagType4B}
+          \li \l {QNearFieldTarget::}{ProprietaryTag}
+        \endlist
+    \li No
+    \li Yes - for supported tag types
+  \row
+    \li Linux, Windows, macOS
+
+        (implemented using \l {PC/SC in Qt NFC}{PC/SC})
+    \li \list
+          \li \l {QNearFieldTarget::}{NfcTagType4}
+          \li \l {QNearFieldTarget::}{ProprietaryTag}
+        \endlist
+    \li Yes  - for \l {QNearFieldTarget::}{NfcTagType4}
+    \li Yes - for \l {QNearFieldTarget::}{ProprietaryTag}
+\endtable
+
+*/

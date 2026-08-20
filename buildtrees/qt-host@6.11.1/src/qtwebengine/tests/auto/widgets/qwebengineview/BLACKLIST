@@ -1,0 +1,21 @@
+[mixLangLocale:eu_ES]
+*
+
+[navigateOnDrop:file]
+windows
+
+[navigateOnDrop:file_no_navigate]
+windows
+
+[horizontalScrollbarTest]
+macos
+rhel # flaky
+
+[setCursorOnEmbeddedView]
+macos # QTest::mousemove is not reliable
+
+[keyboardFocusAfterPopup]
+wayland
+
+[datalist]
+wayland

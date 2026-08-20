@@ -1,0 +1,114 @@
+# Copyright 2018 The Chromium Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("../../../gni/openscreen.gni")  #
+
+if (!is_win) {
+  visibility = [ "./*" ]
+
+  config("quic_internal_config") {
+    cflags = []
+    if (is_clang) {
+      cflags += [
+        "-Wno-implicit-int-float-conversion",
+        "-Wno-shadow-field",
+        "-Wno-shadow-uncaptured-local",
+      ]
+    }
+  }
+
+  openscreen_source_set("quic") {
+    visibility += [ "../*" ]
+    public = [
+      "quic_client.h",
+      "quic_connection.h",
+      "quic_connection_factory_client.h",
+      "quic_connection_factory_server.h",
+      "quic_server.h",
+      "quic_stream.h",
+    ]
+    sources = [
+      "certificates/quic_agent_certificate.cc",
+      "certificates/quic_agent_certificate.h",
+      "open_screen_client_session.cc",
+      "open_screen_client_session.h",
+      "open_screen_server_session.cc",
+      "open_screen_server_session.h",
+      "open_screen_session_base.cc",
+      "open_screen_session_base.h",
+      "quic_alarm_factory_impl.cc",
+      "quic_alarm_factory_impl.h",
+      "quic_client.cc",
+      "quic_connection_factory_base.cc",
+      "quic_connection_factory_base.h",
+      "quic_connection_factory_client.cc",
+      "quic_connection_factory_server.cc",
+      "quic_connection_impl.cc",
+      "quic_connection_impl.h",
+      "quic_constants.h",
+      "quic_dispatcher_impl.cc",
+      "quic_dispatcher_impl.h",
+      "quic_packet_writer_impl.cc",
+      "quic_packet_writer_impl.h",
+      "quic_protocol_connection.cc",
+      "quic_protocol_connection.h",
+      "quic_server.cc",
+      "quic_service_base.cc",
+      "quic_service_base.h",
+      "quic_stream_impl.cc",
+      "quic_stream_impl.h",
+      "quic_stream_manager.cc",
+      "quic_stream_manager.h",
+      "quic_utils.cc",
+      "quic_utils.h",
+      "quic_version_manager.cc",
+      "quic_version_manager.h",
+    ]
+
+    configs = [ ":quic_internal_config" ]
+
+    deps = [
+      "../../../platform",
+      "../../../third_party/abseil",
+      "../../../third_party/boringssl",
+      "../../../third_party/quiche",
+      "../../../util",
+      "../../public",
+    ]
+    friend = [
+      ":test_support",
+      "../..:unittests",
+    ]
+  }
+
+  openscreen_source_set("test_support") {
+    visibility += [ "../..:unittests" ]
+    testonly = true
+    public = []
+    sources = [
+      "testing/fake_quic_connection.cc",
+      "testing/fake_quic_connection.h",
+      "testing/fake_quic_connection_factory.cc",
+      "testing/fake_quic_connection_factory.h",
+      "testing/quic_test_support.cc",
+      "testing/quic_test_support.h",
+    ]
+
+    public_deps = [
+      ":quic",
+      "../../../platform",
+      "../../../platform:test",
+      "../../public",
+    ]
+
+    deps = [
+      "../../../third_party/abseil",
+      "../../../third_party/googletest:gmock",
+      "../../../third_party/quiche",
+      "../../../util",
+      "../../msgs",
+    ]
+    friend = [ "../..:unittests" ]
+  }
+}

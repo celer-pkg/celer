@@ -1,0 +1,14 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtmultimedia-building-ffmpeg-windows.html
+\title Building FFmpeg from source on Windows
+\brief This document describes how to build FFmpeg from source code.
+
+\include building-FFmpeg-contents.qdocinc {windows}
+\include building-FFmpeg-source.qdocinc {windows}
+\include building-FFmpeg-prerequisites.qdocinc {windows}
+\include building-FFmpeg-configure.qdocinc {windows}
+
+*/

@@ -1,0 +1,32 @@
+<!-- This file only exists for qmake. -->
+<RCC>
+    <qresource prefix="qt/qml/ColorPalette">
+        <file>icons/qt.png</file>
+        <file>icons/testserver.png</file>
+        <file>icons/userMask.svg</file>
+        <file>icons/close.svg</file>
+        <file>icons/delete.svg</file>
+        <file>icons/dots.svg</file>
+        <file>icons/edit.svg</file>
+        <file>icons/login.svg</file>
+        <file>icons/logout.svg</file>
+        <file>icons/ok.svg</file>
+        <file>icons/update.svg</file>
+        <file>icons/user.svg</file>
+        <file>icons/plus.svg</file>
+    </qresource>
+    <qresource prefix="/qt/qml">
+        <file>ColorPalette/Main.qml</file>
+        <file>ColorPalette/ServerSelection.qml</file>
+        <file>ColorPalette/ColorView.qml</file>
+        <file>ColorPalette/ColorDialogEditor.qml</file>
+        <file>ColorPalette/ColorDialogDelete.qml</file>
+        <file>ColorPalette/UserMenu.qml</file>
+        <file>ColorPalette/qmldir</file>
+        <file>QtExampleStyle/Button.qml</file>
+        <file>QtExampleStyle/Popup.qml</file>
+        <file>QtExampleStyle/TextField.qml</file>
+        <file>QtExampleStyle/UIStyle.qml</file>
+        <file>QtExampleStyle/qmldir</file>
+    </qresource>
+</RCC>

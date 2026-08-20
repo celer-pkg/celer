@@ -1,0 +1,298 @@
+# Copyright (C) 2025 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+openapi: 3.1.1
+servers:
+  - url: 'http://127.0.0.1:20202/v2'
+info:
+  title: Responses Test
+  description: >
+    This specification is intended for testing purposes. It demonstrates various response media types.
+  version: 1.0.0
+tags:
+  - name: test
+    description: test operations
+
+paths:
+  /response/application/json/string:
+    get:
+      tags: [test]
+      summary: Check response type application-json string
+      operationId: applicationJsonStringResponse
+      responses:
+        '200':
+          description: Successful string response
+          content:
+            application/json:
+              schema:
+                type: string
+  /response/application/json/array:
+    get:
+      tags: [test]
+      summary: Check response type application-json array
+      operationId: applicationJsonArrayResponse
+      responses:
+        '200':
+          description: Successful array response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+  /response/application/json/map:
+    get:
+      tags: [test]
+      summary: Check response type application-json map
+      operationId: applicationJsonMapResponse
+      responses:
+        '200':
+          description: Successful map response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                    $ref: '#/components/schemas/User'
+  /response/application/json/object:
+    get:
+      tags: [test]
+      summary: Check response type application-json object
+      operationId: applicationJsonEncodedObjectResponse
+      responses:
+        '200':
+          description: Successful json object response (may be encoded if the server applies a Content-Encoding).
+          headers:
+            Content-Encoding:
+              description: Tells the client which encoding is applied to the response.
+              schema:
+                type: string
+                example: gzip
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  value:
+                    type: integer
+                    format: int64
+                    example: 16
+  /response/text/plain/string:
+    get:
+      tags: [test]
+      summary: Check response type text/plain string
+      operationId: textPlainStringResponse
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "string only"
+  /response/application/pdf/inline/{fileId}:
+    get:
+      tags: [test]
+      summary: Serve pdf inline
+      operationId: applicationPdfInlineResponse
+      parameters:
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+  /response/application/pdf/save/{fileId}:
+    get:
+      tags: [test]
+      summary: Save pdf file
+      operationId: applicationPdfSaveResponse
+      parameters:
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          headers:
+            Content-Disposition:
+              description: Suggests the client to save the file
+              schema:
+                type: string
+                example: attachment; filename="example.pdf"
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+  /response/application/pdf/save/encoded/{fileId}:
+    get:
+      tags: [test]
+      summary: Save encoded pdf file
+      operationId: applicationEncodedPdfSaveResponse
+      parameters:
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          headers:
+            Content-Disposition:
+              description: Suggests the client to save the file
+              schema:
+                type: string
+                example: attachment; filename="example.pdf"
+            Content-Encoding:
+              description: Tells the client which encoding is applied to the response.
+              schema:
+                type: string
+                example: gzip
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+  /response/image/inline/{imageId}:
+    get:
+      tags: [test]
+      summary: Get an image by ID
+      operationId: inlineImageResponse
+      parameters:
+        - name: imageId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Returns the requested image
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Image not found
+  /response/image/save/{imageId}:
+    get:
+      tags: [test]
+      summary: Get an image by ID and download it
+      operationId: saveImageResponse
+      parameters:
+        - name: imageId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Returns the requested image
+          headers:
+            Content-Disposition:
+              description: Suggests the client to download the image
+              schema:
+                type: string
+                example: attachment; filename="testImage.png"
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Image not found
+  /response/application/octet-stream/{fileId}:
+    get:
+      tags: [test]
+      summary: Check response type application/octet-stream
+      operationId: applicationOctetStreamResponse
+      parameters:
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Returns a binary file stream (application/octet-stream)
+          headers:
+            Content-Disposition:
+              description: Suggests the client to save the file
+              schema:
+                type: string
+                example: attachment; filename="binaryData.bin"
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: File not found
+  /response/empty:
+    get:
+      tags: [test]
+      summary: Example of an empty response body
+      operationId: emptyResponse
+      responses:
+        '204':
+          description: No content
+  /response/content_disposition_check:
+    get:
+      tags: [test]
+      summary: Test various content-disposition parameters
+      operationId: contentDispositionCheck
+      parameters:
+        - name: filename
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: string
+        - name: extFilename
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Returns a file with the specified name
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+components:
+  schemas:
+    User:
+      properties:
+        name:
+          type: string
+        id:
+          type: integer

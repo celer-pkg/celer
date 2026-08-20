@@ -1,0 +1,278 @@
+{
+    "options": {
+        "designStudioWorkarounds": {
+            "name": "Design Studio Compatibility Mode",
+            "description": "Enable options that are needed to create Design Studio compatible components.",
+            "value": false,
+            "type": "Boolean"
+        },
+        "expandValueComponents": {
+            "name": "Expand value components",
+            "description": "When enabled value types like vector3d and quaternion will be expanded.",
+            "value": false,
+            "type": "Boolean"
+        },
+        "calculateTangentSpace": {
+            "name": "Calculate Tangent Space",
+            "description": "Calculates the tangents and bitangents for the imported meshes.",
+            "value": false,
+            "type": "Boolean"
+        },
+        "joinIdenticalVertices": {
+            "name": "Join Identical Vertices",
+            "description": "Identifies and joins identical vertex data sets within all imported meshes.",
+            "value": true,
+            "type": "Boolean"
+        },
+        "generateNormals": {
+            "name": "Generate Normals",
+            "description": "Generates normals for all faces of all meshes",
+            "value": false,
+            "type": "Boolean"
+        },
+        "generateSmoothNormals": {
+            "name": "Generate Smooth Normals",
+            "description": "Generates smooth normals for all vertices in the mesh.",
+            "value": true,
+            "type": "Boolean"
+        },
+        "splitLargeMeshes": {
+            "name": "Split Large Meshes",
+            "description": "Splits large meshes into smaller sub-meshes.",
+            "value": true,
+            "type": "Boolean"
+        },
+        "preTransformVertices": {
+            "name": "Pre-transform Vertices",
+            "description": "Removes the node graph and pre-transforms all vertices with the local transformation matrices of their nodes.",
+            "value": false,
+            "type": "Boolean"
+        },
+        "improveCacheLocality": {
+            "name": "Improve Cache Locality",
+            "description": "Reorders triangles for better vertex cache locality.",
+            "value": true,
+            "type": "Boolean"
+        },
+        "removeRedundantMaterials": {
+            "name": "Remove Redundant Materials",
+            "description": "Searches for redundant/unreferenced materials and removes them.",
+            "value": false,
+            "type": "Boolean"
+        },
+        "fixInfacingNormals": {
+            "name": "Fix Infacing Normals",
+            "description": "Tries to determine which meshes have normal vectors that are facing inwards and inverts them.",
+            "value": false,
+            "type": "Boolean"
+        },
+        "findDegenerates": {
+            "name": "Find Degenerates",
+            "description": "This step searches all meshes for degenerate primitives and converts them to proper lines or points.",
+            "value": true,
+            "type": "Boolean"
+        },
+        "findInvalidData": {
+            "name": "Find Invalid Data",
+            "description": "This step searches all meshes for invalid data, such as zeroed normal vectors or invalid UV coords and removes/fixes them. This is intended to get rid of some common exporter errors.",
+            "value": true,
+            "type": "Boolean"
+        },
+        "transformUVCoordinates": {
+            "name": "Transform UV Coordinates",
+            "description": "This step applies per-texture UV transformations and bakes them into stand-alone vtexture coordinate channels.",
+            "value": false,
+            "type": "Boolean"
+        },
+        "findInstances": {
+            "name": "Find Instances",
+            "description": "This step searches for duplicate meshes and replaces them with references to the first mesh.",
+            "value": false,
+            "type": "Boolean"
+        },
+        "optimizeMeshes": {
+            "name": "Optimize Meshes",
+            "description": "A postprocessing step to reduce the number of meshes.",
+            "value": false,
+            "type": "Boolean"
+        },
+        "optimizeGraph": {
+            "name": "Optimize Graph",
+            "description": "A postprocessing step to optimize the scene hierarchy.",
+            "value": false,
+            "type": "Boolean"
+        },
+        "useFloatJointIndices": {
+            "name": "Use Float Joint Indices",
+            "description": "Stores joint indices as floating point numbers for GLES 2.0.",
+            "value": false,
+            "type": "Boolean"
+        },
+        "globalScale": {
+            "name": "Enable Global Scale",
+            "description": "This step will perform a global scale of the model.",
+            "value": false,
+            "type": "Boolean"
+        },
+        "globalScaleValue": {
+            "name": "Global Scale Value",
+            "description": "Global Scale factor.",
+            "value": 1,
+            "type": "Real",
+            "conditions": [
+                {
+                    "mode": "Equals",
+                    "property": "globalScale",
+                    "value": true
+                }
+            ]
+        },
+        "dropNormals": {
+            "name": "Drop Normals",
+            "description": "Drops normals for all faces of all meshes.",
+            "value": false,
+            "type": "Boolean"
+        },
+        "removeComponentNormals": {
+            "name": "Remove Normal Components",
+            "description": "Removes Normal component from meshes.",
+            "value": false,
+            "type": "Boolean"
+        },
+        "removeComponentTangentsAndBitangents": {
+            "name": "Remove Tangent Components",
+            "description": "Removes Tangents and Bitangents components from meshes.",
+            "value": false,
+            "type": "Boolean"
+        },
+        "removeComponentColors": {
+            "name": "Remove Color Components",
+            "description": "Removes any Color components from meshes.",
+            "value": false,
+            "type": "Boolean"
+        },
+        "removeComponentUVs": {
+            "name": "Remove UV Components",
+            "description": "Removes any UV components from meshes.",
+            "value": false,
+            "type": "Boolean"
+        },
+        "removeComponentBoneWeights": {
+            "name": "Remove Bone Weight components",
+            "description": "Removes any bone weights from meshes.",
+            "value": false,
+            "type": "Boolean"
+        },
+        "removeComponentAnimations": {
+            "name": "Remove Animation Components",
+            "description": "Removes any animation components from meshes.",
+            "value": false,
+            "type": "Boolean"
+        },
+        "removeComponentTextures": {
+            "name": "Remove Texture Components",
+            "description": "Removes any embedded texture components from meshes.",
+            "value": false,
+            "type": "Boolean"
+        },
+        "fbxPreservePivots": {
+            "name": "FBX: Preserve Pivot Points",
+            "description": "Set whether the fbx importer will preserve pivot points (as extra nodes)",
+            "value": false,
+            "type": "Boolean"
+        },
+        "generateMipMaps": {
+            "name": "Generate Mip Maps",
+            "description": "Force all imported texture components to generate mip maps for mip map texture filtering",
+            "value": true,
+            "type": "Boolean"
+        },
+        "useBinaryKeyframes": {
+            "name": "Use Binary Keyframes",
+            "description": "Record keyframe data as binary files",
+            "value": true,
+            "type": "Boolean"
+        },
+        "manualAnimations": {
+            "name": "Use Manual Animations",
+            "description": "No TimelineAnimations are generated for Timelines so that they can be manually controlled",
+            "value": false,
+            "type": "Boolean"
+        },
+        "generateMeshLevelsOfDetail": {
+            "name": "Generate Mesh Levels of Detail",
+            "description": "When possible, create mesh Levels of Detail by automatically simplifying the source mesh",
+            "value": false,
+            "type": "Boolean"
+        },
+        "recalculateLodNormals": {
+            "name": "Recalculate Normals for Generated Mesh LODs",
+            "description": "Calculate new normals when necessary for Generated Mesh Levels of detail",
+            "value": true,
+            "type": "Boolean",
+            "conditions": [
+                {
+                    "mode": "Equals",
+                    "property": "generateMeshLevelsOfDetail",
+                    "value": true
+                }
+            ]
+        },
+        "recalculateLodNormalsMergeAngle": {
+            "name": "Merge Angle for Mesh LODs",
+            "description": "Maximum angle in degrees to consider for normal smoothing/merging",
+            "value": 60.0,
+            "type": "Real",
+            "conditions": [
+                {
+                    "mode": "Equals",
+                    "property": "recalculateLodNormals",
+                    "value": true
+                }
+            ]
+        },
+        "recalculateLodNormalsSplitAngle": {
+            "name": "Split Angle for Mesh LODs",
+            "description": "Maximum angle in degrees to consider for normal spliting, which creates new vertex data",
+            "value": 25.0,
+            "type": "Real",
+            "conditions": [
+                {
+                    "mode": "Equals",
+                    "property": "recalculateLodNormals",
+                    "value": true
+                }
+            ]
+        }
+    },
+    "groups": {
+        "globalScale": {
+            "name": "Global Scale",
+            "items": [
+                "globalScale",
+                "globalScaleValue"
+            ]
+        },
+        "generateMeshLevelsOfDetail": {
+            "name": "Level of Detail",
+            "items": [
+                "generateMeshLevelsOfDetail",
+                "recalculateLodNormals",
+                "recalculateLodNormalsMergeAngle",
+                "recalculateLodNormalsSplitAngle"
+            ]
+        },
+        "removeComponents": {
+            "name": "Strip Imported Components",
+            "items": [
+                "removeComponentNormals",
+                "removeComponentTangentsAndBitangents",
+                "removeComponentColors",
+                "removeComponentUVs",
+                "removeComponentBoneWeights",
+                "removeComponentAnimations",
+                "removeComponentTextures"
+            ]
+        }
+    }
+}

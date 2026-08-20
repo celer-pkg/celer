@@ -1,0 +1,201 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page deployment-android.html
+    \title Deploying an Application on Android
+    \brief The technical steps required to deploy a Qt application on Android.
+    \nextpage android-openssl-support.html
+    \previouspage porting-to-android.html
+
+    This article describes the technical steps required to deploy a Qt
+    application to an Android device.
+
+    \section1 Android Packaging Options
+
+    You can package code on Android in three ways: either as an Application
+    Package (APK), an Android App Bundle (AAB), or an Android Archive (AAR).
+    Each is a specific type of ZIP format that follow a predefined directory
+    structure. The differences between these formats are:
+
+    \list
+        \li APK files can be deployed and executed on a device.
+        \li An AAB is intended to be interpreted by the Google Play store and
+        is used to generate APK files for different device architectures and
+        form factors.
+        \li An AAR fundamentally differs from the APK and AAB formats in that
+        it is an Android library. You can use it as a dependency for an Android
+        app module, but you cannot run it by itself. For more information, see
+        \l{Android: Android Archive (AAR)}.
+    \endlist
+
+    \section1 Android Application Bundle
+
+    For testing the application locally, the APK format is appropriate,
+    as this can be installed and run directly on the device. For distribution
+    to the Google Play store, it is recommended to use AAB instead, which has
+    a similar layout. The added convenience of AAB is that you can include all
+    target ABIs in the same bundle without increasing the size of the actual
+    package downloaded by your users. When using AAB, the Google Play store
+    generates optimized APK packages for the devices issuing the download request
+    and automatically signs them with your publisher key. For more information,
+    see \l {Publishing to Google Play}.
+
+    For more information on the AAB format, see the
+    \l{Android: App Bundles}{Android App Bundles}.
+
+    In either case, the application bundle is generated from a specific directory
+    structure that contains the \c shared libraries of your project and Qt's
+    dependencies needed by your application. In addition, any assets, resources,
+    \c jar files or project Java code is compiled and included.
+
+    \section2 Generating the Application Bundle
+
+    It is recommended to use \QC to
+    \l {\QC: Android Deploy Configuration}{deploy Qt for Android apps}. Otherwise,
+    the same can be done through the command line with the help of CMake or qmake.
+    For more information, see \l {Building Qt for Android Projects from Command Line}.
+
+    The packaging and deployment process is handled by CMake or qmake which, under
+    the hood, use the \l{androiddeployqt} tool to manage the specifics of building
+    and deploying an Android app. \QC also uses the same tool.
+
+    \section1 Extending Qt with Android Facilities
+    //! To not break \QC link
+    \target Android Package Templates
+
+    By default, Qt for Android does most of the heavy lifting to get an Android
+    app up and running, having the most useful APIs available directly from Qt,
+    or using \l QJniObject to invoke not readily available APIs. The same is
+    valid for CMake, which handles the various build and deployment cases. However,
+    in some other cases, it might be required to have the full power of native
+    Android facilities, such as writing Java/kotlin code or using Android resource
+    management. Qt allows that by allowing the user to extend the set of templates.
+
+    The default templates used by Qt are found under the Qt for Android install path,
+    for example, under \c {~/Qt/<version>/android_<abi>/src/android/templates} for Unix.
+    To use those templates, it's possible to have \QC copy them to your project,
+    see \l{\QC: Android Deploy Configuration}. Or you can manually copy them over to
+    your project source under a \c android sub-directory. Then make sure to define the
+    following property in your \c CMakeLists.txt:
+
+    \badcode
+    set_property(TARGET target_name PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
+              "${CMAKE_CURRENT_SOURCE_DIR}/android")
+    \endcode
+
+    Or for qmake in your \c pro file:
+
+    \badcode
+    android: ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
+    \endcode
+
+    \note When using \QC, files under this path are by default visible
+    under the project files if CMake is used. To achieve the same behavior with
+    qmake, add those file paths manually to your project using \l DISTFILES.
+
+    The build process copies the templates to the build directory
+    \c {<build_path>/android-build} from your project or from the default
+    templates if the project didn't set \c QT_ANDROID_PACKAGE_SOURCE_DIR.
+    After that, the directory \c {<build_path>/android-build} acts as the
+    packaging directory. The application bundle is created from there using Gradle.
+
+    Now, let's go through the different parts that the user can work with after
+    extending the default templates.
+
+    \section2 AndroidManifest.xml
+
+    The \c{AndroidManifest.xml} file gives detailed meta-information about your
+    application. This information is used to customize your application bundle,
+    and it's used by the device to decide which features to enable, such as the default
+    orientation of the application. In addition, it's used by the Google Play Store
+    for information on the version code, device support, package name, and lots more.
+    The Android Manifest is also used to define \l{Android Services} and custom
+    \l{Android: Introduction to Activities}{Android Activities}.
+
+    For more information about the \c AndroidManifest.xml, see
+    \l{Qt for Android Manifest File Configuration}{Android Manifest file documentation},
+    and {\QC: Android Deploy Configuration}{Editing Manifest Files}.
+
+
+    \section2 Gradle Files
+
+    \l Gradle is used to build Android packages. Qt includes two sets of Gradle
+    related files:
+
+    \list
+        \li Gradle wrapper, which is used to download a specific version of Gradle itself,
+        and the build scripts that are used to invoke the Gralde build. These files
+        come with Qt under for example \c {~/Qt/<version>/android_<abi>/src/3rdparty/gradle}.
+
+        \note Usually, using the same Gradle version that Qt comes with is
+        recommended. However, if you wish to use a different Gradle version, you
+        can modify the Gradle wrapper \c {gradle-wrapper.properties} and set it
+        to the Gradle version you want to use.
+
+        \li The Gradle configuration file \c build.gradle, which is under the
+        \l {Extending Qt with Android Facilities}{Android Templates}. This file is
+        required by Gradle and can be used to customize the build. It can be used to
+        set the build target or minimum API or add library dependencies. It can
+        also be used to set the \l {Android: Android Gradle plugin}{Android Gradle plugin},
+        which is a required Gradle dependency for building Android apps. An example
+        of this is:
+
+        \badcode \AGPVer
+        buildscript {
+            ...
+            dependencies {
+                classpath 'com.android.tools.build:gradle:\1'
+            }
+        }
+        \endcode
+
+        For more information, see \l{Android: Build Configuration Files}.
+    \endlist
+
+    \section2 Java/Kotlin Code
+
+    To include any Java/Kotlin code to target some APIs that Qt doesn't cover
+    or for some other reason, place any code under the path
+    \c {<QT_ANDROID_PACKAGE_SOURCE_DIR>/src/}. For example, you can call Java
+    methods from within Qt code. For an example, see
+    \l{Qt for Android Notifier}{Qt for Android Notifier Example}.
+
+    \section2 Resources
+
+    Android allows the addition of resource files such as icons, images, strings,
+    colors, and so on. Those resources can be referenced directly from Java/Kotlin
+    code or the manifest file. Any such files can be added to your project under
+    \c {<QT_ANDROID_PACKAGE_SOURCE_DIR>/res/}. For example, app icons can be
+    added under \c {res/drawable/icon.png}.
+
+    For more information, see \l {Android: App resources overview}.
+
+    \section3 Qt Internal Resources
+
+    By default, Qt packages a few resources that are needed for the apps to run
+    properly. For example, on Unix, these resources are found under
+    \c {~/Qt/<version>/android_<abi>/src/android/templates/res}.
+
+    \section4 strings.xml
+
+    This file can be found at \c {res/values/strings.xml}.
+    This file contains strings the Qt library uses to reference message
+    translations for various languages.
+
+    \section4 libs.xml
+
+    This file can be found at \c {res/values/libs.xml}. It is used purely
+    to manage deployment information of the Qt libraries, and it's not
+    recommended to be manually modified.
+
+    \section2 Android Assets
+
+    For more information on managing Android assets, see
+    \l {Porting to Android}{Adding resources}.
+
+    \section2 Android Libraries
+
+    For more information on using third-party libraries with your Qt project,
+    see \l {Third-party Android Libraries}{Including a Library to an Android Project}.
+*/

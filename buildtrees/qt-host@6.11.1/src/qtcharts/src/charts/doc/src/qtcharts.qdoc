@@ -1,0 +1,65 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \module QtCharts
+    \title Qt Charts C++ Classes
+    \ingroup modules
+    \deprecated [6.10] Use QtGraphs instead.
+
+    \brief C++ classes for the Qt Charts API.
+
+    Charts API is built on top of Qt Graphics View Framework. Charts can be displayed as QGraphicsWidget using the QChart class. However
+    there is also the convenience class QChartView, which is QWidget based. These enable us to quickly use Qt Charts as a normal Qt widget.
+
+    \include deprecation-phase.qdocinc
+
+    Using a Qt module's C++ API requires linking against the module library, either directly or through other dependencies.
+    Several build tools have dedicated support for this, including CMake and qmake.
+
+    \if !defined(qtforpython)
+    \note Projects created with Qt Creator's Qt Quick Application
+    wizard are based on the Qt Quick 2 template that uses QGuiApplication by default.
+    All such QGuiApplication instances in the project must be replaced with
+    QApplication as the module depends on Qt's \l{Graphics View Framework}
+    for rendering.
+
+    To use the module with CMake, use the \c{find_package()} command to locate
+    the needed module components in the \c{Qt6} package:
+    \include qtcharts-module-use.qdocinc cmakebuild
+
+    To use the module for building with qmake, add the module as a value of the
+    \c QT variable in the project's .pro file:
+    \include qtcharts-module-use.qdocinc qmakebuild
+    \endif
+
+    Each chart type is represented by the QAbstractSeries derived class. To create charts, the users have to use an instance of the related
+    series class and add it to a QChart instance.
+
+    \snippet doc_src_qtcharts.cpp 3
+*/
+
+/*!
+    \qmlmodule QtCharts 2.\QtMinorVersion
+    \title Qt Charts QML Types
+    \ingroup qmlmodules
+    \deprecated [6.10] Use QtGraphs instead.
+
+    \brief QML types for the Qt Charts API.
+
+    The Qt Charts QML API is an intuitive and simple way to show charts in your
+    QML applications.
+
+    \section1 QML Types
+*/
+
+/*!
+    \group qtcharts_examples
+    \title Qt Charts Examples
+
+    \brief Examples for the Qt Charts.
+
+    The Qt Charts examples demonstrate how to use charts in widget-based and
+    Qt Quick applications:
+
+*/

@@ -1,0 +1,81 @@
+[
+  {
+    "Id": "svgrepo-baked",
+    "Name": "Bake",
+    "LicenseId": "CC0-1.0",
+    "License": "CC0 License",
+    "Copyright": "SVG Repo",
+    "Homepage": "https://www.svgrepo.com/svg/414252/bake",
+    "QDocModule": "qtquick3d",
+    "Files": [ "assets/icons/baked.svg" ]
+  },
+  {
+    "Id": "grid",
+    "Name": "Cornell",
+    "LicenseId": "CC0-1.0",
+    "License": "CC0 License",
+    "Copyright": "The Qt Company",
+    "QDocModule": "qtquick3d",
+    "Files": [ "assets/icons/cornell.svg" ]
+  },
+  {
+    "Id": "svgrepo-colosseum",
+    "Name": "Colosseum",
+    "LicenseId": "CC0-1.0",
+    "License": "CC0 License",
+    "Copyright": "SVG Repo",
+    "Homepage": "https://www.svgrepo.com/svg/72904/colosseum",
+    "QDocModule": "qtquick3d",
+    "Files": [ "assets/icons/sponza.svg" ]
+  },
+  {
+    "Id": "svgrepo-camera-viewfinder",
+    "Name": "Camera Viewfinder",
+    "LicenseId": "MIT",
+    "License": "MIT License",
+    "Copyright": "SVG Repo",
+    "Homepage": "https://www.svgrepo.com/svg/437538/camera-viewfinder",
+    "QDocModule": "qtquick3d",
+    "Files": [ "assets/icons/reset-camera.svg" ]
+  },
+  {
+    "Id": "svgrepo-house-simple-bold",
+    "Name": "House Simple Bold",
+    "LicenseId": "MIT",
+    "License": "MIT License",
+    "Copyright": "SVG Repo",
+    "Homepage": "https://www.svgrepo.com/svg/362806/house-simple-bold",
+    "QDocModule": "qtquick3d",
+    "Files": [ "assets/icons/bedroom.svg" ]
+  },
+  {
+    "Id": "svgrepo-screen-shared",
+    "Name": "Screen Shared",
+    "LicenseId": "LGPL-3.0-only",
+    "License": "LGPL 3.0 License",
+    "Copyright": "GNOME",
+    "Homepage": "https://www.svgrepo.com/svg/451859/screen-shared",
+    "QDocModule": "qtquick3d",
+    "Files": [ "assets/icons/ssgi.svg" ]
+  },
+  {
+    "Id": "svgrepo-night-light-disabled",
+    "Name": "Night Light Disabled",
+    "LicenseId": "LGPL-3.0-only",
+    "License": "LGPL 3.0 License",
+    "Copyright": "GNOME",
+    "Homepage": "https://www.svgrepo.com/svg/451794/night-light-disabled",
+    "QDocModule": "qtquick3d",
+    "Files": [ "assets/icons/off.svg" ]
+  },
+  {
+    "Id": "svgrepo-right-arrow",
+    "Name": "Right Arrow Backup 2 SVG Vector",
+    "LicenseId": "CC0-1.0",
+    "License": "CC0 License",
+    "Copyright": "SVG Repo",
+    "Homepage": "https://www.svgrepo.com/svg/486236/right-arrow-backup-2",
+    "QDocModule": "qtquick3d",
+    "Files": [ "assets/icons/right-arrow.svg" ]
+  }
+]

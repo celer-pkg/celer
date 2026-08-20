@@ -1,0 +1,20 @@
+# Copyright 2020 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("../../scripts/build/typescript/typescript.gni")
+
+node_ts_library("shared") {
+  sources = [
+    "debug-check.ts",
+    "helper.ts",
+    "mocha-resultsdb-reporter.ts",
+    "non_hosted_wrappers.ts",
+    "screenshots.ts",
+  ]
+
+  deps = [
+    "../conductor:implementation",
+    "../e2e_non_hosted/shared",
+  ]
+}

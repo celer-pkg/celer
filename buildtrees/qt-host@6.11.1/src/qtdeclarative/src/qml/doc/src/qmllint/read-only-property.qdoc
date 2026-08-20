@@ -1,0 +1,39 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qmllint-warnings-and-errors-read-only-property.html
+\ingroup qmllint-warnings-and-errors
+
+\title Readonly property
+\brief [read-only-property] A readonly property was written.
+
+\qmllintwarningcategory read-only-property
+
+\section1 Cannot assign to read-only property
+
+\section2 What happened?
+A \l{Read-Only Properties}{read-only property} was written.
+
+\section2 Why is this bad?
+The QML engine will throw a Type Error when it sees the write to a read-only property.
+
+\section2 Example
+\qml
+import QtQuick
+
+Item {
+    id: root
+    readonly property int someNumber: 10
+
+    Component.onCompleted: {
+        someNumber = 20  // not ok: TypeError: Cannot assign to read-only property
+    }
+}
+\endqml
+To fix this warning, remove the write to the read-only property, write to another
+non-read-only property, or remove the readonly modifier if you are the author of
+the property definition.
+\sa{Read-Only Properties}
+*/
+

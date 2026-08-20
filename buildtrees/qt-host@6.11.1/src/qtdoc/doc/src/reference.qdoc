@@ -1,0 +1,44 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Qt Reference Pages
+    \page reference-overview.html
+
+    \section2 Class Lists
+
+    \annotatedlist classlists
+
+    \section2 Function Lists
+
+    \annotatedlist funclists
+
+    \section2 QML Reference
+
+    \list
+    \li \l{The QML Reference}
+    \endlist
+
+    \section2 Qt Tool Manuals
+    \list
+    \li \l{\QC Documentation}{\QC}
+    \li \l{Qt Linguist Manual}{Qt Linguist}
+    \li \l{Qt Widgets Designer Manual}{\QD}
+    \li \l{qmake Manual}{qmake}
+    \li \l{QDoc Manual}{qdoc}
+    \li \l{Build with CMake}
+    \endlist
+
+    \section2 Commercial Only Modules
+
+    There are a number of value-add modules provided by The Qt Company.
+    See \l{Qt Features} and \l{Qt Pricing} for more information.
+
+    \section2 Platform Reference
+
+    \annotatedlist supportedplatform
+\omit
+     Experimental platforms:
+    \annotatedlist experimentalplatform
+\endomit
+*/

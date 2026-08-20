@@ -1,0 +1,134 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example webenginewidgets/notifications
+    \examplecategory {Web Technologies}
+    \title WebEngine Notifications Example
+    \ingroup webengine-widgetexamples
+    \brief Demonstrates how to pass HTML5 web notifications to users.
+
+    \image notifications-example.png {Notification window with options to send
+           notifications that appear at bottom right of screen}
+
+    \e {\WebEngine Notifications} demonstrates how to use the
+    \l QWebEngineProfile::setNotificationPresenter() method and
+    \l QWebEngineNotification class to show an HTML5 web
+    notification to the user.
+
+    \include examples-run.qdocinc
+
+    \section1 HTML Page
+
+    In this example, we create an internal HTML page that is added through
+    a resource collection file (.qrc). The page displays buttons for requesting
+    permissions and contains necessary JavaScript code to trigger this request:
+
+    \quotefromfile webenginewidgets/notifications/data/index.html
+    \skipto Notification.requestPermission
+    \printline requestPermission
+    \skipuntil resetPermission
+    \printuntil /\}\)$/
+
+    Also page contains a button for creating a notification. The following
+    JavaScript constructions are executed on the press event:
+
+    \quotefromfile webenginewidgets/notifications/data/index.html
+    \skipto createNotification()
+    \printuntil new Notification
+    \skipuntil Notification was created
+    \printline }
+
+    \section1 Main Function
+
+    In the \c main function, we instantiate a QWebEngineView, load our internal
+    HTML page, and set up the required callbacks for notifications handling.
+
+    \section2 Requesting Feature Permissions
+
+    We then use the \l QWebEnginePage::permissionRequested() call to
+    request the user's permission to show notifications on their device.
+
+    \quotefromfile webenginewidgets/notifications/main.cpp
+    \skipto permissionRequested
+    \printuntil });
+
+    \section2 Handling New Notifications
+
+    We then construct a \c NotificationPopup that encapsulates
+    the data of the HTML web notification. We also use the
+    \l QWebEngineProfile::setNotificationPresenter() call to set
+    our handler, which we use in conjunction with our \c popup
+    to handle all new notifications.
+
+    \skipto popup
+    \printuntil });
+
+    \section1 Presenting Notifications to Users
+
+    The \c NotificationPopup class in this example is a simple
+    QWidget-based class that uses multiple QLabel instances
+    for displaying the notification's title, message, and icon.
+
+    \quotefromfile webenginewidgets/notifications/notificationpopup.h
+    \skipto class NotificationPopup
+    \printto public:
+
+    \section2 Presenting Notifications
+
+    Inside the \c present method, we first close and release the previous
+    notification if we have one and then take ownership of a new notification
+    by calling the \c std::unique_ptr::swap method on our internal notification
+    instance.
+
+    \skipto present
+    \printto m_title
+
+    Then we query the notification instance for a title, a message,
+    and an icon by calling \l QWebEngineNotification::title(),
+    \l QWebEngineNotification::message(), \l QWebEngineNotification::icon()
+    and set up the appropriate labels in our popup.
+
+    \printuntil m_icon
+
+    After that we are ready to display our notification to the user
+    by calling the \l QWidget::show() method. On this step we also call the
+    \l QWebEngineNotification::show() method to notify \c JavaScript code
+    about our \e show event.
+
+    \printuntil notification->show
+
+    Finally, we set up a callback to handle the \e close event from the
+    \c JavaScript side by connecting to the \l QWebEngineNotification::closed()
+    signal. We also schedule a timer event to close our active notification
+    automatically.
+
+    \skipto QWebEngineNotification::closed
+    \printuntil QTimer
+    \skipto /\}/
+    \printline /\}/
+
+    \section2 Closing Active Notification
+
+    We execute the \e close step for the currently active notification either by
+    timeout or by handling the \c JavaScript event. First, we hide the popup
+    widget itself by calling \l QWidget::hide(). Then, we notify the \c JavaScript
+    code by calling the \l QWebEngineNotification::close() method. Finally, we
+    destroy the notification object through the \c std::unique_ptr::reset() method.
+
+    \skipto onClosed
+    \printuntil }
+
+    \section2 Implementing User Interaction
+
+    To implement the \e click step for a notification, we handle mouse interaction
+    through \l QWidget::mouseReleaseEvent(). On this event, the \c JavaScript code
+    is notified by calling the \l QWebEngineNotification::click() method.
+    Then we automatically perform the \e close step as a notification is
+    considered fully handled and no longer needed, and therefore can be destroyed.
+
+    \skipto mouseReleaseEvent
+    \printuntil onClosed
+    \printline /\}$/
+    \printline /\}$/
+*/

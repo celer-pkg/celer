@@ -1,0 +1,98 @@
+# Copyright 2024 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("../../../../../scripts/build/ninja/devtools_entrypoint.gni")
+import("../../../../../scripts/build/ninja/devtools_module.gni")
+import("../../../../../scripts/build/ninja/generate_css.gni")
+import("../../../../../scripts/build/typescript/typescript.gni")
+
+generate_css("css_files") {
+  sources = [
+    "baseInsightComponent.css",
+    "checklist.css",
+    "networkDependencyTreeInsight.css",
+    "table.css",
+  ]
+}
+
+devtools_module("insights") {
+  sources = [
+    "BaseInsightComponent.ts",
+    "CLSCulprits.ts",
+    "Cache.ts",
+    "Checklist.ts",
+    "DOMSize.ts",
+    "DocumentLatency.ts",
+    "DuplicatedJavaScript.ts",
+    "EventRef.ts",
+    "FontDisplay.ts",
+    "ForcedReflow.ts",
+    "Helpers.ts",
+    "INPBreakdown.ts",
+    "ImageDelivery.ts",
+    "LCPBreakdown.ts",
+    "LCPDiscovery.ts",
+    "LegacyJavaScript.ts",
+    "ModernHTTP.ts",
+    "NetworkDependencyTree.ts",
+    "NodeLink.ts",
+    "RenderBlocking.ts",
+    "ScriptRef.ts",
+    "SidebarInsight.ts",
+    "SlowCSSSelector.ts",
+    "Table.ts",
+    "ThirdParties.ts",
+    "Viewport.ts",
+    "types.ts",
+  ]
+
+  deps = [
+    "../../../../core/common:bundle",
+    "../../../../core/platform:bundle",
+    "../../../../core/sdk:bundle",
+    "../../../../models/trace:bundle",
+    "../../../../services/trace_bounds:bundle",
+    "../../../../ui/components/buttons:bundle",
+    "../../../../ui/components/helpers:bundle",
+    "../../../../ui/components/icon_button:bundle",
+    "../../../../ui/components/linkifier:bundle",
+    "../../../../ui/lit:bundle",
+    "../../overlays:bundle",
+    "../../utils:bundle",
+  ]
+}
+
+devtools_entrypoint("bundle") {
+  entrypoint = "insights.ts"
+
+  deps = [
+    ":css_files",
+    ":insights",
+  ]
+
+  visibility = [
+    ":*",
+    "..:*",
+  ]
+}
+
+ts_library("unittests") {
+  testonly = true
+
+  sources = [
+    "BaseInsightComponent.test.ts",
+    "CLSCulprits.test.ts",
+    "INPBreakdown.test.ts",
+    "NetworkDependencyTree.test.ts",
+    "NodeLink.test.ts",
+    "Table.test.ts",
+  ]
+
+  deps = [
+    ":bundle",
+    "../../../../models/trace:bundle",
+    "../../../../testing",
+    "../../../../ui/components/render_coordinator:bundle",
+  ]
+}

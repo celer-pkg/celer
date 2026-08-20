@@ -1,0 +1,30 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  template: ./action-blocks/100-tabs-template.hjson
+  args: {
+    READY_STATE: complete
+    TAB_TARGET: _new_tab
+    PAGE_URL0: https://www.amazon.com/Pampers-Sensitive-Water-Based-Diaper-Pop-Top/dp/B01C3H4ZTY/
+    PAGE_URL1: https://www.amazon.com/deals?ref_=nav_cs_gb
+    PAGE_URL2: https://www.apple.com/
+    PAGE_URL3: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/ebay.html
+    PAGE_URL4: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/google.html
+    PAGE_URL5: https://www.wattpad.com/1064082391-king-of-dust-chapter-01
+    PAGE_URL6: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/bbc.html
+    PAGE_URL7: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/yahoo.html
+    PAGE_URL8: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/stackoverflow.html
+    PAGE_URL9: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/2023-08-09/wikipedia.html
+    SWITCH_RE0: www\.amazon\.com/Pampers-Sensitive-Water-Based-Diaper-Pop-Top
+    SWITCH_RE1: www\.amazon\.com/deals
+    SWITCH_RE2: www\.apple\.com
+    SWITCH_RE3: 2023-08-09/ebay\.html
+    SWITCH_RE4: 2023-08-09/google\.html
+    SWITCH_RE5: www\.wattpad\.com
+    SWITCH_RE6: 2023-08-09/bbc\.html
+    SWITCH_RE7: 2023-08-09/yahoo\.html
+    SWITCH_RE8: 2023-08-09/stackoverflow\.html
+    SWITCH_RE9: 2023-08-09/wikipedia\.html
+  }
+}

@@ -1,0 +1,159 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page topics-graphics.html
+\title Graphics
+\keyword topics-graphics
+\brief Qt's graphics features
+\ingroup explanations-graphicsandmultimedia
+
+Cross-platform applications can use Qt to display graphical elements. Qt
+abstracts the platforms' underlying graphics APIs so that developers can focus
+on the application code.
+
+\inlineimage rhiarch.png
+
+The Qt Rendering Hardware Interface (RHI) translates 3D graphics call from
+Qt applications to the available graphics APIs on the target platform.
+
+The supported graphics APIs are:
+\list
+\li OpenGL (version 2.1 and higher)
+\li OpenGL ES (version 2.0 and higher)
+\li Vulkan (version 1.0 and higher)
+\li Direct3D 11 (version 11.1 and higher)
+\li Direct3D 12 (version 12.0 and higher)
+\li Metal (version 1.2 and higher)
+\endlist
+
+
+\section1 Graphics in Qt Quick
+
+Qt Quick applications use a \l{Qt Quick Scene Graph}{scene graph} for rendering.
+The scene graph renderer can create efficient graphics calls and increase
+performance. The scene graph is has an accessible API which gives you the
+flexibility to create complex but fast graphics.
+
+The pages in the following list contain more information about rendering Qt
+Quick applications.
+\list
+    \li \l{Qt Quick Scene Graph}
+    \li \l{Scene Graph and Rendering}
+    \li \l{Qt Quick Scene Graph Default Renderer}
+    \li \l{Extending the Scene Graph with QRhi-based and native 3D rendering}
+        - How to integrate application-provided graphics commands
+        (OpenGL, Vulkan, Direct3D, etc.) into a Qt Quick scene graph.
+\endlist
+
+\section2 Choosing a Rendering Path
+
+Qt uses the target platform's graphics APIs whenever possible, however, it is
+possible to set up Qt's rendering path with a specific API. In many cases,
+choosing a specific API can increase performance and allows the developers to
+deploy on a platform that have a specific graphics API. Visit the
+\l{Qt Quick Scene Graph Default Renderer#Rendering via the Qt Rendering Hardware Interface}
+{Rendering via the Qt Rendering Hardware Interface}
+page on how to set the render path in QQuickWindow.
+
+\section1 2D Graphics
+
+Qt has multiple different APIs for drawing 2D graphics primitives. See the separate page about
+\l{2D Graphics in Qt} for an overview of the possibilities here.
+
+\section1 3D Graphics with Qt Quick 3D
+
+\l{Qt Quick 3D} is an add-on that provides a high-level API for creating 3D
+content and 3D user interfaces based on Qt Quick. It extends the
+\l{qtquick-visualcanvas-scenegraph.html}{Qt Quick Scene Graph} which lets you
+implement 3D content on 2D Qt Quick applications.
+
+\inlineimage blogs/BenchmarkDemoQt6.png
+
+
+\section1 Shader Effects
+
+The \l{Qt Shader Tools} provides a tool, \l{QSB Manual}{QSB}, to translate
+vertex and fragment shaders into a package for Qt Quick interfaces. In
+particular, the \l ShaderEffect QML type and \l QSGMaterial subclasses can use
+the output of QSB. \l{Qt Quick 3D} has its own framework for importing shaders
+into 3D scenes.
+
+The following list contains information about shader effects.
+\list
+\li \l{Qt Shader Tools}
+\li \l{Programmable Materials, Effects, Geometry, and Texture data} - materials and shaders in Qt Quick 3D
+\endlist
+
+\inlineimage blogs/qtquick3D.png
+
+
+\section1 High-Level Graphics with Qt GUI
+
+\l{Qt GUI} provides a high level windowing, painting, and typography system.
+QPainter provides an API for drawing vector graphics, text and images onto
+different surfaces, or QPaintDevice instances, such as QImage,
+QOpenGLPaintDevice, QWidget, and QPrinter. For Qt Widgets user interfaces,
+Qt uses a software renderer.
+
+The following list contains information about Qt GUIs high-level drawing APIs.
+
+\list
+    \li \l{Paint System}
+    \li \l{Coordinate System}
+    \li \l{Drawing and Filling}
+\endlist
+
+\section1 Low-Level Graphics with Qt GUI
+
+\l{Qt GUI} provides cross-platform enablers for managing OpenGL contexts and
+Vulkan instances. Applications that perform rendering directly with OpenGL,
+OpenGL ES, or Vulkan can use \l QOpenGLContext, \l QOpenGLFunctions, \l QVulkanInstance,
+\l QVulkanFunctions, and \l QVulkanDeviceFunctions to manage contexts, instances, and
+gain access to the OpenGL and Vulkan API functionsin a portable manner.
+
+\l{Qt GUI} also offers the Qt Rendering Hardware Interface (RHI) family of APIs,
+such as \l QRhi and \l QShader, for applications that want to perform rendering
+using the portable, cross-platform 3D rendering infrastructure Qt itself uses
+to implement the Qt Quick scene graph and the Qt Quick 3D rendering engine.
+These classes are offered as "semi-public" APIs with a limited compatibility
+promise for the time being, similarly to the \l{Qt Platform Abstraction}
+classes. However, the QRhi classes come with full documentation. See the
+\l QRhi class to get started.
+
+The \l{Qt GUI} module on its own allows targeting a \l QWindow or an offscreen
+buffer, such as a \l QRhiTexture, with the \l{QRhi}-based rendering. With user
+interfaces based on QWidget or QML (Qt Quick) working with a QWindow backed by a
+native platform is not always the most convenient way. This is why the \l{Qt Widgets}
+module offers \l QRhiWidget, whereas Qt Quick provides \l QQuickRhiItem. These
+base classes allow convenient creation of \l QWidget or \l QQuickItem
+subclasses, instances of which perform portable QRhi-based rendering into a
+texture that is then composited automatically with the Widgets or Qt Quick scene.
+
+\section1 Qt OpenGL Module
+
+The \l{Qt OpenGL} module is for applications that require OpenGL access.
+This module is to maintain compatibility with Qt 5 applications and with Qt GUI.
+For user interfaces that use QWidget, QOpenGLWidget is a widget that can add
+OpenGL scenes.
+
+
+\section1 Printing
+
+Qt supports printing both directly to actual printers, locally or on the
+network, as well as producing PDF output. How to do printing with
+Qt is described in detail on the \l {Qt Print Support} page.
+
+
+\section1 Images
+
+Qt supports convenient reading, writing, and manipulating of images through the
+QImage class. In addition, for more fine grained control of how images are
+loaded or saved, you can use the QImageReader and QImageWriter classes
+respectively. To add support for additional image formats, outside of the ones
+provided by Qt, you can create image format plugins by using QImageIOHandler
+and QImageIOPlugin.
+
+See the \l {Reading and Writing Image Files} page for more information.
+
+*/

@@ -1,0 +1,8 @@
+BO_ 1234 Test : 3 Vector__XXX
+ SG_ Signal0 : 0|8@1+ (1,0) [0|0] "unit" Vector__XXX
+ SG_ _sIgnal_1 : 8|8@1+ (1,0) [0|0] "unit" Vector__XXX
+ SG_ s_Ig_nAl2_ : 16|8@1+ (1,0) [0|0] "unit" Vector__XXX
+ SG_ Singal%1 : 0|8@1+ (1,0) [0|0] "unit" Vector__XXX
+ SG_ 1Signal : 0|8@1+ (1,0) [0|0] "unit" Vector__XXX
+ SG_ Signal name : 0|8@1+ (1,0) [0|0] "unit" Vector__XXX
+ SG_ "Signal name" : 0|8@1+ (1,0) [0|0] "unit" Vector__XXX

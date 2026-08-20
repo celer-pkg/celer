@@ -1,0 +1,11 @@
+[MapKeepGrabAndPreventSteal::test_flick]
+macos arm ci
+[MapFlick::test_flick_down]
+macos arm ci
+[MapFlick::test_flick_down_with_filtering]
+macos arm ci
+[MapFlick::test_flick_up]
+macos arm ci
+[MapFlick::test_flick_up_with_filtering]
+macos arm ci
+

@@ -1,0 +1,66 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+#ifndef QAVFHELPERS_P_H
+#define QAVFHELPERS_P_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <QtMultimedia/private/qsharedhandle_p.h>
+#include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/qvideoframeformat.h>
+
+#include <CoreMedia/CoreMedia.h>
+#include <CoreVideo/CVBase.h>
+#include <CoreVideo/CVPixelBuffer.h>
+#include <CoreVideo/CVImageBuffer.h>
+
+#include <chrono>
+
+QT_BEGIN_NAMESPACE
+
+using CvPixelFormat = unsigned;
+constexpr CvPixelFormat CvPixelFormatInvalid = 0;
+
+namespace QAVFHelpers
+{
+
+struct QSharedCVPixelBufferHandleTraits
+{
+    using Type = CVPixelBufferRef;
+    static constexpr Type invalidValue() noexcept { return nullptr; }
+    static Type ref(Type handle) noexcept
+    {
+        CVPixelBufferRetain(handle);
+        return handle;
+    }
+    static bool unref(Type handle) noexcept
+    {
+        CVPixelBufferRelease(handle);
+        return true;
+    }
+};
+using QSharedCVPixelBuffer = QtPrivate::QSharedHandle<QSharedCVPixelBufferHandleTraits>;
+
+Q_MULTIMEDIA_EXPORT QVideoFrameFormat::ColorRange colorRangeForCVPixelFormat(CvPixelFormat cvPixelFormat);
+Q_MULTIMEDIA_EXPORT QVideoFrameFormat::PixelFormat fromCVPixelFormat(CvPixelFormat cvPixelFormat);
+Q_MULTIMEDIA_EXPORT CvPixelFormat toCVPixelFormat(QVideoFrameFormat::PixelFormat pixFmt,
+                              QVideoFrameFormat::ColorRange colorRange);
+
+Q_MULTIMEDIA_EXPORT QVideoFrameFormat videoFormatForImageBuffer(CVImageBufferRef buffer, bool openGL = false);
+
+[[nodiscard]] Q_MULTIMEDIA_EXPORT std::chrono::microseconds CMTimeToMicroseconds(const CMTime &);
+
+};
+
+QT_END_NAMESPACE
+
+#endif // QAVFHELPERS_P_H

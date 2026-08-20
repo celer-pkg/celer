@@ -1,0 +1,121 @@
+From 4ef908d6d777f643f846b8171b27902d218ac6ea Mon Sep 17 00:00:00 2001
+From: Andy Nichols <andy.nichols@qt.io>
+Date: Thu, 7 Apr 2022 16:09:32 +0200
+Subject: [PATCH] Add support for building on macOS ARM
+
+Includes the patch for use with the upstream repository
+---
+ .../PhysX/pxshared/include/foundation/PxPreprocessor.h |  2 +-
+ .../PhysX/source/foundation/src/unix/PsUnixFPU.cpp     | 10 +++++-----
+ .../PhysX/source/geomutils/include/GuSIMDHelpers.h     |  2 +-
+ .../src/serialization/SnSerialUtils.cpp                |  5 ++++-
+ 4 files changed, 11 insertions(+), 8 deletions(-)
+
+diff --git a/src/3rdparty/PhysX/pxshared/include/foundation/PxPreprocessor.h b/src/3rdparty/PhysX/pxshared/include/foundation/PxPreprocessor.h
+index 12d6147..3aea54e 100644
+--- a/src/3rdparty/PhysX/pxshared/include/foundation/PxPreprocessor.h
++++ b/src/3rdparty/PhysX/pxshared/include/foundation/PxPreprocessor.h
+@@ -100,7 +100,7 @@ Operating system defines, see http://sourceforge.net/p/predef/wiki/OperatingSyst
+ #define PX_ANDROID 1
+ #elif defined(__linux__) || defined (__EMSCRIPTEN__) // note: __ANDROID__ implies __linux__
+ #define PX_LINUX 1
+-#elif defined(__APPLE__) && (defined(__arm__) || defined(__arm64__))
++#elif defined(TARGET_OS_IOS) && TARGET_OS_IOS && defined(__APPLE__) && (defined(__arm__) || defined(__arm64__))
+ #define PX_IOS 1
+ #elif defined(__APPLE__)
+ #define PX_OSX 1
+diff --git a/src/3rdparty/PhysX/source/foundation/src/unix/PsUnixFPU.cpp b/src/3rdparty/PhysX/source/foundation/src/unix/PsUnixFPU.cpp
+index eb2cd05..f245f7a 100644
+--- a/src/3rdparty/PhysX/source/foundation/src/unix/PsUnixFPU.cpp
++++ b/src/3rdparty/PhysX/source/foundation/src/unix/PsUnixFPU.cpp
+@@ -33,7 +33,7 @@
+ PX_COMPILE_TIME_ASSERT(8 * sizeof(uint32_t) >= sizeof(fenv_t));
+ #endif
+ 
+-#if PX_OSX
++#if PX_OSX && !defined(PX_ARM_FAMILY)
+ // osx defines SIMD as standard for floating point operations.
+ #include <xmmintrin.h>
+ #endif
+@@ -47,7 +47,7 @@ physx::shdfnd::FPUGuard::FPUGuard()
+ #elif PX_PS4
+ 	// not supported
+ 	PX_UNUSED(mControlWords);
+-#elif PX_OSX
++#elif PX_OSX && !defined(PX_ARM_FAMILY)
+ 	mControlWords[0] = _mm_getcsr();
+ 	// set default (disable exceptions: _MM_MASK_MASK) and FTZ (_MM_FLUSH_ZERO_ON), DAZ (_MM_DENORMALS_ZERO_ON: (1<<6))
+ 	_mm_setcsr(_MM_MASK_MASK | _MM_FLUSH_ZERO_ON | (1 << 6));
+@@ -76,7 +76,7 @@ physx::shdfnd::FPUGuard::~FPUGuard()
+ // not supported unless ARM_HARD_FLOAT is enabled.
+ #elif PX_PS4
+ // not supported
+-#elif PX_OSX
++#elif PX_OSX && !defined(PX_ARM_FAMILY)
+ 	// restore control word and clear exception flags
+ 	// (setting exception state flags cause exceptions on the first following fp operation)
+ 	_mm_setcsr(mControlWords[0] & ~_MM_EXCEPT_MASK);
+@@ -92,7 +92,7 @@ PX_FOUNDATION_API void physx::shdfnd::enableFPExceptions()
+ #if PX_LINUX && !defined(__EMSCRIPTEN__)
+ 	feclearexcept(FE_ALL_EXCEPT);
+ 	feenableexcept(FE_INVALID | FE_DIVBYZERO | FE_OVERFLOW);
+-#elif PX_OSX
++#elif PX_OSX && !defined(PX_ARM_FAMILY)
+ 	// clear any pending exceptions
+ 	// (setting exception state flags cause exceptions on the first following fp operation)
+ 	uint32_t control = _mm_getcsr() & ~_MM_EXCEPT_MASK;
+@@ -108,7 +108,7 @@ PX_FOUNDATION_API void physx::shdfnd::disableFPExceptions()
+ {
+ #if PX_LINUX && !defined(__EMSCRIPTEN__)
+ 	fedisableexcept(FE_ALL_EXCEPT);
+-#elif PX_OSX
++#elif PX_OSX && !defined(PX_ARM_FAMILY)
+ 	// clear any pending exceptions
+ 	// (setting exception state flags cause exceptions on the first following fp operation)
+ 	uint32_t control = _mm_getcsr() & ~_MM_EXCEPT_MASK;
+diff --git a/src/3rdparty/PhysX/source/geomutils/include/GuSIMDHelpers.h b/src/3rdparty/PhysX/source/geomutils/include/GuSIMDHelpers.h
+index caa8e5a..5d22133 100644
+--- a/src/3rdparty/PhysX/source/geomutils/include/GuSIMDHelpers.h
++++ b/src/3rdparty/PhysX/source/geomutils/include/GuSIMDHelpers.h
+@@ -72,7 +72,7 @@ namespace Gu
+ 			const QuatV qV = V4LoadU(&q.x);
+ 			Vec3V column0V, column1V, column2V;
+ 			QuatGetMat33V(qV, column0V, column1V, column2V);
+-#if defined(PX_SIMD_DISABLED) || PX_ANDROID || (PX_LINUX && (PX_ARM || PX_A64)) || (PX_UWP && (PX_ARM || PX_A64))
++#if defined(PX_SIMD_DISABLED) || PX_ANDROID || (PX_LINUX && (PX_ARM || PX_A64)) || (PX_UWP && (PX_ARM || PX_A64)) || (PX_OSX && (PX_ARM || PX_A64))
+ 			V3StoreU(column0V, column0);
+ 			V3StoreU(column1V, column1);
+ 			V3StoreU(column2V, column2);
+diff --git a/src/3rdparty/PhysX/source/physxextensions/src/serialization/SnSerialUtils.cpp b/src/3rdparty/PhysX/source/physxextensions/src/serialization/SnSerialUtils.cpp
+index 282b981..20b0102 100644
+--- a/src/3rdparty/PhysX/source/physxextensions/src/serialization/SnSerialUtils.cpp
++++ b/src/3rdparty/PhysX/source/physxextensions/src/serialization/SnSerialUtils.cpp
+@@ -39,7 +39,7 @@ using namespace physx;
+ namespace
+ {
+ 
+-#define SN_NUM_BINARY_PLATFORMS 16
++#define SN_NUM_BINARY_PLATFORMS 17
+ const PxU32 sBinaryPlatformTags[SN_NUM_BINARY_PLATFORMS] =
+ {
+ 	PX_MAKE_FOURCC('W','_','3','2'),
+@@ -78,6 +78,7 @@ const char* sBinaryPlatformNames[SN_NUM_BINARY_PLATFORMS] =
+ 	"linuxaarch64",
+ 	"uwparm",
+ 	"uwparm64",
++	"macarm"
+ };
+ 
+ }
+@@ -118,6 +119,8 @@ PxU32 getBinaryPlatformTag()
+ 	return sBinaryPlatformTags[14];
+ #elif PX_UWP && PX_A64
+ 	return sBinaryPlatformTags[15];
++#elif PX_OSX && PX_A64
++    return sBinaryPlatformTags[16];
+ #else
+ 	#error Unknown binary platform
+ #endif
+-- 
+2.35.1
+

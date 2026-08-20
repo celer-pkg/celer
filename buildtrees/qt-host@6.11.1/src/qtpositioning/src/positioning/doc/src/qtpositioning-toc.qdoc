@@ -1,0 +1,27 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtpositioning-toc.html
+    \title Qt Positioning module topics
+
+    The following list has links to all the individual topics (HTML files)
+    in the Qt Positioning module.
+
+    \list
+    \li \l {Positioning (QML)}
+    \li \l {Positioning (C++)}
+    \li \l {Interfaces between C++ and QML Code in Qt Positioning}{Interfaces between C++ and QML Code}
+    \li \l {Qt Positioning on Android}{Android support}
+    \li \l {Qt Positioning on iOS}{iOS support}
+    \li \l {Qt Positioning Plugins}{Plugins}
+        \list
+            \li \l{Qt Positioning Android plugin}{Android plugin}
+            \li \l{Qt Positioning GeoClue v2 plugin}{GeoClue v2 plugin}
+            \li \l{Qt Positioning Gypsy plugin}{Gypsy plugin}
+            \li \l{Qt Positioning NMEA plugin}{NMEA plugin}
+        \endlist
+    \li \l {Changes to Qt Positioning}{Upgrading from Qt 5}
+    \endlist
+
+*/

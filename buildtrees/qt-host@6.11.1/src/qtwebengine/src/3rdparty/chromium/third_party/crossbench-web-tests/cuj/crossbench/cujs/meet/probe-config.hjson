@@ -1,0 +1,36 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  template: ../../probe-config.hjson
+  args: {
+    TRACE_PROCESSOR_QUERIES: [
+      {
+        template: ../../common-metrics/v1/uma_histogram_count.hjson
+        args: {
+          NAME: Graphics.Smoothness.PercentDroppedFrames3.AllSequences
+        }
+      }
+      {
+        template: ../../common-metrics/v1/uma_histogram_count.hjson
+        args: {
+          NAME: WebRTC.Video.DroppedFrames.Capturer
+        }
+      }
+      {
+        template: ../../common-metrics/v1/uma_histogram_count.hjson
+        args: {
+          NAME: WebRTC.Video.DroppedFrames.Encoder
+        }
+      }
+      {
+        template: ../../common-metrics/v1/uma_histogram_count.hjson
+        args: {
+          NAME: WebRTC.Video.DroppedFrames.Receiver
+        }
+      }
+    ]
+    METRIC_DEFINITIONS: []
+    TRACE_CONFIG: ../../trace-config/detailed-trace-config.pbtxt
+  }
+}

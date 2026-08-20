@@ -1,0 +1,62 @@
+// Copyright (C) 2018 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example quicksubscription
+    \title Qt Quick Subscription
+    \examplecategory {Connectivity}
+    \ingroup qtmqtt-examples
+    \brief Use Qt Quick Controls to create an application that can subscribe to MQTT
+    topics.
+
+    \image quicksubscription.png
+           {MQTT subscription interface with Hostname, Port, Topic fields, Connect
+           and Subscribe buttons}
+
+    \e {Qt Quick Subscription} demonstrates how to register QMqttClient as a QML type and
+    use it in a Qt Quick application.
+
+    \l {Qt MQTT} does not provide a QML API in its current version. However,
+    you can make the C++ classes of the module available to QML.
+
+    \section1 Creating a Client
+
+    Connect to QMqttSubscription::messageReceived( ) to receive all messages
+    sent to the broker:
+
+    \quotefromfile quicksubscription/qmlmqttclient.cpp
+    \skipto QmlMqttSubscription
+    \printuntil }
+
+    Create a \c QmlMqttClient class with the QMqttClient class as a base
+    class:
+
+    \skipto QmlMqttClient(
+    \printuntil }
+
+    Use the \c subscribe() function to create a subscription object:
+    \skipto subscribe
+    \printuntil }
+
+    Use a QMqttMessage object to store the payload of a received
+    message:
+
+    \skipto handleMessage
+    \printuntil }
+
+    \section1 Registering Classes in QML
+
+    In the \c main.cpp file, load the QML type Main from the module
+    subscription:
+
+    \quotefromfile quicksubscription/main.cpp
+    \skipto (argc
+    \printuntil loadFromModule
+
+    Now use the MqttClient type in the \c Main.qml file to create an
+    MQTT client:
+
+    \quotefromfile quicksubscription/Main.qml
+    \skipto MqttClient {
+    \printuntil }
+*/

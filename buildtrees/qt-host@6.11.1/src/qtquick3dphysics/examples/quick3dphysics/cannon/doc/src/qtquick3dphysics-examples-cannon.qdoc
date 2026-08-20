@@ -1,0 +1,34 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example cannon
+    \ingroup quick3dphysics-examples
+    \title Qt Quick 3D Physics - Cannon Example
+    \examplecategory {3D}
+    \brief Demonstrates how to spawn physical objects.
+    \image cannon-example.jpg {Screenshot of a green landscape with multiple red boxes forming
+           a pyramid with a slider to control the boxes}
+
+    This example demonstrates how to create and delete physical objects on demand.
+    The scene consists of a number of stacks of boxes.
+    You can move around by using \c WASD and the mouse and shoot a ball by pressing \c space.
+
+    The scene is setup with the usual Qt Quick 3D objects like view, camera and light:
+
+    \snippet cannon/main.qml camera
+
+    \snippet cannon/main.qml light
+
+    We also add a static floor:
+
+    \snippet cannon/main.qml floor
+
+    We create a Node we use as the spawner of objects and put inside our view:
+
+    \snippet cannon/main.qml spawner
+
+    We have three methods: \c createStack for creating a stack, \c createBall for creating a ball with velocity and \c reset for resetting the scene.
+    The actual box and sphere that is spawn is stored in their own qml files (\c box.qml and \c sphere.qml).
+
+*/

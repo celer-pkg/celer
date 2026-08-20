@@ -1,0 +1,59 @@
+# Copyright 2021 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("./node.gni")
+import("./vars.gni")
+template("copy_to_gen") {
+  node_action(target_name) {
+    forward_variables_from(invoker,
+                           [
+                             "sources",
+                             "visibility",
+                             "deps",
+                             "testonly",
+                           ])
+
+    script = "scripts/build/ninja/copy-files.js"
+
+    _copy_src = rebase_path(get_path_info(target_name, "dir"), root_build_dir)
+    _copy_dest = rebase_path(target_gen_dir, root_build_dir)
+
+    args = [
+      _copy_src,
+      _copy_dest,
+      string_join(",", sources),
+    ]
+
+    outputs = []
+    foreach(_input, sources) {
+      outputs += [ "$target_gen_dir/$_input" ]
+    }
+  }
+}
+
+#
+# Same as "copy_to_gen" but includes all output files in the release GRD
+#
+template("copy_to_gen_with_grd") {
+  assert(!defined(invoker.testonly),
+         "Test resources can't be included in the release bundle!")
+
+  _copy_target = "${target_name}_gen"
+  copy_to_gen(_copy_target) {
+    forward_variables_from(invoker,
+                           [
+                             "sources",
+                             "visibility",
+                             "deps",
+                           ])
+  }
+
+  group(target_name) {
+    public_deps = [ ":$_copy_target" ]
+    data_deps = public_deps
+    metadata = {
+      grd_files = get_target_outputs(":$_copy_target")
+    }
+  }
+}

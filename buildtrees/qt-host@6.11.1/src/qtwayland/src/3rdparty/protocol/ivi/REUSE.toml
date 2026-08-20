@@ -1,0 +1,9 @@
+version = 1
+
+[[annotations]]
+path = ["MIT.txt",
+        "ivi-controller.xml",
+        "ivi-application.xml"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) 2013 DENSO CORPORATION Copyright (c) 2013 BMW Car IT GmbH"
+SPDX-License-Identifier = "MIT"

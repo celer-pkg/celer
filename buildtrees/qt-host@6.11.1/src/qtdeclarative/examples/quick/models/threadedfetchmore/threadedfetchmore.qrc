@@ -1,0 +1,7 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/qt/qml/threadedfetchmore">
+    <file>ContactBookDelegate.qml</file>
+    <file>ThreadedFetchMore.qml</file>
+</qresource>
+</RCC>
+

@@ -1,0 +1,27 @@
+# List of .qml files that should NOT be rendered
+
+# These are qml sub-presentations
+qml/qml/RedFill.qml
+qml/qml/AnimatedItem.qml
+
+# Materials
+lighting/materials/Default_002.qml
+lighting/materials/Default_009.qml
+lighting/materials/Material.qml
+shared/materials/GoldLattice.qml
+
+# Dynamic component
+quick/Component.qml
+defaultmaterial/BlendComponent.qml
+view3d/SceneComponent.qml
+effects/PlainView.qml
+custommaterial/NoUniformsUnshadedMaterial.qml
+custommaterial/DepthDrawTestMaterial.qml
+layers/TonemappingTestScene.qml
+lighting/Box.qml
+
+# Misc
+view3d/SharedResources2.qml
+
+# MotionBlur
+effects/move.qml

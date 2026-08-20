@@ -1,0 +1,26 @@
+[
+    {
+        "CPE": ["cpe:2.3:a:qt:qtbase:test-version:*:*:*:*:*:*:*"],
+        "Copyright": "Copyright",
+        "CopyrightFile": "",
+        "Description": "",
+        "DownloadLocation": "",
+        "Files": "",
+        "Homepage": "",
+        "Id": "minimal",
+        "License": "License",
+        "LicenseFile": "",
+        "LicenseId": "",
+        "Name": "Minimal",
+        "PURL": ["pkg:github/qt/qtbase@test-version"],
+        "PackageComment": "",
+        "Path": "%{PWD}",
+        "QDocModule": "qtest",
+        "QtParts": [
+            "libs"
+        ],
+        "QtUsage": "Usage",
+        "SecurityCritical": false,
+        "Version": ""
+    }
+]

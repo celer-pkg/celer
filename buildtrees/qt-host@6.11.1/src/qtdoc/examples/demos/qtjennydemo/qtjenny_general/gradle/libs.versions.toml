@@ -1,0 +1,15 @@
+[versions]
+agp = "8.9.1"
+kotlin = "1.9.24"
+activity = "1.10.1"
+qtjennyAnnotation = "1.0.0"
+qtjennyCompiler = "1.0.0"
+
+[libraries]
+androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
+qtjenny-annotation = { module = "org.qtproject.qt:qtjenny-annotation", version.ref = "qtjennyAnnotation" }
+qtjenny-compiler = { module = "org.qtproject.qt:qtjenny-compiler", version.ref = "qtjennyCompiler" }
+
+[plugins]
+androidApplication = { id = "com.android.application", version.ref = "agp" }
+jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

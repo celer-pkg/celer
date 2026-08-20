@@ -1,0 +1,186 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example tasktree/imagescaling
+    \meta tags {widgets, threads, network}
+    \examplecategory {Data Processing & I/O}
+    \examplecategory {Networking}
+    \title TaskTree Image Scaling
+    \ingroup tasktree_examples
+    \brief Demonstrates how to run For loop iterations in parallel
+           to asynchronously download and scale images using TaskTree.
+
+    This example shows how to use Qt TaskTree classes to download a collection
+    of images from the network and scale them without blocking the UI. It
+    demonstrates how to use the \l {QtTaskTree::}{For} element to run subtasks
+    in a parallel loop over QList items, and how to use the
+    \l {QtTaskTree::}{Storage} element to share data between tasks.
+
+    This example provides an alternative implementation for the image scaling
+    example in \l {Image Scaling}{Qt Concurrent}.
+
+    \image tasktree-imagescaling-example.png
+           {Grid of downloaded images with Finished status}
+
+    \section1 Application workflow
+
+    When the user presses the \uicontrol {Add URLs} button, the following method
+    runs:
+
+    \snippet tasktree/imagescaling/imagescaling.cpp 0
+
+    The method runs \c DownloadDialog. When the user accepts the dialog, the
+    method gets the list of selected URLs, clears the displayed images, and
+    prepares a grid for new images by calling \c initLayout(urls.size()).
+
+    For each item in the \c urls list, the app:
+    \list
+        \li Downloads the image for a given address using
+            \l {QtTaskTree::} {QNetworkReplyWrapper} and stores the received
+            \l QByteArray data locally.
+        \li Uses \l {QtTaskTree::} {QThreadFunction} to convert the
+            \l QByteArray data to a \l QImage and scales it to a thumbnail
+            in a separate thread.
+        \li Displays the resulting thumbnail in the grid.
+    \endlist
+
+    To iterate over the \c urls list, the app uses an \c iterator element of
+    \l {QtTaskTree::}{ListIterator} type. The \l QByteArray data received
+    after downloading is stored in the \c storage element of
+    \l {QtTaskTree::}{Storage}<QByteArray> type, which is used to
+    pass the data to the scale function.
+
+    \snippet tasktree/imagescaling/imagescaling.cpp 1
+
+    The \c recipe that describes the workflow looks like this:
+
+    \snippet tasktree/imagescaling/imagescaling.cpp 2
+
+    Here is a summary of all elements used in the recipe:
+
+    \table
+    \header
+        \li Element
+        \li Purpose
+    \row
+        \li \l {QtTaskTree::} {For}
+        \li Top level loop iterating over a list of \c urls.
+    \row
+        \li \l {QtTaskTree::} {Do}
+        \li Describes the body of each iteration.
+    \row
+        \li \l {QtTaskTree::} {finishAllAndSuccess}
+        \li Instructs the task tree to continue running
+            despite errors and report success when finished.
+    \row
+        \li \l {QtTaskTree::} {parallel}
+        \li Causes all direct children of the \l{QtTaskTree::}{Do} body
+            to run in parallel, including all iterations of the
+            top-level \l{QtTaskTree::}{For} element.
+
+            This means that all iterations will start simultaneously.
+    \row
+        \li \l {QtTaskTree::} {onGroupSetup}(onRootSetup)
+        \li Invokes \c onRootSetup handler when the first iteration
+            is about to be executed.
+    \row
+        \li \l {QtTaskTree::} {onGroupDone}(onRootDone)
+        \li Invokes \c onRootDone handler when all the iterations are finished.
+    \row
+        \li \l {QtTaskTree::} {Group}
+        \li A subgroup, executed for each iteration.
+            By default, all its children execute in sequence.
+    \row
+        \li \c storage
+        \li Instructs the running task tree to instantiate the underlying
+            QByteArray instance when entering the subgroup.
+
+            This means the running task tree instantiates
+            a separate QByteArray copy for each iteration.
+    \row
+        \li QNetworkReplyWrapperTask
+        \li The first asynchronous task that runs in sequence for each iteration.
+
+            Starts downloading the QByteArray data for a given \c url.
+            When the download is about to start, the \c onDownloadSetup
+            is invoked to setup the input \c url for download.
+
+            When it's finished, the \c onDownloadDone is invoked.
+            In case of successful execution, the downloaded QByteArray data
+            is stored inside \c storage element.
+    \row
+        \li QThreadFunctionTask<QImage>
+        \li The second asynchronous task executed in sequence for each iteration.
+            It's executed only after successful execution of the first task.
+
+            Executes a function in a separate thread, passing the stored QByteArray
+            data of the downloaded image. When the function is about to start,
+            the \c onScaleSetup is invoked to setup the QByteArray data for scaling.
+
+            When it's finished, the \c onScaleDone is invoked.
+            In case of successful execution it displays the thumbnail in a grid.
+    \endtable
+
+    \section1 Update the status bar
+
+    The following shows how all handlers are implemented:
+
+    \snippet tasktree/imagescaling/imagescaling.cpp 3
+
+    When the first iteration starts, the \c onRootSetup handler updates the
+    status bar message and enables the \uicontrol Cancel button. When the last
+    iteration finishes, the \c onRootDone handler updates the status bar
+    message and disables the \uicontrol Cancel button.
+
+    \section1 Download and scale images
+
+    Each iteration runs in parallel with others and consists of two sequential
+    tasks. The first task in each iteration is
+    \l {QtTaskTree::} {QNetworkReplyWrapperTask}.
+    Here is how its setup and done handlers are implemented:
+
+    \snippet tasktree/imagescaling/imagescaling.cpp 4
+
+    The \c onDownloadSetup handler runs when
+    \l {QtTaskTree::} {QNetworkReplyWrapper} is about to
+    start. It sets up the network access manager and network request. The
+    handler captures the \c iterator, which gives access to the current address
+    from the \c urls list.
+
+    The \c onDownloadDone handler runs when
+    \l {QtTaskTree::} {QNetworkReplyWrapper} finishes. It
+    captures the \c storage and \c iterator. If the task succeeds, it stores
+    the received \l QByteArray data in \c storage. The task tree creates a
+    separate \l QByteArray instance for each iteration. Dereferencing \c storage
+    gives access to the \l QByteArray instance for the current iteration. If the
+    task fails or is canceled, the handler shows the error message for the
+    label immediately. The index of the current iteration is returned by
+    \c {iterator.iteration()}.
+
+    The second task in each iteration is
+    \l {QtTaskTree::} {QThreadFunctionTask}<QImage>. Its
+    setup and done handlers are as follows:
+
+    \snippet tasktree/imagescaling/imagescaling.cpp 5
+
+    Inside \c onScaleSetup, the handler schedules a call to the
+    \c scale function, passing the \l QByteArray data received from the first
+    task as an argument. This is done by dereferencing the captured \c storage.
+    The \c scale function runs in a separate thread.
+
+    The \c onScaleDone handler runs when the \c scale function finishes.
+    \c onScaleDone is called from the main thread. If scaling succeeds, the
+    handler assigns the scaled image to the appropriate label. Otherwise, the
+    handler shows an error message.
+
+    The following shows how the \c scale function is implemented:
+
+    \snippet tasktree/imagescaling/imagescaling.cpp 6
+
+    The function takes a \l QPromise to the result type as an argument. The
+    \c promise is used to return the final result or to issue an error by
+    canceling the promise's future.
+
+    \include examples-run.qdocinc
+*/

@@ -1,0 +1,7 @@
+module RssNewsModule
+BusyIndicator 254.0 content/BusyIndicator.qml
+CategoryDelegate 254.0 content/CategoryDelegate.qml
+NewsDelegate 254.0 content/NewsDelegate.qml
+RssFeeds 254.0 content/RssFeeds.qml
+ScrollBar 254.0 content/ScrollBar.qml
+Main 254.0 Main.qml

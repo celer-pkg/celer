@@ -1,0 +1,19 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+syntax = "proto3";
+
+message Event {
+    enum Type {
+        UNKNOWN = 0;
+        SERVER = 1;
+        CLIENT = 2;
+    }
+    Type type = 1;
+    string name = 2;
+    uint64 number = 3;
+}
+
+message EventList {
+    repeated Event events = 1;
+}

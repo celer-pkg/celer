@@ -1,0 +1,14 @@
+<RCC>
+    <qresource prefix="/qt/qml/demos/calqlatr">
+        <file>qmldir</file>
+        <file>Main.qml</file>
+        <file>content/calculator.js</file>
+        <file>content/Display.qml</file>
+        <file>content/NumberPad.qml</file>
+        <file>content/CalculatorButton.qml</file>
+        <file>content/BackspaceButton.qml</file>
+        <file>content/images/backspace.svg</file>
+        <file>content/images/backspace_fill.svg</file>
+        <file>content/ApplicationState.qml</file>
+    </qresource>
+</RCC>

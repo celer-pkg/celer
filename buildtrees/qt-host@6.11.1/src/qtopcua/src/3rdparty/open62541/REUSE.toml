@@ -1,0 +1,26 @@
+version = 1
+
+[[annotations]]
+path = ["open62541.c",
+        "open62541.h"]
+precedence = "override"
+comment = "In file: license is not in reuse readable format and copyright refers to a list of authors."
+SPDX-FileCopyrightText = ["Copyright (C) 2014-2021 Bauer, Maximilian",
+                          "Copyright (C) 2014-2021 Ebrahimi, Reza <reza.ebrahimi.dev (at) gmail.com>",
+                          "Copyright (C) 2014-2021 Graube, Markus <markus.graube (at) tu-dresden.de>",
+                          "Copyright (C) 2014-2021 Gruener, Sten <s.gruener (at) plt.rwth-aachen.de>",
+                          "Copyright (C) 2014-2021 Iatrou, Chris Paul <chris_paul.iatrou (at) tu-dresden.de>",
+                          "Copyright (C) 2014-2021 Jeromin, Holger",
+                          "Copyright (C) 2014-2021 Palm, Florian <f.palm (at) plt.rwth-aachen.de>",
+                          "Copyright (C) 2014-2021 Pfrommer, Julius <julius.pfrommer (at) iosb.fraunhofer.edu>",
+                          "Copyright (C) 2014-2021 Profanter, Stefan <profanter (at) fortiss.org>",
+                          "Copyright (C) 2014-2021 Stalder, Thomas <t.stalder (at) bluetimeconcept.ch>",
+                          "Copyright (C) 2014-2021 Urbas, Leon <leon.urbas (at) tu-dresden.de>"]
+SPDX-License-Identifier = "MPL-2.0 AND CC0-1.0 AND CC-BY-SA-4.0 AND BSD-3-Clause AND Apache-2.0 AND MIT"
+
+[[annotations]]
+path = ["BSD-3-CLAUSE", "CC-BY-SA-4.0", "LICENSE*", "MIT", "mpl-2.0.815ca599c9df.txt", "AUTHORS"]
+precedence = "override"
+comment = "License and copyright files"
+SPDX-FileCopyrightText = "None"
+SPDX-License-Identifier = "CC0-1.0"

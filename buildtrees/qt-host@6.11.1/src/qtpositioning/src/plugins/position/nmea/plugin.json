@@ -1,0 +1,9 @@
+{
+    "Keys": ["nmea"],
+    "Provider": "nmea",
+    "Position": true,
+    "Satellite": true,
+    "Monitor" : false,
+    "Priority": 900,
+    "Testable": false
+}

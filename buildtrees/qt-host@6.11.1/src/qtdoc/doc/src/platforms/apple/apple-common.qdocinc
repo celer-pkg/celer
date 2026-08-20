@@ -1,0 +1,113 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [forward-compatibility]
+    \note Apple's forward compatibility promise for \1 generally ensures that Qt applications
+    continue to run well on new operating system releases. Issues that may occur are prioritized
+    and scheduled in accordance with the Qt \l{https://contribute.qt-project.org/quips/16}{branching}
+    and \l{Qt Releases}{support} policies. Support for new operating system features
+    is not typically included in patch releases.
+//! [forward-compatibility]
+
+//! [build-environment]
+    \section2 Build Environment
+
+    The build environment for \1 is provided by Apple's \l{https://developer.apple.com/xcode/}{Xcode}
+    application, which includes both the toolchain (compiler, linker, and other
+    tools), and the \1 platform-SDK (headers and libraries) that you build and link against.
+    Together these define how your application is built.
+
+    Apple generally recommend (and in the case of the App Store, require) that applications
+    are built against the latest available SDK, so you should always be using the latest
+    available Xcode from Apple. This may require upgrading your system's \macos version,
+    as new Xcode versions may not run on older \macos versions.
+
+    \note The \1 build environment is always defined entirely by the Xcode version (its toolchain
+    and SDKs) you're using -- \e not the version of \macos you are running Xcode on.
+
+    \section3 Opting out of behavior changes
+
+    One caveat to using the latest Xcode version and SDK to build your application
+    is that the \1 system frameworks will sometimes decide whether or not to
+    enable behavior changes based on the SDK you built your application against.
+
+    This technique allows Apple to ensure that binaries built against older SDKs
+    will still continue to run without regressions on newer \1 releases.
+
+    For example, when dark mode was introduced in \macos 10.14 Mojave, \macos would
+    only treat applications built against the 10.14 SDK as supporting dark mode, and
+    would leave applications built against earlier SDKs with the default light mode
+    look.
+
+    Building with an older Xcode version, against an older SDK, is one way to opt out
+    of such behavior changes, but is a last-resort solution, and should only be applied
+    if your application has no other ways of working around the problem.
+//! [build-environment]
+
+//! [target-platforms]
+    \section2 Target Platforms
+
+    Building for \1 utilizes a technique called \e{weak linking} that allows you to build
+    your application against the headers and libraries of the latest platform SDK, while still
+    allowing your application to be deployed to \1 versions lower than the SDK version.
+    When the binary is run on a \1 version lower than the SDK it was built with, Qt will
+    check at runtime whether or not a platform feature is available before utilizing it.
+
+    In theory this would allow running your application on every single \1 version released,
+    but for practical (and technical) reasons there is a lower limit to this range, known as
+    the \e{deployment target} of your application. If the binary is launched on a \1 version
+    below the deployment target Qt will give an error message and the application will
+    not run.
+
+    Qt expresses the deployment target via the \l
+    {https://cmake.org/cmake/help/latest/variable/CMAKE_OSX_DEPLOYMENT_TARGET.html}
+    {\c CMAKE_OSX_DEPLOYMENT_TARGET} or \c QMAKE_MACOSX_DEPLOYMENT_TARGET variables,
+    which by default is set to the minimum supported deployment target for Qt.
+
+    You only need to raise the deployment target if your own code uses APIs
+    that were added in a \1 version higher than what Qt defaults to,
+    and you are not using \c @available checks to guard their use at runtime.
+
+    To raise the deployment target with CMake:
+
+    \code
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "42.0")
+    \endcode
+
+    or with qmake:
+
+    \code
+    QMAKE_MACOSX_DEPLOYMENT_TARGET = 42.0
+    \endcode
+
+    \note You should not lower the deployment target beyond the default value set by Qt.
+    Doing so will likely lead to crashes at runtime if the binary is deployed to a
+    \1 version lower than what Qt expected to run on.
+
+    For more information about SDK-based development on Apple platforms, see Apple's \l
+    {https://developer.apple.com/library/mac/#documentation/DeveloperTools/Conceptual/cross_development/Introduction/Introduction.html}{developer documentation}.
+//! [target-platforms]
+
+
+//! [installing-xcode]
+    \section2 Installing Xcode
+
+    Xcode is a requirement for developing with Qt for \1. It can be installed from the
+    \l{https://apps.apple.com/us/app/xcode/id497799835}{App Store},
+    or downloaded from Apple's \l{https://developer.apple.com/download/}{developer website}.
+
+    Once installed, please run Xcode once to let it install any required dependencies.
+
+    Then verify that the system is using the correct Xcode installation using the \c{xcode-select} tool.
+
+    \code
+    $ xcode-select -print-path
+    /Applications/Xcode.app/Contents/Developer
+    \endcode
+
+    If the output does not match the expectation, choose the Xcode installation explicitly.
+
+    \code
+    $ sudo xcode-select --switch /Applications/Xcode.app
+    \endcode
+//! [installing-xcode]

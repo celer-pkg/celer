@@ -1,0 +1,7 @@
+version = 1
+
+[[annotations]]
+path = ["impl/ElevationEffect.qml"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Copyright (c) 2014-2016 Google, Inc"
+SPDX-License-Identifier = "MIT"

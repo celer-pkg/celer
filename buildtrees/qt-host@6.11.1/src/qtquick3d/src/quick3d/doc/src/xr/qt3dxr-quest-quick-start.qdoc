@@ -1,0 +1,63 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+    \page qt3dxr-quest-quick-start.html
+    \title Getting Started With Meta Quest 3
+
+    \brief Instructions on how to get \qxr up and running on a Meta Quest headset.
+
+    \section1 Introduction
+
+    This topic provides instructions on how to get up and running with the \tm Meta Quest and OpenXR.
+    Deploying applications to the Meta Quest can be done in two ways: As a "low-immersion" application,
+    where the application is contained in a window in the headset's default VR environment or
+    as a "high-immersion" VR application where the application takes over the entire rendering of
+    the VR environment.
+
+    \note The instructions are primarily for the Quest 3, but many steps should also apply for
+    other Android-based headsets using OpenXR.
+
+    \section1 Prerequisites
+
+    You'll need Qt 6.8 or later and the \qxr module to get started. The \qxr module is part of
+    QtQuick3D and will be installed with it. You'll also need the Android NDK, SDK, and JDK
+    installed and configured. You can find more information on setting up Qt Creator for Android
+    development here \l {Getting Started with Qt for Android}.
+
+    \section1 Setting up the Quest
+
+    You'll need to enable developer mode on the device to deploy applications to the Meta Quest.
+    Download the Meta Quest Developer Hub to stream video from the device, enable wireless
+    debugging, and more.
+
+    \section1 Deploying a low-immersion application
+
+    Deploying a low-immersion application follows the same steps as when developing and deploying
+    for \l{Qt for Android}. You can already deploy Qt examples to the Quest in this
+    way with no modifications.
+
+    \section2 Project changes needed for XR applications to be Meta Quest ready
+
+    Preparing an XR application for the Quest requires a few extra steps, as the QtQuick3D
+    the application entry point in QML is slightly different. In a regular QtQuick3D application, the
+    view into the 3D scene is through the \l View3D type, but in an XR application, the view is
+    through the \l XrView type. In addition, there are  \l{Qt Quick 3D Xr QML Types}{APIs in Qt Quick 3D Xr} that are
+    specific for implementing XR applications, for example, handtracking, spatial anchors,
+    and passthrough.
+
+    The AndroidManifest.xml file will also need to be modified to include the necessary permissions
+    and features specified by the OEM of the target device. For the Quest, the following:
+
+    \badcode
+    <meta-data android:name="com.oculus.intent.category.VR" android:value="vr_only"/>
+    \endcode
+
+    \badcode
+    <uses-permission android:name="com.oculus.permission.HAND_TRACKING" />
+    <uses-feature android:name="oculus.software.hand-tracking" android:required="false" />
+    \endcode
+
+    See \l{https://developer.oculus.com/documentation/native/android/mobile-native-manifest/}{Meta's Manifest docs}
+    for more information.
+
+*/

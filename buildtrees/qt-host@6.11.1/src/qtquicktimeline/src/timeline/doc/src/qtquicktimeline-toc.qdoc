@@ -1,0 +1,17 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtquicktimeline-toc.html
+    \title Qt Quick Timeline module topics
+
+    The following list has links to all the individual topics (HTML files)
+    in the Qt Quick Timeline module.
+
+    \list
+    \li \l {Qt Quick Timeline Overview}{Overview}
+    \li \l {Changes to Qt Quick Timeline}{Upgrading from Qt 5}
+    \li \l {Qt Quick Timeline Blend Trees QML Types}{Reference - Blend Trees QML Types}
+    \endlist
+
+*/

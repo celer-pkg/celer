@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>Building.qml</file>
+        <file>Wasd.qml</file>
+        <file>maps/sign.png</file>
+        <file>maps/sphere.png</file>
+        <file>maps/Tape001_1K_Color.jpg</file>
+        <file>maps/Tape001_1K_NormalGL.jpg</file>
+        <file>maps/Tape001_1K_Roughness.jpg</file>
+        <file>maps/Tiles107_1K_Color.jpg</file>
+        <file>maps/Tiles107_1K_NormalGL.jpg</file>
+        <file>maps/Tiles107_1K_Roughness.jpg</file>
+        <file>maps/Tiles108_1K_Color.jpg</file>
+        <file>meshes/building.mesh</file>
+    </qresource>
+</RCC>

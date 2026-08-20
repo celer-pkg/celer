@@ -1,0 +1,30 @@
+version = 1
+
+[[annotations]]
+path = ["checkbox.svg",
+        "checkbox_blank.svg",
+        "darkmode.svg",
+        "filter.svg",
+        "help.svg",
+        "lightmode.svg",
+        "rssiview.svg",
+        "search.svg",
+        "settings.svg",
+        "skyview.svg",
+        "sort.svg",
+        "tableview.svg"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) Google"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["place.svg",
+        "qtlogo_green.png",
+        "qtlogo_white.png",
+        "satellite1.png",
+        "satellite2.png",
+        "satellite_small.png"]
+comment = "assuming those files, have the same copyright and license"
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (C) Google"
+SPDX-License-Identifier = "Apache-2.0"

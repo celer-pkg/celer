@@ -1,0 +1,15 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page modules-qml.html
+    \keyword All QML APIs by Module
+    \ingroup classlists
+    \title All QML Modules
+
+    \brief A list of all QML modules in Qt.
+
+    These are the QML API pages for Qt's QML modules.
+
+    \generatelist qml-modules
+*/

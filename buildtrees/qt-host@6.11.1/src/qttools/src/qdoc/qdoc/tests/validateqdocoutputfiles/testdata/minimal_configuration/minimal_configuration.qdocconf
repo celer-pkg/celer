@@ -1,0 +1,13 @@
+project = A minimal QDoc configuration
+productname = Qt
+
+locationinfo = false
+
+headers.fileextensions  = "*.h *.hpp"
+sources.fileextensions  = "*.cpp *.qml *.qdoc"
+
+headerdirs  = ./src
+sourcedirs  = ./src
+
+warninglimit = 0
+warninglimit.enabled = true

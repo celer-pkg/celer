@@ -1,0 +1,10 @@
+# Copyright 2021 The Chromium Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+group("password_manager") {
+  public_deps = [
+    "//chrome/browser/password_manager/factories",
+    "//chrome/browser/password_manager/factories:backend_factory",
+  ]
+}

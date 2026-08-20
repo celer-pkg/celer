@@ -1,0 +1,97 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#ifndef TRANSMISSION_GLSLLIB
+#define TRANSMISSION_GLSLLIB 1
+
+#include "bsdf.glsllib"
+
+#ifdef QQ3D_SHADER_META
+/*{
+    "uniforms": [
+        { "type": "sampler2D", "name": "qt_screenTexture", "multiview_dependent": true },
+        { "type": "mat4", "name": "qt_modelMatrix" },
+        { "type": "mat4", "name": "qt_viewProjectionMatrix", "multiview_dependent": true }
+    ]
+}*/
+#endif // QQ3D_SHADER_META
+
+// Compute attenuated light as it travels through a volume.
+vec3 qt_applyVolumeAttenuation(in vec3 radiance, in float transmissionDistance, in vec3 attenuationColor, in float attenuationDistance)
+{
+    if (attenuationDistance == 0.0) {
+        return radiance;
+    } else {
+        // Compute light attenuation using Beer's law.
+        vec3 attenuationCoefficient = -log(attenuationColor) / attenuationDistance;
+        vec3 transmittance = exp(-attenuationCoefficient * transmissionDistance); // Beer's law
+        return transmittance * radiance;
+    }
+}
+
+vec3 qt_getVolumeTransmissionRay(in vec3 n, in vec3 v, in float thickness, in float ior)
+{
+    // Direction of refracted light.
+    vec3 refractionVector = refract(-v, normalize(n), 1.0 / ior);
+
+    // Compute rotation-independent scaling of the model matrix.
+    vec3 modelScale;
+    modelScale.x = length(vec3(qt_modelMatrix[0].xyz));
+    modelScale.y = length(vec3(qt_modelMatrix[1].xyz));
+    modelScale.z = length(vec3(qt_modelMatrix[2].xyz));
+
+    // The thickness is specified in local space.
+    return normalize(refractionVector) * thickness * modelScale;
+}
+
+// Needed to correct the framebuffer texture for certain RHI backends
+vec2 qt_correctFrambufferUV(in vec2 uv)
+{
+    if (qt_rhi_properties.x < 0 && qt_rhi_properties.y == 1)
+        uv.y = 1 - uv.y;
+    return uv;
+}
+
+vec3 qt_getTransmissionSample(in vec2 fragCoord, in float roughness, in float ior)
+{
+    const vec2 fbCoord = qt_correctFrambufferUV(fragCoord);
+#if QSHADER_VIEW_COUNT >= 2
+    const float framebufferLod = log2(float(textureSize(qt_screenTextureArray, 0).x)) * qt_applyIorToRoughness(roughness, ior);
+    vec3 transmittedLight = textureLod(qt_screenTextureArray, vec3(fbCoord, qt_viewIndex), framebufferLod).rgb;
+#else
+    const float framebufferLod = log2(float(textureSize(qt_screenTexture, 0).x)) * qt_applyIorToRoughness(roughness, ior);
+    vec3 transmittedLight = textureLod(qt_screenTexture, fbCoord, framebufferLod).rgb;
+#endif
+    return transmittedLight;
+}
+
+vec3 qt_getIBLVolumeRefraction(in vec3 n, in vec3 v, in float perceptualRoughness, in vec3 baseColor, in vec3 F,
+    in vec3 position, in float ior, in float thickness, in vec3 attenuationColor, in float attenuationDistance)
+{
+    vec3 transmissionRay = qt_getVolumeTransmissionRay(n, v, thickness, ior);
+    vec3 refractedRayExit = position + transmissionRay;
+
+    // Project refracted vector on the framebuffer, while mapping to normalized device coordinates.
+#if QSHADER_VIEW_COUNT >= 2
+    vec4 ndcPos = qt_viewProjectionMatrix[qt_viewIndex] * vec4(refractedRayExit, 1.0);
+#else
+    vec4 ndcPos = qt_viewProjectionMatrix * vec4(refractedRayExit, 1.0);
+#endif
+    vec2 refractionCoords = ndcPos.xy / ndcPos.w;
+    refractionCoords += 1.0;
+    refractionCoords /= 2.0;
+
+    // Sample framebuffer to get pixel the refracted ray hits.
+    vec3 transmittedLight = qt_getTransmissionSample(refractionCoords, perceptualRoughness, ior);
+
+    vec3 attenuatedColor = qt_applyVolumeAttenuation(transmittedLight, length(transmissionRay), attenuationColor, attenuationDistance);
+
+    // Sample GGX LUT to get the specular component.
+    float NdotV = clamp(dot(n, v), 0.0, 1.0);
+    vec2 brdf = qt_brdfApproximation(n, v, perceptualRoughness);
+    vec3 specularColor = (F * brdf.x + brdf.y);
+
+    return (1.0 - specularColor) * attenuatedColor * baseColor;
+}
+
+#endif // TRANSMISSION_GLSLLIB

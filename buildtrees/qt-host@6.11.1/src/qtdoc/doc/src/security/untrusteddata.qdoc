@@ -1,0 +1,107 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page untrusteddata.html
+    \title Handling Untrusted Data
+    \brief Processing data from untrusted sources
+    \ingroup security
+
+    Advice on handling untrusted data with Qt.
+
+    \section1 Untrusted Data
+
+    \e{Untrusted data} is data that comes from sources whose integrity the
+    application cannot guarantee. Examples of untrusted data are user-provided
+    data, network data, generated data, or data that the application does not
+    directly create. Improper handling of untrusted data can lead to
+    application crashes, exposed private data, and harm to users and hardware.
+    Therefore, developers must be vigilant about how their code receives and
+    processes untrusted data.
+
+    The responsibility of ensuring that the data is safe is ultimately on the
+    application. However, applications can depend on certain parts of Qt being
+    developed to safely process and validate data. For example, Qt modules can
+    validate images, manipulate strings safely, and can process incoming network
+    packets. Qt considers these types of functionality as
+    \e{security critical}. Security critical APIs undergo extra scrutiny and
+    testing during development.
+
+    The Qt Project has an extensive process for designing and testing Qt
+    functionality. For more information about Qt's security policy, see
+    \l{Security in Qt}.
+
+    \section1 Mitigating Risks and Vulnerabilities with Qt
+
+    Using Qt decreases many of the risks of processing untrusted data.
+    The following sections cover aspects of untrusted data handling in Qt
+    applications.
+
+    \section2 User Input Validation
+
+    The lack of proper input validation can cause erroneous data and unexpected
+    behaviors. However, strict validation rules can also hinder users from
+    entering data. For example, preventing certain characters can result in
+    users inputting incorrect information or weak passwords.
+
+    Qt provides several validators for user input. See:
+    \list
+    \li \l QValidator and \l{Line Edits Example} - C++ validators and example
+    \li Qt Quick \l{Qt Quick Text Input Handling and Validators}{Validators} -
+    QML validators
+    \endlist
+
+    \section2 Command Injection
+
+    A common security vulnerability is malicious command execution by an
+    external process. Executing commands from untrusted data can lead to
+    exposed user data, access to private resources, and other malicious
+    activities. Applications may also combine untrusted data with trusted data,
+    tainting the data.
+
+    A common mitigation is to validate and separate the text from possible
+    executable commands. An explicit allow list of commands, using both
+    server-side and client-side verification, and careful parsing of data can
+    also help mitigate the risk. It is also recommended to use trusted plugins
+    and libraries that execute system commands instead of executing text
+    scripts.
+
+    \section2 Decoding Images
+
+    Images from untrusted sources can cause system crashes or decreased
+    performance. Ensure that the application sanitizes image paths, image
+    types, and file extensions before loading or processing images.
+    Also, applications should process large images and unexpected formats
+    without degrading performance or crashing.
+
+    \section2 Deserializing Data
+
+    Treat data for deserialization as untrusted data if it is coming from
+    outside the trust boundary, where data must undergo extra scrutiny. The
+    serialized data may be corrupt or contain malicious content. Deserializing
+    these data can result in erroneous data, application crashes, or malicious
+    code execution. Check the integrity of the contents, for example, by using
+    encryption or hashing techniques. Also, when deserializing data, handle
+    errors gracefully and prevent system crashes.
+
+    For more information, see
+    \list
+    \li \l{Qt Serialization}
+    \li \l{QDataStream#Corruption and Security}{Corruption and Security}
+        in QDataStream.
+    \endlist
+
+    \section2 Qt Qml and JavaScript Sources
+
+    Qt Qml assumes that the application developer provides all
+    code and resources. QML is a generally memory-safe language with basic
+    protection. However, QML does not have the concept of separate privacy
+    domains. This means any code, whether loaded remotely or locally, can
+    access all data in its scope.
+
+    QML Applications should load resources from the local filesystem or
+    through Qt's \l{The Qt Resource System}{resource system}. If there is a
+    need for the network, fetch the resource over HTTPS or within a trusted
+    network.
+
+*/

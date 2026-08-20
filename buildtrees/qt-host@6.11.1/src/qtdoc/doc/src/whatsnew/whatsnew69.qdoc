@@ -1,0 +1,528 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page whatsnew69.html
+    \title What's New in Qt 6.9
+    \ingroup whatsnewqt6
+    \brief Lists the new features in Qt 6.9.
+    \meta sortkey 609
+
+    \section1 New Features in Qt 6.9
+
+    \section2 Qt Core Module
+    \list
+        \li QString::arg() now has support for UTF-8 (QUtf8StringView) and QAnyStringView
+            arguments. Passing C string literals or QByteArrays to \l{QString::}{arg()} now no
+            longer implicitly converts to QString first.
+        \li QAnyStringView and QUtf8StringView now have a (multi-)\l{QAnyStringView::}{arg()},
+            like QStringView and QLatin1StringView already had. These also support
+            QUtf8StringView and QAnyStringView arguments, like the QString version.
+        \li QJniArray can now create an empty array of a fixed size, and change
+            values in an array using a non-const iterator or \l{QJniArray::}{operator[]}
+        \li QLocale::uiLanguages() now includes fall-back entries obtained by
+            removing later components of names. Callers that have been doing
+            such truncations for themselves are now encouraged to trust that
+            QLocale knows the right things to try and the right order to try
+            them in.
+        \li QLocale::bcp47Name() now represents the C locale as "en-POSIX", to
+            distinguish it from plain "en" and better align with the BCP47 spec.
+            The variant POSIX is likewise now recognized as meaning the C
+            locale, when constructing one from its name.
+        \li QTimeZone::abbreviation() on Windows now returns an abbreviation
+            rather than the full name.
+        \li QTimeZone::displayName() should now actually provide
+            locale-appropriate names for zones on all platforms, where
+            previously some failed to support this.
+        \li Converting timestamp strings with a timezone part to QDateTime
+            now recognizes long-form display names of zones.
+        \li QMetaEnum and QFlags can now support types requiring up to 64-bits.
+        \li QJsonValue can now parse and serialize JSON using
+            \l{QJsonValue::}{fromJson} and \l{QJsonValue::}{toJson} directly,
+            without going through QJsonDocument. This allows it to parse and
+            serialize primitive values like strings or numbers as well as
+            compound values.
+        \li QThread gained the ability to set the OS thread quality of service
+            hint using the new \l{QThread::}{setServiceLevel} function.
+        \li QThreadPool can also set the quality of service level for its
+            threads using \l{QThreadPool::}{setServiceLevel}.
+        \li QFile::supportsMoveToTrash() reports whether QFile::moveToTrash() is
+            implemented on the current operating system.
+        \li QIODevice::readLineInto() allows reading a line of data into a
+            preallocated buffer.
+        \li Use the new Q_STATIC_LOGGING_CATEGORY macro to declare a logging
+            category that is only used in a single translation unit.
+        \li Call the new QSortFilterProxyModel::beginFilterChange() method to
+            make sure that changes of the filtered content are recognized
+            correctly.
+        \li QTimerEvent::matches() makes it easier to test whether a timer event
+            belongs to a specific QBasicTimer.
+        \li QUuid::createUuidV7() allows creating unique identifiers based on
+            \l{https://datatracker.ietf.org/doc/html/rfc9562#name-uuid-version-7}
+            {RFC9562}.
+        \li QCommandLineParser::showMessageAndExit() provides a convenient way
+            to display an informative or error message to the user before
+            exiting the application.
+        \li QHash got \l{QHash::}{tryEmplace} and \l{QHash::}{insertOrAssign}
+            APIs to match the respective APIs from the standard library.
+        \li QSpan can now \l{QSpan::}{chop} and \l{QSpan::}{slice} variable-
+            sized spans.
+
+    \endlist
+
+    \section2 Qt Graphs Module
+    \list
+        \li Added transparency support to Surface3D, utilizing
+            order-independent transparency from QtQuick3D. Only approximate technique (WeightedBlended) has been implemented
+            to QtQuick3D this far, so no accurate techniques can be used yet.
+        \li Added \l {GraphsItem3D::}{rootNode} to allow injecting graphs to a
+            View3D in QtQuick3D applications.
+        \li Added another picking method, \l {GraphsItem3D::}{doRayPicking}, to
+            be used with View3D graph injections.
+        \li Added \l QSpline3DSeries class to allow users render their data in
+            splines.
+        \li Added \l {QBar3DSeries::}{valueColoringEnabled} property to Bars3D,
+            which allows each bar to be colored separately based on its value.
+        \li Added \l {QAbstract3DAxis::}{scaleLabelsByCount} property to
+            QAbstract3DAxis, allowing users to define whether axis labels
+            should be scaled based on the total amount of labels.
+        \li Added \l {QAbstract3DAxis::}{labelSize} property to
+            QAbstract3DAxis, allowing users to set the sizes
+            of axis labels by each axis.
+        \li Added support for setting the minimum and maximum rotations in X
+            and Y directions to Bars3D, Scatter3D, and Surface3D.
+        \li Added \l {QAbstractAxis::}{alignment} property to QAbstractAxis,
+            allowing users to align axes left, right, top, or bottom.
+        \li Added \l {QGraphsView::}{plotArea} property to QGraphsView,
+            allowing users to define the rectangle a graph will be drawn in.
+        \li Added zooming and panning support to QGraphsView.
+        \li Added custom input handling support to area, line, pie, and scatter
+            graphs.
+    \endlist
+
+    \section2 Qt GRPC Module
+    \list
+        \li Added the Qt GRPC Client Guide overview example.
+        \li Improved and refined all documentation and examples.
+        \li Optimized streaming RPCs for writing under high load.
+    \endlist
+
+    \section2 Qt GUI Module
+    \list
+        \li QBrush and QPen got optimized operators for comparing with or
+            assigning from color and style values.
+        \li QPainter::setBrush() got new optimized overloads for setting a color
+            as a solid brush.
+        \li QPainterStateGuard is a new RAII class to ensure balanced
+            save/restore operations on a QPainter.
+        \li QColorSpace got APIs for setting and getting the four primary color
+            space points.
+        \li Added Qt::ExpandedClientAreaHint to request that the window's client area is expanded
+            to areas where it might be obscured by, or conflicting with other UI elements, such as
+            the window's titlebar controls or other system UIs.
+        \li Added Qt::NoTitleBarBackgroundHint to request that the window's title bar is drawn
+            without a background color.
+        \li Added QWindow::safeAreaMargins() to reflect the safe area of the window.
+        \li Added parsing and automatic detection of emoji sequences in text, ensuring the use of
+            color fonts when needed as according to the Unicode specification. This parser can
+            be disabled per layout using QTextOption::DisableEmojiParsing, or by disabling the
+            emoji segmenter when configuring Qt.
+        \li Added QFontDatabase::addApplicationEmojiFontFamily() and related functions for
+            customizing the default emoji font used by the application.
+        \li Added QFontInfo::variableAxes() for retrieving information about the variable axes
+            supported by a font.
+        \li QImage::flipped() and QImage::flip() provide a Qt::Orientation based
+            API for flipping an image, making code easier to read than the bool-
+            based QImage::mirrored() alternative.
+        \li QRhi: when running with OpenGL ES on mobile GPUs with support present,
+            GL_EXT_multisampled_render_to_texture is utilized whenever possible. For
+            clients such as Qt Quick and Qt Quick 3D this potentially brings significant
+            performance improvements in multisampled rendering on tiled GPU architectures.
+        \li QRhi: On Windows with Direct 3D 11 and 12, QWindow update requests are now driven
+            by a dedicated vblank watcher thread, reducing CPU load and latency. This
+            means that clients such as Qt Quick are expected to have a reduced lag when
+            interactively dragging items by mouse or touch for example.
+        \li QRhi: Added support for variable rate shading, where applicable (Direct 3D 12, Vulkan,
+            Metal). This enables dynamic foveation support with Qt Quick 3D XR on visionOS.
+        \li QRhi: Per-render target blending is now optionally supported for OpenGL as well.
+        \li QRhi: Added support for a number of integer and depth texture formats.
+        \li QRhi: Added support for passing in application-provided wait/signal semaphores
+            when on Vulkan. These are then passed on to to vkQueueSubmit and Present, thus
+            allowing integration of external rendering/compute engines that rely on
+            multiple threads and require appropriate synchronization with the scenegraph
+            renderer.
+        \li Use the \l{QPdfWriter::author()} property to set the author of the
+            generated PDF document.
+    \endlist
+
+    \section2 Qt HttpServer Module
+    \list
+        \li \l{QHttpServer} can now be configured through \l{QHttpServerConfiguration} and
+            the \l{QAbstractHttpServer::}{configuration} property. Currently, this supports
+            setting \l{QHttpServerConfiguration::}{rateLimitPerSecond}.
+    \endlist
+
+    \section2 Qt Multimedia Module
+    \list
+        \li Added \l {QtMultimedia::}{VideoOutput::endOfStreamPolicy}
+            and \l {Video::endOfStreamPolicy} properties, allowing
+            applications to keep the last frame in the output when the video
+            stream is ended.
+        \li Added \l {QtMultimedia::}{VideoOutput::mirrored} and
+            \l {Video::mirrored} properties, allowing applications to flip the
+            presented video around the Y-axis.
+    \endlist
+
+    \section2 Qt Network Module
+    \list
+        \li Added \l{QHttp2Configuration::}{setMaxConcurrentStreams} which controls the
+            SETTINGS_MAX_CONCURRENT_STREAMS HTTP/2 setting.
+    \endlist
+
+    \section2 Qt Network Auth Module
+    \list
+        \li Added \l {QOAuth2DeviceAuthorizationFlow}, implementing the
+            Device Authorization Grant as specified in RFC 8628.
+        \li Added convenience support for token refreshing.
+            See \l {QAbstractOAuth2::autoRefresh}, \l {QAbstractOAuth2::refreshLeadTime},
+            and \l {QAbstractOAuth2::accessTokenAboutToExpire()}.
+        \li Made it easier to use user-agents other than the system browser. See
+            \l {QOAuthUriSchemeReplyHandler::handleAuthorizationRedirect()}.
+        \li Added \l {QAbstractOAuth2::requestedScopeTokens} and
+            \l {QAbstractOAuth2::grantedScopeTokens} properties to simplify distinguishing
+            between requested and granted scopes.
+        \li Added HTTPS support to \l {QOAuthHttpServerReplyHandler}. See
+            \l {QOAuthHttpServerReplyHandler::listen(const QSslConfiguration&, const QHostAddress&, quint16)}.
+        \li Added \l {QOAuthHttpServerReplyHandler::setCallbackHost()}
+            allowing customization of the hostname part of the redirect URI.
+        \li Added \l {QAbstractOAuth2::setNetworkRequestModifier()}, enabling
+            modification of network requests prior to sending.
+        \li Improved support for acquiring \e {OpenID Connect} ID tokens. See
+            \l {QAbstractOAuth2::idToken}, \l {QAbstractOAuth2::nonce}, and
+            \l {QAbstractOAuth2::nonceMode}.
+        \li Added \l {QAbstractOAuth2::serverReportedErrorOccurred()} signal which
+            deprecates the previous \l {QAbstractOAuth2::error()} signal.  The new
+            signal name clearly indicates that these errors correspond specifically
+            to the cases defined in RFC 6749, rather than general errors.
+    \endlist
+
+    \section2 Qt Protobuf Module
+    \list
+        \li Improved and refined all documentation.
+        \li Added the \c{HEADER_GUARD} option to specify the mechanism used to
+            guard generated header files.
+        \li Added the \c{protobuf-unsafe-registry} feature to trade
+            safety for performance on accessing custom protobuf serializers.
+    \endlist
+
+    \section2 Qt Qml Module
+    \list
+        \li QML Language Server now provides an outline view of the document
+            structure. This allows clients (e.g., IDEs or code editors) to represent
+            a qml document’s structure as an interactive outline, displaying objects,
+            properties, methods and other code elements in a hierarchical view.
+        \li Added the maximum line length feature to qmlformat: qmlformat now controls
+            where to break lines based on a maximum allowed line length, ensuring a consistent
+            and readable QML document.
+    \endlist
+
+    \section2 Qt Quick Module
+    \list
+        \li Added SafeArea attached property to manage safe areas of an Item or Window.
+        \li Added Shear component for a convenient way of applying shearing transforms to
+            items.
+        \li Added \l {FontMetrics::capitalHeight} property, which was previously
+            missing from the Qt Quick API.
+        \li Added FontInfo type for retrieving the results of font resolution, matching the
+            QFontInfo class in C++.
+        \li Reintroduced support for the FramebufferObject rendering mode of QQuickPaintedItem when
+            the graphics API in use is OpenGL. This is provided as a porting aid for Qt 5 era
+            applications that require the use of QPainter's legacy OpenGL paint engine for their
+            QQuickPaintedItems.
+        \li Optimized the scenegraph renderer's buffer pooling logic to prevent spikes in memory
+            usage in scenes with large geometries. Additionally, there is a reduction in overhead
+            for scenes with a lot of items, in particular when running with OpenGL.
+    \endlist
+
+    \section2 Qt Quick Controls Module
+    \list
+        \li Added ContextMenu. This can be attached to any item in order to
+            show a context menu upon a platform-specific event, such as a right
+            click or the context menu key.
+        \li TextField and TextArea now provide a ContextMenu by default.
+            If you already have a custom context menu for these types,
+            ContextMenu will not open its own (on right click or the context menu key).
+    \endlist
+
+
+    \section2 Qt Quick Effects Module
+    \list
+        \li New RectangularShadow element for fast rounded rectangle shaped
+            shadow/glow. The API is similar to CSS box-shadow, with color,
+            offset, spread and blur values.
+    \endlist
+
+    \section2 Qt Quick 3D Module
+    \list
+        \li Added WeightedBlended Order Independent Transparency (OIT) implementation for rendering
+            transparent objects.
+        \li Added support for 32-bit unsigned integer texture formats.
+        \li Improved control over shadow map bounds for instancing models, potentially
+            allowing for better performance when calculating becomes expensive.
+        \li Added support for 4K shadow maps with a new 'Ultra' resolution setting.
+        \li Added the option of forcing medium precision for
+            floats in GLSL ES fragment shaders. Provided mainly as a tool
+            for performance tuning. Set the environment variable
+            QT_QUICK3D_MEDIUM_PRECISION to a non-zero value. Has no effect
+            on other kinds of shaders (and that includes non-ES GLSL too).
+        \li DebugView now supports visualizing bounds for point light shadows.
+        \li Ported the built-in geometries from Qt 3D to QtQuick3D.Helpers.
+            PlaneGeometry, SphereGeometry, CylinderGeometry, ConeGeometry,
+            and TorusGeometry are now available in QtQuick3D.Helpers.
+        \li Added a port of the ExtrudedTextMesh from Qt 3D to QtQuick3D.Helpers.
+        \li Added support for using instancing with custom materials in the material editor.
+    \endlist
+
+    \section2 Qt Quick 3D XR Module
+    \list
+        \li Added support for haptic output with controllers using amplitude, duration,
+            and frequency through a new XrHapticFeedback item.
+        \li Added new property in XrInputAction to conditionally disable an action without
+            having to test for it in all the handler functions.
+        \li Added Metal backend for OpenXR to support running in Meta XR Simulator on macOS.
+        \li The property \l {XrView::}{multiViewRenderingEnabled} is now
+            read-only and toggling multiview rendering is no longer possible at
+            run-time. If multiview rendering is supported, it is enabled for
+            the lifetime of the application. In porting situations, where
+            multiview rendering is not desired, it can be disabled by setting
+            the environment variable QT_QUICK3D_XR_DISABLE_MULTIVIEW to a
+            non-zero value.
+    \endlist
+
+    \section2 Qt Quick VectorImage Module
+    \list
+         \li Added preliminary support for color animations and transform animations, matching
+             the current support in Qt Svg.
+    \endlist
+
+    \section2 Qt Sql Module
+    \list
+        \li QSqlDriver gained a new function \l{QSqlDriver::}{connectionName()}
+            which returns the connection name of the associated QSqlDatabase
+            instance.
+        \li QSqlQueryModel can now refresh the database with
+            \l{QSqlQueryModel::}{refresh()} when e.g. the database was modified
+            from outside of Qt so it needs to be re-read.
+    \endlist
+
+    \section2 Qt SVG Module
+    \list
+        \li Added three new values to QtSvg::Options to disable animations.
+        \li Support CSS animation for fill, stroke, and transform properties.
+    \endlist
+
+    \section2 Qt VirtualKeyboard Module
+    \list
+        \li Added a new Japanese layout which uses flick keys.
+        \li Added support for adjusting key sound volume.
+    \endlist
+
+    \section2 Qt WebEngine Module
+    \list
+        \li Has switched internal rendering to use ANGLE, also when Qt uses OpenGL RHI.
+            Improving performance and bug similarity to Chrome.
+        \li QWebEngineProfileBuilder and QML WebEngineProfilePrototype added to configure
+            profiles before creating them and avoiding race conditions.
+        \li QWebEngineLoadingInfo added an \l{QWebEngineLoadingInfo::}{isDownload}
+            property to indicate the load is related to a download.
+        \li QWebEngineUrlRequestInfo also added an \l{QWebEngineUrlRequestInfo::}{isDownload()}
+            method to indicate the request is related to a download.
+        \li QWebEngineSettings and QML WebEngineSettings added three new settings.
+            PrintHeaderAndFooter, and PreferCSSMarginsForPrinting to configure printing.
+            And TouchEventsApiEnabled to turn off TouchEvents API, which some web sites
+            use as a trigger for mobile mode.
+
+    \endlist
+
+    \section2 Qt Widgets Module
+    \list
+        \li QAbstractItemView got a new property \l{QAbstractItemView::}{updateThreshold}
+            to specify when a full view update should be done instead trying to figure
+            out the parts where something changed within dataChanged(). This is
+            especially useful when a lot of items change in a large model as the update
+            rect calculation might take longer than a full view update.
+        \li QComboBox can draw its label using the item view's delegate by setting
+            the \l{QComboBox::}{labelDrawingMode} property to \l{QComboBox::}{UseDelegate}.
+        \li QHeaderView has been optimized to dramatically reduce memory usage
+            for huge models as long as the sections are not resized, hidden or
+            reordered.
+        \li The identifier set as the \l{QWidget::accessibleIdentifier} can be
+            used by assistive technologies and by automated testing tools to
+            identify a specific widget.
+        \li The dock location of a QDockWidget can not be explicitly set using
+            the \l{QDockWidget::dockLocation} property.
+        \li QStackedWidget now emits the \l{QStackedWidget::}{widgetAdded()}
+            signal when a new widgets is added to the stack.
+    \endlist
+
+    \section2 Qt XML Module
+    \list
+        \li QDomNodeList got an \l{QDomNodeList::begin()}{iterator API}.
+    \endlist
+
+    \section1 Tools
+
+    \section2 QDoc Documentation Generator
+    \list
+        \li QDoc now accepts formatting commands in macro arguments.
+        \li Authors can now override the underlying return type of a function
+            that's documented with an \l {fn-command} {fn}-command with \c auto.
+        \li QDoc can now generate documentation from comments in C++ headers.
+            This is added as a technology preview in QDoc with Qt 6.9, and we'd
+            love to get feedback from our users. Enable the
+            \l {documentationinheaders-variable} {documentationinheaders}
+            QDoc configuration variable to try it out.
+        \li QML enumeration documentation can be generated from C++ enumerations
+            with the new \l {qmlenumeratorsfrom-command} {qmlenumeratorsfrom}
+            command.
+        \li The \l {generatelist-command} {generatelist} and
+            \l {annotatedlist-command} {annotatedlist} commands now support
+            custom sort order for the generated lists.
+        \li \l {deprecated-command} {deprecated} accepts future versions, and
+            QDoc generates appropriate text when it recognizes a version as
+            being in the future.
+        \li Clang library requirements: QDoc requires Clang libraries from
+            LLVM 17. It's also confirmed to work with Clang libraries from
+            LLVM 18, 19, and 20.
+        \li QDoc now supports adjusting the CMake requisites for third-party
+            projects with the \l {cmakecomponent-command} {cmakecomponent},
+            \l {cmakepackage-command} {cmakepackage}, and
+            \l {cmaketargetitem} {cmaketargetitem} commands.
+        \li Example-related warnings are now configurable through the new
+            \l {examples.warnaboutmissingimages-variable} {examples.warnaboutmissingimages}
+            and
+            \l {examples.warnaboutmissingprojectfiles-variable} {examples.warnaboutmissingprojectfiles}
+            configuration variables.
+        \li QDoc can now generate tooltips for images in your documentation.
+            The documentation for the new \l {usealttextastitle-variable} {usealttextastitle}
+            configuration variable describes how to enable this for your project.
+    \endlist
+
+    \section1 Platform Changes
+
+    \section2 Build System Changes
+
+    \list
+        \li Building Qt and using Qt in CMake projects now requires CMake version 3.22 or
+            later.
+    \endlist
+
+    \section2 Desktop Platforms
+
+    \section3 Windows
+    \list
+        \li Added new public CMake API:
+        \list
+            \li Added the \l{qt_add_win_app_sdk} CMake function to add Windows App SDK
+            to the project.
+        \endlist
+        \li Added support for rendering additional emoji font formats, such as CBDT and COLRv1.
+    \endlist
+
+    \section3 Wayland Client on Linux
+    \list
+        \li Added support for the new \c{xdg-toplevel-icon-v1} protocol to make
+            \l{QWindow::setIcon()} work if the compositor supports this protocol
+            as well.
+        \li The underlying \c{wl_surface} of a window now shares its lifetime
+            and is no longer destroyed when the window is hidden.
+    \endlist
+
+    \section2 Mobile Platforms
+
+    \section3 Android
+    \list
+        \li Support uncompressed native libs within APKs and remove the need
+            for \c {packagingOptions.jniLibs.useLegacyPackaging true}.
+        \li Introduce \l {qt_add_android_permission}() CMake function.
+        \li Add \l QT_ANDROID_COMPILE_SDK_VERSION CMake property to set the SDK
+            level for building Java code.
+        \li Add \l QT_ANDROID_APP_ICON CMake property to set an app's icon.
+        \li Add \l QT_ANDROID_APP_NAME CMake property to set an app's name.
+        \li Decouple location and bluetooth permissions for API level 31+.
+        \li Allow setting a maximum for queued background UI events.
+        \li Add script to easily deploy, run apps and get logs from terminal.
+        \li \l {Qt Quick for Android} and
+            \l {Qt Quick View Android Class}{QtQuickView}:
+        \list
+            \li Add setData() and dataChanged() methods to
+                \l {QtAbstractItemModel Android Class}{QtAbstractItemModel}.
+            \li Add OnDataChangedListerner callback interface.
+            \li \l {Qt Quick View Android Class}{QtQuickViewContent}: Add
+                onStatusChanged() overload that passes the underlying
+                QtQuickViewContent object.
+            \li Support multiple embedded views from an Android Service.
+        \endlist
+    \endlist
+
+    \section2 Embedded Platforms
+
+    \section3 Boot to Qt
+    \list
+        \li Support was added for Yocto 5.1 (Styhead).
+        \li The \l {Support Levels for Target Hardware} was updated with new
+            supported boards for Tier 1:
+            \list
+                \li NVIDIA Jetson AGX Orin Developer Kit (\l{Boot to Qt}, upgraded from Tier 2).
+            \endlist
+        \li The \l {Support Levels for Target Hardware} was updated with new
+            supported boards for Tier 2:
+            \list
+                \li Toradex Apalis iMX6 (\l{Boot to Qt}, downgraded from Tier 1).
+            \endlist
+        \li The \l {Support Levels for Target Hardware} was updated with new
+            supported boards for Tier 3:
+            \list
+                \li Qualcomm RB3 Gen 2 Vision Kit (\l{Boot to Qt}).
+                \li NXP i.MX 8M Mini LPDDR4 EVK (\l{Boot to Qt}, downgraded from Tier 2).
+                \li NXP i.MX 8M Nano LPDDR4 EVK (\l{Boot to Qt}, downgraded from Tier 2).
+                \li NXP i.MX 8M Plus LPDDR4 EVK (\l{Boot to Qt}, downgraded from Tier 2).
+            \endlist
+        \li The following boards are no longer supported:
+            \list
+                \li NVIDIA Jetson AGX Xavier Developer Kit (\l{Boot to Qt}).
+                \li Amazon AWS EC2 ARM64 (\l{Boot to Qt}).
+                \li TI SK-AM69 (\l{Boot to Qt}).
+                \li NXP i.MX 8MQuad EVK (\l{Boot to Qt}).
+                \li NXP i.MX 8QuadXPlus MEK (\l{Boot to Qt}).
+                \li Qualcomm Robotics RB5 Development Kit (\l{Boot to Qt}).
+            \endlist
+    \endlist
+
+    \section3 RealTime OSs
+    \list
+        \li RealTime OS support is provided only for LTS releases.
+            For non-LTS releases, support is available exclusively through Professional Services.
+    \endlist
+
+    \section1 List of API Changes
+
+    These pages contain an overview of API changes in Qt 6.9:
+    \list
+        \li \l {New Classes and Functions in Qt 6.9}
+        \li \l {Obsolete Classes}
+    \endlist
+*/
+
+/*!
+    \page newclasses69.html
+    \title New Classes and Functions in Qt 6.9
+    \ingroup whatsnewqt6-api
+    \meta sortkey 609
+    \brief A list of new APIs in Qt 6.9.
+
+    This page contains a comprehensive list of all new classes and functions
+    introduced in Qt 6.9.
+
+    \sincelist 6.9
+*/

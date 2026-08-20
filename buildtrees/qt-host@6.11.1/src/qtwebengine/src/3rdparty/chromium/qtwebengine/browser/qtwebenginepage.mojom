@@ -1,0 +1,8 @@
+module qtwebenginepage.mojom;
+
+interface WebEnginePageRenderFrame {
+  FetchDocumentMarkup(uint64 requestId) => (uint64 requestId, string markup);
+  FetchDocumentInnerText(uint64 requestId) => (uint64 requestId, string text);
+  SetBackgroundColor(uint32 color);
+};
+

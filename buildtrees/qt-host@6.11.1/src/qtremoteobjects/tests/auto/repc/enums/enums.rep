@@ -1,0 +1,12 @@
+
+USE_ENUM(Qt::DayOfWeek)
+
+class TestInterface
+{
+};
+
+// This needs to generate properly and compile:
+ENUM XENUMx {Foo, Bar};
+POD Mode(XENUMxEnum::XENUMx foo);
+ENUM ENUM_ {Foo, Bar};
+POD Mode2(ENUM_Enum::ENUM_ foo);

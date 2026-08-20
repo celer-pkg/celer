@@ -1,0 +1,35 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \namespace QtSvg
+    \brief The QtSvg namespace contains types used by the svg classes.
+    \inmodule QtSvg
+*/
+
+/*!
+    \enum QtSvg::Option
+    \since 6.7
+
+    This enum holds flags that can be used to enable or disable
+    various features of the parsing and rendering of SVG
+    files. Multiple flags can be combined into the QFlags type
+    QtSvg::Options.
+
+    \value NoOption            The null value. This is the default for QtSvg::Options.
+
+    \value Tiny12FeaturesOnly  Strictly and exclusively parse only tags that are
+                               part of the \l{http://www.w3.org/TR/SVGMobile12}
+                               {SVG 1.2 Tiny} Static Feature set.
+
+    \value [since 6.8] AssumeTrustedSource
+                               Disable certain checks and restrictions on resource
+                               usage etc.
+    \value [since 6.9] DisableSMILAnimations
+                               Disable SMIL animations. SMIL animations are animations
+                               defined using elements like <animateColor>.
+    \value [since 6.9] DisableCSSAnimations
+                               Disable CSS animations defined inside a <style> element.
+    \value [since 6.9] DisableAnimations
+                               Disable all animations.
+*/

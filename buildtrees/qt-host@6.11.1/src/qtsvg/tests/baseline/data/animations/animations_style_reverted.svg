@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400">
+  <rect width="200" height="200">
+    <animateColor attributeName="fill" from="blue" to="red" dur="3s" fill="freeze" repeatCount="indefinite"/>
+    <animateTransform attributeName="transform" type="translate" from="0 0" to="200 0" dur="3s" repeatCount="indefinite"/>
+  </rect>
+  <rect y="200" width="200" height="200"/>
+</svg>

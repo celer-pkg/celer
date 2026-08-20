@@ -1,0 +1,30 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtwayland-changes-qt6.html
+    \title Porting to Qt 6 - Qt Wayland Compositor
+
+    Qt 6 is a result of the conscious effort to make the framework more
+    efficient and easy to use.
+
+    We try to maintain binary and source compatibility for all the public
+    APIs in each release. But some changes were inevitable in an effort to
+    make Qt a better framework.
+
+    In this topic we summarize those changes in Qt Wayland Compositor, and
+    provide guidance to handle them.
+
+    \section1 Import of Shell Classes
+
+    In Qt 5, a few auxiliary classes were available through the Qt Wayland
+    Compositor namespace. In order to improve the logical separation of
+    these from the primary functionality of the compositor, they have been
+    moved into separate imports in Qt 6.
+
+    \list
+      \li \l WlShell types are now available in \c QtWayland.Compositor.WlShell
+      \li \l XdgShell types are now available in \c QtWayland.Compositor.XdgShell
+      \li \l IviApplication types are now available in \c QtWayland.Compositor.IviApplication
+    \endlist
+*/

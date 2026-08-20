@@ -1,0 +1,56 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qt-edu-for-developers.html
+    \title Qt Edu for Developers
+
+//! [intro]
+    \e {Qt Edu for Developers} gives you access to developing with Qt’s full
+    C++ and QML frameworks, as well as its Python bindings. Developing on
+    embedded systems is possible with Raspberry Pi and a selection of microcontroller
+    (MCU) boards as the target platform. This package also includes
+    \l {Qt Design Studio Manual}{Qt Design Studio} for designing user interfaces.
+//! [intro]
+
+    These instructions walk you through the installation of the Qt Edu for
+    Developers package.
+
+    \include qt-edu-steps.qdocinc {qt-edu-common-steps} {Qt}
+
+    \image qt-edu-install-qt.png
+
+    If you are new to Qt, we recommend selecting the latest available version
+    of \uicontrol {Qt for desktop development}. This installs everything you
+    need for developing desktop applications with Qt. The installation may
+    always be modified later with the \e {maintenance tool}, located in Qt's
+    installation folder.
+
+    Select \uicontrol {Next}.
+
+    \include qt-edu-steps.qdocinc qt-edu-license-agreement
+
+    \section1 9. Finish the installation
+
+    Select \uicontrol {Install} to start the installation process.
+
+    Once installation is complete, you'll see the following screen:
+
+    \image qt-edu-install-finish-qt.png
+
+    Select \uicontrol {Finish} to exit the installer.
+
+    \section1 10. Open \QC
+
+    By default, \e {\QC} opens automatically after closing the installer.
+
+    \image qt-edu-creator-welcome.png
+
+    You can also find it in Qt's installation folder:
+
+    \image qt-edu-creator-open.png
+
+    \b {Now you're ready to start developing applications with Qt!}
+
+    Start learning at \l {Qt Academy}.
+*/

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1.1"
+   width="340"
+   height="110"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+
+<style>
+  svg .box-style { stroke: black; fill: white }
+  svg .line-style { stroke: red; fill: none }
+  svg .text-style { font: 20px arial; fill: black }
+  svg .fill-style { stroke: none; fill: red }
+
+  [data-theme="dark"] svg .box-style { stroke: #f2f2f2; fill: black }
+  [data-theme="dark"] svg .line-style { stroke: red; fill: none }
+  [data-theme="dark"] svg .text-style { font: 20px arial; fill: #f2f2f2 }
+  [data-theme="dark"] svg .fill-style { stroke: none; fill: red }
+
+  [data-theme="light"] svg .box-style { stroke: black; fill: white }
+  [data-theme="light"] svg .line-style { stroke: red; fill: none }
+  [data-theme="light"] svg .text-style { font: 20px arial; fill: black }
+  [data-theme="light"] svg .fill-style { stroke: none; fill: red }
+</style>
+
+<g transform="translate(10.5, 10.5)">
+<path d="m 0,0 h 80 v 60 h -80 z" class="box-style" />
+<text x="35" y="36" class="text-style">A</text>
+<path d="M 0,60 v 30" class="line-style" />
+<path d="M 0,60 l -5,10 l 10,0 z" class="fill-style" />
+</g>
+
+<g transform="translate(90.5, 10.5)">
+<path d="m 0,0 h 80 v 60 h -80 z" class="box-style" />
+<text x="35" y="36" class="text-style">B</text>
+<path d="M 0,60 v 30" class="line-style" />
+<path d="M 0,60 l -5,10 l 10,0 z" class="fill-style" />
+</g>
+
+<g transform="translate(170.5, 10.5)">
+<path d="m 0,0 h 80 v 60 h -80 z" class="box-style" />
+<text x="35" y="36" class="text-style">C</text>
+<path d="M 0,60 v 30" class="line-style" />
+<path d="M 0,60 l -5,10 l 10,0 z" class="fill-style" />
+</g>
+
+<g transform="translate(250.5, 10.5)">
+<path d="m 0,0 h 80 v 60 h -80 z" class="box-style" />
+<text x="35" y="36" class="text-style">D</text>
+<path d="M 0,60 v 30" class="line-style" />
+<path d="M 0,60 l -5,10 l 10,0 z" class="fill-style" />
+</g>
+
+<g transform="translate(330.5, 10.5)">
+<path d="M 0,60 v 30" class="line-style" />
+<path d="M 0,60 l -5,10 l 10,0 z" class="fill-style" />
+</g>
+
+</svg>

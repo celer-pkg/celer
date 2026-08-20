@@ -1,0 +1,57 @@
+# See qtbase/src/testlib/qtestblacklist.cpp for format
+
+# QTBUG-70597
+[Tumbler::test_itemsCorrectlyPositioned]
+*
+
+# QTBUG-95750
+[RangeSlider::test_overlappingHandles]
+b2qt
+qnx
+
+[ComboBox::test_keyClose]
+macos arm ci # QTBUG-102817
+
+# QTBUG-101704
+[ToolTip::test_attachedSizeBug]
+*
+
+# QTBUG-139415
+[ComboBox::test_keyClose]
+android
+[Popup::test_anchors]
+android
+[ComboBox::test_modelReset]
+android
+[ComboBox::test_mouseHighlight]
+android
+[Popup::test_margins]
+android
+[Popup::test_popupOverlayCenterIn]
+android
+[Popup::test_resetSize]
+android
+[RangeSlider::test_overlappingHandles]
+android
+[SpinBox::test_editable_doubleSpinBox]
+android
+[SpinBox::test_groupSeparatorHandling:en_EN]
+android
+[SplitView::test_handleContainmentMaskHovered]
+android
+[SplitView::test_hoverableChilden]
+android
+[SplitView::test_hoveredPressed]
+android
+[SplitView::test_modifyWhileHoveredPressed]
+android
+[TextField::test_rightClick]
+android
+[ToolTip::test_activateShortcutWhileToolTipVisible]
+android
+[TextArea::test_implicitSize]
+android
+[TextArea::test_ignorePressRelease]
+android
+[SelectionRectangle::test_selectionModeAuto]
+wayland

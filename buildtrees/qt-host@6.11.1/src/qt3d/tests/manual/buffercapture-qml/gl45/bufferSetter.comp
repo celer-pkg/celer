@@ -1,0 +1,21 @@
+// Copyright (C) 2017 Juan José Casafranca.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#version 450 core
+
+layout (local_size_x=32) in;
+
+layout (std430, binding = 3) buffer InputBuffer
+{
+    uint d[];
+};
+
+layout(std140, binding=4) uniform custom_uniforms {
+    int inputSize;
+};
+
+void main()
+{
+    if (gl_GlobalInvocationID.x < inputSize)
+        d[gl_GlobalInvocationID.x] = d[gl_GlobalInvocationID.x] + gl_GlobalInvocationID.x * 2;
+}

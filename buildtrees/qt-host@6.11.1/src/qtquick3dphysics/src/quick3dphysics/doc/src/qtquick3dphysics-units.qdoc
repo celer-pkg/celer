@@ -1,0 +1,44 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtquick3dphysics-units.html
+\title Qt Quick 3D Physics Units
+\brief An explanation of how Qt Quick 3D Physics handles units and dimensions.
+
+When simulating physical objects you need to define a common frame of reference for all physical units. In Qt Quick 3D Physics all types are unit-less meaning you can define your world in centimeters, meters, inches or whatever you prefer as long as you are consistent. The important part is that all values used are based on the same units.
+
+\section1 Default units
+
+Despite the module being unit-less all physical properties have default values that are based on centimeters. This means that adding a sphere with diameter \c 1 would make it behave like it was \c 1 cm in diameter. To be compatible with Qt Quick 3D the default sizes of the built-in geometries are \c 100 cm. The default gravity is \c 981 which matches the gravity on earth in cm per square-second. The default density is \c 0.001 kilograms per cubic-centimeters i.e. \c 1000 kilogram per cubic-meter which is the density of fresh water at \c 4 °C.
+
+\section1 Custom units
+
+Using custom units is possible but you need to make sure all relevant properties are updated accordingly. Below is a table showing the equivalent values of some properties in both a meter and a centimeter based scale:
+
+\table
+\header
+    \li Property
+    \li Value (cm)
+    \li Value (m)
+\row
+    \li \l {PhysicsWorld::} {gravity}
+    \li \c 981
+    \li \c 9.81
+\row
+    \li \l {PhysicsWorld::} {typicalLength}
+    \li \c 100
+    \li \c 1
+\row
+    \li \l {PhysicsWorld::} {typicalSpeed}
+    \li \c 1000
+    \li \c 10
+\row
+    \li \l {DynamicRigidBody::} {density}
+    \li \c 0.001
+    \li \c 1000
+\endtable
+
+If converting from a centimeter to a meter based scale then all the positions and dimensions of objects as well as impulses and forces would need to be scaled by a factor of \c 0.01.
+
+*/

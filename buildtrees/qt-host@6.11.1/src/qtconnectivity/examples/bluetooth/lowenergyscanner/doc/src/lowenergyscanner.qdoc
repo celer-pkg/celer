@@ -1,0 +1,137 @@
+// Copyright (C) 2013 BlackBerry Limited all rights reserved
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example lowenergyscanner
+    \title Bluetooth Low Energy Scanner
+    \examplecategory {Connectivity}
+    \meta tags {bluetooth, ble}
+    \brief An application designed to browse the content of Bluetooth Low
+    Energy peripheral devices. The example demonstrates the use of all \l{Qt Bluetooth}
+    Low Energy classes.
+
+    The Bluetooth Low Energy Scanner Example shows how to develop Bluetooth
+    Low Energy applications using the \l{QtBluetooth}{Qt Bluetooth API}. The application covers
+    scanning for Low Energy devices, scanning their services and reading
+    the service characteristics and descriptors.
+
+    \image {lowenergyscanner-services.png} {GATT services found using Qt BLE scanner}
+
+    The example introduces the following Qt classes:
+
+    \list
+        \li \l QLowEnergyController
+        \li \l QLowEnergyService
+        \li \l QLowEnergyCharacteristic
+        \li \l QLowEnergyDescriptor
+    \endlist
+
+    The example can be used with any arbitrary Bluetooth Low Energy peripheral
+    device. It creates a snapshot of all services, characteristics and descriptors
+    and presents them to the user. Therefore the application provides an easy way of
+    browsing the content offered by a peripheral device.
+
+    \include examples-run.qdocinc
+
+    \section1 Requesting Permission to use Bluetooth
+
+    On certain platforms, it is required to explicitly grant permissions for
+    using Bluetooth. The example uses \c BluetoothPermission QML object to
+    check and request the permissions, if required:
+
+    \snippet lowenergyscanner/Devices.qml permission-object
+
+    The permission request dialog is triggered when the user tries to start
+    the device discovery, and the permission status is \c {Undetermined}:
+
+    \snippet lowenergyscanner/Devices.qml permission-request
+
+    The device discovery starts if the permission is granted by the user.
+    Otherwise the application is non-functional.
+
+    \section1 Scanning for Devices
+
+    The first step is to find all peripheral devices. The devices can be found using
+    the \l QBluetoothDeviceDiscoveryAgent class. The discovery process is started using
+    \l {QBluetoothDeviceDiscoveryAgent::start()}{start()}. Each new device is advertised via
+    the \l {QBluetoothDeviceDiscoveryAgent::deviceDiscovered()}{deviceDiscovered()} signal:
+
+    \snippet lowenergyscanner/device.cpp les-devicediscovery-1
+    \snippet lowenergyscanner/device.cpp les-devicediscovery-2
+
+    The below \c addDevice() slot is triggered as a reaction to the discovery of a new
+    device. It filters all found devices which
+    have the \l QBluetoothDeviceInfo::LowEnergyCoreConfiguration flag and adds them to a
+    list which is shown to the user.
+    The \l {QBluetoothDeviceDiscoveryAgent::}{deviceDiscovered()} signal may be
+    emitted multiple times for the same device as more details are discovered.
+    Here we match these device discoveries so that the user only sees the
+    individual devices:
+
+    \snippet lowenergyscanner/device.cpp les-devicediscovery-3
+
+    The list of devices may look like in the image below. \note It is a prerequisite
+    that the remote devices actively advertise their presence.
+
+    \image {lowenergyscanner-devices.png} {Nearby devices listed in Qt BLE scanner}
+
+    \section1 Connecting to Services
+
+    After the user has selected a device from the list the application connects to the
+    device and scans all services. The \l QLowEnergyController class is used to connect
+    to the device. The \l {QLowEnergyController::connectToDevice()} function triggers the
+    connection process which lasts until the \l {QLowEnergyController::connected()} signal
+    is received or an error has occurred:
+
+    \snippet lowenergyscanner/device.cpp les-controller-1
+
+    The slot triggered by the \l {QLowEnergyController::connected()}{connected()}
+    signal immediately calls \l {QLowEnergyController::discoverServices()} to start the service
+    discovery on the connected peripheral device.
+
+    \snippet lowenergyscanner/device.cpp les-service-2
+
+    The resulting list is presented to the user.The image below displays the results when the SensorTag
+    device is selected. The view lists the names of the services, whether they are
+    primary or secondary services and the UUID which determines the service type.
+
+    \image {lowenergyscanner-services.png} {GATT services found using Qt BLE scanner}
+
+    As soon as the service is chosen the related \l QLowEnergyService instance is created to
+    permit interaction with it:
+
+    \snippet lowenergyscanner/device.cpp les-service-1
+
+    The service object provides the required signals and functions to discover the service details,
+    read and write characteristics and descriptors, as well as receive data change notifications.
+    Change notifications can be triggered as a result of writing a value or due to an on-device
+    update potentially triggered by the internal logic.
+    During the initial detail search the service's \l {QLowEnergyService::state()}{state()} transitions
+    from \l {QLowEnergyService::RemoteService}{RemoteService} to
+    \l {QLowEnergyService::RemoteServiceDiscovering}{RemoteServiceDiscovering} and eventually ends with
+    \l {QLowEnergyService::RemoteServiceDiscovered}{RemoteServiceDiscovered}:
+
+    \snippet lowenergyscanner/device.cpp les-service-3
+
+    \section1 Reading Service Data
+
+    Upon selection of a service the service details are shown. Each characteristic
+    is listed together with its name, UUID, value, handle and properties.
+
+    \image {lowenergyscanner-chars.png} {GATT characteristics listed in Qt BLE Scanner}
+
+    It is possible to retrieve the service's characteristics via
+    \l QLowEnergyService::characteristics() and in turn, each descriptor can be obtained
+    via \l QLowEnergyCharacteristic::descriptors().
+
+    \snippet lowenergyscanner/device.cpp les-chars
+
+    Although the example application does not display descriptors it uses descriptors to
+    get the name of an individual characteristic if its name cannot be discerned based on its
+    UUID. The second way to obtain the name is the existence of a descriptor of the type
+    \l {QBluetoothUuid::DescriptorType::CharacteristicUserDescription}. The code below demonstrates how this
+    may be achieved:
+
+    \snippet lowenergyscanner/characteristicinfo.cpp les-get-descriptors
+*/

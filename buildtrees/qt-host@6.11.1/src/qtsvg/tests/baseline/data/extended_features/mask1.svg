@@ -1,0 +1,34 @@
+<svg viewBox="-10 -10 450 180" xmlns="http://www.w3.org/2000/svg">
+  <mask x="0" y="0" width="1" height="1"  id="myMask">
+    <g>
+        <rect x="0" y="0" width="300" height="300" fill="white" />
+        <path transform="translate(20 40) scale(0.8 0.8)"
+          d="M10,35 A20,20,0,0,1,50,35 A20,20,0,0,1,90,35 Q90,65,50,95 Q10,65,10,35 Z"
+          fill="black" />
+    </g>
+  </mask>
+  
+  <defs>
+    <g id="circles">
+      <circle cx="60" cy="60" r="40" fill="blue" fill-opacity="0.5" />
+      <circle cx="40" cy="100" r="40" fill="green" fill-opacity="0.5" />
+      <circle cx="80" cy="100" r="40" fill="red" fill-opacity="0.5" />
+    </g>
+  </defs>
+  
+  <use
+    transform="translate(0 0)"
+    href="#circles" />
+  <use
+    href="#circles"
+    transform="translate(150 0)"
+    mask="url(#myMask)" />
+    
+  <g 
+    transform="translate(300 0)"
+    mask="url(#myMask)" >
+    <circle cx="60" cy="60" r="40" fill="blue" fill-opacity="0.5" />
+    <circle cx="40" cy="100" r="40" fill="green" fill-opacity="0.5" />
+    <circle cx="80" cy="100" r="40" fill="red" fill-opacity="0.5" />
+  </g>
+</svg>

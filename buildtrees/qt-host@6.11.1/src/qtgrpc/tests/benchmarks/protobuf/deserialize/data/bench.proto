@@ -1,0 +1,56 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+syntax = "proto3";
+
+package qtbench;
+
+message ScalarTypes {
+    enum EnumType {
+        Value1 = 0;
+        Value2 = 1;
+        Value3 = 2;
+    }
+    int32 field1 = 1;
+    uint32 field2 = 2;
+    sint32 field3 = 3;
+    fixed32 field4 = 4;
+    sfixed32 field5 = 5;
+    int64 field6 = 6;
+    uint64 field7 = 7;
+    sint64 field8 = 8;
+    fixed64 field9 = 9;
+    sfixed64 field10 = 10;
+    float field11 = 11;
+    double field12 = 12;
+    string field13 = 13;
+    bytes field14 = 14;
+    EnumType field15 = 15;
+}
+
+message ScalarTypesRepeated {
+    repeated ScalarTypes field1 = 1;
+    repeated ScalarTypes.EnumType field2 = 2;
+}
+
+message MapTypes {
+    map<int32, ScalarTypesRepeated> field1 = 1;
+    map<string, ScalarTypesRepeated> field2 = 2;
+}
+
+message BenchmarkMessage {
+    repeated MapTypes field1 = 1;
+}
+
+message SimpleBoolMessage {
+    bool testFieldBool = 1;
+}
+
+message SimpleBytesMessage {
+    bytes testFieldBytes = 1;
+}
+
+message RecursiveMessage {
+    int32 testFieldInt = 1;
+    RecursiveMessage testFieldRecursive = 2;
+}

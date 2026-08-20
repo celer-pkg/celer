@@ -1,0 +1,140 @@
+// Copyright (C) 2018 Wim Taymans
+// SPDX-License-Identifier: MIT
+
+#ifndef QPIPEWIRE_SPA_COMPAT_P_H
+#define QPIPEWIRE_SPA_COMPAT_P_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+// clang-format off
+
+// old distros may miss functinality from newer upstream.
+// we collect them here for the time being
+
+#if !__has_include(<spa/param/audio/raw-utils.h>)
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * \addtogroup spa_param
+ * \{
+ */
+
+#include <spa/pod/parser.h>
+#include <spa/pod/builder.h>
+#include <spa/param/audio/format.h>
+#include <spa/param/format-utils.h>
+
+static inline int
+spa_format_audio_raw_parse(const struct spa_pod *format, struct spa_audio_info_raw *info)
+{
+	struct spa_pod *position = NULL;
+	int res;
+	info->flags = 0;
+	res = spa_pod_parse_object(format,
+			SPA_TYPE_OBJECT_Format, NULL,
+			SPA_FORMAT_AUDIO_format,	SPA_POD_OPT_Id(&info->format),
+			SPA_FORMAT_AUDIO_rate,		SPA_POD_OPT_Int(&info->rate),
+			SPA_FORMAT_AUDIO_channels,	SPA_POD_OPT_Int(&info->channels),
+			SPA_FORMAT_AUDIO_position,	SPA_POD_OPT_Pod(&position));
+	if (position == NULL ||
+	    !spa_pod_copy_array(position, SPA_TYPE_Id, info->position, SPA_AUDIO_MAX_CHANNELS))
+		SPA_FLAG_SET(info->flags, SPA_AUDIO_FLAG_UNPOSITIONED);
+
+	return res;
+}
+
+static inline struct spa_pod *
+spa_format_audio_raw_build(struct spa_pod_builder *builder, uint32_t id,
+			   const struct spa_audio_info_raw *info)
+{
+	struct spa_pod_frame f;
+	spa_pod_builder_push_object(builder, &f, SPA_TYPE_OBJECT_Format, id);
+	spa_pod_builder_add(builder,
+			SPA_FORMAT_mediaType,		SPA_POD_Id(SPA_MEDIA_TYPE_audio),
+			SPA_FORMAT_mediaSubtype,	SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw),
+			0);
+	if (info->format != SPA_AUDIO_FORMAT_UNKNOWN)
+		spa_pod_builder_add(builder,
+			SPA_FORMAT_AUDIO_format,	SPA_POD_Id(info->format), 0);
+	if (info->rate != 0)
+		spa_pod_builder_add(builder,
+			SPA_FORMAT_AUDIO_rate,		SPA_POD_Int(info->rate), 0);
+	if (info->channels != 0) {
+		spa_pod_builder_add(builder,
+			SPA_FORMAT_AUDIO_channels,	SPA_POD_Int(info->channels), 0);
+		if (!SPA_FLAG_IS_SET(info->flags, SPA_AUDIO_FLAG_UNPOSITIONED)) {
+			spa_pod_builder_add(builder, SPA_FORMAT_AUDIO_position,
+				SPA_POD_Array(sizeof(uint32_t), SPA_TYPE_Id,
+					info->channels, info->position), 0);
+		}
+	}
+	return (struct spa_pod*)spa_pod_builder_pop(builder, &f);
+}
+
+/**
+ * \}
+ */
+
+#ifdef __cplusplus
+}  /* extern "C" */
+#endif
+
+#endif // !__has_include(<spa/param/audio/raw-utils.h>)
+
+#if !__has_include(<spa/param/audio/iec958.h>)
+
+#include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * \addtogroup spa_param
+ * \{
+ */
+enum spa_audio_iec958_codec {
+	SPA_AUDIO_IEC958_CODEC_UNKNOWN,
+
+	SPA_AUDIO_IEC958_CODEC_PCM,
+	SPA_AUDIO_IEC958_CODEC_DTS,
+	SPA_AUDIO_IEC958_CODEC_AC3,
+	SPA_AUDIO_IEC958_CODEC_MPEG,		/**< MPEG-1 or MPEG-2 (Part 3, not AAC) */
+	SPA_AUDIO_IEC958_CODEC_MPEG2_AAC,	/**< MPEG-2 AAC */
+
+	SPA_AUDIO_IEC958_CODEC_EAC3,
+
+	SPA_AUDIO_IEC958_CODEC_TRUEHD,		/**< Dolby TrueHD */
+	SPA_AUDIO_IEC958_CODEC_DTSHD,		/**< DTS-HD Master Audio */
+};
+
+struct spa_audio_info_iec958 {
+	enum spa_audio_iec958_codec codec;	/*< format, one of the DSP formats in enum spa_audio_format_dsp */
+	uint32_t flags;				/*< extra flags */
+	uint32_t rate;				/*< sample rate */
+};
+
+#define SPA_AUDIO_INFO_IEC958_INIT(...)		((struct spa_audio_info_iec958) { __VA_ARGS__ })
+
+/**
+ * \}
+ */
+
+#ifdef __cplusplus
+}  /* extern "C" */
+#endif
+
+#endif // !__has_include(<spa/param/audio/iec958.h>)
+
+#endif // QPIPEWIRE_SPA_COMPAT_P_H

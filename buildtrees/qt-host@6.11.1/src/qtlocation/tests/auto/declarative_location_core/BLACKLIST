@@ -1,0 +1,4 @@
+# QTBUG-90244  flaky test
+[ReviewModel::test_reset]
+windows
+

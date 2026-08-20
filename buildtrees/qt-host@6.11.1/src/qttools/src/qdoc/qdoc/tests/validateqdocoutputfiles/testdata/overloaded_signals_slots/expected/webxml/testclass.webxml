@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<WebXML>
+    <document>
+        <class name="TestClass" href="testclass.html" status="active" access="public" location="testclass.h" documented="true" bases="QObject" module="OverloadedSignalsSlots" brief="Test class for overloaded signals and slots">
+            <description>
+                <brief>Test class for overloaded signals and slots.</brief>
+                <para>This class tests QDoc's generation of connection snippets for overloaded signals and slots.</para>
+            </description>
+            <function name="TestClass" fullname="TestClass::TestClass" href="testclass.html#TestClass" status="active" access="public" location="testclass.h" documented="true" meta="constructor" explicit="true" signature="TestClass(QObject *parent)">
+                <parameter type="QObject *" name="parent" default="nullptr"/>
+                <description>
+                    <para>Constructs a <link raw="TestClass" href="testclass.html" type="class">TestClass</link> with the given <argument>parent</argument>.</para>
+                </description>
+            </function>
+            <function name="dataChanged" fullname="TestClass::dataChanged" href="testclass.html#dataChanged" status="active" access="public" location="testclass.h" documented="true" meta="signal" type="void" signature="void dataChanged(const QString &amp;value)">
+                <parameter type="const QString &amp;" name="value" default=""/>
+                <description>
+                    <para>This signal is emitted when a string <argument>value</argument> changes.</para>
+                </description>
+            </function>
+            <function name="dataChanged" fullname="TestClass::dataChanged" href="testclass.html#dataChanged-1" status="active" access="public" location="testclass.h" documented="true" meta="signal" overload="true" overload-number="1" type="void" signature="void dataChanged(int value)">
+                <parameter type="int" name="value" default=""/>
+                <description>
+                    <para>This signal is emitted when an integer <argument>value</argument> changes.</para>
+                </description>
+            </function>
+            <function name="process" fullname="TestClass::process" href="testclass.html#process" status="active" access="public" location="testclass.h" documented="true" meta="slot" type="void" signature="void process(const QString &amp;value)">
+                <parameter type="const QString &amp;" name="value" default=""/>
+                <description>
+                    <para>Processes a string <argument>value</argument>.</para>
+                </description>
+            </function>
+            <function name="process" fullname="TestClass::process" href="testclass.html#process-1" status="active" access="public" location="testclass.h" documented="true" meta="slot" overload="true" overload-number="1" type="void" signature="void process(int value)">
+                <parameter type="int" name="value" default=""/>
+                <description>
+                    <para>Processes an integer <argument>value</argument>.</para>
+                </description>
+            </function>
+        </class>
+    </document>
+</WebXML>

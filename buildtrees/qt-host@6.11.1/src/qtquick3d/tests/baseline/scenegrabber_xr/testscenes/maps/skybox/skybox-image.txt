@@ -1,0 +1,14 @@
+Skybox images from https://learnopengl.com/img/textures/skybox.zip at
+https://learnopengl.com/ (This site is a great resource not only for OpenGL,
+but for 3D graphics programming in general.)
+
+
+All images (and videos) are licensed under the terms of the CC BY 4.0 license
+as published by Creative Commons, either version 4 of the License, or (at
+your option) any later version: https://creativecommons.org/licenses/by-nc/4.0/legalcode
+
+"When attributing any of the licensed works, please include a copyright notice
+including a (hyper)link to the copyrighted work and a link to the specific
+license. Please also mention my full name (Joey de Vries), this website (or a
+link to the relevant article where applicable), and my personal twitter
+handle: https://twitter.com/JoeyDeVriez."

@@ -1,0 +1,282 @@
+<html>
+<head>
+  <title>Memory workload test</title>
+</head>
+
+<body>
+  <h1>Memory workload test</h1>
+
+  <div>
+    <label for="load-time">Load time</label>
+    <input id="load-time" size="64" readonly /><br />
+    <label for="last-time">Last update time</label>
+    <input id="last-time" size="64" readonly /><br />
+    <pre id="life-pre"></pre>
+  </div>
+
+  <div>
+    <label for="block-size">Block size (MiB)</label>
+    <input id="block-size" type="number" value="128" /><br />
+    <label for="compression-percent">Compressibility percent</label>
+    <input id="compression-percent" type="number" value="0" min="0" max="100" step="5" /><br />
+    <label for="prefill-constant">Prefill with constant</label>
+    <input id="prefill-constant" type="number" value="1" min="-1", max="127" step="1"/><br />
+    <label for="random-per-page"> Random at page level </label>
+    <input id="random-per-page" type="checkbox" checked/><br />
+    <label for="total-slider">Total allocated</label>
+    <input id="total-slider" type="range" min="0" max="4096" step="128" onchange="setSlider()" oninput="updateSlider()" />
+    <input id="total-num" type="number" min="0" max="4096" step="128" oninput="setMemory()" /><br />
+
+    <button id="alloc" onclick="allocBlock()">Allocate block</button>
+    <button id="free" onclick="freeAll()">Free all memory</button>
+    <button id="update" onclick="update()">Update status</button>
+  </div>
+
+  <div>
+    <label for="audio-clip">Audio clip</label>
+    <input id="audio-clip" /><br />
+    <label for="play-audio">Play audio</label>
+    <input id="play-audio" type="checkbox" onchange="playAudio()" />
+  </div>
+
+  <div>
+    <pre id="status-pre"></pre>
+    <pre id="alloc-pre"></pre>
+  </div>
+</body>
+
+<script>
+  // Track when the script is initially loaded in case it gets reloaded.
+  var startTime;
+
+  // Array of ArrayBuffer allocations.
+  var allocatedBlocks = [];
+
+  var allocationFailures = 0;
+
+  var audio;
+
+  // Button handlers.
+
+  // Allocate and fill a single block.
+  function allocBlock() {
+    show('Allocate called');
+    const sizeMiB = document.getElementById('block-size').value;
+    try {
+      allocBuffer(sizeMiB);
+    }
+    catch(err) {
+      ++allocationFailures;
+      show(`Allocation of ${sizeMiB} failed`);
+    }
+    updateStatus();
+  }
+
+  function freeAll() {
+    show('Free all clicked');
+
+    allocatedBlocks = [];
+    updateStatus();
+  }
+
+  function update() {
+    show('Update clicked');
+
+    updateStatus();
+  }
+
+  function setSlider() {
+    show('Set clicked');
+
+    // Update the numeric value.
+    document.getElementById('total-num').value = document.getElementById('total-slider').value;
+    setAllocatedMemory(document.getElementById('total-slider').value);
+  }
+
+  function updateSlider() {
+    // Update the numeric value in real time.
+    document.getElementById('total-num').value = document.getElementById('total-slider').value;
+  }
+
+  function setMemory() {
+    show('Set value');
+
+    // Update the slider value.
+    document.getElementById('total-slider').value = document.getElementById('total-num').value;
+    setAllocatedMemory(document.getElementById('total-num').value);
+  }
+
+  function playAudio() {
+    let play = document.getElementById('play-audio').checked;
+    if (play) {
+      const clip = document.getElementById('audio-clip').value;
+      audio = new Audio(clip);
+      show(`Play audio ${clip}`);
+      audio.play();
+    } else {
+      show('Stop audio');
+      if (audio) {
+        audio.pause();
+      }
+    }
+  }
+
+  // Calculate the total amount of allocated memory.
+  function currentAllocatedMiB() {
+    let total = 0;
+    for (let i = 0; i < allocatedBlocks.length; ++i) {
+      total += allocatedBlocks[i].byteLength;
+    }
+    return total / (1024 * 1024);
+  }
+
+  // Set the total amount of allocated memory.
+  function setAllocatedMemory(target) {
+    // Free excess memory.
+    let frees = 0;
+    while (currentAllocatedMiB() > target) {
+      allocatedBlocks.pop();
+      ++frees;
+      updateStatus();
+    }
+
+    // Allocate memory as necessary, block by block.
+    let allocs = 0;
+    while (currentAllocatedMiB() < target) {
+      let sizeMiB = Math.min(target - currentAllocatedMiB(),
+                             document.getElementById('block-size').value);
+      try {
+        allocBuffer(sizeMiB);
+      }
+      catch(err) {
+        ++allocationFailures;
+        show(`Allocation of ${sizeMiB} failed`);
+        updateStatus();
+        return;
+      }
+      ++allocs;
+      updateStatus();
+    }
+
+    show(`${frees} blocks freed; ${allocs} blocks allocated`);
+  }
+
+  // Update the current status of the page.
+  function updateStatus() {
+    const now = new Date();
+    document.getElementById('last-time').value = now.toString();
+    const elapsedSecs = (now - startTime) / 1000;
+    document.getElementById('life-pre').textContent = `${elapsedSecs} seconds`;
+
+    let total = currentAllocatedMiB();
+    let summary = `${total} MiB allocated; ${allocatedBlocks.length} blocks; ${allocationFailures} failures`;
+    document.getElementById('alloc-pre').textContent = summary;
+
+    document.getElementById('total-slider').value = total;
+    document.getElementById('total-num').value = total;
+  }
+
+  // Allocate and fill a buffer of a given size.
+  function allocBuffer(sizeMiB) {
+    buffer = new ArrayBuffer(sizeMiB * 1024 * 1024);
+    allocatedBlocks.push(buffer);
+    const randomPerPage = document.getElementById('random-per-page');
+    if (randomPerPage.checked) {
+      fillBufferByPage(buffer);
+    } else {
+      fillBufferByType(buffer);
+    }
+  }
+
+  // Fill a buffer with random data and const data based on compressbility
+  // and given constant per buffer level.
+  function fillBufferByType(buffer) {
+    // Achieve requested compressibility by generating random data for
+    // buffer[0, randomLength).
+    const ratio = document.getElementById('compression-percent').value / 100;
+    const randomLength = buffer.byteLength * (1.0 - ratio);
+
+    // Crypto.getRandomValues can generate up to 64KiB at a time.
+    const maxBlockSize = 64 * 1024;
+    for (let i = 0; i < randomLength; i += maxBlockSize) {
+      const bytesRemaining = randomLength - i;
+      const viewSize = Math.min(bytesRemaining, maxBlockSize);
+      const view = new Int8Array(buffer, i, viewSize);
+      crypto.getRandomValues(view);
+    }
+    // Fill buffer[randomLength, byteLength) with the given constant.
+    // When it is -1, we don't fill with constant.
+    const prefillConstant = document.getElementById('prefill-constant').value;
+    if (prefillConstant >= 0) {
+      console.log(prefillConstant);
+      const view = new Int8Array(buffer, randomLength);
+      view.fill(prefillConstant);
+    }
+  }
+
+  // Fill buffer with random data and constant data based on compressiblity
+  // and given constant per page level.
+  function fillBufferByPage(buffer) {
+    const pageSize = 4 * 1024;
+    const ratio = document.getElementById('compression-percent').value / 100;
+    const randomLengthPerPage = pageSize * (1.0 - ratio);
+    const constLengthPerPage = pageSize - randomLengthPerPage;
+
+    for (let i = 0; i < buffer.byteLength; i += pageSize) {
+      // Fill each page with random data on [0, randomLengthPerPage),
+      // and constant data on [randomLengthPerPage, pageSize).
+      const viewRandom = new Int8Array(buffer, i, randomLengthPerPage);
+      crypto.getRandomValues(viewRandom);
+      // When it is -1, we don't fill with constant data.
+      const prefillConstant = document.getElementById('prefill-constant').value;
+      if (prefillConstant >= 0) {
+        console.log(prefillConstant);
+        const viewConstant = new Int8Array(buffer, i + randomLengthPerPage, constLengthPerPage);
+        viewConstant.fill(prefillConstant);
+      }
+    }
+  }
+
+  // Show and log a status line.
+  function show(s) {
+    console.log(s);
+    document.getElementById('status-pre').textContent = s;
+  }
+
+  // Function that is called once when the script is initially loaded.
+  function startup() {
+    // Track when the page was initially loaded.
+    startTime = new Date();
+    show(`Startup called ${startTime}`);
+    document.getElementById('load-time').value = startTime.toString();
+
+    // Handle URL params.
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('blocksize')) {
+      document.getElementById('block-size').value = params.get('blocksize');
+    }
+    if (params.has('compress')) {
+      document.getElementById('compression-percent').value = params.get('compress');
+    }
+    if (params.has("prefill")) {
+      document.getElementById('prefill-constant').value = params.get('prefill');
+    }
+    if (params.has("randomperpage")) {
+      document.getElementById('random-per-page').checked = params.get('randomperpage') === "true";
+    }
+    if (params.has('alloc')) {
+      // Perform allocations.
+      for (let i = 0; i < params.get('alloc'); ++i) {
+        allocBlock();
+      }
+    }
+    if (params.has('audioclip')) {
+      document.getElementById('audio-clip').value = params.get('audioclip');
+    }
+
+    updateStatus();
+  }
+
+  startup();
+</script>
+</html>

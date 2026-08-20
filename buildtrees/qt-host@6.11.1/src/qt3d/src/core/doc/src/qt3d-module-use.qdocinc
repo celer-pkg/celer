@@ -1,0 +1,38 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [cmakebuild]
+    Use the \c {find_package()} command to locate the needed module components
+    in the \c {Qt6} package:
+    \code
+    find_package(Qt6 REQUIRED COMPONENTS
+        3DCore
+        3DRender
+        3DInput
+        3DLogic
+        3DExtras
+        3DAnimation
+    )
+    target_link_libraries(mytarget PRIVATE
+        Qt6::3DCore
+        Qt6::3DRender
+        Qt6::3DLogic
+        Qt6::3DExtras
+        Qt6::3DAnimation
+    )
+    \endcode
+//! [cmakebuild]
+
+//! [qmakebuild]
+    To configure the module for building with qmake, add the modules to the \c
+    QT variable in the project's .pro file:
+    \code
+    QT += 3dcore 3drender 3dinput 3dlogic 3dextras 3danimation
+    \endcode
+
+    A Qt Quick application requires additional dependencies:
+
+    \code
+    QT += 3dcore 3drender 3dinput 3dlogic 3dextras 3danimation qml quick 3dquick
+    \endcode
+//! [qmakebuild]

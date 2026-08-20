@@ -1,0 +1,208 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example customwidgetplugin
+    \examplecategory {Desktop}
+    \meta tags {widgets,designer}
+    \ingroup examples-designer
+    \title Custom Widget Plugin
+
+    \brief Creating a custom widget plugin for \QD.
+
+    \image customwidgetplugin-example.webp {Screenshot of an analog clock widget in
+           the \QD}
+
+    In this example, the custom widget used is based on the
+    \l{widgets/analogclock}{Analog Clock example}, and does not provide any custom
+    signals or slots.
+
+    \section1 Preparation
+
+    To provide a custom widget that can be used with \QD, we need to supply a
+    self-contained implementation and provide a plugin interface. In this
+    example, we reuse the \l{widgets/analogclock}{Analog Clock example} for
+    convenience.
+
+    \section1 Project files
+
+    \section2 CMake
+
+    The project files need to state that a plugin linking
+    to the \QD libraries is to be built:
+
+    \snippet customwidgetplugin/CMakeLists.txt 0
+    \codeline
+    \snippet customwidgetplugin/CMakeLists.txt 2
+
+    The link libraries list specifies \c Qt::UiPlugin. This indicates that
+    the plugin uses the abstract interfaces QDesignerCustomWidgetInterface
+    and QDesignerCustomWidgetCollectionInterface only and has no linkage
+    to the \QD libraries. When accessing other interfaces of \QD that have
+    linkage, \c Designer should be used instead; this ensures that the plugin
+    dynamically links to the \QD libraries and has a run-time dependency on
+    them.
+
+    The following example shows how to add the header and source files of the
+    widget:
+
+    \snippet customwidgetplugin/CMakeLists.txt 1
+
+    We provide an implementation of the plugin interface so that \QD
+    can use the custom widget.
+
+    It is also important to ensure that the plugin is installed in a
+    location that is searched by \QD. We do this by specifying a
+    target path for the project and adding it to the list of items to
+    install:
+
+    \snippet customwidgetplugin/CMakeLists.txt 3
+    \snippet customwidgetplugin/CMakeLists.txt 4
+
+    The custom widget is created as a library. It will be
+    installed alongside the other \QD plugins when the project is
+    installed (using \c{ninja install} or an equivalent installation
+    procedure).
+
+    For more information about plugins, see the
+    \l {How to Create Qt Plugins} documentation.
+
+    \section2 qmake
+
+    The following example shows how to link a plugin to the \QD libraries:
+
+    \snippet customwidgetplugin/customwidgetplugin.pro 0
+    \codeline
+    \snippet customwidgetplugin/customwidgetplugin.pro 1
+
+    The \c QT variable contains the keyword \c uiplugin, which is
+    the equivalent of the \c Qt::UiPlugin library.
+
+    The following example shows how to add the header and source files of the
+    widget:
+
+    \snippet customwidgetplugin/customwidgetplugin.pro 2
+
+    The following example shows how to install a plugin to the \QD's plugin path:
+
+    \snippet customwidgetplugin/customwidgetplugin.pro 3
+
+    \section1 AnalogClock Class Definition and Implementation
+
+    The \c AnalogClock class is defined and implemented in exactly the same
+    way as described in the \l{widgets/analogclock}{Analog Clock example}.
+    Since the class is self-contained, and does not require any external
+    configuration, it can be used without modification as a custom widget in
+    \QD.
+
+    \section1 AnalogClockPlugin Class Definition
+
+    The \c AnalogClock class is exposed to \QD through the \c
+    AnalogClockPlugin class. This class inherits from both QObject and
+    the QDesignerCustomWidgetInterface class, and implements an
+    interface defined by QDesignerCustomWidgetInterface.
+
+    To ensure that Qt recognizes the widget as a plugin, export relevant
+    information about the widget by adding the \c Q_PLUGIN_METADATA() macro:
+
+    \snippet customwidgetplugin/customwidgetplugin.h 0
+
+    The functions provide information about the widget that \QD can use in
+    the \l{Getting to Know Qt Widgets Designer#WidgetBox}{widget box}.
+    The \c initialized private member variable is used to record whether
+    the plugin has been initialized by \QD.
+
+    Note that the only part of the class definition that is specific to
+    this particular custom widget is the class name.
+
+    \section1 AnalogClockPlugin Implementation
+
+    The class constructor simply calls the QObject base class constructor
+    and sets the \c initialized variable to \c false.
+
+    \snippet customwidgetplugin/customwidgetplugin.cpp 0
+
+    \QD will initialize the plugin when it is required by calling the
+    \c initialize() function:
+
+    \snippet customwidgetplugin/customwidgetplugin.cpp 1
+
+    In this example, the \c initialized private variable is tested, and only
+    set to \c true if the plugin is not already initialized. Although, this
+    plugin does not require any special code to be executed when it is
+    initialized, we could include such code after the test for initialization.
+
+    The \c isInitialized() function lets \QD know whether the plugin is
+    ready for use:
+
+    \snippet customwidgetplugin/customwidgetplugin.cpp 2
+
+    Instances of the custom widget are supplied by the \c createWidget()
+    function. The implementation for the analog clock is straightforward:
+
+    \snippet customwidgetplugin/customwidgetplugin.cpp 3
+
+    In this case, the custom widget only requires a \c parent to be specified.
+    If other arguments need to be supplied to the widget, they can be
+    introduced here.
+
+    The following functions provide information for \QD to use to represent
+    the widget in the widget box.
+    The \c name() function returns the name of class that provides the
+    custom widget:
+
+    \snippet customwidgetplugin/customwidgetplugin.cpp 4
+
+    The \c group() function is used to describe the type of widget that the
+    custom widget belongs to:
+
+    \snippet customwidgetplugin/customwidgetplugin.cpp 5
+
+    The widget plugin will be placed in a section identified by its
+    group name in \QD's widget box. The icon used to represent the
+    widget in the widget box is returned by the \c icon() function:
+
+    \snippet customwidgetplugin/customwidgetplugin.cpp 6
+
+    In this case, we return a null icon to indicate that we have no icon
+    that can be used to represent the widget.
+
+    A tool tip and "What's This?" help can be supplied for the custom widget's
+    entry in the widget box. The \c toolTip() function should return a short
+    message describing the widget:
+
+    \snippet customwidgetplugin/customwidgetplugin.cpp 7
+
+    The \c whatsThis() function can return a longer description:
+
+    \snippet customwidgetplugin/customwidgetplugin.cpp 8
+
+    The \c isContainer() function tells \QD whether the widget is supposed to
+    be used as a container for other widgets. If not, \QD will not allow the
+    user to place widgets inside it.
+
+    \snippet customwidgetplugin/customwidgetplugin.cpp 9
+
+    Most widgets in Qt can contain child widgets, but it only makes sense
+    to use dedicated container widgets for this purpose in \QD. By returning
+    \c false, we indicate that the custom widget cannot hold other widgets;
+    if we returned true, \QD would allow other widgets to be placed inside
+    the analog clock and a layout to be defined.
+
+    The \c domXml() function provides a way to include default settings for
+    the widget in the standard XML format used by \QD. In this case, we only
+    specify the widget's geometry:
+
+    \snippet customwidgetplugin/customwidgetplugin.cpp 10
+
+    If the widget provides a reasonable size hint, it is not necessary to
+    define it here. In addition, returning an empty string instead of a
+    \c{<widget>} element will tell \QD not to install the widget in the
+    widget box.
+
+    To make the analog clock widget usable by applications, we implement
+    the \c includeFile() function to return the name of the header file
+    containing the custom widget class definition:
+
+    \snippet customwidgetplugin/customwidgetplugin.cpp 12
+*/

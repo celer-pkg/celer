@@ -1,0 +1,446 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#ifdef QQ3D_SHADER_META
+/*{
+    "uniforms": [
+        { "type": "vec4", "name": "qt_lightAndShadowCounts" }
+    ]
+}*/
+#endif // QQ3D_SHADER_META
+
+//qt_lightAndShadowCounts.x = positionalLightCount
+//qt_lightAndShadowCounts.y = directionalLightCount
+//qt_lightAndShadowCounts.z = positionalShadowCount
+//qt_lightAndShadowCounts.w = directionalShadowCount
+
+#include "lightsData.glsllib"
+#include "funccalculatePointLightAttenuation.glsllib"
+
+#if QSSG_ENABLE_SHADOWMAPPING
+#include "shadowMapping.glsllib"
+#endif
+
+#if QSSG_ENABLE_DIFFUSE_MODEL_LAMBERT
+#include "funcdiffuseLambertBRDF.glsllib"
+#endif
+
+#if QSSG_ENABLE_DIFFUSE_MODEL_BURLEY
+#include "funcdiffuseBurleyBSDF.glsllib"
+#endif
+
+#if QSSG_ENABLE_DIFFUSE_MODEL_LAMBERT_WRAP
+#include "funcdiffuseLambertWrapBRDF.glsllib"
+#endif
+
+#if QSSG_CUSTOM_MATERIAL_DIRECTIONAL_LIGHT_PROCESSOR || QSSG_CUSTOM_MATERIAL_POINT_LIGHT_PROCESSOR || QSSG_CUSTOM_MATERIAL_SPOT_LIGHT_PROCESSOR || QSSG_CUSTOM_MATERIAL_SPECULAR_PROCESSOR
+#include "custommaterialforwarddeclarations.glsllib"
+#endif
+
+#if QSSG_ENABLE_SPECULAR
+# if QSSG_ENABLE_METALLIC_ROUGHNESS_WORKFLOW || QSSG_ENABLE_SPECULAR_GLOSSY_WORKFLOW || QSSG_ENABLE_SPECULAR_MODEL_SCHLICK_GGX || QSSG_ENABLE_CLEARCOAT
+#include "funcspecularGGXBSDF.glsllib"
+# elif QSSG_ENABLE_SPECULAR_MODEL_BLINN_PHONG
+#include "funcspecularBlinnPhong.glsllib"
+# endif
+
+void qt_calculateSpecularContribution(inout vec3 global_specular_light,
+                                      in vec3 lightSpecularColor,
+                                      in float lightAttenuation,
+                                      in ShadowResult shadow,
+                                      in vec3 specularAmount,
+                                      in vec3 specularLightDirection,
+                                      in vec3 worldNormal,
+                                      in float roughnessAmount,
+                                      in float metalnessAmount,
+                                      in vec3 viewVector,
+#if QSSG_CUSTOM_MATERIAL_SPECULAR_PROCESSOR
+                                      in vec4 qt_customBaseColor,
+                                      in float qt_customSpecularAmount,
+#endif // QSSG_CUSTOM_MATERIAL_SPECULAR_PROCESSOR
+#if QSSG_CUSTOM_MATERIAL_SHARED_VARIABLES
+                                      inout QT_SHARED_VARS qt_customShared,
+#endif // QSSG_CUSTOM_MATERIAL_SHARED_VARIABLES
+                                      in vec3 f0,
+                                      in vec3 f90,
+                                      in vec3 specularTint)
+{
+    if (!shadow.isLit)
+        return;
+#if QSSG_CUSTOM_MATERIAL_SPECULAR_PROCESSOR
+    qt_specularLightProcessor(global_specular_light,
+                              lightSpecularColor,
+                              lightAttenuation,
+                              shadow.illumination,
+                              specularAmount,
+                              -specularLightDirection,
+                              worldNormal,
+                              qt_customBaseColor,
+                              metalnessAmount,
+                              roughnessAmount,
+                              qt_customSpecularAmount,
+                              viewVector
+# if QSSG_CUSTOM_MATERIAL_SHARED_VARIABLES
+                              , qt_customShared);
+# else
+                              );
+# endif // QSSG_CUSTOM_MATERIAL_SHARED_VARIABLES
+#else
+# if QSSG_ENABLE_METALLIC_ROUGHNESS_WORKFLOW || QSSG_ENABLE_SPECULAR_GLOSSY_WORKFLOW || QSSG_ENABLE_SPECULAR_MODEL_SCHLICK_GGX
+    global_specular_light += lightAttenuation * shadow.illumination * specularTint * qt_specularGGXBSDF(worldNormal,
+                                                                                                        -specularLightDirection,
+                                                                                                        viewVector,
+                                                                                                        lightSpecularColor,
+                                                                                                        f0,
+                                                                                                        f90,
+                                                                                                        roughnessAmount).rgb;
+# elif QSSG_ENABLE_SPECULAR_MODEL_BLINN_PHONG
+    global_specular_light += lightAttenuation * shadow.illumination * specularAmount * qt_specularBlinnPhong(worldNormal,
+                                                                                                             -specularLightDirection,
+                                                                                                             viewVector,
+                                                                                                             lightSpecularColor,
+                                                                                                             2.56 / (roughnessAmount + 0.01)).rgb;
+# endif
+#endif // QSSG_CUSTOM_MATERIAL_SPECULAR_PROCESSOR
+}
+
+# if QSSG_ENABLE_TRANSMISSION
+#include "transmission.glsllib"
+vec3 qt_calculateTransmission(in vec3 qt_world_normal,
+                              in vec3 qt_view_vector,
+                              in vec3 specularLightDirection,
+                              in vec3 qt_f0,
+                              in vec3 qt_f90,
+                              in vec3 qt_diffuseColor,
+                              in float qt_roughnessAmount,
+                              in float qt_lightAttenuation,
+                              in float qt_thicknessFactor,
+                              in float qt_iOR,
+                              in float qt_transmissionFactor,
+                              in vec3 qt_attenuationColor,
+                              in float qt_attenuationDistance)
+{
+    vec3 transmissionRay = qt_getVolumeTransmissionRay(qt_world_normal, qt_view_vector, qt_thicknessFactor, qt_iOR);
+    vec3 pointToLight = -specularLightDirection;
+    pointToLight -= transmissionRay;
+    vec3 l = normalize(pointToLight);
+    vec3 transmittedLight = qt_lightAttenuation * qt_getPunctualRadianceTransmission(qt_world_normal, qt_view_vector, l, qt_roughnessAmount, qt_f0, qt_f90, qt_diffuseColor.rgb, qt_iOR);
+    transmittedLight = qt_applyVolumeAttenuation(transmittedLight, length(transmissionRay), qt_attenuationColor, qt_attenuationDistance);
+    return qt_transmissionFactor * transmittedLight;
+}
+
+
+# endif // QSSG_ENABLE_TRANSMISSION
+
+#endif // QSSG_ENABLE_SPECULAR
+
+void qt_processPunctualLighting(inout vec3 global_diffuse_light,
+                                inout vec3 global_specular_light,
+                                in vec3 qt_diffuseColor,
+                                in vec3 qt_world_position,
+                                in vec3 qt_world_normal,
+                                in vec3 qt_view_vector,
+#if QSSG_ENABLE_SPECULAR
+                                in vec3 specularAmount,
+                                in vec3 specularTint,
+#endif // << QSSG_ENABLE_SPECULAR
+                                in float qt_roughnessAmount,
+                                in float qt_metalnessAmount,
+#if QSSG_CUSTOM_MATERIAL_DIRECTIONAL_LIGHT_PROCESSOR || QSSG_CUSTOM_MATERIAL_POINT_LIGHT_PROCESSOR || QSSG_CUSTOM_MATERIAL_SPOT_LIGHT_PROCESSOR || QSSG_CUSTOM_MATERIAL_SPECULAR_PROCESSOR
+                                in vec4 qt_customBaseColor,
+#endif // QSSG_CUSTOM_MATERIAL_*
+#if QSSG_CUSTOM_MATERIAL_SPECULAR_PROCESSOR
+                                in float qt_customSpecularAmount,
+#endif // QSSG_CUSTOM_MATERIAL_SPECULAR_PROCESSOR
+#if QSSG_CUSTOM_MATERIAL_SHARED_VARIABLES
+                                inout QT_SHARED_VARS qt_customShared,
+#endif // QSSG_CUSTOM_MATERIAL_SHARED_VARIABLES
+#if QSSG_ENABLE_CLEARCOAT
+                                inout vec3 qt_global_clearcoat,
+                                in vec3 qt_clearcoatNormal,
+                                in float qt_clearcoatRoughness,
+                                in vec3 qt_clearcoatF0,
+                                in vec3 qt_clearcoatF90,
+#endif // QSSG_ENABLE_CLEARCOAT
+#if QSSG_ENABLE_TRANSMISSION
+                                inout vec3 qt_global_transmission,
+                                in float qt_thicknessFactor,
+                                in float qt_iOR,
+                                in float qt_transmissionFactor,
+                                in vec3 qt_attenuationColor,
+                                in float qt_attenuationDistance,
+#endif
+                                in vec3 f0,
+                                in vec3 f90
+                                )
+{
+    // Directional Lights
+#if QSSG_ENABLE_SHADOWMAPPING
+    float qt_zDepthViewSpace = 0.0;
+    if (qt_lightAndShadowCounts.y > 0) {
+# if QSHADER_VIEW_COUNT >= 2
+        qt_zDepthViewSpace = abs((qt_viewMatrix[0] * vec4(qt_world_position, 1.0)).z);
+# else
+        qt_zDepthViewSpace = abs((qt_viewMatrix * vec4(qt_world_position, 1.0)).z);
+# endif
+    }
+#endif // SSG_ENABLE_SHADOWMAPPING
+    for (int i = 0; i < qt_lightAndShadowCounts.y; ++i) {
+#if QSSG_ENABLE_LIGHTMAP
+        // Skip light if it is baked into the lightmap
+        if (ubDirectionalLights.directionalLights[i].lightmapState > 1)
+            continue;
+#endif // QSSG_ENABLE_LIGHTMAP
+
+        ShadowResult qt_shadow_map_result;
+        qt_shadow_map_result.illumination = 1.0f;
+        qt_shadow_map_result.isLit = true;
+#if QSSG_ENABLE_SHADOWMAPPING
+        // Shadows
+        if (ubDirectionalLights.directionalLights[i].enableShadows > 0.0) {
+            qt_shadow_map_result = qt_sampleDirectionalShadowMap(i, qt_zDepthViewSpace, qt_world_position);
+        }
+#endif // QSSG_ENABLE_SHADOWMAPPING
+
+#if QSSG_ENABLE_SPECULAR_GLOSSY
+        vec3 tmp_light_color = ubDirectionalLights.directionalLights[i].diffuseColor;
+#else
+        vec3 tmp_light_color = ubDirectionalLights.directionalLights[i].diffuseColor * (1.0 - qt_metalnessAmount);
+#endif
+
+        // Diffuse Light
+#if QSSG_CUSTOM_MATERIAL_DIRECTIONAL_LIGHT_PROCESSOR
+        qt_directionalLightProcessor(global_diffuse_light.rgb,
+                                     tmp_light_color,
+                                     qt_shadow_map_result.illumination,
+                                     -ubDirectionalLights.directionalLights[i].direction,
+                                     qt_world_normal,
+                                     qt_customBaseColor,
+                                     qt_metalnessAmount,
+                                     qt_roughnessAmount,
+                                     qt_view_vector
+# if QSSG_CUSTOM_MATERIAL_SHARED_VARIABLES
+        , qt_customShared);
+# else
+        );
+# endif // QSSG_CUSTOM_MATERIAL_SHARED_VARIABLES
+#else
+# if QSSG_ENABLE_DIFFUSE_MODEL_BURLEY
+        global_diffuse_light.rgb += qt_diffuseColor.rgb * qt_shadow_map_result.illumination * qt_diffuseBurleyBSDF(qt_world_normal, -ubDirectionalLights.directionalLights[i].direction, qt_view_vector, tmp_light_color, qt_roughnessAmount).rgb;
+# elif QSSG_ENABLE_DIFFUSE_MODEL_LAMBERT
+        global_diffuse_light.rgb += qt_diffuseColor.rgb * qt_shadow_map_result.illumination * qt_diffuseLambertBRDF(qt_world_normal, -ubDirectionalLights.directionalLights[i].direction, tmp_light_color).rgb;
+# endif // QSSG_ENABLE_DIFFUSE_MODEL_BURLEY
+#endif // QSSG_CUSTOM_MATERIAL_DIRECTIONAL_LIGHT_PROCESSOR
+#if QSSG_ENABLE_SPECULAR
+        // Specular Light
+        qt_calculateSpecularContribution(global_specular_light,
+                                         ubDirectionalLights.directionalLights[i].specularColor,
+                                         1.0,
+                                         qt_shadow_map_result,
+                                         specularAmount,
+                                         ubDirectionalLights.directionalLights[i].direction,
+                                         qt_world_normal,
+                                         qt_roughnessAmount,
+                                         qt_metalnessAmount,
+                                         qt_view_vector,
+#if QSSG_CUSTOM_MATERIAL_SPECULAR_PROCESSOR
+                                         qt_customBaseColor,
+                                         qt_customSpecularAmount,
+#endif // QSSG_CUSTOM_MATERIAL_SPECULAR_PROCESSOR
+#if QSSG_CUSTOM_MATERIAL_SHARED_VARIABLES
+                                         qt_customShared,
+#endif // QSSG_CUSTOM_MATERIAL_SHARED_VARIABLES
+                                         f0,
+                                         f90,
+                                         specularTint);
+# if QSSG_ENABLE_CLEARCOAT
+        if (qt_shadow_map_result.isLit) {
+            qt_global_clearcoat += qt_shadow_map_result.illumination * qt_specularGGXBSDF(qt_clearcoatNormal,
+                                                                                          -ubDirectionalLights.directionalLights[i].direction,
+                                                                                          qt_view_vector,
+                                                                                          ubDirectionalLights.directionalLights[i].specularColor,
+                                                                                          qt_clearcoatF0,
+                                                                                          qt_clearcoatF90,
+                                                                                          qt_clearcoatRoughness).rgb;
+        }
+# endif // QSSG_ENABLE_CLEARCOAT
+
+# if QSSG_ENABLE_TRANSMISSION
+        qt_global_transmission += qt_calculateTransmission(qt_world_normal,
+                                                           qt_view_vector,
+                                                           ubDirectionalLights.directionalLights[i].direction,
+                                                           f0,
+                                                           f90,
+                                                           qt_diffuseColor,
+                                                           qt_roughnessAmount,
+                                                           1.0,
+                                                           qt_thicknessFactor,
+                                                           qt_iOR,
+                                                           qt_transmissionFactor,
+                                                           qt_attenuationColor,
+                                                           qt_attenuationDistance);
+# endif
+
+#endif // QSSG_ENABLE_SPECULAR
+    }
+
+    // Point and Spot Lights (positional)
+    for (int i = 0; i < qt_lightAndShadowCounts.x; ++i) {
+#if QSSG_ENABLE_LIGHTMAP
+        // Skip light if it is baked into the lightmap
+        if (ubLights.lights[i].lightmapState > 1)
+            continue;
+#endif // QSSG_ENABLE_LIGHTMAP
+
+        ShadowResult qt_shadow_map_result;
+        qt_shadow_map_result.illumination = 1.0f;
+        qt_shadow_map_result.isLit = true;
+
+        // Directions
+        vec3 relativeDirection = qt_world_position - ubLights.lights[i].position;
+        float relativeDistance = length(relativeDirection);
+        vec3 normalizedDirection = relativeDirection  / relativeDistance;
+        vec3 specularLightDirection = normalizedDirection;
+
+        // Attenuation
+        float qt_lightAttenuation = qt_calculatePointLightAttenuation(vec3(ubLights.lights[i].constantAttenuation,
+                                                                           ubLights.lights[i].linearAttenuation,
+                                                                           ubLights.lights[i].quadraticAttenuation),
+                                                                      relativeDistance);
+
+        // Diffuse
+#if QSSG_ENABLE_SPECULAR_GLOSSY
+        vec3 tmp_light_color = ubDirectionalLights.directionalLights[i].diffuseColor;
+#else
+        vec3 tmp_light_color = ubLights.lights[i].diffuseColor * (1.0 - qt_metalnessAmount);
+#endif
+
+        bool isPointLight = ubLights.lights[i].coneAngle > 1.0;
+
+        // coneAngle is normally in cos(radians) if it's a spotlight (-1.0, 1.0) or > 1.0 if it's a point light
+        if (isPointLight) {
+            // Point Light
+#if QSSG_ENABLE_SHADOWMAPPING
+            if (ubLights.lights[i].enableShadows > 0.0) {
+                qt_shadow_map_result = qt_samplePointLight(i, qt_world_position);
+            }
+#endif // QSSG_ENABLE_SHADOWMAPPING
+
+#if QSSG_CUSTOM_MATERIAL_POINT_LIGHT_PROCESSOR
+            qt_pointLightProcessor(global_diffuse_light.rgb,
+                                   tmp_light_color,
+                                   qt_lightAttenuation,
+                                   qt_shadow_map_result.illumination,
+                                   -normalizedDirection,
+                                   qt_world_normal,
+                                   qt_customBaseColor,
+                                   qt_metalnessAmount,
+                                   qt_roughnessAmount,
+                                   qt_view_vector
+# if QSSG_CUSTOM_MATERIAL_SHARED_VARIABLES
+                                   , qt_customShared);
+# else
+                                   );
+# endif // QSSG_CUSTOM_MATERIAL_SHARED_VARIABLES
+#else
+# if QSSG_ENABLE_DIFFUSE_MODEL_BURLEY
+            global_diffuse_light.rgb += qt_diffuseColor.rgb * qt_lightAttenuation * qt_shadow_map_result.illumination * qt_diffuseBurleyBSDF(qt_world_normal, -normalizedDirection, qt_view_vector, tmp_light_color, qt_roughnessAmount).rgb;
+# elif QSSG_ENABLE_DIFFUSE_MODEL_LAMBERT
+            global_diffuse_light.rgb += qt_diffuseColor.rgb * qt_lightAttenuation * qt_shadow_map_result.illumination * qt_diffuseLambertBRDF(qt_world_normal, -normalizedDirection, tmp_light_color).rgb;
+# endif
+#endif // QSSG_CUSTOM_MATERIAL_POINT_LIGHT_PROCESSOR
+        } else {
+            // Spot Light
+#if QSSG_ENABLE_SHADOWMAPPING
+            if (ubLights.lights[i].enableShadows > 0.0) {
+                qt_shadow_map_result = qt_sampleSpotLight(i, qt_world_position);
+            }
+#endif // QSSG_ENABLE_SHADOWMAPPING
+
+            float spotAngle = dot(normalizedDirection, normalize(ubLights.lights[i].direction));
+            if (spotAngle > ubLights.lights[i].coneAngle) {
+                float spotFactor = smoothstep(ubLights.lights[i].coneAngle, ubLights.lights[i].innerConeAngle, spotAngle);
+#if QSSG_CUSTOM_MATERIAL_SPOT_LIGHT_PROCESSOR
+                qt_spotLightProcessor(global_diffuse_light.rgb,
+                                      tmp_light_color,
+                                      qt_lightAttenuation,
+                                      spotFactor,
+                                      qt_shadow_map_result.illumination,
+                                      -normalizedDirection,
+                                      qt_world_normal,
+                                      qt_customBaseColor,
+                                      qt_metalnessAmount,
+                                      qt_roughnessAmount,
+                                      qt_view_vector
+# if QSSG_CUSTOM_MATERIAL_SHARED_VARIABLES
+                                      , qt_customShared);
+# else
+                                      );
+# endif // QSSG_CUSTOM_MATERIAL_SHARED_VARIABLES
+#else
+# if QSSG_ENABLE_DIFFUSE_MODEL_BURLEY
+                global_diffuse_light.rgb += qt_diffuseColor.rgb * spotFactor * qt_lightAttenuation * qt_shadow_map_result.illumination * qt_diffuseBurleyBSDF(qt_world_normal, -normalizedDirection, qt_view_vector, tmp_light_color, qt_roughnessAmount).rgb;
+# elif QSSG_ENABLE_DIFFUSE_MODEL_LAMBERT
+                global_diffuse_light.rgb += qt_diffuseColor.rgb * spotFactor * qt_lightAttenuation * qt_shadow_map_result.illumination * qt_diffuseLambertBRDF(qt_world_normal, -normalizedDirection, tmp_light_color).rgb;
+# endif // QSSG_ENABLE_DIFFUSE_MODEL_BURLEY
+#endif //QSSG_CUSTOM_MATERIAL_SPOT_LIGHT_PROCESSOR
+                qt_lightAttenuation *= spotFactor;
+            } else {
+                qt_lightAttenuation = 0.0;
+            }
+        }
+
+#if QSSG_ENABLE_SPECULAR
+        // Specular Light
+        qt_calculateSpecularContribution(global_specular_light,
+                                         ubLights.lights[i].specularColor,
+                                         qt_lightAttenuation,
+                                         qt_shadow_map_result,
+                                         specularAmount,
+                                         specularLightDirection,
+                                         qt_world_normal,
+                                         qt_roughnessAmount,
+                                         qt_metalnessAmount,
+                                         qt_view_vector,
+#if QSSG_CUSTOM_MATERIAL_SPECULAR_PROCESSOR
+                                         qt_customBaseColor,
+                                         qt_customSpecularAmount,
+#endif // QSSG_CUSTOM_MATERIAL_SPECULAR_PROCESSOR
+#if QSSG_CUSTOM_MATERIAL_SHARED_VARIABLES
+                                         qt_customShared,
+#endif // QSSG_CUSTOM_MATERIAL_SHARED_VARIABLES
+                                         f0,
+                                         f90,
+                                         specularTint);
+# if QSSG_ENABLE_CLEARCOAT
+        if (qt_shadow_map_result.isLit) {
+            qt_global_clearcoat += qt_lightAttenuation * qt_shadow_map_result.illumination * qt_specularGGXBSDF(qt_clearcoatNormal,
+                                                                                                                -specularLightDirection,
+                                                                                                                qt_view_vector,
+                                                                                                                ubLights.lights[i].specularColor,
+                                                                                                                qt_clearcoatF0,
+                                                                                                                qt_clearcoatF90,
+                                                                                                                qt_clearcoatRoughness).rgb;
+        }
+# endif // QSSG_ENABLE_CLEARCOAT
+
+# if QSSG_ENABLE_TRANSMISSION
+        qt_global_transmission += qt_calculateTransmission(qt_world_normal,
+                                                           qt_view_vector,
+                                                           specularLightDirection,
+                                                           f0,
+                                                           f90,
+                                                           qt_diffuseColor,
+                                                           qt_roughnessAmount,
+                                                           qt_lightAttenuation,
+                                                           qt_thicknessFactor,
+                                                           qt_iOR,
+                                                           qt_transmissionFactor,
+                                                           qt_attenuationColor,
+                                                           qt_attenuationDistance);
+# endif
+
+#endif // QSSG_ENABLE_SPECULAR
+    }
+}
+

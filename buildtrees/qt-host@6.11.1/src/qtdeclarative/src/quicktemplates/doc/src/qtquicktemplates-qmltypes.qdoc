@@ -1,0 +1,45 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \qmlmodule QtQuick.Templates
+    \title Qt Quick Templates 2 QML Types
+    \ingroup qmlmodules
+    \brief Provides QML types for templates (Qt Quick Templates).
+
+    The \l {Qt Quick Templates 2} module provides a set of non-visual templates
+    that can be used to build user interface controls in QML using \l {Qt Quick}.
+
+    These types should be used when you want to implement a control from
+    scratch, rather than \l {Customizing a Control}{customizing an existing
+    control}. This is most commonly the case when \l {Creating a Custom
+    Style}{creating a custom style}.
+
+    The QML types can be imported using the following import statement in your
+    \c .qml file:
+
+    \qml
+    import QtQuick.Templates as T
+    \endqml
+
+    There is a one-to-one mapping between the types provided by the \c
+    QtQuick.Templates and \c QtQuick.Controls imports. For every type available
+    in the \c QtQuick.Controls import, a non-visual template type by the same
+    name exists in the \c QtQuick.Templates import.
+
+    \note It is recommended to use a namespace for the templates import to avoid
+    overlap with the types provided by the \c QtQuick.Controls import.
+
+    \section1 QML Types
+
+    \generatelist {qmltypesbymodule QtQuick.Controls}
+
+    \section1 Related Information
+
+    \list
+        \li \l {Qt Quick Controls QML Types}
+        \li \l {Using Qt Quick Controls types in property declarations}
+    \endlist
+
+    \noautolist
+*/

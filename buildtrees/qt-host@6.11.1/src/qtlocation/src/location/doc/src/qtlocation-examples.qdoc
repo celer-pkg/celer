@@ -1,0 +1,19 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \group qtlocation-examples
+    \title Qt Location Examples
+    \brief Examples for the Qt Location module
+    \ingroup qtlocation
+
+    These examples show a range of different uses for \l{Qt Location},
+    such as displaying a map within a QML user interface, implementing basic routing and
+    place search, as well as integrating positioning data types.
+
+    These examples can work with any of the available geo services plugins. However, some plugins may
+    require additional \l {QtLocation::PluginParameter}{plugin parameters} in order to function correctly.
+    The default plugin used by these examples is \l {Qt Location Open Street Map Plugin}, which does not
+    require any parameters.
+*/
+

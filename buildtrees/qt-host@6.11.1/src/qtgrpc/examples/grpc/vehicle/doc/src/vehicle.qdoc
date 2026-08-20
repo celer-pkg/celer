@@ -1,0 +1,60 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example vehicle
+    \ingroup qtgrpc-examples
+    \examplecategory {Networking}
+    \meta tag {network,protobuf,grpc,threading}
+    \title Vehicle
+
+    \brief Manage two threaded connections between a Qt \gRPC client and a C++ \gRPC server.
+
+    The example simulates a vehicle dashboard that displays data sent by a \gRPC server.
+    \image vehicle.webp "Vehicle example dashboard screenshot"
+
+    The example code has the following components:
+    \list
+    \li \c vehicle_client Qt \gRPC client application that uses the
+        \l {qt_add_protobuf}{qt_add_protobuf()} and \l {qt_add_grpc}{qt_add_grpc()} CMake functions
+        for message and service Qt code generation.
+    \li \c vehicle_server application that calls C++ \gRPC plugin for generating server code and
+        implementing simple server logic.
+    \endlist
+
+    \note you need the C++ \gRPC plugin installed.
+    Find details here: \l {Module prerequisites}
+
+    Both components use generated messages from the protobuf schemas described in the files
+    \c {vehicleservice.proto} and \c {navigationservice.proto}.
+
+    Vehicle service:
+    \snippet vehicle/proto/vehicleservice.proto Proto types
+
+    Navigation service:
+    \snippet vehicle/proto/navigationservice.proto Proto types
+
+    The \c VehicleManager \l {Singletons in QML#Defining singletons in C++} {C++ singleton} uses
+    two \l QThread instances to communicate with the server in parallel. The threads have different
+    \gRPC connection types. In this example, there are two types:
+    \list
+        \li Server streaming RPCs
+        For example, the speed stream of the vehicle thread. It uses two callback functions:
+        QGrpcServerStream::messageReceived and QGrpcOperation::finished
+        \snippet vehicle/vehiclethread.cpp Speed stream
+
+        \li Unary RPCs
+        The RPC \c getAutonomy operation is a unary RPC. It returns a single response. It is only
+        connected to the QGrpcOperation::finished signal.
+        \snippet vehicle/vehiclethread.cpp Autonomy call
+    \endlist
+
+    The client main window interface is defined in the Main.qml file. It uses QML \l Connections
+    type in order to connect to the signals of the \c VehicleManager
+    \l {Singletons in QML#Defining singletons in C++} {C++ singleton} to custom slots:
+    \snippet vehicle/Main.qml Connections
+
+    After receiving a response, the client window updates the UI with the received data. This way,
+    messages can be received in different threads and be sent to the client UI in a thread-safe way
+    thanks to the signals.
+*/

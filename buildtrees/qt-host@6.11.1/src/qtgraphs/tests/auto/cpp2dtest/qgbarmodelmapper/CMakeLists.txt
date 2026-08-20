@@ -1,0 +1,10 @@
+qt_internal_add_test(tst_qgbarmodelmapper2d
+    SOURCES
+        tst_barmodelmapper.cpp
+    INCLUDE_DIRECTORIES
+        ../common
+    LIBRARIES
+        Qt::Gui
+        Qt::GuiPrivate
+        Qt::Graphs
+)

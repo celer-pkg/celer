@@ -1,0 +1,50 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example dynamiccreation
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - Dynamic Model Creation Example
+    \examplecategory {3D}
+    \brief Demonstrates dynamic model creation.
+
+    This example demonstrates creating models dynamically in an application. 10 models are created
+    dynamically at the start of the application, and more can be added or removed using the
+    \e {+} and \e {-} buttons.
+    \image dynamiccreation-example.png
+           {42 colorful Qt logo models scattered in dark space demonstrating
+           dynamic object creation}
+
+    \section1 Setting Up
+
+    \section2 Spawner Node
+
+    We are going to need a \l Node to hold the dynamically created models.
+
+    \snippet dynamiccreation/main.qml spawner node
+    \dots
+
+    \section2 Startup
+
+    We're creating 10 models at \c Component.onCompleted so the example shows something at startup.
+
+    \snippet dynamiccreation/main.qml startup
+
+    \section1 Dynamic Models
+
+    \section2 Adding Models
+
+    In order to add a new item to the scene, we first use the \l {Qt::createComponent}{Qt.createComponent}
+    function to create a \l {Component} for our model. Then we use the component's
+    \l {Component::createObject}{createObject} function to instantiate the item, passing in the
+    position and scale as parameters.
+
+    \snippet dynamiccreation/main.qml adding
+
+    \section2 Removing Models
+
+    Dynamically created models are removed simply by popping and destroying them from the instance
+    stack.
+
+    \snippet dynamiccreation/main.qml removing
+*/

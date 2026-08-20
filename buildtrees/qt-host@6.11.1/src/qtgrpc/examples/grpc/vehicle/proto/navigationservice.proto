@@ -1,0 +1,26 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+syntax = "proto3";
+
+package qtgrpc.examples;
+import "google/protobuf/empty.proto";
+
+//! [Proto types]
+enum DirectionEnum {
+    RIGHT = 0;
+    LEFT = 1;
+    STRAIGHT = 2;
+    BACKWARD = 3;
+}
+
+message NavigationMsg {
+    int32 totalDistance = 1;
+    int32 traveledDistance = 2;
+    DirectionEnum direction = 3;
+    string street = 4;
+}
+
+service NavigationService {
+    rpc getNavigationStream(google.protobuf.Empty) returns (stream NavigationMsg) {}
+}
+//! [Proto types]

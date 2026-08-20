@@ -1,0 +1,482 @@
+# Copyright (C) 2025 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+openapi: 3.1.1
+servers:
+  - url: 'http://127.0.0.1:10209/v2'
+info:
+  title: Mediatype Test
+  description: >
+    This specification is intended for testing purposes. It demonstrates a wide range of content types for requestBody. The goal is to verify correct url for each case.
+  version: 1.0.0
+tags:
+  - name: test
+    description: test operations
+
+paths:
+  /reqBody/appjson/string/postApplicationJsonString:
+    post:
+      tags:
+        - test
+      summary: Get request-body, application-json, string
+      operationId: postApplicationJsonString
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: [string, 'null']
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /reqBody/appjson/bool/postApplicationJsonBool:
+    post:
+      tags:
+        - test
+      summary: Post request-body, application-json, boolean
+      operationId: postApplicationJsonBool
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: boolean
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /reqBody/appjson/integer/postApplicationJsonInt:
+    post:
+      tags:
+        - test
+      summary: Post request-body, application-json, integer
+      operationId: postApplicationJsonInt
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: integer
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /reqBody/appjson/array/postApplicationJsonArray:
+    post:
+      tags:
+        - test
+      summary: Put request-body, application-json, array
+      operationId: postApplicationJsonArray
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /reqBody/appjson/object/postApplicationJsonMap:
+    post:
+      tags:
+        - test
+      summary: Post request-body, application-json, map of object
+      operationId: postApplicationJsonMap
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /reqBody/appjson/object/postApplicationJsonObject:
+    post:
+      tags:
+        - test
+      summary: Post request-body, application-json, object
+      operationId: postApplicationJsonObject
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /reqBody/appjson/object/postApplicationJsonSeveralObjects:
+    post:
+      tags:
+        - test
+      summary: Post request-body, application-json, object
+      operationId: postApplicationJsonSeveralObjects
+      requestBody:
+        content:
+          application/json:
+            schema:
+                type: object
+                properties:
+                  uuid: # the unique user id
+                    type: string
+                    format: uuid
+                  user:
+                    type: object
+                    $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /reqBody/appjson/postClosedInlineEmptyJsonObject:
+    post:
+      tags:
+        - test
+      summary: post inline empty Json object, which closed for extending.
+      operationId: postClosedInlineEmptyJsonObject
+      requestBody:
+        content:
+          application/json:
+            schema:
+              # An empty object. Accepts only {}.
+              type: object
+              # 'false' below means the object is 'closed' and may contain only
+              # the properties explicitly listed in properties.
+              # It's pretty useful from security perspective.
+              # See: https://docs.42crunch.com/latest/content/oasv3/datavalidation/schema/v3-schema-response-object-without-properties.htm
+              # In our case no properties: 'Closed empty object'.
+              # Pay attention, from the Qt6 generator perspective, there is no difference
+              # between true or false. We do not generate anything to support 'closing'
+              # of the object. May be we should add it some day, see: QTBUG-143257
+              additionalProperties: false
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /reqBody/appjson/postOpenedInlineEmptyJsonObject:
+    post:
+      tags:
+        - test
+      summary: post inline empty Json object
+      operationId: postOpenedInlineEmptyJsonObject
+      requestBody:
+        content:
+          application/json:
+            schema:
+              # An empty object. Accepts { ... }. Extendable.
+              type: object
+              additionalProperties: true
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+   # basically, it's the same like postOpenedInlineEmptyJsonObject,
+   # but with $ref usage.
+  /reqBody/appjson/postNamedEmptyJsonObject:
+    post:
+      tags:
+        - test
+      summary: post named empty Json object
+      operationId: postNamedEmptyJsonObject
+      requestBody:
+        content:
+          application/json:
+            schema:
+              # A 'named' empty object. Accepts { ... }. Extendable.
+              $ref: '#/components/schemas/EmptyObject'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /reqBody/appjson/postNamedNestedEmptyJsonObject:
+    post:
+      tags:
+        - test
+      operationId: postNamedNestedEmptyJsonObject
+      requestBody:
+        content:
+          application/json:
+            schema:
+              # A nested object.
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/EmptyObject'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /reqBody/appjson/postEmptyJsonSchema:
+    post:
+      tags:
+        - test
+      summary: post Empty Json schema
+      operationId: postEmptyJsonSchema
+      requestBody:
+        content:
+          application/json:
+            # This means 'Any JSON value', not 'an empty object'.
+            # Accepts "hello", 42, [], {}, null.
+            # Note, json schema can not be undefined, but can be null or {}.
+            schema: {}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /reqBody/octetstream/binaryType:
+    post:
+      tags:
+        - test
+      summary: Test body parameter
+      description: Test body parameter
+      operationId: binaryType
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /reqBody/string/postPlainTextType:
+    post:
+      tags:
+        - test
+      summary: Post a simple text, like a user input
+      operationId: postPlainTextType
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              type: string
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /reqBody/urlencoded/postUrlEncodedFields:
+    post:
+      tags:
+        - test
+      summary: post Url Encoded simple key-value pairs
+      operationId: postUrlEncodedFields
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                # default for primitives without a special format is text/plain
+                name:
+                  type: string
+                # default for primitives without a special format is text/plain
+                status:
+                  type: integer
+                # default for primitives without a special format is text/plain
+                availability:
+                  type: boolean
+                # default for array of strings without a special format is text/plain
+                visits:
+                  type: array
+                  items:
+                    type: string
+                # default for a map is `application/json`
+                mapfield:
+                  type: object
+                  additionalProperties:
+                    $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /reqBody/urlencoded/postUrlEncodedNestedObject:
+    post:
+      tags:
+        - test
+      summary: post Url Encoded simple key-value pairs
+      operationId: postUrlEncodedNestedObject
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                # default for object is application/json
+                user:
+                  type: object
+                  $ref: '#/components/schemas/User'
+                # default for primitives without a special format is text/plain
+                comment:
+                  type: string
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /reqBody/urlencoded/postUrlEncodedObject:
+    post:
+      tags:
+        - test
+      summary: post Url Encoded simple key-value pairs
+      operationId: postUrlEncodedObject
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              # default for object is application/json
+              $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /reqBody/multipart/postMultiPartData:
+    post:
+      tags:
+        - test
+      summary: post multi part data
+      operationId: postMultiPartData
+      requestBody:
+        content:
+          # the format is a composition of different formats
+          multipart/form-data:
+            schema:
+              type: object
+              # NOTE the proper way to define required for multipart is use the required list
+              required:
+                - formId
+                - formAddresses
+              properties:
+                formId:
+                  # default for primitives without a special format is text/plain
+                  type: string
+                  format: uuid
+                formIndex:
+                  # default for primitives without a special format is text/plain
+                  type: integer
+                  format: int32
+                formProfileImage:
+                  # default for a string with binary format is `application/octet-stream`
+                  type: string
+                  format: binary
+                formAddresses:
+                  # default for arrays is based on the type in the `items`
+                  # subschema, which is an object, so `application/json`
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/User'
+                formObject:
+                  # default for an object is `application/json`
+                  type: object
+                  properties:
+                    objectId:
+                      type: integer
+                    objectName:
+                      type: string
+                formMap:
+                  # default for a map is `application/json`
+                  type: object
+                  additionalProperties:
+                    $ref: '#/components/schemas/User'
+            encoding:
+              formId:
+                # to test CUSTOM format, it should replace text/plain for formId field.
+                contentType: application/json
+              formMap:
+                contentType: application/json
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+components:
+  schemas:
+    TestObject:
+      properties:
+        status:
+          description: Test status
+          type: string
+        statusSet:
+          description: Test status flag # checking a collision is not happening: bug QTBUG-143168
+          type: boolean
+    EmptyObject:
+      type: object
+    User:
+      properties:
+        name:
+          description: User name
+          type: string
+        status:
+          description: User status
+          type: string
+        age:
+          description: User age
+          type: integer
+          format: int32

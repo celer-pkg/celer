@@ -1,0 +1,99 @@
+[tool.poetry]
+name = "crossbench"
+version = "1.0.5"
+authors = [ "Camillo Bruni <cbruni@chromium.org>" ]
+description = "A cross-browser, cross-system web benchmark runner"
+readme = "README.md"
+license = "BSD-3-Clause"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+]
+
+[tool.poetry.urls]
+"Homepage" = "http://crossben.ch"
+"Bug Tracker" = "http://bugs.crossben.ch"
+"Source" = "http://source.crossben.ch"
+"User Mailing list" = "http://mail.crossben.ch"
+
+[tool.poetry_bumpversion.file."crossbench/__init__.py"]
+
+[tool.poetry.dependencies]
+colorama = "^0.4.6"
+google-auth = "^2.36.0"
+hjson = "^3.1.0"
+immutabledict = "^4.1.0"
+mobly = "^1.12.4"
+numpy = "^1.23.5"
+ordered-set = "^4.1.0"
+pandas = "^2.2.3"
+perfetto = "^0.13.1"
+protobuf = "~5.29.3"
+psutil = "^5.9.1"
+python = ">=3.11,<3.13"
+python-dateutil = "2.9.0"
+pytz = "^2024.1"
+requests = "^2.32.3"
+selenium = "^4.34.0"
+snippet-uiautomator = "^1.1.2"
+tabulate = "^0.8.10"
+websockets = "^11.0.3"
+pygments = "^2.14.0"
+sqlalchemy = "^2.0.38"
+xlsxwriter = "^3.2.2"
+google-cloud-storage = "^3.2.0"
+
+[tool.poetry.scripts]
+crossbench = 'crossbench.scripts:crossbench'
+cb = 'crossbench.scripts:crossbench'
+cb_btp = 'crossbench.scripts:cb_btp'
+cb_validate_hjson= 'crossbench.scripts:cb_validate_hjson'
+
+[tool.poetry.group.dev.dependencies]
+debugpy = "^1.6.3"
+isort = "^5.10.1"
+pyfakefs = "^5.7.3"
+pylint = "^3.0"
+pytest = "^7.4.2"
+pytest-cov = "^4.0.0"
+pytest-xdist = "^3.3.1"
+pytest-subtests = "^0.11.0"
+mypy = "^1.8"
+pytest-profiling = "^1.7.0"
+types-psutil = "^7.0.0.20250601"
+
+[tool.poetry.group.dev-pytype.dependencies]
+python = ">=3.11,<3.12"
+pytype = { version = "^2024.10.11", markers = "sys_platform != 'win32'" }
+
+[build-system]
+requires = ["poetry_core>=1.1.5"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+addopts = "--ignore=tests/cbb -n auto --dist=loadgroup"
+log_cli = 1
+log_cli_level = "DEBUG"
+testpaths = [
+    "tests",
+]
+
+
+[tool.ruff.lint]
+extend-select = ["TCH"]
+ignore = [
+    "TC006", # Allow non-string type in casts
+]
+
+[tool.ruff.lint.flake8-type-checking]
+# Some types need to be runtime evaluated and thus
+# cannot be moved into TYPE_CHECKING blocks.
+runtime-evaluated-base-classes = [
+    "sqlalchemy.orm.DeclarativeBase",
+    "crossbench.results_db.records.base.BaseRecord"
+]
+
+[tool.ruff.lint.isort]
+required-imports = [ "from __future__ import annotations" ]
+

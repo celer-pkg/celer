@@ -1,0 +1,32 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  setup: {
+    template: ../../../common-action-blocks/basic/page-load.hjson
+    args: {
+      READY_STATE: any
+      PAGE_LOAD_TIMEOUT: 2m
+    }
+    unbound_args: [
+      PAGE_URL
+      TARGET
+    ]
+  }
+  actions: {
+    args: {
+      PAGE_SCROLL: ../../../common-action-blocks/power-browsing/page-scroll.hjson
+    }
+    unbound_args: [
+      TAB_INDEX
+      PER_PAGE_DURATION
+    ]
+    template: [
+      {
+        action: switch_tab
+        tab_index: $[TAB_INDEX]
+      }
+      $[...PAGE_SCROLL]
+    ]
+  }
+}

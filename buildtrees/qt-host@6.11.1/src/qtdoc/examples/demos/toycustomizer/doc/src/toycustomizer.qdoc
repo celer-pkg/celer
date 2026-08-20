@@ -1,0 +1,147 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Toy Customizer
+    \ingroup qtquickdemos
+    \example demos/toycustomizer
+    \brief A 3D customization example demonstrating interactive toy selection and real-time
+    appearance adjustments using \l{Qt Quick 3D}.
+    \examplecategory {Application Examples}
+    \examplecategory {3D}
+    \image {toycustomizer.png}
+           {3D view of a customizable toy bear with accessories in the toy customizing step}
+    \meta {tag} {quick, 3d, shadertools, qsb}
+    \meta {docdependencies} {QtQuick3D, QtQuickControls, QtShaderTools}
+
+    \e{Toy Customizer} is an interactive 3D application built with QML that allows users to
+    personalize toy characters by attaching 3D accessories and facial features that are
+    positioned on the toy in real time. It demonstrates how to combine \l{Qt Quick 3D} scenes
+    with standard \l{Qt Quick Controls} for an intuitive user interface.
+
+    \include examples-run.qdocinc
+
+    \section1 Overview
+
+    The example presents a 3D toy model rendered in real time using \l{Qt Quick 3D}.
+    The user interface lets users choose between different toys, attach various 3D
+    accessories and facial items, and adjust the colors of those accessories while
+    viewing the result in the 3D view.
+
+    The layout adapts to both portrait and landscape orientations, and the example can
+    also be run on the WebAssembly (WASM) platform; for more information,
+    see \l{Qt for WebAssembly}.
+
+    The example highlights:
+    \list
+        \li Using \c{PrincipledMaterial} to define physically based materials for the toy models.
+        \li Combining 2D QML controls with a 3D scene.
+        \li Organizing components with reusable QML files for better structure.
+        \li Allowing users to rotate the toy in the 3D preview by dragging on the 3D scene.
+        \li Adding short entrance and dancing animations for the toys on the first page
+            using \l{Timeline} and \l{TimelineAnimation}.
+    \endlist
+
+    \section1 Application structure
+
+    The main QML file, \c Main.qml, defines the main application window and manages
+    navigation between six pages.
+    \list
+    \li First page: toys walk into view and perform short dance animations in sequence.
+    \li Gallery page: a grid of toys is displayed and the user can select one.
+    \li Confirm page: shows more details about the selected toy and asks for confirmation.
+    \li Customize page: the user selects accessories and a name for the toy.
+    \li Order overview page: summarizes the current order before completion.
+    \li Final page: confirms that the order is complete and lets the user start a new order.
+    \endlist
+
+    \section1 Assets
+    The assets are downloaded at build time if they are not already present.
+    After the download completes, the compressed archive is extracted.
+    On subsequent builds, if any of the extracted asset files have changed,
+    the archive is extracted again to ensure that all required assets are available
+    and to avoid runtime failures.
+    If a build fails due to asset issues or an updated asset package, performing
+    a clean build removes both the downloaded archive and the extracted files so
+    the next build can start from a fresh state.
+
+    \note This example downloads some assets from an internet server during
+    the CMake configuration step.
+    \omit
+    The example downloads assets at configure time to keep the Qt repository
+    small and avoid committing large or binary demo assets into the tree.
+    Only a small CMake script and metadata live in the repo; the actual
+    textures/models are fetched on demand so they can be updated or replaced
+    without touching the main source history.
+    \endomit
+
+    \section1 Animations
+    The first page has a \l{View3D}. A \l{Texture} is used as an HDR
+    \l{SceneEnvironment::lightProbe}{light probe} that provides image-based lighting for
+    the 3D toys.
+    There are \l{PerspectiveCamera} and \l{SpotLight} nodes added to frame the animated
+    toys and highlight their walking and dancing motions on the scene.
+
+    \image toycustomizer-animation.webp
+           {Welcome page with animated sheep toy and Tap to Start button}
+
+    There is a \l{Skin} component that drives the character’s skinned mesh, while a parent
+    \l{Node} acts as a wrapper for positioning and transforming the toy character in the scene.
+    The walking and dancing are controlled by a \l{Timeline} that is played by
+    a \l{TimelineAnimation}.
+    The animation data is defined using \l{KeyframeGroup} and \l{Keyframe} elements,
+    or loaded from binary data via \l{KeyframeGroup::keyframeSource}{keyframeSource},
+    which provides the keyframes for the character’s motion.
+
+    The example also uses a shared \l{PrincipledMaterial} to define the physically based look
+    of the animated characters, including \l{PrincipledMaterial::baseColorMap}{base color},
+    \l{PrincipledMaterial::roughness}{roughness}, \l{Material::cullMode}{culling mode},
+    and \l{PrincipledMaterial::alphaMode}{opacity}.
+    The material uses \l{Texture}{texture maps} for the base color and
+    \l{PrincipledMaterial::normalMap}{normal data}, which are provided as URLs from the model
+    and bound to \l Texture objects for loading.
+    \c AnimationModel.qml acts as the data model for the animated toys, storing texture and
+    mesh sources as well as additional metadata such as eye positions and rotations for each toy.
+
+    \section1 Responsive UI
+    The UI is designed to be responsive across different window sizes and
+    \l{Qt::ScreenOrientation}{orientations}. In the toy gallery page (\c ToyGalleryPage.qml),
+    the toy \l{GridView}{grid} automatically adjusts its number of columns according to the
+    available width so that toy cards remain clearly visible and maintain a consistent
+    look and feel in both \c portrait and \c landscape modes.
+
+    On other pages, different layouts are used for \c portrait and \c landscape views:
+    items are arranged side by side in \c landscape, while a single‑column layout is used
+    in \c portrait so that content stacks vertically. \l LayoutItemProxy is used to position
+    items within these layouts without duplicating UI definitions.
+
+    \table
+      \row
+          \li \image toycustomizer-landscape.png
+                     {Customize page in landscape with 3D bear on the left and accessory
+                      panel on the right}
+          \li \image toycustomizer.png
+                     {Customize page in portrait with 3D bear above the accessory panel}
+    \endtable
+
+    Because some design values such as item sizes, margins, and fonts are specified
+    for a different base resolution, the example uses \c ApplicationConfig.qml to scale
+    these values according to the actual screen resolution. This file also centralizes
+    typography settings, font families, and window geometry constants derived from
+    the original design specifications.
+
+    \section1 Interactive 3D View
+    In the customize page (\c ToyCustomizePage.qml), a \l{View3D}{3D view} displays
+    the toy together with any selected accessories. The toy is represented by a root
+    \l Node with separate body parts, each modeled as its own \l Node.
+    The 3D view is interactive through \c OrbitCameraController.qml, which lets the user
+    rotate the toy and inspect the attached accessory \l{Model}{3D models} from different
+    angles, while a \l DragHandler handles the rotation gestures.
+
+    \image toycustomizer-interactive-3d.webp
+           {Toy bear in an interactive 3D preview, rotating to showcase the model from all sides}
+
+    \section1 Source files
+
+    \sa {All Qt Examples}, {Qt Quick Controls Examples}, {Qt Quick 3D Examples and Tutorials}
+*/

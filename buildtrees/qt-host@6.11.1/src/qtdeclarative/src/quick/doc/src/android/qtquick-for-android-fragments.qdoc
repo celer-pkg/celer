@@ -1,0 +1,107 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Android Fragments with Qt Quick for Android
+    \brief Tutorial on using Qt Quick Views in Android Fragments
+    \page qtquick-for-android-fragments.html
+    \ingroup qq4a-extra-topics
+
+    You can have a \l QtQuickView in an Android UI layout by using a ViewGroup-based
+    object. Here we'll use a \l{Android: FrameLayout}{FrameLayout}.
+
+    If you're not familiar with the \l QtQuickView API, read its documentation
+    before continuing with this tutorial.
+
+    Before proceeding, it's worthwhile to explore the Qt Academy course,
+    \l{Qt Academy: Embed 3D in an Android}{Embedding Qt Quick 3D Content in an Android App}.
+
+    To start, create a new project in Android Studio using the
+    \uicontrol{Bottom Navigation Views Activity} template.
+
+    \list 1
+        \li Locate the Fragment or Activity under which you want your QtQuickView
+        to be visible. Here we use \c HomeFragment and \c fragment_home.xml.
+
+        \li In \c fragment_home.xml create a FrameLayout and set its \c id as
+        shown below.
+        \code
+        <FrameLayout
+        android:id="@+id/homeQmlFrame"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent="0.8"/>
+        \endcode
+        Note this id, as it needed to be referred to in \c HomeFragment when
+        binding the layout.
+
+        \li Inside HomeFragment.kt, add an import statement for FrameLayout:
+        \code
+        import android.widget.FrameLayout
+        \endcode
+
+        \li Add your imports for your \l QtQuickView and Screen01 QML type
+        and declare them inside the class:
+
+        \code
+        import org.qtproject.qt.android.QtQuickView
+        import org.qtproject.example.RoboApp.RoboContent.Screen01
+
+        class HomeFragment : Fragment() {
+
+        private var binding: FragmentHomeBinding? = null
+        private lateinit var homeQmlContent: Screen01
+        private lateinit var homeQtQuickView: QtQuickView
+        \endcode
+
+        \li Assign your QtQuickView, giving it the Activity instance
+        using \c requireActivity()
+        \code
+        homeQtQuickView = QtQuickView(requireActivity())
+        homeQmlContent = Screen01()
+        \endcode
+
+        \li Initialize the layout parameters, if you create views
+        programmatically, add views dynamically or change them on runtime.
+        Otherwise you may skip this section and you do not need to use
+        \c params with \c addView().
+        \code
+        val params = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                                              ViewGroup.LayoutParams.MATCH_PARENT)
+        \endcode
+
+        \li Add your view to the layout, either with:
+        \list 1
+            \li Using \l{Android: View binding}{View binding} inside \c onCreateView():
+            First check that view binding is enabled by adding \c buildFeature
+            section into build.gradle.kts android section of your app:
+            \code
+            buildFeatures {
+                viewBinding = true
+            }
+            \endcode
+            Then add the following in \c onCreateView():
+            \code
+            binding = FragmentHomeBinding.inflate( inflater, container, false)
+            homeQtQuickView.loadContent(homeQmlContent)
+
+            val root: View = binding.root
+            binding.homeQmlFrame.addView(homeQtQuickView, params)
+            ...
+            return root
+            \endcode
+            \li Using \c {findViewById()} inside \c onCreate():
+            \code
+            val qtFrame = findViewById(R.id.qtFrame)
+            qmlFrame.addView(m_quickView, params)
+            m_quickView.loadContent(homeQmlContent)
+            \endcode
+            See usage from other
+            \l {Qt Quick for Android Studio Projects}{Qt Quick for Android examples}.
+        \endlist
+    \endlist
+    Your Qt Quick content will now appear in your home fragment.
+*/

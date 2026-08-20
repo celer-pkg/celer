@@ -1,0 +1,2 @@
+\note As of Qt 6.9, this signal is not emitted for right clicks.
+    Use a \l TapHandler parented to the overlay instead.

@@ -1,0 +1,48 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/config/exampleurl-qtserialport.qdocconf)
+
+project                 = QtSerialPort
+description             = Qt Serial Port Reference Documentation
+version                 = $QT_VERSION
+
+qhp.projects            = QtSerialPort
+
+qhp.QtSerialPort.file                = qtserialport.qhp
+qhp.QtSerialPort.namespace           = org.qt-project.qtserialport.$QT_VERSION_TAG
+qhp.QtSerialPort.virtualFolder       = qtserialport
+qhp.QtSerialPort.indexTitle          = Qt Serial Port
+qhp.QtSerialPort.indexRoot           =
+
+qhp.QtSerialPort.subprojects         = classes examples
+
+qhp.QtSerialPort.subprojects.classes.title = C++ Classes
+qhp.QtSerialPort.subprojects.classes.indexTitle = Qt Serial Port C++ Classes
+qhp.QtSerialPort.subprojects.classes.selectors = class fake:headerfile
+qhp.QtSerialPort.subprojects.classes.sortPages = true
+
+qhp.QtSerialPort.subprojects.examples.title = Examples
+qhp.QtSerialPort.subprojects.examples.indexTitle = Qt Serial Port Examples
+qhp.QtSerialPort.subprojects.examples.selectors = fake:example
+qhp.QtSerialPort.subprojects.examples.sortPages = true
+
+headerdirs  += ..
+sourcedirs  += ..
+exampledirs += \
+    ../../../examples/serialport \
+    snippets
+
+excludedirs += snippets
+imagedirs   += images
+
+examplesinstallpath = serialport
+
+# Path to the root of qtserialport (for automatic linking to source code)
+url.sources.rootdir     = ../../..
+
+depends += qtcore qtdoc qtnetwork qmake qtcmake
+
+navigation.landingpage = "Qt Serial Port"
+navigation.cppclassespage = "Qt Serial Port C++ Classes"
+
+# Allow zero warnings when testing documentation in CI
+warninglimit = 0

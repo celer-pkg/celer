@@ -1,0 +1,11 @@
+{
+  pages: {
+    gads: {
+      login: "google",
+      actions: [
+        {action: "get", url: "https://ads.google.com/aw/overview?ocid=6682511966&workspaceId=0&euid=1228603593&__u=4446315457&uscid=6682511966&__c=3494289134&authuser=0 "},
+        {action: "wait", duration: "3s"},
+      ],
+    }
+  },
+}

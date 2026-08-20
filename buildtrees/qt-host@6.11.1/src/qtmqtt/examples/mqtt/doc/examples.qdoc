@@ -1,0 +1,12 @@
+// Copyright (C) 2018 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+
+/*!
+    \group qtmqtt-examples
+    \title Qt MQTT Examples
+    \brief List of Qt MQTT examples
+
+    The Qt MQTT examples demonstrate the functionality provided by the
+    \l{Qt MQTT} module.
+*/

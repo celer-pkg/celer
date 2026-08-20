@@ -1,0 +1,661 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// Copyright (C) 2016 Research In Motion
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+#include "qquickvideooutput_p.h"
+
+#include <private/qvideooutputorientationhandler_p.h>
+#include <private/qvideoframetexturepool_p.h>
+#include <QtMultimedia/qmediaplayer.h>
+#include <QtMultimedia/qmediacapturesession.h>
+#include <private/qfactoryloader_p.h>
+#include <QtCore/qloggingcategory.h>
+#include <QtQuick/QQuickWindow>
+#include <private/qquickwindow_p.h>
+#include <private/qmultimediautils_p.h>
+#include <qsgvideonode_p.h>
+#include <QtCore/qrunnable.h>
+
+QT_BEGIN_NAMESPACE
+
+Q_STATIC_LOGGING_CATEGORY(qLcVideo, "qt.multimedia.video")
+
+namespace {
+
+inline bool qIsDefaultAspect(int o)
+{
+    return (o % 180) == 0;
+}
+
+inline bool qIsDefaultAspect(QtVideo::Rotation rotation)
+{
+    return qIsDefaultAspect(qToUnderlying(rotation));
+}
+}
+
+/*!
+    \qmltype VideoOutput
+    //! \nativetype QQuickVideoOutput
+    \inherits Item
+    \brief Render video or camera viewfinder.
+
+    \ingroup multimedia_qml
+    \ingroup multimedia_video_qml
+    \inqmlmodule QtMultimedia
+
+    \qml
+
+    Rectangle {
+        width: 800
+        height: 600
+        color: "black"
+
+        MediaPlayer {
+            id: player
+            source: "file://video.webm"
+            videoOutput: videoOutput
+        }
+
+        VideoOutput {
+            id: videoOutput
+            anchors.fill: parent
+        }
+    }
+
+    \endqml
+
+    The VideoOutput item supports untransformed, stretched, and uniformly scaled video presentation.
+    For a description of stretched uniformly scaled presentation, see the \l fillMode property
+    description.
+
+    \sa MediaPlayer, Camera
+
+\omit
+    \section1 Screen Saver
+
+    If it is likely that an application will be playing video for an extended
+    period of time without user interaction it may be necessary to disable
+    the platform's screen saver. The \l ScreenSaver (from \l QtSystemInfo)
+    may be used to disable the screensaver in this fashion:
+
+    \qml
+    import QtSystemInfo
+
+    ScreenSaver { screenSaverEnabled: false }
+    \endqml
+\endomit
+*/
+
+// TODO: Restore Qt System Info docs when the module is released
+
+/*!
+    \internal
+    \class QQuickVideoOutput
+    \brief The QQuickVideoOutput class provides a video output item.
+*/
+
+QQuickVideoOutput::QQuickVideoOutput(QQuickItem *parent) :
+    QQuickItem(parent)
+{
+    setFlag(ItemHasContents, true);
+
+    m_sink = new QQuickVideoSink(this);
+    qRegisterMetaType<QVideoFrameFormat>();
+
+    // TODO: investigate if we have any benefit of setting frame in the source thread
+    connect(m_sink, &QVideoSink::videoFrameChanged, this,
+            makeGuardedCall([this](const QVideoFrame &frame) {
+        if (frame.isValid() || m_endOfStreamPolicy == ClearOutput)
+            setFrame(frame);
+    }),
+            Qt::DirectConnection);
+
+    initRhiForSink();
+}
+
+QQuickVideoOutput::~QQuickVideoOutput()
+{
+    {
+        QMutexLocker lock(&m_destructorGuard->m_mutex);
+        m_destructorGuard->m_isAlive = false;
+    }
+
+    delete m_sink;
+    disconnectWindowConnections();
+}
+
+/*!
+    \qmlproperty object QtMultimedia::VideoOutput::videoSink
+
+    This property holds the underlaying C++ QVideoSink object that is used
+    to render the video frames to this VideoOutput element.
+
+    Normal usage of VideoOutput from QML should not require using this property.
+*/
+
+QVideoSink *QQuickVideoOutput::videoSink() const
+{
+    return m_sink;
+}
+
+/*!
+    \qmlproperty enumeration QtMultimedia::VideoOutput::fillMode
+
+    Set this property to define how the video is scaled to fit the target area.
+
+    \list
+    \li Stretch - the video is scaled to fit.
+    \li PreserveAspectFit - the video is scaled uniformly to fit without cropping
+    \li PreserveAspectCrop - the video is scaled uniformly to fill, cropping if necessary
+    \endlist
+
+    The default fill mode is PreserveAspectFit.
+*/
+
+QQuickVideoOutput::FillMode QQuickVideoOutput::fillMode() const
+{
+    return FillMode(m_aspectRatioMode);
+}
+
+void QQuickVideoOutput::setFillMode(FillMode mode)
+{
+    if (mode == fillMode())
+        return;
+
+    m_aspectRatioMode = Qt::AspectRatioMode(mode);
+
+    m_geometryDirty = true;
+    update();
+
+    emit fillModeChanged(mode);
+}
+
+void QQuickVideoOutput::_q_newFrame(QSize size)
+{
+    update();
+
+    size = qRotatedFrameSize(size, m_frameDisplayingRotation);
+
+    if (m_nativeSize != size) {
+        m_nativeSize = size;
+
+        m_geometryDirty = true;
+
+        setImplicitWidth(size.width());
+        setImplicitHeight(size.height());
+
+        emit sourceRectChanged();
+    }
+}
+
+/* Based on fill mode and our size, figure out the source/dest rects */
+void QQuickVideoOutput::_q_updateGeometry()
+{
+    const QRectF rect(0, 0, width(), height());
+    const QRectF absoluteRect(x(), y(), width(), height());
+
+    if (!m_geometryDirty && m_lastRect == absoluteRect)
+        return;
+
+    QRectF oldContentRect(m_contentRect);
+
+    m_geometryDirty = false;
+    m_lastRect = absoluteRect;
+
+    const auto fill = m_aspectRatioMode;
+    if (m_nativeSize.isEmpty()) {
+        //this is necessary for item to receive the
+        //first paint event and configure video surface.
+        m_contentRect = rect;
+    } else if (fill == Qt::IgnoreAspectRatio) {
+        m_contentRect = rect;
+    } else {
+        QSizeF scaled = m_nativeSize;
+        scaled.scale(rect.size(), fill);
+
+        m_contentRect = QRectF(QPointF(), scaled);
+        m_contentRect.moveCenter(rect.center());
+    }
+
+    updateGeometry();
+
+    if (m_contentRect != oldContentRect)
+        emit contentRectChanged();
+}
+
+/*!
+    \qmlproperty int QtMultimedia::VideoOutput::orientation
+
+    This property determines the angle in, degrees, at which the displayed video
+    is rotated clockwise in video coordinates, where the Y-axis points
+    downwards on the display.
+    The orientation transformation is applied before \l mirrored.
+
+    The orientation change affects the mapping of coordinates from the source to the viewport.
+
+    Only multiples of \c 90 degrees are supported, that is 0, 90, -90, 180, 270, etc.,
+    otherwise, the specified value is ignored.
+
+    In some cases, the source video stream requires a certain
+    orientation to be corrected. This includes
+    sources like a camera viewfinder, where the displayed
+    viewfinder should match the reality, no matter what rotation
+    the rest of the user interface has.
+
+    We recommend using this property to compensate a user interface
+    rotation, or align the output view with other application business
+    requirements.
+
+    The default value is \c 0.
+*/
+int QQuickVideoOutput::orientation() const
+{
+    return m_orientation;
+}
+
+void QQuickVideoOutput::setOrientation(int orientation)
+{
+    // Make sure it's a multiple of 90.
+    if (orientation % 90)
+        return;
+
+    // If there's no actual change, return
+    if (m_orientation == orientation)
+        return;
+
+    // If the new orientation is the same effect
+    // as the old one, don't update the video node stuff
+    if (qVideoRotationFromDegrees(orientation - m_orientation) == QtVideo::Rotation::None) {
+        m_orientation = orientation;
+        emit orientationChanged();
+        return;
+    }
+
+    m_geometryDirty = true;
+
+    // Otherwise, a new orientation
+    // See if we need to change aspect ratio orientation too
+    bool oldAspect = qIsDefaultAspect(m_orientation);
+    bool newAspect = qIsDefaultAspect(orientation);
+
+    m_orientation = orientation;
+
+    {
+        QMutexLocker lock(&m_frameMutex);
+        m_frameDisplayingRotation = qNormalizedFrameTransformation(m_frame, m_orientation).rotation;
+    }
+
+    if (oldAspect != newAspect) {
+        m_nativeSize.transpose();
+
+        setImplicitWidth(m_nativeSize.width());
+        setImplicitHeight(m_nativeSize.height());
+
+        // Source rectangle does not change for orientation
+    }
+
+    update();
+    emit orientationChanged();
+}
+
+/*!
+    \qmlproperty bool QtMultimedia::VideoOutput::mirrored
+    \since 6.9
+
+    Determines whether the displayed video is mirrored around its vertical axis.
+    We recommend using this property if the transformation of the source video stream,
+    such as from a front camera, does not align with the application's business logic.
+    The mirroring is applied after \l orientation.
+
+    The property change affects the mapping of coordinates from the source to the viewport.
+
+    The default value is \c false.
+*/
+bool QQuickVideoOutput::mirrored() const
+{
+    return m_mirrored;
+}
+
+void QQuickVideoOutput::setMirrored(bool mirrored)
+{
+    if (m_mirrored == mirrored)
+        return;
+    m_mirrored = mirrored;
+
+    update();
+    emit mirroredChanged();
+}
+
+/*!
+    \qmlproperty rectangle QtMultimedia::VideoOutput::contentRect
+
+    This property holds the item coordinates of the area that
+    would contain video to render.  With certain fill modes,
+    this rectangle will be larger than the visible area of the
+    \c VideoOutput.
+
+    This property is useful when other coordinates are specified
+    in terms of the source dimensions - this applied for relative
+    (normalized) frame coordinates in the range of 0 to 1.0.
+
+    Areas outside this will be transparent.
+*/
+QRectF QQuickVideoOutput::contentRect() const
+{
+    return m_contentRect;
+}
+
+/*!
+    \qmlproperty enumeration QtMultimedia::VideoOutput::endOfStreamPolicy
+    \since 6.9
+
+    This property specifies the policy to apply when the video stream ends. This
+    occurs at the end of media playback or upon deactivation of the camera, screen,
+    or window capture.
+
+    The \c endOfStreamPolicy can be one of:
+
+    \value ClearOutput The video output is cleared.
+    \value KeepLastFrame The video output continues displaying the
+           last frame. Use the method \l clearOutput() to clear the output manually.
+
+    The default value is \c ClearOutput.
+*/
+QQuickVideoOutput::EndOfStreamPolicy QQuickVideoOutput::endOfStreamPolicy() const
+{
+    return m_endOfStreamPolicy;
+}
+
+void QQuickVideoOutput::setEndOfStreamPolicy(EndOfStreamPolicy policy)
+{
+    if (m_endOfStreamPolicy == policy)
+        return;
+
+    m_endOfStreamPolicy = policy;
+    emit endOfStreamPolicyChanged(policy);
+}
+
+/*!
+    \qmlmethod void QtMultimedia::VideoOutput::clearOutput()
+    \since 6.9
+
+    Clears the video output by removing the currently displayed video frame.
+    This method is recommended when you need to remove the last video frame after
+    detaching the video output from the source or after the source stream ends
+    with the video output's \l endOfStreamPolicy property set to \c KeepLastFrame.
+*/
+void QQuickVideoOutput::clearOutput()
+{
+    setFrame({});
+}
+
+/*!
+    \qmlproperty rectangle QtMultimedia::VideoOutput::sourceRect
+
+    This property holds the area of the source video
+    content that is considered for rendering.  The
+    values are in source pixel coordinates, adjusted for
+    the source's pixel aspect ratio.
+
+    Note that typically the top left corner of this rectangle
+    will be \c {0,0} while the width and height will be the
+    width and height of the input content. Only when the video
+    source has a viewport set, these values will differ.
+
+    The orientation setting does not affect this rectangle.
+
+    \sa QVideoFrameFormat::viewport()
+*/
+QRectF QQuickVideoOutput::sourceRect() const
+{
+    // We might have to transpose back
+    QSizeF size = m_nativeSize;
+    if (!size.isValid())
+        return {};
+
+    if (!qIsDefaultAspect(m_frameDisplayingRotation))
+        size.transpose();
+
+
+    // Take the viewport into account for the top left position.
+    // m_nativeSize is already adjusted to the viewport, as it originates
+    // from QVideoFrameFormat::viewport(), which includes pixel aspect ratio
+    const QRectF viewport = adjustedViewport();
+    Q_ASSERT(viewport.size() == size);
+    return QRectF(viewport.topLeft(), size);
+}
+
+void QQuickVideoOutput::geometryChange(const QRectF &newGeometry, const QRectF &oldGeometry)
+{
+    Q_UNUSED(newGeometry);
+    Q_UNUSED(oldGeometry);
+
+    QQuickItem::geometryChange(newGeometry, oldGeometry);
+
+    // Explicitly listen to geometry changes here. This is needed since changing the position does
+    // not trigger a call to updatePaintNode().
+    // We need to react to position changes though, as the window backened's display rect gets
+    // changed in that situation.
+    _q_updateGeometry();
+}
+
+void QQuickVideoOutput::releaseResources()
+{
+    // Called on the gui thread when the window is closed or changed.
+    initRhiForSink();
+    QQuickItem::releaseResources();
+}
+
+void QQuickVideoOutput::initRhiForSink()
+{
+    QRhi *rhi = m_window ? QQuickWindowPrivate::get(m_window)->rhi : nullptr;
+    m_sink->setRhi(rhi);
+}
+
+void QQuickVideoOutput::itemChange(QQuickItem::ItemChange change,
+                                    const QQuickItem::ItemChangeData &changeData)
+{
+    if (change != QQuickItem::ItemSceneChange)
+        return;
+
+    if (changeData.window == m_window)
+        return;
+
+    disconnectWindowConnections();
+    m_window = changeData.window;
+
+    if (m_window) {
+        auto connectToWindow = [&](auto signal, auto function) {
+            connect(m_window, signal, this, makeGuardedCall(std::move(function)),
+                    Qt::DirectConnection);
+        };
+
+        // We want to receive the signals in the render thread
+        connectToWindow(&QQuickWindow::sceneGraphInitialized, [this] {
+            initRhiForSink();
+        });
+
+        connectToWindow(&QQuickWindow::sceneGraphInvalidated, [this] {
+            if (auto texturePool = m_texturePool.lock())
+                texturePool->clearTextures();
+            m_sink->setRhi(nullptr);
+        });
+
+        connectToWindow(&QQuickWindow::afterFrameEnd, [this] {
+            if (auto texturePool = m_texturePool.lock())
+                texturePool->onFrameEndInvoked();
+        });
+    }
+    initRhiForSink();
+}
+
+QSize QQuickVideoOutput::nativeSize() const
+{
+    return m_videoFormat.viewport().size();
+}
+
+void QQuickVideoOutput::updateGeometry()
+{
+    const QRectF viewport = m_videoFormat.viewport();
+    const QSizeF frameSize = m_videoFormat.frameSize();
+    const QRectF normalizedViewport(viewport.x() / frameSize.width(),
+                                    viewport.y() / frameSize.height(),
+                                    viewport.width() / frameSize.width(),
+                                    viewport.height() / frameSize.height());
+    const QRectF rect(0, 0, width(), height());
+    if (nativeSize().isEmpty()) {
+        m_renderedRect = rect;
+        m_sourceTextureRect = normalizedViewport;
+    } else if (m_aspectRatioMode == Qt::IgnoreAspectRatio) {
+        m_renderedRect = rect;
+        m_sourceTextureRect = normalizedViewport;
+    } else if (m_aspectRatioMode == Qt::KeepAspectRatio) {
+        m_sourceTextureRect = normalizedViewport;
+        m_renderedRect = contentRect();
+    } else if (m_aspectRatioMode == Qt::KeepAspectRatioByExpanding) {
+        m_renderedRect = rect;
+        const qreal contentHeight = contentRect().height();
+        const qreal contentWidth = contentRect().width();
+
+        // Calculate the size of the source rectangle without taking the viewport into account
+        const qreal relativeOffsetLeft = -contentRect().left() / contentWidth;
+        const qreal relativeOffsetTop = -contentRect().top() / contentHeight;
+        const qreal relativeWidth = rect.width() / contentWidth;
+        const qreal relativeHeight = rect.height() / contentHeight;
+
+        // Now take the viewport size into account
+        const qreal totalOffsetLeft = normalizedViewport.x() + relativeOffsetLeft * normalizedViewport.width();
+        const qreal totalOffsetTop = normalizedViewport.y() + relativeOffsetTop * normalizedViewport.height();
+        const qreal totalWidth = normalizedViewport.width() * relativeWidth;
+        const qreal totalHeight = normalizedViewport.height() * relativeHeight;
+
+        if (qIsDefaultAspect(m_frameDisplayingRotation)) {
+            m_sourceTextureRect = QRectF(totalOffsetLeft, totalOffsetTop,
+                                         totalWidth, totalHeight);
+        } else {
+            m_sourceTextureRect = QRectF(totalOffsetTop, totalOffsetLeft,
+                                         totalHeight, totalWidth);
+        }
+    }
+}
+
+QSGNode *QQuickVideoOutput::updatePaintNode(QSGNode *oldNode,
+                                             QQuickItem::UpdatePaintNodeData *data)
+{
+    Q_UNUSED(data);
+    _q_updateGeometry();
+
+    QSGVideoNode *videoNode = static_cast<QSGVideoNode *>(oldNode);
+
+    QMutexLocker lock(&m_frameMutex);
+
+    if (m_frameChanged) {
+        if (videoNode && videoNode->pixelFormat() != m_frame.pixelFormat()) {
+            qCDebug(qLcVideo) << "updatePaintNode: deleting old video node because frame format changed";
+            delete videoNode;
+            videoNode = nullptr;
+        }
+
+        if (!m_frame.isValid()) {
+            qCDebug(qLcVideo) << "updatePaintNode: no frames yet";
+            m_frameChanged = false;
+            return nullptr;
+        }
+
+        if (!videoNode) {
+            // Get a node that supports our frame. The surface is irrelevant, our
+            // QSGVideoItemSurface supports (logically) anything.
+            updateGeometry();
+            QRhi *rhi = m_window ? QQuickWindowPrivate::get(m_window)->rhi : nullptr;
+            videoNode = new QSGVideoNode(this, m_videoFormat, rhi);
+            m_texturePool = videoNode->texturePool();
+            qCDebug(qLcVideo) << "updatePaintNode: Video node created. Handle type:" << m_frame.handleType();
+        }
+    }
+
+    if (!videoNode) {
+        m_frameChanged = false;
+        m_frame = QVideoFrame();
+        return nullptr;
+    }
+
+    if (m_frameChanged) {
+        videoNode->setCurrentFrame(m_frame);
+
+        updateHdr(videoNode);
+
+        //don't keep the frame for more than really necessary
+        m_frameChanged = false;
+        m_frame = QVideoFrame();
+    }
+
+    videoNode->setTexturedRectGeometry(
+            m_renderedRect, m_sourceTextureRect,
+            VideoTransformation{ qVideoRotationFromDegrees(orientation()), m_mirrored });
+
+    return videoNode;
+}
+
+void QQuickVideoOutput::updateHdr(QSGVideoNode *videoNode)
+{
+    auto *videoOutputWindow = window();
+    if (!videoOutputWindow)
+        return;
+
+    auto *swapChain = videoOutputWindow->swapChain();
+    if (!swapChain)
+        return;
+
+    const auto requiredSwapChainFormat = qGetRequiredSwapChainFormat(m_frame.surfaceFormat());
+    if (qShouldUpdateSwapChainFormat(swapChain, requiredSwapChainFormat)) {
+        auto *recreateSwapChainJob = QRunnable::create([swapChain, requiredSwapChainFormat]() {
+            swapChain->destroy();
+            swapChain->setFormat(requiredSwapChainFormat);
+            swapChain->createOrResize();
+        });
+
+        // Even though the 'recreate swap chain' job is scheduled for the current frame the
+        // effect will be visible only starting from the next frame since the recreation would
+        // happen after the actual swap.
+        videoOutputWindow->scheduleRenderJob(recreateSwapChainJob, QQuickWindow::AfterSwapStage);
+    }
+
+    videoNode->setSurfaceFormat(swapChain->format());
+    videoNode->setHdrInfo(swapChain->hdrInfo());
+}
+
+void QQuickVideoOutput::disconnectWindowConnections()
+{
+    if (!m_window)
+        return;
+
+    m_window->disconnect(this);
+}
+
+QRectF QQuickVideoOutput::adjustedViewport() const
+{
+    return m_videoFormat.viewport();
+}
+
+void QQuickVideoOutput::setFrame(const QVideoFrame &frame)
+{
+    {
+        QMutexLocker lock(&m_frameMutex);
+
+        m_videoFormat = frame.surfaceFormat();
+        m_frame = frame;
+        m_frameDisplayingRotation = qNormalizedFrameTransformation(frame, m_orientation).rotation;
+        m_frameChanged = true;
+    }
+
+    QMetaObject::invokeMethod(this, &QQuickVideoOutput::_q_newFrame, frame.size());
+}
+
+std::optional<std::chrono::nanoseconds> QQuickVideoOutput::g_signalBackoff;
+void QQuickVideoOutput::setSignalBackoff(std::optional<std::chrono::nanoseconds> ns)
+{
+    g_signalBackoff = ns;
+}
+
+QT_END_NAMESPACE
+
+#include "moc_qquickvideooutput_p.cpp"

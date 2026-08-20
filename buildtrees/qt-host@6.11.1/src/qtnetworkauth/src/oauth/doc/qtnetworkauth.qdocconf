@@ -1,0 +1,53 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/config/exampleurl-qtnetworkauth.qdocconf)
+
+project                 = QtNetworkAuth
+description             = Qt Network Authorization Reference Documentation
+version                 = $QT_VERSION
+buildversion            = Qt Network Authorization | Commercial or GPLv3
+
+qhp.projects            = QtNetworkAuth
+
+qhp.QtNetworkAuth.file         = qtnetworkauth.qhp
+qhp.QtNetworkAuth.namespace           = org.qt-project.qtnetworkauth.$QT_VERSION_TAG
+qhp.QtNetworkAuth.virtualFolder       = qtnetworkauth
+qhp.QtNetworkAuth.indexTitle          = Qt Network Authorization
+qhp.QtNetworkAuth.indexRoot           =
+
+qhp.QtNetworkAuth.subprojects         = manual examples classes
+qhp.QtNetworkAuth.subprojects.manual.title          = Qt Network Authorization
+qhp.QtNetworkAuth.subprojects.manual.indexTitle     = Qt Network Authorization module topics
+qhp.QtNetworkAuth.subprojects.manual.type           = manual
+
+qhp.QtNetworkAuth.subprojects.examples.title        = Examples
+qhp.QtNetworkAuth.subprojects.examples.indexTitle   = Qt Network Authorization Examples
+qhp.QtNetworkAuth.subprojects.examples.selectors    = example
+qhp.QtNetworkAuth.subprojects.examples.sortPages    = true
+
+qhp.QtNetworkAuth.subprojects.classes.title         = C++ Classes
+qhp.QtNetworkAuth.subprojects.classes.indexTitle    = Qt Network Authorization C++ Classes
+qhp.QtNetworkAuth.subprojects.classes.selectors     = class doc:headerfile
+qhp.QtNetworkAuth.subprojects.classes.sortPages     = true
+
+tagfile                 = qtnetworkauth.tags
+
+depends                 += qtcore qtnetwork qtdoc qtcmake qtgui qtwebengine
+
+headerdirs  += ..
+sourcedirs  += ..
+imagedirs  += images
+
+examplesinstallpath     = oauth
+exampledirs += ../../../examples/oauth snippets
+
+#manifestmeta.highlighted.names = "QtNetworkAuth/Twitter Timeline Example"
+
+navigation.landingpage = "Qt Network Authorization"
+navigation.cppclassespage = "Qt Network Authorization C++ Classes"
+
+# Autogenerate navigation linking based on "Qt Network Authorization module topics":
+navigation.toctitles = "Qt Network Authorization module topics"
+navigation.toctitles.inclusive = false
+
+# Enforce zero documentation warnings
+warninglimit = 0

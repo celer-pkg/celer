@@ -1,0 +1,213 @@
+{
+    "QEP": {
+        "QQEM": "0.43",
+        "connections": [
+            {
+                "fromId": 0,
+                "toId": 3
+            },
+            {
+                "fromId": 3,
+                "toId": 1
+            }
+        ],
+        "exportDirectory": ".",
+        "exportFlags": 2,
+        "exportName": "tickershader",
+        "nodes": [
+            {
+                "fragmentCode": [
+                    "void main() {",
+                    "    @nodes",
+                    "    fragColor = fragColor * qt_Opacity;",
+                    "}"
+                ],
+                "name": "Main",
+                "nodeId": 0,
+                "type": 0,
+                "vertexCode": [
+                    "void main() {",
+                    "    texCoord = qt_MultiTexCoord0;",
+                    "    if (origo == 0)",
+                    "        fragCoord = vec2(qt_Vertex.x, iResolution.y - qt_Vertex.y);",
+                    "    else if (origo == 1)",
+                    "        fragCoord = qt_Vertex.xy;",
+                    "    else if (origo == 2)",
+                    "        fragCoord = vec2(iResolution.x - qt_Vertex.x, qt_Vertex.y);",
+                    "    else",
+                    "        fragCoord = vec2(iResolution.x - qt_Vertex.x, iResolution.y - qt_Vertex.y);",
+                    "#if (HORIZONTAL == 1)",
+                    "    fragCoord.x += displacement;",
+                    "#else",
+                    "    fragCoord.y += displacement;",
+                    "#endif",
+                    "    vec2 vertCoord = qt_Vertex.xy;",
+                    "    @nodes",
+                    "    gl_Position = qt_Matrix * vec4(vertCoord, 0.0, 1.0);",
+                    "}"
+                ],
+                "x": 140,
+                "y": 35.400001525878906
+            },
+            {
+                "name": "Output",
+                "nodeId": 1,
+                "type": 1,
+                "x": 140,
+                "y": 592.5999755859375
+            },
+            {
+                "description": "This is an empty node for creating custom effects.",
+                "fragmentCode": [
+                    "float createBars(float coord, float spacing, float strokeWidth) {",
+                    "    float sbar = 1.0 / spacing;// * 0.5;",
+                    "    float barWidth = strokeWidth / spacing;// * 0.5;",
+                    "    float firstPos = -((tickLineWidth / spacing) * 0.5);",
+                    "    float p = firstPos + coord * sbar;",
+                    "    //float p = (coord - 0.5) * sbar;",
+                    "    float bar = abs(2.0 * fract(p) - 1.0);",
+                    "    float barSmoothness = smoothing / spacing;",
+                    "    bar = smoothstep(1.0 - barWidth - barSmoothness, 1.0 - barWidth + barSmoothness, bar);",
+                    "    return bar;",
+                    "}",
+                    "",
+                    "@main",
+                    "{",
+                    "    float subLines = 0.0;",
+                    "    float lines = 0.0;",
+                    "#if (HORIZONTAL == 1)",
+                    "    // sublines",
+                    "    if (subTicksVisible) {",
+                    "        if (flipped && fragCoord.y < iResolution.y * subTickLength)",
+                    "            subLines += createBars(fragCoord.x, spacing * subTickScale, subTickLineWidth);",
+                    "        if (!flipped && fragCoord.y > iResolution.y * (1.0 - subTickLength))",
+                    "            subLines += createBars(fragCoord.x, spacing * subTickScale, subTickLineWidth);",
+                    "    }",
+                    "    // major lines",
+                    "    lines += createBars(fragCoord.x, spacing, tickLineWidth);",
+                    "#else",
+                    "    // sublines",
+                    "    if (subTicksVisible) {",
+                    "        if (flipped && fragCoord.x < iResolution.x * subTickLength)",
+                    "            subLines += createBars(fragCoord.y, spacing * subTickScale, subTickLineWidth);",
+                    "        if (!flipped && fragCoord.x > iResolution.x * (1.0 - subTickLength))",
+                    "            subLines += createBars(fragCoord.y, spacing * subTickScale, subTickLineWidth);",
+                    "    }",
+                    "    // major lines",
+                    "    lines += createBars(fragCoord.y, spacing, tickLineWidth);",
+                    "#endif",
+                    "    // Combine lines, subLines below",
+                    "    vec3 lineColor = vec3(0.0);",
+                    "    float tickColorAlpha = lines * tickColor.a;",
+                    "    float subTickColorAlpha = subLines * subTickColor.a;",
+                    "    lineColor = mix(lineColor, subTickColor.rgb, subTickColorAlpha);",
+                    "    lineColor = mix(lineColor, tickColor.rgb, tickColorAlpha);",
+                    "    fragColor = vec4(lineColor, min(1.0, subTickColorAlpha + tickColorAlpha));",
+                    "}"
+                ],
+                "name": "Grids",
+                "nodeId": 3,
+                "properties": [
+                    {
+                        "defaultValue": "0",
+                        "name": "HORIZONTAL",
+                        "type": "define",
+                        "value": "0"
+                    },
+                    {
+                        "defaultValue": "0",
+                        "maxValue": "3",
+                        "minValue": "0",
+                        "name": "origo",
+                        "type": "int",
+                        "value": "0"
+                    },
+                    {
+                        "defaultValue": "true",
+                        "name": "subTicksVisible",
+                        "type": "bool",
+                        "value": "true"
+                    },
+                    {
+                        "defaultValue": "50",
+                        "maxValue": "100",
+                        "minValue": "10",
+                        "name": "spacing",
+                        "type": "float",
+                        "value": "50"
+                    },
+                    {
+                        "defaultValue": "0.5",
+                        "maxValue": "1",
+                        "minValue": "0.1",
+                        "name": "subTickLength",
+                        "type": "float",
+                        "value": "0.5"
+                    },
+                    {
+                        "defaultValue": "0",
+                        "maxValue": "500",
+                        "minValue": "-500",
+                        "name": "displacement",
+                        "type": "float",
+                        "value": "0"
+                    },
+                    {
+                        "defaultValue": "0.5, 0.5, 0.5, 1",
+                        "name": "subTickColor",
+                        "type": "color",
+                        "value": "0.5, 0.5, 0.5, 1"
+                    },
+                    {
+                        "defaultValue": "1, 1, 1, 1",
+                        "name": "tickColor",
+                        "type": "color",
+                        "value": "1, 1, 1, 1"
+                    },
+                    {
+                        "defaultValue": "1",
+                        "maxValue": "5",
+                        "minValue": "0",
+                        "name": "subTickLineWidth",
+                        "type": "float",
+                        "value": "1"
+                    },
+                    {
+                        "defaultValue": "2",
+                        "maxValue": "5",
+                        "minValue": "0",
+                        "name": "tickLineWidth",
+                        "type": "float",
+                        "value": "2"
+                    },
+                    {
+                        "defaultValue": "1",
+                        "maxValue": "5",
+                        "minValue": "0",
+                        "name": "smoothing",
+                        "type": "float",
+                        "value": "1"
+                    },
+                    {
+                        "defaultValue": "0.2",
+                        "maxValue": "1",
+                        "minValue": "0",
+                        "name": "subTickScale",
+                        "type": "float",
+                        "value": "0.2"
+                    },
+                    {
+                        "defaultValue": "false",
+                        "name": "flipped",
+                        "type": "bool",
+                        "value": "false"
+                    }
+                ],
+                "type": 2,
+                "x": 105,
+                "y": 129.55999755859375
+            }
+        ],
+        "version": 1
+    }
+}

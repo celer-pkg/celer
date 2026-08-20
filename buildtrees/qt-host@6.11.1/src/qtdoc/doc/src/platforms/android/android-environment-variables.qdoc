@@ -1,0 +1,85 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page android-environment-variables.html
+\title Qt for Android Environment Variables
+\brief Lists some useful environment variables used by the Qt For Android toolchain.
+\ingroup android-platform-extra-topics
+
+\section1 Enabling or disabling workarounds
+
+Qt for Android uses some environment variables to enable/disable certain workarounds:
+
+\section2 Commonly used variables
+
+\table 80%
+\header \li Variable \li Description
+\row
+    \li QT_ANDROID_NO_EXIT_CALL
+    \li In some cases, an Android app might not be able to safely clean all
+    threads while calling \c exit() and it might crash. This is because there
+    are C++ threads running and destroying these without joining them terminates
+    an application. These threads cannot be joined because it's not possible
+    to know if they are running. This flag avoids calling \c exit() and lets
+    the Android system handle this, at the cost of not attempting to run
+    global destructors.
+\row
+    \li QT_ANDROID_ENABLE_WORKAROUND_TO_DISABLE_PREDICTIVE_TEXT
+    \li Allows the hiding of predictive text suggestions, mainly from password
+    fields. Certain devices don’t handle this properly. For more information,
+    see \l {Android Platform Notes}{Predictive Text}.
+\row
+    \li QT_ANDROID_ENABLE_RIGHT_MOUSE_FROM_LONG_PRESS
+    \li Interprets a long touch press as a right mouse click event.
+\row
+    \li QT_ANDROID_DISABLE_ACCESSIBILITY
+    \li Disable \l{Assistive Tools}{Accessibility}. This prevents the processing
+    of accessibility events.
+\row
+    \li QT_ANDROID_NO_FULLSCREEN_KEYBOARD
+    \li Do not allow Android to display full-screen IME.
+    \note This variable is valid only for Qt 6.8.8, 6.11.1, 6.12 or newer. For Qt 6.12 and
+    newer it's recommended to use \l {Qt::ImhNoFullscreen} instead.
+\endtable
+
+\section2 Less commonly used variables
+
+\table 80%
+\header \li Variable \li Description
+\row
+    \li QT_ANDROID_FONT_LOCATION
+    \li Sets a custom path for system fonts.
+\row
+    \li QT_ANDROID_MAX_ASSETS_CACHE_SIZE
+    \li Cache size for assets under the assets folder.
+\row
+    \li QT_ANDROID_DISABLE_GLYPH_CACHE_WORKAROUND
+    \li See \l{Text Glyph Caching}{Text Glyph Caching}
+\row
+    \li QT_ANDROID_RASTER_IMAGE_DEPTH
+    \li
+\row
+    \li QT_ANDROID_MINIMUM_MOUSE_DOUBLE_CLICK_DISTANCE
+    \li
+\row
+    \li QT_ANDROID_BACKGROUND_ACTIONS_QUEUE_SIZE
+    \li When an Android app is paused or inactive, it may continue to receive
+    UI updates from components like a BroadcastReceiver or Service. These updates
+    are queued until the app resumes. The queue can grow indefinitely, leading
+    to extra memory usage and latency when processing these updates once the app is
+    active again.
+    This environment variable addresses this issue by introducing a size limit
+    for the queue. Once the specified limit is reached, the oldest entry is
+    discarded to add the newest entry, therefore preventing unbound growth.
+    By default, the queue is unbound and this environment variable is not set.
+    Additionally, if set to any negative number the queue remains unbound.
+
+    For example, QT_ANDROID_BACKGROUND_ACTIONS_QUEUE_SIZE=100 limits the queue
+    to 100 actions.
+\endtable
+
+\note Though related, these are not the same as CMake commands or variables used
+by Qt For Android, see \l{Qt for Android CMake Configuration}
+
+*/

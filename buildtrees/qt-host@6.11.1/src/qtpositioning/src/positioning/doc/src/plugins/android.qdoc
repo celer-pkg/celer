@@ -1,0 +1,99 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+
+\page position-plugin-android.html
+\title Qt Positioning Android plugin
+\ingroup QtPositioning-plugins
+
+\brief Wraps Android positioning subsystem.
+
+\section1 Overview
+
+The Qt Positioning Android plugin wraps native Android APIs and provides
+access to positioning and satellite information.
+
+The plugin can be loaded by using the provider name \b android.
+
+\section1 Parameters
+
+The following table lists parameters that \e can be passed to the Android
+plugin.
+
+\table
+\header
+    \li Parameter
+    \li Description
+\row
+    \li useMslAltitude
+    \li The parameter is introduced in Qt 6.8. It determines if the plugin will
+        try to provide an altitude above Mean Sea Level (MSL). The default value
+        is \c false, which means that it provides the altitude in WGS84 format.
+        This parameter is only relevant for Android 14 and later. See
+        \l {Altitude Conversion} section for more details.
+\endtable
+
+\section2 Altitude conversion
+
+Android traditionally provides altitude above the World Geodetic System 1984
+(WGS84) reference ellipsoid. However, starting from Android 14, a new
+\l {https://developer.android.com/reference/android/location/altitude/AltitudeConverter}
+{AltitudeConverter} class was introduced. This class allows to convert the
+WGS84 altitude into \e {altitude above Mean Sea Level (MSL)} format.
+
+If the \c {useMslAltitude} plugin parameter is set to \c {true}, and the
+application is running on \b {Android 14} or later, the
+\l QGeoCoordinate::altitude component of \l QGeoPositionInfo objects retrieved
+during position updates will contain the MSL altitude.
+
+\note According to the Android
+\l {https://developer.android.com/reference/android/location/altitude/AltitudeConverter#addMslAltitudeToLocation(android.content.Context,%20android.location.Location)}
+{documentation}, the conversion to the MSL altitude \e may take several seconds.
+It means that \l {QGeoPositionInfoSource::}{lastKnownPosition()} requests \e may
+execute longer when this feature is enabled, because the method is synchronous.
+Other position update requests are not affected.
+
+\section1 Examples
+
+The following examples show how to create an \b android \l PositionSource from
+C++ and QML.
+
+\section2 QML
+
+The following snippet creates a \l PositionSource with no parameters. The
+altitude will be reported in WGS84 format.
+
+\qml
+PositionSource {
+    name: "android"
+}
+\endqml
+
+The next snippet explicitly adds the \c {useMslAltitude} \l PluginParameter
+and sets its value to \c true. This \l PositionSource will report the altitude
+in MSL format.
+
+\qml
+PositionSource {
+    name: "android"
+    PluginParameter {
+        name: "useMslAltitude"
+        value: true
+    }
+}
+\endqml
+
+\section2 C++
+
+The following snippet shows how to use C++ to create a
+\l {QGeoPositionInfoSource}{position source} which reports the altitude in MSL
+format.
+
+\code
+QVariantMap params;
+params["useMslAltitude"] = true;
+QGeoPositionInfoSource *positionSource = QGeoPositionInfoSource::createSource("android", params, this);
+\endcode
+
+*/

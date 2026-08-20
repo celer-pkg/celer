@@ -1,0 +1,4 @@
+[gerrit]
+host=codereview.qt-project.org
+project=qt/qtlottie
+defaultbranch=dev

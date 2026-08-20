@@ -1,0 +1,79 @@
+{
+    "QEN": {
+        "description": "Applies a color lookup table for the source item. The format of the LUT image is either 16x16x16x16 square in 256x256 (default) or 64x64x64 square in 512x512. The 256 version is more performant and requires only a single texture lookup.\n\nSeveral built-in LUTs are provided in both formats. To create a custom LUT, use the lut_*_neutral as the base.",
+        "fragmentCode": [
+            "@main",
+            "{",
+            "    const vec4 currentColor = fragColor;",
+            "",
+            "#if COLOR_LUT_256_MODE == 1",
+            "",
+            "    const float lutGreenColor = currentColor.g * 255.0;",
+            "    const float cellCoord = 0.0625;",
+            "    const float lutTexSize = 256.0;",
+            "    const float lutCells = 256.0;",
+            "    const float h1 = 0.5 / lutTexSize;",
+            "    const float h2 = cellCoord - (1.0 / lutTexSize);",
+            "",
+            "    vec2 quad;",
+            "    quad.y = floor(floor(lutGreenColor) * cellCoord) * cellCoord;",
+            "    quad.x = (floor(lutGreenColor) - (quad.y * lutCells)) * cellCoord;",
+            "    const vec2 texPos = vec2(quad.x + h1 + (h2 * currentColor.r),",
+            "        quad.y + h1 + (h2 * currentColor.b));",
+            "",
+            "    vec4 lutColor = texture(colorLUTImage, texPos);",
+            "",
+            "#else",
+            "",
+            "    const float lutBlueColor = currentColor.b * 63.0;",
+            "    const float cellCoord = 0.125;",
+            "    const float lutTexSize = 512.0;",
+            "    const float lutCells = 64.0;",
+            "    const float h1 = 0.5 / lutTexSize;",
+            "    const float h2 = cellCoord - (1.0 / lutTexSize);",
+            "",
+            "    vec2 quad1;",
+            "    quad1.y = floor(floor(lutBlueColor) * cellCoord) * cellCoord;",
+            "    quad1.x = (floor(lutBlueColor) - (quad1.y * lutCells)) * cellCoord;",
+            "    const vec2 texPos = vec2(quad1.x + h1 + (h2 * currentColor.r),",
+            "        quad1.y + h1 + (h2 * currentColor.g));",
+            "    vec4 lutColor = texture(colorLUTImage, texPos);",
+            "",
+            "    vec2 quad2;",
+            "    quad2.y = floor(ceil(lutBlueColor) * cellCoord) * cellCoord;",
+            "    quad2.x = (ceil(lutBlueColor) - (quad2.y * lutCells)) * cellCoord;",
+            "    const vec2 texPos2 = vec2(quad2.x + h1 + (h2 * currentColor.r),",
+            "        quad2.y + h1 + (h2 * currentColor.g));",
+            "    const vec4 lutColor2 = texture(colorLUTImage, texPos2);",
+            "",
+            "    lutColor = mix(lutColor, lutColor2, fract(lutBlueColor));",
+            "",
+            "#endif",
+            "",
+            "    fragColor = mix(fragColor, lutColor * fragColor.a, colorLUTStrength);",
+            "}"
+        ],
+        "name": "ColorLUT",
+        "properties": [
+            {
+                "defaultValue": "1",
+                "description": "Set this 1 to when using the compact 256x256 format LUT textures (lut_256_*) and 0 when using the standard 512x12 onces (lut_512_*).",
+                "name": "COLOR_LUT_256_MODE",
+                "type": "define"
+            },
+            {
+                "defaultValue": "../images/lut_256_bright.png",
+                "name": "colorLUTImage",
+                "type": "image"
+            },
+            {
+                "defaultValue": "1",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "colorLUTStrength",
+                "type": "float"
+            }
+        ],
+        "version": 1
+    }
+}

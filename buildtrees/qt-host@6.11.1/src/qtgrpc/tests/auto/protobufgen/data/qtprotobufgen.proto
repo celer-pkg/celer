@@ -1,0 +1,139 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+syntax = "proto3";
+package qt.protobuf;
+
+enum GlobalEnum {
+    EnumValue1 = 0;
+    ENUMVALUE2 = 1;
+    enumValue3 = 2;
+}
+message EnumTypes {
+    enum NestedEnum {
+        EnumValue1 = 0;
+        ENUMVALUE2 = 1;
+        enumValue3 = 2;
+    }
+    GlobalEnum field1 = 1;
+    NestedEnum field2 = 2;
+    oneof fieldOneOf {
+        GlobalEnum field3 = 3;
+        NestedEnum field4 = 4;
+    }
+}
+message ScalarTypes {
+    int32 field1 = 1;
+    uint32 field2 = 2;
+    sint32 field3 = 3;
+    fixed32 field4 = 4;
+    sfixed32 field5 = 5;
+    int64 field6 = 6;
+    uint64 field7 = 7;
+    sint64 field8 = 8;
+    fixed64 field9 = 9;
+    sfixed64 field10 = 10;
+    float field11 = 11;
+    double field12 = 12;
+    string field13 = 13;
+    bytes field14 = 14;
+}
+message ScalarRepeatedTypes {
+    repeated int32 field1 = 1;
+    repeated uint32 field2 = 2;
+    repeated sint32 field3 = 3;
+    repeated fixed32 field4 = 4;
+    repeated sfixed32 field5 = 5;
+    repeated int64 field6 = 6;
+    repeated uint64 field7 = 7;
+    repeated sint64 field8 = 8;
+    repeated fixed64 field9 = 9;
+    repeated sfixed64 field10 = 10;
+    repeated float field11 = 11;
+    repeated double field12 = 12;
+    repeated string field13 = 13;
+    repeated bytes field14 = 14;
+}
+message ScalarRepeatedNoPackedTypes {
+    repeated int32 field1 = 1 [packed = false];
+    repeated uint32 field2 = 2 [packed = false];
+    repeated sint32 field3 = 3 [packed = false];
+    repeated fixed32 field4 = 4 [packed = false];
+    repeated sfixed32 field5 = 5 [packed = false];
+    repeated int64 field6 = 6 [packed = false];
+    repeated uint64 field7 = 7 [packed = false];
+    repeated sint64 field8 = 8 [packed = false];
+    repeated fixed64 field9 = 9 [packed = false];
+    repeated sfixed64 field10 = 10 [packed = false];
+    repeated float field11 = 11 [packed = false];
+    repeated double field12 = 12 [packed = false];
+    repeated string field13 = 13 [packed = false];
+    repeated bytes field14 = 14 [packed = false];
+    repeated GlobalEnum field15 = 15 [packed = false];
+}
+message ScalarOneOfTypes {
+    oneof fieldOneOf {
+        int32 field1 = 1;
+        uint32 field2 = 2;
+        sint32 field3 = 3;
+        fixed32 field4 = 4;
+        sfixed32 field5 = 5;
+        int64 field6 = 6;
+        uint64 field7 = 7;
+        sint64 field8 = 8;
+        fixed64 field9 = 9;
+        sfixed64 field10 = 10;
+        float field11 = 11;
+        double field12 = 12;
+        string field13 = 13;
+        bytes field14 = 14;
+    }
+}
+message ScalarOptionalTypes {
+    optional int32 field1 = 1;
+    optional uint32 field2 = 2;
+    optional sint32 field3 = 3;
+    optional fixed32 field4 = 4;
+    optional sfixed32 field5 = 5;
+    optional int64 field6 = 6;
+    optional uint64 field7 = 7;
+    optional sint64 field8 = 8;
+    optional fixed64 field9 = 9;
+    optional sfixed64 field10 = 10;
+    optional float field11 = 11;
+    optional double field12 = 12;
+    optional string field13 = 13;
+    optional bytes field14 = 14;
+}
+message MapScalarTypes {
+    map<int32, int64> field1 = 1;
+    map<int64, sint32> field2 = 2;
+    map<sint32, sint64> field3 = 3;
+    map<sint64, uint32> field4 = 4;
+    map<uint32, uint64> field5 = 5;
+    map<uint64, fixed32> field6 = 6;
+    map<fixed32, fixed64> field7 = 7;
+    map<fixed64, sfixed32> field8 = 8;
+    map<sfixed32, sfixed64> field9 = 9;
+    map<sfixed64, string> field10 = 10;
+    map<string, int32> field11 = 11;
+}
+message MessageTypes {
+    ScalarTypes field1 = 1;
+    repeated ScalarTypes field2 = 2;
+    optional ScalarTypes field3 = 3;
+    EnumTypes.NestedEnum field4 = 4;
+    map<int32, ScalarTypes> field5 = 5;
+    oneof fieldOneOf {
+        ScalarTypes field6 = 6;
+        ScalarRepeatedTypes field7 = 7;
+        ScalarOneOfTypes field8 = 8;
+    }
+}
+message MessageNestedTypes {
+    message NestedMessage {
+        int32 field1 = 1;
+        MessageTypes field2 = 2;
+    }
+    NestedMessage field1 = 1;
+}

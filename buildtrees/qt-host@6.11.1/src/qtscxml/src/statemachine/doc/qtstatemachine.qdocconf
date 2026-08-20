@@ -1,0 +1,66 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/config/exampleurl-qtscxml.qdocconf)
+
+project                 = QtStateMachine
+description             = Qt State Machine Reference Documentation
+version                 = $QT_VERSION
+
+imagedirs               = images src/images
+
+# Install path for the examples
+examplesinstallpath     = statemachine
+exampledirs             = ../../../examples/statemachine \
+                          snippets
+
+# Path to the root of qtscxml (for automatic linking to source code)
+url.sources.rootdir     = ../../..
+
+qhp.projects            = QtStateMachine
+
+qhp.QtStateMachine.file                = qtstatemachine.qhp
+qhp.QtStateMachine.namespace           = org.qt-project.qtstatemachine.$QT_VERSION_TAG
+qhp.QtStateMachine.virtualFolder       = qtstatemachine
+qhp.QtStateMachine.indexTitle          = Qt State Machine
+qhp.QtStateMachine.indexRoot           =
+
+qhp.QtStateMachine.subprojects = manual examples classes qmltypes
+
+qhp.QtStateMachine.subprojects.classes.title      = C++ Classes
+qhp.QtStateMachine.subprojects.classes.indexTitle = Qt State Machine C++ Classes
+qhp.QtStateMachine.subprojects.classes.selectors  = class headerfile
+qhp.QtStateMachine.subprojects.classes.sortPages  = true
+
+qhp.QtStateMachine.subprojects.qmltypes.title      = QML Types
+qhp.QtStateMachine.subprojects.qmltypes.indexTitle = Qt State Machine QML Types
+qhp.QtStateMachine.subprojects.qmltypes.selectors  = qmltype
+qhp.QtStateMachine.subprojects.qmltypes.sortPages  = true
+
+qhp.QtStateMachine.subprojects.examples.title = Examples
+qhp.QtStateMachine.subprojects.examples.indexTitle = Qt State Machine Examples
+qhp.QtStateMachine.subprojects.examples.selectors = example
+
+qhp.QtStateMachine.subprojects.manual.title = Qt State Machine
+qhp.QtStateMachine.subprojects.manual.indexTitle = Qt State Machine module topics
+qhp.QtStateMachine.subprojects.manual.type = manual
+
+depends += qtcore qtdoc qmake qtquick qtwidgets qtgui qtqml qtscxml qtcmake
+
+headerdirs = .. \
+             ../gui \
+             ../../statemachineqml
+
+sourcedirs += .. \
+              ../gui \
+              ../../statemachineqml
+
+tagfile = qtstatemachine.tags
+
+navigation.landingpage = "Qt State Machine"
+navigation.cppclassespage = "Qt State Machine C++ Classes"
+navigation.qmltypespage = "Qt State Machine QML Types"
+# Auto-generate navigation linking based on "Qt State Machine module topics":
+navigation.toctitles = "Qt State Machine module topics"
+navigation.toctitles.inclusive = false
+
+# Highlighted examples in Data Processing & IO category
+manifestmeta.highlighted.names = "QtStateMachine/Traffic Light"

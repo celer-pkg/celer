@@ -1,0 +1,656 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page integrity-monolith-project-tutorial.html
+    \title Qt for INTEGRITY - Monolith Project Tutorial
+    \previouspage integrity.html
+    \nextpage integrity-installing-dependencies.html
+
+    The INTEGRITY applications can be monolith application projects,
+    dynamic download application projects, or kernelspace projects. The monolith
+    application is a stand-alone executable that you can run directly on a
+    target device.
+
+    In this tutorial, we build an INTEGRITY monolith project for
+    a Qt application. After following the steps in this
+    tutorial, you will have the Qt for INTEGRITY development environment up and running.
+
+    The tutorial assumes you have the
+    \l {https://www.lantronix.com/products/sa8155p-automotive-development-platform}
+    {Qualcomm Snapdragon 8155P}.
+
+    Tutorial content:
+    \list
+        \li \l {Installing Platform Dependencies}
+        \li \l {Build Qt with Ubuntu host}
+        \li \l {Build Qt with Windows 10 host}
+    \endlist
+*/
+
+/*!
+    \page integrity-installing-dependencies.html
+    \title Installing Platform Dependencies
+    \previouspage integrity-monolith-project-tutorial.html
+    \nextpage integrity-linux-monolith.html
+
+    Before building applications with Qt for INTEGRITY,
+    install the correct build tools and other dependencies required
+    in the 64-bit Linux development host:
+
+    \table 80%
+    \header \li Requirement \li Description
+    \row \li INTEGRITY 19.0.13 installation
+         \li The installation must contain the patches for C++17 support.
+             Contact \l {https://support.ghs.com/contact/request-support/}
+            {Green Hills Software}.
+            \note GHS patches \e 14695, \e 16456, \e 16761, \e 16762 and \e 16917.
+
+    \row \li MULTI IDE and Green Hills Software Compiler (version 2020.1.4 or newer)
+         \li The Green Hills Software development tools. See
+             \l {https://www.ghs.com/products/MULTI_IDE.html} {MULTI IDE}.
+             For licenses, contact \l {https://support.ghs.com/licensing/request-license/}
+            {Green Hills Software}.
+             \note GHS patches \e 16398 and \e 17423.
+
+    \row \li QC BSP [ES7] for GHS Integrity 19.0.13-QC
+         \li The development Qualcomm Board Support Package for Integrity and Snapdragon 8155P Board.
+             Contact \l {https://support.ghs.com/contact/request-support/}
+            {Green Hills Software}.
+
+    \row \li QC [ES7] Customer package
+         \li Additional patches and instructions from Qualcomm.
+             Contact \l {https://www.qualcomm.com/support} {Qualcomm Support}.
+    \row
+        \li CMake 3.18.4 or higher
+        \li CMake build system is now the default one for Qt 6 building.
+            See \l{CMake Documentation}.
+    \row
+        \li Ninja
+        \li Ninja is a build system with a focus on speed. It is used to build Google
+            Chrome, parts of Android, LLVM, and can be used in many other projects due to CMake's Ninja backend.
+            See \l {https://cmake.org/cmake/help/latest/generator/Ninja.html} {Ninja}.
+    \row
+        \li Other extra packages (perl, python, etc) required to be installed Host OS
+        \li See  \l {https://wiki.qt.io/Building_Qt_5_from_Git} {Building Requirements}.
+            \note Perl is not required if you download the Qt sources via
+            your Qt Account.
+    \endtable
+*/
+
+/*!
+    \page integrity-linux-monolith.html
+    \title Build Qt with Ubuntu host
+    \previouspage integrity-installing-dependencies.html
+    \nextpage integrity-win-monolith.html
+
+    For building Qt for INTEGRITY, you first need a host build of Qt. See
+    \l{Cross-compiling Qt} for details.
+
+    The following tutorial content is for building a Qt for \e {INTEGRITY 19.0.13} target on an \e {Ubuntu 20.04 64 host}:
+    \list
+        \li \l {Building Qt for Qualcomm Snapdragon 8155P Board on Ubuntu}
+        \li \l {Building a monolith project}
+        \li \l {Flashing and Running an Image on the 8155P}
+    \endlist
+*/
+
+/*!
+    \page integrity-building-qt-8155p-on-ubuntu.html
+    \title Building Qt for Qualcomm Snapdragon 8155P Board on Ubuntu
+    \previouspage integrity-linux-monolith.html
+    \nextpage integrity-building-monolith.html
+
+    Having Green Hills INTEGRITY and Qualcomm development environments setup is a required before proceeding. See \l {Installing Platform Dependencies}.
+
+    \section1 Creating a set environment shell script
+
+    To set up the development environment for Qt for INTEGRITY, build Qt from the sources for the Qualcomm Snapdragon 8155P board.
+    Before building Qt for INTEGRITY, set up build environment. Here a batch script to automate that, as it needs to be done before each build.
+
+    Create a new shell script \e{setEnvironment.sh}, and save it under
+    your home folder. Add the following export commands to the script:
+
+    \badcode
+        export PATH=$PATH:/work/ghs/sa8155/es7/es7_dev_env/hlos_dev_boot/apps/ghs_apps_proc/comp
+        export INTEGRITY_DIR=/work/ghs/sa8155/es7/es7_dev_env/hlos_dev_boot/apps/ghs_apps_proc/integrity
+        export INTEGRITY_BSP=platform-sa8155
+        export INTEGRITY_BUILD_TARGET=chk
+        export QC_MULTIMEDIA_INC_DIR=/work/ghs/sa8155/es7/es7_dev_env/hlos_dev_boot/apps/ghs_apps_proc/qc_bsp/include/amss/multimedia
+        export GL_INC_DIR=/work/ghs/sa8155/es7/es7_dev_env/hlos_dev_boot/apps/ghs_apps_proc/qc_bsp/AMSS/multimedia/graphics/include/public
+        export GL_LIB_DIR=/work/ghs/sa8155/es7/es7_dev_env/hlos_dev_boot/apps/ghs_apps_proc/qc_bsp/out/rel/libs/base:/work/ghs/sa8155/es7/es7_dev_env/hlos_dev_boot/apps/ghs_apps_proc/qc_bsp/out/rel/libs/multimedia/display:/work/ghs/sa8155/es7/es7_dev_env/hlos_dev_boot/apps/ghs_apps_proc/qc_bsp/out/rel/libs/multimedia/graphics:/work/ghs/sa8155/es7/es7_dev_env/hlos_dev_boot/apps/ghs_apps_proc/qc_bsp/out/rel/libs/platform/:/work/ghs/sa8155/es7/es7_dev_env/hlos_dev_boot/apps/ghs_apps_proc/qc_bsp/AMSS/multimedia/graphics/opengl/esx/build/integrity/prebuilt/
+    \endcode
+
+    These export paths assume you have used the \c /work/ghs/* installation directories
+    while installing the MULTI IDE and INTEGRITY (see \l {Installing Platform Dependencies}). If you have not used the default
+    directories, adjust the export paths accordingly.
+
+    To initialize your build environment, run the following command in a terminal:
+    \badcode
+        source ~/setEnvironment.sh
+    \endcode
+
+    \note Run this command in your terminal every time you build Qt,
+    or use the \c qmake or \c CMake build systems.
+
+    \include qt6GettingSources.qdocinc Getting Qt6 sources
+
+    \section1 Building Qt Desktop for cross-compiling tools usage
+
+    The cross-compiling Qt requires a host build of Qt being available.
+    During the build, tools such as moc, rcc, qmlcachegen, qsb,
+    and others, are invoked from there.
+    For more detailed information please read
+    \l {https://www.qt.io/blog/qt-6-build-system} {Cross-compiling Qt}.
+
+    Run the following commands:
+    \badcode
+        mkdir hostbuild
+        cd hostbuild/
+        ../qt5/configure -nomake tests -nomake examples -release -prefix /work/ghs/hostbuild
+        cmake --build . --parallel 6
+        cmake --install .
+    \endcode
+
+    \include use-ninja-note.qdocinc ninja-note
+
+    \section1 Creating a toolchain file for INTEGRITY
+
+    To cross-compile a project with CMake, one must specify a toolchain file.
+    This CMake-language file sets the right values for the platform name,
+    the compiler/linker used, and a whole bunch of other toolchain-specific things.
+    For Integrity build on Ubuntu create a toolchain.cmake file with content:
+
+    \quotefromfile platforms/cmake/linux/toolchain_integrity.cmake
+
+    \printuntil set(OPENGL_opengl_LIBRARY ${EGL_LIBRARY})
+
+    \section1 Configuring Qt for INTEGRITY
+
+    Configure Qt for the Qualcomm Snapdragon 8155P board using these following commands:
+
+    \badcode
+        cd /work/ghs/targetbuild // Path to Qt installation directory
+        cmake ../qt5/ -DQT_HOST_PATH=/work/ghs/hostbuild/qtbase
+        -DCMAKE_TOOLCHAIN_FILE=/work/ghs/sa8155/es7/es7_dev_env/hlos_dev_boot/apps/ghs_apps_proc/toolchain_integrity.cmake
+        -DQT_QMAKE_TARGET_MKSPEC=devices/integrity-armv8-SA8155P -DBUILD_qtdoc=OFF
+        -DBUILD_qttranslations=OFF -DFEATURE_printdialog=OFF --debug-trycompile -DFEATURE_dbus=OFF
+        -GNinja -DUNIX=ON
+        -DEGL_LIBRARY=/work/ghs/sa8155/es7/es7_dev_env/hlos_dev_boot/libeglmegapack.a
+        -DEGL_INCLUDE_DIR=/work/ghs/sa8155/es7/es7_dev_env/hlos_dev_boot/apps/ghs_apps_proc/qc_bsp/AMSS/multimedia/graphics/include/public
+        -DFEATURE_dnslookup=OFF -DFEATURE_glib=OFF -DFEATURE_libudev=OFF -DFEATURE_system_pcre2=OFF -DFEATURE_sql_mysql=OFF
+        -DCMAKE_INSTALL_PREFIX=/work/ghs/targetbuild
+    \endcode
+
+    \note INTEGRITY supports only static Qt builds.
+    \note \c QT_HOST_PATH variable introduced in Qt 6.
+          When cross-compiling, this must be set to the install location of Qt for the host platform.
+          It is used to locate tools to be run on the host (moc, rcc, androiddeployqt, and so on).
+
+    \section1 Building Qt for INTEGRITY
+
+    Build Qt by calling \c cmake in the terminal. You can run \c cmake with as
+    many cores on your host machine as you desire. In our example we use six cores:
+
+    \badcode
+        cmake --build . --parallel 6
+    \endcode
+
+    \target installing-qt-for-sa8155
+    \section1 Installing Qt
+
+    If you have not used the configure option \c {-prefix $PWD/qtbase} in \l {Configuring Qt},
+    run the following commands in a terminal:
+
+    \badcode
+        cd <Qt installation directory>
+        cmake --install .
+    \endcode
+
+    If you have used the configure option \c {-prefix $PWD/qtbase},
+    you can use Qt from the build directory, without running the
+    \c {cmake install} command.
+
+    Qt is now configured and built for the sa8155 board.
+*/
+
+/*!
+    \page integrity-building-monolith.html
+    \title Building a monolith project
+    \previouspage integrity-building-qt-8155p-on-ubuntu.html
+    \nextpage integrity-flash-image-and-run.html
+
+    This tutorial will guide you through building a monolith INTEGRITY project for a Qt example
+    application. You can select any Qt example application that uses the
+    \l {Qt for INTEGRITY#Supported Qt Modules}{Supported Qt modules}.
+
+    Before building the monolith INTEGRITY project, prepare your build environment
+    by running the \c setEnvironment.sh script. For more information about the script, see
+    \l {Creating a set environment shell script}.
+
+    \badcode
+        source ~/setEnvironment.sh
+    \endcode
+
+    \section1 Building the Qt application
+    \list
+        \li \c CMake tool
+
+            To build the application against Qt6 using CMake, run the following commands in a terminal:
+
+            \badcode
+                <Qt installation path>/bin/qt-cmake <Qt example application path>/CMakeLists.txt
+                cmake --build .
+            \endcode
+
+            Where, \c qt-cmake is the wrapper script that calls CMake to configure your project with appropriate include paths.
+        \li \c qmake tool
+
+            To build the application against Qt6 using qmake, run the following commands in a terminal:
+
+            \badcode
+                <Qt installation path>/bin/qmake <Qt example application path>/application.pro
+                make
+            \endcode
+    \endlist
+
+    \section1 Building a monolith project
+
+    The board support package (BSP) for the Qualcomm Snapdragon 8155P board provides
+    a build script to create a set of images for board partitions:
+    \badcode
+        /work/ghs/sa8155/es7/es7_dev_env/hlos_dev_boot/apps/ghs_apps_proc/build_ghs.sh
+    \endcode
+
+    Add a Qt application to a build by adding it into the \e {monolith-service.int} file:
+
+    \list
+        \li Start MULTI Launcher.
+        \li Select \uicontrol {Components} > \uicontrol {Open Project Manager}.
+        \li Select the project file \e {default.gpj}
+            under the \e {/work/ghs/sa8155/es7/es7_dev_env/hlos_dev_boot/apps/ghs_apps_proc/qc_bsp} directory:
+            \image open-project.png "Select a project."
+                   MULTI application shows a window with a list of project files from the chosen folder.
+        \li Select \uicontrol {Open}.
+    \endlist
+
+    In the MULTI Project Manager view, you should see a tree structure of the opened
+    project.
+
+    Go through the \c default.gpj sub projects:
+    \list
+        \li Select \e {target.auto} \e {vmm-adp-no-gvm-sa8155.gpj} > \e {vvm-adp-gvm-ref.gpj} > \e {monolith-service.gpj}.
+            You can observe the project structure and edit a project's files.
+
+        \li Select \e {monolith-service.int}
+            \image project-structure.png "Project tree."
+                   Selected \e {monolith-service.int} file is highlighted in the project tree.
+
+        \li Right-click on the file, then select \uicontrol {Edit} from the context menu.
+        \li Add the following lines at the end of the file.
+            \badcode
+                AddressSpace
+                Name    myappname
+                Filename    /path/to/your/app/executable
+                MemoryPoolSize 0x2700000
+                Language    C++
+                HeapSize    0x90000
+
+                Task Initial
+                StackSize    0x80000
+                StartIt    false
+                EndTask
+                Extendedmemorypoolsize 0x300000
+                EndAddressSpace
+            \endcode
+            \note Replace </path/to/your/app/executable> with a path to your application executable.
+
+        \li Run the build script.
+            \badcode
+                bash /work/ghs/sa8155/es7/es7_dev_env/hlos_dev_boot/apps/ghs_apps_proc/build_ghs.sh
+            \endcode
+    \endlist
+
+    Your monolith project is now ready to be flashed on to the board.
+*/
+
+/*!
+    \page integrity-flash-image-and-run.html
+    \title Flashing and Running an Image on the 8155P
+    \previouspage integrity-building-monolith.html
+    \nextpage integrity-monolith-project-tutorial.html
+
+    \section1 Qualcomm Snapdragon 8155P Board
+        This is a top view of the Qualcomm Snapdragon 8155P board.
+    \image sa8155p.png "Top view of the Qualcomm Snapdragon 8155P board."
+
+    \section1 Set up the wiring
+        Several cables between the PC and the board are needed for flashing and debugging applications on the board:
+
+        \list
+            \li Power connector
+            \li Micro USB is the FT serial console output
+            \li Normal USB is the QFIL/Fastboot port (USB-A - USB A/USB C cable)
+            \li DisplayPort cable is for Graphical output
+            \li Ethernet port, for loading an application dynamically.
+        \endlist
+        \image wiring1.png "Front view of the Qualcomm Snapdragon 8155P board."
+        \caption This is a wiring configuration example: power is ON,
+                 male USB-A is connected for flashing images,
+                 DisplayPort cable is connected for Graphical output.
+        \image wiring2.png "Side view of the Qualcomm Snapdragon 8155P board."
+        \caption Micro USB is connected for using the FT serial console.
+
+    \section1 Switch to Fastboot Mode
+        To flash images on Qualcomm Snapdragon 8155P board install
+        Fastboot Tool on Host OS.
+        See, \l {https://developer.android.com/studio/releases/platform-tools} {Fastboot Tool}
+
+        Before flashing switch the board to the Fastboot Mode:
+        \list
+            \li Open serial connection with the board:
+                \badcode
+                    putty /dev/ttyUSB0 -serial -sercfg 115200,8,1
+                \endcode
+            \li There are 2 options:
+
+                - On the device, hold the volume key and power cycle the device.
+
+                - Or press down arrow on the UART shell and power cycle the device.
+
+            \li If the board switches to Fastboot Mode successfully,
+                it prints following console output:
+                \image fastboot-mode.png "Fastboot terminal."
+
+                Another way to check the board is in Fastboot Mode is to run the command:
+                \badcode
+                    fastboot devices
+                \endcode
+
+        \endlist
+
+    \section1 Flash images
+        The build script produces set of images for board partitions.
+        \badcode
+            boot.img, perf_dyn.img, misc_dyn.img, abl.elf, etc
+        \endcode
+
+        After switching to Fastboot Mode images can be flashed to the board.
+
+        \list
+        \li When setting up for the first time, follow the images flashing procedure from GHS
+            \e ES7_FinalCopy/ES7_customer_package_readme.docx:
+
+            \badcode
+                cd /work/ghs/sa8155/es7/es7_dev_env/hlos_dev_boot/apps/ghs_apps_proc/qc_bsp/out/chk/bin/target
+                fastboot flash abl  abl.elf
+                fastboot flash boot vmm-adp-gvm-sa8155/boot.img
+                fastboot flash perf_dyn_a vmm-adp-gvm-sa8155/perf_dyn.img
+                fastboot flash misc_dyn_a  vmm-adp-gvm-sa8155/misc_dyn.img
+
+                cd /work/ghs/sa8155/es7/es7_dev_env/ES7_FinalCopy/Images/sa8155_hyp
+                fastboot flash hyp_a hyp.mbn
+                fastboot flash tz tz.mbn
+                fastboot flash apdp apdp.mbn
+
+                cd /work/ghs/sa8155/es7/es7_dev_env/hlos_dev_boot/apps/ghs_apps_proc/qc_bsp/out/chk/bin/target/fs
+                fastboot flash gh_sys sys.img
+                fastboot flash gh_persist ghs_persist.img
+                fastboot flash gh_test ghs_test.img.sparse
+
+                cd /work/ghs/sa8155/es7/es7_dev_env/hlos_dev_boot/apps/ghs_apps_proc/qc_bsp/prebuilt_NHLOS/adsp/asic_8150
+                fastboot flash adsp adsp.img
+
+                cd /work/ghs/sa8155/es7/es7_dev_env/hlos_dev_boot/lagvm/LINUX/android/out/target/product/msmnile_gvmgh
+                fastboot flash vendor vendor.img
+            \endcode
+            \note \e ES7_FinalCopy/ES7_customer_package_readme.docx is a part of QC [ES7] Customer package.
+                  Contact \l {https://www.qualcomm.com/support} {Qualcomm Support} for more information.
+
+        \li If this is not the first time flashing, then the monolith part should be flashed:
+            \badcode
+                cd /work/ghs/sa8155/es7/es7_dev_env/hlos_dev_boot/apps/ghs_apps_proc/qc_bsp/out/chk/bin/target
+                fastboot flash boot vmm-adp-gvm-sa8155/boot.img
+            \endcode
+        \li Restart the board.
+        \endlist
+
+    \section1 Run Qt application on the board
+        \list
+            \li Open serial console:
+                \badcode
+                     putty /dev/ttyUSB0 -serial -sercfg 115200,8,1
+                \endcode
+            \li Execute the command:
+                \badcode
+                    rt <application name> Initial
+                \endcode
+            \li Run Qt application example:
+                \image qml-application.png "QML application"
+                       Qt application is running on Qualcomm Snapdragon 8155P Board and displayed on the connected screen.
+        \endlist
+*/
+
+/*!
+    \page integrity-win-monolith.html
+    \title Build Qt with Windows 10 host
+    \previouspage integrity-linux-monolith.html
+    \nextpage integrity-monolith-project-tutorial.html
+
+    For building Qt for INTEGRITY, you first need a host build of Qt. See
+    \l{Cross-compiling Qt} for details.
+
+    The following tutorial content is for building a Qt for \e {INTEGRITY 19.0.13} target on a \e {Windows 10 64 host}:
+    \list
+        \li \l {Building Qt for Qualcomm Snapdragon 8155P Board on Windows 10}
+        \li \l {Building and flashing a Dynamic Download Project}
+    \endlist
+*/
+
+/*!
+    \page integrity-building-qt-8155p-on-windows.html
+    \title Building Qt for Qualcomm Snapdragon 8155P Board on Windows 10
+    \previouspage integrity-win-monolith.html
+    \nextpage integrity-building-and-flashing-dd-project.html
+
+    Having Green Hills INTEGRITY and Qualcomm development environments setup is a required before proceeding. See \l {Installing Platform Dependencies}.
+
+    \section1 Creating a batch script for Windows 10
+
+    To set up the development environment for Qt for INTEGRITY, build Qt from the sources for the Qualcomm Snapdragon 8155P board.
+    Before building Qt for INTEGRITY, set up build environment. Here a batch script to automate that, as it needs to be done before each build.
+
+    For Windows 10 create a new batch script \e{setEnvironment.bat}, and save it under
+    your home folder. Add the following export variables to the script:
+    \badcode
+        @echo off
+        set PATH=%PATH%;C:\ghs\comp_202014
+        set INTEGRITY_DIR=C:\Users\user\ghs_pack\es7_dev_env\hlos_dev_boot\apps\ghs_apps_proc\integrity
+        set INTEGRITY_BSP=platform-sa8155
+        set INTEGRITY_BUILD_TARGET=chk
+        set QC_MULTIMEDIA_INC_DIR=C:\Users\user\ghs_pack\es7_dev_env\hlos_dev_boot\apps\ghs_apps_proc\qc_bsp\include\amss\multimedia
+        set GL_INC_DIR=C:\Users\user\ghs_pack\es7_dev_env\hlos_dev_boot\apps\ghs_apps_proc\qc_bsp\AMSS\multimedia\graphics\include\public
+        set GL_LIB_DIR=C:\Users\user\ghs_pack\es7_dev_env\hlos_dev_boot\apps\ghs_apps_proc\qc_bsp\out\rel\libs\base;C:\Users\user\ghs_pack\es7_dev_env\hlos_dev_boot\apps\ghs_apps_proc\qc_bsp\out\rel\libs\multimedia\display;C:\Users\user\ghs_pack\es7_dev_env\hlos_dev_boot\apps\ghs_apps_proc\qc_bsp\out\rel\libs\multimedia\graphics;C:\Users\user\ghs_pack\es7_dev_env\hlos_dev_boot\apps\ghs_apps_proc\qc_bsp\out\rel\libs\platform\;C:\Users\user\ghs_pack\es7_dev_env\hlos_dev_boot\apps\ghs_apps_proc\qc_bsp\AMSS\multimedia\graphics\opengl\esx\build\integrity\prebuilt\
+        set TARGET_ROOT_PATH="C:\Users\user\ghs_pack\es7_dev_env\hlos_dev_boot"
+    \endcode
+
+    These export paths assume you have used the \c {C:\ghs\comp_202014 and C:\Users\user\ghs_pack\*} installation directories
+    while installing the MULTI IDE and INTEGRITY (see \l {Installing Platform Dependencies}). If you have not used the default
+    directories, adjust the export paths accordingly.
+
+    To initialize your build environment, run the following command in a Windows CMD terminal:
+
+    \badcode
+        setEnvironment.bat
+    \endcode
+
+    \note Run this command in the Windows CMD terminal every time you build Qt,
+    or use the \c qmake or \c CMake build systems.
+
+    \include qt6GettingSources.qdocinc Getting Qt6 sources
+
+    \section1 Building Qt Desktop for cross-compiling tools usage
+
+    The cross-compiling Qt requires a host build of Qt being available.
+    During the build, tools such as moc, rcc, qmlcachegen, qsb,
+    and others, are invoked from there.
+    For more detailed information please read
+    \l {https://www.qt.io/blog/qt-6-build-system} {Cross-compiling Qt}.
+
+    Run the following commands for Windows 10 Host build:
+    \badcode
+        mkdir hostbuild
+        cd hostbuild/
+        C:/Users/user/qt5/configure -nomake tests -nomake examples -release -prefix C:/Users/user/hostbuild
+        cmake --build . --parallel 6
+        cmake --install .
+    \endcode
+
+    \section1 Creating a toolchain file for INTEGRITY
+
+    To cross-compile a project with CMake, one must specify a toolchain file.
+    This CMake-language file sets the right values for the platform name,
+    the compiler/linker used, and a whole bunch of other toolchain-specific things.
+    For Integrity build on Windows 10 create a toolchain.cmake file with following content:
+
+    \quotefromfile platforms/cmake/win/toolchain_integrity.cmake
+
+    \printuntil set(CMAKE_C_LINK_EXECUTABLE   "${CMAKE_CXX_COMPILER} ${CMAKE_C_FLAGS} <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
+
+    \section1 Configuring Qt for INTEGRITY
+
+    Configure Qt for the Qualcomm Snapdragon 8155P board using these following commands:
+    \c {Windows 10 HOST} requires follow configure line:
+        \badcode
+            mkdir targetbuild
+            cd targetbuild/
+            cmake C:/Users/user/qt5/ -DQT_HOST_PATH=/c/Users/user/hostbuild/qtbase
+            -DCMAKE_TOOLCHAIN_FILE=/c/Users/user/ghs_pack/es7_dev_env/hlos_dev_boot/toolchain_integrity.cmake
+            -DQT_QMAKE_TARGET_MKSPEC=devices/integrity-armv8-SA8155P
+            -DBUILD_qtdoc=OFF -DBUILD_qttranslations=OFF -DFEATURE_printdialog=OFF --debug-trycompile -DFEATURE_dbus=OFF
+            -DFEATURE_dnslookup=OFF -DFEATURE_glib=OFF -DFEATURE_system_pcre2=OFF -DFEATURE_sql_mysql=OFF
+            -DQT_FEATURE_harfbuzz=OFF -DFEATURE_pkg_config=OFF -DUNIX=ON -DCMAKE_HOST_WIN32=ON -GNinja -DCMAKE_INSTALL_PREFIX=/c/Users/user/targetbuild/
+        \endcode
+
+    \note INTEGRITY supports only static Qt builds.
+    \note \c QT_HOST_PATH variable introduced in Qt 6.
+          When cross-compiling, this must be set to the install location of Qt for the host platform.
+          It is used to locate tools to be run on the host (moc, rcc, androiddeployqt, and so on).
+
+    \section1 Building Qt for INTEGRITY
+
+    Build Qt by calling \c cmake in the terminal. You can run \c cmake with as
+    many cores on your host machine as you desire. In our example we use six cores:
+
+    \badcode
+        cmake --build . --parallel 6
+    \endcode
+
+    \target installing-qt-for-sa8155
+    \section1 Installing Qt
+
+    If you have not used the configure option \c {-prefix $PWD/qtbase} in \l {Configuring Qt},
+    run the following commands in a terminal:
+
+    \badcode
+        cd <Qt installation directory>
+        cmake --install .
+    \endcode
+
+    If you have used the configure option \c {-prefix $PWD/qtbase},
+    you can use Qt from the build directory, without running the
+    \c {cmake install} command.
+
+    Qt is now configured and built for the sa8155 board.
+*/
+
+/*!
+    \page integrity-building-and-flashing-dd-project.html
+    \title Building and flashing a Dynamic Download Project
+    \previouspage integrity-building-qt-8155p-on-windows.html
+    \nextpage integrity-win-monolith.html
+
+    This tutorial will guide you through building an INTEGRITY project for a Qt example
+    application on a Windows 10 host. You can select any Qt example application that uses the
+    \l {Qt for INTEGRITY#Supported Qt Modules}{Supported Qt modules}.
+
+    \section1 Preparing the Qt application build environment
+
+    Before building the INTEGRITY project, you need to prepare your build environment.
+    Run the \c setEnvironment.bat script from the Windows CMD terminal. For more information about the script, see
+    \l {Creating a batch script for Windows 10}.
+
+    \badcode
+        setEnvironment.bat
+    \endcode
+
+    \section1 Building the Qt application example
+        To build Qt 6 application using CMake, run the following commands in the Windows CMD terminal:
+
+        \badcode
+            "Qt installation path>\bin\qt-cmake.bat" CMakeLists.txt -GNinja
+            -DCMAKE_PREFIX_PATH="C:\Users\user\targetbuild"
+            -DQt6_DIR="C:\Users\user\targetbuild\lib\cmake\Qt6"
+            -DQt6Core_DIR="C:\Users\user\targetbuild\lib\cmake\Qt6Core"
+            -DQt6Gui_DIR="C:\Users\user\targetbuild\lib\cmake\Qt6Gui"
+
+             cmake --build .
+        \endcode
+
+        Where, \c qt-cmake is the wrapper script that calls CMake to configure your project with appropriate include paths.
+
+    \section1 Creating a Dynamic Download Project in MULTI
+        \list
+            \li Start MULTI Launcher and select \uicontrol {File} > \uicontrol {Create workspace}.
+            \li In the creation window mode select \uicontrol {New Project} and click \uicontrol {OK}.
+            \li In the dialog \uicontrol {Project Wizard}, select a path where the new project is to be created e.g. \e C:\\Users\\user\\Documents\\My \e Projects\\Project1\\default.gpj and click \uicontrol {Next}.
+            \li Select \e INTEGRITY in \uicontrol {Operating System} dialog and click \uicontrol {Next}.
+                \image integrity-os.png "Project creation window dialog."
+            \li Select \uicontrol {Finish}.
+                \image sa8155-target.png "Qualcom board creation window dialog."
+            \li Select \uicontrol {Create New} > \uicontrol {Dynamic Download} > \uicontrol {Next}.
+            \li Select \uicontrol {Settings For Dynamic Download} > \uicontrol {Finish}.
+                \image dynamic-pro.png "Project tree view."
+        \endlist
+
+    \section1 Building a Dynamic Download Project
+        \list
+            \li Edit and save \e myproject.int file in the project tree:
+                \badcode
+                    AddressSpace
+                      Name qtapp
+                      Filename C:\path\to\your\qt\app\binary
+                      MemoryPoolSize 0x2700000
+                      Language C++
+                      HeapSize 0x90000
+                      Task Initial
+                        StackSize 0x90000
+                        StartIt false
+                      EndTask
+                      Extendedmemorypoolsize 0x300000
+                    EndAddressSpace
+                \endcode
+            \li Create a new file called \e 'multi_commands' and add the following commands to it:
+                \badcode
+                    switch -component "debugger.task.qtapp.Initial"
+                    route "debugger.task.qtapp.Initial" { __ntwcommand prepare_target }
+                    wait -load
+                    switch -component "debugger.task.qtapp.Initial"
+                    route "debugger.task.qtapp.Initial" { __ntwcommand resume }
+                    wait -time 240000 -stop
+                    switch -component "debugger.task.qtapp.Initial"
+                    unload myproject
+                    wait -time 8000 -stop
+                    savedebugpane cmd "autotestresult.txt"
+                    quitall
+                \endcode
+            \li Run building and loading commands from the Windows CMD terminal:
+                \badcode
+                    multi.exe "C:\Users\user\Documents\My Projects\Project1\default.gpj" -build myproject &
+                    multi.exe "C:\Users\user\Documents\My Projects\Project1\dbg\bin\myproject" -connect="rtserv2 192.168.1.1" -p C:\Users\user\multi_commands &
+                \endcode
+                \image dynamic-loaded-pro.png "MULTI IDE binary load window."
+                \note \e {"rtserv2 192.168.1.1"} is a board IP address. Check \l {Set up the wiring} to set up the board network.
+                \note It takes several minutes to deploy by Dynamic Download.
+        \endlist
+*/

@@ -1,0 +1,1460 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\qmlmodule QtQuick
+\title Qt Quick QML Types
+\ingroup qmlmodules
+\brief Provides graphical QML types.
+
+The \l{Qt Quick} module provides graphical primitive types. These types are only
+available in a QML document if that document imports the \c QtQuick namespace.
+
+To use the module, import the \c QtQuick module with the following statement:
+
+\qml
+import QtQuick
+\endqml
+
+Visit the \l {Qt Quick} module documentation for more
+information about the concepts that are central to \c QtQuick.
+
+\section1 Submodules
+
+    Qt Quick includes several submodules that contain additional types:
+
+    \list
+    \li \l{Qt Quick Local Storage QML Types}{Local Storage} - a submodule
+    containing a JavaScript interface for an SQLite database
+    \li \l{Qt Quick Particles QML Types}{Particles} - provides a particle
+    system for QML applications
+    \li \l{Qt Quick Controls QML Types}{Controls} - provides a set of reusable
+    UI components
+    \li \l{Qt Quick Layouts QML Types}{Layouts} - contains types that are used
+    to arrange items in the user interface
+    \li \l{Qt Quick Test QML Types}{Tests} - types for testing QML applications.
+    \li \l{Qt Quick Effects QML Types}{Effects} - provides types for applying
+    one or more simple graphical effects to Qt Quick items.
+    \li \l{Qt Quick Shapes QML Types}{Shapes} - provides types for rendering vector shapes in
+    a Qt Quick scene.
+    \li \l{Qt Quick Vector Image QML Types}{Vector Image} - provides types for displaying vector
+    image files.
+    \endlist
+
+\target value-types
+\section1 Value Types
+
+There are a number of value types that are
+\l{qtqml-typesystem-valuetypes.html#value-types-provided-by-the-qml-language}
+{supported by default in the QML language}.
+
+In addition, the \c QtQuick import provides the following value types:
+\annotatedlist qtquickvaluetypes
+
+\section1 Object Types
+
+Most object types provided by the \c QtQuick import are based on the \l{Item}
+type, which itself derives from \l{QtQml::QtObject}{QtObject}. \l{Qt Qml QML
+Types#Object Types} {QML object types} provided by the Qt QML module (such as
+\l{QtQml::QtObject}{QtObject} and \l{QtQml::Component}{Component}) are also
+available when you import \c QtQuick.
+
+*/
+
+/*!
+    \keyword colorvaluetypedocs
+    \qmlvaluetype color
+    \ingroup qtquickvaluetypes
+
+    \brief An ARGB color value.
+
+    The \c color type refers to an ARGB color value. It can be specified in a number of ways:
+
+    \list
+    \li By a \l{SVG Color Reference}{SVG color name}, such as "red", "green" or "lightsteelblue".
+    \li By a hexadecimal triplet or quad in the form \c "#RRGGBB" and \c "#AARRGGBB"
+        respectively. For example, the color red corresponds to a triplet of \c "#FF0000"
+        and a slightly transparent blue to a quad of \c "#800000FF".
+    \li Using the \l{QtQml::Qt::rgba()}{Qt.rgba()}, \l{QtQml::Qt::hsva()}{Qt.hsva()},
+        \l{QtQml::Qt::hsla()}{Qt.hsla()}, \l{QtQml::Qt::darker()}{Qt.darker()},
+        \l{QtQml::Qt::lighter()}{Qt.lighter()} or \l{QtQml::Qt::tint()}{Qt.tint()} functions.
+    \endlist
+
+    Example:
+
+    \div{float-right}
+    \inlineimage declarative-colors.png
+    \enddiv
+    \snippet qml/colors.qml colors
+
+
+    A color type has \e r, \e g, \e b, and \e a properties that refer to the red,
+    green, blue and alpha values of the color, respectively. Additionally, the
+    \e hsvHue, \e hsvSaturation, \e hsvValue, \e hslHue, \e hslSaturation, and \e hslLightness
+    properties allow access to color values in HSV and HSL color models respectively.
+
+    \qml
+    Text {
+        color: "red"
+
+        // prints "1 0 0 1"
+        Component.onCompleted: console.log(color.r, color.g, color.b, color.a)
+    }
+    \endqml
+
+    To test color values for equality, use the \l{QtQml::Qt::colorEqual()}{Qt.colorEqual()}
+    function.  This allows colors to be accurately compared whether they are in property
+    form or in any of the acceptable string specification forms.
+
+    When integrating with C++, note that any QColor value
+    \l{qtqml-cppintegration-data.html}{passed into QML from C++} is automatically
+    converted into a \c color value, and vice-versa.
+
+    This value type is provided by the \l[QML]{QtQuick} import.
+
+    \section1 SVG Color Reference
+
+    The following table lists the available
+    \l {https://www.w3.org/TR/css-color-3/#svg-color}{SVG colors}:
+
+    \include svg-colors.qdocinc
+
+    \sa {QML Value Types}
+*/
+
+/*!
+    \qmlproperty real color::r
+    The Red color channel of the RGBA model.
+*/
+
+/*!
+    \qmlproperty real color::g
+    The Green color channel of the RGBA model.
+*/
+
+/*!
+    \qmlproperty real color::b
+    The Blue color channel of the RGBA model.
+*/
+
+/*!
+    \qmlproperty real color::a
+    The Alpha color channel of the RGBA model.
+    Alpha depicts the opacity of each pixel.
+*/
+
+/*!
+    \qmlproperty real color::hsvHue
+    The HSV Hue color component of the color.
+*/
+
+/*!
+    \qmlproperty real color::hsvSaturation
+    The HSV Saturation color component of the color.
+*/
+
+/*!
+    \qmlproperty real color::hsvValue
+    The HSV Value color component of the color.
+*/
+
+/*!
+    \qmlproperty real color::hslHue
+    The HSL hue color component of the color.
+*/
+
+/*!
+    \qmlproperty real color::hslSaturation
+    The HSL Saturation color component of the color.
+*/
+
+/*!
+    \qmlproperty real color::hslLightness
+    The HSL Lightness color component of the color.
+*/
+
+/*!
+    \qmlproperty bool  color::valid
+    Returns \c True if the color is valid; otherwise returns \c False.
+*/
+
+/*!
+    \qmlvaluetype font
+    \ingroup qtquickvaluetypes
+    \brief a font value with the properties of QFont.
+    \target fontvaluetypedocs
+
+    The \c font type refers to a font value with the properties of QFont.
+
+    Properties of type \c font default to the application's default
+    \l {Application::font} {font}.
+
+    Example:
+
+    \snippet qml/font.qml text
+
+    As \c font is a \l {QML_STRUCTURED_VALUE}{structured value} type, it can
+    also be constructed with a JavaScript object:
+
+    \snippet qml/font.qml structured-value-construction
+
+    When integrating with C++, note that any QFont value
+    \l{qtqml-cppintegration-data.html}{passed into QML from C++} is automatically
+    converted into a \c font value, and vice-versa.
+
+    This value type is provided by the \l[QML]{QtQuick} import.
+
+    \sa {QML Value Types}
+*/
+
+/*!
+    \qmlproperty string font::family
+
+    The family name of the font.
+
+    //! [qml-font-family]
+    The family name is case insensitive and may optionally include a foundry
+    name, for example "Helvetica [Cronyx]". If the family is available from more
+    than one foundry and the foundry isn't specified, an arbitrary foundry is
+    chosen. If the family isn't available a family will be set using the font
+    matching algorithm.
+    //! [qml-font-family]
+*/
+
+/*!
+    \qmlproperty string font::styleName
+    \since 5.6
+
+    The style name of the font.
+
+    //! [qml-font-style-name]
+    The style name is case insensitive. If set, the font will be matched against style name instead
+    of the font properties \l {font::weight}{font.weight}, \l {font::bold}{font.bold},
+    and \l {font::italic}{font.italic}.
+    //! [qml-font-style-name]
+
+*/
+
+/*!
+    \qmlproperty bool font::bold
+
+    Whether the font weight is bold.
+*/
+
+/*!
+    \qmlproperty int font::weight
+
+    //! [qml-font-weight]
+    The requested weight of the font. The weight requested must be an integer
+    between 1 and 1000, or one of the predefined values:
+
+    \value Font.Thin        100
+    \value Font.ExtraLight  200
+    \value Font.Light       300
+    \value Font.Normal      400 (default)
+    \value Font.Medium      500
+    \value Font.DemiBold    600
+    \value Font.Bold        700
+    \value Font.ExtraBold   800
+    \value Font.Black       900
+
+    \qml
+    Text { text: "Hello"; font.weight: Font.DemiBold }
+    \endqml
+    //! [qml-font-weight]
+*/
+
+/*!
+    \qmlproperty bool font::italic
+
+    Whether the font has an italic style.
+*/
+
+/*!
+    \qmlproperty bool font::underline
+
+    Whether the text is underlined.
+*/
+
+/*!
+    \qmlproperty bool font::strikeout
+
+    Whether the font has a strikeout style.
+*/
+
+/*!
+    \qmlproperty real font::pointSize
+
+    The font size in points. The point size must be greater than zero.
+*/
+
+/*!
+    \qmlproperty int font::pixelSize
+
+    The font size in pixels.
+
+    Makes the font device dependent.
+    Use \c pointSize to set the size of the font in a device independent manner.
+*/
+
+/*!
+    \qmlproperty real font::letterSpacing
+
+    The letter spacing for the font.
+
+    //! [qml-font-letter-spacing]
+    Letter spacing changes the default spacing between individual letters in
+    the font. A positive value increases the letter spacing by the corresponding
+    pixels; a negative value decreases the spacing.
+    //! [qml-font-letter-spacing]
+*/
+
+/*!
+    \qmlproperty real font::wordSpacing
+
+    The word spacing for the font.
+
+    //! [qml-font-word-spacing]
+    Word spacing changes the default spacing between individual words. A
+    positive value increases the word spacing by a corresponding amount of
+    pixels, while a negative value decreases the inter-word spacing accordingly.
+    //! [qml-font-word-spacing]
+*/
+
+/*!
+    \qmlproperty enumeration font::capitalization
+
+    The capitalization for a text.
+
+    //! [qml-font-capitalization]
+    \value Font.MixedCase       the normal case: no capitalization change is applied
+    \value Font.AllUppercase    alters the text to be rendered in all uppercase type
+    \value Font.AllLowercase    alters the text to be rendered in all lowercase type
+    \value Font.SmallCaps       alters the text to be rendered in small-caps type
+    \value Font.Capitalize      alters the text to be rendered with the first character of
+                                each word as an uppercase character
+
+    \qml
+    Text { text: "Hello"; font.capitalization: Font.AllLowercase }
+    \endqml
+    //! [qml-font-capitalization]
+*/
+
+/*!
+    \qmlproperty enumeration font::hintingPreference
+    \since 5.8
+
+    The preferred hinting on the text.
+
+    //! [qml-font-hinting-preference]
+    This is a hint to the underlying text rendering system
+    to use a certain level of hinting, and has varying support across platforms. See the table in
+    the documentation for QFont::HintingPreference for more details.
+
+    \note This property only has an effect when used together with render type \l [QML]{Text::renderType}{Text.NativeRendering}.
+
+
+    \value Font.PreferDefaultHinting    Use the default hinting level for the target platform.
+    \value Font.PreferNoHinting         If possible, render text without hinting the outlines
+           of the glyphs. The text layout will be typographically accurate, using the same metrics
+           as are used, for example, when printing.
+    \value Font.PreferVerticalHinting   If possible, render text with no horizontal hinting,
+           but align glyphs to the pixel grid in the vertical direction. The text will appear
+           crisper on displays where the density is too low to give an accurate rendering
+           of the glyphs. But since the horizontal metrics of the glyphs are unhinted, the text's
+           layout will be scalable to higher density devices (such as printers) without impacting
+           details such as line breaks.
+    \value Font.PreferFullHinting       If possible, render text with hinting in both horizontal and
+           vertical directions. The text will be altered to optimize legibility on the target
+           device, but since the metrics will depend on the target size of the text, the positions
+           of glyphs, line breaks, and other typographical detail will not scale, meaning that a
+           text layout may look different on devices with different pixel densities.
+
+    \qml
+    Text { text: "Hello"; renderType: Text.NativeRendering; font.hintingPreference: Font.PreferVerticalHinting }
+    \endqml
+    //! [qml-font-hinting-preference]
+*/
+
+/*!
+    \qmlproperty bool font::kerning
+    \since 5.10
+
+    //! [qml-font-kerning]
+    Enables or disables the kerning OpenType feature when shaping the text.
+    Disabling this may improve performance when creating or changing the text,
+    at the expense of some cosmetic features. The default value is \c true.
+
+    \qml
+    Text { text: "OATS FLAVOUR WAY"; font.kerning: false }
+    \endqml
+    //! [qml-font-kerning]
+*/
+
+/*!
+    \qmlproperty bool font::preferShaping
+    \since 5.10
+
+    //! [qml-font-prefer-shaping]
+    Sometimes, a font will apply complex rules to a set of characters in order
+    to display them correctly. In some writing systems, such as Brahmic scripts,
+    this is required in order for the text to be legible, but in for example
+    Latin script, it is merely a cosmetic feature. Setting the \c preferShaping
+    property to false will disable all such features when they are not required,
+    which will improve performance in most cases.
+
+    The default value is \c true.
+
+    \qml
+    Text { text: "Some text"; font.preferShaping: false }
+    \endqml
+    //! [qml-font-prefer-shaping]
+*/
+
+/*!
+    \qmlproperty object font::variableAxes
+    \since 6.7
+
+    //! [qml-font-variable-axes]
+    Applies floating point values to variable axes in variable fonts.
+
+    Variable fonts provide a way to store multiple variations (with different weights, widths
+    or styles) in the same font file. The variations are given as floating point values for
+    a pre-defined set of parameters, called "variable axes". Specific instances are typically
+    given names by the font designer, and, in Qt, these can be selected using setStyleName()
+    just like traditional sub-families.
+
+    In some cases, it is also useful to provide arbitrary values for the different axes. For
+    instance, if a font has a Regular and Bold sub-family, you may want a weight in-between these.
+    You could then manually request this by supplying a custom value for the "wght" axis in the
+    font.
+
+    \qml
+        Text {
+            text: "Foobar"
+            font.family: "MyVariableFont"
+            font.variableAxes: { "wght": (Font.Normal + Font.Bold) / 2.0 }
+        }
+    \endqml
+
+    If the "wght" axis is supported by the font and the given value is within its defined range,
+    a font corresponding to the weight 550.0 will be provided.
+
+    There are a few standard axes than many fonts provide, such as "wght" (weight), "wdth" (width),
+    "ital" (italic) and "opsz" (optical size). They each have individual ranges defined in the font
+    itself. For instance, "wght" may span from 100 to 900 (QFont::Thin to QFont::Black) whereas
+    "ital" can span from 0 to 1 (from not italic to fully italic).
+
+    A font may also choose to define custom axes; the only limitation is that the name has to
+    meet the requirements for a QFont::Tag (sequence of four latin-1 characters.)
+
+    By default, no variable axes are set.
+
+    \note On Windows, variable axes are not supported if the optional GDI font backend is in use.
+
+    \sa QFont::setVariableAxis()
+    //! [qml-font-variable-axes]
+*/
+
+/*!
+    \qmlproperty object font::features
+    \since 6.6
+
+//! [qml-font-features]
+    Applies integer values to specific OpenType features when shaping the text based on the contents. This provides advanced access to the font shaping process, and can be used
+    to support font features that are otherwise not covered in the API.
+
+
+    The font features are represented by a map from four-letter tags to integer values. This integer
+    value passed along with the tag in most cases represents a boolean value: A zero value means the
+    feature is disabled, and a non-zero value means it is enabled. For certain font features,
+    however, it may have other interpretations. For example, when applied to the \c salt feature, the
+    value is an index that specifies the stylistic alternative to use.
+
+    For example, the \c frac font feature will convert diagonal fractions separated with a slash
+    (such as \c 1/2) with a different representation. Typically this will involve baking the full
+    fraction into a single character width (such as \c ½).
+
+    If a font supports the \c frac feature, then it can be enabled in the shaper as in the following
+    code:
+
+    \qml
+    Text {
+        text: "One divided by two is 1/2"
+        font.family: "MyFractionFont"
+        font.features: { "frac": 1 }
+    }
+    \endqml
+
+    Multiple features can be assigned values in the same mapping. For instance,
+    if you would like to also disable kerning for the font, you can explicitly
+    disable this as follows:
+
+    \qml
+    Text {
+        text: "One divided by two is 1/2"
+        font.family: "MyFractionFont"
+        font.features: { "frac": 1, "kern": 0 }
+    }
+    \endqml
+
+    You can also collect the font properties in an object:
+
+    \qml
+    Text {
+        text: "One divided by two is 1/2"
+        font: {
+            family: "MyFractionFont"
+            features: { "frac": 1, "kern": 0 }
+        }
+    }
+    \endqml
+
+    \note By default, Qt will enable and disable certain font features based on other font
+    properties. In particular, the \c kern feature will be enabled/disabled depending on the
+    \l {font::kerning} property. In addition, all ligature features (\c liga, \c clig,
+
+    \c dlig, \c hlig) will be disabled if a \l font.letterSpacing is set, but only for writing
+    systems where the use of ligature is cosmetic. For writing systems where ligatures are required,
+    the features will remain in their default state. The values set using \c font.features will
+    override the default behavior. If, for instance, \c{"kern"} is set to 1, then kerning will
+    always be enabled, regardless of whether the \l {font::kerning} property is set to false. Similarly,
+
+    if it is set to \c 0, it will always be disabled.
+
+    \sa QFont::setFeature()
+//! [qml-font-features]
+*/
+
+/*!
+    \qmlproperty bool font::contextFontMerging
+    \since 6.8
+
+//! [qml-font-context-font-merging]
+    If the selected font does not contain a certain character, Qt automatically chooses a
+    similar-looking fallback font that contains the character. By default this is done on a
+    character-by-character basis.
+
+    This means that in certain uncommon cases, many different fonts may be used to represent one
+    string of text even if it's in the same script. Setting \c contextFontMerging to true will try
+    finding the fallback font that matches the largest subset of the input string instead. This
+    will be more expensive for strings where missing glyphs occur, but may give more consistent
+    results. By default, \c contextFontMerging is \c{false}.
+
+    \sa QFont::StyleStrategy
+//! [qml-font-context-font-merging]
+*/
+
+/*!
+    \qmlproperty bool font::preferTypoLineMetrics
+    \since 6.8
+
+//! [qml-font-prefer-typo-line-metrics] For compatibility reasons, OpenType fonts contain two
+    competing sets of the vertical line metrics that provide the \l{QFontMetricsF::ascent()}{ascent},
+    \l{QFontMetricsF::descent()}{descent} and \l{QFontMetricsF::leading()}{leading} of the font. These
+    are often referred to as the
+    \l{https://learn.microsoft.com/en-us/typography/opentype/spec/os2#uswinascent}{win} (Windows)
+    metrics and the \l{https://learn.microsoft.com/en-us/typography/opentype/spec/os2#sta}{typo}
+    (typographical) metrics. While the specification recommends using the \c typo metrics for line
+    spacing, many applications prefer the \c win metrics unless the \c{USE_TYPO_METRICS} flag is set in
+    the \l{https://learn.microsoft.com/en-us/typography/opentype/spec/os2#fsselection}{fsSelection}
+    field of the font. For backwards-compatibility reasons, this is also the case for Qt applications.
+    This is not an issue for fonts that set the \c{USE_TYPO_METRICS} flag to indicate that the \c{typo}
+    metrics are valid, nor for fonts where the \c{win} metrics and \c{typo} metrics match up. However,
+    for certain fonts the \c{win} metrics may be larger than the preferable line spacing and the
+    \c{USE_TYPO_METRICS} flag may be unset by mistake. For such fonts, setting
+    \c{font.preferTypoLineMetrics} may give superior results.
+
+    By default, \c preferTypoLineMetrics is \c{false}.
+
+    \sa QFont::StyleStrategy
+//! [qml-font-prefer-typo-line-metrics]
+*/
+
+/*!
+    \qmlvaluetype vector2d
+    \ingroup qtquickvaluetypes
+
+    \brief A vector2d type has x and y attributes.
+
+    A \c vector2d type has \c x and \c y attributes, otherwise
+    it is similar to the \c vector3d type.
+
+    Properties of type \c vector2d have a zero vector as their default value.
+    This has both \c x and \c y set to \c 0.
+
+    See the documentation about the \c vector3d type for more information.
+
+    To create a \c vector2d value, specify it as a "x,y" string,
+    or define the components individually, or compose it with
+    the Qt.vector2d() function.
+
+    The vector2d type has the following idempotent functions which can be
+    invoked in QML:
+    \table 60%
+        \header
+        \li Function Signature
+        \li Description
+        \li Example
+
+        \row
+        \li real dotProduct(vector2d other)
+        \li Returns the scalar real result of the dot product of \c this vector2d with the \c other vector2d
+        \li \code
+var a = Qt.vector2d(1,2);
+var b = Qt.vector2d(3,4);
+var c = a.dotProduct(b);
+console.log(c); // 11
+            \endcode
+
+        \row
+        \li vector2d times(vector2d other)
+        \li Returns the vector2d result of multiplying \c this vector2d with the \c other vector2d
+        \li \code
+var a = Qt.vector2d(1,2);
+var b = Qt.vector2d(3,4);
+var c = a.times(b);
+console.log(c.toString()); // QVector2D(3, 8)
+            \endcode
+
+        \row
+        \li vector2d times(real factor)
+        \li Returns the vector2d result of multiplying \c this vector2d with the scalar \c factor
+        \li \code
+var a = Qt.vector2d(1,2);
+var b = 4.48;
+var c = a.times(b);
+console.log(c.toString()); // QVector2D(4.48, 8.96)
+            \endcode
+
+        \row
+        \li vector2d plus(vector2d other)
+        \li Returns the vector2d result of the addition of \c this vector2d with the \c other vector2d
+        \li \code
+var a = Qt.vector2d(1,2);
+var b = Qt.vector2d(3,4);
+var c = a.plus(b);
+console.log(c.toString()); // QVector2D(4, 6)
+            \endcode
+
+        \row
+        \li vector2d minus(vector2d other)
+        \li Returns the vector2d result of the subtraction of \c other vector2d from \c this vector2d
+        \li \code
+var a = Qt.vector2d(1,2);
+var b = Qt.vector2d(3,4);
+var c = a.minus(b);
+console.log(c.toString()); // QVector2D(-2, -2)
+            \endcode
+
+        \row
+        \li vector2d normalized()
+        \li Returns the normalized form of \c this vector
+        \li \code
+var a = Qt.vector2d(1,2);
+var b = a.normalized();
+console.log(b.toString()); // QVector2D(0.447214, 0.894427)
+            \endcode
+
+        \row
+        \li real length()
+        \li Returns the scalar real value of the length of \c this vector2d
+        \li \code
+var a = Qt.vector2d(1,2);
+var b = a.length();
+console.log(b.toString()); // 2.23606797749979
+            \endcode
+
+        \row
+        \li vector3d toVector3d()
+        \li Returns the vector3d result of converting \c this vector2d to a vector3d
+        \li \code
+var a = Qt.vector2d(1,2);
+var b = a.toVector3d();
+console.log(b.toString()); // QVector3D(1, 2, 0)
+            \endcode
+
+        \row
+        \li vector4d toVector4d()
+        \li Returns the vector4d result of converting \c this vector2d to a vector4d
+        \li \code
+var a = Qt.vector2d(1,2);
+var b = a.toVector4d();
+console.log(b.toString()); // QVector4D(1, 2, 0, 0)
+            \endcode
+
+        \row
+        \li bool fuzzyEquals(vector2d other, real epsilon)
+        \li Returns true if \c this vector2d is approximately equal to the \c other vector2d.
+            The approximation will be true if each attribute of \c this is within \c epsilon
+            of \c other.  Note that \c epsilon is an optional argument, the default \c epsilon
+            is 0.00001.
+        \li \code
+var a = Qt.vector2d(1,2);
+var b = Qt.vector2d(1.0001, 1.9998);
+var c = a.fuzzyEquals(b);        // default epsilon
+var d = a.fuzzyEquals(b, 0.005); // supplied epsilon
+console.log(c + " " + d); // false true
+            \endcode
+\endtable
+
+    This value type is provided by the \l[QML]{QtQuick} import.
+
+    \sa {QML Value Types}
+*/
+
+/*!
+    \qmlvaluetype vector3d
+    \ingroup qtquickvaluetypes
+    \brief a value with x, y, and z attributes.
+
+    The \c vector3d type refers to a value with \c x, \c y, and \c z attributes.
+
+    Properties of type \c vector3d have a zero vector by default. This has
+    \c x, \c y and \c z set to \c 0.
+
+    To create a \c vector3d value, specify it as a "x,y,z" string:
+
+    \qml
+    Rotation { angle: 60; axis: "0,1,0" }
+    \endqml
+
+    or with the \l{QtQml::Qt::vector3d()}{Qt.vector3d()} function:
+
+    \qml
+    Rotation { angle: 60; axis: Qt.vector3d(0, 1, 0) }
+    \endqml
+
+    or as separate \c x, \c y, and \c z components:
+
+    \qml
+    Rotation { angle: 60; axis.x: 0; axis.y: 1; axis.z: 0 }
+    \endqml
+
+    Each attribute of a vector3d value is stored internally as a
+    single-precision floating point number (\c float).
+
+    When integrating with C++, note that any QVector3D value
+    \l{qtqml-cppintegration-data.html}{passed into QML from C++} is automatically
+    converted into a \c vector3d value, and vice-versa.
+
+    The vector3d type has the following idempotent functions which can be
+    invoked in QML:
+    \table
+        \header
+        \li Function Signature
+        \li Description
+        \li Example
+
+        \row
+        \li vector3d crossProduct(vector3d other)
+        \li Returns the vector3d result of the cross product of \c this vector3d with the \c other vector3d
+        \li \code
+var a = Qt.vector3d(1,2,3);
+var b = Qt.vector3d(4,5,6);
+var c = a.crossProduct(b);
+console.log(c.toString()); // QVector3D(-3, 6, -3)
+            \endcode
+
+        \row
+        \li real dotProduct(vector3d other)
+        \li Returns the scalar real result of the dot product of \c this vector3d with the \c other vector3d
+        \li \code
+var a = Qt.vector3d(1,2,3);
+var b = Qt.vector3d(4,5,6);
+var c = a.dotProduct(b);
+console.log(c); // 32
+            \endcode
+
+        \row
+        \li vector3d times(matrix4x4 matrix)
+        \li Returns the vector3d result of transforming \c this vector3d with
+            the 4x4 \c matrix with the matrix applied post-vector
+        \li \code
+var a = Qt.vector3d(1,2,3);
+var b = Qt.matrix4x4(4,5,6,7,8,9,10,11,
+                     12,13,14,15,16,17,18,19);
+var c = a.times(b);
+console.log(c.toString());
+// QVector3D(0.774194, 0.849462, 0.924731)
+            \endcode
+
+        \row
+        \li vector3d times(vector3d other)
+        \li Returns the vector3d result of multiplying \c this vector3d with the \c other vector3d
+        \li \code
+var a = Qt.vector3d(1,2,3);
+var b = Qt.vector3d(4,5,6);
+var c = a.times(b);
+console.log(c.toString()); // QVector3D(4, 10, 18)
+            \endcode
+
+        \row
+        \li vector3d times(real factor)
+        \li Returns the vector3d result of multiplying \c this vector3d with the scalar \c factor
+        \li \code
+var a = Qt.vector3d(1,2,3);
+var b = 4.48;
+var c = a.times(b);
+console.log(c.toString()); // QVector3D(4.48, 8.96, 13.44)
+            \endcode
+
+        \row
+        \li vector3d plus(vector3d other)
+        \li Returns the vector3d result of the addition of \c this vector3d with the \c other vector3d
+        \li \code
+var a = Qt.vector3d(1,2,3);
+var b = Qt.vector3d(4,5,6);
+var c = a.plus(b);
+console.log(c.toString()); // QVector3D(5, 7, 9)
+            \endcode
+
+        \row
+        \li vector3d minus(vector3d other)
+        \li Returns the vector3d result of the subtraction of \c other vector3d from \c this vector3d
+        \li \code
+var a = Qt.vector3d(1,2,3);
+var b = Qt.vector3d(4,5,6);
+var c = a.minus(b);
+console.log(c.toString()); // QVector3D(-3, -3, -3)
+            \endcode
+
+        \row
+        \li vector3d normalized()
+        \li Returns the normalized form of \c this vector
+        \li \code
+var a = Qt.vector3d(1,2,3);
+var b = a.normalized();
+console.log(b.toString());
+// QVector3D(0.267261, 0.534522, 0.801784)
+            \endcode
+
+        \row
+        \li real length()
+        \li Returns the scalar real value of the length of \c this vector3d
+        \li \code
+var a = Qt.vector3d(1,2,3);
+var b = a.length();
+console.log(b.toString()); // 3.7416573867739413
+            \endcode
+
+        \row
+        \li vector2d toVector2d()
+        \li Returns the vector2d result of converting \c this vector3d to a vector2d
+        \li \code
+var a = Qt.vector3d(1,2,3);
+var b = a.toVector2d();
+console.log(b.toString()); // QVector2D(1, 2)
+            \endcode
+
+        \row
+        \li vector4d toVector4d()
+        \li Returns the vector4d result of converting \c this vector3d to a vector4d
+        \li \code
+var a = Qt.vector3d(1,2,3);
+var b = a.toVector4d();
+console.log(b.toString()); // QVector4D(1, 2, 3, 0)
+            \endcode
+
+        \row
+        \li bool fuzzyEquals(vector3d other, real epsilon)
+        \li Returns true if \c this vector3d is approximately equal to the \c other vector3d.
+            The approximation will be true if each attribute of \c this is within \c epsilon
+            of \c other.
+            Note that \c epsilon is an optional argument, the default \c epsilon
+            is 0.00001.
+        \li \code
+var a = Qt.vector3d(1,2,3);
+var b = Qt.vector3d(1.0001, 1.9998, 2.0001);
+var c = a.fuzzyEquals(b);        // default epsilon
+var d = a.fuzzyEquals(b, 0.005); // supplied epsilon
+console.log(c + " " + d); // false true
+            \endcode
+\endtable
+
+    This value type is provided by the \l[QML]{QtQuick} import.
+
+    \sa {QML Value Types}
+*/
+
+/*!
+    \qmlvaluetype vector4d
+    \ingroup qtquickvaluetypes
+
+    \brief A vector4d type has x, y, z and w attributes.
+
+    A \c vector4d type has \c x, \c y, \c z and \c w attributes,
+    otherwise it is similar to the \c vector3d type.
+
+    Properties of type \c vector4d have a zero vector by default. This has
+    \c x, \c y ,\c z and \c w set to \c 0.
+
+    See the documentation about the \c vector3d type for more information.
+
+    To create a \c vector4d value, specify it as a "x,y,z,w" string,
+    or define the components individually, or compose it with
+    the Qt.vector4d() function.
+
+    The vector4d type has the following idempotent functions which can be
+    invoked in QML:
+    \table
+        \header
+        \li Function Signature
+        \li Description
+        \li Example
+
+        \row
+        \li real dotProduct(vector4d other)
+        \li Returns the scalar real result of the dot product of \c this vector4d with the \c other vector4d
+        \li \code
+var a = Qt.vector4d(1,2,3,4);
+var b = Qt.vector4d(5,6,7,8);
+var c = a.dotProduct(b);
+console.log(c); // 70
+            \endcode
+
+        \row
+        \li vector4d times(matrix4x4 matrix)
+        \li Returns the vector4d result of transforming \c this vector4d with
+            the 4x4 \c matrix with the matrix applied post-vector
+        \li \code
+var a = Qt.vector4d(1,2,3,4);
+var b = Qt.matrix4x4(4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19);
+var c = a.times(b);
+console.log(c.toString()); // QVector4D(120, 130, 140, 150)
+            \endcode
+
+        \row
+        \li vector4d times(vector4d other)
+        \li Returns the vector4d result of multiplying \c this vector4d with the \c other vector4d
+        \li \code
+var a = Qt.vector4d(1,2,3,4);
+var b = Qt.vector4d(5,6,7,8);
+var c = a.times(b);
+console.log(c.toString()); // QVector4D(5, 12, 21, 32)
+            \endcode
+
+        \row
+        \li vector4d times(real factor)
+        \li Returns the vector4d result of multiplying \c this vector4d with the scalar \c factor
+        \li \code
+var a = Qt.vector4d(1,2,3,4);
+var b = 4.48;
+var c = a.times(b);
+console.log(c.toString()); // QVector3D(4.48, 8.96,
+                                        13.44, 17.92)
+            \endcode
+
+        \row
+        \li vector4d plus(vector4d other)
+        \li Returns the vector4d result of the addition of \c this vector4d with the \c other vector4d
+        \li \code
+var a = Qt.vector4d(1,2,3,4);
+var b = Qt.vector4d(5,6,7,8);
+var c = a.plus(b);
+console.log(c.toString()); // QVector4D(6, 8, 10, 12)
+            \endcode
+
+        \row
+        \li vector4d minus(vector4d other)
+        \li Returns the vector4d result of the subtraction of \c other vector4d from \c this vector4d
+        \li \code
+var a = Qt.vector4d(1,2,3,4);
+var b = Qt.vector4d(5,6,7,8);
+var c = a.minus(b);
+console.log(c.toString()); // QVector4D(-4, -4, -4, -4)
+            \endcode
+
+        \row
+        \li vector4d normalized()
+        \li Returns the normalized form of \c this vector
+        \li \code
+var a = Qt.vector4d(1,2,3,4);
+var b = a.normalized();
+console.log(b.toString());
+// QVector4D(0.182574, 0.365148, 0.547723, 0.730297)
+            \endcode
+
+        \row
+        \li real length()
+        \li Returns the scalar real value of the length of \c this vector3d
+        \li \code
+var a = Qt.vector4d(1,2,3,4);
+var b = a.length();
+console.log(b.toString()); // 5.477225575051661
+            \endcode
+
+        \row
+        \li vector2d toVector2d()
+        \li Returns the vector2d result of converting \c this vector4d to a vector2d
+        \li \code
+var a = Qt.vector4d(1,2,3,4);
+var b = a.toVector2d();
+console.log(b.toString()); // QVector2D(1, 2)
+            \endcode
+
+        \row
+        \li vector3d toVector3d()
+        \li Returns the vector3d result of converting \c this vector4d to a vector3d
+        \li \code
+var a = Qt.vector4d(1,2,3,4);
+var b = a.toVector3d();
+console.log(b.toString()); // QVector3D(1, 2, 3)
+            \endcode
+
+        \row
+        \li bool fuzzyEquals(vector4d other, real epsilon)
+        \li Returns true if \c this vector4d is approximately equal to the \c other vector4d.
+            The approximation will be true if each attribute of \c this is within \c epsilon
+            of \c other.  Note that \c epsilon is an optional argument, the default \c epsilon
+            is 0.00001.
+        \li \code
+var a = Qt.vector4d(1,2,3,4);
+var b = Qt.vector4d(1.0001, 1.9998, 2.0001, 3.9999);
+var c = a.fuzzyEquals(b);        // default epsilon
+var d = a.fuzzyEquals(b, 0.005); // supplied epsilon
+console.log(c + " " + d); // false true
+            \endcode
+\endtable
+
+    This value type is provided by the \l[QML]{QtQuick} import.
+
+    \sa {QML Value Types}
+*/
+
+/*!
+    \qmlvaluetype quaternion
+    \ingroup qtquickvaluetypes
+
+    \brief A quaternion type has scalar, x, y, and z attributes.
+
+    A \c quaternion type has \c scalar, \c x, \c y and \c z attributes.
+
+    To create a \c quaternion value, specify it as a "scalar,x,y,z" string,
+    or define the components individually, or compose it with
+    the Qt.quaternion() function.
+
+    The quaternion type has the following idempotent functions which can be
+    invoked in QML:
+    \table
+        \header
+        \li Function Signature
+        \li Description
+        \li Example
+
+        \row
+        \li real dotProduct(quaternion other)
+        \li Returns the scalar real result of the dot product of \c this quaternion with
+            the \c other quaternion
+        \li \code
+var a = Qt.quaternion(1,2,3,4);
+var b = Qt.quaternion(5,6,7,8);
+var c = a.dotProduct(b);
+console.log(c); // 70
+            \endcode
+
+        \row
+        \li quaternion times(quaternion other)
+        \li Returns the quaternion result of multiplying \c this quaternion with
+            the \c other quaternion, which corresponds to applying both of the rotations
+        \li \code
+var a = Qt.quaternion(1 / Math.sqrt(2), 1 / Math.sqrt(2), 0, 0);
+var b = Qt.quaternion(1 / Math.sqrt(2), 0, 1 / Math.sqrt(2), 0);
+var c = b.times(a);
+console.log(c.toString()); // QQuaternion(0.5, 0.5, 0.5, -0.5)
+            \endcode
+
+        \row
+        \li vector3d times(vector3d vector)
+        \li Returns the vector3d result of rotating the \c vector with \c this quaternion
+        \li \code
+var a = Qt.quaternion(0.5,0.5,0.5,-0.5);
+var b = Qt.vector3d(4,5,6);
+var c = a.times(b);
+console.log(c.toString()); // QVector3D(5, -6, -4)
+            \endcode
+
+        \row
+        \li quaternion times(real factor)
+        \li Returns the quaternion result of multiplying \c this quaternion with the scalar
+            \c factor
+        \li \code
+var a = Qt.quaternion(1,2,3,4);
+var b = 4.48;
+var c = a.times(b);
+console.log(c.toString()); // QQuaternion(4.48, 8.96, 13.44, 17.92)
+            \endcode
+
+        \row
+        \li quaternion plus(quaternion other)
+        \li Returns the quaternion result of the addition of \c this quaternion with
+            the \c other quaternion
+        \li \code
+var a = Qt.quaternion(1,2,3,4);
+var b = Qt.quaternion(5,6,7,8);
+var c = a.plus(b);
+console.log(c.toString()); // QQuaternion(6, 8, 10, 12)
+            \endcode
+
+        \row
+        \li quaternion minus(quaternion other)
+        \li Returns the quaternion result of the subtraction of \c other quaternion
+            from \c this quaternion
+        \li \code
+var a = Qt.quaternion(1,2,3,4);
+var b = Qt.quaternion(5,6,7,8);
+var c = a.minus(b);
+console.log(c.toString()); // QQuaternion(-4, -4, -4, -4)
+            \endcode
+
+        \row
+        \li quaternion normalized()
+        \li Returns the normalized unit form of \c this quaternion
+        \li \code
+var a = Qt.quaternion(1,2,3,4);
+var b = a.normalized();
+console.log(b.toString()); // QQuaternion(0.182574, 0.365148, 0.547723, 0.730297)
+            \endcode
+
+        \row
+        \li quaternion inverted()
+        \li Returns the inverse of \c this quaternion
+        \li \code
+var a = Qt.quaternion(0.5,0.5,0.5,-0.5);
+var b = a.inverted();
+console.log(b.toString()); // QQuaternion(0.5, -0.5, -0.5, 0.5)
+            \endcode
+
+        \row
+        \li quaternion conjugated()
+        \li Returns the conjugate of \c this quaternion
+        \li \code
+var a = Qt.quaternion(1,2,3,4);
+var b = a.conjugated()
+console.log(b.toString()); // QQuaternion(1, -2, -3, -4)
+            \endcode
+
+        \row
+        \li real length()
+        \li Returns the scalar real value of the length of \c this quaternion
+        \li \code
+var a = Qt.quaternion(1,2,3,4);
+var b = a.length();
+console.log(b.toString()); // 5.477225575051661
+            \endcode
+
+        \row
+        \li vector3d toEulerAngles()
+        \li Returns the vector3d Euler angles (in degrees) that corresponds to \c this quaternion
+        \li \code
+var a = Qt.quaternion(0.933012,0.25,-0.25,0.066987);
+var b = a.toEulerAngles();
+console.log(b.toString()); // QVector3D(30, -30, -4.28846e-05)
+            \endcode
+
+        \row
+        \li vector4d toVector4d()
+        \li Returns the vector4d result of converting \c this quaternion to a vector4d
+        \li \code
+var a = Qt.quaternion(1,2,3,4);
+var b = a.toVector4d();
+console.log(b.toString()); // QVector4D(2, 3, 4, 1)
+            \endcode
+
+        \row
+        \li bool fuzzyEquals(quaternion other, real epsilon)
+        \li Returns true if \c this quaternion is approximately equal to the \c other quaternion.
+            The approximation will be true if each attribute of \c this is within \c epsilon
+            of \c other.
+            Note that \c epsilon is an optional argument, the default \c epsilon
+            is 0.00001.
+        \li \code
+var a = Qt.quaternion(1,2,3,4);
+var b = Qt.quaternion(1.0001, 1.9998, 2.0001, 3.9999);
+var c = a.fuzzyEquals(b);        // default epsilon
+var d = a.fuzzyEquals(b, 0.005); // supplied epsilon
+console.log(c + " " + d); // false true
+            \endcode
+    \endtable
+
+    Properties of type \c quaternion have \c {Qt.quaternion(1, 0, 0, 0)} as their
+    default value.
+
+    This value type is provided by the \l[QML]{QtQuick} import.
+
+    \sa {QML Value Types}
+*/
+
+/*!
+    \qmlvaluetype matrix4x4
+    \ingroup qtquickvaluetypes
+
+    \brief A matrix4x4 type is a 4-row and 4-column matrix.
+
+    A \c matrix4x4 type has sixteen values, each accessible via the properties
+    \c m11 through \c m44 in QML (in row/column order). Values of this type can
+    be composed with the Qt.matrix4x4() function. Each attribute in a matrix4x4
+    is stored as a real (single-precision on ARM, double-precision on x86).
+
+    A property of type \c matrix4x4 defaults to the identity matrix, whose
+    diagonal entries \c m11, \c m22, \c m33 and \c m44 are all \c 1, with all
+    other components \c 0.
+
+    The matrix4x4 type has the following idempotent functions which can be
+    invoked in QML:
+    \table 70 %
+        \header
+        \li Function Signature
+        \li Description
+        \li Example
+
+        \row
+        \li translate(vector3d vector)
+        \li Multiplies \c this matrix4x4 by another that translates coordinates by the components
+            of \c vector
+        \li \code
+var m = Qt.matrix4x4();
+m.translate(Qt.vector3d(1,2,3));
+console.log(m.toString());
+// QMatrix4x4(1, 0, 0, 1, 0, 1, 0, 2, 0, 0, 1, 3, 0, 0, 0, 1)
+            \endcode
+
+        \row
+        \li rotate(real angle, vector3d axis)
+        \li Multiples \c this matrix4x4 by another that rotates coordinates through
+            \c angle degrees about \c axis
+        \li \code
+var m = Qt.matrix4x4();
+m.rotate(180,Qt.vector3d(1,0,0));
+console.log(m.toString());
+// QMatrix4x4(1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1)
+            \endcode
+
+        \row
+        \li rotate(quaternion quaternion)
+        \li Multiples \c this matrix4x4 by another that rotates coordinates according to
+            a specified \c quaternion. The \c quaternion is assumed to have been normalized.
+        \li \code
+var m = Qt.matrix4x4();
+m.rotate(Qt.quaternion(0.5,0.5,0.5,-0.5));
+console.log(m.toString());
+// QMatrix4x4(0, 1, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 1)
+            \endcode
+
+        \row
+        \li scale(real factor)
+        \li Multiplies \c this matrix4x4 by another that scales coordinates by the given \c factor
+        \li \code
+var m = Qt.matrix4x4();
+m.scale(2);
+console.log(m.toString());
+// QMatrix4x4(2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 1)
+            \endcode
+
+        \row
+        \li scale(real x, real y, real z)
+        \li Multiplies \c this matrix4x4 by another that scales coordinates by the components
+            \c x, \c y, and \c z
+        \li \code
+var m = Qt.matrix4x4();
+m.scale(1,2,3);
+console.log(m.toString());
+// QMatrix4x4(1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 3, 0, 0, 0, 0, 1)
+            \endcode
+
+        \row
+        \li scale(vector3d vector)
+        \li Multiplies \c this matrix4x4 by another that scales coordinates by the components
+            of \c vector
+        \li \code
+var m = Qt.matrix4x4();
+m.scale(Qt.vector3d(1,2,3));
+console.log(m.toString());
+// QMatrix4x4(1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 3, 0, 0, 0, 0, 1)
+            \endcode
+
+        \row
+        \li lookAt(vector3d eye, vector3d center, vector3d up)
+        \li Multiplies \c this matrix4x4 by a viewing matrix derived from an \c eye point.
+            The \c center vector3d indicates the center of the view that the \c eye is looking at.
+            The \c up vector3d indicates which direction should be considered up with respect to
+            the \c eye.
+        \li \code
+var m = Qt.matrix4x4();
+m.lookAt(Qt.vector3d(1,2,3),Qt.vector3d(1,2,0),Qt.vector3d(0,1,0));
+console.log(m.toString());
+// QMatrix4x4(1, 0, 0, -1, 0, 1, 0, -2, 0, 0, 1, -3, 0, 0, 0, 1)
+            \endcode
+
+        \row
+        \li matrix4x4 times(matrix4x4 other)
+        \li Returns the matrix4x4 result of multiplying \c this matrix4x4 with
+            the \c other matrix4x4
+        \li \code
+var a = Qt.matrix4x4(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
+var b = Qt.matrix4x4(4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19);
+var c = a.times(b);
+console.log(c.toString());
+// QMatrix4x4(120, 130, 140, 150, 280, 306, 332, 358, 440, 482,
+//524, 566, 600, 658, 716, 774)
+            \endcode
+
+        \row
+        \li vector4d times(vector4d vector)
+        \li Returns the vector4d result of transforming the \c vector
+            according to \c this matrix4x4 with the matrix applied
+            pre-vector
+        \li \code
+var a = Qt.matrix4x4(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
+var b = Qt.vector4d(5,6,7,8);
+var c = a.times(b);
+console.log(c.toString()); // QVector4D(70, 174, 278, 382)
+            \endcode
+
+        \row
+        \li vector3d times(vector3d vector)
+        \li Returns the vector3d result of transforming the \c vector
+            according to \c this matrix4x4 with the matrix applied
+            pre-vector
+        \li \code
+var a = Qt.matrix4x4(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
+var b = Qt.vector3d(5,6,7);
+var c = a.times(b);
+console.log(c.toString()); // QVector3D(0.155556, 0.437037, 0.718518)
+            \endcode
+
+        \row
+        \li matrix4x4 times(real factor)
+        \li Returns the matrix4x4 result of multiplying \c this matrix4x4 with the scalar \c factor
+        \li \code
+var a = Qt.matrix4x4(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
+var b = 4.48;
+var c = a.times(b);
+console.log(c.toString());
+// QMatrix4x4(4.48, 8.96, 13.44, 17.92, 22.4, 26.88, 31.36, 35.84,
+// 40.32, 44.8, 49.28, 53.76, 58.24, 62.72, 67.2, 71.68)
+            \endcode
+
+        \row
+        \li matrix4x4 plus(matrix4x4 other)
+        \li Returns the matrix4x4 result of the addition of \c this matrix4x4 with the \c other matrix4x4
+        \li \code
+var a = Qt.matrix4x4(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
+var b = Qt.matrix4x4(5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20);
+var c = a.plus(b);
+console.log(c.toString());
+// QMatrix4x4(6, 8, 10, 12, 14, 16, 18, 20, 22,
+// 24, 26, 28, 30, 32, 34, 36)
+            \endcode
+
+        \row
+        \li matrix4x4 minus(matrix4x4 other)
+        \li Returns the matrix4x4 result of the subtraction of \c other matrix4x4 from \c this matrix4x4
+        \li \code
+var a = Qt.matrix4x4(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
+var b = Qt.matrix4x4(5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20);
+var c = a.minus(b);
+console.log(c.toString());
+// QMatrix4x4(-4, -4, -4, -4, -4, -4, -4, -4, -4,
+// -4, -4, -4, -4, -4, -4, -4)
+            \endcode
+
+        \row
+        \li vector4d row(int which)
+        \li Returns the vector4d row of \c this specified by \c which.
+            Note: the \c which is 0-based access into the matrix.
+        \li \code
+var a = Qt.matrix4x4(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
+var b = Qt.vector4d(a.m21, a.m22, a.m23, a.m24);
+var c = a.row(2); // zero based access!  so not equal to b
+console.log(b.toString() + " " + c.toString());
+// QVector4D(5, 6, 7, 8) QVector4D(9, 10, 11, 12)
+            \endcode
+
+        \row
+        \li vector4d column(int which)
+        \li Returns the vector4d column of \c this specified by \c which.
+            Note: the \c which is 0-based access into the matrix.
+        \li \code
+var a = Qt.matrix4x4(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
+var b = Qt.vector4d(a.m12, a.m22, a.m32, a.m42);
+var c = a.column(2); // zero based access!  so not equal to b
+console.log(b.toString() + " " + c.toString());
+// QVector4D(2, 6, 10, 14) QVector4D(3, 7, 11, 15)
+            \endcode
+
+        \row
+        \li real determinant()
+        \li Returns the determinant of \c this matrix4x4
+        \li \code
+var a = Qt.matrix4x4(1,0,0,0,0,2,0,0,0,0,3,0,100,200,300,1);
+var b = a.determinant();
+console.log(b); // 6
+            \endcode
+
+        \row
+        \li matrix4x4 inverted()
+        \li Returns the inverse of \c this matrix4x4 if it exists, else the identity matrix.
+        \li \code
+var a = Qt.matrix4x4(1,0,0,0,0,2,0,0,0,0,3,0,100,200,300,1);
+var b = a.inverted();
+console.log(b.toString());
+// QMatrix4x4(1, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0.333333, 0, -100,
+// -100, -100, 1)
+            \endcode
+
+        \row
+        \li matrix4x4 transposed()
+        \li Returns the transpose of \c this matrix4x4
+        \li \code
+var a = Qt.matrix4x4(1,0,0,0,0,2,0,0,0,0,3,0,100,200,300,1);
+var b = a.transposed();
+console.log(b.toString());
+// QMatrix4x4(1, 0, 0, 100, 0, 2, 0, 200, 0, 0, 3, 300, 0, 0, 0, 1)
+            \endcode
+
+        \row
+        \li rect mapRect(rect)
+        \li Maps the provided rectangle into the coordinate system defined by this matrix.
+            If rotation or shearing has been specified, this function returns the bounding rectangle.
+            This function was introduced in Qt 6.5.
+        \li \code
+var a = Qt.matrix4x4(2,0,0,0,0,2,0,0,0,0,1,0,0,0,0,1);
+var b = a.mapRect(Qt.rect(10, 20, 30, 40));
+console.log(b.toString());
+// Qt.rect(20, 40, 60, 80)
+            \endcode
+
+        \row
+        \li point map(point)
+        \li Maps the provided point into the coordinate system defined by this matrix.
+            This function was introduced in Qt 6.5.
+        \li \code
+var a = Qt.matrix4x4(2,0,0,0,0,2,0,0,0,0,1,0,0,0,0,1);
+var b = a.map(10, 20);
+console.log(b.toString());
+// Qt.point(20, 40)
+            \endcode
+
+        \row
+        \li bool fuzzyEquals(matrix4x4 other, real epsilon)
+        \li Returns true if \c this matrix4x4 is approximately equal to the \c other matrix4x4.
+            The approximation will be true if each attribute of \c this is within \c epsilon
+            of the respective attribute of \c other.  Note that \c epsilon is an optional
+            argument, the default \c epsilon is 0.00001.
+        \li \code
+var a = Qt.matrix4x4(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
+var b = Qt.matrix4x4(1.0001,2.0001,3.0002,4.0003,5.0001,6.0002,
+                     7.0002,8.0004, 9.0001,10.0003,
+                     11.0003,12.0004,13.0001,
+                     14.0002,15.0003,16.0004);
+var c = a.fuzzyEquals(b);        // default epsilon
+var d = a.fuzzyEquals(b, 0.005); // supplied epsilon
+console.log(c + " " + d); // false true
+            \endcode
+\endtable
+
+    This value type is provided by the \l[QML]{QtQuick} import.
+
+    \sa {QML Value Types}
+*/

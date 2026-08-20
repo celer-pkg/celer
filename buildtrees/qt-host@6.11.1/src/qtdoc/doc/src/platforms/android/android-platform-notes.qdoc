@@ -1,0 +1,77 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+    \page android-platform-notes.html
+    \title Android Platform Notes
+    \ingroup android-platform-extra-topics
+    \previouspage Supporting Google Emoji Font Policy
+    \nextpage Android GNU C++ Run-time Licensing
+    \brief Information particular to building and running Qt applications on Android.
+
+    This page contains information particular to building and running Qt
+    applications on Android. See \l{android_support}{Supported Android Versions}
+    for what Android versions and API levels are supported.
+
+    \section1 Plugins and Imports Special Considerations
+
+    If an application uses plugins that depend on other modules, these modules
+    must be listed in the application's dependencies. For more information, see
+    \l{Dependencies Detection}.
+
+    \section2 Qt GUI Dependency
+
+    Given that Android apps typically include GUI elements, the Qt for Android
+    plugin is built mainly to provide a GUI, so it implements the various QPA
+    abstractions. As a result, deploying a Qt for Android app is expected to
+    involve a dependency on \l [QtGui]{Qt GUI}. Moreover, it's worth noting that Qt
+    Creator only supports Gradle builds and deployments, meaning that command
+    line or shell executions are not supported out of the box.
+
+    \section1 OpenGL Special Considerations
+
+    Modern devices often support OpenGL ES 3.0 or 3.1 in addition to 2.0. To get
+    a suitable OpenGL context, set the requested version via
+    \l{QSurfaceFormat::setVersion()}.
+
+    \note Using OpenGL ES 3.x features will result in the application breaking on older
+    devices that only support 2.0.
+
+    \section1 Known Issues
+
+    \section2 Qt Creator Debugging Issues
+
+    See \l {\QC: Known Issues#Debugging Issues}{Qt Creator Debugging Issues on Android}
+    for more information.
+
+    \section2 Predictive Text
+
+    Due to a bug on some devices, when you turn off predictive text with
+    \c{ImhNoPredictiveText}, this property is ignored and predictive text is
+    still enabled. To work around this, set the
+    \c{QT_ANDROID_ENABLE_WORKAROUND_TO_DISABLE_PREDICTIVE_TEXT} environment
+    variable to \c 1. However, one side effect is that this environment variable
+    can cause a problem with other keyboards such as Gboard. If you use a
+    language like Japanese, with Gboard, only a QWERTY keyboard is displayed.
+    This environment variable is queried each time the keyboard is displayed,
+    so it's possible to toggle the workaround on and off, as necessary.
+
+    \section2 Text Glyph Caching
+
+    Because of a bug in some OpenGL drivers, the mechanism used by Qt to cache
+    text glyphs does not work as expected on all Android devices, causing text
+    to appear scrambled. To remedy this, a workaround is in place, but it can
+    increase memory consumption and can also affect text rendering performance.
+    The workaround is now used by default on all devices.
+
+    You can disable the workaround by setting the
+    \c QT_ANDROID_DISABLE_GLYPH_CACHE_WORKAROUND environment variable to \e 1 or
+    \e true. However, you should do so only after verifying that text appears
+    correctly on all targeted devices.
+
+    \section1 Limitations
+
+    Some of the Qt modules or tools might have features that are not supported on Android
+    or have limitations. See a specific module's \l{All Modules}{documentation} for any platform
+    limitations.
+
+*/

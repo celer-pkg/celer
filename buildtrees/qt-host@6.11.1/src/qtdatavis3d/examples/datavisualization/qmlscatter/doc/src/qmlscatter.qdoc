@@ -1,0 +1,163 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example qmlscatter
+    \meta tags {DataVisualization, Scatter3D, Multiple Series}
+    \title Simple Scatter Graph
+    \ingroup qtdatavisualization_qmlexamples
+    \brief Using Scatter3D in a QML application.
+
+    \e {Simple Scatter Graph} shows how to make a simple scatter graph visualization using
+    Scatter3D and QML.
+
+    For instructions about how to interact with the graph, see
+    \l{Qt Data Visualization Interacting with Data}{this page}.
+
+    For instructions on how to create a new Qt Quick application of your own, see Qt Creator help.
+
+    \image qmlscatter-example.png
+
+    \include examples-run.qdocinc
+
+    \section1 Application Basics
+
+    Before diving into the QML code, take a look at the application \c main.cpp.
+
+    This application implements a 'Quit' button in the UI, so you want to connect the QQmlEngine::quit()
+    signal to the application's QWindow::close() slot:
+
+    \snippet qmlscatter/main.cpp 4
+
+    To make deployment a little simpler, gather all of the application's \c .qml files to a resource
+    file (\c qmlscatter.qrc):
+
+    \badcode
+    <RCC>
+        <qresource prefix="/">
+            <file>qml/qmlscatter/Data.qml</file>
+            <file>qml/qmlscatter/main.qml</file>
+        </qresource>
+    </RCC>
+    \endcode
+
+    This also requires setting the \c main.qml to be read from the resource (\c{qrc:}):
+
+    \snippet qmlscatter/main.cpp 3
+
+    When using cmake instead of qmake, the \c .qml files are added into a QML module in the
+    \c {CMakeLists.txt} instead:
+
+    \badcode
+    qt6_add_qml_module(qmlscatter
+        URI Scatter
+        VERSION 1.0
+        NO_RESOURCE_TARGET_PATH
+        QML_FILES
+            qml/qmlscatter/Data.qml
+            qml/qmlscatter/main.qml
+    )
+    \endcode
+
+    Finally, make the application run in a maximized window:
+
+    \snippet qmlscatter/main.cpp 2
+
+    \section1 Setting up the Graph
+
+    First, import all the needed QML modules:
+
+    \snippet qmlscatter/qml/qmlscatter/main.qml 0
+
+    Then, create the main \c Item and call it \c mainView:
+
+    \snippet qmlscatter/qml/qmlscatter/main.qml 1
+
+    Then, add another \c Item inside the main \c Item, and call it \c {dataView}.
+    This will be the item to hold the Scatter3D graph. Anchor it to the parent bottom:
+
+    \snippet qmlscatter/qml/qmlscatter/main.qml 9
+
+    Next, add the Scatter3D graph itself. Add it inside the \c dataView and
+    name it \c {scatterGraph}. Make it fill the \c {dataView}:
+
+    \snippet qmlscatter/qml/qmlscatter/main.qml 2
+
+    Now the graph is ready for use, but has no data. It also has the default axes and visual
+    properties.
+
+    Next, modify some visual properties first by adding the following inside \c {scatterGraph}:
+
+    \snippet qmlscatter/qml/qmlscatter/main.qml 3
+
+    A customized theme was added, the shadow quality changed, and the camera position adjusted.
+    The other visual properties are fine, so there is no need to change them.
+
+    The custom theme is based on a predefined theme, \c {Theme3D.ThemeQt}, but the font in it
+    is changed:
+
+    \snippet qmlscatter/qml/qmlscatter/main.qml 13
+
+    Then, start feeding the graph some data.
+
+    \section1 Adding Data to the Graph
+
+    Create a \c Data item inside the \c mainView and name it \c seriesData:
+
+    \snippet qmlscatter/qml/qmlscatter/main.qml 4
+
+    The \c seriesData item contains the data models for all three series used in this example.
+
+    This is the component that holds the data in \c {Data.qml}. It has an \c Item as the main
+    component.
+
+    In the main component, add the data itself to a \c ListModel and name it \c {dataModel}:
+
+    \snippet qmlscatter/qml/qmlscatter/Data.qml 0
+    \dots
+
+    Add two more of these to the other two series, and name them \c dataModelTwo and
+    \c {dataModelThree}.
+
+    Then, expose the data models to be usable from \c {main.qml}. Do this by defining
+    them as aliases in the main data component:
+
+    \snippet qmlscatter/qml/qmlscatter/Data.qml 1
+
+    Now you can use the data from \c Data.qml with \c scatterGraph in \c {main.qml}. First, add
+    a Scatter3DSeries and call it \c {scatterSeries}:
+
+    \snippet qmlscatter/qml/qmlscatter/main.qml 5
+
+    Then, set up selection label format for the series:
+
+    \snippet qmlscatter/qml/qmlscatter/main.qml 10
+
+    And finally, add the data for series one in a ItemModelScatterDataProxy. Set the data itself as
+    the \c itemModel for the proxy:
+
+    \snippet qmlscatter/qml/qmlscatter/main.qml 11
+
+    Add the other two series in the same way, but modify some series-specific details a bit:
+
+    \snippet qmlscatter/qml/qmlscatter/main.qml 12
+    \dots
+
+    Then, modify the properties of the default axes in \c scatterGraph a bit:
+
+    \snippet qmlscatter/qml/qmlscatter/main.qml 6
+
+    After that, add a few buttons to the \c mainView to control the graph, one of which is shown as
+    an example:
+
+    \snippet qmlscatter/qml/qmlscatter/main.qml 7
+
+    Then, modify \c dataView to make some room for the buttons at the top:
+
+    \snippet qmlscatter/qml/qmlscatter/main.qml 8
+    \dots
+
+    And you're done!
+
+    \section1 Example Contents
+*/

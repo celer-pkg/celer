@@ -1,0 +1,164 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page audiooverview.html
+\title Audio Overview
+\inlineimage sound-wave-small.jpg
+             {Sound wave}
+\brief Playback, recording and processing of Audio.
+\ingroup explanations-graphicsandmultimedia
+
+\section1 Audio Features
+
+Qt Multimedia offers a range of audio classes that cover both low and
+high level approaches to: audio input, output and processing.
+
+\section1 Audio Implementation Details
+
+\section2 Playing Compressed Audio
+
+For playing media or audio files that are not simple, uncompressed audio, you
+can use the QMediaPlayer C++ class, or the \l{MediaPlayer} QML type.
+The QMediaPlayer class and associated QML types are also capable of playing
+\l{multimedia-playing-video}{video}, if required.
+
+See \l{Supported Media Formats} for more detail.
+
+The media player needs to be connected to a QAudioOutput object (or the QML AudioOutput
+element) to play back audio.
+
+Here is how you play a local file using C++:
+
+    \snippet multimedia-snippets/media.cpp Local playback
+
+The same functionality in QML:
+
+\qml
+MediaPlayer {
+    audioOutput: AudioOutput {}
+    source: "file:///path/to/my/music.mp3"
+    Component.onCompleted: { play() }
+}
+\endqml
+
+\section2 Recording Audio to a File
+
+To record audio to a file, you need to create a capture session and connect to it an audio
+input and a recorder. These elements are implemented with the QMediaCaptureSession,
+QAudioInput, and QMediaRecorder classes. The default constructed QAudioInput selects the
+system default audio input. The recorder controls the recording process with a simple record()
+and stop() functions. Additionally, you can use it to select the output location, audio
+encoder, or file container format.
+
+A session recording audio from the default microphone would look as follows in C++:
+
+    \snippet multimedia-snippets/media.cpp Media recorder
+
+In QML, the same can be achieved by:
+
+\qml
+CaptureSession {
+    audioInput: AudioInput {}
+    mediaRecorder: MediaRecorder {
+        id: recorder
+        outputLocation: "file:///path/to/test.mp3"
+    }
+    Component.onCompleted: { recorder.record() }
+}
+\endqml
+
+QMediaCaptureSession also provides support for more complex use cases such as image
+capturing or video recording.
+
+\section2 Low Latency Sound Effects
+
+In addition to \l{raw access} to sound devices, the QSoundEffect
+class (and \l{SoundEffect} QML type) offers a more abstract way to play
+sounds. This class allows you to specify a \b{WAV format} file, which can
+then be played with low latency when necessary.
+
+You can adjust the:
+\list
+    \li \l{QSoundEffect::loopCount()}{Number of loops} in which a sound effect
+    is played.
+    \li \l{QSoundEffect::setVolume()}{Volume} of the sound effect.
+    \li \l{QSoundEffect::setMuted()}{Muting} of the sound effect.
+\endlist
+
+\target raw access
+\section2 Low Level Audio Input and Output
+
+The C++ API of Qt Multimedia offers classes for raw access to audio input and output
+facilities, allowing applications to receive raw data from devices like
+microphones, and to write raw data to speakers or other devices. Generally
+these classes do not do any audio decoding, or other processing, but they
+can support different types of raw audio data.
+
+The QAudioSink class offers raw audio data output, while QAudioSource
+offers raw audio data input. The available hardware
+determines what audio outputs and inputs are available.
+
+\section3 Push and Pull using QIODevice
+The low level audio classes can operate in two modes - \c push and \c pull.
+In \c pull mode, the audio device is started by giving it a QIODevice.  For
+an output device, the QAudioSink class will pull data from the QIODevice
+(using \l QIODevice::read()) when more audio data is required. Conversely,
+for \c pull mode with QAudioSource, when audio data is available then the
+data will be written directly to the QIODevice.
+
+In \c push mode, the audio device provides a QIODevice instance that
+can be written or read to as needed.
+
+    \note The QIODevice does not immediately access the audio device, but
+          instead buffers the data internally. This means that the QIODevice
+          can be used to write or read data at any time from the application
+          thread and buffering of typically 250ms is added. If the application
+          is not delivering audio data to the QIODevice quickly enough (for QAudioSink)
+          or is not reading the QIODevice quickly enough, audio dropouts will occur.
+
+
+\section3 Callback-based Interface
+
+In addition to using a QIODevice based interface, the low level audio classes provide
+a callback-based interface that allows users to register a callback which is called
+on the audio thread whenever the audio device needs or delivers more data. This allows
+much lower latency audio processing, as the application can process the data directly
+on the audio thread.
+
+\snippet multimedia-snippets/audio.cpp Audio callback output setup sine
+
+\qtmmaudiocallbacksupportednote
+\qtmmaudiocallbacknote
+
+\section2 Decoding Compressed Audio to Memory
+
+In some cases you may want to decode a compressed audio file and do further
+processing yourself. For example, mixing multiple samples or using custom
+digital signal processing algorithms. QAudioDecoder supports decoding local
+files or data streams from QIODevice instances.
+
+Here's an example of decoding a local file:
+
+    \snippet multimedia-snippets/audio.cpp Local audio decoding
+
+\section2 Spatial Audio
+
+The \l {Qt Spatial Audio} module provides an API for implementation sound
+fields in 3D space.
+
+\section1 Reference Documentation
+
+\section2 C++ Classes
+
+\annotatedlist multimedia_audio
+
+\section2 QML Types
+
+\annotatedlist multimedia_audio_qml
+
+\section2 Examples
+
+\annotatedlist audio_examples
+*/
+

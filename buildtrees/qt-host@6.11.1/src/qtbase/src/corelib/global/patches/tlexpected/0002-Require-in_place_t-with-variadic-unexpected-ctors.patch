@@ -1,0 +1,311 @@
+From c6064c91aa84412d07a4f3948d19496e0f294cef Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?J=C3=B8ger=20Hanseg=C3=A5rd?= <joger.hansegard@qt.io>
+Date: Wed, 19 Feb 2025 14:05:45 +0100
+Subject: [PATCH 2/3] Require in_place_t with variadic unexpected ctors
+
+This makes unexpected ctors more consistent with the C++ standard
+---
+ include/tl/expected.hpp |  31 +++++-----
+ tests/constructors.cpp  | 123 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 140 insertions(+), 14 deletions(-)
+
+diff --git a/include/tl/expected.hpp b/include/tl/expected.hpp
+index 9d3a5e1..83920bd 100644
+--- a/include/tl/expected.hpp
++++ b/include/tl/expected.hpp
+@@ -156,13 +156,15 @@ public:
+ 
+   template <class... Args, typename std::enable_if<std::is_constructible<
+                                E, Args &&...>::value>::type * = nullptr>
+-  constexpr explicit unexpected(Args &&...args)
++  constexpr explicit unexpected(in_place_t, Args &&...args)
+       : m_val(std::forward<Args>(args)...) {}
++
+   template <
+       class U, class... Args,
+       typename std::enable_if<std::is_constructible<
+           E, std::initializer_list<U> &, Args &&...>::value>::type * = nullptr>
+-  constexpr explicit unexpected(std::initializer_list<U> l, Args &&...args)
++  constexpr explicit unexpected(in_place_t, std::initializer_list<U> l,
++                                Args &&...args)
+       : m_val(l, std::forward<Args>(args)...) {}
+ 
+   constexpr const E &error() const & { return m_val; }
+@@ -471,7 +473,7 @@ struct expected_storage_base {
+             detail::enable_if_t<std::is_constructible<E, Args &&...>::value> * =
+                 nullptr>
+   constexpr explicit expected_storage_base(unexpect_t, Args &&...args)
+-      : m_unexpect(std::forward<Args>(args)...), m_has_val(false) {}
++      : m_unexpect(in_place, std::forward<Args>(args)...), m_has_val(false) {}
+ 
+   template <class U, class... Args,
+             detail::enable_if_t<std::is_constructible<
+@@ -479,7 +481,7 @@ struct expected_storage_base {
+   constexpr explicit expected_storage_base(unexpect_t,
+                                            std::initializer_list<U> il,
+                                            Args &&...args)
+-      : m_unexpect(il, std::forward<Args>(args)...), m_has_val(false) {}
++      : m_unexpect(in_place, il, std::forward<Args>(args)...), m_has_val(false) {}
+ 
+   ~expected_storage_base() {
+     if (m_has_val) {
+@@ -518,7 +520,7 @@ template <class T, class E> struct expected_storage_base<T, E, true, true> {
+             detail::enable_if_t<std::is_constructible<E, Args &&...>::value> * =
+                 nullptr>
+   constexpr explicit expected_storage_base(unexpect_t, Args &&...args)
+-      : m_unexpect(std::forward<Args>(args)...), m_has_val(false) {}
++      : m_unexpect(in_place, std::forward<Args>(args)...), m_has_val(false) {}
+ 
+   template <class U, class... Args,
+             detail::enable_if_t<std::is_constructible<
+@@ -526,7 +528,7 @@ template <class T, class E> struct expected_storage_base<T, E, true, true> {
+   constexpr explicit expected_storage_base(unexpect_t,
+                                            std::initializer_list<U> il,
+                                            Args &&...args)
+-      : m_unexpect(il, std::forward<Args>(args)...), m_has_val(false) {}
++      : m_unexpect(in_place, il, std::forward<Args>(args)...), m_has_val(false) {}
+ 
+   expected_storage_base(const expected_storage_base &) = default;     
+   expected_storage_base(expected_storage_base &&) = default;
+@@ -563,7 +565,7 @@ template <class T, class E> struct expected_storage_base<T, E, true, false> {
+             detail::enable_if_t<std::is_constructible<E, Args &&...>::value> * =
+                 nullptr>
+   constexpr explicit expected_storage_base(unexpect_t, Args &&...args)
+-      : m_unexpect(std::forward<Args>(args)...), m_has_val(false) {}
++      : m_unexpect(in_place, std::forward<Args>(args)...), m_has_val(false) {}
+ 
+   template <class U, class... Args,
+             detail::enable_if_t<std::is_constructible<
+@@ -571,7 +573,7 @@ template <class T, class E> struct expected_storage_base<T, E, true, false> {
+   constexpr explicit expected_storage_base(unexpect_t,
+                                            std::initializer_list<U> il,
+                                            Args &&...args)
+-      : m_unexpect(il, std::forward<Args>(args)...), m_has_val(false) {}
++      : m_unexpect(in_place, il, std::forward<Args>(args)...), m_has_val(false) {}
+ 
+   expected_storage_base(const expected_storage_base &) = default;
+   expected_storage_base(expected_storage_base &&) = default;
+@@ -612,7 +614,7 @@ template <class T, class E> struct expected_storage_base<T, E, false, true> {
+             detail::enable_if_t<std::is_constructible<E, Args &&...>::value> * =
+                 nullptr>
+   constexpr explicit expected_storage_base(unexpect_t, Args &&...args)
+-      : m_unexpect(std::forward<Args>(args)...), m_has_val(false) {}
++      : m_unexpect(in_place, std::forward<Args>(args)...), m_has_val(false) {}
+ 
+   template <class U, class... Args,
+             detail::enable_if_t<std::is_constructible<
+@@ -620,7 +622,8 @@ template <class T, class E> struct expected_storage_base<T, E, false, true> {
+   constexpr explicit expected_storage_base(unexpect_t,
+                                            std::initializer_list<U> il,
+                                            Args &&...args)
+-      : m_unexpect(il, std::forward<Args>(args)...), m_has_val(false) {}
++      : m_unexpect(in_place, il, std::forward<Args>(args)...),
++        m_has_val(false) {}
+ 
+   expected_storage_base(const expected_storage_base &) = default;
+   expected_storage_base(expected_storage_base &&) = default;
+@@ -656,7 +659,7 @@ template <class E> struct expected_storage_base<void, E, false, true> {
+             detail::enable_if_t<std::is_constructible<E, Args &&...>::value> * =
+                 nullptr>
+   constexpr explicit expected_storage_base(unexpect_t, Args &&...args)
+-      : m_unexpect(std::forward<Args>(args)...), m_has_val(false) {}
++      : m_unexpect(in_place, std::forward<Args>(args)...), m_has_val(false) {}
+ 
+   template <class U, class... Args,
+             detail::enable_if_t<std::is_constructible<
+@@ -664,7 +667,7 @@ template <class E> struct expected_storage_base<void, E, false, true> {
+   constexpr explicit expected_storage_base(unexpect_t,
+                                            std::initializer_list<U> il,
+                                            Args &&...args)
+-      : m_unexpect(il, std::forward<Args>(args)...), m_has_val(false) {}
++      : m_unexpect(in_place, il, std::forward<Args>(args)...), m_has_val(false) {}
+ 
+   expected_storage_base(const expected_storage_base &) = default;
+   expected_storage_base(expected_storage_base &&) = default;
+@@ -690,7 +693,7 @@ template <class E> struct expected_storage_base<void, E, false, false> {
+             detail::enable_if_t<std::is_constructible<E, Args &&...>::value> * =
+                 nullptr>
+   constexpr explicit expected_storage_base(unexpect_t, Args &&...args)
+-      : m_unexpect(std::forward<Args>(args)...), m_has_val(false) {}
++      : m_unexpect(in_place, std::forward<Args>(args)...), m_has_val(false) {}
+ 
+   template <class U, class... Args,
+             detail::enable_if_t<std::is_constructible<
+@@ -698,7 +701,7 @@ template <class E> struct expected_storage_base<void, E, false, false> {
+   constexpr explicit expected_storage_base(unexpect_t,
+                                            std::initializer_list<U> il,
+                                            Args &&...args)
+-      : m_unexpect(il, std::forward<Args>(args)...), m_has_val(false) {}
++      : m_unexpect(in_place, il, std::forward<Args>(args)...), m_has_val(false) {}
+ 
+   expected_storage_base(const expected_storage_base &) = default;
+   expected_storage_base(expected_storage_base &&) = default;
+diff --git a/tests/constructors.cpp b/tests/constructors.cpp
+index 10b96de..f24a46a 100644
+--- a/tests/constructors.cpp
++++ b/tests/constructors.cpp
+@@ -3,6 +3,7 @@
+ 
+ #include <type_traits>
+ #include <vector>
++#include <array>
+ #include <string>
+ 
+ struct takes_init_and_variadic {
+@@ -13,6 +14,27 @@ struct takes_init_and_variadic {
+         : v(l), t(std::forward<Args>(args)...) {}
+ };
+ 
++struct trivial_type {
++    int x;
++    int y;
++    trivial_type(int _x, int _y) : x{_x}, y{_y} {}
++    trivial_type(std::initializer_list<int> list) {
++      auto it = list.begin();
++      x = *it;
++      ++it;
++      y = *it;
++    }
++};
++
++struct takes_init_and_variadic_trivial {
++    trivial_type p;
++    std::tuple<int, int> t;
++    template <class... Args>
++    takes_init_and_variadic_trivial(std::initializer_list<int> l,
++                                         Args &&...args)
++      : p(l), t(std::forward<Args>(args)...) {}
++};
++
+ TEST_CASE("Constructors", "[constructors]") {
+     {
+         tl::expected<int,int> e;
+@@ -38,6 +60,12 @@ TEST_CASE("Constructors", "[constructors]") {
+         REQUIRE(e == 42);
+     }
+ 
++    {
++        tl::expected<int, int> e(tl::in_place);
++        REQUIRE(e);
++        REQUIRE(e == 0);
++    }
++
+     {
+         tl::expected<std::vector<int>,int> e (tl::in_place, {0,1});
+         REQUIRE(e);
+@@ -52,6 +80,40 @@ TEST_CASE("Constructors", "[constructors]") {
+         REQUIRE(std::get<1>(*e) == 1);
+     }
+ 
++    {
++        tl::expected<int, std::tuple<int, int>> e(tl::unexpect, 0, 1);
++        REQUIRE(!e);
++        REQUIRE(std::get<0>(e.error()) == 0);
++        REQUIRE(std::get<1>(e.error()) == 1);
++    }
++
++    {
++        tl::expected<void, std::tuple<int, int>> e(tl::unexpect, 0, 1);
++        REQUIRE(!e);
++        REQUIRE(std::get<0>(e.error()) == 0);
++        REQUIRE(std::get<1>(e.error()) == 1);
++    }
++    {
++        tl::expected<void, std::vector<int>> e(tl::unexpect, 2, 1);
++        REQUIRE(!e);
++        REQUIRE(e.error()[0] == 1);
++        REQUIRE(e.error()[1] == 1);
++    }
++    {
++        tl::expected<std::vector<int>, std::vector<int>> e(tl::unexpect, 2, 1);
++        REQUIRE(!e);
++        REQUIRE(e.error()[0] == 1);
++        REQUIRE(e.error()[1] == 1);
++    }
++    {
++        tl::expected<std::vector<int>, takes_init_and_variadic> e(tl::unexpect,
++                                                                  {0, 1}, 2, 3);
++        REQUIRE(!e);
++        REQUIRE(e.error().v[0] == 0);
++        REQUIRE(e.error().v[1] == 1);
++        REQUIRE(std::get<0>(e.error().t) == 2);
++        REQUIRE(std::get<1>(e.error().t) == 3);
++    }
+     {
+         tl::expected<takes_init_and_variadic,int> e (tl::in_place, {0,1}, 2, 3);
+         REQUIRE(e);
+@@ -60,6 +122,59 @@ TEST_CASE("Constructors", "[constructors]") {
+         REQUIRE(std::get<0>(e->t) == 2);
+         REQUIRE(std::get<1>(e->t) == 3);
+     }
++    {
++        tl::expected<int, takes_init_and_variadic> e(tl::unexpect, {0, 1}, 2, 3);
++        REQUIRE(!e);
++        REQUIRE(e.error().v[0] == 0);
++        REQUIRE(e.error().v[1] == 1);
++        REQUIRE(std::get<0>(e.error().t) == 2);
++        REQUIRE(std::get<1>(e.error().t) == 3);
++    }
++    {
++        tl::expected<int, takes_init_and_variadic_trivial> e(tl::unexpect, {0, 1}, 2, 3);
++        REQUIRE(!e);
++        REQUIRE(e.error().p.x == 0);
++        REQUIRE(e.error().p.y == 1);
++        REQUIRE(std::get<0>(e.error().t) == 2);
++        REQUIRE(std::get<1>(e.error().t) == 3);
++    }
++    {
++        tl::expected<void, takes_init_and_variadic_trivial> e(tl::unexpect,
++                                                                   {0, 1}, 2, 3);
++        REQUIRE(!e);
++        REQUIRE(e.error().p.x == 0);
++        REQUIRE(e.error().p.y == 1);
++        REQUIRE(std::get<0>(e.error().t) == 2);
++        REQUIRE(std::get<1>(e.error().t) == 3);
++    }
++    {
++        tl::expected<int, std::vector<int>> e(tl::unexpect, 2, 1);
++        REQUIRE(!e);
++        REQUIRE(e.error()[0] == 1);
++        REQUIRE(e.error()[1] == 1);
++    }
++    {
++        tl::expected<std::vector<int>, trivial_type> e(tl::unexpect, 1, 2);
++        REQUIRE(!e);
++        REQUIRE(e.error().x == 1);
++        REQUIRE(e.error().y == 2);
++    }
++    {
++        tl::expected<std::vector<int>, takes_init_and_variadic_trivial> e(tl::unexpect, {1, 2}, 3, 4);
++        REQUIRE(!e);
++        REQUIRE(e.error().p.x == 1);
++        REQUIRE(e.error().p.y == 2);
++        REQUIRE(std::get<0>(e.error().t) == 3);
++        REQUIRE(std::get<1>(e.error().t) == 4);
++    }
++    {
++        tl::expected<void, takes_init_and_variadic> e(tl::unexpect, {0, 1}, 2, 3);
++        REQUIRE(!e);
++        REQUIRE(e.error().v[0] == 0);
++        REQUIRE(e.error().v[1] == 1);
++        REQUIRE(std::get<0>(e.error().t) == 2);
++        REQUIRE(std::get<1>(e.error().t) == 3);
++    }
+ 
+ 	{
+ 		tl::expected<int, int> e;
+@@ -152,3 +267,11 @@ TEST_CASE("Constructors", "[constructors]") {
+         REQUIRE(e2.error().val == 's');
+     }
+ }
++
++TEST_CASE("Unexpected constructors", "[constructors]") {
++    REQUIRE(tl::unexpected<int>(1).error() == 1);
++    REQUIRE(tl::unexpected<int>(tl::in_place).error() == 0);
++    REQUIRE(tl::unexpected<int>(tl::in_place, 1).error() == 1);
++    REQUIRE(tl::unexpected<std::vector<int>>(tl::in_place, {1, 2, 3}).error() ==
++            std::vector<int>{1, 2, 3});
++}
+-- 
+2.44.0.windows.1
+

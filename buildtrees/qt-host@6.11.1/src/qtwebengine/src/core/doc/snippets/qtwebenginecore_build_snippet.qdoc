@@ -1,0 +1,11 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [0]
+QT += webenginecore
+//! [0]
+
+//! [2]
+find_package(Qt6 REQUIRED COMPONENTS WebEngineCore)
+target_link_libraries(target PRIVATE Qt6::WebEngineCore)
+//! [2]

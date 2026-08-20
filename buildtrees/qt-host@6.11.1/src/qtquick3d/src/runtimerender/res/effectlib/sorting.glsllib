@@ -1,0 +1,50 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#ifndef SortType
+#error "SortType not defined"
+#endif
+#ifndef SortOp
+#error "SortOp not defined"
+#endif
+#ifndef SORT_SIZE
+#error "SORT_SIZE not defined"
+#endif
+
+void qt_bubbleSort(inout SortType data[SORT_SIZE], int n)
+{
+    for (int i = 0; i < n - 1; i++) {
+        bool swapped = false;
+        for (int j = 0; j < n - i - 1; j++) {
+            if (SortOp(data[j], data[j + 1])) {
+                // Swap data[j] and data[j + 1]
+                SortType temp = data[j + 1];
+                data[j + 1]   = data[j];
+                data[j]       = temp;
+                swapped = true;
+            }
+        }
+        if (!swapped)
+            break;
+    }
+}
+
+
+// Inserts a new item into data so that data remains sorted in increasing
+// order according to its second components.
+SortType qt_insertionSort(inout SortType data[SORT_SIZE], SortType newitem)
+{
+    SortType k = newitem;
+    for (int i = 0; i < SORT_SIZE; ++i) {
+        if (SortOp(newitem, data[i])) {
+            // shift rest
+            k = data[SORT_SIZE - 1];
+            for (int j = SORT_SIZE - 1; j > i; j--)
+                data[j] = data[j - 1];
+
+            data[i] = newitem;
+            break;
+        }
+    }
+    return k;
+}

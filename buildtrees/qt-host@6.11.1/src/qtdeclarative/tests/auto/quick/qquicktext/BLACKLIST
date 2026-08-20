@@ -1,0 +1,24 @@
+[hAlignVisual]
+sles
+# QTQAINFRA-4127
+[fontSizeModeMultiline]
+ci b2qt 32bit
+[baselineOffset]
+ci b2qt 32bit
+# QTBUG-102721
+[hAlignWidthDependsOnImplicitWidth]
+android
+[hAlignImplicitWidth]
+android
+[transparentBackground]
+android
+
+# QTBUG-103096
+[largeTextObservesViewport]
+android
+[baselineOffset]
+android
+
+# QTBUG-132075
+[multilengthStrings]
+windows

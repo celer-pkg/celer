@@ -1,0 +1,67 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+   \page qtpurchasing-iosclasses.html
+   \title Demo iOS Classes
+   \brief IOS classes are used in the purchasing demo to enable purchasing in iOS.
+
+   \section1 Classes
+   \table
+      \row
+         \li \l IosInAppPurchaseProduct
+         \li A product registered in the store.
+      \row
+         \li \l IosInAppPurchaseTransaction
+         \li Contains information about a transaction in the external app store.
+      \row
+         \li \l IosInAppPurchaseBackend
+         \li Comminucates with external store.
+   \endtable
+
+   Check out \l {Base Classes} which include InAppProduct, InAppStore,
+   InAppTransaction and InAppPurchaseBackend
+
+   \section1 IosInAppPurchaseProduct
+
+   IosInAppPurchaseProduct adds purchase() for initializing purchasing process.
+
+   \section1 IosInAppPurchaseTransaction
+
+   IosInAppPurchaseTransaction adds new parameters and return types.
+   Transaction error handling is implemented on IosInAppPurchaseTransaction's
+   constructor. The class has the finalize() function that finalizes the transaction.
+
+   \section1 IosInAppPurchaseBackend
+
+   IosInAppPurchaseBackend uses \b Objective-C language to communicate with the App
+   Store.
+
+   \section2 Initializing the products
+
+   This class shows the product's information on the store page.
+
+   \list 1
+      \li IosInAppPurchaseBackend is called from InAppStore::setupBackend().
+      \li At initialization IosInAppPurchaseBackend creates InAppPurchaseManager with
+         Objective-C.
+      \li InAppStore::registerProduct(productType, &identifier) function is called and
+         queryProduct() is executed in the back end.
+      \li Objective-C function requestProductData:() is called and will make \l{https://developer.apple.com/documentation/storekit/skproductsrequest}{SKProductRequest}.
+      \li After SKProductRequest is finished and product objects has been
+         created in Objective-C productsRequest:(), products will be registered
+         by the IosInAppPurchaseBackend::registerProduct() function.
+      \li Signal productQueryDone() will be emitted and the item's information will be
+         visible on the application's store page.
+   \endlist
+
+   \section2 Purchasing process
+
+   \list 1
+      \li The user presses one of the products on the applications store page.
+      \li \c IosInAppPurchaseProduct::purchase() function is called and payment is added to
+      the \c SKPaymentQueue in the Objective-C function paymentQueue:() in
+      IosInAppPurchaseBackend.
+      \li Purchase confirmation pop-up is launched for the user.
+   \endlist
+*/

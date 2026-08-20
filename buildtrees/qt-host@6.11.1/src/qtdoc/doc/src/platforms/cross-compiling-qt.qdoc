@@ -1,0 +1,104 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page cross-compiling-qt.html
+    \title Cross-compiling Qt
+    \brief Building Qt for a platform different from your host platform.
+
+    This page describes the general process and requirements of cross-compiling
+    Qt.
+
+    If you're just looking for a way to build a host Qt, see \l{Creating the
+    host build of Qt}.
+
+    \section1 Terms and definitions
+
+    \e Cross-compiling means configuring and building for a target platform
+    that's different from your host platform.
+
+    The \e host is the computer you are building Qt on, for example a Linux
+    machine. The \e target is the device you're building Qt for, for example an
+    Android tablet.
+
+    When building Qt, several tools are run that generate code or do some other
+    processing. These tools run on the \e host and are therefore called the
+    \e{host tools}. These host tools are part of a \e{host build} of Qt. This
+    host build must be prepared as a prerequisite to building Qt for the
+    \e{target platform}.
+
+    A \e{minimal host build} of Qt is a \e{host build} of Qt that only contains
+    the \e{host tools} necessary to create a \e{target build} of Qt.
+
+    Qt is built with CMake, and CMake needs a \e{toolchain file} when
+    cross-compiling. This file contains information about the target platform
+    and the used toolchain. See the
+    \l{https://cmake.org/cmake/help/latest/manual/cmake-toolchains.7.html#cross-compiling}
+    {CMake documentation on cross-compiling}.
+
+    For some target platforms, the Qt configure script automatically selects the
+    file. See the documentation that's specific for the desired target platform
+    for details.
+
+    For some target platforms, you need to specify a \e sysroot. That is a
+    self-contained environment that includes all necessary files and libraries
+    required for compiling and linking applications.
+
+    \section1 General notes on the host build of Qt
+
+    During the build of Qt for the target, tools such as \c moc, \c rcc, \c
+    qmlcachegen, \c qsb, and others, are invoked from there. For example, if one
+    cross-compiles for ARM on an x64 machine, a local x64 build of the same Qt
+    version must be made available first. The path to this Qt build will be
+    passed to \c configure or \c cmake. The host build of Qt is usually a
+    regular build of Qt for your host device.
+
+    The host build of Qt must contain all necessary host tools for building Qt
+    for the target platform. For example, if your target Qt is supposed to
+    support Qt Quick, the host Qt must contain \e qsb, the shader compiler. An
+    easy way to ensure that the host Qt provides all necessary tools is to build
+    the same Qt modules on the host that you'll need on the target.
+
+    Avoid building the host Qt statically if the target Qt is built shared. A
+    static build of Qt might not contain all tools necessary to build a shared
+    Qt.
+
+    Ensure you use the same version of Qt for the host and target Qt to avoid
+    incompatibility issues.
+
+    \section1 Creating the host build of Qt
+
+    See \l{Building Qt Sources}{the documentation of the desired host} for
+    details on how to build Qt for that platform.
+
+    To build a \e{minimal host Qt}, use the following build command after
+    configuring Qt:
+
+    \badcode
+    mkdir ~/QtHostBuild
+    cd ~/QtHostBuild
+    ~/QtSource/configure -developer-build -nomake tests
+    cmake --build . --target host_tools
+    \endcode
+
+    This build won't be suitable for developing Qt programs for your host
+    platform, but it will contain the tools necessary to cross-build Qt.
+
+    \section1 Specifying the host build of Qt when cross-compiling
+
+    When cross-compiling, you must point the target Qt to the location of the
+    host Qt.
+
+    When using the configure script, you use
+    \badcode
+    ~/QtSource/configure -qt-host-path ~/QtHostBuild ...target-specific options...
+    \endcode
+
+    When using CMake directly, you use
+    \badcode
+    cmake -S ~/QtSource -DQT_HOST_PATH=~/QtHostBuild ...target-specific options...
+    \endcode
+
+    See \l{Building Qt Sources}{the documentation of the desired target} for
+    target-specific options.
+*/

@@ -1,0 +1,136 @@
+{
+  probes: {
+    trace_processor: {
+      queries: [
+        "powerline_cpu_rails",
+      ],
+    },
+    perfetto: {
+      trace_browser_startup: false,
+      textproto: '''
+        buffers {
+          size_kb: 131072
+          fill_policy: RING_BUFFER
+        }
+        buffers {
+          size_kb: 8192
+          fill_policy: RING_BUFFER
+        }
+        data_sources {
+          config {
+            name: "track_event"
+            chrome_config {
+              trace_config: "{\"record_mode\":\"record-continuously\",\"included_categories\":[\"audio\",\"toplevel\",\"toplevel.flow\",\"scheduler\",\"sequence_manager\",\"disabled-by-default-toplevel.flow\",\"cc\",\"gpu\",\"viz\",\"ui\",\"views\",\"benchmark\",\"evdev\",\"input\"],\"excluded_categories\":[\"*\"]}"
+              privacy_filtering_enabled: false
+              client_priority: USER_INITIATED
+            }
+            track_event_config {
+              disabled_categories: "*"
+              enabled_categories: "audio"
+              enabled_categories: "toplevel"
+              enabled_categories: "toplevel.flow"
+              enabled_categories: "scheduler"
+              enabled_categories: "sequence_manager"
+              enabled_categories: "disabled-by-default-toplevel.flow"
+              enabled_categories: "cc"
+              enabled_categories: "gpu"
+              enabled_categories: "viz"
+              enabled_categories: "ui"
+              enabled_categories: "views"
+              enabled_categories: "benchmark"
+              enabled_categories: "evdev"
+              enabled_categories: "input"
+              enabled_categories: "__metadata"
+              timestamp_unit_multiplier: 1000
+              filter_debug_annotations: false
+              enable_thread_time_sampling: true
+              filter_dynamic_event_names: false
+            }
+          }
+        }
+        data_sources {
+          config {
+            name: "org.chromium.trace_metadata"
+            chrome_config {
+              trace_config: "{\"record_mode\":\"record-continuously\",\"included_categories\":[\"audio\",\"toplevel\",\"toplevel.flow\",\"scheduler\",\"sequence_manager\",\"disabled-by-default-toplevel.flow\",\"cc\",\"gpu\",\"viz\",\"ui\",\"views\",\"benchmark\",\"evdev\",\"input\"],\"excluded_categories\":[\"*\"]}"
+              privacy_filtering_enabled: false
+              client_priority: USER_INITIATED
+            }
+          }
+        }
+        data_sources {
+          config {
+            name: "linux.ftrace"
+            ftrace_config {
+              ftrace_events: "sched/sched_process_exit"
+              ftrace_events: "sched/sched_process_free"
+              ftrace_events: "task/task_newtask"
+              ftrace_events: "task/task_rename"
+              ftrace_events: "sched/sched_switch"
+              ftrace_events: "power/suspend_resume"
+              ftrace_events: "sched/sched_blocked_reason"
+              ftrace_events: "sched/sched_wakeup"
+              ftrace_events: "sched/sched_wakeup_new"
+              ftrace_events: "sched/sched_waking"
+              ftrace_events: "sched/sched_process_exit"
+              ftrace_events: "sched/sched_process_free"
+              ftrace_events: "task/task_newtask"
+              ftrace_events: "task/task_rename"
+              ftrace_events: "power/cpu_frequency"
+              ftrace_events: "power/cpu_idle"
+              ftrace_events: "power/suspend_resume"
+              ftrace_events: "ftrace/print"
+              atrace_categories: "audio"
+              symbolize_ksyms: true
+              disable_generic_events: true
+            }
+          }
+        }
+        data_sources {
+          config {
+            name: "linux.process_stats"
+            process_stats_config {
+              scan_all_processes_on_start: true
+            }
+          }
+        }
+        data_sources {
+          config {
+            name: "linux.sys_stats"
+            sys_stats_config {
+              stat_period_ms: 250
+              stat_counters: STAT_CPU_TIMES
+              stat_counters: STAT_FORK_COUNT
+              cpufreq_period_ms: 250
+            }
+          }
+        }
+        data_sources {
+          config {
+            name: "android.power"
+            android_power_config {
+              battery_poll_ms: 1000
+              battery_counters: BATTERY_COUNTER_CAPACITY_PERCENT
+              battery_counters: BATTERY_COUNTER_CHARGE
+              battery_counters: BATTERY_COUNTER_CURRENT
+              collect_power_rails: true
+            }
+          }
+        }
+        data_sources {
+          config {
+            name: "android.log"
+            android_log_config {
+            }
+          }
+        }
+        # Configure trace to record for 10 minutes
+        duration_ms: 600000
+        write_into_file: true
+        # Write to the Perfetto log every 30 seconds or so
+        file_write_period_ms: 30000
+        max_file_size_bytes: 500000000
+      '''
+    }
+  }
+}

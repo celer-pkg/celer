@@ -1,0 +1,23 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [building with cmake]
+    Use the \c {find_package()} command to locate the needed module components
+    in the \c {Qt6} package:
+
+    \code
+    find_package(Qt6 REQUIRED COMPONENTS \1 \2)
+    target_link_libraries(mytarget PRIVATE Qt6::\1 Qt6::\2)
+    \endcode
+
+    For more details, see the \l {Build with CMake} overview.
+//! [building with cmake]
+
+//! [building_with_qmake]
+    To configure the modules for building with qmake, add the module as a value
+    of the \c QT variable in the project's .pro file:
+
+    \code
+    QT += \1 \2
+    \endcode
+//! [building_with_qmake]

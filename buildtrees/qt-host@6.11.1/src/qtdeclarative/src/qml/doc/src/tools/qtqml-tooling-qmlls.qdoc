@@ -1,0 +1,251 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtqml-tooling-qmlls.html
+\title \QMLLS
+\brief A tool that helps you write code in your favorite LSP-supporting editor.
+\ingroup qtqml-tooling
+\ingroup qtqml-tooling-devtools
+
+\QMLLS is a tool shipped with Qt that helps you write code
+in your favorite (LSP-supporting) editor.
+See \l{https://microsoft.github.io/language-server-protocol/}{Language Server Protocol}
+for more information.
+
+Currently, it enables your editor to:
+\list
+    \li Autocomplete your code
+    \li Display qmllint warnings
+    \li Navigate to definitions in QML files
+    \li Find usages of JavaScript variables and QML objects
+    \li Rename JavaScript variables and QML objects
+    \li Format QML files
+    \li Get help from Qt Documentation
+\endlist
+
+\note \c qmlls is currently in development, see
+\l{#Known Limitations}{Known Limitations} for more details.
+
+\section1 Supported Features
+
+\section2 Linting
+
+\QMLLS can automatically lint opened QML files
+and display warnings or errors straight in the editor. See
+\l{qmllint} for more information about the linting process,
+and \l{QML Lint Warning and Errors} on how to fix warnings and
+errors.
+
+\section2 Formatting
+
+\QMLLS can format entire files from inside
+the editor. See \l{qmlformat} for more information about the
+formatting process.
+
+
+\section2 Finding Definitions
+
+\QMLLS can find definitions of JavaScript variables,
+functions, QML object id's and QML properties from their usages.
+
+\QMLLS can also find the definition of types used in
+type annotations for JavaScript functions, QML object properties,
+and QML object instantiation.
+
+\section2 Finding Usages
+
+\QMLLS can find usages of JavaScript variables,
+QML object properties, JavaScript functions, QML object methods,
+and QML object id's.
+
+\section2 Renaming
+
+\QMLLS can rename JavaScript variables and functions,
+as well as QML object properties, methods, and id's, as long as
+they are defined in a QML file.
+
+\section2 Suggesting Autocompletion Items
+
+\QMLLS provides autocompletion suggestions for
+JavaScript variables, expressions, and statements, as well as
+QML object properties, methods, and id's.
+
+\section2 Tracking Changes in C++ Files
+
+\QMLLS can track changes in C++ files defining QML
+types. It automatically rebuilds CMake QML modules to provide
+accurate and up-to-date warnings and completion items for C++
+defined QML types.
+
+You can
+\l{Configuring Automatic CMake Builds}{disable this feature}.
+
+\section2 Documentation Hints
+
+\QMLLS includes a documentation hints feature that
+provides programmers with quick access to Qt’s documentation
+by hovering over a keyword. In order to use this feature, your
+Qt kit should contain the Qt documentation and your project
+should be built with \l{QT_QML_GENERATE_QMLLS_INI} variable.
+
+\section1 Setting up \QMLLS in Your Editor
+
+This section describes how to develop the \QMLLS client or how to
+use your own \QMLLS client.
+
+You can find the \QMLLS binary under
+\c{<Qt installation folder>/bin/qmlls} in installations of Qt
+made with \QOI. If you want your \QMLLS client to download the binary
+directly, you can download the standalone version from github via
+\l{https://github.com/TheQtCompanyRnD/qmlls-workflow/releases} or
+\l{https://qtccache.qt.io/QMLLS/LatestRelease}.
+
+\section2 Setting up the Build Directory
+
+\QMLLS needs to know the location of the project build folder.
+You can pass the build folder in the following ways.
+
+\section3 AddBuildDirs LSP Extension
+
+To pass build directories via the LSP extension, send a notification
+to \QMLLS for the \c{$/addBuildDirs} method. \c{$/addBuildDirs}
+accepts one parameter of the form:
+\badcode
+interface AddBuildDirsParams {
+    buildDirsToSet: UriToBuildDirs[];
+}
+\endcode
+where \c{UriToBuildDirs} contains a workspace URI and a list of build
+directories.
+The workspace URI must designate a workspace advertised to \QMLLS via
+\l{https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspace_workspaceFolders}{workspaceFolders}
+or
+\l{https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspace_didChangeWorkspaceFolders}{didChangeWorkspaceFolders}.
+The build directories are file paths, not URIs.
+\badcode
+interface UriToBuildDirs {
+    baseUri: URI;
+    buildDirs: string[];
+}
+\endcode
+
+\section3 --build-dir Command Line Option
+
+If you don't need to support multiple workspaces, you can pass the build
+directories via the \c{--build-dir} command line option. In this case
+your editor should invoke \c{qmlls} as following:
+\badcode
+<path/to/qmlls> ... --build-dir <path/to/build-directory> ...
+\endcode
+
+The build directory will be applied to all workspaces if you use multiple
+workspaces in the same \QMLLS. The values from \c{addBuildDirsMethod}
+have higher precedence than the command line option.
+
+\section3 QMLLS_BUILD_DIRS Environment Variable
+
+You can also pass the build directories via the \c{QMLLS_BUILD_DIRS}
+environment variable. The build directory will be applied to all
+workspaces if you use multiple workspaces in the same \QMLLS.
+The values from \c{--build-dir} have higher precedence than the
+environment variable.
+
+\section3 \c{.qmlls.ini} Settings File
+
+If you can't pass the build directories using one of the previous options,
+you could try passing build directories to \QMLLS via a configuration file.
+See also \l{Configuration File}.
+The values from the settings file have lower precedence than
+\c{--build-dir}, \c{QMLLS_BUILD_DIRS}, and \c{addBuildDirsMethod}.
+
+\section2 Configuring Automatic CMake Builds
+
+\QMLLS will try to trigger a CMake rebuild when it detects that the
+source code of a C++ defined QML type has been modified.
+
+To disable this feature, use the following ways:
+\list
+    \li The \c{--no-cmake-calls} command line option. In this case
+your editor should invoke \c{qmlls} as follows:
+\badcode
+<path/to/qmlls> --build-dir <path/to/build-directory> --no-cmake-calls
+\endcode
+    \li The \c{QMLLS_NO_CMAKE_CALLS} environment variable.
+    \li The \c{.qmlls.ini} settings file, see \l {Configuration File}.
+    \li The \l{QT_QML_GENERATE_QMLLS_INI_NO_CMAKE_CALLS} CMake variable
+if \l{QT_QML_GENERATE_QMLLS_INI} is enabled.
+\endlist
+
+To control the number of jobs used by CMake, use
+\list
+    \li The \c{--cmake-jobs} command line option. In this case
+your editor should invoke \c{qmlls} as follows:
+\badcode
+<path/to/qmlls> --build-dir <path/to/build-directory> --cmake-jobs <jobs>
+\endcode
+    \li The \c{QMLLS_CMAKE_JOBS} environment variable.
+    \li The \c{.qmlls.ini} settings file, see \l {Configuration File}.
+\endlist
+Accepted values are integers greater than 0 and \c{max} to use all available
+cores.
+
+\section2 Modifying the maximum amount of files to search
+
+\QMLLS respects a limit of files to search when searching the source
+folders for headers, for example when going to the definition of a QML
+component defined in a C++ header.
+
+To set the maximum amount of files to search, write a numeric value in the
+\c QMLLS_MAX_FILES_TO_SEARCH environment variable. 0 disables the file
+searching feature, 20000 is the default value.
+
+\section1 Configuration File
+
+\QMLLS can be configured via a configuration file \c{.qmlls.ini}.
+This file should be in the root source directory of the project.
+It should be a text file in the ini-format.
+
+The configuration file can have the following entries:
+\code
+// .qmlls.ini
+[General]
+no-cmake-calls=<true-or-false>
+CMakeJobs=<some integer value>
+
+buildDir=<path/to/build-directory> # not required in Qt 6.10 and later
+docDir=<path/to/qt-documentation>  # not required in Qt 6.10 and later
+importPaths=<path/to/imports>      # not required in Qt 6.10 and later
+\endcode
+
+To use the configuration file to disable the automatic CMake rebuild
+functionality, set \c{no-cmake-calls} to \c{true}.
+
+To control the number of jobs used by automatic CMake rebuilds, set the
+CMakeJobs value.
+
+To support clients that can't pass the build directory to \QMLLS, as
+described in \l{Setting up the Build Directory}, set the buildDir value
+or let CMake generate the .qmlls.ini via \l {QT_QML_GENERATE_QMLLS_INI}.
+
+\note \QMLLS can create default configuration files
+using the \c{--write-defaults} option. This will overwrite an
+already existing .qmlls.ini file in the current directory.
+
+\section1 Known Limitations
+
+Despite covering many common QML features, \QMLLS is still in development with some features
+yet to be supported:
+\list
+    \li Suggesting autocompletions on invalid QML files.
+    \li Autocompleting context properties
+\endlist
+
+\QMLLS might emit false positive warnings on projects
+\list
+    \li using QMake or imperative type registration---see \l{Port QML modules to CMake}
+    \li that were not built---\QMLLS uses the build information to find QML modules
+    \li where QML modules don't follow the guidelines in \l{Modernizing QML Modules}
+\endlist
+
+*/

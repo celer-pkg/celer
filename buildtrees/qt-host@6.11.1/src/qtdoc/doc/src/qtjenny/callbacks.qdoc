@@ -1,0 +1,64 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+\page qtjenny-callbacks.html
+\ingroup qtjenny
+\meta sortkey {4_callbacks}
+
+\title How callbacks work
+
+\section1 Introduction
+
+There are various situations where you need to implement a callback
+when using a Java API. Practical examples of these are callbacks
+that listen to content changes via a \c {ContentObserver},
+and callbacks that implement Java interfaces such as
+\c {Handler.Callback}.
+
+QtJenny allows implementing such callbacks both in the
+case of implementing a Java interface, and extending a Java
+class, depending on what the Java API uses. Many of the cross-platform
+Java APIs that are also provided by Android use callbacks
+that are interfaces, but Android also uses abstract base
+classes in some situations, a prominent example being \c {ContentObserver}.
+
+\section1 Implementing Java interfaces
+
+The following diagram illustrates the structure and logical division
+between different parts of implementing Java interfaces in C++.
+
+\image {../images/qtjenny-callback-interface.drawio.svg} {How it works}
+
+The way it works is that we use a \c {java.reflect.Proxy}, which wraps
+a Java interface, and dispatches calls of the interface methods
+to the generic \c {invoke()} method of an \c {InvocationHandler}.
+
+The \c {InvocationHandler} interface is implemented by a project-specific
+\c {NativeInvocationHandler} (provided by your application), and that implementation calls a native
+generic invocation method that is also project-supplied.
+The native method calls a generic \c {qt_invoke()} virtual function
+in a generated C++ class that mimics the Java interface.
+
+Finally, the user code in the Qt C++ project inherits that generated
+class, and overrides the virtual functions in it.
+
+\section1 Extending Java classes
+
+The following diagram illustrates the structure and logical division
+between different parts of extending Java classes in C++.
+
+\image {../images/qtjenny-callback-extended-class.drawio.svg} {How it works}
+
+The way it works is that we generate a Java subclass, which then
+invokes a generic \c {invoke()} method of a \c {NativeInvocationHandler], which
+is a project-supplied Java class.
+
+The \c {NativeInvocationHandler} calls a native
+generic invocation method that is also project-supplied.
+The native method calls a generic \c {qt_invoke()} virtual function
+in a generated C++ class that mimics the Java class.
+
+Finally, the user code in the Qt C++ project inherits that generated
+class, and overrides the virtual functions in it.
+
+*/

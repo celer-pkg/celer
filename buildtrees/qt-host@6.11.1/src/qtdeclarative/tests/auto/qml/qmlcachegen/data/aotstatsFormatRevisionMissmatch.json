@@ -1,0 +1,31 @@
+{
+    "formatRevision": 0,
+    "modules": [
+        {
+            "moduleFiles": [
+                {
+                    "entries": [
+                        {
+                            "codegenResult": 2,
+                            "column": 5,
+                            "durationMicroseconds": 97,
+                            "functionName": "f",
+                            "line": 4,
+                            "message": "function without return type annotation returns int. This may prevent proper compilation to Cpp."
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 24,
+                            "durationMicroseconds": 171,
+                            "functionName": "s",
+                            "line": 5,
+                            "message": ""
+                        }
+                    ],
+                    "filePath": ".../Main.qml"
+                }
+            ],
+            "moduleId": "Truc(truc)"
+        }
+    ]
+}

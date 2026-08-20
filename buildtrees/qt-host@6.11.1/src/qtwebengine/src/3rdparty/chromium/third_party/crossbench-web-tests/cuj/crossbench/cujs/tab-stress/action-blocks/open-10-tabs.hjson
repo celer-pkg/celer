@@ -1,0 +1,143 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  args: {
+    PAGE_ACTIONS0: {
+      template: ./page-load.hjson
+      args: {
+        PAGE_URL: $[PAGE_URL0]
+      }
+      unbound_args: [
+        PAGE_URL0
+        READY_STATE
+        TAB_TARGET
+      ]
+    }
+    PAGE_ACTIONS1: {
+      template: ./page-load.hjson
+      args: {
+        PAGE_URL: $[PAGE_URL1]
+      }
+      unbound_args: [
+        PAGE_URL1
+        READY_STATE
+        TAB_TARGET
+      ]
+    }
+    PAGE_ACTIONS2: {
+      template: ./page-load.hjson
+      args: {
+        PAGE_URL: $[PAGE_URL2]
+      }
+      unbound_args: [
+        PAGE_URL2
+        READY_STATE
+        TAB_TARGET
+      ]
+    }
+    PAGE_ACTIONS3: {
+      template: ./page-load.hjson
+      args: {
+        PAGE_URL: $[PAGE_URL3]
+      }
+      unbound_args: [
+        PAGE_URL3
+        READY_STATE
+        TAB_TARGET
+      ]
+    }
+    PAGE_ACTIONS4: {
+      template: ./page-load.hjson
+      args: {
+        PAGE_URL: $[PAGE_URL4]
+      }
+      unbound_args: [
+        PAGE_URL4
+        READY_STATE
+        TAB_TARGET
+      ]
+    }
+    PAGE_ACTIONS5: {
+      template: ./page-load.hjson
+      args: {
+        PAGE_URL: $[PAGE_URL5]
+      }
+      unbound_args: [
+        PAGE_URL5
+        READY_STATE
+        TAB_TARGET
+      ]
+    }
+    PAGE_ACTIONS6: {
+      template: ./page-load.hjson
+      args: {
+        PAGE_URL: $[PAGE_URL6]
+      }
+      unbound_args: [
+        PAGE_URL6
+        READY_STATE
+        TAB_TARGET
+      ]
+    }
+    PAGE_ACTIONS7: {
+      template: ./page-load.hjson
+      args: {
+        PAGE_URL: $[PAGE_URL7]
+      }
+      unbound_args: [
+        PAGE_URL7
+        READY_STATE
+        TAB_TARGET
+      ]
+    }
+    PAGE_ACTIONS8: {
+      template: ./page-load.hjson
+      args: {
+        PAGE_URL: $[PAGE_URL8]
+      }
+      unbound_args: [
+        PAGE_URL8
+        READY_STATE
+        TAB_TARGET
+      ]
+    }
+    PAGE_ACTIONS9: {
+      template: ./page-load.hjson
+      args: {
+        PAGE_URL: $[PAGE_URL9]
+      }
+      unbound_args: [
+        PAGE_URL9
+        READY_STATE
+        TAB_TARGET
+      ]
+    }
+  }
+  unbound_args: [
+    PAGE_URL0
+    PAGE_URL1
+    PAGE_URL2
+    PAGE_URL3
+    PAGE_URL4
+    PAGE_URL5
+    PAGE_URL6
+    PAGE_URL7
+    PAGE_URL8
+    PAGE_URL9
+    READY_STATE
+    TAB_TARGET
+  ]
+  template: [
+    $[...PAGE_ACTIONS0]
+    $[...PAGE_ACTIONS1]
+    $[...PAGE_ACTIONS2]
+    $[...PAGE_ACTIONS3]
+    $[...PAGE_ACTIONS4]
+    $[...PAGE_ACTIONS5]
+    $[...PAGE_ACTIONS6]
+    $[...PAGE_ACTIONS7]
+    $[...PAGE_ACTIONS8]
+    $[...PAGE_ACTIONS9]
+  ]
+}

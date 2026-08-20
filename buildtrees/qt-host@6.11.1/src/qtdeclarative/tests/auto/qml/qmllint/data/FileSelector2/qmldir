@@ -1,0 +1,6 @@
+module test
+
+ToolBar 1.0 +Material/ToolBar.qml
+ToolBar 1.0 ToolBar.qml
+Broken 1.0 +Material/Broken.qml
+Broken 1.0 Broken.qml

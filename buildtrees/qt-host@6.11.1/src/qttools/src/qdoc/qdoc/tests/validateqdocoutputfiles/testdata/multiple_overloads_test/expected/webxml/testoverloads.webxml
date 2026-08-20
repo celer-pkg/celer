@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<WebXML>
+    <document>
+        <class name="TestOverloads" href="testoverloads.html" status="active" access="public" location="testoverloads.h" documented="true" module="TestQDocOverloadCommand" brief="Demonstrates multiple overloads and the \overload primary feature">
+            <description>
+                <brief>Demonstrates multiple overloads and the <teletype>\overload</teletype> primary feature.</brief>
+                <para>This test case demonstrates various scenarios for the <teletype>\overload</teletype> command:</para>
+                <list type="ordered" start="1">
+                    <item>
+                        <para>Original issue: Using <teletype>\overload</teletype> with unqualified function names (e.g., <teletype>\overload</teletype> <link raw="failOnWarning()" href="testoverloads.html#failOnWarning" type="function">failOnWarning()</link>) creates dead links when there are multiple overloads and QDoc cannot determine which overload should be the primary target.</para>
+                    </item>
+                    <item>
+                        <para>Solution: The <teletype>\overload</teletype> primary command allows explicitly designating which overload should be the primary target for unqualified <teletype>\overload</teletype> references.</para>
+                    </item>
+                    <item>
+                        <para>Corner case: Functions named &quot;primary&quot; to test whether the function name conflicts with the &quot;primary&quot; keyword in <teletype>\overload</teletype> commands.</para>
+                    </item>
+                </list>
+                <para>The <link raw="failOnWarning()" href="testoverloads.html#failOnWarning" type="function">failOnWarning()</link> functions demonstrate the original problem and its solution, while the <link raw="primary()" href="testoverloads.html#primary" type="function">primary()</link> functions test the corner case where a function happens to be named &quot;primary&quot;.</para>
+            </description>
+            <function name="failOnWarning" fullname="TestOverloads::failOnWarning" href="testoverloads.html#failOnWarning" status="active" access="public" location="testoverloads.h" documented="true" since="6.11" meta="plain" static="true" type="void" signature="void failOnWarning(const RegularExpression &amp;messagePattern)">
+                <parameter type="const RegularExpression &amp;" name="messagePattern" default=""/>
+                <description>
+                    <para>Appends a test failure to the test log for each warning that matches <teletype>\a</teletype> messagePattern.</para>
+                    <para>This is explicitly marked as the primary overload with <teletype>\overload</teletype> primary. Other overloads should now link to this function when using unqualified <teletype>\overload</teletype> commands.</para>
+                </description>
+            </function>
+            <function name="failOnWarning" fullname="TestOverloads::failOnWarning" href="testoverloads.html#failOnWarning-1" status="active" access="public" location="testoverloads.h" documented="true" since="6.11" meta="plain" static="true" overload="true" overload-number="1" type="void" signature="void failOnWarning()">
+                <description>
+                    <para>This should link to the primary <link raw="failOnWarning" href="testoverloads.html#failOnWarning" type="function">failOnWarning</link> function, but creates dead links when there are multiple overloads and no clear primary function.</para>
+                    <para>Issue: QDoc cannot resolve which of the three <link raw="failOnWarning" href="testoverloads.html#failOnWarning" type="function">failOnWarning</link> overloads this should link to.</para>
+                </description>
+            </function>
+            <function name="failOnWarning" fullname="TestOverloads::failOnWarning" href="testoverloads.html#failOnWarning-2" status="active" access="public" location="testoverloads.h" documented="true" since="6.11" meta="plain" static="true" overload="true" overload-number="2" type="void" signature="void failOnWarning(const char *message)">
+                <parameter type="const char *" name="message" default=""/>
+                <description>
+                    <para>Another overload using the same unqualified <teletype>\overload</teletype> target. This also creates dead links for the same reason as above.</para>
+                </description>
+            </function>
+            <function name="linkingTest" fullname="TestOverloads::linkingTest" href="testoverloads.html#linkingTest" status="active" access="public" location="testoverloads.h" documented="true" since="6.11" meta="plain" static="true" type="void" signature="void linkingTest()">
+                <description>
+                    <para>Test function to validate QTBUG-140508: Primary overloads should not display &quot;This function overloads...&quot; text. Instead, they should appear as the main documentation entry.</para>
+                    <para>This function demonstrates the intended behavior where the primary overload contains the main documentation and does not show overload linking text.</para>
+                </description>
+            </function>
+            <function name="linkingTest" fullname="TestOverloads::linkingTest" href="testoverloads.html#linkingTest-1" status="active" access="public" location="testoverloads.h" documented="true" since="6.11" meta="plain" static="true" overload="true" overload-number="1" type="void" signature="void linkingTest(const char *message)">
+                <parameter type="const char *" name="message" default=""/>
+                <description>
+                    <para>Another overload that should link to the primary <link raw="linkingTest()" href="testoverloads.html#linkingTest" type="function">linkingTest()</link> function.</para>
+                </description>
+            </function>
+            <function name="linkingTest" fullname="TestOverloads::linkingTest" href="testoverloads.html#linkingTest-2" status="active" access="public" location="testoverloads.h" documented="true" since="6.11" meta="plain" static="true" overload="true" overload-number="2" type="void" signature="void linkingTest(int value)">
+                <parameter type="int" name="value" default=""/>
+                <description>
+                    <para>This overload should show &quot;This function overloads <link raw="linkingTest()" href="testoverloads.html#linkingTest" type="function">linkingTest()</link>.&quot; and successfully link to the primary overload above.</para>
+                </description>
+            </function>
+            <function name="parameterWarningTest" fullname="TestOverloads::parameterWarningTest" href="testoverloads.html#parameterWarningTest" status="active" access="public" location="testoverloads.h" documented="true" since="6.11" meta="plain" static="true" type="void" signature="void parameterWarningTest(int param)">
+                <parameter type="int" name="param" default=""/>
+                <description>
+                    <para>Test function to validate QTBUG-140510: Functions marked with <teletype>\overload</teletype> primary should require parameter documentation just like non-overloaded functions, since they serve as the main documentation for their function family.</para>
+                    <para>This primary overload has a parameter <argument>param</argument> that is documented here, demonstrating the correct practice for primary overload documentation.</para>
+                </description>
+            </function>
+            <function name="parameterWarningTest" fullname="TestOverloads::parameterWarningTest" href="testoverloads.html#parameterWarningTest-1" status="active" access="public" location="testoverloads.h" documented="true" since="6.11" meta="plain" static="true" overload="true" overload-number="1" type="void" signature="void parameterWarningTest(const RegularExpression &amp;pattern, bool enabled)">
+                <parameter type="const RegularExpression &amp;" name="pattern" default=""/>
+                <parameter type="bool" name="enabled" default=""/>
+                <description>
+                    <para>Another overload that correctly does not generate parameter warnings. Parameters are intentionally undocumented to test regular overload behavior.</para>
+                </description>
+            </function>
+            <function name="parameterWarningTest" fullname="TestOverloads::parameterWarningTest" href="testoverloads.html#parameterWarningTest-2" status="active" access="public" location="testoverloads.h" documented="true" since="6.11" meta="plain" static="true" overload="true" overload-number="2" type="void" signature="void parameterWarningTest(const char *message, int level)">
+                <parameter type="const char *" name="message" default=""/>
+                <parameter type="int" name="level" default=""/>
+                <description>
+                    <para>This overload correctly does not generate undocumented parameter warnings for its parameters, because regular overloads inherit their documentation from the primary overload. The parameters are intentionally not documented to test that the warning suppression works for regular overloads.</para>
+                </description>
+            </function>
+            <function name="primary" fullname="TestOverloads::primary" href="testoverloads.html#primary" status="active" access="public" location="testoverloads.h" documented="true" meta="plain" static="true" type="void" signature="void primary()">
+                <description>
+                    <para>Corner case test: This function is named &quot;primary&quot; and is marked as the primary overload. This tests whether the word &quot;primary&quot; as a function name conflicts with the &quot;primary&quot; keyword in the <teletype>\overload</teletype> command.</para>
+                    <para>This should work correctly because the &quot;primary&quot; keyword is parsed in the context of the <teletype>\overload</teletype> command, not as a function name reference.</para>
+                </description>
+            </function>
+            <function name="primary" fullname="TestOverloads::primary" href="testoverloads.html#primary-1" status="active" access="public" location="testoverloads.h" documented="true" meta="plain" static="true" overload="true" overload-number="1" type="void" signature="void primary(const char *message)">
+                <parameter type="const char *" name="message" default=""/>
+                <description>
+                    <para>Another overload of the function named &quot;primary&quot;. This should also link to the parameterless <link raw="primary()" href="testoverloads.html#primary" type="function">primary()</link> function, testing that multiple overloads of a function named &quot;primary&quot; work correctly with the <teletype>\overload</teletype> system.</para>
+                </description>
+            </function>
+            <function name="primary" fullname="TestOverloads::primary" href="testoverloads.html#primary-2" status="active" access="public" location="testoverloads.h" documented="true" meta="plain" static="true" overload="true" overload-number="2" type="void" signature="void primary(int value)">
+                <parameter type="int" name="value" default=""/>
+                <description>
+                    <para>Corner case test: This should link to the <link raw="primary()" href="testoverloads.html#primary" type="function">primary()</link> function above, demonstrating that <teletype>\overload</teletype> <link raw="primary()" href="testoverloads.html#primary" type="function">primary()</link> correctly references the function named &quot;primary&quot; rather than being confused with the &quot;primary&quot; keyword.</para>
+                    <para>This tests the scenario where a function name happens to be &quot;primary&quot;.</para>
+                </description>
+            </function>
+            <function name="testFullyQualified" fullname="TestOverloads::testFullyQualified" href="testoverloads.html#testFullyQualified" status="active" access="public" location="testoverloads.h" documented="true" meta="plain" static="true" type="void" signature="void testFullyQualified()">
+                <description>
+                    <para>This uses a fully qualified <teletype>\overload</teletype> target to demonstrate the current workaround mentioned in the bug report. This should generate a working link.</para>
+                </description>
+            </function>
+        </class>
+    </document>
+</WebXML>

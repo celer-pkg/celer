@@ -1,0 +1,19 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+syntax = "proto3";
+
+//! [0]
+package qt.examples.sensors.tlv;
+
+enum MessageType {
+    Coordinates = 0;
+    Temperature = 1;
+    WarningNotification = 2;
+}
+
+// Protobuf messages imply inline data size.
+message TlvMessage {
+    MessageType type = 1;
+    bytes value = 2;
+}
+//! [0]

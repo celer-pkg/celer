@@ -1,0 +1,132 @@
+# Copyright 2024-2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "duration",
+    srcs = ["duration.cc"],
+    hdrs = ["duration.h"],
+    deps = [
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/time",
+    ],
+)
+
+cc_test(
+    name = "duration_test",
+    srcs = ["duration_test.cc"],
+    deps = [
+        ":duration",
+        ":fuzz_domains",
+        ":type_matchers",
+        "@com_google_absl//absl/hash:hash_testing",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/time",
+        "@com_google_fuzztest//fuzztest",
+        "@com_google_fuzztest//fuzztest:fuzztest_gtest_main",
+    ],
+)
+
+cc_library(
+    name = "fuzz_domains",
+    testonly = 1,
+    srcs = ["fuzz_domains.cc"],
+    hdrs = ["fuzz_domains.h"],
+    deps = [
+        ":duration",
+        ":physical_distance",
+        "@com_google_fuzztest//fuzztest",
+    ],
+)
+
+cc_library(
+    name = "type_matchers",
+    testonly = 1,
+    srcs = ["type_matchers.cc"],
+    hdrs = ["type_matchers.h"],
+    deps = [
+        ":duration",
+        ":physical_distance",
+        "//:gtest_for_library_testonly",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_library(
+    name = "numbers",
+    hdrs = ["numbers.h"],
+)
+
+cc_library(
+    name = "physical_distance",
+    srcs = ["physical_distance.cc"],
+    hdrs = ["physical_distance.h"],
+    deps = [
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_test(
+    name = "physical_distance_test",
+    srcs = ["physical_distance_test.cc"],
+    deps = [
+        ":fuzz_domains",
+        ":physical_distance",
+        ":type_matchers",
+        "@com_google_absl//absl/hash:hash_testing",
+        "@com_google_absl//absl/strings",
+        "@com_google_fuzztest//fuzztest",
+        "@com_google_fuzztest//fuzztest:fuzztest_gtest_main",
+    ],
+)
+
+cc_library(
+    name = "small_array",
+    hdrs = ["small_array.h"],
+    deps = [
+        "@com_google_absl//absl/algorithm:container",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "small_array_test",
+    srcs = ["small_array_test.cc"],
+    deps = [
+        ":small_array",
+        "@com_google_absl//absl/types:span",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "iterator_range",
+    hdrs = ["iterator_range.h"],
+)
+
+cc_test(
+    name = "iterator_range_test",
+    srcs = ["iterator_range_test.cc"],
+    deps = [
+        ":iterator_range",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

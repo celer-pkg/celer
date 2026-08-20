@@ -1,0 +1,13 @@
+module MediaPlayer
+Main 254.0 Main.qml
+singleton Images 254.0 Images.qml
+MetadataInfo 254.0 MetadataInfo.qml
+PlayerMenuBar 254.0 PlayerMenuBar.qml
+TracksInfo 254.0 TracksInfo.qml
+TracksOptions 254.0 TracksOptions.qml
+PlaylistInfo 254.0 PlaylistInfo.qml
+UrlPopup 254.0 UrlPopup.qml
+SettingsInfo 254.0 SettingsInfo.qml
+ThemeInfo 254.0 ThemeInfo.qml
+ErrorPopup 254.0 ErrorPopup.qml
+TouchMenu 254.0 TouchMenu.qml

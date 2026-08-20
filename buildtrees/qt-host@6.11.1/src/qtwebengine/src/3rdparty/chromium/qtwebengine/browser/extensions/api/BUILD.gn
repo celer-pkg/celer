@@ -1,0 +1,67 @@
+import("//chrome/common/features.gni")
+import("//extensions/buildflags/buildflags.gni")
+import("//qtwebengine/common/extensions/api/schema.gni")
+import("//tools/json_schema_compiler/json_schema_api.gni")
+
+assert(enable_extensions,
+       "Cannot depend on extensions because enable_extensions=false.")
+
+source_set("resources_private") {
+  sources = [
+    "resources_private/resources_private_api.cc",
+    "resources_private/resources_private_api.h",
+  ]
+
+  deps = [
+    "//content/public/browser",
+  ]
+
+  if (enable_pdf) {
+    deps += [ "//qtwebengine/browser/pdf" ]
+  }
+}
+
+source_set("tabs") {
+  sources = [
+    "tabs/tabs_api.cc",
+    "tabs/tabs_api.h",
+  ]
+
+  deps = [
+    "//chrome/common:buildflags",
+    "//content/public/browser",
+    "//extensions/browser",
+    "//extensions/common",
+    "//extensions/common:mojom",
+    "//extensions/common/api",
+  ]
+}
+
+source_set("webrtc_desktop_capture_private") {
+  sources = [
+    "webrtc_desktop_capture_private/webrtc_desktop_capture_private_api.cc",
+    "webrtc_desktop_capture_private/webrtc_desktop_capture_private_api.h",
+  ]
+
+  deps = [
+    "//content/public/browser",
+  ]
+}
+
+function_registration("api_registration") {
+  sources = webengine_extensions_api_schema_files
+
+  impl_dir = "//qtwebengine/browser/extensions/api"
+  bundle_name = "QtWebEngine"
+  root_namespace = webengine_extensions_api_root_namespace
+
+  deps = [
+    ":resources_private",
+    ":tabs",
+    ":webrtc_desktop_capture_private",
+    "//extensions/common/api",
+
+    # Required due to generated mojom headers
+    "//skia"
+  ]
+}

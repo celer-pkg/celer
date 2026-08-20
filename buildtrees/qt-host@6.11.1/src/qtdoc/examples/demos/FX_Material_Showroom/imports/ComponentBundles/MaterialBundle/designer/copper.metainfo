@@ -1,0 +1,20 @@
+MetaInfo {
+    Type {
+        name: "ComponentBundles.MaterialBundle.CopperMaterial"
+        icon: "images/material16.png"
+
+        Hints {
+            visibleInNavigator: false
+            canBeDroppedInNavigator: true
+            canBeDroppedInFormEditor: false
+        }
+
+        ItemLibraryEntry {
+            name: "Copper"
+            category: "Metal"
+            libraryIcon: "images/material.png"
+            version: "1.0"
+            requiredImport: "ComponentBundles.MaterialBundle"
+        }
+    }
+}

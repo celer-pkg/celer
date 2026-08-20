@@ -1,0 +1,8 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+vec4 qt_diffuseLambertWrapBRDF(vec3 normalDir, in vec3 L, in vec3 lightDiffuse, float wrap)
+{
+    float diffuseIntensity = max(0.0, ((dot(L, normalDir) + wrap) / (1.0 + wrap)));
+    return vec4( diffuseIntensity * lightDiffuse, 1.0 );
+}

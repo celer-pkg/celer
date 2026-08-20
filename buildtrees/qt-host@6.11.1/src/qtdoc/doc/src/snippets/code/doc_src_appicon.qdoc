@@ -1,0 +1,19 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [0]
+IDI_ICON1               ICON    "myappico.ico"
+//! [0]
+
+
+//! [3]
+kde4-config --path icon
+//! [3]
+
+//! [4]
+gnome-config --datadir
+//! [4]
+
+//! [5]
+qtpaths --locate-dirs GenericDataLocation icons
+//! [5]

@@ -1,0 +1,69 @@
+/* Copyright (C) 2023 The Qt Company Ltd.
+ * SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+*/
+
+html {
+  --primary-color: rgb(32, 33, 36)
+  background: white;
+}
+
+
+body {
+  color: var(--primary-color);
+  font-size: 100%;
+  margin: 0;
+}
+
+#outer {
+  margin-inline-end: auto;
+  margin-inline-start: auto;
+  margin-top: 10px;
+  min-width: 800px;
+  width: 60%;
+}
+
+#log {
+  display : none
+}
+
+#inner {
+  padding-top: 10px;
+  word-break: break-word;
+}
+
+img {
+    height: 50px;
+}
+
+#logo {
+    margin-inline-start: 40px;
+    text-align: end;
+    height: 100px;
+}
+
+.label {
+  font-size: 0.9em;
+  font-weight: bold;
+  padding-inline-end: 5px;
+  text-align: end;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+#useragent {
+  font-family: monospace;
+}
+
+.version {
+  font-family: monospace;
+  max-width: 430px;
+  padding-inline-start: 5px;
+  vertical-align: middle;
+}
+
+.version-wide {
+  font-family: monospace;
+  max-width: auto;
+  padding-inline-start: 5px;
+  vertical-align: bottom;
+}

@@ -1,0 +1,20 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+//! [using resources]
+    Like most UI applications, Qt applications also depend on resources such as
+    images, icons, translation files, and so on. These resources must be made
+    available on the device as they are required for the application to function
+    correctly.
+
+    The most convenient option is to bundle the resources into a qrc file,
+    which gets built into the application binary. This approach reduces the porting
+    effort considerably and provides faster access to the resources. It is
+    also a cross-platform approach, which makes porting to other platforms easier.
+
+    By default, all Qt applications can access the contents of a qrc file using
+    the ":/" prefix or the URL scheme prefix, "qrc:". To know more about qrc files
+    and how they are handled, see \l{The Qt Resource System}{the Qt Resource System}.
+//! [using resources]
+*/

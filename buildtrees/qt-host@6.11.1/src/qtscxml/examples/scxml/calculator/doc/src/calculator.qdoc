@@ -1,0 +1,49 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example calculator
+    \title SCXML Calculator
+    \examplecategory {Data Processing & I/O}
+    \ingroup examples-qtscxml
+    \meta tag {state machine}
+
+    \image calculator.png
+           {Calculator with numeric display, operator buttons, and digit buttons}
+
+    \brief An application that implements the Calculator example
+    presented in the SCXML Specification.
+
+    \e {Calculator} uses Qt SCXML to implement the
+    \l{SCXML Specification - Calculator Example}{Calculator Example}
+    presented in the SCXML Specification.
+
+    The state machine is specified in the \e statemachine.scxml file and
+    compiled into the \c CalculatorStateMachine class. The user interface is
+    created using Qt Quick.
+
+    \include examples-run.qdocinc
+
+    \section1 Instantiating the State Machine
+
+    We make the generated \c CalculatorStateMachine class available to QML by
+    declaring it as a QML type in the \e calculator-qml.h file:
+
+    \quotefromfile calculator/calculator-qml.h
+    \skipto struct
+    \printuntil }
+
+    We instantiate a CalculatorStateMachine and listen to the \c updateDisplay
+    event. When it occurs, we change the text on the calculator display:
+
+    \quotefromfile calculator/MainWindow.qml
+    \skipto  CalculatorStateMachine {
+    \printuntil /^ {4}\}/
+
+    When users press the calculator buttons, the buttons submit events to the
+    state machine:
+
+    \skipto DIGIT.
+    \skipto Button
+    \printuntil }
+*/

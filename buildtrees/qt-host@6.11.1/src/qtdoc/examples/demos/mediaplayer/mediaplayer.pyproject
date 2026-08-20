@@ -1,0 +1,22 @@
+{
+    "files": ["Config/Config.qml",
+              "MediaControls/AudioControl.qml",
+              "MediaControls/CustomButton.qml",
+              "MediaControls/CustomRadioButton.qml",
+              "MediaControls/CustomSlider.qml",
+              "MediaControls/PlaybackControl.qml",
+              "MediaControls/PlaybackRateControl.qml",
+              "MediaControls/PlaybackSeekControl.qml",
+              "MediaPlayer/ErrorPopup.qml",
+              "MediaPlayer/Main.qml",
+              "MediaPlayer/MetadataInfo.qml",
+              "MediaPlayer/PlayerMenuBar.qml",
+              "MediaPlayer/PlaylistInfo.qml",
+              "MediaPlayer/SettingsInfo.qml",
+              "MediaPlayer/ThemeInfo.qml",
+              "MediaPlayer/TouchMenu.qml",
+              "MediaPlayer/TracksInfo.qml",
+              "MediaPlayer/TracksOptions.qml",
+              "MediaPlayer/UrlPopup.qml",
+              "mediaplayer.py"]
+}

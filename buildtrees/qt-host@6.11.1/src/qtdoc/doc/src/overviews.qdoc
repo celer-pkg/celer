@@ -1,0 +1,156 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page overviews.html
+
+    \title All Overviews
+
+    \section1 Overviews
+    \l {Introduction to Qt}
+
+    \section1 Programming Languages
+    You can develop Qt applications using one or a combination of the following languages:
+
+    \l {Qt Languages}
+    \list
+        \li C++
+        \li QML
+        \li Python
+        \li JavaScript
+    \endlist
+
+    \section2 QML and C++
+
+    \generatelist explanations-programminglanguages
+
+    \section1 Platforms
+    Develop Qt applications on macOS, Linux, and Windows desktop platforms.
+    Qt is platform-independent, which means you can compile same code base for other
+    target platforms.
+    \generatelist explanations-platforms
+
+    \section1 Basics
+    Learn the Qt basics that define the foundation of Qt.
+
+    \generatelist explanations-basics
+
+    \section1 UI
+    Use the Qt Quick and Qt Widget UI technology. Qt Quick interfaces are fluid,
+    dynamic, and are best on touch interfaces.
+    Qt Widgets are for creating complex desktop applications. You can create Qt Quick
+    and Qt Widgets interfaces with the target platform's native look and feel.
+
+    \generatelist explanations-ui
+
+    \section1 Graphics and Multimedia
+    Display graphical elements and handle multimedia content.
+    Qt abstracts the target platforms' underlying graphics APIs so that you can
+    focus on writing the application code.
+    Play back audio and video files and render them on screen, as well as
+    record audio and video from the system's cameras and microphones.
+
+    \generatelist explanations-graphicsandmultimedia
+
+    \section1 Data processing and I/O
+    Retrieve and store data in different formats.
+
+    \generatelist explanations-dataprocessingandio
+
+    \section1 Networking and Connectivity
+    Develop applications that communicate with Web services and exchange data (JSON or CBOR)
+    with applications on other devices.
+
+    In addition, Qt applications can use remote objects or gRPC and protobuf to
+    communicate with service endpoints.
+
+    \generatelist explanations-networkingandconnectivity
+
+    \section1 Web Technologies
+    Embed content from the World Wide Web into your Qt applications on platforms
+    that do not have a native web engine.
+
+    Alternatively, you can create a web channel for peer-to-peer communication
+    between a server and a client.
+
+    \generatelist explanations-webtechnologies
+
+    \section1 Tools
+    Qt installations contain Qt libraries, examples, documentation, and the necessary
+    development tools, such as the \QC integrated development environment (IDE)
+    and Qt Design Studio for developing Qt Quick Applications.
+
+    \generatelist explanations-tools
+
+    \section1 Accessibility
+    Write accessible software by letting users scale the UI, change font size and
+    color contrast, use the keyboard for navigation, have UI text read aloud with
+    a synthesized voice, and change the UI language.
+
+    \generatelist explanations-accessibility
+
+    \section1 Positioning
+
+    \generatelist explanations-positioning
+
+
+    \section1 Best Practices
+
+    These pages give guidance on how to use Qt technologies best to create
+    applications that excel in usability and software design.
+
+    \annotatedlist best-practices
+
+
+*/
+
+
+/*!
+    \group qt-gui-concepts
+    \title UI Design with Qt
+
+    \brief The Qt components for constructing native look and feel desktop UI's.
+
+    These pages are about Qt's traditional set of GUI components for
+    building both native look and feel and custom UI's for the desktop
+    environment. Use \l{Qt Quick} for building UI's for mobile devices.
+
+*/
+
+/*!
+  \group qt-activex
+  \title ActiveX in Qt
+
+  \brief Qt API's for using ActiveX controls, servers, and COM.
+
+  These pages document Qt's API's for developing with ActiveX
+  controls, servers, and COM.
+
+*/
+
+/*!
+    \group best-practices
+    \title Best Practice Guides
+
+    \brief How-To and Best Practice Guides
+
+    These documents provide guidelines and best practices for using Qt
+    to solve specific technical problems. They are listed
+    alphabetically by the first word in the title, so scan the entire
+    list to find what you want.
+
+*/
+
+/*
+
+    XXX: enable when we have QML best practices
+
+    \group qml-best-practices
+    \title QML Best Practices Guides
+
+    \brief QML Programming Best Practices Guides
+
+    These documents provide guidelines and best practices for using QML and Qt
+    to solve specific technical problems.
+
+*/

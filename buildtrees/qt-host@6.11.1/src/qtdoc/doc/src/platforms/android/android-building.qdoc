@@ -1,0 +1,120 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page android-building.html
+    \title Qt for Android - Building from Source
+    \brief How to configure and build Qt for Android directly from source.
+    \previouspage android-how-it-works.html
+    \nextpage android-building-projects-from-commandline.html
+
+    This page describes the process of configuring and building
+    \l{Qt for Android}. To download and install a pre-built Qt for Android,
+    follow the instructions on the \l{Getting Started with Qt} page.
+
+    \section1 Prerequisites
+
+    To build Qt for Android from source please ensure all requirements
+    from \l{Qt for Android Prerequisites} are met before continuing.
+
+    \section2 Windows
+
+    Building Qt for Android on Windows also requires the following software:
+
+    \list
+        \li Mingw-w64 13.1 toolchain
+    \endlist
+
+    \note Qt for Android does not support building from source with Microsoft Visual C++ (MSVC).
+
+    Install the prerequisites and append their binary paths to the system \c PATH:
+
+    \badcode
+        set MINGW_ROOT=<MINGW_ROOT_PATH>\bin
+        set PATH=%MINGW_ROOT%;%PATH%
+    \endcode
+
+    To verify the installation, run:
+
+    \badcode
+        where mingw32-make.exe
+    \endcode
+
+    The command should list mingw32-make.exe under the path \e {<MINGW_ROOT>} first.
+
+    \section1 Getting the Sources
+
+    You can download the Qt sources from the \l {Qt Downloads} page, or follow
+    the wiki guide for \l {Getting the source code}.
+
+    \section1 Configuring
+
+    With Qt 6, you can build Qt for Android from source code using \c CMake. Qt 6
+    for Android requires a host Qt build, which means to build Qt for Android, you
+    need to build Qt for the desktop platform used as a host (that is, Linux, \macos,
+    or Windows). See \l{Cross-compiling Qt} for details.
+
+    To configure Qt for Android, create a shadow build directory to keep the source
+    directory clean:
+
+    \badcode
+    mkdir -p ~/dev/build-qt-android
+    cd ~/dev/build-qt-android
+    \endcode
+
+    Qt for Android supports the following device architectures (ABIs): \AndroidAbis
+
+    And then run the configure script from within the build directory you just created:
+
+    \badcode \NdkFullVer
+    <qt5_super_repo_path>/configure -prefix <install_path> -qt-host-path <qt_host_path> \
+        -android-abis <abi> -android-sdk ~/Android/Sdk -android-ndk ~/Android/Sdk/ndk/\1
+    \endcode
+
+    \include src/platforms/android/android-prerequisites.qdoc Android SDK Paths
+
+    \include use-ninja-note.qdocinc ninja-note
+
+    \section1 Advanced Configure Arguments
+
+    Before exploring this section, see \l{Qt Configure Options}, which contains more
+    information about the configure options.
+
+    Qt for Android contains Java code compiled into \e {*.jar} files
+    with the \e javac compiler. To set the \e javac version for source and target,
+    use \e -android-javac-source and \e -android-javac-target respectively:
+
+    \badcode
+    -android-javac-source 8 -android-javac-target 8
+    \endcode
+
+    To build Qt as a developer build instead of a prefix build, use the following
+    instead of the \c -prefix argument:
+
+    \badcode
+    -developer-build
+    \endcode
+
+    The \c -qt-host-path should point to the \c qtbase directory in the host build directory
+    in a host developer build. For example: \c ~/dev/build-qt-host/qtbase.
+
+    \section1 Building
+
+    To build Qt, run the following command:
+
+    \badcode
+    cmake --build . --parallel
+    \endcode
+
+    \section1 Installing
+
+    For prefix builds, to install Qt, run the following command:
+
+    \badcode
+    cmake --install .
+    \endcode
+
+    On Unix, if you haven't provided the \c{-prefix <install_path>} configure option,
+    the installation is placed under \c{/usr/local/Qt-<version>}, in that case, you
+    would need to use \c sudo with the install command.
+*/

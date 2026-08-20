@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>CustomCheckBox.qml</file>
+        <file>CustomSlider.qml</file>
+        <file>CustomSelectionBox.qml</file>
+        <file>main.qml</file>
+        <file>images/icon_pause.png</file>
+        <file>images/icon_play.png</file>
+        <file>SettingsView.qml</file>
+        <file>images/icon_settings.png</file>
+    </qresource>
+</RCC>

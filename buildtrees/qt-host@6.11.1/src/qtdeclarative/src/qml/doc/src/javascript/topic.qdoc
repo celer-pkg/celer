@@ -1,0 +1,101 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+\page qtqml-javascript-topic.html
+\title Integrating QML and JavaScript
+\brief Description of how to use JavaScript in QML applications
+
+The QML language uses a JSON-like syntax and allows various expressions and
+methods to be defined as JavaScript functions.  It also allows users to import
+JavaScript files and use the functionality those imports provide.
+
+This allows developers and designers to leverage the knowledge they have of
+JavaScript to quickly develop both user-interfaces and application logic.
+
+\section1 JavaScript Expressions
+
+QML has a deep JavaScript integration, and allows \l{Signal Attributes}
+{signal handlers} and \l{Method Attributes}{methods} to be defined in JavaScript.
+Another core feature of QML is the ability to specify and enforce relationships
+between object properties using \l{Property Binding}{property bindings}, which
+are also defined using JavaScript.
+
+See the documentation page titled
+\l{qtqml-javascript-expressions.html}{JavaScript Expressions in QML Documents}
+for more information about using JavaScript expressions in QML.
+
+\section1 Dynamic QML Object Creation from JavaScript
+
+QML supports the dynamic creation of objects from within JavaScript. This is
+useful to delay instantiation of objects until necessary, thereby improving
+application startup time. It also allows visual objects to be dynamically
+created and added to the scene in reaction to user input or other events. This
+functionality can be used in two main ways.
+
+Object can be created dynamically from JavaScript in an imperative way using
+\l{qtqml-javascript-dynamicobjectcreation.html}{dynamic creation of objects}.
+This can be useful, for example, when QML is used as an application scripting
+language.
+
+\note When creating user interfaces, the preferred way of creating objects
+dynamically is to use declarative constructs as these integrate best with the
+QML engine and tooling. Various types exist to enable this functionality such
+as the \l{Loader}, \l{Instantiator}, \l{Repeater} types.
+
+
+\section1 JavaScript Resources
+
+Application logic defined in JavaScript functions may be separated into
+separate JavaScript files known as JavaScript resources.  There are several
+different kinds of JavaScript resources, with different semantics.
+
+See the documentation page titled \l{qtqml-javascript-resources.html}
+{Defining JavaScript Resources In QML} for more information about defining JavaScript
+resources for QML.
+
+\section1 JavaScript Imports
+
+A QML document may import JavaScript resources, and JavaScript resources may
+import other JavaScript resources as well as QML modules.  This allows an
+application developer to provide application logic in modular, self-contained
+files.
+
+See the documentation page titled
+\l{qtqml-javascript-imports.html}{Importing JavaScript Resources}
+for more information on how to import JavaScript resources and how to use the
+functionality they provide.
+
+\section1 JavaScript Host Environment
+
+The QML engine provides a JavaScript environment that has some differences to
+the JavaScript environment provided by a web browser.  Certain limitations
+apply to code running in the environment, and the QML engine provides various
+objects in the root context which may be unfamiliar to JavaScript developers.
+
+These limitations and extensions are documented in the description of the
+\l{qtqml-javascript-hostenvironment.html}{JavaScript Host Environment} provided
+by the QML engine.
+
+There is also an in depth description of the
+\l{qtqml-javascript-memory.html}{memory management} employed by the JavaScript
+engine.
+
+\section1 Configuring the JavaScript engine
+
+For specific use cases you may want to override some of the parameters the
+JavaScript engine uses for handling memory and compiling JavaScript. See
+\l{qtqml-javascript-finetuning.html}{Configuring the JavaScript engine} for
+more information on these parameters.
+
+\section1 Making Applications Scriptable
+
+Beyond using JavaScript within QML documents, Qt also allows you to embed a
+JavaScript engine in C++ applications to make them scriptable. This allows
+extending application functionality using JavaScript without recompiling the
+application.
+
+See \l{Making Applications Scriptable} for detailed information about using
+the JavaScript engine in C++ applications, including how to expose QObject
+instances to scripts and security considerations.
+
+*/

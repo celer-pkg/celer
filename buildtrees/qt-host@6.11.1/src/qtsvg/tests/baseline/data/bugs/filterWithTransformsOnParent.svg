@@ -1,0 +1,22 @@
+<svg
+    xml:space="preserve"
+    version="1.1"
+    height="200"
+    width="200"
+	viewport="0 0 32 32"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns="http://www.w3.org/2000/svg">
+    <filter id="filter1">
+        <feFlood flood-color="blue"/>
+    </filter>
+    <g>
+        <path
+            transform="translate(-20,-741)"
+            style="display:inline;opacity:0.5;fill:#FF0000"
+            d="m 24 745 l 20 0 l 0 20 l -20 0 z" />
+        <path
+            transform="translate(-20,-741)"
+            style="display:inline;opacity:0.5;fill:#000000;filter:url(#filter1)"
+            d="m 24 745 l 20 0 l 0 20 l -20 0 z" />
+    </g>
+</svg>

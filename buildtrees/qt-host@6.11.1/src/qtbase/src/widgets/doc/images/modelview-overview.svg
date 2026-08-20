@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="250"
+   height="240"
+   version="1.1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+
+<style>
+  svg .line-style { stroke: black; fill: none }
+  svg .fill-style { stroke: none; fill: black }
+  svg .text-style { font: 14px arial; fill: black }
+  svg .italic-style { font: 12px arial; fill: black; font-style: italic }
+  svg .mv-style { font: 14px arial; fill: black }
+  svg .view-style { stroke: black; fill: #ff9f7e }
+  svg .delegate-style { stroke: black; fill: #9fff7e }
+  svg .model-style { stroke: black; fill: #9fbdff }
+
+  svg.dark .line-style { stroke: #f2f2f2; fill: none }
+  svg.dark .fill-style { stroke: none; fill: #f2f2f2 }
+  svg.dark .text-style { font: 14px arial; fill: #f2f2f2 }
+  svg.dark .italic-style { font: 12px arial; fill: #f2f2f2; font-style: italic }
+  svg.dark .mv-style { font: 14px arial; fill: black }
+  svg.dark .view-style { stroke: black; fill: #ff9f7e }
+  svg.dark .delegate-style { stroke: black; fill: #9fff7e }
+  svg.dark .model-style { stroke: black; fill: #9fbdff }
+
+  [data-theme="dark"] svg .line-style { stroke: #f2f2f2; fill: none }
+  [data-theme="dark"] svg .fill-style { stroke: none; fill: #f2f2f2 }
+  [data-theme="dark"] svg .text-style { font: 14px arial; fill: #f2f2f2 }
+  [data-theme="dark"] svg .italic-style { font: 12px arial; fill: #f2f2f2; font-style: italic }
+  [data-theme="dark"] svg .mv-style { font: 14px arial; fill: black }
+  [data-theme="dark"] svg .view-style { stroke: black; fill: #ff9f7e }
+  [data-theme="dark"] svg .delegate-style { stroke: black; fill: #9fff7e }
+  [data-theme="dark"] svg .model-style { stroke: black; fill: #9fbdff }
+
+  [data-theme="light"] svg .line-style { stroke: black; fill: none }
+  [data-theme="light"] svg .fill-style { stroke: none; fill: black }
+  [data-theme="light"] svg .text-style { font: 14px arial; fill: black }
+  [data-theme="light"] svg .italic-style { font: 12px arial; fill: black; font-style: italic }
+  [data-theme="light"] svg .mv-style { font: 14px arial; fill: black }
+  [data-theme="light"] svg .view-style { stroke: black; fill: #ff9f7e }
+  [data-theme="light"] svg .delegate-style { stroke: black; fill: #9fff7e }
+  [data-theme="light"] svg .model-style { stroke: black; fill: #9fbdff }
+</style>
+
+<path d="m 53.5,6.5 h 55 v 40 h -55 z" stroke="black" fill="none"
+      stroke-dasharray="4, 4"
+      class="line-style" />
+<text x="67" y="31" font-family="arial" font-size="14px"
+      class="text-style">Data</text>
+
+<path d="m 81.5,49.5 v 32" stroke="black"
+      class="line-style" />
+<path d="M 81.5,47.5 l 5,10 l -10,0 z" stroke="black" fill="black"
+      class="fill-style" />
+<path d="M 81.5,88.5 l 5,-10 l -10,0 z" stroke="black" fill="black"
+      class="fill-style" />
+
+<path d="m 44.5,88.5 h 75 v 45 h -75 z" stroke="black" fill="#9fbdff"
+      class="model-style" />
+<text x="62" y="116" font-family="arial" font-size="14px"
+      class="mv-style">Model</text>
+
+<path d="M 81.5,133.5 v 45" stroke="black" fill="none"
+      class="line-style" />
+<path d="M 81.5,133.5 l -5,10 l 10,0 z" stroke="black" fill="black"
+      class="fill-style" />
+<path d="M 81.5,180.5 l -5,-10 l 10,0 z" stroke="black" fill="black"
+      class="fill-style" />
+<text x="15" y="161" font-family="arial" font-size="12px" font-style="italic"
+      class="italic-style">Rendering</text>
+
+<circle cx="162.5" cy="178.5" r="10" stroke="black" fill="#9fff7e"
+        class="delegate-style" />
+<text x="177" y="182" font-family="arial" font-size="14px"
+      class="text-style">Delegate</text>
+
+<path d="m 44.5,181.5 h 75 v 45 h -75 z" stroke="black" fill="#ff9f7e"
+      class="view-style" />
+<text x="66" y="209" font-family="arial" font-size="14px"
+      class="mv-style">View</text>
+
+<path d="m 120.5,201.5 c 14.93034,0.75465 25.55119,0.35392 34.2,-12.4"
+      stroke="black" fill="none"
+      class="line-style" />
+<path d="M 119.5,201.5 l 10,-5 l 0,10 z" stroke="black" fill="black"
+      class="fill-style" />
+<path d="M 155.5,188.5 l -2,11 l -8,-8 z" stroke="black" fill="black"
+      class="fill-style" />
+<text x="135" y="217" font-family="arial" font-size="12px" font-style="italic"
+      class="italic-style">Rendering</text>
+
+<path d="m 165.5,165.5 c 13.03176,-44.88642 -12.5498,-61.94517 -45.15643,-62.41431"
+      stroke="black" fill="none"
+      class="line-style" />
+<path d="M 165.5,167.5 l 8,-9 l -11,-3 z" stroke="black" fill="black"
+      class="fill-style" />
+<path d="M 119.5,103.5 l 10,-5 l -0.75,11 z" stroke="black" fill="black"
+      class="fill-style" />
+<text x="168" y="120" font-family="arial" font-size="12px" font-style="italic"
+      class="italic-style">Editing</text>
+</svg>

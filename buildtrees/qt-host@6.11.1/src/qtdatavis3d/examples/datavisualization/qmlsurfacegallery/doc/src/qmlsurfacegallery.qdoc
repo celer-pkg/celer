@@ -1,0 +1,238 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example qmlsurfacegallery
+    \meta tags {DataVisualization, Surface3D, Dynamic Data, Surface Graph, Height Map, Polar Graph}
+    \title Surface Graph Gallery
+    \ingroup qtdatavisualization_qmlexamples
+    \brief Gallery with three different ways to use a Surface3D graph.
+
+    \e {Surface Graph Gallery} demonstrates three different custom features with Surface3D graphs.
+    The features have their own tabs in the application.
+
+    The following sections concentrate on those features only and skip explaining the basic
+    functionality - for more detailed QML example documentation, see \l{Simple Scatter Graph}.
+
+    \image qmlsurfacegallery-example.png
+
+    \include examples-run.qdocinc
+
+    \section1 Height Map
+
+    In the \uicontrol {Height Map} tab, generate a surface graph from height data. The data used is
+    a height map of Mount Ruapehu and Mount Ngauruhoe in New Zealand.
+
+    \section2 Adding Data to the Graph
+
+    The data is set using HeightMapSurfaceDataProxy, which reads height information from a height
+    map image. The proxy itself is contained in a Surface3DSeries. Inside the
+    HeightMapSurfaceDataProxy the \c heightMapFile property specifies the image file containing the
+    height data. The value properties in the proxy define the minimum and maximum values for surface
+    area width, depth, and height. The \c z and \c x values are in latitude and longitude,
+    approximately at the real-world position, and the \c y is in meters.
+    \note The aspect ratio of the graph is not set to real-life scale, but the height is exaggerated
+    instead.
+
+    \snippet qmlsurfacegallery/qml/qmlsurfacegallery/SurfaceHeightMap.qml 0
+
+    \section2 Displaying the Data
+
+    In \c main.qml, set up the Surface3D element to display the data.
+
+    First, define the custom gradient to be used for the surface. Set the colors from position
+    0.0 to 1.0 with ColorGradient, with two extra stops to make the graph more vivid:
+
+    \snippet qmlsurfacegallery/qml/qmlsurfacegallery/SurfaceHeightMap.qml 1
+
+    Set this element into the \c baseGradients property in the \c theme used in Surface3D:
+
+    \snippet qmlsurfacegallery/qml/qmlsurfacegallery/SurfaceHeightMap.qml 2
+
+    Use the buttons to control other Surface3D features.
+
+    The first button toggles on and off the surface grid. The draw mode cannot
+    be cleared completely, so unless the surface itself is visible, the surface grid cannot be
+    hidden:
+
+    \snippet qmlsurfacegallery/qml/qmlsurfacegallery/SurfaceHeightMap.qml 3
+
+    The second one sets the surface grid color:
+
+    \snippet qmlsurfacegallery/qml/qmlsurfacegallery/SurfaceHeightMap.qml 4
+
+    The third one toggles the surface on or off in the surface draw mode. The draw mode cannot
+    be cleared completely, so unless the surface grid is visible, the surface itself cannot be
+    hidden:
+
+    \snippet qmlsurfacegallery/qml/qmlsurfacegallery/SurfaceHeightMap.qml 5
+
+    The fourth sets the for shading mode. If you are running the example on OpenGL ES system, flat
+    shading is not available:
+
+    \snippet qmlsurfacegallery/qml/qmlsurfacegallery/SurfaceHeightMap.qml 6
+
+    The remaining buttons control the graph background features.
+
+    \section1 Spectrogram
+
+    In the \uicontrol {Spectrogram} tab, display polar and cartesian spectrograms and use
+    orthographic projection to show them in 2D.
+
+    A spectrogram is a surface graph with a range gradient used to emphasize the different
+    values. Typically, spectrograms are shown with two-dimensional surfaces, which is simulated
+    with a top-down orthographic view of the graph. To enforce the 2D effect, disable the
+    graph rotation via mouse or touch when in the orthographic mode.
+
+    \section2 Creating a Spectrogram
+
+    To create a 2D spectrogram, define a Surface3D item with the data given in the Surface3DSeries
+    with an ItemModelSurfaceDataProxy:
+
+    \snippet qmlsurfacegallery/qml/qmlsurfacegallery/SurfaceSpectrogram.qml 0
+
+    The key properties for enabling the 2D effect are
+    \l{AbstractGraph3D::orthoProjection}{orthoProjection} and
+    \l{Camera3D::cameraPreset}{scene.activeCamera.cameraPreset}. Remove the perspective by
+    enabling orthographic projection for the graph, and the Y-dimension by viewing the graph
+    directly from above:
+
+    \snippet qmlsurfacegallery/qml/qmlsurfacegallery/SurfaceSpectrogram.qml 1
+
+    Since this viewpoint causes the horizontal axis grid to be mostly obscured by the surface,
+    flip the horizontal grid to be drawn on top of the graph:
+
+    \snippet qmlsurfacegallery/qml/qmlsurfacegallery/SurfaceSpectrogram.qml 2
+
+    \section2 Polar Spectrogram
+
+    Depending on the data, it is sometimes more natural to use a polar graph instead of a cartesian
+    one. This is supported via the \l{AbstractGraph3D::polar}{polar} property.
+
+    Add a button to switch between polar and cartesian modes:
+
+    \snippet qmlsurfacegallery/qml/qmlsurfacegallery/SurfaceSpectrogram.qml 3
+
+    In the polar mode, X-axis is converted into the angular polar axis, and Z-axis is converted into
+    a radial polar axis. The surface points are recalculated according to the new axes.
+
+    The radial axis labels are drawn outside the graph by default. To draw them right next to the 0
+    degree angular axis inside the graph, define only a small offset for them:
+
+    \snippet qmlsurfacegallery/qml/qmlsurfacegallery/SurfaceSpectrogram.qml 4
+
+    To enforce the 2D effect, disable graph rotation in orthographic mode by overriding the default
+    input handler with a custom one, which automatically toggles the
+    \l{InputHandler3D::rotationEnabled}{rotationEnabled} property based on the projection mode:
+
+    \snippet qmlsurfacegallery/qml/qmlsurfacegallery/SurfaceSpectrogram.qml 5
+
+    \section1 Oscilloscope
+
+    In the \uicontrol {Oscilloscope} tab, combine C++ and QML in an application, and show data that
+    dynamically changes.
+
+    \section2 Data Source in C++
+
+    The item model based proxies are good for simple or static graphs, but use basic proxies to
+    achieve the best performance when displaying data changing in realtime.
+    These are not supported in QML, as the data items they store do not inherit \l{QObject} and
+    cannot therefore be directly manipulated from QML code.
+    To overcome this limitation, implement a simple \c DataSource class in C++ to populate the
+    data proxy of the series.
+
+    Create a \c DataSource class to provide two methods that can be invoked from QML:
+
+    \snippet qmlsurfacegallery/datasource.h 0
+    \dots 4
+    \snippet qmlsurfacegallery/datasource.h 1
+
+    The first method, \c generateData(), creates a cache of simulated oscilloscope data to display.
+    The data is cached in a format that QSurfaceDataProxy accepts:
+
+    \snippet qmlsurfacegallery/datasource.cpp 0
+
+    The second method, \c update(), copies one set of the cached data into another array, which is
+    set to the data proxy of the series by calling QSurfaceDataProxy::resetArray().
+    To minimize overhead, reuse the same array if the array dimensions have not changed:
+
+    \snippet qmlsurfacegallery/datasource.cpp 1
+
+    Even though we are operating on the array pointer previously set to the proxy,
+    QSurfaceDataProxy::resetArray() still needs to be called after changing the data in it to prompt
+    the graph to render the data.
+
+    To be able to access the \c DataSource methods from QML, expose the data source by
+    making the DataSource a QML_ELEMENT:
+
+    \snippet qmlsurfacegallery/datasource.h 2
+
+    Further, declare it as a QML module in the CMakeLists.txt:
+
+    \badcode
+    qt6_add_qml_module(qmlsurfacegallery
+        URI SurfaceGallery
+        VERSION 1.0
+        NO_RESOURCE_TARGET_PATH
+        SOURCES
+            datasource.cpp datasource.h
+        ...
+    )
+    \endcode
+
+    To use QSurface3DSeries pointers as parameters for the \c DataSource class methods on all
+    environments and builds, make sure the meta type is registered:
+
+    \snippet qmlsurfacegallery/datasource.cpp 3
+
+    \section2 QML Application
+
+    To use the \c{DataSource}, import the QML module and create an instance of \c DataSource to be
+    used:
+
+    \snippet qmlsurfacegallery/qml/qmlsurfacegallery/SurfaceOscilloscope.qml 0
+    \dots 0
+    \snippet qmlsurfacegallery/qml/qmlsurfacegallery/SurfaceOscilloscope.qml 1
+
+    Define a Surface3D graph and give it a Surface3DSeries:
+
+    \snippet qmlsurfacegallery/qml/qmlsurfacegallery/SurfaceOscilloscope.qml 2
+
+    Don't specify a proxy for the Surface3DSeries that you attach to the graph. This makes the
+    series utilize the default QSurfaceDataProxy.
+
+    Hide the item label with \l{Abstract3DSeries::itemLabelVisible}{itemLabelVisible}. With dynamic,
+    fast-changing data, a floating selection label would be distracting and difficult to read.
+
+    \snippet qmlsurfacegallery/qml/qmlsurfacegallery/SurfaceOscilloscope.qml 3
+
+    You can display the selected item information in a \c Text element instead of the default
+    floating label above the selection pointer:
+
+    \snippet qmlsurfacegallery/qml/qmlsurfacegallery/SurfaceOscilloscope.qml 4
+
+    Initialize the \c DataSource cache when the graph is complete by calling a helper function
+    \c generateData(), which calls the method with the same name in \c DataSource:
+
+    \snippet qmlsurfacegallery/qml/qmlsurfacegallery/SurfaceOscilloscope.qml 5
+    \dots 0
+    \snippet qmlsurfacegallery/qml/qmlsurfacegallery/SurfaceOscilloscope.qml 6
+
+    To trigger the updates in data, define a \c{Timer}, which calls the \c update() method in
+    \c DataSource at requested intervals:
+
+    \snippet qmlsurfacegallery/qml/qmlsurfacegallery/SurfaceOscilloscope.qml 7
+
+    \section2 Enabling Direct Rendering
+
+    Since this application potentially deals with a lot of rapidly changing data, it uses direct
+    rendering mode for performance. To enable antialiasing in this mode, change the surface format
+    of the application window. The default format used by QQuickView doesn't support antialiasing.
+    Use the utility function provided to change the surface format in \c main.cpp:
+
+    \snippet qmlsurfacegallery/main.cpp 0
+    \dots 0
+    \snippet qmlsurfacegallery/main.cpp 1
+
+    \section1 Example Contents
+*/

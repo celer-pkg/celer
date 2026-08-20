@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
+    <key>CFBundleIconFile</key>
+    <string>@ICON@</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    <key>CFBundleIdentifier</key>
+    <string>org.qt-project.qqem</string>
+    <key>CFBundleExecutable</key>
+    <string>@EXECUTABLE@</string>
+    <key>CFBundleDocumentTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>qep</string>
+            </array>
+            <key>CFBundleTypeIconFile</key>
+            <string>qqem.icns</string>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>LSIsAppleDefaultForType</key>
+            <true/>
+        </dict>
+    </array>
+    <key>NSHumanReadableCopyright</key>
+    <string>(C) 2023 The Qt Company Ltd</string>
+</dict>
+</plist>

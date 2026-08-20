@@ -1,0 +1,56 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/config/exampleurl-qtlottie.qdocconf)
+
+version                 = $QT_VERSION
+project                 = QtLottieAnimation
+description             = Lottie Player for Qt
+buildversion            = Qt Lottie Animation | Commercial or GPLv3
+
+# No C++ API do document, prevent QDoc from searching for a module header
+moduleheader            =
+
+headerdirs             += ../..
+
+sourcedirs             += ../..
+
+moduleheader            = QtLottieAnimation
+
+depends                += qtdoc qtqml qtquick
+
+qhp.projects            = QtLottieAnimation
+
+qhp.QtLottieAnimation.file                = qtlottieanimation.qhp
+qhp.QtLottieAnimation.namespace           = org.qt-project.qtlottieanimation.$QT_VERSION_TAG
+qhp.QtLottieAnimation.virtualFolder       = qtlottieanimation
+qhp.QtLottieAnimation.indexTitle          = Qt Lottie Animation
+qhp.QtLottieAnimation.indexRoot           =
+
+qhp.QtLottieAnimation.subprojects         = qmltypes
+qhp.QtLottieAnimation.subprojects.qmltypes.title = QML Types
+qhp.QtLottieAnimation.subprojects.qmltypes.indexTitle = Qt Lottie Animation QML Types
+qhp.QtLottieAnimation.subprojects.qmltypes.selectors = qmltype
+qhp.QtLottieAnimation.subprojects.qmltypes.sortPages = true
+
+qhp.QtLottieAnimation.subprojects.examples.title = Examples
+qhp.QtLottieAnimation.subprojects.examples.indexTitle = Qt Lottie Animation Examples and Tutorials
+qhp.QtLottieAnimation.subprojects.examples.selectors = example
+qhp.QtLottieAnimation.subprojects.examples.sortPages = true
+
+tagfile                 = qtlottieanimation.tags
+
+examplesinstallpath     = lottie
+
+navigation.landingpage  = Qt Lottie Animation
+navigation.qmltypespage = Qt Lottie Animation QML Types
+
+exampledirs += \
+    ../../../examples/lottie
+
+# Allow zero warnings when testing documentation in CI
+warninglimit = 0
+
+# Report warnings for images without alt text
+reportmissingalttextforimages = true
+
+manifestmeta.highlighted.names = \
+    "QtLottieAnimation/lottietoqml Example"

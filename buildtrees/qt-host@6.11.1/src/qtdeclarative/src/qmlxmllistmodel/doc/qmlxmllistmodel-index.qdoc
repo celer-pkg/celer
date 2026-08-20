@@ -1,0 +1,35 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Qt XmlListModel
+    \page qml-xmllistmodel.html
+
+    Use the XmlListModel type to create a read-only model from XML data. It can be
+    used as a data source for view elements (such as ListView, PathView, or
+    GridView) and other elements that interact with model data (such as
+    Repeater).
+
+    \note This model \b {does not} support XPath queries. It supports simple
+    slash-separated paths and, optionally, one attribute for each element.
+
+    To use the types in this module, import the module with the following line:
+
+    \qml
+    import QtQml.XmlListModel
+    \endqml
+
+    \section1 API Reference
+
+    \list
+        \li \l{Qt XmlListModel QML Types}
+    \endlist
+
+    \section1 Licenses
+
+    Qt Qml XmlListModel is available under commercial licenses from \l{The Qt Company}.
+    In addition, it is available under the
+    \l{GNU Lesser General Public License, version 3}, or
+    the \l{GNU General Public License, version 2}.
+    See \l{Qt Licensing} for further details.
+*/

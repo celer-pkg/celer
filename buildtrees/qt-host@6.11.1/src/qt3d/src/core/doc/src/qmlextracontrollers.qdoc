@@ -1,0 +1,134 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \qmltype FirstPersonCameraController
+    \inqmlmodule Qt3D.Extras
+    \brief The FirstPersonCameraController allows controlling the scene camera
+    from the first person perspective.
+    \since 5.7
+    \inherits Qt3D.Core::Entity
+
+    The FirstPersonCameraController allows controlling the scene camera from the first person
+    perspective.
+
+    The controls are:
+    \table
+    \header
+        \li Input
+        \li Action
+    \row
+        \li Left mouse button
+        \li While the left mouse button is pressed, mouse movement along x-axis pans the camera and
+        movement along y-axis tilts it.
+    \row
+        \li Shift key
+        \li Turns the fine motion control active while pressed. Makes mouse pan and tilt less
+        sensitive.
+    \row
+        \li Arrow keys
+        \li Move the camera horizontally relative to camera viewport.
+    \row
+        \li Page up and page down keys
+        \li Move the camera vertically relative to camera viewport.
+    \endtable
+*/
+/*!
+    \qmlproperty Camera FirstPersonCameraController::camera
+
+    Holds the currently controlled camera.
+*/
+/*!
+    \qmlproperty real FirstPersonCameraController::linearSpeed
+
+    Holds the current linear speed of the camera controller. Linear speed determines the
+    movement speed of the camera.
+*/
+/*!
+    \qmlproperty real FirstPersonCameraController::lookSpeed
+
+    Holds the current look speed of the camera controller. The look speed determines the turn rate
+    of the camera pan and tilt.
+*/
+/*!
+    \qmlproperty real FirstPersonCameraController::acceleration
+
+    Holds the current acceleration.
+    Specifies the rate at which the camera linear speed increases when a key is held.
+    If the acceleration is negative, the linear speed stays constant.
+    Defaults to -1.0.
+*/
+/*!
+    \qmlproperty real FirstPersonCameraController::deceleration
+
+    Specifies the rate at which the camera linear speed decreases when a key is released.
+    If the deceleration is negative, the linear speed stays constant.
+    Defaults to -1.0.
+*/
+
+/*!
+    \qmltype OrbitCameraController
+    \inqmlmodule Qt3D.Extras
+    \brief The OrbitCameraController class allows controlling the scene camera along orbital path.
+    \since 5.7
+    \inherits Qt3D.Core::Entity
+
+    The OrbitCameraController class allows controlling the scene camera along orbital path.
+
+    The controls are:
+    \table
+    \header
+        \li Input
+        \li Action
+    \row
+        \li Left mouse button
+        \li While the left mouse button is pressed, mouse movement along x-axis moves the camera
+        left and right and movement along y-axis moves it up and down.
+    \row
+        \li Right mouse button
+        \li While the right mouse button is pressed, mouse movement along x-axis pans the camera
+        around the camera view center and movement along y-axis tilts it around the camera
+        view center.
+    \row
+        \li Both left and right mouse button
+        \li While both the left and the right mouse button are pressed, mouse movement along y-axis
+        zooms the camera in and out without changing the view center.
+    \row
+        \li Arrow keys
+        \li Move the camera vertically and horizontally relative to camera viewport.
+    \row
+        \li Page up and page down keys
+        \li Move the camera forwards and backwards.
+    \row
+        \li Shift key
+        \li Changes the behavior of the up and down arrow keys to zoom the camera in and out
+        without changing the view center. The other movement keys are disabled.
+    \row
+        \li Alt key
+        \li Changes the behovior of the arrow keys to pan and tilt the camera around the view
+        center. Disables the page up and page down keys.
+    \endtable
+*/
+/*!
+    \qmlproperty Camera OrbitCameraController::camera
+
+    Holds the currently controlled camera.
+*/
+/*!
+    \qmlproperty real OrbitCameraController::linearSpeed
+
+    Holds the current linear speed of the camera controller. Linear speed determines the
+    movement speed of the camera.
+*/
+/*!
+    \qmlproperty real OrbitCameraController::lookSpeed
+
+    Holds the current look speed of the camera controller. The look speed determines the turn rate
+    of the camera pan and tilt.
+*/
+/*!
+    \qmlproperty real OrbitCameraController::zoomInLimit
+
+    Holds the current zoom-in limit. The zoom-in limit determines how close to the view center
+    the camera can be zoomed.
+*/

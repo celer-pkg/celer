@@ -1,0 +1,8 @@
+# Copyright (C) 2022 The Qt Company Ltd.
+# SPDX-License-Identifier: BSD-3-Clause
+
+# Generated from text.pro.
+
+add_subdirectory(qregexp)
+add_subdirectory(qstringref)
+add_subdirectory(qstringbuilder)

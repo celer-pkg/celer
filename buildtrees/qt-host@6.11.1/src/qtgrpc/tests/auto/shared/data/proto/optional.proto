@@ -1,0 +1,22 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+syntax = "proto3";
+
+package qtprotobufnamespace.optional.tests;
+
+message TestStringMessage {
+    string stringField = 2;
+}
+
+message OptionalMessage {
+    sint32 testField = 1;
+    optional sint32 testFieldOpt = 2;
+    bool testFieldBool = 3;
+    optional bool testFieldBoolOpt = 4;
+    bytes testFieldBytes = 5;
+    optional bytes testFieldBytesOpt = 6;
+    string testFieldString = 7;
+    optional string testFieldStringOpt = 8;
+    TestStringMessage testFieldMessage = 9;
+    optional TestStringMessage testFieldMessageOpt = 10;
+}

@@ -1,0 +1,60 @@
+# Copyright 2023 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("../../../../scripts/build/ninja/devtools_entrypoint.gni")
+import("../../../../scripts/build/ninja/devtools_module.gni")
+import("../../../../scripts/build/ninja/generate_css.gni")
+import("../../../../scripts/build/typescript/typescript.gni")
+
+generate_css("css_files") {
+  sources = [
+    "buttonDialog.css",
+    "dialog.css",
+    "shortcutDialog.css",
+  ]
+}
+
+devtools_module("dialogs") {
+  sources = [
+    "ButtonDialog.ts",
+    "Dialog.ts",
+    "ShortcutDialog.ts",
+  ]
+  deps = [
+    "../../../core/platform:bundle",
+    "../../../services/window_bounds:bundle",
+    "../buttons:bundle",
+    "../helpers:bundle",
+    "../render_coordinator:bundle",
+  ]
+}
+
+devtools_entrypoint("bundle") {
+  entrypoint = "dialogs.ts"
+
+  deps = [
+    ":css_files",
+    ":dialogs",
+  ]
+
+  visibility = [ "*" ]
+}
+
+ts_library("unittests") {
+  testonly = true
+
+  sources = [
+    "ButtonDialog.test.ts",
+    "Dialog.test.ts",
+    "ShortcutDialog.test.ts",
+  ]
+
+  deps = [
+    ":bundle",
+    "../../../core/platform:bundle",
+    "../../../services/window_bounds:bundle",
+    "../../../testing",
+    "../render_coordinator:bundle",
+  ]
+}

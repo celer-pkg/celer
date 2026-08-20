@@ -1,0 +1,52 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example trafficlight-qml-dynamic
+    \title SCXML Traffic Light (Dynamic, QML)
+    \examplecategory {Data Processing & I/O}
+    \ingroup examples-qtscxml
+
+    \brief A Qt Quick application that uses a dynamically loaded state machine
+    to implement a traffic light.
+
+    \image trafficlight.png {Traffic light with green light illuminated}
+
+    \e{Traffic Light QML} demonstrates how to connect to the
+    active properties of a state in a dynamically loaded state machine.
+
+    The UI is created using Qt Quick.
+
+    \include examples-run.qdocinc
+
+    \section1 Dynamically Loading the State Machine
+
+    We link against the Qt SCXML module by adding the following lines to the
+    example's build files.
+
+    To \e .pro when using qmake:
+    \quotefromfile trafficlight-qml-dynamic/trafficlight-qml-dynamic.pro
+    \skipto QT
+    \printline scxml
+
+    To \e CMakeLists.txt when using cmake:
+    \quotefromfile trafficlight-qml-dynamic/CMakeLists.txt
+    \skipto find_package
+    \printline Scxml
+    \skipto target_link_libraries
+    \printuntil )
+
+    We dynamically create the state machine in the main QML file:
+
+    \quotefromfile trafficlight-qml-dynamic/MainView.qml
+    \skipto import QtScxml
+    \printuntil /^\}/
+
+    \include trafficlight-state-machine.qdocinc
+
+    We connect to the states as follows:
+
+    \quotefromfile trafficlight-qml-dynamic/Lights.ui.qml
+    \skipto states
+    \printuntil ]
+*/

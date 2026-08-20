@@ -1,0 +1,72 @@
+From df0527a3b2f7e151a1c2401b7aede99d577601a2 Mon Sep 17 00:00:00 2001
+From: Jonas Karlsson <jonas.karlsson@qt.io>
+Date: Wed, 1 Jun 2022 13:41:12 +0200
+Subject: [PATCH 1/1] Fix infinite recursion in hash method
+
+This led to examples and tests freezing or crashing on certain
+platforms. Auto tests are now working and re-enabled.
+
+Change-Id: Id2a264c2dbab040fcc8d413682065af4da67851d
+---
+ .../PhysX/source/foundation/include/PsHash.h  | 28 ++++++++-----------
+ 1 file changed, 11 insertions(+), 17 deletions(-)
+
+diff --git a/src/3rdparty/PhysX/source/foundation/include/PsHash.h b/src/3rdparty/PhysX/source/foundation/include/PsHash.h
+index b5f8a33..fee62d3 100644
+--- a/src/3rdparty/PhysX/source/foundation/include/PsHash.h
++++ b/src/3rdparty/PhysX/source/foundation/include/PsHash.h
+@@ -66,14 +66,9 @@ PX_FORCE_INLINE uint32_t hash(const uint32_t key)
+ 	return uint32_t(k);
+ }
+ 
+-PX_FORCE_INLINE uint32_t hash(const int32_t key)
+-{
+-	return hash(uint32_t(key));
+-}
+-
+ // Thomas Wang's 64 bit mix
+ // http://www.cris.com/~Ttwang/tech/inthash.htm
+-PX_FORCE_INLINE uint32_t hash(const unsigned long key)
++PX_FORCE_INLINE uint32_t hash(const uint64_t key)
+ {
+ 	uint64_t k = key;
+ 	k += ~(k << 32);
+@@ -87,18 +82,9 @@ PX_FORCE_INLINE uint32_t hash(const unsigned long key)
+ 	return uint32_t(UINT32_MAX & k);
+ }
+ 
+-PX_FORCE_INLINE uint32_t hash(const unsigned long long key)
+-{
+-    return hash(uint64_t(key));
+-}
+-
+-PX_FORCE_INLINE uint32_t hash(const int64_t key)
+-{
+-    return hash(uint64_t(key));
+-}
+-
+ // Hash function for pointers
+-PX_INLINE uint32_t hash(const void* ptr)
++template <typename T>
++PX_INLINE uint32_t hash(T* ptr)
+ {
+ #if PX_P64_FAMILY
+ 	return hash(uint64_t(ptr));
+@@ -116,6 +102,14 @@ PX_INLINE uint32_t hash(const Pair<F, S>& p)
+ 	return hash(p.second) ^ (m * (hash(p.first) ^ (m * seed)));
+ }
+ 
++template <typename T>
++PX_FORCE_INLINE uint32_t hash(const T key)
++{
++    if (sizeof(T) == 4)
++        return hash(uint32_t(key));
++    return hash(uint64_t(key));
++}
++
+ // hash object for hash map template parameter
+ template <class Key>
+ struct Hash
+-- 
+2.36.1
+

@@ -1,0 +1,86 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example sensors
+    \ingroup qtprotobuf-examples
+    \meta tag {network,protobuf,serialization,udp}
+    \examplecategory {Networking}
+    \title Sensors
+
+    \brief The Sensors example shows how two applications can communicate by
+    sending protobuf messages using UDP sockets.
+
+    The Sensors example consists of the following components:
+    \list
+    \li \c protobuf_sensors library that you generate from the protobuf schema
+        using the \l qt_add_protobuf call.
+    \li \c protobuf_sensor_emulator application that emulates simple sensor
+        behavior.
+    \li \c protobuf_sensors_client application that displays the sensor data
+        from the UDP socket.
+    \endlist
+
+    The client application binds on the \c localhost UDP port \c 65500 and
+    waits for data from the emulator application.
+    \image client.webp
+
+    Use the emulator application to change the values of sensor data and send
+    the data to the client's UDP port.
+    \image emulator.webp {Screenshot showing an emulator console application
+           to send coordinates, weather temperature, and a warning message}
+
+    The applications use the generated messages from the \c protobuf_sensors
+    library to communicate. The library is generated from the protobuf schema
+    described in .proto files.
+    \snippet sensors/CMakeLists.txt 0
+    The first file describes the Type-Length-Value message, that wraps the
+    sensor data:
+    \snippet sensors/tlv.proto 0
+    The second .proto file contains a description of the sensor messages:
+    \snippet sensors/sensors.proto 0
+
+    Messages are serialized using \l QProtobufSerializer that you instantiate in
+    the client:
+    \code
+    class SensorClient : public QObject
+    {
+        Q_OBJECT
+    ...
+    private:
+        QUdpSocket m_client;
+        QProtobufSerializer m_serializer;
+    };
+    \endcode
+    And the emulator:
+    \code
+    class SensorEmulator : public QObject
+    {
+        Q_OBJECT
+    ...
+        QUdpSocket m_socket;
+        QProtobufSerializer m_serializer;
+    };
+    \endcode
+
+    After you click the \uicontrol Send button in the emulator application, the
+    data from \l QLineEdit fields is converted from string format to the message
+    field-specific format, for example, double for the fields of the Coordinates
+    message:
+    \snippet sensors/emulator/emulatorconsole.cpp 0
+    Then the message with all the fields is serialized and wrapped with the
+    Type-Length-Value message:
+    \snippet sensors/emulator/sensoremulator.cpp 0
+
+    The client applies the reverse operations on the received datagrams. First
+    the Type-Length-Value message is deserialized from the datagram data:
+    \snippet sensors/client/sensorclient.cpp 0
+
+    Then the Type-Length-Value message is deserialized into the sensor message:
+    \snippet sensors/client/sensorclient.cpp 1
+    Finally, it is converted and displayed to the user:
+    \snippet sensors/client/clientconsole.cpp 0
+
+    \note Before running the example, make sure that your operating system
+    allows binding on UDP port \c 65500 and sending the data over UDP.
+*/

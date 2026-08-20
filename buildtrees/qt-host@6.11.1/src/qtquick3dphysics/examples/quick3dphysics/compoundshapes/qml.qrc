@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>MeshLink.qml</file>
+        <file>CapsuleLink.qml</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,14 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <rect x="10" y="10" width="180" height="180" fill="green" />
+  <rect
+    x="10"
+    y="10"
+    width="150"
+    height="150"
+    fill="red"
+    >
+   <animateTransform attributeName="transform" type="rotate" additive="sum" values="0; 15" dur="200ms" fill="freeze" />
+   <animateTransform attributeName="transform" type="scale" additive="sum" from="1 1" to="0.5 0.5" dur="300ms" fill="freeze" />
+   <animateTransform attributeName="transform" type="translate" additive="sum" from="0 0" to="50 0" dur="400ms" fill="freeze" />
+    </rect>
+</svg>

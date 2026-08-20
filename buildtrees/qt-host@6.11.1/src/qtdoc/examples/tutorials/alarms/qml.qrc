@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/qt/qml/AlarmsModule">
+        <file>TumblerDelegate.qml</file>
+        <file>AlarmModel.qml</file>
+        <file>AlarmDelegate.qml</file>
+        <file>AlarmDialog.qml</file>
+        <file>Main.qml</file>
+        <file>qmldir</file>
+    </qresource>
+</RCC>

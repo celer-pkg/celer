@@ -1,0 +1,65 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example principledmaterial
+    \examplecategory {3D}
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - Principled Material Example
+    \examplecategory {3D}
+    \brief Demonstrates the use of Principled Material.
+    \image principledmaterial-example.png
+           {Material preview with control panel and property sliders}
+
+    This example serves as interactive documentation for the usage of \l PrincipledMaterial.
+    Each property of \l PrincipledMaterial comes with some explanation of how it is used as
+    well as a way to experiment with adjusting each property.
+
+    \section1 Usage
+
+    This example is split into two views, the interactive documentation and controls on the
+    left, and the 3D Viewer on the right. The 3D Viewer is interactive allowing the camera
+    to be orbited around the target model. To reset the focus on a particular model, just
+    touch or click the model to focus on. The split between the two views is resizable by
+    dragging bar in between the views.
+
+    The example is separated into multiple sections which group the various features of
+    \l PrincipledMaterial into manageable chunks. Each section can be accessed by clicking
+    on the tabs at the top of the explanation area.
+
+    \section1 SpecularGlossyMaterial
+
+    In addition to demonstrating the Metalness/Roughness PBR workflow provided by
+    \l PrincipledMaterial it is possible to switch to using the Specular/Glossy
+    workflow which uses the \l SpecularGlossyMaterial. This can be done by a switch in
+    the Basics section.
+
+    \section1 Resource Loader
+
+    The more complex nature of this example also gives an opportunity to demonstrate
+    the usage of the \l ResourceLoader component. When a model is no longer visible in
+    the scene any resources associated with the model will be released by Qt Quick 3D
+    (assuming none of the resources are used by other models in the scene.) In this
+    example it is possible to hide the curtain model, and by doing so 2 meshes and 2
+    texture would be released from GPU memory. The next time the curtain is made visible
+    though, these resources would need to be re-uploaded to the GPU. On some hardware this
+    uploading can causes a momentary drop in frame-rate, so to mitigate this a
+    \l ResourceLoader component is used inside of the BackgroundCurtain component.
+
+    \snippet principledmaterial/BackgroundCurtain.qml resource loader
+
+    Here both the mesh files and textures are registered with a ResourceLoader.
+    ResourceLoader will assure that any registered resources will always be ready
+    for use in GPU memory, so now regardless of the visibility of the
+    BackgroundCurtain, its resources will be preserved.
+
+    The ResouceLoaded can also be used to preload resources, as shown with the \b point
+    and \b line meshes under the "Special" tab.
+
+    \snippet principledmaterial/main.qml resource loader
+
+    Here the \l QUrl's of the mesh files are listed directly. Resources do not
+    have to be associated with a Model to be used by a \l ResourceLoader.
+*/
+
+

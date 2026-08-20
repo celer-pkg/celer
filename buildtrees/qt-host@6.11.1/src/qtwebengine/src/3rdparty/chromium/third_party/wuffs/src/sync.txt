@@ -1,0 +1,8 @@
+script/sync.sh ran on 2023-04-08
+Sibling directory (../wuffs) git revision is d910658bcea64720c8a133e816c81d77293d9cde
+Manifest (sha256sum values, filenames, versions):
+bb28889a02c5d89edf6544ded21495462d1f998f8ffa5d095f53ca5db29e2937  release/c/README.md
+3b6a0c78f663bb495d1972fbb2a87c717d70fbac5ea8cc1a50cb9afaa4b03f92  release/c/wuffs-v0.2.c
+    #define WUFFS_VERSION_STRING "0.2.0+2078.20191219"
+ca10c422ebd4bf9f2cc469bafec4d5606eed3db0db7cbe21cb5232249ac0fe68  release/c/wuffs-v0.3.c
+    #define WUFFS_VERSION_STRING "0.3.3+3399.20230408"

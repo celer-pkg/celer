@@ -1,0 +1,56 @@
+<!doctype html>
+
+<html id="t" dir="$i18n{textdirection}" lang="$i18n{language}">
+  <head>
+    <meta charset="utf-8">
+    <title>Qt Version</title>
+    <link rel="stylesheet" href="chrome://qt/qt_version.css">
+  </head>
+  <body>
+    <script>
+      function showLog() {
+        var d = document.getElementById("log");
+        var b = document.getElementById("logBtn");
+        if (d.style.display === "block") {
+          d.style.display = "none";
+          b.textContent = "Show Log"
+        } else {
+          d.style.display = "block";
+          b.textContent = "Hide Log"
+        }
+    }
+    </script>
+    <div id="outer">
+      <table id="inner" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+            <td class="label"><img alt="Qt" src="images/qt.png"/></td>
+            <td class="version"><a href="https://www.qt.io/">Visit us !</a></td>
+        </tr>
+        <tr>
+            <td class="label" rowspan="4"><img alt="QtWebEngine" src="images/qtwebengine.png"/></td>
+            <td class="version">QtWebEngine Version: <b>$i18n{qtwebengine_version}</b></td>
+        </tr>
+        <tr>
+            <td class="version">Chromium Version: <b>$i18n{qtwebengine_chromium_version}</b></td>
+        </tr>
+        <tr>
+            <td class="version">Chromium Security Patch Version: <b>$i18n{qtwebengine_chromium_security_patch_version}</b></td>
+        </tr>
+        <tr>
+            <td class="version">JavaScript V8: <b>$i18n{qtwebengine_chromium_v8_version}</b></td>
+        </tr>
+        <tr><td>&nbsp;</td></tr>
+        <tr><td></td><td><button id="logBtn" onclick="showLog()">Show Log</button></td></tr>
+      </table>
+      <div id="log">
+        <table id="inner">
+          <tr><td>&nbsp;</td></tr>
+          <tr>
+            <td class="label">Process command line</td>
+            <td class="version" id="command_line">$i18n{command_line}</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </body>
+</html>

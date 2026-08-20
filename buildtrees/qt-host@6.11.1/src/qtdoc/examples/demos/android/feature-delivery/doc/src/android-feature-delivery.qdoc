@@ -1,0 +1,546 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example demos/android/feature-delivery
+    \title Using Play Feature Delivery
+    \ingroup android-platform-extra-topics
+    \brief Showcases use of Google Play Feature Delivery on Qt.
+    \meta {tag}{android}
+    \image summermap-view.webp
+
+    This document describes the functionality of the Feature Delivery example.
+    The example uses features supported since Qt 6.11.
+    \br
+    Play Feature Delivery can be used on older Qt versions, but creating the
+    application requires manual addition of Android project and copying Qt
+    binaries. Instructions for that are found in chapter
+    \l{Feature Delivery on pre Qt 6.11}.
+
+    \section1 What is Feature Delivery?
+
+    Play Feature Delivery is a capability offered by Google which essentially
+    allows developers to structure their projects in a way that the Google Play
+    store can split their app content into several downloadable packages. It
+    also gives developers control over how the content is delivered to users.
+    These split software and content packages are delivered to the Google Play
+    store using Android App Bundles (AAB).
+    \l{https://developer.android.com/guide/playcore/feature-delivery}{Google's developer documentation}
+    details this feature.
+
+    \section1 Example project: Feature Delivery Map Loader
+
+    This simple app uses Play Feature Delivery to serve images to a user when
+    requested. The app can be easily modified to create an app that is over
+    200MB to test the app size limits and download using a large Feature
+    Delivery module.
+
+    \section2 The App
+
+    The application consists of a draggable view and four buttons.
+    \list
+      \li On Startup \uicontrol {Load Map} and \uicontrol {Show Map Info} buttons
+      are enabled.
+      \li When clicked \uicontrol {Show Map Info} button just shows that there are
+      no information available.
+      \li \uicontrol {Load Map} initiates loading of the feature module:
+        \list 1
+          \li Download pop-up is shown, from the pop-up the download can be
+            canceled.
+          \li When download completes the pop-up is removed and
+          \li \uicontrol {Change Map} and \uicontrol {Remove Map} buttons are
+            enabled.
+        \endlist
+      \li \uicontrol {Remove Map} button requests feature module to be
+        uninstalled, disabling enabled buttons.
+      \li When \uicontrol {Change Map} is clicked it opens a view where a map
+        shown can be changed. In this example feature module consists of only
+        one winter-themed map image.
+    \endlist
+
+    \section2 Source folder setup
+    \list
+        \li \b fdwintermapmodule: Feature Module
+        \li \b fdmaploader: The main app
+        \li \b fdmaploader/storeloader: Feature Delivery JNI interface
+    \endlist
+
+    \section2 Feature Delivery interface
+
+    The \c{fdmaploader/storeloader} folder contains interface class
+    \c{PlayStoreLoader} for the Feature Delivery API. The API is not complete,
+    but contains relevant functions for loading and removing feature modules.
+    Module loading is initiated with a call to \c{PlayStoreLoader::loadModule}.
+    Status of the process can be monitored with signals provided by
+    \c{PlayStoreLoaderHandler}. A handle to the callbacks can be obtained with
+    \c{PlayStoreLoader::getHandler} function. The example API also provides a
+    way to check already installed modules with
+    \c{PlayStoreLoader::getInstalledModules} function and a option to remove
+    installed modules with \c{PlayStoreLoader::uninstallModules}.
+
+    This example is designed so that a developer can easily add their own
+    content to test the Feature Delivery. To exceed the Play Store maximum
+    package size, map images (It does not need to be map images, but it fits the
+    theme of the example.) can be added to the images folders in \c fdmaploader
+    and \c fdwintermapmodule, the image names must also be added to the
+    \c images.qrc file.
+
+    \section2 Under the hood
+
+    The API module consists of two parts. Qt interface (\c{PlayStoreLoader} and
+    \c{PlayStoreLoaderHandler}) and java classes that handle calling the
+    \l{Android: Google Split Install Interfaces}. Qt interface works mostly as a
+    passthrough for the java classes. Qt interface simplifies the API so,
+    that when feature module is being loaded, Google \c{SplitCompat} and
+    \c{SplitInstall} classes and listeners are created and released
+    automatically. In this example parts of the APIs are left out, such
+    as \c{deferredInstall} and language support.
+    \br
+    Qt creates and builds package suitable for Google Play deployment using
+    \c{qt6_add_android_dynamic_features} when it is defined \c{CMakeLists}.
+
+    \snippet demos/android/feature-delivery/fdmaploader/CMakeLists.txt Enable Feature Delivery
+
+    CMake function \c{qt6_add_android_dynamic_features} adds the specific
+    dynamic library as the dynamic feature for the Android application target.
+    it requires QT_USE_ANDROID_MODERN_BUNDLE feature to be enabled. That can
+    be done either as a compile-time flag or set in CMakeLists. The folder where
+    the Java part of the interface resides is added to the build using
+    \c{qt_add_android_dynamic_feature_java_source_dir}.
+
+    On the Example app modules are loaded using \c{storeloader} interface. Qt
+    \c{PlayStoreLoader} functions and \c{PlayStoreLoaderHandler} class work as
+    an intermediate between the example code and Java.
+
+    \snippet demos/android/feature-delivery/fdmaploader/storeloader/playstoreloader.cpp Load Module Implementation
+
+    Java classes handle calls to the \c{Split Install} API.
+
+    \snippet demos/android/feature-delivery/fdmaploader/storeloader/java/src/main/java/io/qt/fdmaploader/PlayStoreLoader.java Call To Split Install
+
+    \section2 Creating Binaries
+
+    Using command line a locally testable AAB package can be built.
+
+    Create and enter a build directory to the same level with source directory:
+    \code
+    mkdir build-feature-delivery/ ; cd build-feature-delivery/
+    \endcode
+    Configure:
+    \code
+    path-to-qt-version/path-to-abi/bin/qt-cmake -GNinja -B . -S ../feature-delivery/ -DQT_USE_TARGET_ANDROID_BUILD_DIR=ON -DCMAKE_BUILD_TYPE=Debug
+    \endcode
+    Build:
+    \code
+    ninja aab
+    \endcode
+
+    \section2 Testing
+
+    The built AAB can be tested locally by using \c bundletool with
+    \c --local-testing parameter.
+    \l{Android: Bundletool Documentation}
+    The bundletool \c{build-apks} command creates apks file which then can be
+    installed on a device or emulator with \c{install-apks} command
+
+    \section3 Bundletool commands used
+
+    Generate APK:s from a bundle:
+    \code
+    bundletool build-apks --bundle=/path/to/bundle.aab --output=/path/to/apk/package.apks --local-testing
+    \endcode
+    Install app to the device:
+    \code
+    bundletool install-apks --apks=/path/to/apk/package.apks
+    \endcode
+
+    \section2 Delivering to Play Store
+
+    In order to be able to upload the created AAB package to the Google Play
+    Store the package must be signed. For that \c{jarsigner} can be used. Below
+    is an example jarsigner command to sign the AAB package. See
+    \l{Android: Jarsigner Documentation}
+
+    \code
+    jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore [path-to-keystore-file].keystore [path-to-aab-file].aab [alias]
+    \endcode
+
+    \section1 Feature Delivery on pre Qt 6.11
+
+    Versions prior Qt 6.11 does not support Google Play Store compatible package
+    generation. If you are not able to use a Qt version 6.11 or later there is a
+    way to use Google Play Feature Delivery, but it requires manual creation of
+    the Android project, and copying of the Qt binaries to it. Rest of the
+    document have instructions how to achieve that. The instructions may not be
+    1-to-1 compatible for all environments, but should give good hints to
+    achieve successful Feature Delivery implementation. It is advised to use the
+    example as a basis.
+
+    \section2 Feature Module
+
+    Feature modules are build like normal libraries.
+
+    \list
+        \li Use Qt Creator to create a C++ shared library.
+        \li Implement features and add resources.
+        \li Build to create .so binaries.
+    \endlist
+
+    Feature Delivery handles C++ libraries like normal shared libraries that may
+    or may not be available at runtime. Before calls to a library, the
+    availability of one must be checked.
+
+    \section2 Main App (Qt)
+    \list
+        \li Use Qt Creator to create an app (Qt Quick project template was used
+        here).
+        \li Implement access to the Feature Delivery library. The central class
+        in Google Play Feature Delivery Java library is \l{Android: SplitInstallManager}.
+        \li Android template files can be created by using the 'Create Templates' button on QtCreator
+        \uicontrol{Projects -> Build&Run -> [target ABI] -> Build Steps -> Build Android APK}.
+        Templates are created in the 'android' folder in the project.
+        \li Add Java files to the folder \c .../android/src/java/[package...]
+        and file paths to
+        \c CMakeLists.txt:
+        \code
+        qt_add_executable...
+        ...[path]/[java-filename.java]
+        ...
+        \endcode
+        \li In the example, a Java class was created to handle the calls and
+        callbacks. The Java class would then be accessed from Qt using JNI.
+        \l{Android: Request an on demand module} section in the Android documentation has
+        a simple description of how to request a module.
+        \li When adding Java files under the android folder in the project,
+        \l QT_ANDROID_PACKAGE_SOURCE_DIR property must be added to the
+        \c CMakeLists.txt:
+        \code
+        ...
+        set_property(TARGET appFDMainApp APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
+                     ${CMAKE_CURRENT_SOURCE_DIR}/android)
+        ...
+        \endcode
+        \li Also, the main app \c build.gradle must have dependencies for the
+        feature API: in the dependencies block, replace
+        \code
+        implementation 'androidx.core:core:1.13.1'
+        \endcode
+        with
+        \code
+        implementation("com.google.android.play:feature-delivery:2.1.0")
+        \endcode
+        \li Implement access to the library provided by the feature module. As
+        the Feature Module may or may not be available to the main app, modules
+        are not linked at build time and calls to the module must be resolved at
+        runtime.
+        Example:
+
+        \snippet demos/android/feature-delivery/fdmaploader/maploader.cpp Load Map Info
+
+        \li Implement the user interface and other required parts of the main
+        app.
+    \endlist
+
+    \section2 Feature Module (Qt)
+
+    \list
+        \li Use Qt Creator to create an app (Qt C++ Library project template was
+        used).
+        \li Implement features the module offers.
+    \endlist
+
+    \section2 Android Project (Android)
+
+    Creating a project for building an Android app bundle for Feature Delivery
+    is based on
+    Android's documentation, mainly:
+    \list
+        \li \l {Android: Android Feature Delivery Documentation}
+    \endlist
+
+    Create an Android project manually or using Android Studio (Using the
+    'No Activity' template). The project is modified so that it contains a
+    top-level project and two sub-projects, \c app and \c feature-module. The
+    Android Studio template creates the \c app sub-project and the
+    \c feature-module can be added using \uicontrol{File -> New -> New Module}
+    template.
+
+    The template project requires several modifications:
+
+    \list
+        \li Add Feature Delivery plugin to the main level \c build.gradle:
+        \code
+        plugins {
+            id 'com.android.application' version '8.5.2' apply false
+            id 'com.android.dynamic-feature' version '8.5.2' apply false
+            id 'com.android.library' version '8.5.2' apply false
+        }
+        \endcode
+        \li Add feature module to the \c settings.gradle, change \c rootProject.name if needed:
+        \code
+        ...
+        rootProject.name = "name-of-the-root-project"
+        include(:app)
+        include(:name-of-the-feature-module)
+        \endcode
+    \endlist
+
+    \section3 app - Sub-project
+    \list
+        \li Android project requires Qt binaries from the Main App project:
+            \list
+                \li Copy native libraries in Qt build: \c [build directory]/android-build/libs/[target ABI]
+                to \c app/src/main/jniLibs/[target ABI]
+                \li Copy jars in \c [build directory]/android-build/libs/ to \c app/libs/
+            \endlist
+        \li From the Qt build, also contents of the \c res folder,
+        \c AndroidManifest.xml, and \c local.properties are copied to respective
+        places in the Android project.
+        \li Add file \c feature_names.xml to the \c app/src/main/res/values
+        folder containing a string for the feature module:
+        \code
+        <?xml version="1.0" encoding="utf-8"?>
+        <resources>
+            <string name="feature_module_name">name-of-the-feature-module-here</string>
+        </resources>
+        \endcode
+        \li Add file \c keep.xml to \c app/src/main/res/raw folder containing:
+        \code
+        <?xml version="1.0" encoding="utf-8"?>
+        <resources xmlns:tools="http://schemas.android.com/tools"
+            tools:keep="@string/feature_module_winter_map"
+            tools:discard="" />
+        \endcode
+    \endlist
+
+    \section2 Modifications to app sub-project build files
+
+    Build files copied to the Android project need some modifications.
+
+    \section3 app - Sub-project
+
+    \section4 build.gradle
+    \list
+        \li Remove \c buildScript and \c repositories blocks.
+        \li Android block in main app's \c build.gradle requires some
+        modifications:
+            \list
+                \li \c defaultConfig
+                \li \c packagingOptions
+                \li \c dynamicFeatures
+                \li \c sourceSets
+                \li \c aaptOptions
+                \li \c dependencies
+            \endlist
+    \endlist
+
+    \code
+    android {
+    ...
+      defaultConfig {
+      ...
+        applicationId "your-project-name-here"
+      ...
+      }
+      packagingOptions.jniLibs.useLegacyPackaging true
+
+      dynamicFeatures = [":your-dynamic-feature-name-here"]
+
+      sourceSets {
+        main {
+          manifest.srcFile 'src/main/AndroidManifest.xml'
+          java.srcDirs = [qtAndroidDir + '/src', 'src', 'java']
+          aidl.srcDirs = [qtAndroidDir + '/src', 'src', 'aidl']
+          res.srcDirs = [qtAndroidDir + '/res', 'res']
+          resources.srcDirs = ['resources']
+          renderscript.srcDirs = ['src']
+          assets.srcDirs = ['assets']
+          jniLibs.srcDirs = ['src/main/jniLibs/']
+        }
+      }
+
+      // Do not compress Qt binary resources file
+      aaptOptions {
+        noCompress 'rcc'
+      }
+    ...
+    }
+
+    dependencies {
+    ...
+      implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+      implementation 'com.google.android.play:feature-delivery:2.1.0'
+      implementation libs.material
+    ...
+    }
+    \endcode
+
+    Also add signing configuration to android block:
+
+    \code
+    android {
+    ...
+      signingConfigs {
+        release {
+          storeFile file("/absolute/path/to/the/keystore.jks")
+          storePassword "myStorePassword"
+          keyAlias "myKeyAlias"
+          keyPassword "myKeyPassword"
+        }
+      }
+      buildTypes {
+        release {
+          signingConfig signingConfigs.release
+          ...
+        }
+      }
+    ...
+    }
+    \endcode
+
+    \section4 gradle.properties
+
+    Qt has added project variables to \c gradle.properties. Change the value of
+   \c androidPackageName if needed.
+
+    \section4 AndroidManifest.xml
+
+    \list
+        \li Remove \c package:
+        \code
+        ...
+        <manifest
+        ...
+          android:package... <--remove
+        ...
+        >
+        ...
+        \endcode
+        \li Change \c label and \c android.app.lib_name if needed:
+        \code
+        ...
+        <application ...
+          android:label=" ...
+          <activity ... >
+            <meta-data android:name="android.app.lib_name" android:value=" ...
+            />
+        ...
+        \endcode
+    \endlist
+
+    \section3 feature-module - Sub-project
+
+    App and feature modules are created as sub-projects for the top-level
+    Android project. The folder and file structure is similar to the app
+    sub-project.
+
+    \list
+        \li Feature-module binaries from the Qt build are copied to the
+        \c [name-of-feature-module]/src/main/jniLibs/
+        \li Like in the main app, \c src/main/res/ folder should have \c xml and
+        \c values folders containing \c qtprovider_paths.xml and \c libs.xml
+        respectively. Both files can be copied from the app project.
+        \li If \c src/main/res/ folder contains drawable or mipmap folders and
+        the feature does not require them, they can be removed.
+        \li In the feature module \c src/main/res/values should not contain
+        \c app_name field. In simple projects where strings.xml is not needed
+        for other uses, it can be removed.
+        \li \c libs.xml contains only the name of the feature module:
+        \code
+        ...
+            <array name="load_local_libs">
+                <item>name-of-the-feature-module-here</item>
+            </array>
+
+            <string name="static_init_classes"></string>
+            <string name="use_local_qt_libs">0</string>
+            <string name="bundle_local_qt_libs">0</string>
+        ...
+        \endcode
+        \li \c AndroidManifest.xml is added to the \c src/main/ directory:
+        \code
+        <?xml version="1.0" encoding="utf-8"?>
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:dist="http://schemas.android.com/apk/distribution">
+
+            <dist:module
+                dist:instant="false"
+                dist:title="@string/feature_module_title_string">
+                <dist:delivery>
+                    <dist:on-demand />
+                </dist:delivery>
+                <dist:fusing dist:include="false" />
+            </dist:module>
+            <!-- This feature module does contain code. -->
+            <application android:hasCode="true"/>
+        </manifest>
+        \endcode
+        \li Feature module \c build.gradle is quite similar to the one from the
+        app project, with some changes. Here's an example:
+        \code
+        plugins {
+            id 'com.android.dynamic-feature'
+        }
+
+        dependencies {
+            implementation project(':app')
+            implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+            implementation 'com.google.android.play:feature-delivery:2.1.0'
+        }
+
+        android {
+
+            namespace = androidPackageName
+            compileSdk = androidCompileSdkVersion
+            ndkVersion androidNdkVersion
+
+            // Extract native libraries from the APK
+            packagingOptions.jniLibs.useLegacyPackaging true
+
+            defaultConfig {
+                resConfig "en"
+                minSdkVersion qtMinSdkVersion
+                targetSdkVersion qtTargetSdkVersion
+            }
+
+            sourceSets {
+                main {
+                    manifest.srcFile 'src/main/AndroidManifest.xml'
+                    resources.srcDirs = ['resources']
+                    renderscript.srcDirs = ['src']
+                    assets.srcDirs = ['assets']
+                    jniLibs.srcDirs = ['src/main/jniLibs/']
+               }
+            }
+
+            tasks.withType(JavaCompile) {
+                options.incremental = true
+            }
+
+            compileOptions {
+                sourceCompatibility JavaVersion.VERSION_1_8
+                targetCompatibility JavaVersion.VERSION_1_8
+            }
+
+            lintOptions {
+                abortOnError false
+            }
+
+            // Do not compress Qt binary resources file
+            aaptOptions {
+                noCompress 'rcc'
+            }
+        }
+        \endcode
+        \li \c gradle.properties file can be copied over from the app sub-project,
+        change the \c androidPackageName to the feature module package.
+    \endlist
+
+    \section2 Building and deployment
+    AAB bundle can be built from the command line using gradle wrapper:
+    \c ./gradlew bundle
+    The produced AAB will be in \c build/outputs/bundle/release (or \c debug)
+    folder. The AAB can then be copied to the Google Play Store and released
+    for testing. Testing can also be done locally by using \c bundletool with
+    \c --local-testing parameter.
+*/

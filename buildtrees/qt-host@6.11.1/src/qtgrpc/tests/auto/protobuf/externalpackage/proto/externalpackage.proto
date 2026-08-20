@@ -1,0 +1,28 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+syntax = "proto3";
+
+package qtprotobufnamespace1.externaltests;
+
+message ExternalInt32Message {
+    repeated int32 localList = 1;
+}
+
+message ExternalComplexMessage {
+    ExternalInt32Message testFieldInt = 1;
+}
+
+enum ExternalTestEnum {
+    EXTERNAL_TEST_ENUM_VALUE0 = 0;
+    EXTERNAL_TEST_ENUM_VALUE1 = 1;
+    EXTERNAL_TEST_ENUM_VALUE2 = 2;
+    EXTERNAL_TEST_ENUM_VALUE3 = 3;
+    EXTERNAL_TEST_ENUM_VALUE4 = 4;
+}
+
+message NestedFieldMessage {
+    message NestedMessage {
+        sint32 field = 1;
+    }
+    NestedMessage nested = 1;
+}

@@ -1,0 +1,39 @@
+{
+    "QEN": {
+        "description": "Applies vignette effect to the source, so adds darkening / color towards the corners.",
+        "fragmentCode": [
+            "@main",
+            "{",
+            "    float vigDist = distance(texCoord, vec2(0.5));",
+            "    vec4 vigColor = vec4(vignetteColor.rgb, smoothstep(vignetteInnerRadius, vignetteOuterRadius, vigDist));",
+            "    fragColor.rgb = mix(fragColor.rgb, vigColor.rgb * fragColor.a, vigColor.a * vignetteColor.a);",
+            "}"
+        ],
+        "name": "Vignette",
+        "properties": [
+            {
+                "defaultValue": "0, 0, 0, 1",
+                "description": "Defines the vignette color. The default value is black (0, 0, 0, 1).",
+                "name": "vignetteColor",
+                "type": "color"
+            },
+            {
+                "defaultValue": "0.2",
+                "description": "Inner radius from the center where vignette effect starts from. The value should be smaller than vignetteOuterRadius. The default value is 0.2.",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "vignetteInnerRadius",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0.8",
+                "description": "Outer radius from the center where vignette effect ends to. The value should be bigger than vignetteInnerRadius. The default value is 0.8.",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "vignetteOuterRadius",
+                "type": "float"
+            }
+        ],
+        "version": 1
+    }
+}

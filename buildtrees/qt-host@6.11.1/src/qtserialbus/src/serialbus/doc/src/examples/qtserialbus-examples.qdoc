@@ -1,0 +1,12 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \group qtserialbus-examples
+    \title Qt SerialBus Examples
+    \brief Examples for the Qt SerialBus module
+    \ingroup qtserialbus
+
+    These are the \l{Qt Serial Bus} examples.
+
+*/

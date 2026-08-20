@@ -1,0 +1,20 @@
+[
+    {
+        "Id": "nanovg",
+        "Name": "NanoVG",
+        "QDocModule": "qtcanvaspainter",
+        "Description": "NanoVG is small antialiased vector graphics rendering library modeled after the HTML5 canvas API.",
+        "QtUsage": "Qt Canvas Painter's renderer is based on NanoVG.",
+
+        "Homepage": "https://github.com/memononen/nanovg",
+        "PURL": [
+            "pkg:github/memononen/nanovg@$<VERSION>"
+        ],
+        "Comment": "No relevant CPE found",
+        "Version": "f93799c",
+        "License": "zlib License",
+        "LicenseId": "Zlib",
+        "LicenseFile": "LICENSE.NanoVG.txt",
+        "Copyright": "Copyright (c) 2013 Mikko Mononen"
+    }
+]

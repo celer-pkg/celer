@@ -1,0 +1,37 @@
+From 314d0cf331c5cbd316b1fa8df96caa2289e6f0b2 Mon Sep 17 00:00:00 2001
+From: Jonas Karlsson <jonas.karlsson@qt.io>
+Date: Mon, 31 Oct 2022 04:52:56 +0100
+Subject: [PATCH] Workaround maybe-uninitialized error in GCC 12.2.1
+
+This error appeared on OpenSUSE Tumbleweed. Even though the PhysX
+headers are supposed to be treated like system headers this error
+appears. I guess because the methods are inlined.
+
+Pick-to: 6.4
+Fixes: QTBUG-108045
+Change-Id: I1d70f3214dc3261887532d529d1c8878d962293d
+---
+ src/3rdparty/PhysX/include/PxContact.h | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/src/3rdparty/PhysX/include/PxContact.h b/src/3rdparty/PhysX/include/PxContact.h
+index c1dd176..6647a80 100644
+--- a/src/3rdparty/PhysX/include/PxContact.h
++++ b/src/3rdparty/PhysX/include/PxContact.h
+@@ -279,8 +279,11 @@ struct PxContactStreamIterator
+ 			pointSize = compressedModify ?  sizeof(PxExtendedContact) : modify ? sizeof(PxModifiableContact) : sizeof(PxContact);
+ 
+ 			response = (patch->internalFlags & PxContactPatch::eFORCE_NO_RESPONSE) == 0;
+-		}
+-
++        } else {
++			patch = nullptr;
++			contact = nullptr;
++			faceIndice = nullptr;
++        }
+ 
+ 		mStreamFormat = compressedModify ? eCOMPRESSED_MODIFIABLE_STREAM : modify ? eMODIFIABLE_STREAM : eSIMPLE_STREAM;
+ 		hasFaceIndices = PxU32(indices);
+-- 
+2.38.1
+

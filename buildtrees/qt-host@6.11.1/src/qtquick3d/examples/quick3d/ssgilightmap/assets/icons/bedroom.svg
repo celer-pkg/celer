@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+
+<svg
+   fill="#000000"
+   width="800px"
+   height="800px"
+   viewBox="0 0 256 256"
+   id="Flat"
+   version="1.1"
+   sodipodi:docname="bedroom.svg"
+   inkscape:version="1.4.2 (ebf0e940d0, 2025-05-08)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="true"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.62447938"
+     inkscape:cx="435.56282"
+     inkscape:cy="421.95148"
+     inkscape:window-width="1916"
+     inkscape:window-height="1170"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="Flat" />
+  <path
+     d="M 227.73525,254.80374 H 28.264744 C 14.50057,254.78845 3.3463482,243.7275 3.3309306,230.07842 V 115.7715 c 0.006,-6.96465 2.9681086,-13.6051 8.1607124,-18.294686 L 111.21836,7.5580828 c 9.49267,-8.620572 24.05382,-8.6213576 33.54743,-0.00181 l 99.74256,89.9205362 0.004,0.0028 c 5.19004,4.690081 8.15061,11.329171 8.15706,18.292271 v 114.30658 c -0.0154,13.64924 -11.16989,24.71025 -24.93422,24.72532 z M 22.849097,236.12513 232.63846,236.29933 234.00155,112.2655 128.84335,15.665692 22.936195,111.23049 Z"
+     id="path1"
+     style="fill:#ffffff;fill-opacity:1;stroke-width:0.6976;stroke-dasharray:none"
+     sodipodi:nodetypes="ccccccccccccccccccc" />
+</svg>

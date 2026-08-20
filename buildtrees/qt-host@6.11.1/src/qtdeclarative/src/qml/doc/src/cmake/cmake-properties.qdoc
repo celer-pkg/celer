@@ -1,0 +1,260 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\group cmake-global-properties-qtqml
+\title CMake Global Properties in Qt6 Qml
+
+\l{CMake Command Reference#Qt6::Qml}{CMake Commands} know about the following
+global CMake properties:
+
+\sa{CMake Property Reference}
+*/
+
+
+/*!
+\page cmake-global-property-qt-qmllinter-targets-folder.html
+\ingroup cmake-properties-qtqml
+\ingroup cmake-global-properties-qtqml
+
+\title QT_QMLLINTER_TARGETS_FOLDER
+
+\summary{Sets the FOLDER property for targets that belong to the QML linter.}
+
+\cmakepropertysince 6.5
+\preliminarycmakeproperty
+
+Name of the \l FOLDER for targets that are related to the QML linter.
+
+By default, this property is set to \c{QmlLinter}.
+
+This property only has an effect if CMake's \l USE_FOLDERS property is \c{ON}.
+
+You can enable folder support by calling
+\l{qt6_standard_project_setup}{qt_standard_project_setup}.
+*/
+
+
+/*!
+\group cmake-source-file-properties-qtqml
+\title CMake Source File Properties in Qt6 Qml
+
+\l{CMake Command Reference#Qt6::Qml}{CMake Commands} know about the following
+CMake source file properties:
+
+\sa{CMake Property Reference}
+*/
+
+
+/*!
+\page cmake-source-file-property-qt-qml-internal-type.html
+\ingroup cmake-source-file-properties-qtqml
+
+\title QT_QML_INTERNAL_TYPE
+
+\summary {Marks a QML file as providing an internal type.}
+
+\cmakepropertysince 6.2
+
+Set this property to \c TRUE to indicate that the \c{.qml} file provides an internal type.
+
+\sa{qml-source-file-properties}{qt_target_qml_sources}
+*/
+
+
+/*!
+\page cmake-source-file-property-qt-qml-singleton-type.html
+\ingroup cmake-source-file-properties-qtqml
+
+\title QT_QML_SINGLETON_TYPE
+
+\summary {Marks a QML file as providing a singleton type.}
+
+\cmakepropertysince 6.2
+
+A \c{.qml} file that provides a singleton type needs to have its \c QT_QML_SINGLETON_TYPE source
+property set to \c TRUE to ensure that the singleton command is written into the
+\l{Module Definition qmldir Files}{qmldir} file.
+This must be done in addition to the QML file containing the \c {pragma Singleton} statement.
+The source property must be set before \l{qt_add_qml_module}{creating} the module the
+singleton belongs to.
+
+See \l{qt_target_qml_sources_example}{qt_target_qml_sources()} for an example on
+how to set the \c QT_QML_SINGLETON_TYPE property.
+
+\sa{qml-source-file-properties}{qt_target_qml_sources}
+*/
+
+
+/*!
+\page cmake-source-file-property-qt-qml-skip-cachegen.html
+\ingroup cmake-source-file-properties-qtqml
+
+\title QT_QML_SKIP_CACHEGEN
+
+\summary {Excludes a file from being compiled to byte code.}
+
+\cmakepropertysince 6.2
+
+Set this property to \c TRUE to prevent the \c{.qml} file from being compiled to byte code.
+The file will still be added to the \c target as a resource in uncompiled form
+(see \l{qmlcachegen-auto}{Caching compiled QML sources}).
+
+\sa{qml-source-file-properties}{qt_target_qml_sources}
+*/
+
+
+/*!
+\page cmake-source-file-property-qt-qml-skip-qmldir-entry.html
+\ingroup cmake-source-file-properties-qtqml
+
+\title QT_QML_SKIP_QMLDIR_ENTRY
+
+\summary {Excludes a file from being added as a type to the QML module's typeinfo file.}
+
+\cmakepropertysince 6.2
+
+Set this property to \c TRUE to prevent
+the \c{.qml} file from being added as a type to the QML module's typeinfo file
+(see \l{qmldir-autogeneration}{Auto-generating \c{qmldir} and typeinfo files}).
+
+\sa{qml-source-file-properties}{qt_target_qml_sources}
+*/
+
+
+/*!
+\page cmake-source-file-property-qt-qml-skip-qmllint.html
+\ingroup cmake-source-file-properties-qtqml
+
+\title QT_QML_SKIP_QMLLINT
+
+\summary {Prevents a file from being included in automatic qmllint processing.}
+
+\cmakepropertysince 6.2
+
+Set this property to \c TRUE to prevent the file from being included in
+\l{qmllint-auto}{automatic qmllint processing}.
+
+\sa{qml-source-file-properties}{qt_target_qml_sources}
+*/
+
+
+/*!
+\page cmake-source-file-property-qt-qml-source-typename.html
+\ingroup cmake-source-file-properties-qtqml
+
+\title QT_QML_SOURCE_TYPENAME
+
+\summary {Overrides the type name provided by the file.}
+
+\cmakepropertysince 6.2
+
+Use this property to override the \c QML type name provided by this file.
+
+\sa{qml-source-file-properties}{qt_target_qml_sources}
+*/
+
+
+/*!
+\page cmake-source-file-property-qt-qml-source-versions.html
+\ingroup cmake-source-file-properties-qtqml
+
+\title QT_QML_SOURCE_VERSIONS
+
+\summary {Specifies a custom set of versions for a type.}
+
+\cmakepropertysince 6.2
+
+When the file needs to provide type entries for a custom set of versions,
+for example when the QML types were first introduced in a minor patch
+version after the \c{.0} release, specify those versions using this property.
+
+\sa{qml-source-file-properties}{qt_target_qml_sources}
+*/
+
+
+/*!
+\page cmake-source-file-property-qt-qmltc-file-basename.html
+\ingroup cmake-source-file-properties-qtqml
+
+\title QT_QMLTC_FILE_BASENAME
+
+\summary {Specifies a non-default .h and .cpp file name.}
+
+\cmakepropertysince 6.3
+\preliminarycmakeproperty
+
+Use this property to specify a non-default \c .h and \c .cpp file name, which helps to resolve
+conflicting file names.
+
+\sa{qmltc-cmake}
+*/
+
+/*!
+\page cmake-source-file-property-qt-qml-skip-type-compiler.html
+\ingroup cmake-source-file-properties-qtqml
+
+\title QT_QML_SKIP_TYPE_COMPILER
+
+\summary {Excludes a file from being compiled to C++ using qmltc.}
+
+\cmakepropertysince 6.4
+\preliminarycmakeproperty
+
+Set this property to \c TRUE to prevent the \c{.qml} file from being compiled to
+C++ during qmltc compilation.
+
+\sa{qmltc-cmake}
+*/
+
+/*!
+\page cmake-source-file-property-qt-qml-generate-android-java-class.html
+\ingroup cmake-source-file-properties-qtqml
+\ingroup cmake-android-build-properties
+
+\title QT_QML_GENERATE_ANDROID_JAVA_CLASS
+
+\summary {Marks a QML file for Java code generation.}
+
+\cmakepropertysince 6.8
+When using QML as a \l {Android: View} in Android via \l QtQuickView, you can choose
+the QML components to make available as generated Java classes usable from Android code.
+To mark a \c {.qml} file for code generation, set its \c QT_QML_GENERATE_ANDROID_JAVA_CLASS
+source property to \c TRUE. The source property must be set before
+\l {qt_add_qml_module}{creating} the module. \note The \c {.qml} file name must start with
+an uppercase letter and define a QML component. This property is valid only if
+\l QT_ANDROID_GENERATE_JAVA_QTQUICKVIEW_CONTENTS is defined.
+
+The source file property can be set like so:
+
+\badcode
+set_source_files_properties(MyMainItem.qml
+    PROPERTIES QT_QML_GENERATE_ANDROID_JAVA_CLASS TRUE)
+\endcode
+
+You can pass multiple files at once to set_source_files_properties:
+\badcode
+set(plain_qml_files
+    MyItem1.qml
+    MyItem2.qml
+    FancyButton.qml
+
+)
+
+set(qml_to_java_files
+    MyMainItem.qml
+    MyOtherMain.qml
+)
+
+set_source_files_properties(${qml_to_java_files}
+    PROPERTIES QT_QML_GENERATE_ANDROID_JAVA_CLASS TRUE
+)
+
+qt_add_qml_module(myapp
+    URI MyModule
+    QML_FILES ${plain_qml_files} ${qml_to_java_files}
+)
+\endcode
+
+\sa {Naming Custom QML Object Types}
+*/

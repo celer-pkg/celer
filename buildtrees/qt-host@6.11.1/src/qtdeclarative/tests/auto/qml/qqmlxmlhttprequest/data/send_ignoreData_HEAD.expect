@@ -1,0 +1,8 @@
+HEAD /testdocument.html HTTP/1.1
+accept-language: {{Ignore}}
+connection: Keep-Alive{{Ignore}}
+http2-settings: {{Ignore}}
+accept-encoding: {{Ignore}}
+user-agent: Mozilla/5.0
+host: {{ServerHostUrl}}
+

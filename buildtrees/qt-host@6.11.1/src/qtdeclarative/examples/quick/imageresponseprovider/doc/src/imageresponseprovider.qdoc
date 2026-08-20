@@ -1,0 +1,14 @@
+// Copyright (C) 2015 Canonical Limited and/or its subsidiary(-ies)
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title C++ Extensions: Image Response Provider Example
+    \example imageresponseprovider
+    \brief How to load images asynchronously in QML.
+    \examplecategory {Graphics}
+
+
+    This examples shows how to use QQuickImageProvider to serve images
+    asynchronously to QML image elements.
+*/
+

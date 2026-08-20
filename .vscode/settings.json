@@ -8,5 +8,6 @@
         "build.buildFlags": [
             "-tags=test_gcc,test_clang,test_aarch64_gcc,test_msvc,test_clang_cl"
         ]
-    }
+    },
+    "git.ignoreLimitWarning": true
 }

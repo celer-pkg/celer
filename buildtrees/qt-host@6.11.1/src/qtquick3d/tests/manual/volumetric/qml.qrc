@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>custom.frag</file>
+        <file>custom.vert</file>
+    </qresource>
+</RCC>

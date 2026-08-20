@@ -1,0 +1,11 @@
+spurious = \
+    "Undocumented template parameter .*" \
+    "No such template parameter .*" \
+    "Undocumented property .*" \
+    "Missing comma in .*" \
+    "Missing pattern .*" \
+    "Missing return type for .*" \
+    "Unable to parse (QML|JavaScript).*" \
+    "Redundant link to self in .*" \
+    "Invalid syntax for \\\\qmlmethod: .*"
+

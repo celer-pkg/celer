@@ -1,0 +1,55 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+syntax = "proto3";
+
+option go_package = "qtgrpc/tests";
+package qtgrpc.tests;
+
+message Empty {}
+
+message SimpleStringMessage {
+    string testFieldString = 6;
+}
+
+message SimpleIntMessage {
+    sint32 testField = 1;
+}
+
+message BlobMessage {
+    bytes testBytes = 1;
+}
+
+message SleepMessage {
+    optional uint64 sleepTimeMs = 1;
+}
+
+message ServerStreamSleepMessage {
+    uint64 amountResponses = 1;
+    SleepMessage sleepMessage = 2;
+}
+
+message MetadataMessage {
+    message MetadataPair {
+        string key = 1;
+        string value = 2;
+    }
+    repeated MetadataPair values = 1;
+}
+
+service TestService {
+    rpc testMethod(SimpleStringMessage) returns (SimpleStringMessage) {}
+    rpc testMethodServerStream(SimpleStringMessage) returns (stream SimpleStringMessage) {}
+    rpc testMethodClientStream(stream SimpleStringMessage) returns (SimpleStringMessage) {}
+    rpc testMethodBiStream(stream SimpleStringMessage) returns (stream SimpleStringMessage) {}
+    rpc testMethodBlobServerStream(BlobMessage) returns (stream BlobMessage) {}
+    rpc testMethodStatusMessage(SimpleStringMessage) returns (SimpleStringMessage) {}
+    rpc testMethodNonCompatibleArgRet(SimpleIntMessage) returns (SimpleStringMessage) {}
+    rpc testMetadata(Empty) returns (Empty) {}
+    rpc testMethodClientStreamWithDone(stream SimpleStringMessage) returns (SimpleStringMessage) {}
+    rpc testMethodBiStreamWithDone(stream SimpleStringMessage) returns (stream SimpleStringMessage) {}
+    rpc testMethodSleep(SleepMessage) returns (Empty) {}
+    rpc testMethodServerStreamSleep(ServerStreamSleepMessage) returns (stream Empty) {}
+    rpc testMethodClientStreamSleep(stream SleepMessage) returns (Empty) {}
+    rpc testMethodBiStreamSleep(stream SleepMessage) returns (stream Empty) {}
+    rpc replyWithMetadata(Empty) returns (MetadataMessage) {}
+}

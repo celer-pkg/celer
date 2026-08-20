@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400">
+<text x="20" y="30" fill="black"> Strokes with zero width are not rendered </text>
+<path d="M50 50 H350 V350 H50 V50" stroke-width="0" fill="none" stroke="black"/>
+</svg>

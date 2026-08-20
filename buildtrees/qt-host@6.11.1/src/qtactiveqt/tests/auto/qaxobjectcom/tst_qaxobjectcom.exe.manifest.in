@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
+  <assemblyIdentity version="1.0.0.0" name="tst_qaxobjectcom.app"/>
+  <file name="testserver/${TestServerDll}">
+      <comClass
+        description="Com Server"
+        clsid="{af732aba-95cf-4ee7-bd59-8f946b7f82e3}"
+        progid="Qt.TestServer"
+        threadingModel = "Both"
+      />
+  </file>
+</assembly>

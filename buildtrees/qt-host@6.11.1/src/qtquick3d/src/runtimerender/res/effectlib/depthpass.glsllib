@@ -1,0 +1,33 @@
+// Copyright (C) 2014 NVIDIA Corporation.
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#ifndef DEPTHPASS_GLSLIB
+#define DEPTHPASS_GLSLIB 1
+
+float qt_getDepthValue( vec4 depth_texture_sample, vec2 cameraProperties )
+{
+
+#if __VERSION__ >= 300
+    float zNear = cameraProperties.x;
+    float zFar = cameraProperties.y;
+    float zRange = zFar - zNear;
+    float z_b = depth_texture_sample.x;
+    float z_n = 2.0 * z_b - 1.0;
+    float z_e = 2.0 * zNear * zFar / (zFar + zNear - z_n * (zRange));
+    return 1.0 - ((z_e - cameraProperties.x) / (zRange));
+#else
+    return depth_texture_sample.x + (depth_texture_sample.y / 255.0);
+#endif
+}
+
+float qt_depthValueToLinearDistance( float depth_value, vec2 cameraProperties )
+{
+    float FarClipDistance = cameraProperties.y;
+    float NearClipDistance = cameraProperties.x;
+    float DepthRange = FarClipDistance - NearClipDistance;
+    float linearDepth = NearClipDistance + (DepthRange * (1.0 - depth_value));
+    return linearDepth;
+}
+
+#endif

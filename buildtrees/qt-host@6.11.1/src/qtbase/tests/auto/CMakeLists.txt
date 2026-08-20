@@ -1,0 +1,140 @@
+# Copyright (C) 2022 The Qt Company Ltd.
+# SPDX-License-Identifier: BSD-3-Clause
+
+# Order by dependency [*], then alphabetic. [*] If bugs in part A of
+# our source would break tests of part B, then test A before B.
+
+
+add_subdirectory(util/testrunner)
+
+set(run_dbus_tests OFF)
+if (QT_FEATURE_dbus)
+    set(run_dbus_tests ON)
+    if((NOT CMAKE_CROSSCOMPILING OR WIN32) AND TARGET Qt::DBus)
+        execute_process(COMMAND dbus-send --session --type=signal / local.AutotestCheck.Hello
+            TIMEOUT 5
+            RESULT_VARIABLE dbus_session_test
+            OUTPUT_QUIET ERROR_QUIET)
+        if(NOT "${dbus_session_test}" STREQUAL "0")
+            set(run_dbus_tests OFF)
+            if(QT_FEATURE_dbus_linked)
+                message(WARNING
+                    " QtDBus is enabled but session bus is not available for testing.\n"
+                    " Please check the installation. Skipping QtDBus tests.")
+            else()
+                message(WARNING
+                    " QtDBus is enabled with runtime support, but session bus is not available.\n"
+                    " Skipping QtDBus tests.")
+            endif()
+        endif()
+    endif()
+endif()
+
+if(UIKIT)
+    # For now, only build CMake auto tests when QT_BUILD_MINIMAL_STATIC_TEST
+    # is a requested (which is basically what CI will build).
+    # The reason is that qt_internal_add_test doesn't use qt_add_executable
+    # at the moment, which means none of the required iOS specific finalizers
+    # are run.
+    if(QT_BUILD_MINIMAL_STATIC_TESTS)
+        add_subdirectory(cmake)
+        return()
+    endif()
+
+    # Build only corelib and gui tests when targeting uikit (iOS),
+    # because the script can't handle the SUBDIRS assignment well.
+    add_subdirectory(corelib)
+    if (TARGET Qt::Gui)
+        add_subdirectory(gui)
+    endif()
+    return()
+endif()
+
+# Limit set of tests to run for Android multi-ABI Qt builds.
+if(QT_BUILD_MINIMAL_ANDROID_MULTI_ABI_TESTS)
+    add_subdirectory(cmake)
+    add_subdirectory(corelib/kernel/qmath)
+    add_subdirectory(widgets/effects/qpixmapfilter)
+    add_subdirectory(corelib/platform)
+    return()
+endif()
+
+if(QT_BUILD_WASM_BATCHED_TESTS)
+    if(TARGET Qt::Concurrent)
+        add_subdirectory(corelib/io/qurl)
+    endif()
+    add_subdirectory(corelib/io/qdiriterator)
+    add_subdirectory(corelib/io/largefile)
+    add_subdirectory(corelib/io/qdataurl)
+    add_subdirectory(corelib/io/qbuffer)
+    add_subdirectory(corelib/io/qabstractfileengine)
+    add_subdirectory(corelib/io/qsettings)
+    add_subdirectory(corelib/io/qstorageinfo)
+    add_subdirectory(corelib/io/qstandardpaths)
+    add_subdirectory(corelib/io/qfileselector)
+    add_subdirectory(corelib/io/qfile)
+    add_subdirectory(corelib/io/qdir)
+    if(TARGET Qt::Concurrent)
+        if(NOT INTEGRITY)
+        add_subdirectory(corelib/io/qdebug)
+        endif()
+    endif()
+    add_subdirectory(corelib/serialization)
+    add_subdirectory(corelib/text)
+    add_subdirectory(corelib/thread)
+    add_subdirectory(wasm)
+    return()
+endif()
+
+if(WASM)
+    add_subdirectory(wasm)
+endif()
+
+add_subdirectory(testlib)
+if(NOT CMAKE_CROSSCOMPILING AND QT_FEATURE_process)
+     add_subdirectory(tools)
+endif()
+add_subdirectory(corelib)
+if (TARGET Qt::Xml AND TARGET Qt::Sql AND TARGET Qt::Network)
+    add_subdirectory(cmake)
+endif()
+
+# Limit set of tests to run for static Qt builds.
+if(QT_BUILD_MINIMAL_STATIC_TESTS)
+    return()
+endif()
+
+
+# Run tests with high flakiness/failure potential first, so we fail faster
+if(run_dbus_tests)
+    add_subdirectory(dbus)
+endif()
+if (TARGET Qt::Network)
+     add_subdirectory(network)
+endif()
+if(QT_FEATURE_wayland)
+    add_subdirectory(wayland)
+endif()
+if (TARGET Qt::Gui)
+    add_subdirectory(gui)
+endif()
+if (TARGET Qt::Widgets)
+     add_subdirectory(widgets)
+endif()
+if (TARGET Qt::OpenGL)
+     add_subdirectory(opengl)
+endif()
+if (TARGET Qt::PrintSupport)
+     add_subdirectory(printsupport)
+endif()
+if (TARGET Qt::Sql)
+     add_subdirectory(sql)
+endif()
+if (TARGET Qt::Xml)
+     add_subdirectory(xml)
+endif()
+if (TARGET Qt::Concurrent)
+     add_subdirectory(concurrent)
+endif()
+add_subdirectory(other)
+

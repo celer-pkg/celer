@@ -1,0 +1,126 @@
+{
+  // Contains groups of flags with variants, use by browsers
+  flags: {
+    flag-group-1: {
+      // Create variants (2 x 2 = 4) by creating the product of multiple
+      // flags and values.
+      --js-flags: [
+        null, // null => flag is not set
+        "--max-opt=1",
+        // "--max-opt=2",
+        // "--max-opt=4",
+      ],
+      --enable-fied-trial-config: [
+        null, // null => flag is not set
+        ""    // ""   => flag is set without a value
+      ]
+    },
+    // Define custom flag groups here (referenced by name):
+    chrome-custom: {
+      // Use strings to create arbitrary flag combinations
+      "deafult": "",
+      "experiment_1": "--enable-field-trial-config --disable-features=V8SlowHistograms",
+      "experiment_2": "--enable-field-trial-config --enable-features=V8SlowHistograms",
+    },
+
+    // ------------------------------------------------------------------------
+    // Examples:
+    example-group-1: {
+      // This will result in 2 x 2 = 4 flag configurations that are run:
+      //
+      //  1. no flags (both entries have a `null` variant)
+      //  2. `--js-flags=--no-opt`
+      //  3. `--js-flags=--no-opt --enable-field-trial-config`
+      //  4. `--enable-field-trial-config`
+      --js-flags: [null, "--no-opt"],
+      --enable-field-trial-config: [null, ""]
+    },
+    example-group-2: {
+      // This flag group creates 3 x 2 = 6 varaints:
+      // Use the empty string "" for flags without values
+      "--enable-fied-trial-config": "",
+      // A flag with multiple variants:
+      --js-flags: [
+        null, // variant 1: null == flag is not set
+        "--no-opt --no-ic", // variant 2
+        "--no-sparkplug",   // variant 2
+      ]
+      // Flag with two variants: unset and set
+      "--no-sandbox": [
+        null, // variant 1: null => flag is not set
+        "",   // variant 2: ""   => flag is set without value
+      ]
+    },
+  },
+
+  // --------------------------------------------------------------------------
+  // Contains browser configs
+  browsers: {
+    "chrome-stable-with-flags": {
+      // For "path" you can use a path, browser name, or a versioned browser.
+      // See '--browser' option for all possible values.
+      path: "chrome-stable",
+      # Either the browsers key ("chrome-stable-with-flags") if no label
+      # is specified, otherwise the this label property ("custom-browser-label")
+      # is used.
+      label: "custom-browser-label",
+      flags: [
+        // You can reference multiple flag-groups here, any name added to
+        // the 'flags' dict above can be used here.
+        "flag-group-1",
+        // More flag groups can be added, for instance "chrome-custom", and
+        // you get the product of all flag variants.
+        // You can also directly define fixed flags
+        // "--js-flags=--no-opt",
+      ]
+    }
+  },
+
+  // You can use either comments or other sections to hide configurations
+  // Supported browser names are:
+  // * Chrome:  chrome-stable, chrome-beta, chrome-dev, chrome-canary
+  // * Edge:    edge-stable, edge-beta, edge-dev, edge-canary
+  // * Safari:  safari, safari-tp
+  // * Firefox: firefox-stable, firefox-dev, firefox-nightly
+  browsers-disabled: {
+    "chrome-stable": {
+      browser: "chrome-stable", // or any other name
+      flags: [ /* ... add your flag groups here */ ]
+    },
+    "chromium-mac-local": {
+      path: "~/Documents/chromium/src/out/Release/Chromium.app",
+      // Use custom chromedriver binary for local builds:
+      driver: "~/Documents/chromium/src/out/Release/chromedriver"
+      flags: [ /* ... add your flag groups here */  ]
+    },
+    "chrome-android-canary": {
+      browser: "chrome-canary",
+      driver: "adb", // Just adb for a single device
+      flags: [ /* ... add your flag groups here */  ]
+    },
+    "chrome-android-canary-pixel": {
+      browser: "chrome-canary",
+      driver: {
+        type: "adb",
+        // Use unique name or serial number from `adb devices -l`
+        device_id: "Pixel_7_Pro"
+      }
+      flags: [ /* ... add your flag groups here */  ]
+    },
+    "safari": {
+      browser: "safari",
+    },
+    "safari-tech-preview": {
+      browser: "safari-tp",
+    },
+    "safari-ios": {
+      browser: "safari",
+      driver: {
+        type: "ios",
+        // Use the device UUID, see "xcrun xctrace list devices" for avilable
+        // devices and simulators.
+        device_id: "00001234-AAAA-BBBB-1111-11AA22BB33DD"
+      }
+    }
+  }
+}

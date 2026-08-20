@@ -1,0 +1,43 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+url.examples = "https://code.qt.io/cgit/qt/qt5compat.git/tree/examples/\1?h=$QT_VER"
+url.sources  = "https://code.qt.io/cgit/qt/qt5compat.git/tree/\1?h=$QT_VER#n\2"
+# Path to the root of qt5compat (for automatic linking to source code)
+url.sources.rootdir     = ../../..
+
+project                 = QtCore5Compat
+description             = Qt 5 Core Compatibility APIs Documentation
+version                 = $QT_VERSION
+
+qhp.projects            = QtCore5Compat
+
+qhp.QtCore5Compat.file                = qtcore5compat.qhp
+qhp.QtCore5Compat.namespace           = org.qt-project.qtcore5.$QT_VERSION_TAG
+qhp.QtCore5Compat.virtualFolder       = qtcore5compat
+qhp.QtCore5Compat.indexTitle          = Qt 5 Core Compatibility APIs
+qhp.QtCore5Compat.indexRoot           =
+
+qhp.QtCore5Compat.subprojects         = classes
+
+qhp.QtCore5Compat.subprojects.classes.title = C++ Classes
+qhp.QtCore5Compat.subprojects.classes.indexTitle = Qt 5 Core Compatibility C++ Classes
+qhp.QtCore5Compat.subprojects.classes.selectors = class headerfile
+qhp.QtCore5Compat.subprojects.classes.sortPages = true
+
+headerdirs  += ..
+sourcedirs  += ..
+exampledirs += snippets \
+               ../../../examples/core5
+
+examplesinstallpath = core5
+imagedirs   += images
+excludedirs += snippets
+
+excludefiles += ../../../examples/core5/widgets/tools/codecs/doc/src/codecs.qdoc
+
+depends += qtcore qtdoc qmake qtnetwork qtcmake qtquick
+
+navigation.landingpage = "Qt 5 Core Compatibility APIs"
+navigation.cppclassespage = "Qt 5 Core Compatibility C++ Classes"
+
+# Allow zero warnings when testing documentation in CI
+warninglimit = 0

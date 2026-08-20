@@ -1,0 +1,209 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page position-plugin-nmea.html
+\title Qt Positioning NMEA plugin
+\ingroup QtPositioning-plugins
+
+\brief Reads the NMEA stream to provide position updates.
+
+\section1 Overview
+
+Included with Qt Positioning is a position plugin which parses NMEA sentences
+into position updates. This plugin can use serial port, socket or file as a
+source.
+
+This plugin can be loaded by using the provider name \b nmea.
+
+\section1 Parameters
+
+The following table lists parameters that \e can be passed to the nmea plugin.
+
+\table
+\header
+    \li Parameter
+    \li Description
+\row
+    \li nmea.source
+    \li The source that will be used to get NMEA data.
+\row
+    \li nmea.baudrate
+    \li The baud rate to be used by the serial port connection, expressed with
+        a positive integer number. Typically it should be one of the values
+        from the \l QSerialPort::BaudRate enum. If the parameter is not
+        specified or does not contain a positive integer, the default value
+        of \c 4800 is used.
+\row
+    \li nmea.satellite_info_simulation_interval
+    \li The interval for reading satellite information data from the file in
+        simulation mode.
+\endtable
+
+Different sources require different ways of providing the data. The following
+table lists different ways of providing \c {nmea.source} parameter for socket,
+serial port and file inputs.
+
+\table
+\header
+    \li Scheme
+    \li Example
+    \li Description
+\row
+    \li socket://hostname:port
+    \li \c {socket://localhost:12345}
+    \li Use \b {socket:} keyword to specify that you want to get the nmea data
+        from the socket. A TCP socket will be created, which will try to connect
+        to host \c hostname using port \c port. Upon successful connection
+        a text NMEA stream is expected to be received from the server.
+\row
+    \li {1, 3} serial:portname
+    \li \c {serial:/dev/ttyUSB0}
+    \li {1, 3} Use \b {serial:} keyword to specify that you want to get the nmea
+        data from the serial port. The plugin will try to establish a connection
+        to port \c portname with a default baudrate = 4800 Bd (the baudrate
+        value can be specified using \b {nmea.baudrate} parameter). Upon
+        successful connection
+        a text NMEA stream is expected to be received from the serial port.
+        If you use \b {serial:} without any port name, the plugin will try to
+        find one of the well known serial devices using vendor identifier. Note
+        however that this is not a recommended way of using the serial port
+        connection, as the list of well-known devices is small and most probably
+        does not include your hardware.
+\row
+    \li \c {serial:COM1}
+\row
+    \li \c {serial:}
+\row
+    \li filepath
+    \li \c {/home/user/nmealog.txt}
+    \li {1, 2} Use \b {file:///} or just full file path to specify a path to a
+        local file.
+\row
+    \li file:///filepath
+    \li \c {file:///home/user/nmealog.txt}
+\row
+    \li qrc:///filepath
+    \li \c {qrc:///nmealog.txt}
+    \li Use \b {qrc:///} prefix to specify a path to a file in the application
+        resources.
+\endtable
+
+\note If \c {nmea.source} parameter is not specified, the plugin will try to
+locate one of the well-known serial devices (as if \c {nmea.source = serial:}
+was specified).
+
+\section1 Position source usage example
+
+The following examples show how to create a \b nmea PositionSource
+using different data sources.
+
+\section2 QML
+
+\code
+// text file
+PositionSource {
+    name: "nmea"
+    PluginParameter { name: "nmea.source"; value: "qrc:///nmealog.txt" }
+}
+
+// socket
+PositionSource {
+    name: "nmea"
+    PluginParameter { name: "nmea.source"; value: "socket://localhost:22222" }
+}
+
+// serial port
+PositionSource {
+    name: "nmea"
+    PluginParameter { name: "nmea.source"; value: "serial:/dev/ttyACM0" }
+    PluginParameter { name: "nmea.baudrate"; value: 4800 }
+}
+\endcode
+
+\section2 C++
+
+\code
+// text file
+QVariantMap params;
+params["nmea.source"] = "qrc:///nmealog.txt";
+QGeoPositionInfoSource *textPositionSource = QGeoPositionInfoSource::createSource("nmea", params, this);
+
+// socket
+params["nmea.source"] = "socket://localhost:22222";
+QGeoPositionInfoSource *socketPositionSource = QGeoPositionInfoSource::createSource("nmea", params, this);
+
+// serial port
+params["nmea.source"] = "serial:/dev/ttyACM0";
+params["nmea.baudrate"] = 4800;
+QGeoPositionInfoSource *serialPositionSource = QGeoPositionInfoSource::createSource("nmea", params, this);
+\endcode
+
+\note Once a PositionSource is created, it can't be reconfigured to use other
+type of source data.
+
+\section1 Satellite information source usage example
+
+Apart from the position information, \b nmea plugin is also capable of providing
+satellite information.
+
+\section2 QML
+
+\code
+// serial port
+SatelliteSource {
+    name: "nmea"
+    PluginParameter { name: "nmea.source"; value: "serial:/dev/ttyUSB0" }
+    PluginParameter { name: "nmea.baudrate"; value: 9600 }
+}
+
+// socket
+SatelliteSource {
+    name: "nmea"
+    PluginParameter { name: "nmea.source"; value: "socket://localhost:22222" }
+}
+\endcode
+
+\section2 C++
+
+\code
+// serial port
+QVariantMap parameters;
+parameters["nmea.source"] = "serial:/dev/ttyUSB0";
+params["nmea.baudrate"] = 9600;
+QGeoSatelliteInfoSource *serialSource = QGeoSatelliteInfoSource::createSource("nmea", parameters, this);
+
+// socket
+parameters["nmea.source"] = "socket://localhost:22222";
+QGeoSatelliteInfoSource *socketSource = QGeoSatelliteInfoSource::createSource("nmea", parameters, this);
+\endcode
+
+\section2 Settings custom simulation speed
+
+If you want to use \l QGeoSatelliteInfoSource to read file with NMEA stream, you
+can also use additional parameter \c "nmea.satellite_info_simulation_interval".
+This parameter is used to specify the playback rate (in milliseconds) for the
+satellite info messages. The minimum allowed frequency is specified by
+\l {QGeoSatelliteInfoSource::}{minimumUpdateInterval()}. If you specify a
+smaller value, it will be ignored. If no value is specified, the default value
+is \c {qMax(100, minimumUpdateInterval())}.
+At runtime \l {QNmeaSatelliteInfoSource::setBackendProperty()} method can be
+used to update this parameter.
+
+\code
+// file
+QVariantMap parameters;
+parameters["nmea.source"] = "qrc:///nmealog.txt";
+parameters["nmea.satellite_info_simulation_interval"] = 1000;
+QGeoSatelliteInfoSource *fileSource = QGeoSatelliteInfoSource::createSource("nmea", parameters, this);
+\endcode
+
+This parameter is not applicable to position source because NMEA protocol
+already has timestamps in position messages. These timestamps are used to
+simulate the correct message rate while using \l QGeoPositionInfoSource with
+file as a data source.
+
+\note Once a \l QGeoSatelliteInfoSource is created, it can't be reconfigured to
+use other type of source data.
+
+*/

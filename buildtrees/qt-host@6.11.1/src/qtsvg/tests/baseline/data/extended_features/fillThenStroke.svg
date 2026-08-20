@@ -1,0 +1,78 @@
+<svg viewBox="0 0 800 560" xmlns="http://www.w3.org/2000/svg">
+  <circle transform="translate(0, 0)" cx="50" cy="40" r="40"
+    fill="yellow" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+  <ellipse transform="translate(110, 0)" cx="50" cy="40" rx="40" ry="30"
+    fill="yellow" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+  <rect transform="translate(220, 0)" x="0" y="0" width="100" height="100"
+    fill="yellow" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+  <line transform="translate(330, 0)" x1="0" y1="0" x2="100" y2="100"
+    fill="yellow" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+  <polygon transform="translate(440, 0)" points="-10,110 -10,-10 110,110"
+    fill="yellow" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+  <polyline transform="translate(550, 0)" points="10,90 10,10 90,90, 10,90"
+    fill="yellow" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+  <path transform="translate(660, 0)" d="M10,90 L10,10 L90,90, Z"
+    fill="yellow" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+
+  <circle transform="translate(0, 110)" cx="50" cy="40" r="40"
+    fill="yellow" stroke="none" stroke-opacity="0.2" stroke-width="10" />
+  <ellipse transform="translate(110, 110)" cx="50" cy="40" rx="40" ry="30"
+    fill="yellow" stroke="none" stroke-opacity="0.2" stroke-width="10" />
+  <rect transform="translate(220, 110)" x="0" y="0" width="100" height="100"
+    fill="yellow" stroke="none" stroke-opacity="0.2" stroke-width="10" />
+  <line transform="translate(330, 110)" x1="0" y1="0" x2="100" y2="100"
+    fill="yellow" stroke="none" stroke-opacity="0.2" stroke-width="10" />
+  <polygon transform="translate(440, 110)" points="-10,110 -10,-10 110,110"
+    fill="yellow" stroke="none" stroke-opacity="0.2" stroke-width="10" />
+  <polyline transform="translate(550, 110)" points="10,90 10,10 90,90, 10,90"
+    fill="yellow" stroke="none" stroke-opacity="0.2" stroke-width="10" />
+  <path transform="translate(660, 110)" d="M10,90 L10,10 L90,90, Z"
+    fill="yellow" stroke="none" stroke-opacity="0.2" stroke-width="10" />
+
+  <circle transform="translate(0, 220)" cx="50" cy="40" r="40"
+    fill="none" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+  <ellipse transform="translate(110, 220)" cx="50" cy="40" rx="40" ry="30"
+    fill="none" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+  <rect transform="translate(220, 220)" x="0" y="0" width="100" height="100"
+    fill="none" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+  <line transform="translate(330, 220)" x1="0" y1="0" x2="100" y2="100"
+    fill="none" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+  <polygon transform="translate(440, 220)" points="-10,110 -10,-10 110,110"
+    fill="none" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+  <polyline transform="translate(550, 220)" points="10,90 10,10 90,90, 10,90"
+    fill="none" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+  <path transform="translate(660, 220)" d="M10,90 L10,10 L90,90, Z"
+    fill="none" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+
+  <g opacity="0.5">
+	  <circle transform="translate(0, 330)" cx="50" cy="40" r="40"
+		fill="yellow" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+	  <ellipse transform="translate(110, 330)" cx="50" cy="40" rx="40" ry="30"
+		fill="yellow" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+	  <rect transform="translate(220, 330)" x="0" y="0" width="100" height="100"
+		fill="yellow" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+	  <line transform="translate(330, 330)" x1="0" y1="0" x2="100" y2="100"
+		fill="yellow" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+	  <polygon transform="translate(440, 330)" points="-10,110 -10,-10 110,110"
+		fill="yellow" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+	  <polyline transform="translate(550, 330)" points="10,90 10,10 90,90, 10,90"
+		fill="yellow" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+	  <path transform="translate(660, 330)" d="M10,90 L10,10 L90,90, Z"
+		fill="yellow" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+  </g>
+
+  <circle transform="translate(0, 440)" cx="50" cy="40" r="40"
+    fill="yellow" fill-opacity="0.2" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+  <ellipse transform="translate(110, 440)" cx="50" cy="40" rx="40" ry="30"
+    fill="yellow" fill-opacity="0.2" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+  <rect transform="translate(220, 440)" x="0" y="0" width="100" height="100"
+    fill="yellow" fill-opacity="0.2" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+  <line transform="translate(330, 440)" x1="0" y1="0" x2="100" y2="100"
+    fill="yellow" fill-opacity="0.2" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+  <polygon transform="translate(440, 440)" points="-10,110 -10,-10 110,110"
+    fill="yellow" fill-opacity="0.2" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+  <polyline transform="translate(550, 440)" points="10,90 10,10 90,90, 10,90"
+    fill="yellow" fill-opacity="0.2" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+  <path transform="translate(660, 440)" d="M10,90 L10,10 L90,90, Z"
+    fill="yellow" fill-opacity="0.2" stroke="black" stroke-opacity="0.2" stroke-width="10" />
+</svg>

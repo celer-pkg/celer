@@ -1,0 +1,13 @@
+{
+  "textDocument": {
+    "uri": "file:///folder/file.ts"
+  },
+  "position": {
+    "line": 9,
+    "character": 5
+  },
+  "context": {
+    "includeDeclaration": true
+  },
+  "workDoneToken": "1d546990-40a3-4b77-b134-46622995f6ae"
+}

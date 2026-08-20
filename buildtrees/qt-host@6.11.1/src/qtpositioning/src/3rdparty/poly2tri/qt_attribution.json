@@ -1,0 +1,18 @@
+{
+    "Id": "poly2tri",
+    "Name": "Poly2Tri Polygon Triangulation Library",
+    "QDocModule": "qtpositioning",
+    "QtUsage": "Used in the QML plugin of Qt Location and in Qt Positioning.",
+
+    "Description": "Poly2Tri is a sweepline constrained Delaunay Polygon Triangulation Library.",
+    "Homepage": "https://github.com/greenm01/poly2tri",
+    "PURL": [
+        "pkg:github/greenm01/poly2tri@a922022da4c0d3a55b1d6b6d634219caea653053"
+    ],
+    "Comment": "No relevant CPE found",
+    "Version": "commit a922022da4c0d3a55b1d6b6d634219caea653053",
+    "LicenseId": "BSD-3-Clause",
+    "License": "BSD 3-clause \"New\" or \"Revised\" License",
+    "LicenseFile": "LICENSE",
+    "Copyright": "Poly2Tri Copyright (c) 2009-2010, Poly2Tri Contributors"
+}

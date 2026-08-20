@@ -1,0 +1,8 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \group quick3d-examples
+    \title Qt Quick 3D Examples and Tutorials
+    \brief List of all examples and tutorials for Qt Quick 3D.
+*/

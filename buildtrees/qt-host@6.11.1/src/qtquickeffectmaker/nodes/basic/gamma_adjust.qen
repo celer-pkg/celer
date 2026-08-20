@@ -1,0 +1,26 @@
+{
+    "QEN": {
+        "description": "GammaAdjust is applied to each pixel according to the curve which is pre-defined as a power-law expression, where the property gamma is used as the reciprocal scaling exponent.",
+        "fragmentCode": [
+            "@main",
+            "{",
+            "    fragColor.rgb = fragColor.rgb / max(1.0 / 256.0, fragColor.a);",
+            "    float realGamma = 1.0 / max(gammaAdjustAmount, 0.0001);",
+            "    vec3 adjustedColor = pow(fragColor.rgb, vec3(realGamma));",
+            "    fragColor = vec4(adjustedColor * fragColor.a, fragColor.a);",
+            "}"
+        ],
+        "name": "GammaAdjust",
+        "properties": [
+            {
+                "defaultValue": "1",
+                "description": "This property defines the change factor for how the luminance of each pixel is altered.\n\nSetting the gamma values under 1.0 makes the image darker, the values above 1.0 lighten it. The value ranges from 0.0 (darkest) to inf (lightest). By default, the property is set to 1.0 (no change).",
+                "maxValue": "4",
+                "minValue": "0.25",
+                "name": "gammaAdjustAmount",
+                "type": "float"
+            }
+        ],
+        "version": 1
+    }
+}

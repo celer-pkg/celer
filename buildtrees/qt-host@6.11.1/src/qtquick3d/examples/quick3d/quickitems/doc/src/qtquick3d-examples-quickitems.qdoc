@@ -1,0 +1,79 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example quickitems
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - Quick Items Example
+    \examplecategory {3D}
+    \brief Demonstrates the use of Qt Quick Items in Quick 3D scene.
+    \image quickitems-example.png
+           {3D sphere with layered 2D items including Qt logo and text}
+
+    This example demonstrates using \l{Qt Quick 3D Scenes with 2D Content}{Qt Quick 2D items in the Quick 3D scene}.
+
+    \section1 Quick Items in a Quick 3D Scene
+
+    Qt Quick 2D \l{Item}s, together with all their child items, can be added into Quick 3D
+    scenes. When using Qt Quick types in the 3D scene, there are a few things to note:
+
+    \list
+
+    \li When an \l Item is inside a \l Node, its top-left corner is placed to the Node's
+    origin. This means that the item will often want to specify \c{anchors.centerIn:
+    parent} to ensure the \l{Node}'s origin serves the center point of the \l Item.
+
+    \li 3D transforms are inherited from the parent \l Node. If more than one \c Item
+    should be affected by the same transform, then these items can be grouped together
+    under a common parent \l Item under the \l Node.
+
+    \li In Qt 6.0, items do not receive touch/mouse events e.g. with \c MouseArea, so they
+    should be non-interactive.
+
+    \li Quick items are not affected by lights and shadows.
+
+    \li \l{Item::clip}{Clipping} should be avoided and not relied on.
+
+    \endlist
+
+    Unlike earlier Qt versions, and other 2D-in-3D embedding approaches, parenting a Qt
+    Quick item to a Qt Quick 3D node does not imply creating a texture, rendering the 2D
+    content to it, and then drawing a textured quad. Rather, Qt 6.0 supports rendering the
+    2D content within the same render pass as the 3D scene. This can present potentially
+    huge performance improvements in practice. This does not apply when the Item were to
+    render using an additional render target by design, for example because it has
+    \l{Item Layers}{layer.enabled} set to true, or because it is a \l ShaderEffectSource.
+
+    \section1 The test scene
+
+    The important parts of this example are the scene content of the \c View3D element.
+
+    We start by adding the layer furthest away from the camera. This layer contains \c
+    Rectangle, \c Text and \c Image elements. To ensure that the elements in the layer are
+    positioned correctly they are grouped together under a common parent \c Item. Note
+    that all content is clipped inside this root item so it needs to be sized
+    appropriately.
+
+    \snippet quickitems/main.qml background item
+
+    Next \c Node and its items are positioned a bit closer to the camera. It contains
+    three \c Rectangle items which animate both the x position and the rotation. Note that
+    the animations are done on the parent \c Node while the content of the Quick \c Item
+    remains static. From a performance perspective this is a good approach with more
+    complex items.
+
+    \snippet quickitems/main.qml circles item
+
+    The third item layer of this example contains a single \c Text item with an opacity
+    animation. The Text item is automatically centered into the parent \c Node.
+
+    \snippet quickitems/main.qml text item
+
+    To visualize z-ordering of the above Quick Item layers, we will also setup a model for
+    the 3D wrecking ball. It animates rotation around the top \c Node, which makes the
+    sphere move through the other layers.
+
+    \snippet quickitems/main.qml wrecking ball model
+
+    \sa {Qt Quick 3D Scenes with 2D Content}
+*/

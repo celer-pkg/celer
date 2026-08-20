@@ -1,0 +1,37 @@
+version = 1
+
+[[annotations]]
+path = ["common/simd/arm/sse2neon.h"]
+comment= "Info in file not in REUSE readable format."
+precedence = "closest"
+SPDX-FileCopyrightText = ["Copyright (c) John W. Ratcliff",
+                          "Copyright (c) Brandon Rowlett",
+                          "Copyright (c) Ken Fast",
+                          "Copyright (c) Eric van Beurden",
+                          "Copyright (c) Alexander Potylitsin",
+                          "Copyright (c) Hasindu Gamaarachchi",
+                          "Copyright (c) Jim Huang",
+                          "Copyright (c) Mark Cheng",
+                          "Copyright (c) Malcolm James MacLeod",
+                          "Copyright (c) Devin Hussey",
+                          "Copyright (c) Sebastian Pop",
+                          "Copyright (c) Developer Ecosystem Engineering <DeveloperEcosystemEngineering@apple.com>",
+                          "Copyright (c) Danila Kutenin",
+                          "Copyright (c) François Turban",
+                          "Copyright (c) Pei-Hsuan Hung",
+                          "Copyright (c) Yang-Hao Yuan",
+                          "Copyright (c) Syoyo Fujita",
+                          "Copyright (c) Brecht Van Lommel"]
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ["embree_config_reference.txt"]
+precedence = "closest"
+SPDX-FileCopyrightText = ["Copyright (C) 2024 The Qt Company Ltd."]
+SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
+path = ["patches/*"]
+precedence = "closest"
+SPDX-FileCopyrightText = ["Copyright 2009-2021 Intel Corporation"]
+SPDX-License-Identifier = "Apache-2.0"

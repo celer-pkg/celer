@@ -1,0 +1,11 @@
+{
+  probes: {
+    // An example config for the v8.log probe:
+    "v8.log": {
+      log_all: false, // use custom V8 logging flags.
+      prof: false, // bool values are JS not Python!
+      profview: false // disable http://v8.dev/tools/head/profview/ data
+      js_flags: ["--log-maps", "--log-function-events"],
+    }
+  }
+}

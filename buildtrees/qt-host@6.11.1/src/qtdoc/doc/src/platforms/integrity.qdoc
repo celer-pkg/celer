@@ -1,0 +1,59 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page integrity.html
+    \title Qt for INTEGRITY
+    \keyword INTEGRITY
+    \ingroup supportedplatform
+    \brief Platform support for INTEGRITY.
+
+    The \l {https://www.ghs.com/products/rtos/integrity.html} {INTEGRITY}
+    Real-Time Operating System (RTOS) is widely used in systems where safety and
+    security are critical. Especially in the automotive industry, both Qt and
+    the INTEGRITY RTOS can be used in conjunction with instrument clusters and
+    infotainment systems.
+
+    With Qt for INTEGRITY, you can build and develop applications for the
+    INTEGRITY RTOS. The development environment includes your target device and
+    the Qt sources you need to build for your target device. For detailed
+    information about the supported development environment, see
+    \l {Supported Development Hosts and Target Boards}.
+
+    \section1 Qt for INTEGRITY Tutorial
+
+    Qt for INTEGRITY has a tutorial that helps you learn how to:
+    \list
+        \li Set up a development environment for the Qualcomm Snapdragon 8155P board
+        \li Build an application
+        \li Prepare the Qualcomm Snapdragon 8155P board to run your application
+    \endlist
+
+    See \l {Qt for INTEGRITY - Monolith Project Tutorial}.
+
+    \section1 Qt for INTEGRITY Licensing
+
+    Qt for INTEGRITY is available under the Qt for Device Creation Professional
+    (DCP) license. For more information, see \l{Qt Pricing}.
+
+    \section1 Supported Qt Modules
+
+    All essential modules are supported except \l{Qt D-Bus}.
+
+    For add-on modules see \l{All Modules}{all Qt Modules}.
+
+    \section1 Supported Development Hosts and Target Boards
+
+    Qt for INTEGRITY should be able to be built on the following hosts:
+    \list
+        \li 64-bit Linux distributions
+        \li 64-bit Windows 10
+    \endlist
+
+    \note Only Ubuntu 20.04 64 bit is supported by Qt at this time.
+    \note See the GHS Compiler manual for other information regarding GHS Compiler
+    compatibility with development hosts.
+
+    For target hardware supported by The Qt Company in this release see
+    \l{Support Levels for Target Hardware}.
+*/

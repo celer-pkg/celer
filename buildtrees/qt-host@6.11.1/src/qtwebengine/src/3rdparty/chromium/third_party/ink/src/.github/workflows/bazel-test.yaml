@@ -1,0 +1,56 @@
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
+name: BazelTest
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  bazel_test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # gmock wants libtinfo5 which is not preinstalled on the ubuntu-latest GitHub Actions runner
+    # (and as of the latest version, not available in the package manager).
+    - name: Install libtinfo5
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        wget https://mirrors.edge.kernel.org/ubuntu/pool/universe/n/ncurses/libtinfo5_6.3-2ubuntu0.1_amd64.deb
+        echo "f04c382f877c9eab631818eadbfaa0c5 libtinfo5_6.3-2ubuntu0.1_amd64.deb" | md5sum -c --status
+        sudo dpkg -i libtinfo5_6.3-2ubuntu0.1_amd64.deb
+
+    - name: Cache Bazel repository cache
+      if: matrix.os == 'ubuntu-latest'
+      # Cache the Bazel repository cache based on
+      # https://github.com/actions/cache/blob/main/examples.md#---bazel
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/bazel
+        key: ${{ runner.os }}-bazel-${{ hashFiles('.bazelrc', 'MODULE.bazel') }}
+        restore-keys: |
+          ${{ runner.os }}-bazel-
+
+    - name: Authenticate to Google Cloud
+      if: github.repository == 'google/ink'
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+        export_environment_variables: true
+
+    - name: Set up Bazel remote cache
+      if: github.repository == 'google/ink'
+      run: |
+        echo "BAZEL_CACHE=--remote_cache=https://storage.googleapis.com/ink-open-source-ci/" >> $GITHUB_ENV
+        echo "BAZEL_AUTH=--google_default_credentials" >> $GITHUB_ENV
+
+    - name: Test
+      run: bazel test --test_output=errors ${BAZEL_CACHE:-} ${BAZEL_AUTH:-} --keep_going //ink/...

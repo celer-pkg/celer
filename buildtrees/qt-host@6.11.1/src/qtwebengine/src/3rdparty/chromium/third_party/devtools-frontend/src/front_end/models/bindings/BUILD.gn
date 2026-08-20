@@ -1,0 +1,109 @@
+# Copyright 2020 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("../../../scripts/build/ninja/devtools_entrypoint.gni")
+import("../../../scripts/build/ninja/devtools_module.gni")
+import("../../../scripts/build/typescript/typescript.gni")
+import("../visibility.gni")
+
+devtools_module("bindings") {
+  sources = [
+    "CSSWorkspaceBinding.ts",
+    "CompilerScriptMapping.ts",
+    "ContentProviderBasedProject.ts",
+    "DebuggerLanguagePlugins.ts",
+    "DebuggerWorkspaceBinding.ts",
+    "DefaultScriptMapping.ts",
+    "FileUtils.ts",
+    "LiveLocation.ts",
+    "NetworkProject.ts",
+    "PresentationConsoleMessageHelper.ts",
+    "ResourceMapping.ts",
+    "ResourceScriptMapping.ts",
+    "ResourceUtils.ts",
+    "SASSSourceMapping.ts",
+    "StylesSourceMapping.ts",
+    "TempFile.ts",
+  ]
+
+  deps = [
+    "../../../extension-api",
+    "../../core/common:bundle",
+    "../../core/host:bundle",
+    "../../core/i18n:bundle",
+    "../../core/platform:bundle",
+    "../../core/root:bundle",
+    "../../core/sdk:bundle",
+    "../../generated:protocol",
+    "../../models/text_utils:bundle",
+    "../../models/workspace:bundle",
+  ]
+}
+
+devtools_entrypoint("bundle") {
+  entrypoint = "bindings.ts"
+
+  deps = [ ":bindings" ]
+
+  visibility = [
+    ":*",
+    "../../core/sdk:unittests",
+    "../../entrypoints/main/*",
+    "../../legacy_test_runner/*",
+    "../../panels/application/*",
+    "../../panels/console/*",
+    "../../panels/coverage/*",
+    "../../panels/elements/*",
+    "../../panels/emulation/*",
+    "../../panels/network/*",
+    "../../panels/profiler/*",
+    "../../panels/protocol_monitor/*",
+    "../../panels/recorder/*",
+    "../../panels/sources/*",
+    "../../panels/timeline/*",
+    "../../testing/*",
+    "../../ui/components/docs/performance_panel/*",
+    "../../ui/components/linkifier/*",
+    "../../ui/legacy/components/inline_editor/*",
+    "../../ui/legacy/components/perf_ui/*",
+    "../../ui/legacy/components/utils/*",
+    "../ai_assistance/*",
+    "../breakpoints/*",
+    "../extensions/*",
+    "../formatter/*",
+    "../issues_manager/*",
+    "../persistence/*",
+    "../source_map_scopes/*",
+    "../workspace/*",
+  ]
+
+  visibility += devtools_models_visibility
+}
+
+ts_library("unittests") {
+  testonly = true
+
+  sources = [
+    "CompilerScriptMapping.test.ts",
+    "ContentProviderBasedProject.test.ts",
+    "DebuggerLanguagePlugins.test.ts",
+    "DebuggerWorkspaceBinding.test.ts",
+    "DefaultScriptMapping.test.ts",
+    "FileUtils.test.ts",
+    "LiveLocation.test.ts",
+    "PresentationConsoleMessageHelper.test.ts",
+    "ResourceMapping.test.ts",
+    "ResourceScriptMapping.test.ts",
+    "ResourceUtils.test.ts",
+  ]
+
+  deps = [
+    ":bundle",
+    "../../core/common:bundle",
+    "../../testing",
+    "../persistence:bundle",
+    "../text_utils:bundle",
+    "../workspace:bundle",
+  ]
+}

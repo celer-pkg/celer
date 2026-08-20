@@ -1,0 +1,48 @@
+/*
+ * Copyright (c) 2021 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+:host {
+  break-inside: avoid;
+  display: block;
+  padding-bottom: 9px;
+  width: 288px;
+}
+
+fieldset {
+  border: 0;
+  padding: 0;
+}
+
+.link {
+  color: var(--sys-color-primary);
+  text-decoration: underline;
+  cursor: pointer;
+  outline-offset: 2px;
+}
+
+img {
+  border: 0;
+  border-radius: var(--sys-shape-corner-full);
+  display: block;
+  height: var(--sys-size-9);
+  width: var(--sys-size-9);
+}
+
+.warning {
+  display: block;
+}
+
+.account-info {
+  display: flex;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.account-email {
+  display: flex;
+  flex-direction: column;
+  margin-left: 8px;
+}

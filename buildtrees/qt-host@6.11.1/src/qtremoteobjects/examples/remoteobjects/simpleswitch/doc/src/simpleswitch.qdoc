@@ -1,0 +1,35 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example simpleswitch
+    \title Simpleswitch Direct Server and Client
+    \examplecategory {Connectivity}
+    \ingroup qtremoteobjects-examples
+    \meta tag {remoteobjects}
+    \brief A minimalist Remote Object server and client.
+
+    \image simpleswitch-example.webp
+           {Terminal output with Source State and Replica state toggling true and false}
+
+    The directconnectserver and directconnectclient applications are simple
+    examples that can be used as starting points for more complex
+    applications.
+
+    The directconnectserver application shares a rep-file defined
+    SimpleSwitch object, while the directconnectclient application gets a
+    replica of it. The server has a two second timer, and every time it times
+    out, the boolean state of the boolean currState property of the
+    SimpleSwitch object is toggled and the current state is printed out to
+    the terminal. Each client connects to the state change of the
+    SimpleSwitch replica, and emits the current state back to the server. For
+    every connected client, the server prints out the state of the client
+    back to the terminal.
+
+    The implementation of these two applications are documented at
+    \l {qtro-example1}{Example 1}.
+
+    Other simple examples are located at tests/manual/examples/simpleswitch.
+    These three applications are documented at \l {qtro-example2}{Example 2}
+    and \l {qtro-example3}{Example 3}.
+*/

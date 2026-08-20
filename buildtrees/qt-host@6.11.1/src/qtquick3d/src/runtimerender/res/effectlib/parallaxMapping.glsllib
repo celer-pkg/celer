@@ -1,0 +1,36 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+vec2 qt_parallaxMapping(in vec2 uv,
+                        in sampler2D heightMap,
+                        in vec3 tangent,
+                        in vec3 binormal,
+                        in vec3 normal,
+                        in vec3 vertex,
+                        in vec3 cameraPosition,
+                        in float depthScale,
+                        in float minLayers,
+                        in float maxLayers)
+{
+    mat3 tanFrame = transpose(mat3(tangent, binormal, normal));
+    vec3 viewDir = normalize(tanFrame * vertex - tanFrame * cameraPosition);
+    float numLayers = mix(float(maxLayers), float(minLayers), abs(dot(vec3(0.0, 0.0, 1.0), viewDir)));
+    float layerDepth = 1.0 / numLayers;
+    float currentLayerDepth = 0.0;
+    vec2 P = viewDir.xy * depthScale;
+    vec2 delta = P / numLayers;
+    vec2 offset = uv;
+    float depth = textureLod(heightMap, offset, 0.0).r;
+    float currentDepth = 0.0;
+    while (currentDepth < depth)
+    {
+        offset -= delta;
+        depth = textureLod(heightMap, offset, 0.0).r;
+        currentDepth += layerDepth;
+    }
+    vec2 prevOffset = offset + delta;
+    float afterDepth = depth - currentDepth;
+    float beforeDepth = textureLod(heightMap, prevOffset, 0.0).r - currentDepth + layerDepth;
+    float weight = afterDepth / (afterDepth - beforeDepth);
+    return mix(offset, prevOffset, weight);
+}

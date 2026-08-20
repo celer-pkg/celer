@@ -1,0 +1,254 @@
+# Copyright (C) 2026 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+openapi: 3.1.0
+servers:
+    - url: 'http://127.0.0.1:19085/v2'
+info:
+  title: Some Test
+  description: >
+    This specification is intended for testing purposes.
+  version: 1.0.0
+tags:
+  - name: data
+    description: test data
+
+paths:
+  /newDuck:
+    post:
+      tags:
+        - data
+      operationId: postDuck
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Duck'
+        required: true
+      responses:
+        "200":
+          description: Updated
+  /newAccount:
+    post:
+      tags:
+        - data
+      operationId: postAccount
+      requestBody:
+        content:
+          application/json:
+            schema:
+              # here testing the inline model
+              # (declaration is directly in the request)
+              type: object
+              required: [cardNumber]
+              # fields use all standard data types:
+              # (integer, double, float, string, array, object)
+              properties:
+                cardNumber:
+                  type: string
+                cardData:
+                  type: integer
+                cardAvailability:
+                  type: boolean
+                cardSecretCode:
+                  type: number
+                  format: float
+                otherAccData:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      payload:
+                        type: array
+                        items:
+                          type: array
+                          items:
+                            type: string
+              additionalProperties: true
+        required: true
+      responses:
+        "200":
+          description: Updated
+components:
+  schemas:
+    # here testing a few standard schema models.
+    # They show all standard types:
+    # (integer, double, float, string, array, object)
+    Dog:
+      type: object
+      required:
+        - bark
+      properties:
+        bark:
+          type: boolean
+        breed:
+          type: string
+    Cat:
+      type: object
+      properties:
+        hunts:
+          type: boolean
+        age:
+          type: integer
+          format: int64
+    Bunny:
+      type: object
+      required:
+        - exporting-countries
+      properties:
+        weight:
+          type: number
+          format: double
+        exporting-countries:
+          type: array
+          items:
+            type: string
+      additionalProperties: true
+    Duck:
+      type: object
+      properties:
+        bites:
+          type: boolean
+        family:
+          type: object
+          properties:
+            countryOfOrigin:
+              type: string
+            count:
+              type: number
+              format: float
+    Ente:
+      type: object
+      properties:
+        bites:
+          type: boolean
+        family:
+          $ref: '#/components/schemas/Duck'
+    Animal:
+      type: object
+      properties:
+        nestedMap:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties:
+              type: string
+    Tier:
+      type: object
+      required:
+        - nestedMap
+      properties:
+        nestedMap:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties:
+              type: string
+    Tiere:
+      type: object
+      required:
+        - deepNestedMap
+        - speciesList
+      properties:
+        name:
+          type: string
+        deepNestedMap:
+          type: object
+          description: Map<String, Map<String, Duck>> - deeply nested with model references
+          additionalProperties:
+            type: object
+            additionalProperties:
+              $ref: '#/components/schemas/Duck'
+        speciesList:
+          type: array
+          description: Array of Ente objects
+          items:
+            $ref: '#/components/schemas/Ente'
+        metadata:
+          type: object
+          description: Nested object with mixed types
+          properties:
+            region:
+              type: string
+            population:
+              type: integer
+              format: int64
+            endangered:
+              type: boolean
+            categories:
+              type: array
+              description: List of category names
+              items:
+                type: string
+    Fauna:
+      type: object
+      required:
+        - deepMapWithLists
+      properties:
+        name:
+          type: string
+        deepMapWithLists:
+          type: object
+          description: Map<String, Map<String, QList<Duck>>> - deeply nested map containing lists
+          additionalProperties:
+            type: object
+            additionalProperties:
+              type: array
+              items:
+                $ref: '#/components/schemas/Duck'
+        habitatData:
+          type: object
+          description: Map<String, Map<String, Map<String, QList<String>>>> - triple nested map with string lists
+          additionalProperties:
+            type: object
+            additionalProperties:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+        complexNesting:
+          type: object
+          description: Map<String, QList<Map<String, QList<Cat>>>> - map containing lists of maps with lists
+          additionalProperties:
+            type: array
+            items:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Cat'
+    Flora:
+      type: object
+      required:
+        - plantData
+      properties:
+        name:
+          type: string
+        plantData:
+          type: array
+          description: QList<QMap<String, QList<QMap<String, Duck>>>> - list of maps containing lists of maps with Duck
+          items:
+            type: object
+            additionalProperties:
+              type: array
+              items:
+                type: object
+                additionalProperties:
+                  $ref: '#/components/schemas/Pflanze'
+    Pflanze:
+      type: object
+      required:
+        - schoolData
+      properties:
+        name:
+          type: string
+        schoolData:
+          type: array
+          description: QList<QList<QList<String>>> - triple nested list of strings
+          items:
+            type: array
+            items:
+              type: array
+              items:
+                type: string

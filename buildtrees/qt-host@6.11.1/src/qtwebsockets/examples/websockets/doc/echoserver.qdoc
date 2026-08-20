@@ -1,0 +1,25 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example echoserver
+    \title WebSocket Echo Server
+    \examplecategory {Networking}
+    \ingroup qtwebsockets-examples
+    \brief Show how to write a simple WebSocket server application.
+
+    This Echo Server shows how to create a simple server application that sends
+    back a reply in response to a message it receives, using the
+    \l {Qt WebSockets}{WebSocket} API. For the sake of illustration, the reply
+    is simply a copy of the message.
+
+    If your web browser supports \l {Qt WebSockets}{WebSocket}, you can also use it
+    to open the \c {echoserver/echoclient.html}{echoclient.html} file, and operate
+    as shown in the following screenshot:
+
+    \image echoclient-html-example.png WebSocket Echo HTML Client
+
+    Otherwise use the \l {WebSocket Echo Client} to connect to the server.
+
+    \sa {WebSocket Echo Client}
+*/

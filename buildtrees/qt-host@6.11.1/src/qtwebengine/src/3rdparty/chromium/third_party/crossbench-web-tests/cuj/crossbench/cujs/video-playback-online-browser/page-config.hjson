@@ -1,0 +1,36 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  pages: {
+    VideoCUJ: {
+      actions: [
+        // Launch Crosvideo test page
+        {
+          action: get
+          url: https://crosvideo.appspot.com/?codec=vp9_60&resolution=1080&loop=true
+          ready_state: complete
+        }
+        // Element ready doesn't mean stream is ready, so wait for a bit
+        {
+          action: wait_for_element
+          selector: video#video
+          timeout: 10s
+        }
+        {
+          action: wait
+          duration: 5s
+        }
+        // Play for 1 minute (ish)
+        {
+          action: js
+          path: ./scripts/play.js
+        }
+        {
+          action: wait
+          duration: 70s
+        }
+      ]
+    }
+  }
+}

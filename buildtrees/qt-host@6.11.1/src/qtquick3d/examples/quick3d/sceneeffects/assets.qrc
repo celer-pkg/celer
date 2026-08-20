@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/TreeExpanded.png</file>
+        <file>images/TreeExpanded@2x.png</file>
+        <file>images/TreeExpanded@3x.png</file>
+        <file>images/TreeExpanded@4x.png</file>
+        <file>images/TreeUnexpanded.png</file>
+        <file>images/TreeUnexpanded@2x.png</file>
+        <file>images/TreeUnexpanded@3x.png</file>
+        <file>images/TreeUnexpanded@4x.png</file>
+        <file>images/grid_8x8.png</file>
+    </qresource>
+</RCC>

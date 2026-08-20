@@ -1,0 +1,9 @@
+module DiceModule
+Main 254.0 Main.qml
+Dice_low 254.0 Dice_low.qml
+DiceSpawner 254.0 DiceSpawner.qml
+PhysicalDie 254.0 PhysicalDie.qml
+PhysicalTable 254.0 PhysicalTable.qml
+Scene 254.0 Scene.qml
+RoundTable 254.0 RoundTable.qml
+Carpet 254.0 Carpet.qml

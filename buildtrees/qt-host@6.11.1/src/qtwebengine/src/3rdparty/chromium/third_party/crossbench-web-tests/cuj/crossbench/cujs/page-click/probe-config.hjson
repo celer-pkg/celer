@@ -1,0 +1,22 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  template: ../../probe-config.hjson
+  args: {
+    TRACE_PROCESSOR_QUERIES: [
+      {
+        name: LCP for page load and link clicks
+        sql:
+          '''
+            INCLUDE PERFETTO MODULE sql_packages.cujs.page_click.output;
+            SELECT * FROM page_click_output;
+          '''
+      }
+    ]
+    METRIC_DEFINITIONS: [
+      ./metrics.textproto
+    ]
+    TRACE_CONFIG: ../../trace-config/detailed-trace-config.pbtxt
+  }
+}

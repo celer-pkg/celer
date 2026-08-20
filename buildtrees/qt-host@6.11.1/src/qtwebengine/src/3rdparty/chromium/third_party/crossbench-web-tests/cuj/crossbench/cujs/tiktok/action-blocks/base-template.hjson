@@ -1,0 +1,54 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  pages: {
+    TikTok: {
+      blocks: {
+        tiktok-page-load: {
+          template: ../../../common-action-blocks/basic/page-load.hjson
+          args: {
+            READY_STATE: complete
+            PAGE_LOAD_TIMEOUT: 2m
+            TARGET: _self
+          }
+          unbound_args: [
+            PAGE_URL
+          ]
+        }
+        before-watch: [
+          {
+            // Sometimes when we dismiss the captcha while the page is still loading,
+            // another immediately opens. So wait a bit before trying to dismiss.
+            action: wait
+            duration: 5s
+          }
+          {
+            action: click
+            source: touch
+            pos: {
+              selector: "#captcha_close_button"
+              wait: true
+              required: false
+            }
+            timeout: 5s
+          }
+          $[...SCREEN_SETTINGS]
+        ]
+        watch-video: [
+          {
+            action: js
+            path: ./scripts/watch-video.js
+            replacements: {
+              "$[[VIDEO_TIME]": $[VIDEO_TIME]
+            }
+          }
+          {
+            action: wait
+            duration: $[VIDEO_TIME]
+          }
+        ]
+      }
+    }
+  }
+}

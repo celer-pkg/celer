@@ -1,0 +1,50 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qmllint-warnings-and-errors-missing-enum-entry.html
+\ingroup qmllint-warnings-and-errors
+
+\title Missing enum entry
+\brief [missing-enum-entry] Enum value is missing from its declaration.
+
+\qmllintwarningcategory missing-enum-entry
+
+\section1 Is not an entry of enum
+
+\section2 What happened?
+You used an enum value that does not exist.
+
+\section2 Why is this bad?
+The enum value will be undefined at runtime.
+
+\section2 Example
+\qml
+// Main.qml
+import QtQuick
+
+Item {
+    enum Hello { World }
+
+    Component.onCompleted: function() {
+        console.log(Main.Hello.Wordl, Main.Hello.Moon) // both Wordl and Moon are incorrect
+    }
+}
+
+\endqml
+To fix this warning, correct a potential typo or add the missing enum value
+to the definition:
+\qml
+// Main.qml
+import QtQuick
+
+Item {
+    enum Hello { World, Moon }
+
+    Component.onCompleted: function() {
+        console.log(Main.Hello.World, Main.Hello.Moon) // both correct now
+    }
+}
+\endqml
+*/
+

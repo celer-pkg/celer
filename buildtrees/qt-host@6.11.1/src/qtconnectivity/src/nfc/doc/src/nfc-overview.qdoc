@@ -1,0 +1,133 @@
+// Copyright (C) 2013 Aaron McCarthy <mccarthy.aaron@gmail.com>
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\ingroup technology-apis
+\title Qt NFC Overview
+\page qtnfc-overview.html
+\brief Provides access to NFC enabled devices.
+\ingroup explanations-networkingandconnectivity
+
+With the Qt NFC API typical use cases are:
+
+\list
+    \li Detecting NFC tags.
+    \li Reading and writing NDEF messages.
+    \li Registering NDEF message handlers.
+    \li Sharing files and messages.
+\endlist
+
+The following sections describe how to use Qt NFC C++ classes and QML types for the above use cases.
+
+\note On Android, the detection of new NFC tags only works in foreground applications. Android
+services do not support this because of API limitations on the Android side. The only way to use a
+\l{https://developer.android.com/reference/android/nfc/Tag}{Tag} in a service is to provide an
+\l{https://developer.android.com/guide/components/aidl}{AIDL} interface accepting the Tag and forward
+it to Qt as shown in the following example.
+
+\code
+    public void setTag(Tag pTag) {
+        Intent newIntent = new Intent();
+        newIntent.putExtra(NfcAdapter.EXTRA_TAG, pTag);
+        QtNative.onNewIntent(newIntent);
+    }
+\endcode
+
+\section1 C++ Overview
+
+The C++ API provides access to the full feature set of the Qt NFC API. This section introduces the
+major features available to developers.
+
+\section2 Detecting NFC Tags
+
+The \l QNearFieldManager class is responsible for the detection of new NFC tags coming
+into range of the device. The \l QNearFieldManager::targetDetected() and
+\l QNearFieldManager::targetLost() signals are emitted when
+a tag comes into or leaves the range. The passed \l QNearFieldTarget parameter acts
+as primary interaction point for each detected tag. The detection does not actually start though until
+\l QNearFieldManager::startTargetDetection() has been called.
+
+\code
+m_manager = new QNearFieldManager(this);
+connect(m_manager, &QNearFieldManager::targetDetected,
+        this, &MainWindow::targetDetected);
+connect(m_manager, &QNearFieldManager::targetLost,
+        this, &MainWindow::targetLost);
+m_manager->startTargetDetection(QNearFieldTarget::NdefAccess);
+\endcode
+
+Finally the detection can be stopped:
+
+\code
+m_manager->stopTargetDetection();
+\endcode
+
+Although each \l QNearFieldTarget instance is owned by its related \l QNearFieldManager
+instance it can be beneficial to manually delete each instance. Otherwise they would continue to
+exist until the \l QNearFieldManager instance is deleted. The best way to do that would be in response
+to the \l QNearFieldManager::targetLost() signal:
+
+\code
+void MainWindow::targetLost(QNearFieldTarget *target)
+{
+    target->deleteLater();
+}
+\endcode
+
+\note The target object should only be deleted via deleteLater() if it is deleted inside the slot.
+
+\section2 Connecting NFC Tags
+
+All functions of \l QNearFieldTarget that require a connection will create one by its own.
+An active connection will prevent other instances to create a connection because only one
+connection at the time is allowed.
+
+Qt 5 disconnected the tag at the end of the functions to allow other instances to connect.
+QNearFieldManager::setKeepConnection() allowed to change this behavior.
+
+Since Qt 6, \l QNearFieldTarget keeps the connection by default. The connection is only closed
+when the \l QNearFieldTarget is destroyed or \l QNearFieldManager::disconnect() is called.
+
+\section2 Reading and Writing NDEF Messages
+
+The \l QNearFieldTarget instance returned by \l QNearFieldManager::targetDetected() signal
+is used to interact with the tag. Reading and writing a message is an asynchronous operation.
+The \l QNearFieldTarget::RequestId class associates individual operations and their results.
+
+\code
+void MainWindow::targetDetected(QNearFieldTarget *target)
+{
+    switch (m_touchAction) {
+    case NoAction:
+        break;
+    case ReadNdef:
+        connect(target, &QNearFieldTarget::ndefMessageRead, this, &MainWindow::ndefMessageRead);
+        connect(target, &QNearFieldTarget::error, this, &MainWindow::targetError);
+
+        m_request = target->readNdefMessages();
+        if (!m_request.isValid()) // cannot read messages
+            targetError(QNearFieldTarget::NdefReadError, m_request);
+        break;
+    case WriteNdef:
+        connect(target, &QNearFieldTarget::requestCompleted, this, &MainWindow::ndefMessageWritten);
+        connect(target, &QNearFieldTarget::error, this, &MainWindow::targetError);
+
+        m_request = target->writeNdefMessages(QList<QNdefMessage>() << ndefMessage());
+        if (!m_request.isValid()) // cannot write messages
+            targetError(QNearFieldTarget::NdefWriteError, m_request);
+        break;
+    }
+}
+\endcode
+
+Once the \l QNearFieldTarget::readNdefMessages() request was successfully processed, the
+\l QNearFieldTarget::ndefMessageRead() signal is emitted. Each returned \l QNdefMessage
+may consist of zero or more \l QNdefRecord entries, which can be identified by their type.
+For more information about processing of records, see the \l QNdefRecord class documentation.
+As the above code demonstrates, writing of NDEF messages is triggered via
+\l QNearFieldTarget::writeNdefMessages(). The successful completion of the write operation
+is indicated by the emission of the \l QNearFieldTarget::requestCompleted() signal with the
+corresponding request id. Any type of error during read or write is indicated via
+\l QNearFieldTarget::error().
+*/

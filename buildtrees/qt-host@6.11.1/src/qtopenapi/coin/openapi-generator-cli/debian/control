@@ -1,0 +1,15 @@
+
+Source: openapi-generator-cli
+Section: java
+Priority: optional
+Maintainer: QtCompany
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.7.0
+Rules-Requires-Root: no
+
+Package: openapi-generator-cli
+Architecture: all
+Depends: ${misc:Depends}, default-jre | java-runtime
+Description: openapi-generator-cli.jar packaged as a .deb
+ openapi-generator-cli.jar packaged as a .deb
+

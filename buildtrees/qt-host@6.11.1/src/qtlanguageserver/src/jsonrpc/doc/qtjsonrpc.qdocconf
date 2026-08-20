@@ -1,0 +1,39 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+
+project                 = QtJsonRpc
+description             = Qt JsonRpc Reference Documentation
+version                 = $QT_VERSION
+
+examplesinstallpath     = jsonrpc
+exampledirs             = ../../../examples/jsonrpc
+imagedirs               = ../../../examples/doc/images
+
+qhp.QtJsonRpc.subprojects = classes examples
+qhp.QtJsonRpc.subprojects.classes.title       = C++ Classes
+qhp.QtJsonRpc.subprojects.classes.indexTitle  = Qt JSON RPC C++ Classes
+qhp.QtJsonRpc.subprojects.classes.selectors   = class fake:headerfile
+qhp.QtJsonRpc.subprojects.classes.sortPages   = true
+qhp.QtJsonRpc.subprojects.examples.title      = Examples
+qhp.QtJsonRpc.subprojects.examples.indexTitle = Qt JSON RPC Examples
+qhp.QtJsonRpc.subprojects.examples.selectors  = fake:example
+
+qhp.projects            = QtJsonRpc
+
+qhp.QtJsonRpc.file                = qtjsonrpc.qhp
+qhp.QtJsonRpc.namespace           = org.qt-project.qtjsonrpc.$QT_VERSION_TAG
+qhp.QtJsonRpc.virtualFolder       = qtjsonrpc
+qhp.QtJsonRpc.indexTitle          = Qt JSON RPC
+qhp.QtJsonRpc.indexRoot           =
+
+depends += qtcore qtdoc qmake
+
+sourcedirs += .. \
+              ../../../examples/jsonrpc
+
+tagfile = qtjsonrpc.tags
+
+navigation.landingpage    = "Qt JSON RPC"
+navigation.cppclassespage = "Qt JSON RPC C++ Classes"
+
+# Allow zero warnings when testing documentation in CI
+warninglimit = 0

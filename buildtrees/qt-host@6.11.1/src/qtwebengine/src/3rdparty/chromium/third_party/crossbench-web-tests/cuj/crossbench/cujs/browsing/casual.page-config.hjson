@@ -1,0 +1,22 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  template: ./action-blocks/browsing.hjson
+  args: {
+    PER_PAGE_DURATION: 180
+    REDIRECT_URL: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/v2_config/redirect.html
+    VERSION: 2023-08-09
+    URL_PREFIX: $[REDIRECT_URL]?ver=$[VERSION]&dest=
+    PAGE_1: $[URL_PREFIX]amazon_search
+    PAGE_2: $[URL_PREFIX]apple
+    PAGE_3: $[URL_PREFIX]bbc
+    PAGE_4: $[URL_PREFIX]google
+    PAGE_5: $[URL_PREFIX]live
+    PAGE_6: $[URL_PREFIX]samsung
+    PAGE_7: $[URL_PREFIX]wattpad
+    PAGE_8: $[URL_PREFIX]wikipedia
+    PAGE_9: $[URL_PREFIX]yahoo
+    PAGE_10: $[URL_PREFIX]yelp
+  }
+}

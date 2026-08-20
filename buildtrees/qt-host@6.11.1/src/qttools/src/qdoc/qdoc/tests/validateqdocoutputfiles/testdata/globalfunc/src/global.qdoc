@@ -1,0 +1,25 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+
+/*!
+    \module TestGlobals
+
+    A collection of \l foo() functions.
+*/
+
+/*!
+    \class Globals
+    \inmodule TestGlobals
+*/
+
+/*!
+    \fn int foo(int a)
+    \relates Globals
+    Params: \a a
+*/
+
+/*!
+    \fn int foo(int a, bool b)
+    \relates Globals
+    Params: \a b, \a b
+*/

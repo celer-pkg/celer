@@ -1,0 +1,133 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example quickball
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - Quick Ball Example
+    \examplecategory {3D}
+    \brief Demonstrates how to create a simple game using Quick3D.
+    \image quickball-example.jpg
+           {Game scene with ball and Qt logo target boxes}
+
+    This example demonstrates how to combine Qt Quick and Qt Quick 3D to create
+    a simple 3D game. The goal of the game is to hit target boxes by throwing
+    a ball. Points are given based on how fast and with how few balls all targets
+    are down. Aim well but be quick!
+
+    The source code is in a single QML file to emphasize how compact this example
+    is, considering it being a fully playable game. Let's start by looking at the
+    main properties. These are quite self-explanatory, and you can easily adjust
+    them to see how they affect the game.
+
+    \snippet quickball/main.qml main properties
+
+    The game logic is implemented with JavaScript. View3D contains a function to
+    start the game, which (re)initializes all required variables and creates the
+    level targets. It also contains a function to calculate the final points when
+    the game ends.
+
+    \snippet quickball/main.qml view functions
+
+    The view also contains a PointLight node to light up the scene. It is
+    positioned above the objects and set to cast shadows. Note how brightness is
+    used to darken the playing area when then game has ended. The \l {Light::ambientColor}
+    {ambientColor} property is used to soften the light contrast, as without it the
+    bottom parts of the objects would be very dark.
+
+    \snippet quickball/main.qml lights
+
+    Throwing the ball uses Qt Quick \l [QML QtQuick] MouseArea item, which is only
+    enabled when game is on, and the ball isn't already moving.
+
+    \snippet quickball/main.qml ball handling
+
+    Then we get into actual 3D models. Ball model is the biggest one, as it contains
+    the logic how the ball behaves, its animations, and hit detection. Let's look into
+    the ball properties first. Ball uses a built-in sphere model, scaled based on
+    \c ballSize. We use PrincipledMaterial with a \l {PrincipledMaterial::baseColorMap}
+    {baseColorMap} and a \l {PrincipledMaterial::normalMap} {normalMap} to create tennis
+    ball appearance.
+
+    \image quickball-ball.png
+           {Base color map and normal map combining to create tennis ball
+           texture}
+
+    \snippet quickball/main.qml ball model
+
+    When mouse is moved or touch-screen is swiped, last \c maxMoves positions
+    before releasing the ball are stored into \c moves array. When user releases
+    the ball, \c throwBall() gets called, which calculates the ball direction from
+    these latest positions, and starts animating it.
+
+    \snippet quickball/main.qml ball functions
+
+    The ball position is animated separately among different axis. These animations
+    use previously assigned \c directionX and \c directionY to define where the ball
+    moves to, as well as \c speed for the ball flying time. Vertical position has two
+    sequential animations, so we can use easing for ball bounce. When position
+    animations finish, we'll check if there are still balls left or should the game
+    end. Finally we animate also rotation of the ball, so user can throw curve balls.
+
+    \snippet quickball/main.qml ball animations
+
+    Important part of the game playing is detecting when the ball hits the targets.
+    Whenever ball z position changes, we loop through \c targets array and detect
+    if ball is touching any of them using \c fuzzyEquals(). Whenever we detect
+    a hit, we'll call target \c hit() function and check if all targets are down.
+
+    \snippet quickball/main.qml ball collisions
+
+    Then we can switch to targets. Those are dynamically generated into a grouping
+    node which contains helper functions and allows e.g. animating all targets as
+    a group. Note that \c currentTargets property is needed because in QML arrays
+    changes are not triggering bindings, so we will update the amount of targets
+    manually.
+
+    \snippet quickball/main.qml targets node
+
+    Targets are nodes with a cube model and a text element for showing points.
+    Similarly to the ball model, we use \l {PrincipledMaterial::baseColorMap} {baseColorMap}
+    and \l {PrincipledMaterial::normalMap} {normalMap} textures to create cubes with
+    a Qt logo. When the hit is detected, we sequentially animate the cube away and
+    show the points gained from this target. Once the animation is finished, we will
+    dynamically remove the target node.
+
+    \snippet quickball/main.qml target component
+
+    We also need some models for the playing area. Ground model is a rectangle
+    with grass textures scaled to fill a larger area.
+
+    \snippet quickball/main.qml ground model
+
+    Sky model is further back, and we don't want shadows cast into the sky, so we set
+    \l {Model::receivesShadows} {receivesShadows} to false. For the sky we also add
+    some stars using \l {Qt Quick Particles QML Types} {Qt Quick Particles} module.
+    Similarly to other 2D Qt Quick elements, also particles can be directly added
+    inside 3D nodes.
+
+    \snippet quickball/main.qml sky model
+
+    When we combine the above ground and sky models we get a 3D world like this:
+
+    \image quickball-world.png
+           {Sky, ground, and particles combining to form game
+           environment}
+
+    Finally we add some sparkles for the targets, this time using the
+    \l {Qt Quick 3D Particles3D QML Types}{QtQuick3D.Particles3D}
+    module. \l ParticleSystem3D contains a \l SpriteParticle3D and we allocate \c 200
+    or them, which is enough for two simultaneous \c 100 particle bursts.
+    \l ParticleEmitter3D defines the emitting properties for the particles like scale,
+    rotation, velocity and lifeSpan. We also add \l Gravity3D affector to drag the
+    particles down with a suitable magnitude.
+
+    \snippet quickball/main.qml hit particles
+
+    This ends the 3D parts of our game. There are still some 2D Qt Quick
+    elements to show the time, scores, start button etc. which are important
+    for the game, but not relevant for this Quick 3D documentation.
+
+    Now the ball is on your side (pun intended). Feel free to extend the game
+    in different ways and generate new wacky levels!
+*/

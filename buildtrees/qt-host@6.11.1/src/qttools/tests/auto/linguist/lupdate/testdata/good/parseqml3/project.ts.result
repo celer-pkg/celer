@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.1">
+<context>
+    <name>main</name>
+    <message>
+        <location filename="main.qml" line="11"/>
+        <source>text with positional arguments is allowed $1 %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="main.qml" line="14"/>
+        <source>templated literal without arguments is allowed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="main.qml" line="17"/>
+        <source>translate command inside templated literal is allowed</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+</TS>

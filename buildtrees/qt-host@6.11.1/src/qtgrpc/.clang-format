@@ -1,0 +1,140 @@
+# Copyright (C) 2022 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+# Evaluate features before including repository subparts.
+
+---
+# Use the new standard
+Standard: c++20
+
+# Webkit style was loosely based on the Qt style
+BasedOnStyle: WebKit
+
+# Column width is limited to 100 in accordance with Qt Coding Style.
+# https://wiki.qt.io/Qt_Coding_Style
+# Note that this may be changed at some point in the future.
+ColumnLimit: 100
+
+# We want a space between the type and the star for pointer types.
+PointerBindsToType: false
+
+# We want to break before the operators, but not before a '='.
+BreakBeforeBinaryOperators: NonAssignment
+
+PointerAlignment: Right
+AllowShortEnumsOnASingleLine: true
+# Allow indentation for preprocessing directives (if/ifdef/endif). https://reviews.llvm.org/rL312125
+IndentPPDirectives: AfterHash
+# We only indent with 2 spaces for preprocessor directives
+PPIndentWidth: 2
+
+# REUSE-IgnoreStart
+# Do not format copyright comment lines and qtdoc lines
+CommentPragmas: "^ SPDX-License-Identifier:|^ Copyright|\\since|\\overload|\\reentrant|\\value|\\li|\\l"
+# REUSE-IgnoreEnd
+
+# macros for which the opening brace stays attached.
+ForEachMacros:   [ foreach, Q_FOREACH, BOOST_FOREACH, forever, Q_FOREVER, QBENCHMARK, QBENCHMARK_ONCE ]
+
+# In QtBase/QtGRPC we use template < with space
+SpaceAfterTemplateKeyword: true
+
+# Break constructor initializers before the colon and after the commas.
+BreakConstructorInitializers: BeforeColon
+
+# Add "// namespace <namespace>" comments on closing brace for a namespace
+# Ignored for namespaces that qualify as a short namespace,
+# see 'ShortNamespaceLines'
+FixNamespaceComments: true
+
+# When constructor initializers do not fit on one line, put them each on a new line.
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+# Indent initializers by 4 spaces
+ConstructorInitializerIndentWidth: 4
+
+# Avoids the addition of a space between an identifier and the
+# initializer list in list-initialization.
+SpaceBeforeCpp11BracedList: false
+
+# Indent width for line continuations.
+ContinuationIndentWidth: 4
+
+# No indentation for namespaces.
+NamespaceIndentation: None
+
+# Braces are usually attached, but not after functions or class declarations
+# Add SplitEmptyRecord: true to existing BraceWrapping stype
+BreakBeforeBraces: Custom
+BraceWrapping:
+    AfterClass: true
+    AfterControlStatement: false
+    AfterEnum: false
+    AfterFunction: true
+    AfterNamespace: false
+    AfterObjCDeclaration: false
+    AfterStruct: true
+    AfterUnion: false
+    BeforeCatch: false
+    BeforeElse: false
+    IndentBraces: false
+    SplitEmptyRecord: true
+
+# InlineOnly to split empty functions (mainly ctors/dtors) in source file
+AllowShortFunctionsOnASingleLine: InlineOnly
+
+# Sort includes in each logical block
+SortIncludes: true
+IncludeBlocks: Preserve
+
+# Put all constructor initializers on the current line if they fit.
+# Otherwise, try to fit them on the next line or put each one on its own line.
+PackConstructorInitializers: BinPack
+
+# When escaping newlines in a macro attach the '\' as far left as possible, e.g.
+##define a     \
+#   something; \
+#   other;     \
+#   thelastlineislong;
+AlignEscapedNewlines: Left
+
+# Try to fit as much as possible in the assignment line, break only if necessary
+PenaltyBreakAssignment: 1000
+
+# Try to fit as much as possible in the function declaration, break only if necessary
+AlwaysBreakAfterReturnType: None
+PenaltyReturnTypeOnItsOwnLine: 100
+
+# Horizontally align arguments after an open bracket.
+# The coding style does not specify the following, but this is what gives
+# results closest to the existing code.
+AlignAfterOpenBracket: Align
+AlignArrayOfStructures: Left
+
+AlwaysBreakTemplateDeclarations: Yes
+
+# Try to fit all parameters/arguments in one line, break only if necessary
+BinPackParameters: true
+BinPackArguments: true
+PenaltyBreakOpenParenthesis: 1000
+AllowAllArgumentsOnNextLine: false
+
+# Comment // namespace <name> after end of the namespace only when it's bigger that 10 lines
+ShortNamespaceLines: 10
+
+# Known limitations:
+# (format by your own judgment and ignore clang-format pre-hook (ONLY IN THAT CASE!))
+# IndentPPDirectives indents all directives, but some of them shouldn't be indented
+# e.g #if after #ifndef.
+#
+# Function body is either one line or multiline, with breaks after braces and return,
+# but Qt code style allows body without breaks, if it fits into one line,
+# even with multiple statements, e.g.
+# type fun(LooooooongParameter arg)
+# { type a; return a; }
+#
+
+---
+# Use the Google-based style for .proto files.
+Language: Proto
+BasedOnStyle: Google
+IndentWidth: 4
+ColumnLimit: 100

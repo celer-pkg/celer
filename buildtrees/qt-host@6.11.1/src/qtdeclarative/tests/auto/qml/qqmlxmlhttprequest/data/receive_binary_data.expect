@@ -1,0 +1,8 @@
+GET /gml_logo.png HTTP/1.1
+accept-language: {{Ignore}}
+content-type: image/png
+connection: Keep-Alive{{Ignore}}
+http2-settings: {{Ignore}}
+accept-encoding: {{Ignore}}
+user-agent: Mozilla/5.0
+host: {{ServerHostUrl}}

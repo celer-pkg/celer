@@ -1,0 +1,12 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \group qtremoteobjects-examples
+    \title Qt Remote Objects Examples
+    \brief Examples for the Qt Remote Objects module
+    \ingroup qtremoteobjects
+
+    The list of \l {Qt Remote Objects} examples.
+
+*/

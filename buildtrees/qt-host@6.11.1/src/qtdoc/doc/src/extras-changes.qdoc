@@ -1,0 +1,161 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page extras-changes-qt6.html
+    \title Changes to Qt Extras Modules
+    \brief Changes to Qt Mac Extras, Qt Windows Extras, and Qt X11 Extras.
+    \ingroup changes-qt-5-to-6
+
+    Qt 6 is a result of the conscious effort to make the framework more
+    efficient and easy to use.
+
+    We try to maintain binary and source compatibility for all the public
+    APIs in each release. But some changes were inevitable in an effort to
+    make Qt a better framework.
+
+    One of those changes was to remove the platform-specific Extras modules,
+    to ensure a cohesive cross-platform story and future for Qt 6. Most of the
+    the functionality offered by these modules are replaced by a similar functionality
+    in other Qt modules. This guide summarizes those alternatives, and provides guidance
+    for the cases where Qt does not offer a replacement API.
+
+    \section1 Changes to Qt Mac Extras
+
+    \section2 QtMac namespace
+
+    Most members of the QtMac namespace have \qt5{qtmac-obsolete.html}
+    {explicit replacements}. The \qt5{qtmac-obsolete.html#fromCGImageRef}
+    {QtMac::fromCGImageRef} function has been removed due to lack of
+    known clients of the API.
+
+    \section2 QMacPasteboardMime
+
+    The \qt5{qmacpasteboardmime.html}{QMacPasteboardMime} class has been
+    replaced with \l QUtiMimeConverter. See \l{Changes to Qt GUI#Native clipboard integration}
+    for details.
+
+    \section2 QMacToolBar
+
+    The \qt5{qmactoolbar.html}{QMacToolBar} and \qt5{qmactoolbaritem.html}
+    {QMacToolBarItem} classes have been removed. Use QToolBar as a replacement.
+
+    \section1 Changes to Qt Windows Extras
+
+    \section2 QtWin namespace
+
+    Many members of the QtWin namespace have \qt5{qtwin-obsolete.html}
+    {explicit replacements}. To use these replacements with Qt Widgets
+    or Qt Quick, operate on the QWindow representation of the relevant
+    widget or control.
+
+    The remaining functions have been removed:
+
+    \section3 errorStringFromHresult
+
+    Only used internally in WinExtras. No other known clients of the API.
+
+    \section3 colorizationColor/isCompositionOpaque
+
+    Concept exists on other platforms (tint/accent color). Warrants new
+    cross-platform API, for example a new QPalette role or platform theme
+    property.
+
+    \section3 setWindowFlip3DPolicy
+
+    Windows 7 feature. No longer supported in Windows 10.
+
+    \section3 extendFrameIntoClientArea
+
+    Similar functionality exists on other platforms. Warrants cross-platform
+    QWindow API to control the relationship between the client area and the non-client area
+    (frame/titlebar). See \qtbug QTBUG-94010 for details.
+
+    \section3 enableBlurBehind
+
+    Deprecated as of Windows 8.
+
+    \section3 taskbarActivateTab and taskbar(Add/Delete)Tab
+
+    No known clients of the API.
+
+    \section2 QWinMime
+
+    The \qt5{qwinmime.html}{QWinMime} class has been replaced with \l QWindowsMimeConverter.
+    See \l{Changes to Qt GUI#Native clipboard integration} for details.
+
+    \section2 QWinJumpList
+
+    The \qt5{qwinjumplist.html}{QWinJumpList}, \qt5{qwinjumplistcategory.html}
+    {QWinJumpListCategory}, and \qt5{qwinjumplistitem.html}{QWinJumpListItem}
+    classes have been removed due to warranting a cross-platform solution.
+    See \qtbug QTBUG-94007 for details.
+
+    \section2 QWinTaskbarButton
+
+    The \qt5{qwintaskbarbutton.html}{QWinTaskbarButton} and \qt5{qwintaskbarprogress.html}
+    {QWinTaskbarProgress} classes have been removed due to warranting a cross-platform
+    solution. See \qtbug QTBUG-94009 and \qtbug QTBUG-94008 for details.
+
+    \section2 QWinThumbnailToolBar
+
+    The \qt5{qwinthumbnailtoolbar.html}{QWinThumbnailToolBar} and
+    \qt5{qwinthumbnailtoolbutton.html}{QWinThumbnailToolButton}
+    classes have been removed due to lack of known clients of the API.
+
+    \section1 Changes to Qt X11 Extras
+
+    The \l {https://doc.qt.io/qt-5/qtx11extras-index.html}{Qt X11 Extras} module was removed in Qt 6.
+
+    \list
+        \li For QX11Info::connection(), use QNativeInterface::QX11Application::connection() instead.
+        \li For QX11Info::display(), use QNativeInterface::QX11Application::display() instead.
+        \li For QX11Info::isPlatformX11(), check QNativeInterface::QX11Application existence instead.
+    \endlist
+
+    Make sure to check you can get a QNativeInterface::QX11Application object from QGuiApplication,
+    as in the following snippet:
+
+    \snippet snippets/porting-qx11info/testwindow.cpp 1
+
+    Clients that still rely on the functionality in \qt5{qx11info.html}{QX11Info}
+    class can include the private
+    header \c {<QtGui/private/qtx11extras_p.h>} as a stopgap solution.
+    To enable private headers use \c {QT += gui-private} with \c qmake,
+    or add a project dependency to \c Qt::GuiPrivate with \c CMake.
+
+    \section1 Changes to Qt for Android Extras
+
+    Key functionality from the module has been brought over to other
+    Qt modules.
+
+    Clients that still rely on missing functionality can include the private
+    header \c {<QtCore/private/qandroidextras_p.h>} as a stopgap solution.
+    To enable private headers use \c {QT += core-private} with \c qmake,
+    or add a project dependency to \c Qt::CorePrivate with \c CMake.
+
+    \section2 QAndroidJniObject and QAndroidJniEnvironment
+
+    The \qt5{qandroidjniobject.html}{QAndroidJniObject} and
+    \qt5{qandroidjnienvironment.html}{QAndroidJniEnvironment}
+    classes have been replaced by \l QJniObject and \l QJniEnvironment
+    respectively.
+
+    The \qt5{qandroidjniexceptioncleaner.html}{QAndroidJniExceptionCleaner}
+    class is no longer needed. See QJniEnvironment::checkAndClearExceptions()
+    for a replacement.
+
+    \section2 QtAndroid namespace
+
+    Many members of the QtAndroid namespace have replacements in the
+    \l {QNativeInterface::}{QAndroidApplication} native interface.
+
+    \section2 Permissions
+
+    The \l {Application Permissions} infrastructure allows requesting a set of
+    permissions in a cross-platform manner.
+
+    The \l QtAndroidPrivate namespace can be used to access Android-specific
+    permissions not covered by the cross-platform permissions system.
+
+*/

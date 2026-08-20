@@ -1,0 +1,7 @@
+version = 1
+
+[[annotations]]
+path = ["**"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (c) 1988-1997 Sam Leffler Copyright (c) 1991-1997 Silicon Graphics, Inc."
+SPDX-License-Identifier = "libtiff"

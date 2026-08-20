@@ -1,0 +1,407 @@
+function Verify-Checksum
+{
+    Param (
+        [string]$File=$(throw("You must specify a filename to get the checksum of.")),
+        [string]$Expected=$(throw("Checksum required"))
+    )
+    switch ($Expected.Length) {
+        40 { $Algorithm = "SHA1" }
+        64 { $Algorithm = "SHA256" }
+        default { throw "Unknown hash length for: $Expected" }
+    }
+    Write-Host "Verifying checksum of $File"
+    $fs = new-object System.IO.FileStream $File, "Open"
+    $algo = [type]"System.Security.Cryptography.$Algorithm"
+    $crypto = $algo::Create()
+    $hash = [BitConverter]::ToString($crypto.ComputeHash($fs)).Replace("-", "")
+    $fs.Close()
+    if ($hash -ine $Expected) {
+        throw "Checksum verification failed, got: '$hash' expected: '$Expected'"
+    }
+}
+
+function Run-Executable
+{
+    Param (
+        [string]$Executable=$(throw("You must specify a program to run.")),
+        [string[]]$Arguments
+    )
+
+    $stdoutFile = [System.IO.Path]::GetTempFileName()
+    $stderrFile = [System.IO.Path]::GetTempFileName()
+
+    if ([string]::IsNullOrEmpty($Arguments)) {
+        Write-Host "Running `"$Executable`""
+        $p = Start-Process -FilePath "$Executable" -Wait -PassThru `
+            -RedirectStandardOutput $stdoutFile -RedirectStandardError $stderrFile
+    } else {
+        Write-Host "Running `"$Executable`" with arguments `"$Arguments`""
+        $p = Start-Process -FilePath "$Executable" -ArgumentList $Arguments -PassThru `
+            -RedirectStandardOutput $stdoutFile -RedirectStandardError $stderrFile
+        Wait-Process -InputObject $p
+    }
+
+    $stdoutContent = [System.IO.File]::ReadAllText($stdoutFile)
+    $stderrContent = [System.IO.File]::ReadAllText($stderrFile)
+    Remove-Item -Path $stdoutFile, $stderrFile -Force -ErrorAction Ignore
+
+    $hasOutput = $false
+    if ([string]::IsNullOrEmpty($stdoutContent) -eq $false -or [string]::IsNullOrEmpty($stderrContent) -eq $false) {
+        $hasOutput = $true
+        Write-Host
+        Write-Host "======================================================================"
+    }
+    if ([string]::IsNullOrEmpty($stdoutContent) -eq $false) {
+        Write-Host "stdout of `"$Executable`":"
+        Write-Host "======================================================================"
+        Write-Host $stdoutContent
+        Write-Host "======================================================================"
+    }
+    if ([string]::IsNullOrEmpty($stderrContent) -eq $false) {
+        Write-Host "stderr of `"$Executable`":"
+        Write-Host "======================================================================"
+        Write-Host $stderrContent
+        Write-Host "======================================================================"
+    }
+    if ($hasOutput) {
+        Write-Host
+    }
+    if ($p.ExitCode -ne 0) {
+        throw "Process $($Executable) exited with exit code $($p.ExitCode)"
+    }
+}
+
+function Extract-tar_gz
+{
+    Param (
+        [string]$Source,
+        [string]$Destination
+    )
+    Write-Host "Extracting '$Source' to '$Destination'..."
+
+    if ((Get-Command "7z.exe" -ErrorAction SilentlyContinue) -eq $null) {
+        $zipExe = join-path (${env:ProgramFiles(x86)}, ${env:ProgramFiles}, ${env:ProgramW6432} -ne $null)[0] '7-zip\7z.exe'
+        if (-not (test-path $zipExe)) {
+            $zipExe = "C:\Utils\sevenzip\7z.exe"
+            if (-not (test-path $zipExe)) {
+                throw "Could not find 7-zip."
+            }
+        }
+    } else {
+        $zipExe = "7z.exe"
+    }
+    Run-Executable "cmd.exe"  "/C $zipExe x -y `"$Source`" -so | $zipExe x -y -aoa -si -ttar `"-o$Destination`""
+}
+
+function Extract-7Zip
+{
+    Param (
+        [string]$Source,
+        [string]$Destination,
+        [string]$Filter
+    )
+    Write-Host "Extracting '$Source' to '$Destination'..."
+
+    if ((Get-Command "7z.exe" -ErrorAction SilentlyContinue) -eq $null) {
+        $zipExe = join-path (${env:ProgramFiles(x86)}, ${env:ProgramFiles}, ${env:ProgramW6432} -ne $null)[0] '7-zip\7z.exe'
+        if (-not (test-path $zipExe)) {
+            $zipExe = "C:\Utils\sevenzip\7z.exe"
+            if (-not (test-path $zipExe)) {
+                throw "Could not find 7-zip."
+            }
+        }
+    } else {
+        $zipExe = "7z.exe"
+    }
+
+    if ([string]::IsNullOrEmpty($Filter)) {
+        Run-Executable "$zipExe" "x -y `"-o$Destination`" `"$Source`""
+    } else {
+        Run-Executable "$zipExe" "x -y -aoa `"-o$Destination`" `"$Source`" $Filter"
+    }
+}
+
+function BadParam
+{
+    Param ([string]$Description)
+    throw("You must specify $Description")
+}
+
+function Get-DefaultDownloadLocation
+{
+    return $env:USERPROFILE + "\downloads\"
+}
+
+function Get-DownloadLocation
+{
+    Param ([string]$TargetName = $(BadParam("a target filename")))
+    return (Get-DefaultDownloadLocation) + $TargetName
+}
+
+function Download
+{
+    Param (
+        [string] $OfficialUrl = $(BadParam("the official download URL")),
+        [string] $CachedUrl   = $(BadParam("the locally cached URL")),
+        [string] $Destination = $(BadParam("a download target location"))
+    )
+    $ProgressPreference = 'SilentlyContinue'
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    try {
+        Write-Host "Downloading from cached location ($CachedUrl) to $Destination"
+        if ($CachedUrl.StartsWith("http")) {
+            Invoke-WebRequest -UseBasicParsing $CachedUrl -OutFile $Destination
+        } else {
+            Copy-Item $CachedUrl $Destination -errorAction stop
+        }
+    } catch {
+        Write-Host "Cached download failed: Downloading from official location: $OfficialUrl"
+        Invoke-WebRequest -UseBasicParsing $OfficialUrl -OutFile $Destination
+    }
+}
+
+function Add-Path
+{
+    Param (
+        [string]$Path
+    )
+    Write-Host "Adding $Path to Path"
+
+    $oldPath = [System.Environment]::GetEnvironmentVariable('Path', 'Machine')
+    [Environment]::SetEnvironmentVariable("Path", $oldPath + ";$Path", [EnvironmentVariableTarget]::Machine)
+    $Env:PATH = [System.Environment]::GetEnvironmentVariable('Path', 'Machine')
+}
+
+function Prepend-Path
+{
+    Param (
+        [string]$Path
+    )
+    Write-Host "Adding $Path to Path"
+
+    $oldPath = [System.Environment]::GetEnvironmentVariable('Path', 'Machine')
+    [Environment]::SetEnvironmentVariable("Path", "$Path;" + $oldPath, [EnvironmentVariableTarget]::Machine)
+    $Env:PATH = [System.Environment]::GetEnvironmentVariable('Path', 'Machine')
+}
+
+function Set-EnvironmentVariable
+{
+    Param (
+        [string]$Key = $(BadParam("a key")),
+        [string]$Value = $(BadParam("a value."))
+    )
+    Write-Host "Setting environment variable `"$($Key)`" to `"$($Value)`""
+
+    [Environment]::SetEnvironmentVariable($Key, $Value, [EnvironmentVariableTarget]::Machine)
+    # Make the envvar immediately available to subsequent scripts run in the same session.
+    [Environment]::SetEnvironmentVariable($Key, $Value, [EnvironmentVariableTarget]::Process)
+}
+
+function Is64BitWinHost
+{
+    return [environment]::Is64BitOperatingSystem
+}
+
+enum CpuArch {
+    x64
+    x86
+    arm64
+    unknown
+}
+
+function Get-CpuArchitecture
+{
+    # Possible values are "AMD64", "IA64", "ARM64", and "x86"
+    $arch = [System.Environment]::GetEnvironmentVariable('PROCESSOR_ARCHITECTURE', 'Machine')
+    if ($arch -eq "AMD64") {
+        return [CpuArch]::x64
+    } elseif ($arch -eq "x86") {
+        return [CpuArch]::x86
+    } elseif ($arch -eq "ARM64") {
+        return [CpuArch]::arm64
+    }
+
+    return [CpuArch]::unknown
+}
+
+function IsProxyEnabled {
+    return (Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings').proxyEnable
+}
+
+function Get-Proxy {
+    return (Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings').proxyServer
+}
+
+function Retry{
+    <#
+    usage:
+    Retry{CODE}
+    Retry{CODE} <num of retries> <delay_s>
+    #delay is in seconds
+    #>
+    Param(
+        [Parameter(mandatory=$true)]
+        [scriptblock]$command,
+        [int][ValidateRange(1, 20)]$retry = 5,
+        [int][ValidateRange(1, 60)]$delay_s = 5
+    )
+    $success=$false
+    $retry_count=0
+    do{
+        try {
+            Invoke-Command -ScriptBlock $command
+            $success=$true
+        }
+        catch {
+            $retry_count++
+            Write-Host "Error: $_, try: $retry_count, retrying in $delay_s seconds"
+            Start-Sleep -Seconds $delay_s
+        }
+    } until ($success -or $retry+1 -le $retry_count)
+
+    if (-not $success) {
+        Throw("Failed to run command successfully in $retry_count tries")
+    }
+}
+
+function Remove {
+
+    Param (
+        [string]$Path = $(BadParam("a path"))
+    )
+    Write-Host "Removing $Path"
+    $i = 0
+    While ( Test-Path($Path) ){
+        Try{
+            remove-item -Force -Recurse -Path $Path -ErrorAction Stop
+        }catch{
+            $i +=1
+            if ($i -eq 5) {exit 1}
+            Write-Verbose "$Path locked, trying again in 5"
+            Start-Sleep -seconds 5
+        }
+    }
+}
+
+function DisableSchedulerTask {
+
+    Param (
+        [string]$Task = $(BadParam("a task"))
+    )
+
+    Write-Host "Disabling $Task from Task Scheduler"
+    SCHTASKS /Change /TN "Microsoft\Windows\$Task" /DISABLE
+}
+
+function DeleteSchedulerTask {
+
+   Param (
+        [string]$Task = $(BadParam("a task"))
+    )
+
+    Write-Host "Disabling $Task from Task Scheduler"
+    SCHTASKS /DELETE /TN "Microsoft\Windows\$Task" /F
+}
+
+function GetVsProperty {
+    Param (
+        [string]$Component = 'Microsoft.VisualStudio.Component.VC.CoreIde',
+        [string]$Property,
+        [switch]$Latest
+    )
+
+    $vsWhereProcessInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $vsWhereProcessInfo.FileName = "${Env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+    $vsWhereProcessInfo.RedirectStandardError = $true
+    $vsWhereProcessInfo.RedirectStandardOutput = $true
+    $vsWhereProcessInfo.UseShellExecute = $false
+
+    # -sort: sorts the instances from newest version and last installed to oldest
+    $vsWhereProcessInfo.Arguments = " -nologo -sort -products * -requires $Component -property $Property"
+    if ($Latest) {
+        # -latest: return only the newest version and last installed
+        $vsWhereProcessInfo.Arguments += ' -latest'
+    }
+
+    $vsWhereProcess = New-Object System.Diagnostics.Process
+    $vsWhereProcess.StartInfo = $vsWhereProcessInfo
+
+    $vsWhereProcess.Start() | Out-Null
+    $vsWhereProcess.WaitForExit()
+
+    $standardOutput = $vsWhereProcess.StandardOutput.ReadToEnd()
+    if ([string]::IsNullOrEmpty($standardOutput)) {
+        throw "vswhere could not find property '$Property'"
+    }
+
+    $exitCode = $vsWhereProcess.ExitCode
+    if ($exitCode -ne 0) {
+        $standardError = $vsWhereProcess.StandardError.ReadToEnd()
+        throw "vswhere failed with exit code $exitCode ($standardError)"
+    }
+
+    return $standardOutput.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) | Select-Object -Last 1
+}
+
+function GetVsInstallationPath {
+    Param (
+        [switch]$Latest
+    )
+
+    return GetVsProperty -Property 'installationPath' @PSBoundParameters
+}
+
+function EnterVSDevShell {
+    Param (
+        [string]$HostArch = "amd64",
+        [string]$Arch = "amd64"
+    )
+
+    # We pick the oldest build tools we can find and use that to be compatible with it and any newer version:
+    # If MSVC has an ABI break this will stop working, and yet another build must be added.
+    $VSPath = GetVsInstallationPath
+
+    Write-Host "Enter VisualStudio developer shell (-host_arch=$HostArch -arch=$Arch -VsInstallPath='$VSPath')"
+    try {
+        Import-Module "$VSPath\Common7\Tools\Microsoft.VisualStudio.DevShell.dll"
+        Enter-VsDevShell -SkipAutomaticLocation -VsInstallPath $VSPath -DevCmdArguments "-host_arch=$HostArch -arch=$Arch -no_logo"
+    } catch {
+        Write-Host "Failed to enter VisualStudio DevShell"
+        return $false
+    }
+    return $true
+}
+
+function Invoke-MtCommand {
+  param(
+    [String] $vcVarsScript,
+    [String] $arch,
+    [String] $manifest,
+    [String] $executable
+  )
+  $tempFile = [IO.Path]::GetTempFileName()
+  Add-Content -Path $tempFile -Value $manifest
+  $cmdLine = """$vcVarsScript"" $arch &  mt.exe -manifest ""$tempFile"" -outputresource:""$executable"";1"
+  Write-Output Executing $cmdLine
+  & $Env:SystemRoot\system32\cmd.exe /c $cmdLine | Write-Output
+  Remove-Item $tempFile
+}
+
+function Invoke-NMake {
+    param([string[]]$NmakeArgs)
+    # Temporarily remove MAKE flags for NMAKE process
+    $old = @{
+        MAKEFLAGS  = (Get-Item Env:MAKEFLAGS  -ErrorAction Ignore).Value
+        MFLAGS     = (Get-Item Env:MFLAGS     -ErrorAction Ignore).Value
+        MAKE       = (Get-Item Env:MAKE       -ErrorAction Ignore).Value
+        NMAKEFLAGS = (Get-Item Env:NMAKEFLAGS -ErrorAction Ignore).Value
+    }
+    foreach ($n in $old.Keys) {Remove-Item "Env:$n" -ErrorAction SilentlyContinue}
+    try   {& nmake @NmakeArgs}
+    finally {
+        foreach ($n in $old.Keys) {
+            if ($old[$n]) {Set-EnvironmentVariable -Key "$n" -Value $old[$n]}
+            else {Remove-Item "Env:$n" -ErrorAction SilentlyContinue}
+        }
+    }
+}

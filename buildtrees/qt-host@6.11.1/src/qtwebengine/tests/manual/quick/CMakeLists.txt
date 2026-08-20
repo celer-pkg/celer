@@ -1,0 +1,2 @@
+add_subdirectory(touchbrowser)
+add_subdirectory(geopermission)

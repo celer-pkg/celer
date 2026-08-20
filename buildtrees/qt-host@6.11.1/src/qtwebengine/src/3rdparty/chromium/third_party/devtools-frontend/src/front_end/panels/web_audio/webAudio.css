@@ -1,0 +1,106 @@
+/*
+ * Copyright 2019 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+:host {
+  overflow: hidden;
+}
+
+.web-audio-toolbar-container {
+  background-color: var(--sys-color-cdt-base-container);
+  border-bottom: 1px solid var(--sys-color-divider);
+  min-height: fit-content;
+}
+
+.web-audio-landing-page {
+  position: absolute;
+  background-color: var(--sys-color-cdt-base-container);
+  justify-content: center;
+  align-items: center;
+  overflow: auto;
+  font-size: 13px;
+  color: var(--sys-color-on-surface);
+}
+
+.web-audio-landing-page > div {
+  max-width: 500px;
+  margin: 10px;
+}
+
+.web-audio-landing-page > div > p {
+  flex: none;
+  white-space: pre-line;
+}
+
+.web-audio-content-container {
+  overflow-y: auto;
+}
+
+.web-audio-details-container {
+  min-height: fit-content;
+}
+
+.web-audio-summary-container {
+  flex-shrink: 0;
+}
+
+.context-detail-container {
+  flex: none;
+  display: flex;
+  background-color: var(--sys-color-cdt-base-container);
+  flex-direction: column;
+}
+
+.context-detail-header {
+  border-bottom: 1px solid var(--sys-color-divider);
+  padding: var(--sys-size-7) var(--sys-size-9);
+  margin-bottom: var(--sys-size-5);
+}
+
+.context-detail-title {
+  font: var(--sys-typescale-headline4);
+}
+
+.context-detail-subtitle {
+  font: var(--sys-typescale-body4-regular);
+  user-select: text;
+}
+
+.context-detail-row {
+  grid-template-columns: min-content 1fr;
+  display: grid;
+  line-height: 18px;
+  margin: var(--sys-size-3) var(--sys-size-9) var(--sys-size-3) var(--sys-size-9);
+  gap:  var(--sys-size-6);
+}
+
+.context-detail-row-entry:not(:empty) {
+  color: var(--sys-color-on-surface-subtle);
+  overflow: hidden;
+  min-width: 130px;
+  font: var(--sys-typescale-body5-medium);
+}
+
+.context-detail-row-value {
+  user-select: text;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  font: var(--sys-typescale-body4-regular);
+}
+
+.context-summary-container {
+  flex: 0 0 27px;
+  line-height: 27px;
+  padding-left: 5px;
+  background-color: var(--sys-color-cdt-base-container);
+  border-top: 1px solid var(--sys-color-divider);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.context-summary-container span {
+  margin-right: 6px;
+}

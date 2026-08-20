@@ -1,0 +1,72 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+
+project                 = QtGrpc
+description             = Qt GRPC Reference Documentation
+version                 = $QT_VERSION
+
+examplesinstallpath     = grpc
+examples.fileextensions += "*.proto"
+url.examples = "https://code.qt.io/cgit/qt/qtgrpc.git/tree/examples/\1?h=$QT_VER"
+url.sources  = "https://code.qt.io/cgit/qt/qtgrpc.git/tree/\1?h=$QT_VER#n\2"
+# Path to the root of qtgrpc (for automatic linking to source code)
+url.sources.rootdir     = ../../..
+qhp.projects            = QtGrpc
+
+qhp.QtGrpc.file                = qtgrpc.qhp
+qhp.QtGrpc.namespace           = org.qt-project.qtgrpc.$QT_VERSION_TAG
+qhp.QtGrpc.virtualFolder       = qtgrpc
+qhp.QtGrpc.indexTitle          = Qt GRPC
+qhp.QtGrpc.indexRoot           =
+
+qhp.QtGrpc.subprojects = manual examples qmltypes classes
+
+qhp.QtGrpc.subprojects.qmltypes.title = QML Types
+qhp.QtGrpc.subprojects.qmltypes.indexTitle = Qt GRPC QML Types
+qhp.QtGrpc.subprojects.qmltypes.selectors = qmlclass
+qhp.QtGrpc.subprojects.qmltypes.sortPages = true
+
+qhp.QtGrpc.subprojects.examples.title = Examples
+qhp.QtGrpc.subprojects.examples.indexTitle = Qt GRPC Examples
+qhp.QtGrpc.subprojects.examples.selectors = doc:example
+
+qhp.QtGrpc.subprojects.classes.title      = C++ Classes
+qhp.QtGrpc.subprojects.classes.indexTitle = Qt GRPC C++ Classes
+qhp.QtGrpc.subprojects.classes.selectors  = class doc:headerfile
+qhp.QtGrpc.subprojects.classes.sortPages  = true
+
+qhp.QtGrpc.subprojects.manual.title = Qt GRPC
+qhp.QtGrpc.subprojects.manual.indexTitle = Qt GRPC module topics
+qhp.QtGrpc.subprojects.manual.type = manual
+
+depends += qtdoc qtcore qtnetwork qtwidgets qtprotobuf qtcmake qtqml qtquick qtquickcontrols qtnetworkauth
+
+{headerdirs,sourcedirs}  += .. \
+                            ../../grpcquick
+
+# Add additional documentation dirs
+sourcedirs  += ../../tools/doc
+
+exampledirs += src/snippets \
+               ../../../examples/grpc
+imagedirs   += images
+
+navigation.landingpage = "Qt GRPC"
+navigation.cppclassespage = "Qt GRPC C++ Classes"
+navigation.qmltypespage = "Qt GRPC QML Types"
+# Auto-generate navigation linking based on "Qt GRPC module topics":
+navigation.toctitles = "Qt GRPC module topics"
+navigation.toctitles.inclusive = false
+
+manifestmeta.highlighted.names = \
+               "QtGrpc/Magic 8 Ball" \
+               "QtGrpc/QtGrpc Chat"
+
+tagfile                 = qtgrpc.tags
+
+macro.gRPC = "\\tm gRPC"
+macro.interceptorDirection = \
+"\\note This interceptor operates in the \\b{\1} direction. For details on how " \
+"multiple interceptor callbacks flow through the chain, see the \\l{Direction and flow} section."
+
+# Enforce zero documentation warnings
+warninglimit = 0

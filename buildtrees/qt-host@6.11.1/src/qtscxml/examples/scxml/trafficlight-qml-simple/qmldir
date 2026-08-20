@@ -1,0 +1,5 @@
+module TrafficLightApplication
+prefer :/qt/qml/TrafficLightApplication/
+MainView 1.0 MainView.qml
+Light 1.0 Light.qml
+

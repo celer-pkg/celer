@@ -1,0 +1,12 @@
+{
+    "Keys": ["sapi"],
+    "Provider": "sapi",
+    "Version": 100,
+    "Priority": 50,
+    "Capabilities": [
+        "Speak",
+        "PauseResume",
+        "WordByWordProgress",
+        "Synthesize"
+    ]
+}

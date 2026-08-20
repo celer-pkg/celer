@@ -1,0 +1,1101 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page 14-qdoc-commands-contextcommands.html
+    \previouspage Topic Commands
+    \nextpage Document Navigation
+
+    \title Context Commands
+
+    The context commands provide information about the element being
+    documented that QDoc can't deduce on its own. For example:
+    \list
+    \li Is this class thread-safe?
+    \li Is this function reentrant?
+    \li Of which module is this class a member?
+    \li Which include statement is needed to use this class?
+    \endlist
+
+    Context commands can appear anywhere in a QDoc comment,
+    but they are normally placed near the top of the comment, just
+    below the \l {Topic Commands} {topic} command.
+
+    \list
+      \li \l {abstract-command} {\\abstract}
+      \li \l {attribution-command} {\\attribution}
+      \li \l {cmakecomponent-command} {\\cmakecomponent}
+      \li \l {cmakepackage-command} {\\cmakepackage}
+      \li \l {cmaketargetitem-command} {\\cmaketargetitem}
+      \li \l {compares-command}{\\compares} (Since QDoc 6.7)
+      \li \l {compareswith-command}{\\compareswith} (Since QDoc 6.7)
+      \li \l {default-command} {\\default}
+      \li \l {deprecated-command}{\\deprecated}
+      \li \l {ingroup-command}{\\ingroup}
+      \li \l {inheaderfile-command}{\\inheaderfile}
+      \li \l {inherits-command}{\\inherits}
+      \li \l {inmodule-command}{\\inmodule}
+      \li \l {internal-command}{\\internal}
+      \li \l {modulestate-command} {\\modulestate} (Since QDoc 6.5)
+      \li \l {nextpage-command}{\\nextpage}
+      \li \l {nonreentrant-command}{\\nonreentrant}
+      \li \l {overload-command}{\\overload}
+      \li \l {preliminary-command}{\\preliminary}
+      \li \l {previouspage-command}{\\previouspage}
+      \li \l {qmlabstract-command} {\\qmlabstract}
+      \li \l {qmldefault-command} {\\qmldefault}
+      \li \qdoccmd qmlenumeratorsfrom (Since QDoc 6.8)
+      \li \l {qtcmakepackage-command} {\\qtcmakepackage}
+      \li \l {qtcmaketargetitem-command} {\\qtcmaketargetitem}
+      \li \l {readonly-command} {\\readonly}
+      \li \l {reentrant-command}{\\reentrant}
+      \li \l {reimp-command}{\\reimp}
+      \li \l {relates-command}{\\relates}
+      \li \l {required-command} {\\required}
+      \li \l {since-command}{\\since}
+      \li \l {startpage-command}{\\startpage}
+      \li \l {subtitle-command}{\\subtitle}
+      \li \l {threadsafe-command}{\\threadsafe}
+      \li \l {title-command}{\\title}
+      \li \l {toc-command}{\\toc} (Since QDoc 6.11)
+      \li \l {tocentry-command}{\\tocentry} (Since QDoc 6.11)
+      \li \l {wrapper-command}{\\wrapper}
+    \endlist
+
+*/
+
+/*!
+    \page 15-qdoc-commands-navigation.html
+    \previouspage Context Commands
+    \nextpage Status
+
+    \title Document Navigation
+
+    The navigation commands are for linking the pages of a document in
+    a meaningful sequence. Below is a sequence of QDoc comments that
+    shows a typical use of the navigation commands.
+
+    \section1 Example
+    \quotefile files/basicqt.qdoc.sample
+
+    The \l {startpage-command} {\\startpage} command creates a link to
+    the page the author wants as the first page of a multipage document.
+
+    The link is included in the generated HTML source code but has no
+    visual effect on the documentation:
+
+    \code
+    <head>
+        ...
+        <link rel="start" href="basicqt.html" />
+        ...
+    </head>
+    \endcode
+
+    \section1 Commands
+
+    \target previouspage-command
+    \section2 \\previouspage
+
+    The \\previouspage command links the current page to the previous
+    page in a sequence. The command has two arguments, each enclosed
+    by curly braces: the first is the link target (the title of
+    the previous page), the second is the link text. If the page's
+    title is equivalent to the link text, the second argument can be
+    omitted.
+
+    The command must stand alone on its own line.
+
+    \target nextpage-command
+    \section2 \\nextpage
+
+    The \\nextpage command links the current page to the next page in
+    a sequence. The command follows the same syntax and argument
+    convention as the \l {previouspage-command} {\\previouspage}
+    command.
+
+    \target startpage-command
+    \section2 \\startpage
+
+    The \\startpage command specifies the first page of a sequence of
+    pages. The command must stand alone on its own line, and its
+    unique argument is the title of the first document.
+
+    QDoc will generate a link to the start page and include it in the
+    generated HTML file, but this has no visual effect on the
+    documentation. The generated link type tells browsers and search
+    engines which document is considered by the author to be the
+    starting point of the collection.
+
+    \target toc-command
+    \section2 \\toc
+
+    The \\toc and \\endtoc commands specify a list of sub-topics
+    (pages) for the topic the command appears in. A table of contents
+    (TOC) hierarchy is generated for the entire documentation
+    project based on the TOC entries on each topic.
+
+    Within the \\toc .. \\endtoc block, use \qdoccmd {tocentry} commands
+    to specify the sub-topics by title. Like the \qdoccmd {l} (link)
+    command, \\tocentry takes an optional second argument for the
+    user-visible title in the generated TOC entry.
+
+    \badcode *
+    /\1!
+        \page index.html
+        \title Qt
+        ...
+        \toc
+            \tocentry {Introduction to Qt} {Introduction}
+            \tocentry {What's new in Qt} {What's new}
+            \tocentry {Getting started}
+        \endtoc
+    \1/
+    \endcode
+
+    \\toc commands cannot be nested. However, each sub-topic can specify
+    their own TOC entries. A topic can use only one \\toc command.
+
+    QDoc writes the resulting table of contents structure in XML format
+    to a \e {<project>_toc.xml} file.
+
+    \note The root topic (index or landing page) must be specified in the project
+          configuration with either \c {navigation.landingpage} or \c
+          {navigation.homepage}. See \qdocvar navigation for more information.
+
+    The \\toc command was introduced to QDoc with Qt 6.11.
+
+    See also \qdoccmd {tocentry}.
+
+    \target tocentry-command
+    \section2 \\tocentry
+
+    Specifies a sub-topic (page) as an entry in table of contents. Can only be
+    used inside a pair of \\toc and \\endtoc commands.
+
+    The \\tocentry command was introduced to QDoc with Qt 6.11.
+
+    See also \qdoccmd {toc}.
+*/
+
+/*!
+    \page 16-qdoc-commands-status.html
+    \previouspage Document Navigation
+    \nextpage Thread Support
+
+    \title Status
+
+    These commands are for indicating that a documented element has
+    some special status. The element could be marked \e deprecated,
+    that is, it's about to be made obsolete and no longer included
+    in the public interface. The \l {since-command}{\\since} command
+    is for specifying the version number in which a function or class
+    first appeared. The \l {qmlabstract-command} {\\qmlabstract} command
+    is for marking a QML type as an abstract base class.
+
+    \target abstract-command
+    \target qmlabstract-command
+    \section1 \\abstract and \\qmlabstract
+
+    \\abstract is a synonym for the \\qmlabstract command. Add this
+    command to the \l {qmltype-command} {\\qmltype} comment for a QML
+    type when that type is meant to be used \e {only} as an abstract
+    base type. When a QML type is abstract, it means that the QML type
+    that can't be instantiated. Instead, the properties in its public
+    API are included in the public properties list on the reference
+    page for each QML type that inherits the abstract QML type. The
+    properties are documented as if they are properties of the
+    inheriting QML type.
+
+    Normally, when a QML type is marked with \e{\\qmlabstract}, it is
+    also marked with \e{\\internal} so that its reference page is not
+    generated. It the abstract QML type is not marked internal, it
+    will have a reference page in the documentation.
+
+    \target attribution-command
+    \section1 \\attribution
+
+    The \\attribution command marks a documented \qdoccmd page as license
+    attribution documentation.
+
+    The \l {annotatedattributions} {\\generatelist annotatedattributions}
+    command generates an annotated list of all license attribution pages
+    in the documentation project.
+
+    \target default-command
+    \section1 \\default
+
+    The \\default command is used for documenting a default value for
+    a QML property. The command takes a single argument, which is
+    displayed in the documentation as the default value.
+
+    \badcode *
+    /\1!
+        \qmlproperty real Item::x
+        \default 0.0
+    \1/
+    \endcode
+
+    If the default value is a non-empty string, use quotes:
+
+    \badcode *
+    /\1!
+        \qmlproperty string Item::state
+        \default "invalid"
+    \1/
+    \endcode
+
+    \target compares-command
+    \section2 \\compares
+
+    Use the \c {\compares} command to describe the comparison results for the
+    documented C++ type when compared to itself. You must use this command in
+    conjunction with the \l {class-command}{\\class} command.
+
+    \c {\compares} takes one of the following arguments:
+
+    //! [comparison-categories]
+    \list
+        \li \c strong
+        \li \c partial
+        \li \c weak
+        \li \c equality
+    \endlist
+
+    \c {strong}, \c {partial}, and \c {weak} relate to the ordering.
+    \c {equality} means that the type is only compared for equality.
+    //! [comparison-categories]
+
+    This command was introduced to QDoc with Qt 6.7.
+
+    See also \l {compareswith-command}{\\compareswith}.
+
+    \target compareswith-command
+    \section1 \\compareswith
+
+    Use the \c {\compareswith .. \endcompareswith} pair of commands to
+    describe the comparison results for the documented C++ type when
+    compared to other types. \c {\compareswith} takes two or more
+    arguments: a comparison category, followed by a type name, or a
+    space-separated list of type names. Any text lines between
+    \c {\compareswith} and \c {\endcompareswith} commands are
+    considered further details that apply to all types subject
+    to the comparison category argument.
+
+    Types that have one or more space in their name, such as
+    \c{unsigned long}, should be enclosed in braces.
+
+    For example:
+
+    \badcode *
+    /\1!
+        ...
+        \compareswith strong int long {unsigned long} {unsigned int} char
+        ...
+        \endcompareswith
+        ...
+    \1/
+    \endcode
+
+    Argument enclosed in braces have their leading and trailing whitespaces
+    removed.
+    For example, \c{unsigned long} and \c{ unsigned long } are equivalent.
+
+    The comparison category argument must be one of the following:
+    \include qdoc-manual-contextcmds.qdoc comparison-categories
+
+    This command was introduced to QDoc with Qt 6.7.
+
+    See also \l {compares-command}{\\compares}.
+
+    \target qmldefault-command
+    \section1 \\qmldefault
+
+    The \\qmldefault command is for marking a QML property as the
+    \l {default-properties}
+    {default property}. The word \c default is displayed in
+    the documentation of the property.
+
+    \badcode *
+    /\1!
+        \qmlproperty list<Change> State::changes
+        This property holds the changes to apply for this state.
+        \qmldefault
+
+        By default, these changes are applied against the default state. If the state
+        extends another state, then the changes are applied against the state being
+        extended.
+    \1/
+    \endcode
+
+    See how QDoc renders this property on the reference page for the
+    \l {QtQuick::State::changes}{State} type.
+
+    \target qmlenumeratorsfrom-command
+    \section1 \\qmlenumeratorsfrom
+
+    Use the \\qmlenumeratorsfrom command in a \qdoccmd qmlproperty topic
+    with a property type \e enumeration, to automatically replicate the
+    documentation for enumerators from a C++ \qdoccmd enum topic.
+
+    The command takes a fully qualified C++ enum as an argument,
+    and generates a list of enumerators and their descriptions.
+
+    \note The C++ enum must be documented in the same project; QDoc
+          cannot access its documentation if it's part of an external
+          documentation set that the current project \qdocvar depends
+          on.
+
+    By default, each enumerator is prefixed with the type name the
+    property belongs to, with \c{.} as the separator.
+
+    For example:
+
+    \badcode *
+    /\1!
+        \qmlproperty enumeration QtMultimedia::Camera::error
+        \qmlenumeratorsfrom QCamera::Error
+
+        //! Outputs documentation for 'Camera.NoError', 'Camera.CameraError'
+    \1/
+    \endcode
+
+    If the enumerators are registered to QML under a different type
+    name, this name (prefix) can be specified using the optional
+    argument in square brackets:
+
+    \badcode
+        \qmlenumeratorsfrom [Errors] QCamera::Error
+
+        //! Outputs documentation for 'Errors.NoError', 'Errors.CameraError'
+    \1/
+    \endcode
+
+    This command was introduced in QDoc 6.8.
+
+    See also \qdoccmd {qmlproperty}, \qdoccmd {enum}, and \qdoccmd {value}.
+
+    \target dontdocument-command
+    \section1 \\dontdocument
+
+    The \\dontdocument command is only used in a dontdocument.qdoc file
+    for a particular module. This file specifies publically declared
+    classes or structs that are not meant to be documented. QDoc will
+    not print warnings about missing \\class comments for these classes
+    and structs.
+
+    Below you will find the \\dontdocument command in the
+    dontdocument.qdoc for widgets:
+
+    \badcode *
+    /\1!
+       \dontdocument (QTypeInfo QMetaTypeId)
+    \1/
+    \endcode
+
+    \target inheaderfile-command
+    \section1 \\inheaderfile
+
+    The \\inheaderfile meta-command is used for overriding the include statement
+    generated for a C++ class, namespace, or header file reference documentation.
+
+    By default, QDoc documents a \c {\class SomeClass} to be available with
+    a following include statement:
+
+    \code
+    #include <SomeClass>
+    \endcode
+
+    If the actual include statement differs from the default, this can be
+    documented as
+
+    \badcode
+    \class SomeClass
+    \inheaderfile Tools/SomeClass
+    ...
+    \endcode
+
+    See also \l {class-command}{\\class} and
+             \l {headerfile-command}{\\headerfile}.
+
+
+    \target obsolete-command
+    \section1 \\obsolete
+    The \\obsolete command is superceded by the \\deprecated command.
+
+    This command is kept for backwards compatibility reasons only.
+    It may be removed in a future version of QDoc. Use the \\deprecated
+    command instead.
+
+    See also \l {deprecated-command}{\\deprecated}.
+
+    \target deprecated-command
+    \section1 \\deprecated
+
+    The \\deprecated command is for indicating that the associated element
+    is deprecated, and that it should no longer be used in new code.
+
+    The \\deprecated command takes two optional arguments:
+    \list
+        \li A version in square brackets (e.g. [6.2]).
+        \li A string with more information, for example a suggested
+            replacement.
+    \endlist
+
+    When generating the reference documentation for a class, QDoc
+    creates and links to a separate page that documents deprecated members.
+    It's good practice to suggest an equivalent alternative.
+
+    \badcode *
+    /\1!
+        \fn MyClass::MyDeprecatedFunction
+        \deprecated [6.2] Use MyNewFunction() instead.
+    \1/
+    \endcode
+
+    \target internal-command
+    \section1 \\internal
+
+    The \\internal command indicates that the documented element
+    is not part of the public interface.
+
+    The command must stand on its own line.
+
+    QDoc ignores the documentation as well as the documented item,
+    when generating the associated class reference documentation.
+
+    \badcode *
+    /\1!
+        \internal
+
+        Tries to find the decimal separator. If it can't find
+        it and the thousand delimiter is != '.' it will try to
+        find a '.';
+    \1/
+    int QDoubleSpinBoxPrivate::findDelimiter
+            (const QString &str, int index) const
+    {
+        int dotindex = str.indexOf(delimiter, index);
+        if (dotindex == -1 && thousand != dot && delimiter != dot)
+            dotindex = str.indexOf(dot, index);
+        return dotindex;
+    }
+    \endcode
+
+    This function will not be included in the documentation, unless QDoc
+    is called with the \c{-showinternal} command line option or the
+    \c{QDOC_SHOW_INTERNAL} environment variable is set.
+
+    \target modulestate-command
+    \section1 \\modulestate
+
+    Use the \\modulestate command within a \\module or \\qmlmodule
+    topic to provide a custom module state description.
+
+    The command takes an argument that describes the module's
+    state. For example:
+
+    \badcode *
+    /*!
+        \module QtFoo
+        \modulestate Experimental
+    \1/
+    \endcode
+
+    QDoc will then add this information on the module page:
+
+    \quotation
+    This module is in \e {Experimental} state.
+    \endquotation
+
+    \note Do not use this command to deprecate a module. Use the
+    \l {deprecated-command}{\\deprecated} command instead.
+
+    In HTML output, this state information appears also in the navigation
+    bar (breadcrumbs) of reference pages for the module's members.
+
+    See also \qdoccmd {preliminary}.
+
+    \target preliminary-command
+    \section1 \\preliminary
+
+    The \\preliminary command is for indicating that the documented
+    element is still under development.
+
+    The command must stand on its own line.
+
+    The \\preliminary command expands to a notification in the
+    documentation, and marks the element as preliminary when it appears
+    in lists.
+
+    \badcode *
+    /\1!
+        \preliminary
+
+        Returns information about the joining type attributes of the
+        character (needed for certain languages such as Arabic or
+        Syriac).
+
+    \1/
+    QChar::JoiningType QChar::joiningType() const
+    {
+        return QChar::joiningType(ucs);
+    }
+    \endcode
+
+    \target readonly-command
+    \section1 \\readonly
+
+    The \\readonly command is used in conjunction with a \l {qmlproperty-command}
+    {\\qmlproperty} command to mark the QML property as read-only.
+
+    \target required-command
+    \section1 \\required
+
+    The \\required command is used in conjunction with a \l {qmlproperty-command}
+    {\\qmlproperty} command to mark the QML property as required.
+
+    \b {See also} \l {The Property System}.
+
+    \target since-command
+    \section1 \\since
+
+    The \\since command tells in which minor release
+    the associated functionality was added.
+
+    If the argument passed to \\since contains no spaces, it is assumed to be
+    shorthand notation for the \l {productname-variable}{productname}, and QDoc
+    will prefix the version with the value of \c productname in the generated
+    output. If the \c productname variable is undefined, QDoc generates only
+    the version string.
+
+    The argument can also contain the product name explicitly:
+
+    \badcode
+    \since MyFramework 2.0
+    \endcode
+
+    In this case, the arguments (product and version) are used as is.
+
+    \section2 Inheritance of Since Information
+
+    Since QDoc version 6.5, C++ classes and QML types inherit the \\since statement
+    from their respective \l {module-command}{module} or \l {qmlmodule-command}
+    {QML module}, unless \\since is explicitly used in the type documentation.
+
+    \section2 Since Clause
+
+    The \\value command allows an optional \e {since} clause, enclosed in square
+    brackets, to immediately follow the command string. This is used for
+    marking specific C++ enum values with since information.
+
+    See also \l {value-command}{\\value} and \l {ignoresince}.
+
+    \target wrapper-command
+    \section1 \\wrapper
+
+    The \\wrapper command, when used in a C++ class documentation, marks the
+    class as a \e wrapper that provides access to a non-Qt API. This command
+    is used for suppressing warnings that might otherwise be generated for
+    members of such a class.
+*/
+
+
+/*!
+    \page 17-qdoc-commands-thread.html
+    \previouspage Status
+    \nextpage Relating Things
+
+    \title Thread Support
+
+    The thread support commands are for specifying the level of
+    support for multithreaded programming in a class or function.
+    There are three levels of support: \c threadsafe, \c reentrant and
+    \c nonreentrant.
+
+    The default is \c nonreentrant which means that the associated
+    class or function cannot be called by multiple threads. \c
+    Reentrant and \c threadsafe are levels primarily used for classes.
+
+    \c Reentrant means that all the functions in the referenced class
+    can be called simultaneously by multiple threads, provided that
+    each invocation of the functions reference unique data. While \c
+    threadsafe means that all the functions in the referenced class
+    can be called simultaneously by multiple threads even when each
+    invocation references shared data.
+
+    When a class is marked \l {reentrant-command} {\\reentrant} or \l
+    {threadsafe-command} {\\threadsafe}, functions in that class can
+    be marked \c nonreentrant using the \l {nonreentrant-command}
+    {\\nonreentrant} command.
+
+    \section1 Example
+
+    \target reentrant-example
+    \badcode *
+    /\1!
+        \class QLocale
+        \brief The QLocale class converts between numbers and their
+        string representations in various languages.
+
+        \reentrant
+        \ingroup i18n
+        \ingroup text
+
+        QLocale is initialized with a language/country pair in its
+        constructor and offers number-to-string and string-to-number
+        conversion functions similar to those in QString.
+
+        ...
+
+        \nonreentrant
+
+        Sets the global default locale to \a locale. These values are
+        used when a QLocale object is constructed with no
+        arguments. If this function is not called, the system's locale
+        is used.
+
+        \warning In a multithreaded application, the default locale
+        should be set at application startup, before any non-GUI
+        threads are created.
+
+        \sa system(), c()
+    \1/
+    void QLocale::setDefault(const QLocale &locale)
+    {
+        default_d = locale.d;
+    }
+    \endcode
+
+    QDoc generates a notification when a class is
+    declared reentrant, and lists the exceptions (the declared
+    nonreentrant functions). A link to the general documentation on \l
+    {17-qdoc-commands-thread.html#reentrant} {reentrancy and thread-safety} is
+    included. In addition a warning, "\b Warning: This function is
+    not reentrant.", is generated in the nonreentrant functions'
+    documentation.
+
+    QDoc will generate the same notification and warnings when a class
+    is declared threadsafe.
+
+    For more information see the general documentation on \l
+    {17-qdoc-commands-thread.html#reentrant} {reentrancy and thread-safety}.
+
+    \section1 Commands
+
+    \target threadsafe-command
+    \section2 \\threadsafe
+
+    The \\threadsafe command includes a line in the documentation to
+    indicate that the associated class or function is \e threadsafe
+    and can be called simultaneously by multiple threads, even when
+    separate invocations reference shared data.
+
+    The command must stand on its own line.
+
+    The documentation generated from this command will be similar to
+    the what is generated for the \l {reentrant-command} {\\reentrant}
+    command. See the example above in the \l {reentrant-example}
+    {introduction}.
+
+    See also \l{reentrant-command} {\\reentrant} and
+    \l{nonreentrant-command} {\\nonreentrant}.
+
+    \target reentrant-command
+    \section2 \\reentrant
+
+    The \\reentrant command indicates that the associated class or
+    function can be called simultaneously by multiple threads,
+    provided that each invocation references its own data. See the \l
+    {reentrant-example} {example} above.
+
+    The command must stand on its own line.
+
+    See also \l{nonreentrant-command} {\\nonreentrant} and
+    \l{threadsafe-command} {\\threadsafe}.
+
+    \target nonreentrant-command
+    \section2 \\nonreentrant
+
+    The \\nonreentrant command indicates that the associated class or
+    function cannot be called by multiple threads. Nonreentrant is the
+    default case.
+
+    The command must stand on its own line.
+
+    When a class is marked \l {reentrant-command} {\\reentrant} or \l
+    {threadsafe-command} {\\threadsafe}, functions in that class can
+    be marked \c nonreentrant using this command in the \l{fn-command}
+    {\\fn} comment of the functions to be excluded.
+
+    See also \l{reentrant-command} {\\reentrant} and
+    \l{threadsafe-command} {\\threadsafe}.
+*/
+
+/*!
+    \page 18-qdoc-commands-relating.html
+    \previouspage Thread Support
+    \nextpage Grouping Things
+
+    \title Relating Things
+
+    The relating commands are for specifying how one documented
+    element relates to another documented element. Some examples:
+    \list
+    \li This function is an overload of another function.
+    \li This function is a reimplementation of another function.
+    \li This typedef is \e related to some class or header file.
+    \endlist
+
+    There is also a command for documenting that a QML type inherits
+    some other QML type.
+
+    \section1 Commands
+
+    \target inherits-command
+    \section2 \\inherits
+
+    The \\inherits command is for documenting that one QML type
+    inherits some other QML type. It must be included in the
+    inheriting element's \l{qmltype-command}{\\qmltype} comment.
+    The argument is the name of the inherited QML type,
+    optionally qualified with a QML module name.
+
+    \badcode *
+    /\1!
+        \qmltype PauseAnimation
+        \inqmlmodule QtQuick
+        \nativetype QDeclarativePauseAnimation
+        \ingroup qml-animation-transition
+        \since 4.7
+        \inherits Animation
+        \brief The PauseAnimation element provides a pause for an animation.
+
+        When used in a SequentialAnimation, PauseAnimation is a step
+        when nothing happens, for a specified duration.
+
+        A 500ms animation sequence, with a 100ms pause between two animations:
+
+        SequentialAnimation {
+            NumberAnimation { ... duration: 200 }
+            PauseAnimation { duration: 100 }
+            NumberAnimation { ... duration: 200 }
+        }
+
+        \sa {QML Animation and Transitions}, {declarative/animation/basics}{Animation basics example}
+    \1/
+    \endcode
+
+    QDoc includes this line on the reference page for the
+    \l [QML] PauseAnimation
+    element:
+
+    \quotation
+        Inherits \l [QML] Animation
+    \endquotation
+
+    When documenting a QML types directly in a .qml file, the \\inherits command
+    is normally not required as QDoc can detect the base type from QML syntax.
+    If present, an \\inherits command will override this automatic base type
+    detection.
+
+    \target overload-command
+    \section2 \\overload
+
+    Use the \e {\\overload} command to mark C++ function overloads. This command
+    must appear on its own line in the documentation comment.
+
+    \section3 How it works
+
+    When you have multiple C++ functions with the same name (overloads) that
+    perform similar work with different parameters, use \e {\\overload} to avoid
+    repetitive documentation. Functions without \e {\\overload} require complete
+    documentation. Functions with \e {\\overload} can focus on their specific
+    differences.
+
+    Functions marked with \e {\\overload} automatically suppress missing
+    parameter warnings, since they reference the documentation of the main
+    function.
+
+    \section3 Basic usage
+
+    \badcode *
+    /\1!
+        \overload
+        Brief description of what makes this overload different.
+    \1/
+    \endcode
+
+    \section3 Linking to the primary function
+
+    Add the function name to create a link to the primary function:
+
+    \badcode *
+    /\1!
+        \overload functionName()
+        Brief description of what makes this overload different.
+    \1/
+    \endcode
+
+    Use either qualified names (\c{ClassName::functionName()}) or unqualified
+    names (\c{functionName()}). QDoc automatically qualifies unqualified names
+    using the current class or namespace.
+
+    \note For historic reasons, a parameterless unqualified name like
+    \c {functionName()} serves as shorthand for linking to the primary overload,
+    not necessarily the parameterless overload. QDoc uses a search algorithm to
+    find the "best" overload to link to. To link to a specific parameterless
+    function, either designate it as the primary overload with
+    \c {\overload primary}, or use a fully qualified signature that explicitly
+    specifies the empty parameter list.
+
+    \section3 Designating a primary overload
+
+    By default, QDoc chooses the primary overload automatically. To explicitly
+    designate which overload serves as the primary, use:
+
+    \badcode *
+    /\1!
+        \overload primary
+        Main documentation for this function family.
+        Document all parameters here.
+    \1/
+    \endcode
+
+    Primary overloads:
+    \list
+        \li Contain the main function documentation.
+        \li Require complete parameter documentation.
+        \li Do not display "This function overloads..." text.
+        \li Serve as the link target for other overloads.
+    \endlist
+
+    Use \e {\\overload primary} when the most important overload differs from
+    QDoc's automatic selection, or when you need consistent linking behavior.
+
+    \target reimp-command
+    \section2 \\reimp
+
+    The \\reimp command is for indicating that a function is a
+    reimplementation of a virtual function without requiring any
+    additional documentation.
+
+    By default, QDoc will omit a reimplemented virtual function from the
+    class reference unless it is documented. This command ensures that an
+    otherwise undocumented function will be included.
+
+    The command must stand on its own line.
+
+    \badcode *
+    /\1!
+        \reimp
+    \1/
+    void QToolButton::nextCheckState()
+    {
+        Q_D(QToolButton);
+        if (!d->defaultAction)
+            QAbstractButton::nextCheckState();
+        else
+            d->defaultAction->trigger();
+    }
+    \endcode
+
+    This function will not be included in the documentation. Instead,
+    a link to the base function QAbstractButton::nextCheckState() will
+    appear in the documentation.
+
+    \target relates-command
+    \section2 \\relates
+
+    The \\relates command is for including the documentation of an
+    entity (a function, macro, typedef, enum, or variable) to a class,
+    namespace, or header file. The argument is the name of the class,
+    namespace, or header the entity is related to.
+
+    If the argument refers to a templated type, use the type name only
+    (without template parameters).
+
+    \badcode *
+    /\1!
+        \relates QChar
+
+        Reads a char from the stream \a in into char \a chr.
+
+        \sa {Format of the QDataStream operators}
+    \1/
+    QDataStream &operator>>(QDataStream &in, QChar &chr)
+    {
+        quint16 u;
+        in >> u;
+        chr.unicode() = ushort(u);
+        return in;
+    }
+    \endcode
+
+    The documentation for this function is included on the reference
+    page for class QChar, listed under the \e {Related Non-members} section.
+*/
+
+/*!
+    \page 19-qdoc-commands-grouping.html
+    \previouspage Relating Things
+    \nextpage Naming Things
+
+    \title Grouping Things
+
+    The grouping commands relate classes to defined groups and
+    modules. The groups are used when generating lists of related
+    classes in the documentation, while the modules are elements of
+    Qt's structure.
+
+    \section1 Commands
+
+    \target ingroup-command
+    \section2 \\ingroup
+
+    The \\ingroup command indicates that the given
+    class, page, or other entity belongs to a certain group of
+    related documentation.
+
+    An entity may belong to multiple groups.
+
+    The \\ingroup command's argument is a group name, but note
+    that the command considers the rest of the line as part of
+    its argument. Make sure that the group name is followed by
+    a linebreak.
+
+    \badcode *
+    /\1!
+        \class QDir
+        \brief The QDir class provides access to directory
+               structures and their contents.
+
+        \ingroup io
+        ...
+    \1/
+    \endcode
+
+    This adds the QDir class to the \c io group. An entry for QDir
+    will then appear on the list created with, for example,
+    the \l {annotatedlist-command} {\\annotatedlist} command with
+    an argument \c io.
+
+    QDoc automatically generates links to associated groups on a
+    C++ class, namespace, or header reference page. For example,
+    given the above documentation for class \QDir and the following
+    \l {group-command}{\\group} page:
+
+    \badcode *
+    /\1
+        \group io
+        \title Input/Output and Networking
+        ...
+    \1/
+    \endcode
+
+    QDoc then outputs a statement on the QDir reference page:
+
+    \quotation
+    \list
+        \li \QDir is part of \l {Input/Output and Networking}.
+    \endlist
+    \endquotation
+
+    For HTML output, QDoc also generates a link to the group
+    page as part of the navigation bar (breadcrumbs). If multiple
+    \\ingroup commands are used, the first one that references
+    a documented \\group is selected.
+
+    See also \l {group-command} {\\group}.
+
+    \target inmodule-command
+    \section2 \\inmodule
+
+    The \\inmodule command relates a class to the module specified by
+    the command's argument.
+
+    For the basic classes in Qt, a class's module is determined by its
+    location, namely its directory. However, for extensions like
+    ActiveQt and \QD, a class must be related to a module
+    explicitly.
+
+    The command's argument is a module name, but note that the command
+    considers the rest of the line as part of its argument. Make sure
+    that the module name is followed by a linebreak.
+
+    \code
+    /*!
+        \class QDesignerTaskMenuExtension
+        \inmodule QtDesigner
+    * /
+    \endcode
+
+    This ensures that the QDesignerTaskMenuExtension class is included
+    in the \QD module, which means, for example, that the
+    class will appear on the list created by calling the \l
+    {generatelist-command} {\\generatelist} command with the \c
+    {{classesbymodule QtDesigner}} argument.
+
+    See also \l {module-command} {\\module} and \l
+    {generatelist-command} {\\generatelist}.
+*/
+
+/*!
+    \page 20-qdoc-commands-namingthings.html
+    \previouspage Grouping Things
+    \nextpage Markup Commands
+
+    \title Naming Things
+
+    In general, a title command considers everything that follows it
+    until the first line break as its argument. If the title is so
+    long it must span multiple lines, end each line (except the last
+    one) with a backslash.
+
+    \section1 Commands
+
+    \target title-command
+    \section2 \\title
+
+    The \\title command sets the title for a documentation page, or
+    allows you to override it.
+
+    \badcode *
+    /\1!
+        \page signalandslots.html
+
+        \title Signals & Slots
+
+        Signals and slots are used for communication between
+        objects. The signals and slots mechanism is a central
+        feature of Qt, and probably the part that differs most
+        from the features provided by other frameworks.
+
+        ...
+    \1/
+    \endcode
+
+    See also \l {subtitle-command} {\\subtitle}.
+
+    \target subtitle-command
+    \section2 \\subtitle
+
+    The \\subtitle command sets a subtitle for a documentation page.
+
+    \badcode *
+    /\1!
+        \page qtopiacore-overview.html
+
+        \title Qtopia Core
+        \subtitle Qt for Embedded Linux
+
+        Qt/Embedded, the embedded Linux port of Qt, is a
+        complete and self-contained C++ GUI and platform
+        development tool for Linux-based embedded development.
+        ...
+    \1/
+    \endcode
+
+    See also \l {title-command} {\\title}.
+
+*/

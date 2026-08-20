@@ -1,0 +1,50 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\ingroup qthttpserver-examples
+\title Simple HTTP Server
+\examplecategory {Networking}
+\examplecategory {Web Technologies}
+\brief Simple example of how to set up an HTTP server.
+\image browserwindow.png {Simple HTTP server output in browser}
+
+The Simple HTTP Server shows how to set up an HTTP server using the
+QHttpServer class. It listens to two sockets: one TCP socket and one
+SSL socket. Different callbacks are set up to demonstrate how to use
+the \l{QHttpServer::}{route()} function.
+
+A QHttpServer object is created, and a simple \l{QHttpServer::}{route()}
+handles the path \c "/" by returning \c{Hello world}:
+\snippet simple/main.cpp Setting up HTTP server
+
+Then we register a callback that serves the server's assets to the client:
+\snippet simple/main.cpp Returning assets
+
+Here we use the QHttpServerRequest object to return the client's IP address:
+\snippet simple/main.cpp Using QHttpServerRequest
+
+For one of the paths, \c {"/auth"}, \l{RFC 7617}{Basic HTTP Authentication}
+is used:
+\snippet simple/main.cpp Using basic authentication
+
+Then we use the \l{QHttpServer::}{addAfterRequestHandler()} function to
+change the QHttpServerResponse object after it has been handled by the
+callbacks registered by \l{QHttpServer::}{route()} by adding HTTP headers
+to the response:
+\snippet simple/main.cpp Using addAfterRequestHandler()
+
+A QTcpServer listening to a port is bound to the HTTP server using the
+\l{QAbstractHttpServer::}{bind()} function:
+\snippet simple/main.cpp Binding the TCP server
+
+And then \l QSslConfiguration is used to create an SSL configuration for a
+QHttpServer to serve HTTPS traffic:
+\snippet simple/main.cpp HTTPS Configuration example
+
+After everything is set up, all that remains is to start handling incoming
+requests:
+\snippet simple/main.cpp Start handling requests
+
+\example simple
+*/

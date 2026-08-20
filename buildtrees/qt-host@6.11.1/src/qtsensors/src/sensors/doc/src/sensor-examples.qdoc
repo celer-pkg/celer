@@ -1,0 +1,11 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \group qtsensors-examples
+    \title Qt Sensors Examples
+    \brief Examples for the Qt Sensors module
+
+    These are the Qt Sensors examples.
+
+*/

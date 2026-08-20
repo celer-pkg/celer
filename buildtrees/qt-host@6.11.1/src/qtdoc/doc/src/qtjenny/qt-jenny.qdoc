@@ -1,0 +1,70 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Qt Jenny: Java Code Generator
+    \group qtjenny
+    \ingroup android
+    \brief Overview of Qt Jenny
+
+    Qt Jenny translates Java APIs to Qt C++ wrappers, allowing Qt C++ programs
+    to invoke Java functionality. This is particularly useful on a
+    platform with Java system APIs, like Android.
+
+    \annotatedlist qtjenny
+
+    \section1 Features
+
+    Qt Jenny's features:
+    \list
+    \li Generation of wrappers for any Java class.
+    \li Templated generation with customizable templates that can be changed to customize the C++ output.
+    \li Configurable generation that allows controlling the namespace
+    of the generated wrappers.
+    \li Support for generating code that uses QJniObject in the generated
+    code, therefore utilizing all the convenience QJniObject brings.
+    \endlist
+
+    \section1 Examples
+    See \l {QtJenny Demo} for an example how to use Qt Jenny.
+    \section1 How Qt Jenny works
+
+    Qt Jenny translates Java APIs to Qt C++ wrappers by the use of the following
+    building blocks:
+
+    \list
+    \li Kotlin code that imports the classes to be wrapped.
+    \li Annotations in that code that tell which classes to wrap.
+    \li A code generator that reads the annotations and generates the wrapper code.
+    \endlist
+
+    With these building blocks, the Qt project is then structured so
+    that there's a separate Gradle project for generating the
+    code that the Qt CMake project uses. The CMake project triggers the
+    code generation at project configuration time
+    (in other words, when you run CMake). For an application that
+    invokes methods but does not need to implement any callbacks,
+    a single code-generation project is enough. For an application
+    that uses both method invocations and interface callbacks, two generation
+    projects are needed: one for the method proxies and one for the
+    callback hierarchy. For an application that needs to extend
+    classes, three generation projects are needed: one for the method proxies,
+    one for the Java glue code, and one for the callback hierarchy.
+
+    The example code in \l {QtJenny Demo} uses three generation projects,
+    since it uses class extension.
+
+    \image {../images/qtjenny-sequence.drawio.svg} {How it works}
+
+    \section1 Reference
+
+   //! TODO: Are there any references around code generation the reader could benefit from
+
+    \section1 Licenses and Attributions
+
+    Qt Jenny potentially contains third-party modules under the following
+    permissive licenses:
+
+    \annotatedlist attributions-qtjenny
+
+*/

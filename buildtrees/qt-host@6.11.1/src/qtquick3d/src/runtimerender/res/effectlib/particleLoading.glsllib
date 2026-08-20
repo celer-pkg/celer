@@ -1,0 +1,126 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+
+#if defined(QSSG_PARTICLES_ENABLE_ANIMATED) || defined(QSSG_PARTICLES_ENABLE_LINE_PARTICLE)
+const uint particleSize = 4;
+#else
+const uint particleSize = 3;
+#endif
+
+#ifdef QSSG_PARTICLES_ENABLE_LINE_PARTICLE
+struct Particle
+{
+    vec3 position;
+    float size;
+    vec4 color;
+    vec3 binormal;
+    float animationFrame;
+    float age;
+    float segmentLength;
+    vec2 unusedPadding;
+};
+#else
+struct Particle
+{
+    vec3 position;
+    float size;
+    vec3 rotation;
+    float age;
+    vec4 color;
+#ifdef QSSG_PARTICLES_ENABLE_ANIMATED
+    float animationFrame;
+    vec3 unusedPadding;
+#endif
+};
+#endif
+
+vec2 qt_indexToUV(in uint index)
+{
+    uint v = index / qt_countPerSlice;
+    uint u = index - qt_countPerSlice * v;
+    return (vec2(u * particleSize, v) + vec2(0.5)) * qt_oneOverParticleImageSize;
+}
+
+#ifdef QSSG_PARTICLES_ENABLE_LINE_PARTICLE
+Particle qt_loadParticle(in uint index)
+{
+    Particle p;
+    vec2 offset = qt_indexToUV(index);
+    vec4 p0 = texture(qt_particleTexture, offset);
+    vec4 p1 = texture(qt_particleTexture, vec2(offset.x + qt_oneOverParticleImageSize.x, offset.y));
+    vec4 p2 = texture(qt_particleTexture, vec2(offset.x + 2.0 * qt_oneOverParticleImageSize.x, offset.y));
+    vec4 p3 = texture(qt_particleTexture, vec2(offset.x + 3.0 * qt_oneOverParticleImageSize.x, offset.y));
+
+    p.position = p0.xyz;
+    p.size = p0.w;
+    p.color = p1;
+    p.binormal = p2.xyz;
+    p.animationFrame = p2.w;
+    p.age = p3.x;
+    p.segmentLength = p3.y;
+    return p;
+}
+#else
+Particle qt_loadParticle(in uint index)
+{
+    Particle p;
+    vec2 offset = qt_indexToUV(index);
+    vec4 p0 = texture(qt_particleTexture, offset);
+    vec4 p1 = texture(qt_particleTexture, vec2(offset.x + qt_oneOverParticleImageSize.x, offset.y));
+    vec4 p2 = texture(qt_particleTexture, vec2(offset.x + 2.0 * qt_oneOverParticleImageSize.x, offset.y));
+#ifdef QSSG_PARTICLES_ENABLE_ANIMATED
+    vec4 p3 = texture(qt_particleTexture, vec2(offset.x + 3.0 * qt_oneOverParticleImageSize.x, offset.y));
+#endif
+    p.position = p0.xyz;
+    p.size = p0.w;
+    p.rotation = p1.xyz;
+    p.age = p1.w;
+    p.color = p2;
+#ifdef QSSG_PARTICLES_ENABLE_ANIMATED
+    p.animationFrame = p3.x;
+#endif
+    return p;
+}
+#endif
+
+mat3 qt_fromEulerRotation(in vec3 rotation)
+{
+    float a = cos(rotation.x);
+    float b = sin(rotation.x);
+    float c = cos(rotation.y);
+    float d = sin(rotation.y);
+    float e = cos(rotation.z);
+    float f = sin(rotation.z);
+    mat3 ret;
+    float bd = b*d;
+    float ad = a*d;
+    ret[0][0] = c * e;
+    ret[0][1] = -c * f;
+    ret[0][2] = d;
+    ret[1][0] = bd*e + a*f;
+    ret[1][1] = a*e - bd*f;
+    ret[1][2] = -b*c;
+    ret[2][0] = b*f - ad*e;
+    ret[2][1] = ad*f + b*e;
+    ret[2][2] = a*c;
+    return ret;
+}
+
+float qt_ageToSpriteFactor(in float age)
+{
+    // Age should be [0, 1], but just in case take the fraction
+    return fract(age);
+}
+
+#ifdef QSSG_PARTICLES_ENABLE_LINE_PARTICLE
+float qt_calcAlphaFade(in uint segmentIndex)
+{
+    return pow(qt_alphaFade, float(segmentIndex));
+}
+
+float qt_calcSizeFactor(in uint segmentIndex)
+{
+    return pow(qt_sizeModifier, float(segmentIndex));
+}
+#endif

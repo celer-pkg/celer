@@ -1,0 +1,27 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+/*!
+\page modulechanges.html
+\title Changes to Qt Modules in Qt 6
+\brief A list of changes to Qt modules.
+
+Qt 6 is a result of the conscious effort to make the framework more
+efficient and easy to use.
+
+We try to maintain binary and source compatibility for all the public APIs in
+each release, but some changes were inevitable in an effort to make Qt a
+better framework. Below you can find a list of changes that may affect your
+application, and which can help you transitioning from Qt 5 to Qt 6.
+
+For information about changes specific to a Qt 6 release, visit
+\l{What's new in Qt 6}.
+
+\annotatedlist changes-qt-5-to-6
+
+\section1 Related Topics
+\list
+\li \l {Porting C++ Applications to Qt 6 using Clazy checks}
+\li \l {Changes to Supported Modules} - status of Qt 5 modules in Qt 6.0
+\li \l {Build System Changes in Qt 6}
+\endlist
+*/

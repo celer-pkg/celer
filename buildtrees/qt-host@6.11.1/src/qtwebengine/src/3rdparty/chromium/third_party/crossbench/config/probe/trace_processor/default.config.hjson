@@ -1,0 +1,53 @@
+// trace_processor probe example
+{
+  probes: {
+    trace_processor: {
+      queries: ["speedometer_cpu_time"],
+      metrics: ["trace_stats"],
+    },
+    perfetto: {
+      textproto: '''
+        buffers {
+          size_kb: 300000
+          fill_policy: DISCARD
+        }
+        data_sources {
+          config {
+            name: "org.chromium.trace_metadata"
+          }
+        }
+        data_sources {
+          config {
+            name: "track_event"
+            track_event_config {
+              disabled_categories: "*"
+              enabled_categories: "blink.user_timing"
+              enabled_categories: "toplevel"
+              enabled_categories: "__metadata"
+              timestamp_unit_multiplier: 1000
+              enable_thread_time_sampling: true
+              filter_debug_annotations: false
+              filter_dynamic_event_names: false
+            }
+          }
+        }
+        data_sources: {
+          config {
+              name: "linux.ftrace"
+            ftrace_config {
+              ftrace_events: "sched/sched_switch"
+              ftrace_events: "power/suspend_resume"
+              ftrace_events: "sched/sched_wakeup"
+              ftrace_events: "sched/sched_wakeup_new"
+              ftrace_events: "sched/sched_waking"
+              ftrace_events: "sched/sched_process_exit"
+              ftrace_events: "sched/sched_process_free"
+              ftrace_events: "task/task_newtask"
+              ftrace_events: "task/task_rename"
+            }
+          }
+        }
+      '''
+    }
+  }
+}

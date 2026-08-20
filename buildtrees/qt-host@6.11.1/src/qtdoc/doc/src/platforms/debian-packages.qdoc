@@ -1,0 +1,322 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qt-debian-packages.html
+    \brief Instructions How to Use Enterprise Qt Debian Packages
+    \title Enterprise Qt Debian Packages
+
+    To use Enterprise Debian packages with Qt, add your enterprise repositories to Advanced
+    Packaging Tool (APT). For details, see
+    \l{Debian Repository Configuration Format}.
+
+    To use the enterprise repositories, you need to:
+    \list
+        \li \l{Installing a Public GPG Key}{Install a public GPG key} for enterprise repositories
+        \li \l{Configuring Authentication}
+        {Configure Qt Account based authentication} for enterprise repository
+        access
+        \li \l{Full Configuration Example}{Configure repositories}
+    \endlist
+
+    \note For more details and support,\l{https://www.qt.io/contact-us}{contact us}.
+    For more information on free trials, see \l{https://www.qt.io/download}{Qt software free trials}.
+
+    \section1 Debian Repository Configuration Format
+
+    To add extra repositories for APT, insert repositories into a file with an
+    extension of \e{.list} under the \e{/etc/apt/sources.list.d} directory. For
+    each repository, add a new entry in the file. The generic format is as
+    follows:
+
+    \badcode
+    deb [arch=<arch> signed-by=<path>] <REPO_URL> <DIST> <COMPONENT(s)>
+    \endcode
+
+    An example of an enterprise repository entry:
+
+    \badcode \QtVersion
+    $ sudo nano /etc/apt/sources.list.d/tqtc.list
+
+        deb [arch=arm64 signed-by=/etc/apt/keyrings/tqtc/qt-company-debian-repo.gpg] https://debian-packages.qt.io/debian/enterprise/qt-\1-arm64 tqtc-jammy main
+    \endcode
+
+    See \l{Repository information for Qt Releases} for detailed information
+    on how you can configure repositories per Qt release and architecture.
+
+    \section1 Debian Source Packages
+
+    To add the Debian source packages for APT, you need to add a \e {deb-src}
+    entry for the corresponding \e {deb} entry:
+
+    \badcode \QtVersion
+    $ sudo nano /etc/apt/sources.list.d/tqtc.list
+
+        deb [arch=arm64 signed-by=/etc/apt/keyrings/tqtc/qt-company-debian-repo.gpg] https://debian-packages.qt.io/debian/enterprise/qt-\1-arm64 tqtc-jammy main
+        deb-src [signed-by=/etc/apt/keyrings/tqtc/qt-company-debian-repo.gpg] https://debian-packages.qt.io/debian/enterprise/qt-\1-arm64 tqtc-jammy main
+    \endcode
+
+    To download source packages (for example, for \e wayland) to the
+    current directory, use the \c {apt source} command:
+
+    \badcode \QtVersion
+    $ sudo apt source qt-\1-wayland-src
+    \endcode
+
+    \section1 Installing a Public GPG Key
+
+    Install a public GPG (GNU Privacy Guard) key for Enterprise Qt Debian
+    repositories as follows:
+
+    \badcode
+    $ sudo mkdir -p /etc/apt/keyrings/tqtc  # Create the directory with appropriate permissions
+    $ cd /etc/apt/keyrings/tqtc
+    $ sudo wget https://cdn.qt.io/debian/keys/qt-company-debian-repo.gpg
+    \endcode
+
+    \section1 Configuring Authentication
+
+    To access the listed repositories, you need an enterprise Qt Account
+    or an evaluation Qt Account.
+
+    \note If your password contains special characters, you may need to escape
+    those by using \b'\\' or \b'%40'.
+
+    Configure the Qt Account credentials for your APT package manager as follows:
+
+    \badcode
+    $ sudo nano /etc/apt/auth.conf
+
+          machine https://debian-packages.qt.io
+          login <Qt Account login name (email)>
+          password <Qt Account password>
+    \endcode
+
+    \warning This file may contain sensitive information. To prevent other users on the system
+    from reading the password, make sure the file has strict permissions:
+
+    \badcode
+    $ sudo chmod 600 /etc/apt/auth.conf
+    \endcode
+
+    \section1 Updating Local Package Cache
+
+    Update the local package cache as follows:
+
+    \badcode
+    $ sudo apt-get update
+    \endcode
+
+    No errors should originate from the added repository in the output.
+
+    \section1 Debian Alias Packages
+
+    You can install the content more easily with alias packages, which are just
+    meta-packages pointing to the actual Debian packages.
+
+    The contents of the Debian alias packages are listed in the table below.
+
+    \note Qt \QtVersion release is used in the alias package examples listed below.
+    Always remember to use the packages that match the Qt release you are working
+    on. For more information, see \l {Repository information for Qt Releases}.
+
+    \table
+    \header
+       \li Alias package name
+       \li Package content
+    \row
+       \li qt\QtVersion-essentials
+       \li
+          \list
+             \li \l {Qt Essentials} {essential module libraries}
+             \li essential module runtime tools
+          \endlist
+    \row
+       \li qt\QtVersion-essentials-dev
+       \li
+          \list
+             \li \l {Qt Essentials} {essential module libraries}
+             \li essential module headers
+             \li essential module private headers
+             \li essential module runtime tools
+             \li essential module development tools
+          \endlist
+    \row
+       \li qt\QtVersion-full
+       \li
+          \list
+             \li \l {Qt Essentials} {essential module libraries}
+             \li essential module runtime tools
+             \li \l {Qt Add-Ons} {add-on module libraries}
+             \li add-on module runtime tools
+          \endlist
+    \row
+       \li qt\QtVersion-full-dev
+       \li
+          \list
+             \li all module libraries
+             \li all module headers
+             \li all module private headers
+             \li all module runtime tools
+             \li all module development tools
+          \endlist
+    \row
+       \li qt\QtVersion-full-dbg
+       \li
+          \list
+             \li all module debug libraries
+                \list
+                   \li \l {Qt Essentials} {essential module libraries}
+                   \li \l {Qt Add-Ons} {add-on module libraries}
+                \endlist
+          \endlist
+    \endtable
+
+    \b {Debian Installation Command Example}
+
+    \badcode \QtVersion
+    $ sudo apt install qt\1-full-dev
+    \endcode
+
+
+    \section1 Full Configuration Example
+
+    The following code snippet demonstrates the whole work flow with
+    Enterprise Qt Debian packages:
+
+    \badcode \QtVersion
+    # install repository key
+    $ sudo mkdir -p /etc/apt/keyrings/tqtc
+    $ cd /etc/apt/keyrings/tqtc
+    $ sudo wget https://cdn.qt.io/debian/keys/qt-company-debian-repo.gpg
+
+    # configure Qt Account based authentication to Qt Debian repositories
+    $ sudo nano /etc/apt/auth.conf
+      machine https://debian-packages.qt.io
+      login <your Qt Account email>
+      password <your Qt Account password>
+
+    # add repositories
+    $ sudo nano /etc/apt/sources.list.d/tqtc.list
+        deb [arch=arm64 signed-by=/etc/apt/keyrings/tqtc/qt-company-debian-repo.gpg] https://debian-packages.qt.io/debian/enterprise/qt\1-arm64 tqtc-jammy main
+
+    # add source packages
+    $ sudo nano /etc/apt/sources.list.d/tqtc.list
+        deb-src [signed-by=/etc/apt/keyrings/tqtc/qt-company-debian-repo.gpg] https://debian-packages.qt.io/debian/enterprise/qt-\1-arm64 tqtc-jammy main
+
+    # update local package cache
+    $ sudo apt-get update
+
+    # search and install packages
+    $ apt-cache search qt\1-full-dev
+    ....
+    ....
+    # files are installed under /opt/qt-\1
+   $ sudo apt install qt\1-full-dev
+    \endcode
+
+    See \l{Repository information for Qt Releases} to pick the needed
+    repositories into your \e{/etc/apt/sources.list.d/tqtc.list} file.
+
+    \section1 Troubleshooting
+
+    \section2 Difficulties in authentication
+
+    The server may response with the following HTTP error codes:
+
+    \section3 401 Unauthorized
+
+    Wrong credentials. User email and password must be provided in correct format.
+
+    Also, try storing the credentials directly into the repository config:
+
+    \badcode
+    deb [...] https://<Qt Account email>:<Qt Account passwd>@https://debian-packages.qt.io/.....
+    \endcode
+
+    If your password contains special characters, you may need to escape those
+    for APT. Use '\' or '%40' for escaping those characters or try changing your
+    Qt Account password.
+
+    \section3 403 Forbidden
+
+    Missing credentials.
+
+    \section3 429 Too Many Requests
+
+    User has sent too much \b{failed} requests (3 requests per minute).
+
+    \section3 500 Internal Server Error
+
+    Contact \l{https://www.qt.io/contact-us}{Qt support}.
+
+    \section2 Difficulties with repository GPG key usage
+
+    An alternative to the \c {signed-by} usage attribute in the repository config
+    is to install the key in the following way, although this is not recommended
+    as it's a deprecated way to install it:
+
+    \badcode
+    $ sudo apt-key add qt-company-debian-repo.gpg
+    \endcode
+
+    \section1 Repository information for Qt Releases
+
+    Below you can find the Qt releases that the Enterprise Qt Debian packages
+    supports. Pick the needed repositories and add them to your
+    \e{/etc/apt/sources.list.d/tqtc.list} as instructed above.
+
+    Also, the following tables list the installation directories on your
+    system and the Linux distribution compatible with the packages.
+
+    \note To access the listed repositories, you need an evaluation Qt Account
+    or a commercial Qt Account with a Qt for Device Creation license.
+
+    \note The packages may work on other distributions as well but there is no
+    guarantee on that.
+
+    \section2 \QC
+
+    \table
+    \header
+        \li Architecture
+        \li Distribution
+        \li Installation directory
+        \li Package resource list entries for APT
+    \row
+        \li amd64
+        \li jammy-jellyfish (Ubuntu 22.04)
+        \li /opt/qt-creator/
+        \li deb [arch=amd64 signed-by=<path>] https://debian-packages.qt.io/debian/enterprise/qtcreator-amd64 tqtc-jammy main
+    \row
+        \li arm64
+        \li jammy-jellyfish (Ubuntu 22.04)
+        \li /opt/qt-creator/
+        \li deb [arch=arm64 signed-by=<path>] https://debian-packages.qt.io/debian/enterprise/qtcreator-arm64 tqtc-jammy main
+    \endtable
+
+    \section2 Qt \QtVersion
+
+    \table
+    \header
+        \li Architecture
+        \li Distribution
+        \li Installation directory
+        \li Package resource list entries for APT
+    \row
+        \li amd64
+        \li jammy-jellyfish (Ubuntu 22.04)
+        \li /opt/qt-\QtVersion/x86_64-linux-gnu/
+        \li deb [arch=amd64 signed-by=<path>] https://debian-packages.qt.io/debian/enterprise/qt-\QtVersion-amd64 tqtc-jammy main
+    \row
+        \li arm64
+        \li jammy-jellyfish (Ubuntu 22.04)
+        \li /opt/qt-\QtVersion/aarch64-linux-gnu/
+        \li deb [arch=arm64 signed-by=<path>] https://debian-packages.qt.io/debian/enterprise/qt-\QtVersion-arm64 tqtc-jammy main
+     \row
+        \li arm64
+        \li bookworm (Debian 12, GLES)
+        \li /opt/qt-\QtVersion/aarch64-linux-gnu/
+        \li deb [arch=arm64 signed-by=<path>] https://debian-packages.qt.io/debian/enterprise/qt-\QtVersion-arm64-gles tqtc-bookworm main
+    \endtable
+*/

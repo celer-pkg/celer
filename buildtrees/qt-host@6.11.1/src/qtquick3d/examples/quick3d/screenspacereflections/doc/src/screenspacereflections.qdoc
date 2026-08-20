@@ -1,0 +1,121 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example screenspacereflections
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - Screen Space Reflections Example
+    \examplecategory {3D}
+    \brief Demonstrates reflections in Qt Quick 3D.
+    \image screenspacereflections-example.jpg
+           {Reflective surface with colored spheres and floating objects}
+
+    This example demonstrates how to create reflections using
+    \e {Screen Space Reflections} (SSR) on a model. SSR is a post-processing effect
+    that can enhance the scene by adding reflections to it. The idea behind SSR is
+    that the reflections can be calculated in Screen Space after the objects
+    have been rendered. For each fragment, a ray is emitted from the camera
+    to this fragment and then it is reflected around the fragment's normal.
+    After that, we follow the reflected ray and determine whether it will hit
+    an object or not. If an object was hit, then the fragment will reflect
+    this object. There are situations where SSR will fail. For example, when
+    the reflected ray hits an object behind the camera. Since the reflections are
+    calculated in Screen Space after the objects have been rendered, no information
+    about the color of the objects behind the camera is available. Although SSR has
+    some drawbacks, it adds more realism to the scene.
+
+    This example implements SSR using \l{CustomMaterial}{Custom Materials} that can
+    be used on a \l{Model}, which will make it reflect its surroundings.
+    \snippet screenspacereflections/main.qml reflectingsurface
+
+    The rest of the scene has some objects which are either static or rotate above
+    the surface to show the reflections.
+    \snippet screenspacereflections/main.qml scene
+
+    \section1 Shader Code
+
+    Before diving into the shader's code, let's check some parameters that can
+    be used to control the reflections.
+
+    \table
+    \row
+        \li \c depthBias
+        \li This parameter is used to check if the difference between
+            the depth of the ray and object is within a certain threshold.
+    \row
+        \li \c rayMaxDistance
+        \li Controls how far is the ending point of the ray in View Space.
+    \row
+        \li \c marchSteps
+        \li Controls how many steps are used for computation. Increasing the number of steps
+            decreases the amount of fragments the ray moves in each iteration and increases
+            the quality.
+    \row
+        \li \c refinementSteps
+        \li After finding where the reflected ray hit the object, a refinement process is done
+            to try and find the exact location of the hit. This parameter controls how many
+            steps should be used. It can give better results when the \c marchSteps is small.
+    \row
+        \li \c specular
+        \li A value between 0 and 1 to control how much reflectivity the model has.
+    \row
+        \li \c materialColor
+        \li Gives color to the model. This color is mixed with the reflection color.
+    \endtable
+
+    The shader starts by getting a direction from the camera to the fragment, and
+    then reflects it around the fragment's normal. The starting point and the ending
+    point of the ray are calculated in View Space, and then these points are transformed
+    into Screen Space. The benefit of marching the reflected ray in Screen Space is that
+    it results in better quality. Moreover, the ray could cover a large distance in
+    View Space but only a few fragments in Screen Space.
+
+    A vector pointing from the starting fragment to the ending fragment is calculated
+    and divided by the \c marchSteps.
+
+    The \c rayMarch function is called afterward. It marches the ray every step in
+    Screen Space, and then transforms it back to View Space. It also gets the object
+    at this fragment using the \c DEPTH_TEXTURE of the scene. The difference between
+    the ray's and object's depths is calculated and compared with the \c depthBias.
+    If a hit is found, the \c refinementStep function is called.
+    \snippet screenspacereflections/material_screenspacereflections.frag rayMarch
+
+    The refinement step is the same as \c rayMarch, except it tries to find
+    the exact position where the hit happens, so it advances the ray by half the
+    step's distance every iteration.
+    \snippet screenspacereflections/material_screenspacereflections.frag refinementStep
+
+    The visibility of the reflection is set to the hit value, and after that some
+    visibility checks are made. As mentioned before, SSR will fail if the reflected ray
+    hits something behind the camera, so the visibility is faded out according to
+    how much the reflected ray is heading toward the camera. The visibility is also
+    faded out according to how far the hit object is from the starting point of
+    the ray.
+    \snippet screenspacereflections/material_screenspacereflections.frag visibilitycheck
+
+    Finally, the reflection color is calculated from the \c SCREEN_TEXTURE and
+    mixed with the material color.
+    \snippet screenspacereflections/material_screenspacereflections.frag reflectioncolor
+
+    \section1 Helper functions
+    There are some helper functions used in the shader's code.
+    The \c correctTextureCoordinates function fixes the texture's coordinate according
+    to the used Graphics API. This has to be done in the case of D3D11 or Metal.
+    For more information, see \l{CustomMaterial} documentation.
+    \snippet screenspacereflections/material_screenspacereflections.frag correctTexture
+
+    The \c rayFragOutOfBound function checks if the ray is outside the screen after
+    marching. In this case, no reflection color is used because no information is
+    available for anything outside the screen.
+    \snippet screenspacereflections/material_screenspacereflections.frag rayoutofbound
+
+    The \c viewPosFromScreen function gets the object's position in View Space
+    by using the \c DEPTH_TEXTURE.
+    \snippet screenspacereflections/material_screenspacereflections.frag viewposfromscreen
+
+    The \c rayViewDepthFromScreen function gets the current position of the ray in
+    View Space. This time the depth value is obtained by linearly interpolating the
+    value between the starting point depth and ending point depth of the ray.
+    \snippet screenspacereflections/material_screenspacereflections.frag rayviewposfromscreen
+
+*/

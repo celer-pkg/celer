@@ -1,0 +1,32 @@
+project = TestModule
+productname = Qt
+
+moduleheader = TestModule.h
+
+headerdirs = ./src/inc
+sourcedirs = ./src
+includepaths += ./src/inc/testmodule
+
+sources.fileextensions = "*.cpp *.qdoc"
+headers.fileextensions = "*.h"
+
+outputdir = doc
+outputformats = HTML WebXML
+
+# images
+imagedirs = ./src/images
+
+# zero warning policy
+warninglimit = 0
+warninglimit.enabled = true
+
+# don't write host system-specific paths to index files
+locationinfo = false
+
+# By default, use -outputdir directly, no subdir.
+# outputsubdir '.' matches the root of expected_output/
+HTML.nosubdirs = true
+HTML.outputsubdir = html
+
+WebXML.nosubdirs = true
+WebXML.outputsubdir = webxml

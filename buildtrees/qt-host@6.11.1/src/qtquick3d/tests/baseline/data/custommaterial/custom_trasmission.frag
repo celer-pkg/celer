@@ -1,0 +1,19 @@
+VARYING vec3 vNormal;
+VARYING vec3 vViewVec;
+
+void MAIN()
+{
+    METALNESS = 0.0;
+    ROUGHNESS = 0.1;
+    FRESNEL_POWER = 5.0;
+    TRANSMISSION_FACTOR = 1.0;
+    THICKNESS_FACTOR = 10.0;
+    ATTENUATION_COLOR = vec3(1.0, 0.0, 0.0);
+    ATTENUATION_DISTANCE = 1.0;
+    IOR = 2.5;
+}
+
+void AMBIENT_LIGHT()
+{
+    DIFFUSE += TOTAL_AMBIENT_COLOR;
+}

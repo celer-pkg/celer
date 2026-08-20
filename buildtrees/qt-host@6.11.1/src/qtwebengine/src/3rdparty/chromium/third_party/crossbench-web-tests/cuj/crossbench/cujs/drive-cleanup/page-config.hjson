@@ -1,0 +1,107 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  args: {
+    CLICK_INPUT_SOURCE: touch
+  }
+  template: {
+    pages: {
+      Drive-Cleanup: {
+        login: google
+        blocks: {
+          page-load: {
+            actions: [
+              {
+                // Google One storage management page.
+                action: get
+                url: https://one.google.com/storage
+                ready_state: complete
+              }
+              {
+                // Click on the "Clean up space" button.
+                action: click
+                position: {
+                  selector: a[aria-label='Clean up space']
+                  wait: true
+                }
+                source: $[CLICK_INPUT_SOURCE]
+                verify: xpath///span[@role='heading'][@aria-level='1'][text()='Google One Storage Manager']
+              }
+            ]
+          }
+          // Delete the first 32 Large Drive files.
+          large-drive-files: {
+            actions: [
+              {
+                // Click the review link in the "Large Drive files" card.
+                action: click
+                position: {
+                  selector: a[aria-label='review and clean up Large Drive files']
+                  wait: true
+                }
+                source: $[CLICK_INPUT_SOURCE]
+                verify: xpath///span[@role='heading'][@aria-level='1'][text()='Items from Google Drive']
+                attempts: 3
+                timeout: 5s
+              }
+              {
+                // Click the checkbox next to "Showing (32)" to select all 32.
+                action: click
+                position: {
+                  selector: input[aria-label='Select all items']
+                  wait: true
+                }
+                source: $[CLICK_INPUT_SOURCE]
+                verify: "[data-is-touch-wrapper='true'] button[aria-label='Delete']:not([disabled])"
+                attempts: 3
+                timeout: 5s
+              }
+              {
+                // Click the Delete button.
+                action: click
+                position: {
+                  selector: "[data-is-touch-wrapper='true'] button[aria-label='Delete']"
+                  wait: true
+                }
+                source: $[CLICK_INPUT_SOURCE]
+                verify: "[aria-modal='true'][aria-label='Confirmation dialog to delete selected items']"
+              }
+            ]
+          }
+          confirm-delete-large-files: ./action-blocks/confirm-delete.hjson
+          // Delete all files in the trah bin.
+          files-in-trash: {
+            actions: [
+              {
+                // Click the review link in the "File in Trash" card.
+                action: click
+                position: {
+                  selector: a[aria-label='review and clean up Files in Trash']
+                  wait: true
+                }
+                source: $[CLICK_INPUT_SOURCE]
+                verify: xpath///span[@role='heading'][@aria-level='1'][text()='Items from Google Drive']
+                attempts: 3
+                timeout: 5s
+              }
+              {
+                // Click the "Delete all" button.
+                action: click
+                position: {
+                  selector: button[aria-label='Delete all']
+                  wait: true
+                }
+                source: $[CLICK_INPUT_SOURCE]
+                verify: "[aria-modal='true'][aria-label='Confirmation dialog to delete selected items']"
+                attempts: 3
+                timeout: 5s
+              }
+            ]
+          }
+          confirm-delete-file-in-track: ./action-blocks/confirm-delete.hjson
+        }
+      }
+    }
+  }
+}

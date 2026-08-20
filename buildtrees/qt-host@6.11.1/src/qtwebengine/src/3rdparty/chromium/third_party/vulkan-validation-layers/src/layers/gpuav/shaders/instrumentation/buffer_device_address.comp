@@ -1,0 +1,121 @@
+// Copyright (c) 2024-2025 The Khronos Group Inc.
+// Copyright (c) 2024-2025 Valve Corporation
+// Copyright (c) 2024-2025 LunarG, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// NOTE: This file doesn't contain any entrypoints and should be compiled with the --no-link option for glslang
+
+#version 450
+#extension GL_GOOGLE_include_directive : enable
+#include "common_descriptor_sets.h"
+#include "error_payload.h"
+
+// Represent a [begin, end) range, where end is one past the last element held in range
+struct Range {
+    uint64_t begin;
+    uint64_t end;
+};
+
+
+layout(buffer_reference, buffer_reference_align = 8, std430) buffer BufferDeviceAddressRanges {
+    uint bda_range_count;
+    uint padding_unused;
+    Range bda_ranges[];
+};
+
+// Ranges are supposed to:
+// 1) be stored from low to high
+// 2) not overlap
+layout(set = kInstDefaultDescriptorSet, binding = kBindingInstBufferDeviceAddress, std430) buffer BuffAddrInputBuffer {
+    BufferDeviceAddressRanges bda_ranges_ptr;
+};
+
+// It is common that an app only has a single BDA address and it is used to poke inside a struct.
+// This likely means there is only a single range being accessed, and for shader that do multiple checks,
+// we can hopefully speed up runtime perf by hitting this early and leaving fast
+//
+// TODO - Play around more with having the cache be the last 2 or 4 elements as well as having no cache
+//        (and picking depending on what we see instrumenting)
+//
+// Note - This NEEDS to be initialized with zero otherwise found to crash drivers
+//        (it will print as zero, but if used to index into an array, will just crash).
+//        GLSL lacks the ability to use the Initializer ID to a OpVariable, so while linking,
+//        we will adjust the SPIR-V to set this to zero to start
+uint index_cache;
+
+bool inst_buffer_device_address_range(
+    const uint inst_num,
+    const uint64_t addr,
+    const uint access_type,
+    const uint access_byte_size)
+{
+    const Range cache_range = bda_ranges_ptr.bda_ranges[index_cache];
+    if (addr >= cache_range.begin && ((addr + access_byte_size) <= cache_range.end)) {
+        return true;
+    }
+
+    // Find out if addr is valid
+    // ---
+    for (uint range_i = 0; range_i < bda_ranges_ptr.bda_range_count; ++range_i) {
+        
+        const Range range = bda_ranges_ptr.bda_ranges[range_i];
+        if (addr < range.begin) {
+            // Invalid address, proceed to error logging
+            break;
+        }
+        if ((addr < range.end) && (addr + access_byte_size > range.end)) {
+            // Ranges do not overlap,
+            // so if current range holds addr but not (add + access_byte_size), access is invalid
+            break;
+        }
+        if ((addr + access_byte_size) <= range.end) {
+            // addr >= range.begin && addr + access_byte_size <= range.end
+            // ==> valid access
+            index_cache = range_i;
+            return true;
+        }
+        // Address is above current range, proceed to next range.
+        // If at loop end, address is invalid.
+    }
+
+    error_payload = ErrorPayload(
+                        inst_num,
+                        SpecConstantLinkShaderId | (kErrorGroupInstBufferDeviceAddress << kErrorGroupShift) | (kErrorSubCodeBufferDeviceAddressUnallocRef << kErrorSubCodeShift),
+                        uint(addr),
+                        uint(addr >> 32u),
+                        access_type | access_byte_size
+                    );
+    return false;
+}
+
+bool inst_buffer_device_address_align(
+    const uint inst_num,
+    const uint64_t addr,
+    const uint access_type,
+    const uint alignment)
+{
+    // alignment is guaranteed to be a power of 2
+    // this is a valid way in GLSL to have it do OpUConvert for us
+    if ((addr & (alignment - 1)) != 0) {
+        error_payload = ErrorPayload(
+                            inst_num,
+                            SpecConstantLinkShaderId | (kErrorGroupInstBufferDeviceAddress << kErrorGroupShift) | (kErrorSubCodeBufferDeviceAddressAlignment << kErrorSubCodeShift),
+                            uint(addr),
+                            uint(addr >> 32u),
+                            access_type | alignment
+                        );
+        return false;
+    }
+    return true;
+}

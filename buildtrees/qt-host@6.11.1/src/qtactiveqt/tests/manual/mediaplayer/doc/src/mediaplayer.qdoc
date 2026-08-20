@@ -1,0 +1,64 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example activeqt/mediaplayer
+    \title Media Player Example (ActiveQt)
+    \ingroup activeqt-examples
+
+    \brief The Media Player example uses the Microsoft Media Player
+    ActiveX control to implement a functional media player application.
+
+    \image activeqt-mediaplayer-example.jpg
+
+    \e {Media Player} demonstrates how a Qt application can communicate with
+    embedded ActiveX controls using signals, slots, and the \c dynamicCall()
+    function.
+
+    \quotefromfile activeqt/mediaplayer/main.cpp
+    \skipto class MainWindow
+    \printuntil /^\}/
+
+    The \c MainWindow class declares a \c QMainWindow based user interface,
+    using the \c Ui::MainWindow class created by Qt Designer. A number
+    of slots are implemented to handle events from user interface elements,
+    including the \c mediaPlayer object, which is a QAxWidget hosting
+    the Microsoft Media Player ActiveX control.
+
+    \quotefromfile activeqt/mediaplayer/main.cpp
+    \skipto MainWindow::MainWindow()
+    \printuntil /^\}/
+
+    The constructor initializes the user interface, restores a previously
+    saved window geometry, and uses the \c dynamicCall() function to invoke
+    the APIs implemented by the Microsoft Media Player ActiveX control,
+    to set initial configuration parameters.
+
+    \quotefromfile activeqt/mediaplayer/main.cpp
+    \skipto MainWindow::on_mediaPlayer_PlayStateChange
+    \printuntil /^\}/
+
+    The \c on_mediaPlayer_PlayStateChange slot handles the signal emitted
+    by the \c mediaPlayer object when its state changes.
+
+    \quotefromfile activeqt/mediaplayer/main.cpp
+    \skipto MainWindow::openMedia
+    \printuntil /^\}/
+
+    The \c openMedia() function allows a media file to be opened by using
+    the \c dynamicCall() function to set the URL property in the ActiveX
+    control, which causes the media file to be loaded and played.
+
+    \quotefromfile activeqt/mediaplayer/main.cpp
+    \skipto int main
+    \printuntil /^\}/
+
+    The \c main() function starts the application using standard Qt APIs
+    and uses an optional command line argument as the name of a media
+    file to be loaded by the player.
+
+    To build the example, you must first build the QAxContainer
+    library. Then run your make tool in
+    \c examples/activeqt/mediaplayer and run the resulting
+    \c mediaplayer.exe.
+*/

@@ -1,0 +1,104 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example 2d/quickwidgetgraphs
+    \meta tags {Graphs, PieSeries, Widget, QuickWidget}
+    \examplecategory {Data Visualization}
+
+    \title Graphs 2D in Qt Widgets
+    \ingroup qtgraphs_examples
+    \brief Using Graphs for 2D in a Widget based application.
+
+    Graphs 2D support only Qt Quick applications. This example shows how to
+    display a simple 2D pie graph in a Qt Widgets applications using a
+    \l QQuickWidget.
+
+    \image quickwidgetgraphs-example.png
+
+    \include examples-run.qdocinc
+
+    \section1 Main View
+
+    \list 0
+    \li The \c PieWidget class implements the main view of the demo application.
+        In the \c PieWidget class, instantiate the widgets used to implement the
+        application layout and UI elements.
+
+        \snippet 2d/quickwidgetgraphs/piewidget.cpp 0
+        \dots 0
+
+    \li The \c PieGraph class is used to handle logic for adding and removing
+        slices, and have other functionalities.
+
+        \snippet 2d/quickwidgetgraphs/piewidget.cpp 1
+        \dots 0
+
+    \li Initialize buttons and add them to layout.
+
+        \snippet 2d/quickwidgetgraphs/piewidget.cpp 3
+    \endlist
+
+    \section1 Manipulating Graph data
+
+    The \c PieGraph class implements all the logic for manipulating Graph data in
+    this example.
+
+    \list 0
+    \li In the \c PieGraph class, declare a \c pieSeries property.
+
+        \dots 0
+        \snippet 2d/quickwidgetgraphs/piegraph.h 0
+        \dots 0
+
+    \li Create functions for adding, removing, exploding slices, and clearing
+        pie series.
+
+        \dots 0
+        \quotefromfile 2d/quickwidgetgraphs/piegraph.h
+        \skipto public:
+        \printto explicit PieGraph
+        \dots 0
+        \skipto appendSlice
+        \printto Q_SIGNALS
+        \dots 0
+
+    \li Instantiate a pie series and add several slices in your constructor.
+
+        \dots 0
+        \snippet 2d/quickwidgetgraphs/piegraph.cpp 0
+        \dots 0
+
+    \li The \c appendSlice function creates a \l QPieSlice, sets some of its
+        properties and then appends it to the pie series.
+
+        Notice that even if you have set labels visibility to \c true, this does
+        not work on slices added later to the pie series. You need to set
+        visibility to \c true on creation for every added slice.
+
+        \snippet 2d/quickwidgetgraphs/piegraph.cpp 1
+
+    \li In the \c removeSlice function, call \l QPieSeries::remove().
+
+    \li In the \c explodeSlices function, loop through all slices and set
+        \l QPieSlice::setExploded() to \c true or \c false depending on current
+        state.
+
+    \li In the \c clearSeries function, call \l QPieSeries::clear(). This will
+        delete all slices from your pie series. Note that this function does not
+        delete a pie series itself.
+    \endlist
+
+    \section1 Initializing the GraphsView
+
+    To customize the GraphsView theme, create a custom \l QGraphsTheme.
+
+    \snippet 2d/quickwidgetgraphs/piewidget.cpp 5
+
+    Use \l QQuickWidget::loadFromModule() to load the GraphsView. Initialize its
+    \l {GraphsView::}{theme} and \l {GraphsView::}{seriesList} properties by
+    passing the QGraphsTheme and QPieSeries to
+    \l QQuickWidget::setInitialProperties().
+
+    \snippet 2d/quickwidgetgraphs/piewidget.cpp 2
+*/

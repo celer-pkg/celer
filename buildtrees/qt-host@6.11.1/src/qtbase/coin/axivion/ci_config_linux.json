@@ -1,0 +1,28 @@
+{
+    "Project": {
+        "BuildSystemIntegration": {
+            "child_order": [
+                "LinkLibraries"
+            ]
+        },
+        "LinkLibraries": {
+            "_active": true,
+            "_copy_from": "AxivionLinker",
+            "input_files": [
+                "$(splitpath:TARGET_NAME)"
+            ],
+            "ir": "$(env:IRNAME)",
+            "plugin_files": [
+                "$(splitpath:PLUGINS)"
+            ]
+        }
+    },
+    "_Format": "1.0",
+    "_Version": "7.6.2",
+    "_VersionNum": [
+        7,
+        6,
+        2,
+        12725
+    ]
+}

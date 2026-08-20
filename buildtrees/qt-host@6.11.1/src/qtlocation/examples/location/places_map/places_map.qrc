@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>marker.png</file>
+        <file>Main.qml</file>
+        <file>PermissionsScreen.qml</file>
+        <file>PlacesMap.qml</file>
+    </qresource>
+</RCC>

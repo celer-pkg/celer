@@ -1,0 +1,16 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [0]
+\snippet qt-add-grpc-example.cmake 0
+
+The example above calls the \c{qt_add_grpc()} CMake function to start Qt GRPC
+code generation for \c service sections within the provided protobuf schema.
+
+\note If the protobuf schema also contains \c message definitions, the
+\c{qt_add_protobuf()} CMake function should also be called to start Qt Protobuf
+code generation.
+
+Since we reuse the executable target, all generated files will be appended to
+the target, and the include directories will be updated accordingly.
+//! [0]

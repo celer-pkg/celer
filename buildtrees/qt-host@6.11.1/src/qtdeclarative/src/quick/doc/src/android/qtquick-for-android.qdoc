@@ -1,0 +1,112 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Qt Quick for Android
+    \brief An overview on using QML in native Android projects.
+    \page qtquick-for-android.html
+    \ingroup android-platform-extra-topics
+
+    \section1 Qt Quick for Android overview
+
+    The basis of this approach is to offer Qt QML APIs in an embedded way so
+    that the app will remain a relatively typical Android app. This approach
+    offers a more standard Android-centered approach at the cost of leveraging
+    the cross-platform nature of a Qt application. It's best suited for adding
+    desirable Qt features to an existing Android application.
+
+    \list
+        \li Android creates the Qt content and controls it.
+        \li Android Studio with the \l{\QtTAS} plugin is used for development.
+        \li For Qt content, Qt Creator or Qt Design Studio are used.
+        \li Main languages are Java and Kotlin, with QML used for specific parts
+        such as 3D content.
+        \li You can use any Android APIs you want, but you can use JNI if you want more
+        control over communication between your Java code and QML. See \l{QJniObject}
+        and \l{QJniEnvironment}.
+    \endlist
+
+    \section2 How this differs from Qt for Android
+
+    The most prominent difference between these approaches is the project structure.
+    Qt for Android applications are CMake projects that can be built for Android or
+    other platforms, while a Qt Quick for Android Project is an Android project that
+    includes QML content and can only be built for Android.
+
+    \image qtquick-for-android-comparisson.drawio.svg
+
+    The main objective of the Qt for Android approach is to let Qt handle most of the work
+    of the architecture and boilerplate code of the app and let you focus on the
+    content. It offers a complete and reliable cross-platform approach.
+
+    \list
+        \li Qt creates and controls the Android app.
+        \li \l{\QC Documentation}{\QC}, \l{Qt Design Studio}, or Visual Studio
+            can be used.
+        \li Main languages are C++ and QML.
+        \li Android specifics are more hidden; Qt handles these internally.
+        \li To use Android APIs not yet available as Qt APIs, you must use JNI.
+        See \l{QJniObject} and \l{QJniEnvironment}.
+    \endlist
+
+    See \l{How Qt for Android Works} for further details on Qt for Android's architecture.
+
+    \section1 How Qt Quick for Android works
+
+    Qt Quick for Android offers you \l{Qt Quick Android Classes}{Android APIs} that enable
+    you to insert QML content as an \l{Android: View}{Android View} in your project.
+
+    \image qtquick-for-android-architecture.drawio.svg
+
+    \section1 APIs
+    \target Android Classes
+    These are the public Java and Kotlin APIs that you will use in an Android
+    app to embed QML.
+
+    \section2 Java classes
+
+    \list
+        \li \l{QtQuickView}
+        \li \l{QtQuickViewContent}
+        \li \l{QtAbstractItemModel}
+        \li \l{QtAbstractListModel}
+        \li \l{QtModelIndex}
+     \endlist
+
+    \section2 Interfaces
+
+    \list
+        \li \l{QtQmlStatusChangeListener} (which uses the \l QtQmlStatus enum)
+    \endlist
+
+    \note See the \l{QT_ANDROID_GENERATE_JAVA_QTQUICKVIEW_CONTENTS} CMake
+    variable for further information on Java code generation of QML components.
+
+    \section1 API examples
+
+    \list
+        \li \l{Qt Quick for Android Studio Projects}
+        \li \l{Exposing QtAbstractListModel to QML}
+        \li \l{Using QtAbstractItemModel in Android Studio Projects}
+    \endlist
+
+    \include qtquick-for-android-main().qdocinc
+
+    \section2 Running Qt Quick for Android examples
+
+    \include running-qtquick-for-android-examples.qdocinc
+
+    \section1 Tooling
+
+    The \l{Qt Gradle Plugin} and \l{\QtTAS} plugin are provided by Qt for easy
+    development. You can use the Gradle Plugin independently from an IDE as part
+    of your build toolchain. \QtTAS uses the plugin to build your projects in
+    Android Studio.
+
+    \section1 Where to go from here
+
+    The following additional topics apply to Qt Quick For Android:
+
+    \annotatedlist qq4a-extra-topics
+
+*/

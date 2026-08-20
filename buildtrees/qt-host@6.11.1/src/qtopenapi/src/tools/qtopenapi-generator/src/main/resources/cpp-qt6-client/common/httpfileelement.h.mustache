@@ -1,0 +1,91 @@
+{{>licenseInfo}}
+#ifndef {{prefix}}_HTTP_FILE_ELEMENT_H
+#define {{prefix}}_HTTP_FILE_ELEMENT_H
+
+#include "{{prefixLowerCase}}{{packageNameLowerCase}}commonexports.h"
+
+#include <QtCore/qcontainerfwd.h>
+#include <QtCore/qmetatype.h>
+#include <QtCore/qshareddata.h>
+
+QT_BEGIN_NAMESPACE
+class QJsonValue;
+QT_END_NAMESPACE
+
+{{#buildingQtSources}}
+QT_BEGIN_NAMESPACE
+{{/buildingQtSources}}
+
+{{#cppCommonNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppCommonNamespaceDeclarations}}
+
+class {{prefix}}HttpFileElementPrivate;
+
+class {{prefix}}HttpFileElement
+{
+public:
+    {{packageNameUpperCase}}_COMMON_EXPORT
+    {{prefix}}HttpFileElement();
+    {{packageNameUpperCase}}_COMMON_EXPORT
+    explicit {{prefix}}HttpFileElement(const QString &localFilename);
+    {{packageNameUpperCase}}_COMMON_EXPORT
+    {{prefix}}HttpFileElement(const {{prefix}}HttpFileElement &other);
+    {{packageNameUpperCase}}_COMMON_EXPORT
+    {{prefix}}HttpFileElement({{prefix}}HttpFileElement &&other) noexcept;
+    {{packageNameUpperCase}}_COMMON_EXPORT
+    {{prefix}}HttpFileElement &operator=(const {{prefix}}HttpFileElement &other);
+    {{packageNameUpperCase}}_COMMON_EXPORT
+    {{prefix}}HttpFileElement &operator=({{prefix}}HttpFileElement &&other) noexcept;
+    {{packageNameUpperCase}}_COMMON_EXPORT
+    ~{{prefix}}HttpFileElement();
+
+    {{packageNameUpperCase}}_COMMON_EXPORT
+    void swap({{prefix}}HttpFileElement &other) noexcept;
+
+    {{packageNameUpperCase}}_COMMON_EXPORT void setMimeType(const QString &mime);
+    {{packageNameUpperCase}}_COMMON_EXPORT void setVariableName(const QString &name);
+    {{packageNameUpperCase}}_COMMON_EXPORT void setTemporary(bool temp);
+
+    {{packageNameUpperCase}}_COMMON_EXPORT QString mimeType() const;
+    {{packageNameUpperCase}}_COMMON_EXPORT QString filename() const;
+    {{packageNameUpperCase}}_COMMON_EXPORT QString variableName() const;
+    {{packageNameUpperCase}}_COMMON_EXPORT bool isTemporary() const;
+
+    {{packageNameUpperCase}}_COMMON_EXPORT QString requestFilename() const;
+    {{packageNameUpperCase}}_COMMON_EXPORT bool isSet() const;
+    {{packageNameUpperCase}}_COMMON_EXPORT bool fromStringValue(const QString &instr);
+    {{packageNameUpperCase}}_COMMON_EXPORT bool fromJsonValue(const QJsonValue &jval);
+    {{packageNameUpperCase}}_COMMON_EXPORT bool saveToLocalFile(const QByteArray &bytes);
+    {{packageNameUpperCase}}_COMMON_EXPORT QString asJson() const;
+    {{packageNameUpperCase}}_COMMON_EXPORT QJsonValue asJsonValue() const;
+    {{packageNameUpperCase}}_COMMON_EXPORT QByteArray loadFromLocalFile() const;
+
+private:
+    {{packageNameUpperCase}}_COMMON_EXPORT friend bool
+    comparesEqual(const {{prefix}}HttpFileElement &lhs, const {{prefix}}HttpFileElement &rhs) noexcept;
+
+    friend bool
+    operator==(const {{prefix}}HttpFileElement &lhs, const {{prefix}}HttpFileElement &rhs) noexcept
+    { return comparesEqual(lhs, rhs); }
+    friend bool
+    operator!=(const {{prefix}}HttpFileElement &lhs, const {{prefix}}HttpFileElement &rhs) noexcept
+    { return !comparesEqual(lhs, rhs); }
+
+    friend size_t qHash(const {{prefix}}HttpFileElement &value) = delete;
+    friend size_t qHash(const {{prefix}}HttpFileElement &value, size_t seed) = delete;
+
+    QExplicitlySharedDataPointer<{{prefix}}HttpFileElementPrivate> d;
+};
+
+{{#cppCommonNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppCommonNamespaceDeclarations}}
+
+{{#buildingQtSources}}
+QT_END_NAMESPACE
+{{/buildingQtSources}}
+
+Q_DECLARE_METATYPE({{#cppCommonNamespaceDeclarations}}{{this}}::{{/cppCommonNamespaceDeclarations}}{{prefix}}HttpFileElement)
+
+#endif // {{prefix}}_HTTP_FILE_ELEMENT_H

@@ -1,0 +1,518 @@
+# Copyright 2014 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# Do not use the targets in this file unless you need a certain libjpeg
+# implementation. Use the meta target //third_party:jpeg instead.
+
+import("//build/config/features.gni")
+import("//build/config/sanitizers/sanitizers.gni")
+if (current_cpu == "arm" || current_cpu == "arm64") {
+  import("//build/config/arm.gni")
+}
+
+#assert(
+#    use_blink,
+#    "This is not used if blink is not enabled, don't drag it in unintentionally")
+
+source_set("libjpeg_headers") {
+  sources = [
+    "src/jconfig.h",
+    "src/jdct.h",
+    "src/jinclude.h",
+    "src/jmorecfg.h",
+    "src/jpeglib.h",
+    "src/jpeglibmangler.h",
+  ]
+}
+
+if (current_cpu == "x86" || current_cpu == "x64") {
+  import("//third_party/nasm/nasm_assemble.gni")
+
+  nasm_assemble("simd_asm") {
+    defines = []
+    include_dirs = [ "simd/nasm/" ]
+
+    inputs = [
+      "simd/nasm/jdct.inc",
+      "simd/nasm/jsimdcfg.inc",
+      "simd/nasm/jsimdext.inc",
+      "simd/nasm/jcolsamp.inc",
+    ]
+
+    if (current_cpu == "x86") {
+      include_dirs += [ "simd/i386/" ]
+      inputs += [
+        "simd/i386/jccolext-avx2.asm",
+        "simd/i386/jccolext-mmx.asm",
+        "simd/i386/jccolext-sse2.asm",
+        "simd/i386/jcgryext-avx2.asm",
+        "simd/i386/jcgryext-mmx.asm",
+        "simd/i386/jcgryext-sse2.asm",
+        "simd/i386/jdcolext-avx2.asm",
+        "simd/i386/jdcolext-mmx.asm",
+        "simd/i386/jdcolext-sse2.asm",
+        "simd/i386/jdmrgext-avx2.asm",
+        "simd/i386/jdmrgext-mmx.asm",
+        "simd/i386/jdmrgext-sse2.asm",
+      ]
+      sources = [
+        "simd/i386/jccolor-avx2.asm",
+        "simd/i386/jccolor-mmx.asm",
+        "simd/i386/jccolor-sse2.asm",
+        "simd/i386/jcgray-avx2.asm",
+        "simd/i386/jcgray-mmx.asm",
+        "simd/i386/jcgray-sse2.asm",
+        "simd/i386/jchuff-sse2.asm",
+        "simd/i386/jcphuff-sse2.asm",
+        "simd/i386/jcsample-avx2.asm",
+        "simd/i386/jcsample-mmx.asm",
+        "simd/i386/jcsample-sse2.asm",
+        "simd/i386/jdcolor-avx2.asm",
+        "simd/i386/jdcolor-mmx.asm",
+        "simd/i386/jdcolor-sse2.asm",
+        "simd/i386/jdmerge-avx2.asm",
+        "simd/i386/jdmerge-mmx.asm",
+        "simd/i386/jdmerge-sse2.asm",
+        "simd/i386/jdsample-avx2.asm",
+        "simd/i386/jdsample-mmx.asm",
+        "simd/i386/jdsample-sse2.asm",
+        "simd/i386/jfdctflt-3dn.asm",
+        "simd/i386/jfdctflt-sse.asm",
+        "simd/i386/jfdctfst-mmx.asm",
+        "simd/i386/jfdctfst-sse2.asm",
+        "simd/i386/jfdctint-avx2.asm",
+        "simd/i386/jfdctint-mmx.asm",
+        "simd/i386/jfdctint-sse2.asm",
+        "simd/i386/jidctflt-3dn.asm",
+        "simd/i386/jidctflt-sse.asm",
+        "simd/i386/jidctflt-sse2.asm",
+        "simd/i386/jidctfst-mmx.asm",
+        "simd/i386/jidctfst-sse2.asm",
+        "simd/i386/jidctint-avx2.asm",
+        "simd/i386/jidctint-mmx.asm",
+        "simd/i386/jidctint-sse2.asm",
+        "simd/i386/jidctred-mmx.asm",
+        "simd/i386/jidctred-sse2.asm",
+        "simd/i386/jquant-3dn.asm",
+        "simd/i386/jquant-mmx.asm",
+        "simd/i386/jquant-sse.asm",
+        "simd/i386/jquantf-sse2.asm",
+        "simd/i386/jquanti-avx2.asm",
+        "simd/i386/jquanti-sse2.asm",
+        "simd/i386/jsimdcpu.asm",
+      ]
+      defines += [
+        "__x86__",
+        "PIC",
+      ]
+    } else if (current_cpu == "x64") {
+      include_dirs += [ "simd/x86_64/" ]
+      inputs += [
+        "simd/x86_64/jccolext-avx2.asm",
+        "simd/x86_64/jccolext-sse2.asm",
+        "simd/x86_64/jcgryext-avx2.asm",
+        "simd/x86_64/jcgryext-sse2.asm",
+        "simd/x86_64/jdcolext-avx2.asm",
+        "simd/x86_64/jdcolext-sse2.asm",
+        "simd/x86_64/jdmrgext-avx2.asm",
+        "simd/x86_64/jdmrgext-sse2.asm",
+      ]
+      sources = [
+        "simd/x86_64/jccolor-avx2.asm",
+        "simd/x86_64/jccolor-sse2.asm",
+        "simd/x86_64/jcgray-avx2.asm",
+        "simd/x86_64/jcgray-sse2.asm",
+        "simd/x86_64/jchuff-sse2.asm",
+        "simd/x86_64/jcphuff-sse2.asm",
+        "simd/x86_64/jcsample-avx2.asm",
+        "simd/x86_64/jcsample-sse2.asm",
+        "simd/x86_64/jdcolor-avx2.asm",
+        "simd/x86_64/jdcolor-sse2.asm",
+        "simd/x86_64/jdmerge-avx2.asm",
+        "simd/x86_64/jdmerge-sse2.asm",
+        "simd/x86_64/jdsample-avx2.asm",
+        "simd/x86_64/jdsample-sse2.asm",
+        "simd/x86_64/jfdctflt-sse.asm",
+        "simd/x86_64/jfdctfst-sse2.asm",
+        "simd/x86_64/jfdctint-avx2.asm",
+        "simd/x86_64/jfdctint-sse2.asm",
+        "simd/x86_64/jidctflt-sse2.asm",
+        "simd/x86_64/jidctfst-sse2.asm",
+        "simd/x86_64/jidctint-avx2.asm",
+        "simd/x86_64/jidctint-sse2.asm",
+        "simd/x86_64/jidctred-sse2.asm",
+        "simd/x86_64/jquantf-sse2.asm",
+        "simd/x86_64/jquanti-avx2.asm",
+        "simd/x86_64/jquanti-sse2.asm",
+        "simd/x86_64/jsimdcpu.asm",
+      ]
+      defines += [
+        "__x86_64__",
+        "PIC",
+      ]
+    }
+
+    if (is_win) {
+      defines += [ "MSVC" ]
+      if (current_cpu == "x86") {
+        defines += [ "WIN32" ]
+      } else {
+        defines += [ "WIN64" ]
+      }
+    } else if (is_mac || is_ios) {
+      defines += [ "MACHO" ]
+    } else if (is_linux || is_android || is_fuchsia || is_chromeos) {
+      defines += [ "ELF" ]
+    }
+  }
+}
+
+config("libjpeg_simd_config") {
+  if (is_msan && (current_cpu == "x86" || current_cpu == "x64")) {
+    # MemorySanitizer doesn't support assembly code, so keep it disabled in x86
+    # and x64 MSan builds for now.
+  } else if (current_cpu == "x86" || current_cpu == "x64") {
+    defines = [ "WITH_SIMD" ]
+  } else if ((current_cpu == "arm" || current_cpu == "arm64") && arm_use_neon) {
+    defines = [
+      "NEON_INTRINSICS",
+      "WITH_SIMD",
+    ]
+  }
+}
+
+static_library("simd") {
+  include_dirs = [ "." ]
+  deps = [ ":libjpeg_headers" ]
+  defines = [ "MANGLE_JPEG_NAMES" ]
+  configs += [ ":libjpeg_simd_config" ]
+
+  if (is_msan && (current_cpu == "x86" || current_cpu == "x64")) {
+    # MemorySanitizer doesn't support assembly code, so keep it disabled in x86
+    # and x64 MSan builds for now.
+  } else if (current_cpu == "x86") {
+    deps += [ ":simd_asm" ]
+    sources = [ "simd/i386/jsimd.c" ]
+  } else if (current_cpu == "x64") {
+    deps += [ ":simd_asm" ]
+    sources = [ "simd/x86_64/jsimd.c" ]
+  } else if ((current_cpu == "arm" || current_cpu == "arm64") && arm_use_neon) {
+    include_dirs += [ "simd/arm/" ]
+
+    sources = [
+      "simd/arm/jccolor-neon.c",
+      "simd/arm/jcgray-neon.c",
+      "simd/arm/jcphuff-neon.c",
+      "simd/arm/jcsample-neon.c",
+      "simd/arm/jdcolor-neon.c",
+      "simd/arm/jdmerge-neon.c",
+      "simd/arm/jdsample-neon.c",
+      "simd/arm/jfdctfst-neon.c",
+      "simd/arm/jfdctint-neon.c",
+      "simd/arm/jidctfst-neon.c",
+      "simd/arm/jidctint-neon.c",
+      "simd/arm/jidctred-neon.c",
+      "simd/arm/jquanti-neon.c",
+    ]
+    if (current_cpu == "arm") {
+      sources += [
+        "simd/arm/aarch32/jchuff-neon.c",
+        "simd/arm/aarch32/jsimd.c",
+      ]
+    } else if (current_cpu == "arm64") {
+      sources += [
+        "simd/arm/aarch64/jchuff-neon.c",
+        "simd/arm/aarch64/jsimd.c",
+      ]
+    }
+
+    configs -= [ "//build/config/compiler:default_optimization" ]
+    configs += [ "//build/config/compiler:optimize_speed" ]
+  }
+
+  if (is_win && !is_mingw) {
+    cflags = [ "/wd4245" ]
+  }
+}
+
+config("libjpeg_config") {
+  include_dirs = [ "src" ]
+  defines = [ "MANGLE_JPEG_NAMES" ]
+}
+
+# Based on
+# https://github.com/libjpeg-turbo/libjpeg-turbo/blob/20ade4de/CMakeLists.txt#L605
+#
+# Starting in 3.x, libjpeg-turbo supports runtime-selectable precision.
+# This requires compiling some source sets multiple times, with different
+# BITS_IN_JSAMPLE defines (16, 12, and the default 8), to generate precision-
+# specific symbols (e.g. jpeg16_read_scanlines vs jpeg12_read_scanlines vs
+# jpeg_read_scanlines).
+
+libjpeg16_sources = [
+  "src/jcapistd.c",
+  "src/jccolor.c",
+  "src/jcdiffct.c",
+  "src/jclossls.c",
+  "src/jcmainct.c",
+  "src/jcprepct.c",
+  "src/jcsample.c",
+  "src/jdapistd.c",
+  "src/jdcolor.c",
+  "src/jddiffct.c",
+  "src/jdlossls.c",
+  "src/jdmainct.c",
+  "src/jdpostct.c",
+  "src/jdsample.c",
+  "src/jutils.c",
+]
+
+libjpeg12_sources = libjpeg16_sources + [
+  "src/jccoefct.c",
+  "src/jcdctmgr.c",
+  "src/jdcoefct.c",
+  "src/jddctmgr.c",
+  "src/jdmerge.c",
+  "src/jfdctfst.c",
+  "src/jfdctint.c",
+  "src/jidctflt.c",
+  "src/jidctfst.c",
+  "src/jidctint.c",
+  "src/jidctred.c",
+  "src/jquant1.c",
+  "src/jquant2.c",
+]
+
+libjpeg_sources = libjpeg12_sources + [
+  "src/jcapimin.c",
+  "src/jchuff.c",
+  "src/jcicc.c",
+  "src/jcinit.c",
+  "src/jclhuff.c",
+  "src/jcmarker.c",
+  "src/jcmaster.c",
+  "src/jcomapi.c",
+  "src/jcparam.c",
+  "src/jcphuff.c",
+  "src/jctrans.c",
+  "src/jdapimin.c",
+  "src/jdatadst.c",
+  "src/jdatasrc.c",
+  "src/jdhuff.c",
+  "src/jdicc.c",
+  "src/jdinput.c",
+  "src/jdlhuff.c",
+  "src/jdmarker.c",
+  "src/jdmaster.c",
+  "src/jdphuff.c",
+  "src/jdtrans.c",
+  "src/jerror.c",
+  "src/jfdctflt.c",
+  "src/jmemmgr.c",
+  "src/jmemnobs.c",
+  "src/jpeg_nbits.c",
+]
+
+static_library("libjpeg16") {
+  sources = libjpeg16_sources
+
+  defines = [
+    "NO_GETENV",
+    "NO_PUTENV",
+    "BITS_IN_JSAMPLE=16",
+  ]
+
+  configs += [ ":libjpeg_config" ]
+
+  public_configs = [ ":libjpeg_config" ]
+  public_deps = [ ":libjpeg_headers" ]
+}
+
+static_library("libjpeg12") {
+  sources = libjpeg12_sources
+
+  defines = [
+    "NO_GETENV",
+    "NO_PUTENV",
+    "BITS_IN_JSAMPLE=12",
+  ]
+
+  configs += [ ":libjpeg_config" ]
+
+  public_configs = [ ":libjpeg_config" ]
+  public_deps = [ ":libjpeg_headers" ]
+}
+
+static_library("libjpeg") {
+  sources = libjpeg_sources
+
+  defines = [
+    "NO_GETENV",
+    "NO_PUTENV",
+  ]
+
+  configs += [
+    ":libjpeg_config",
+    ":libjpeg_simd_config",
+  ]
+
+  public_configs = [ ":libjpeg_config" ]
+  public_deps = [
+    ":libjpeg_headers",
+  ]
+
+  deps = [
+    ":libjpeg12",
+    ":libjpeg16",
+    ":simd",
+  ]
+
+  if ((!is_msvc || is_clang) && (current_cpu == "x86" || current_cpu == "x64")) {
+    # Avoid the 64K jpeg_nbits table.
+    # Note: USE_CLZ_INTRINSIC is enabled by default for Arm (jpeg_nbits.h)
+    defines += [ "USE_CLZ_INTRINSIC" ]
+  }
+}
+
+# PPM also require multiple precision-dependent versions.
+
+turbojpeg_ppm_sources = [
+  "src/rdppm.c",
+  "src/wrppm.c",
+]
+
+static_library("turbojpeg_ppm16") {
+  sources = turbojpeg_ppm_sources
+  defines = [
+    "BMP_SUPPORTED",
+    "PPM_SUPPORTED",
+    "BITS_IN_JSAMPLE=16",
+  ]
+
+  configs += [ ":libjpeg_config" ]
+
+  public_configs = [ ":libjpeg_config" ]
+  public_deps = [ ":libjpeg" ]
+}
+
+static_library("turbojpeg_ppm12") {
+  sources = turbojpeg_ppm_sources
+  defines = [
+    "BMP_SUPPORTED",
+    "PPM_SUPPORTED",
+    "BITS_IN_JSAMPLE=12",
+  ]
+
+  configs += [ ":libjpeg_config" ]
+
+  public_configs = [ ":libjpeg_config" ]
+  public_deps = [ ":libjpeg" ]
+}
+
+static_library("turbojpeg") {
+  sources = turbojpeg_ppm_sources + [
+    "src/jdatadst-tj.c",
+    "src/jdatasrc-tj.c",
+    "src/rdbmp.c",
+    "src/transupp.c",
+    "src/turbojpeg.c",
+    "src/wrbmp.c",
+  ]
+
+  defines = [
+    "BMP_SUPPORTED",
+    "PPM_SUPPORTED",
+  ]
+
+  configs += [
+    ":libjpeg_config",
+    ":libjpeg_simd_config",
+  ]
+
+  public_configs = [ ":libjpeg_config" ]
+  public_deps = [
+    ":libjpeg",
+  ]
+  deps = [
+    ":turbojpeg_ppm12",
+    ":turbojpeg_ppm16",
+  ]
+
+  cflags_c = [
+    # [3.1.0] turbojpeg.c:706:5: error: 'break' will never be executed
+    "-Wno-unreachable-code-break",
+  ]
+}
+
+if (build_with_chromium) {
+  import("//testing/test.gni")
+
+  static_library("rdcolmap12") {
+    sources = [ "src/rdcolmap.c" ]
+    deps = [ ":turbojpeg" ]
+
+    defines = [
+      "GTEST",
+      "BMP_SUPPORTED",
+      "PPM_SUPPORTED",
+      "BITS_IN_JSAMPLE=12",
+    ]
+  }
+
+  test("libjpeg_turbo_unittests") {
+    testonly = true
+
+    sources = [
+      "gtest/cjpeg-gtest-wrapper.cpp",
+      "gtest/djpeg-gtest-wrapper.cpp",
+      "gtest/gtest-utils.cpp",
+      "gtest/jpegtran-gtest-wrapper.cpp",
+      "gtest/tjbench-gtest-wrapper.cpp",
+      "gtest/tjunittest-gtest-wrapper.cpp",
+      "src/cdjpeg.c",
+      "src/cjpeg.c",
+      "src/djpeg.c",
+      "src/jpegtran.c",
+      "src/md5/md5.c",
+      "src/md5/md5hl.c",
+      "src/rdcolmap.c",
+      "src/rdgif.c",
+      "src/rdswitch.c",
+      "src/tjbench.c",
+      "src/tjunittest.c",
+      "src/tjutil.c",
+    ]
+
+    deps = [
+      ":rdcolmap12",
+      ":turbojpeg",
+      "//base",
+      "//testing/gtest",
+      "//testing/gtest:gtest_main",
+    ]
+
+    data = [ "testimages/" ]
+
+    defines = [
+      "GTEST",
+      "BMP_SUPPORTED",
+      "PPM_SUPPORTED",
+    ]
+
+    include_dirs = [
+      "//third_party/googletest/src/googletest/include/gtest",
+      ".",
+    ]
+
+    configs -= [ "//build/config/compiler:chromium_code" ]
+    configs += [
+      ":libjpeg_simd_config",
+      "//build/config/compiler:no_chromium_code",
+    ]
+
+    if (is_win) {
+      cflags = [ "-U_CRT_SECURE_NO_DEPRECATE" ]
+    }
+  }
+}

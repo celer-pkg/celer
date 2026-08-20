@@ -1,0 +1,2 @@
+add_subdirectory(places_semiauto)
+add_subdirectory(routing)

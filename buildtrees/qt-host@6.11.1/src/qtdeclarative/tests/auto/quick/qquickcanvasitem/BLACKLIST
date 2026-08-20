@@ -1,0 +1,26 @@
+[arcTo::test_transform]
+macos
+[canvas::test_paint]
+macos
+[canvas::test_save]
+windows
+macos
+# QTBUG-41043
+android
+[canvas::test_toDataURL]
+*
+[fillRect::test_fillRect]
+macos
+[imagedata::test_rounding]
+macos ci
+[ContextFontValidation::test_pixelSize]
+opensuse-leap
+[ContextFontValidation::test_valid]
+opensuse-leap
+# QTQAINFRA-4127
+[canvas::test_extraArgumentsIgnored:text]
+ci b2qt 32bit
+
+# QTBUG-100991
+[line::test_cap]
+android

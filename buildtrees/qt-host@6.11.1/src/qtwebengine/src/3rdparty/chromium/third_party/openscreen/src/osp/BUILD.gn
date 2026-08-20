@@ -1,0 +1,68 @@
+# Copyright 2018 The Chromium Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build_overrides/build.gni")
+import("../gni/openscreen.gni")
+
+if (!is_win) {
+  visibility = [ "./*" ]
+  openscreen_source_set("osp") {
+    visibility += [ "../*" ]
+    public_deps = [ "public" ]
+    deps = [ "impl" ]
+  }
+
+  openscreen_source_set("unittests") {
+    testonly = true
+    visibility += [ "..:openscreen_unittests_all" ]
+    public = []
+    sources = [
+      "impl/presentation/presentation_connection_unittest.cc",
+      "impl/presentation/presentation_controller_unittest.cc",
+      "impl/presentation/presentation_receiver_unittest.cc",
+      "impl/presentation/testing/mock_connection_delegate.h",
+      "impl/quic/quic_client_unittest.cc",
+      "impl/quic/quic_server_unittest.cc",
+      "public/instance_request_ids_unittest.cc",
+      "public/message_demuxer_unittest.cc",
+      "public/receiver_list_unittest.cc",
+      "public/service_info_unittest.cc",
+      "public/service_listener_unittest.cc",
+      "public/service_publisher_unittest.cc",
+    ]
+
+    deps = [
+      "../platform:base",
+      "../platform:test",
+      "../third_party/abseil",
+      "../third_party/googletest:gmock",
+      "../third_party/googletest:gtest",
+      "../third_party/quiche",
+      "../third_party/tinycbor",
+      "../util",
+      "impl",
+      "impl/quic:test_support",
+      "public",
+      "public:test_support",
+    ]
+  }
+
+  if (!build_with_chromium) {
+    openscreen_executable("osp_demo") {
+      testonly = true
+      visibility += [ "../*" ]
+      sources = [ "demo/osp_demo.cc" ]
+      deps = [
+        "../platform:base",
+        "../platform:standalone_impl",
+        "../third_party/getopt",
+        "../third_party/quiche",
+        "../third_party/tinycbor",
+        "../util",
+        "impl",
+        "public",
+      ]
+    }
+  }
+}

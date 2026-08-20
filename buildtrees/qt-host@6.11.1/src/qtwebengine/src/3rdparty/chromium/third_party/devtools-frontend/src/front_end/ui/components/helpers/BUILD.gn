@@ -1,0 +1,55 @@
+# Copyright 2020 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("../../../../scripts/build/ninja/devtools_entrypoint.gni")
+import("../../../../scripts/build/ninja/devtools_module.gni")
+import("../../../../scripts/build/ninja/devtools_pre_built.gni")
+import("../../../../scripts/build/typescript/typescript.gni")
+import("../visibility.gni")
+
+devtools_module("helpers") {
+  sources = [
+    "component-server-setup.ts",
+    "directives.ts",
+    "get-root-node.ts",
+    "scheduled-render.ts",
+  ]
+
+  deps = [
+    "../../../core/common:bundle",
+    "../../../core/platform:bundle",
+    "../../../core/root:bundle",
+    "../../../ui/legacy/theme_support:bundle",
+    "../../../ui/lit:bundle",
+    "../render_coordinator:bundle",
+  ]
+}
+
+devtools_entrypoint("bundle") {
+  entrypoint = "helpers.ts"
+
+  deps = [ ":helpers" ]
+
+  visibility = [
+    "../../../testing/*",
+    "../../legacy/*",
+    "../../legacy/components/inline_editor/*",
+  ]
+
+  visibility += default_components_visibility
+}
+
+ts_library("unittests") {
+  testonly = true
+
+  sources = [ "helpers.test.ts" ]
+
+  deps = [
+    ":bundle",
+    "../../../testing",
+    "../../legacy/theme_support:bundle",
+    "../../lit:bundle",
+    "../render_coordinator:bundle",
+  ]
+}

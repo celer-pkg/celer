@@ -1,0 +1,410 @@
+{{>licenseInfo}}
+#ifndef {{prefix}}_HELPERS_H
+#define {{prefix}}_HELPERS_H
+
+#include "{{prefixLowerCase}}{{packageNameLowerCase}}commonexports.h"
+#include "{{prefixLowerCase}}enum.h"
+#include "{{prefixLowerCase}}httpfileelement.h"
+#include "{{prefixLowerCase}}object.h"
+
+#include <QtCore/qbytearray.h>
+#include <QtCore/qdatetime.h>
+#include <QtCore/qjsonarray.h>
+#include <QtCore/qjsonobject.h>
+#include <QtCore/qjsonvalue.h>
+#include <QtCore/qlist.h>
+#include <QtCore/qmap.h>
+#include <QtCore/qset.h>
+#include <QtCore/qvariant.h>
+
+#include <optional>
+#include <string>
+#include <string_view>
+
+{{#buildingQtSources}}
+QT_BEGIN_NAMESPACE
+{{/buildingQtSources}}
+
+{{#cppCommonNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppCommonNamespaceDeclarations}}
+
+{{packageNameUpperCase}}_COMMON_EXPORT bool setDateTimeFormat(const QString &format);
+{{packageNameUpperCase}}_COMMON_EXPORT bool setDateTimeFormat(const Qt::DateFormat &format);
+
+template <typename T>
+QString toStringValue(const QSet<T> &val);
+
+template <typename T>
+bool fromStringValue(const QList<QString> &inStr, QList<T> &val);
+
+template <typename T>
+bool fromStringValue(const QSet<QString> &inStr, QList<T> &val);
+
+template <typename T>
+bool fromStringValue(const QMap<QString, QString> &inStr, QMap<QString, T> &val);
+
+template <typename T>
+QJsonValue toJsonValue(const QList<T> &val);
+
+template <typename T>
+QJsonValue toJsonValue(const QSet<T> &val);
+
+template <typename T>
+QJsonValue toJsonValue(const QMap<QString, T> &val);
+
+template <typename T>
+bool fromJsonValue(QList<T> &val, const QJsonValue &jval);
+
+template <typename T>
+bool fromJsonValue(QSet<T> &val, const QJsonValue &jval);
+
+template <typename T>
+bool fromJsonValue(QMap<QString, T> &val, const QJsonValue &jval);
+
+{{packageNameUpperCase}}_COMMON_EXPORT QString toStringValue(const QVariant &value);
+{{packageNameUpperCase}}_COMMON_EXPORT QString toStringValue(const QString &value);
+{{packageNameUpperCase}}_COMMON_EXPORT QString toStringValue(const QDateTime &value);
+{{packageNameUpperCase}}_COMMON_EXPORT QString toStringValue(const QByteArray &value);
+{{packageNameUpperCase}}_COMMON_EXPORT QString toStringValue(const QDate &value);
+{{packageNameUpperCase}}_COMMON_EXPORT QString toStringValue(qint32 value);
+{{packageNameUpperCase}}_COMMON_EXPORT QString toStringValue(qint64 value);
+{{packageNameUpperCase}}_COMMON_EXPORT QString toStringValue(bool value);
+{{packageNameUpperCase}}_COMMON_EXPORT QString toStringValue(float value);
+{{packageNameUpperCase}}_COMMON_EXPORT QString toStringValue(double value);
+{{packageNameUpperCase}}_COMMON_EXPORT QString toStringValue(const {{prefix}}Object &value);
+{{packageNameUpperCase}}_COMMON_EXPORT QString toStringValue(const {{prefix}}Enum &value);
+{{packageNameUpperCase}}_COMMON_EXPORT QString toStringValue(const {{prefix}}HttpFileElement &value);
+
+template <typename T>
+QString toStringValue(const QSet<T> &val) {
+    QString strArray;
+    for (const auto &item : val)
+        strArray.append(QUrl::toPercentEncoding(toStringValue(item)) + ",");
+    if (val.size() > 0)
+        strArray.chop(1);
+    return strArray;
+}
+
+{{packageNameUpperCase}}_COMMON_EXPORT QJsonValue toJsonValue(const QString &value);
+{{packageNameUpperCase}}_COMMON_EXPORT QJsonValue toJsonValue(const QDateTime &value);
+{{packageNameUpperCase}}_COMMON_EXPORT QJsonValue toJsonValue(const QByteArray &value);
+{{packageNameUpperCase}}_COMMON_EXPORT QJsonValue toJsonValue(const QDate &value);
+{{packageNameUpperCase}}_COMMON_EXPORT QJsonValue toJsonValue(qint32 value);
+{{packageNameUpperCase}}_COMMON_EXPORT QJsonValue toJsonValue(qint64 value);
+{{packageNameUpperCase}}_COMMON_EXPORT QJsonValue toJsonValue(bool value);
+{{packageNameUpperCase}}_COMMON_EXPORT QJsonValue toJsonValue(float value);
+{{packageNameUpperCase}}_COMMON_EXPORT QJsonValue toJsonValue(double value);
+{{packageNameUpperCase}}_COMMON_EXPORT QJsonValue toJsonValue(const {{prefix}}Object &value);
+{{packageNameUpperCase}}_COMMON_EXPORT QJsonValue toJsonValue(const {{prefix}}Enum &value);
+{{packageNameUpperCase}}_COMMON_EXPORT QJsonValue toJsonValue(const {{prefix}}HttpFileElement &value);
+{{packageNameUpperCase}}_COMMON_EXPORT QJsonValue toJsonValue(const QJsonValue &value);
+
+template <typename T>
+QJsonValue toJsonValue(const QList<T> &val) {
+    QJsonArray jArray;
+    for (const auto &item : val)
+        jArray.append(toJsonValue(item));
+    return jArray;
+}
+
+template <typename T>
+QJsonValue toJsonValue(const QSet<T> &val) {
+    QJsonArray jArray;
+    for (const auto &item : val)
+        jArray.append(toJsonValue(item));
+    return jArray;
+}
+
+template <typename T>
+QJsonValue toJsonValue(const QMap<QString, T> &val) {
+    QJsonObject jObject;
+    for (const auto &[key, value] : val.asKeyValueRange())
+        jObject.insert(key, toJsonValue(value));
+    return jObject;
+}
+
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromByteArray(const QByteArray &input, QString &value);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromByteArray(const QByteArray &input, QDateTime &value);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromByteArray(const QByteArray &input, QByteArray &value);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromByteArray(const QByteArray &input, QDate &value);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromByteArray(const QByteArray &input, qint32 &value);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromByteArray(const QByteArray &input, qint64 &value);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromByteArray(const QByteArray &input, bool &value);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromByteArray(const QByteArray &input, float &value);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromByteArray(const QByteArray &input, double &value);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromByteArray(const QByteArray &input, {{prefix}}Object &value);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromByteArray(const QByteArray &input, {{prefix}}Enum &value);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromByteArray(const QByteArray &input, {{prefix}}HttpFileElement &value);
+
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromStringValue(const QString &inStr, QString &value);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromStringValue(const QString &inStr, QDateTime &value);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromStringValue(const QString &inStr, QByteArray &value);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromStringValue(const QString &inStr, QDate &value);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromStringValue(const QString &inStr, qint32 &value);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromStringValue(const QString &inStr, qint64 &value);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromStringValue(const QString &inStr, bool &value);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromStringValue(const QString &inStr, float &value);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromStringValue(const QString &inStr, double &value);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromStringValue(const QString &inStr, {{prefix}}Object &value);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromStringValue(const QString &inStr, {{prefix}}Enum &value);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromStringValue(const QString &inStr, {{prefix}}HttpFileElement &value);
+
+template <typename T>
+bool fromStringValue(const QList<QString> &inStr, QList<T> &val) {
+    bool ok = (inStr.size() > 0);
+    for (const auto &item : inStr) {
+        T itemVal;
+        ok &= fromStringValue(item, itemVal);
+        val.push_back(std::move(itemVal));
+    }
+    return ok;
+}
+
+template <typename T>
+bool fromStringValue(const QSet<QString> &inStr, QList<T> &val) {
+    bool ok = (inStr.size() > 0);
+    for (const auto &item : inStr) {
+        T itemVal;
+        ok &= fromStringValue(item, itemVal);
+        val.push_back(std::move(itemVal));
+    }
+    return ok;
+}
+
+template <typename T>
+bool fromStringValue(const QMap<QString, QString> &inStr, QMap<QString, T> &val) {
+    bool ok = (inStr.size() > 0);
+    for (const auto &[key, value] : inStr.asKeyValueRange()) {
+        T itemVal;
+        ok &= fromStringValue(value, itemVal);
+        val.insert(key, itemVal);
+    }
+    return ok;
+}
+
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromJsonValue(QString &value, const QJsonValue &jval);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromJsonValue(QDateTime &value, const QJsonValue &jval);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromJsonValue(QByteArray &value, const QJsonValue &jval);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromJsonValue(QDate &value, const QJsonValue &jval);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromJsonValue(qint32 &value, const QJsonValue &jval);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromJsonValue(qint64 &value, const QJsonValue &jval);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromJsonValue(bool &value, const QJsonValue &jval);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromJsonValue(float &value, const QJsonValue &jval);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromJsonValue(double &value, const QJsonValue &jval);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromJsonValue({{prefix}}Object &value, const QJsonValue &jval);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromJsonValue({{prefix}}Enum &value, const QJsonValue &jval);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromJsonValue({{prefix}}HttpFileElement &value, const QJsonValue &jval);
+{{packageNameUpperCase}}_COMMON_EXPORT bool fromJsonValue(QJsonValue &value, const QJsonValue &jval);
+
+template <typename T>
+bool fromJsonValue(QList<T> &val, const QJsonValue &jval) {
+    if (jval.isArray()) {
+        const QJsonArray arr = jval.toArray();
+        for (const auto &jitem : arr) {
+            T item;
+            if (!fromJsonValue(item, jitem)) {
+                val.clear();
+                return false;
+            }
+            val.push_back(std::move(item));
+        }
+        return true;
+    }
+    return false;
+}
+
+template <typename T>
+bool fromJsonValue(QSet<T> &val, const QJsonValue &jval) {
+    bool ok = true;
+    if (jval.isArray()) {
+        const QJsonArray arr = jval.toArray();
+        for (const auto &jitem : arr) {
+            T item;
+            ok &= fromJsonValue(item, jitem);
+            val.insert(item);
+        }
+    } else {
+        ok = false;
+    }
+    return ok;
+}
+
+template <typename T>
+bool fromJsonValue(QMap<QString, T> &val, const QJsonValue &jval) {
+    bool ok = true;
+    if (jval.isObject()) {
+        const auto varmap = jval.toObject().toVariantMap();
+        if (varmap.size() > 0) {
+            for (const auto &[key, value] : varmap.asKeyValueRange()) {
+                T itemVal;
+                ok &= fromJsonValue(itemVal, QJsonValue::fromVariant(value));
+                val.insert(key, itemVal);
+            }
+        }
+    } else {
+        ok = false;
+    }
+    return ok;
+}
+
+// Default impl. covers all numbers + bool
+template <typename T>
+inline constexpr bool isPrimitiveMediaType = std::is_arithmetic<T>::value;
+// Overloads for QString and QBA
+template <>
+inline constexpr bool isPrimitiveMediaType<QString> = true;
+template <>
+inline constexpr bool isPrimitiveMediaType<QByteArray> = true;
+
+{{packageNameUpperCase}}_COMMON_EXPORT QString convertJsonValueToString(const QJsonValue &jsonValue);
+
+// multipart/form-data and application/x-www-form-urlencoded Media types
+// provide possibility to encode each field in a specific way,
+// see: https://spec.openapis.org/oas/v3.1.1.html#encoding-object
+// Openapi SPEC 3.1.1 suggest a Default contentType for each field,
+// see https://spec.openapis.org/oas/v3.1.1.html#common-fixed-fields-0
+// So field serialization now is type dependent.
+template <typename T>
+QString serializeMediaTypeContentField(const QString &contentType, const T &value)
+{
+    if (contentType.isEmpty()) {
+        if constexpr (isPrimitiveMediaType<T>)
+            return {{cppCommonNamespace}}::toStringValue(value);
+        else
+            return {{cppCommonNamespace}}::convertJsonValueToString({{cppCommonNamespace}}::toJsonValue(value));
+    }
+    if (contentType == QLatin1StringView("application/json"))
+        return {{cppCommonNamespace}}::convertJsonValueToString({{cppCommonNamespace}}::toJsonValue(value));
+    else
+        return {{cppCommonNamespace}}::toStringValue(value);
+}
+
+template <typename T>
+QString addContentField(const QString &contentType)
+{
+    if (contentType.isEmpty()) {
+        if constexpr (isPrimitiveMediaType<T>)
+            return QStringLiteral("text/plain");
+        else
+            return QStringLiteral("application/json");
+    }
+    return contentType;
+}
+
+template <typename T>
+class OptionalParameter
+{
+public:
+    enum State {
+        IsEmpty,
+        IsNull,
+        HasValue
+    };
+
+    OptionalParameter(State state = IsEmpty): m_state(state) {
+        if (state == HasValue) {
+            static_assert(std::is_default_constructible_v<T>, "T must be default-constructible");
+            m_value =  T{}; // T must be default-constructible
+        } else {
+            m_value = std::nullopt;
+        }
+    }
+    OptionalParameter(const T &val): m_state(HasValue), m_value(val) {}
+
+    constexpr bool hasValue() const { return static_cast<bool>(m_value); } // return m_state == HasValue
+    constexpr const T& value() const & { return *m_value; }
+    constexpr explicit operator bool() const noexcept { return m_value; }
+
+    constexpr const T* operator->() const { return m_value.operator->(); }
+    constexpr T* operator->() { return m_value.operator->(); }
+    constexpr const T& operator*() const& { return m_value.operator*(); }
+    constexpr T& operator*() & { return m_value.operator*(); }
+    constexpr const T&& operator*() const&& noexcept { return m_value.operator*(); }
+    constexpr T&& operator*() && noexcept { return m_value.operator*(); }
+
+    constexpr bool isNull() const { return m_state == IsNull; }
+    constexpr State state() const { return m_state; }
+
+private:
+    State m_state;
+    std::optional<T> m_value;
+};
+
+enum class SerializationFlag : quint32
+{
+    Explode = 0x01,
+    Object = 0x02,
+    NeedPercentEncoding = 0x04,
+    AllFlags = 0xFFFFFFFF,
+};
+Q_DECLARE_FLAGS(SerializationFlags, SerializationFlag)
+
+struct SerializationOptions
+{
+    std::string style;
+    QString prefix;
+    QString suffix;
+    QString assignOperator;
+    QString delimiter;
+    SerializationFlags flags;
+};
+
+{{packageNameUpperCase}}_COMMON_EXPORT QString getParamStylePrefix(std::string_view style);
+{{packageNameUpperCase}}_COMMON_EXPORT QString getParamStyleSuffix(std::string_view style, const QString &name, SerializationFlags flags);
+{{packageNameUpperCase}}_COMMON_EXPORT QString getParamStyleDelimiter(std::string_view style, SerializationFlags flags);
+{{packageNameUpperCase}}_COMMON_EXPORT QString getParamStyleAssignOperator(std::string_view style, SerializationFlags flags);
+
+{{packageNameUpperCase}}_COMMON_EXPORT QString serializeJsonValue(const QJsonValue &value, const SerializationOptions &opts);
+
+template<typename T>
+QString serializeArrayValue(const QList<T> &value, const SerializationOptions &opts)
+{
+    using namespace Qt::StringLiterals;
+    const bool isExplode = opts.flags.testFlag(SerializationFlag::Explode);
+    const bool percentEncode = opts.flags.testFlag(SerializationFlag::NeedPercentEncoding);
+    QString paramString = opts.suffix;
+    qsizetype index = 0;
+    if (value.size() == 0)
+        qWarning() << "serializeArrayValue: array is empty!";
+    for (const T &t : value) {
+        if (index > 0)
+            paramString.append(opts.delimiter);
+        if ((opts.style == "matrix" || opts.style == "form") && isExplode && index > 0)
+            paramString.append(opts.suffix);
+        const QString resultValue = toStringValue(t);
+        paramString.append(percentEncode ? QString::fromLatin1(QUrl::toPercentEncoding(resultValue)) : resultValue);
+        ++index;
+    }
+    return paramString;
+}
+
+template <typename T>
+QString serializeMapValue(const QMap<QString, T> &val, const SerializationOptions &opts) {
+    const bool percentEncode = opts.flags.testFlag(SerializationFlag::NeedPercentEncoding);
+    QString strMap;
+    for (const auto &[key, value] : val.asKeyValueRange()) {
+        if (percentEncode) {
+            strMap.append(QString::fromLatin1(QUrl::toPercentEncoding(key))
+                          + opts.assignOperator
+                          + QString::fromLatin1(QUrl::toPercentEncoding(toStringValue(value)))
+                          + opts.delimiter);
+        } else {
+            strMap.append(key + opts.assignOperator + toStringValue(value)
+                          + opts.delimiter);
+        }
+    }
+    if (val.size() > 0)
+        strMap.chop(opts.delimiter.size());
+    return strMap;
+}
+
+{{#cppCommonNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppCommonNamespaceDeclarations}}
+
+{{#buildingQtSources}}
+QT_END_NAMESPACE
+{{/buildingQtSources}}
+
+#endif // {{prefix}}_HELPERS_H

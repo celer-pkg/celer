@@ -1,0 +1,11 @@
+// Copyright (C) 2015 basysKom GmbH, info@basyskom.com
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Qt OPC UA Examples
+    \group qtopcua-examples
+    \brief List of Qt OPC UA examples.
+
+    The examples show how to use Qt OPC UA from C++ and QML.
+
+*/

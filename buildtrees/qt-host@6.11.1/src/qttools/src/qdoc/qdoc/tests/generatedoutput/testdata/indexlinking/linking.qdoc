@@ -1,0 +1,41 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+/*!
+    \page index-linking.html
+    \title Linking
+
+    \section1 QML properties
+    \list A
+        \li Property group: \l [QML] {Parent::group}.
+        \li Property in a group: \l [QmlPropertyGroups]
+            QDoc.Test::Parent::group.c.
+    \endlist
+
+    \section1 Auto-linking to types in code snippets
+
+    \qml
+    import QtQuick
+
+    ProgressBar {
+        // Linking to int value type
+        property int progress: 0
+    }
+    \endqml
+
+    \code
+    // 'int' should not link anywhere in C++ code
+    int main() { int x{0}; return x; }
+    \endcode
+*/
+
+/*!
+    \title LinkModule QML Types
+    \qmlmodule LinkModule 1.0
+*/
+
+/*!
+    \qmltype GrandChild
+    \inqmlmodule LinkModule
+    \inherits AnotherChild
+*/

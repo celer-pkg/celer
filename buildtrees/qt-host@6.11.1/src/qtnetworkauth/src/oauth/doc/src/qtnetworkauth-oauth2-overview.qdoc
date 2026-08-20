@@ -1,0 +1,466 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qt-oauth2-overview.html
+
+\title OAuth 2.0 Overview
+\ingroup explanations-networkauth
+\brief Overview of OAuth 2.0 support in Qt
+
+\l{RFC 6749}{RFC 6749 -  The OAuth 2.0 Authorization Framework}
+specifies a protocol for authorization of services by using a third-party
+application. OAuth 2.0 uses tokens to abstract the authorization from the
+service and users. This method is safer as the service owner does not need to
+deal with user credentials. It is a replacement for \l{RFC 5849} OAuth 1.0.
+
+The OAuth 2.0 framework defines two \e{client types}, public or confidential,
+and \e flows such as the authorization code flow, implicit code grant, and
+several others for authorization. A typical Qt application is considered a
+\e{public native application}. A public client application is an application
+that can't trusted to hold sensitive information, such as passwords, to be
+embedded within the shipped binary.
+
+\l{RFC 8252}{RFC 8252 OAuth 2.0 for Native Apps} further defines the best
+practices for native applications. Specifically, RFC 8252 recommends the
+the authorization flow with the browser. Therefore, the
+\l QtNetworkAuth classes provide a concrete implementation of this flow.
+
+New in Qt 6.9, QtNetworkAuth provides support for \l{RFC 8628} -
+OAuth 2.0 Device Authorization Grant. This \e{device flow} is intended for
+devices that have limited or impractical input capabilities. For this flow,
+authorization grants use a secondary device such as smartphones instead of the
+device. Examples of these devices are televisions, media consoles, machine HMIs,
+and IoT devices. The user may then use an application on their smartphone to
+authorize the device.
+
+The following table highlights the two OAuth 2.0 flows supported by
+Qt Network Authorization:
+
+\table
+\header
+    \li Aspect
+    \li Authorization Code Flow
+    \li Device Authorization Flow
+\row
+    \li Network Connection
+    \li Yes
+    \li Yes
+\row
+    \li User Interaction
+    \li Browser / user-agent on the same device
+    \li Browser / user-agent on a different device
+\row
+    \li Redirect Handling Required
+    \li Yes
+    \li No
+\row
+    \li Input Capability On Device
+    \li Rich input capabilities
+    \li Limited or no input capability
+\row
+    \li Targets
+    \li Desktop and Mobile Apps
+    \li TVs, Consoles, HMIs, IoT Devices
+\endtable
+
+OAuth 2.0 requires using a user-agent which is typically a browser.
+For further information, refer to \l{Qt OAuth2 Browser Support}.
+
+\section1 OAuth 2.0 classes
+
+Qt Network Authorization provides both concrete and abstract OAuth 2.0 classes.
+The abstract classes are intended for implementing custom flows, while
+the concrete classes provide a concrete implementation.
+
+For the list of C++ classes, refer to the \l QtNetworkAuth page.
+
+Qt Network Authorization has two abstract classes for implementing OAuth 2.0
+flows:
+\list
+    \li An \e {OAuth 2.0 flow implementation} class provides the main API,
+        and is the orchestrator of the flow. The abstract class is
+        QAbstractOAuth2, and the concrete implementations are
+        QOAuth2AuthorizationCodeFlow and QOAuth2DeviceAuthorizationFlow.
+    \li A \e {reply handler} class which handles redirects and replies
+        from an authorization server. The reply handler abstract class
+        is QAbstractOAuthReplyHandler, and the concrete classes are
+        QOAuthHttpServerReplyHandler and QOAuthUriSchemeReplyHandler.
+        The main difference between the reply handlers is the type
+        of redirects they handle. QOAuth2AuthorizationCodeFlow
+        uses a reply handler to handle the redirects and
+        QOAuth2DeviceAuthorizationFlow, which is not based on
+        redirects, does not use reply handlers.
+\endlist
+
+\section1 Authorization code flow
+
+This section is an overview of the authorization code flow from
+\l{RFC 6749 - Authorization Code} and
+\l{RFC 8252 - Authorization Request from a Native App} for native
+applications.
+
+Consider the following sample setup:
+\snippet src_oauth_replyhandlers_p.h uri-variables
+\codeline
+\snippet src_oauth_replyhandlers.cpp uri-service-configuration
+\codeline
+\snippet src_oauth_replyhandlers.cpp uri-oauth-setup
+\codeline
+\snippet src_oauth_replyhandlers.cpp uri-handler-setup
+
+\section2 Authorization flow stages
+
+The RFC 6749 Authorization Code Flow has two main stages: resource authorization
+(including any necessary user authentication) followed by an access
+token request. These are optionally followed by access token usage and
+access token refreshing. The following figure illustrates these stages:
+
+\image oauth2-codeflow-stages.webp
+{Simplified authorization process in a Qt application using an authorization
+server and a browser}
+
+\list
+    \li In authorization stage, the user is authenticated, and
+        the user authorizes the access to resources. This requires browser
+        interaction by the user.
+    \li After the authorization the received authorization
+        code is used to request an access token, and optionally a refresh
+        token.
+    \li Once the access token is acquired, the application uses it to
+        access the resources of interest. The access token is included
+        in the resource requests, and it is up to the resource server
+        to verify the token's validity.
+        There are several ways to include the token as part of the requests
+        with \l{RFC 6750}{bearer tokens}. Including the token in the
+        \l{RFC 6750 - Header Field}{HTTP \c Authorization header} is arguably
+        the most common.
+    \li Access token refreshing. Access tokens typically expire relatively
+        quickly, for example, after one hour. If the application received a
+        refresh token in addition to the access token, the refresh token can be
+        used to request a new access token. Applications can persist
+        longer-lived refresh tokens to avoid the need for a new
+        authorization stage (and thus another browser interaction).
+\endlist
+
+\section2 Details and customization
+
+OAuth 2.0 flows are dynamic and implementing the specifications can
+be tricky at first. The figure below illustrates the main details
+of a successful authorization code flow.
+
+\image oauth2-codeflow-details.webp
+{Details of OAuth 2.0 flow showing the specific event calls}
+
+For clarity, the figure omits some signals, but altogether
+illustrates the details and main customization points. The customization
+points are the various signals and slots the application can use,
+as well as the callbacks which are settable with
+\l QAbstractOAuth::setModifyParametersFunction() and
+\l QAbstractOAuth2::setNetworkRequestModifier().
+
+\section2 Choosing a reply handler
+
+Deciding which handler to use depends on the
+\l{RFC 6749 - redirect_uri Syntax}{redirect_uri} element. The \c redirect_uri
+is set to where the browser is redirected upon concluding the authorization
+stage.
+
+For receiving the authorization response in native applications, \l{RFC 8252}
+specifies three main types of
+\l{RFC 8252 - Authorization Response in a Native App}{response URI schemes}:
+private-use, loopback, and https.
+
+\list
+    \li \l{RFC 8252 - Private-Use URI Scheme Redirection}{Private-use URIs}:
+        Can be used if the OS allows an application to register a custom URI
+        scheme. An attempt to open an URL with such custom scheme will open the
+        related native application. See \l QOAuthUriSchemeReplyHandler.
+    \li \l{RFC 8252 - Claimed https Scheme URI Redirection}{HTTPS URIs}:
+        Can be used if the OS allows the application to register a custom HTTPS
+        URL. An attempt to open this URL will open the related native
+        application. This scheme is recommended if the OS supports it.
+        See \l QOAuthUriSchemeReplyHandler.
+    \li \l{RFC 8252 - Loopback Interface Redirection}{Loopback Interfaces}:
+        These are commonly used for desktop applications, and applications
+        during development. The \l QOAuthHttpServerReplyHandler is designed to
+        handle these URIs by setting up a local server to handle the
+        redirection.
+\endlist
+
+The choice depends on several factors such as:
+\list
+    \li Redirect URIs supported by the authorization server vendor.
+        The support varies from vendor to vendor, and is often specific
+        to a particular client type and operating system. Also, the support
+        may vary depending on whether the application is published or not.
+    \li Redirect URI schemes supported by the target platform(s).
+    \li Application-specific usability, security, and other requirements.
+\endlist
+
+\l{RFC 8252 - Claimed https Scheme URI Redirection}{RFC 8252} recommends using
+the \c https scheme for security and usability advantages over the other
+methods.
+
+\section1 OAuth 2.0 Device Authorization Grant
+
+\l{RFC 8628} OAuth 2.0 Device Authorization Grant is intended for connected
+devices that are limited in terms of input capabilities, or where
+user-agent-browser usage is not practical. Example devices that use this flow
+are smart appliances that need external devices for authorization.
+
+Consider the following sample setup:
+\snippet src_oauth_replyhandlers.cpp deviceflow-setup
+\codeline
+\snippet src_oauth_replyhandlers.cpp deviceflow-handle-authorizewithusercode
+\codeline
+\snippet src_oauth_replyhandlers.cpp deviceflow-handle-grant
+
+\section2 Device Authorization Grant stages
+
+The Device Authorization Grant flow has three main stages: initializing
+the authorization, polling for tokens, and completing the authorization.
+These are optionally followed by token usage and token refreshing.
+The following figure illustrates these stages:
+
+\image oauth2-deviceflow-stages.webp
+{Simplified authorization grant flow in a Qt application using a browser on a
+separate device}
+
+\list
+    \li Authorization is initialized by sending a HTTP request to
+        the authorization server. The authorization server provides a user
+        code, verification URLs, and a device code in response.
+    \li After authorization is initialized, the user is provided with
+        a user code and verification URL(s) for completing the authorization.
+        The mechanism for the end user varies: it can be a visible URL on the screen, QR code, an email, and so on.
+        Refer to \l{RFC 8628 - User Interaction} for more information.
+    \li While waiting for the end user to complete the authorization, the
+        device flow polls the authorization server for tokens. The device code
+        received in the previous step is used to match the authorization
+        session. The poll interval is decided by the authorization server,
+        and is typically 5 seconds.
+    \li Once the end user has accepted or denied the authorization, the
+        authorization server responds to a poll request with the requested
+        tokens or an error code if denied, and the authorization is complete.
+\endlist
+
+\section2 Details and customization
+
+The following figure illustrates the device authorization grant flow in more
+detail. The figure shows the main customization points, which are sometimes
+necessary. For example, proprietary parameters, or additional
+authentication credentials.
+
+\image oauth2-deviceflow-details.webp
+{Details of OAuth 2.0 device grant flow showing the specific event calls}
+
+\section1 Refresh tokens
+
+Refreshing tokens require that the authorization server provide a
+\l{RFC 6749 - Refresh Token}{refresh token}
+during authorization. Providing a refresh token is up to the
+authorization server: some servers may choose to always provide it, some may
+never provide it, and some provide it if a specific
+\l{QAbstractOAuth2::requestedScopeTokens}{scope} was present in the
+authorization request.
+
+The following figure illustrates the token refresh in more detail:
+
+\image oauth2-refresh-details.webp
+{Details of refreshing tokens showing the specific event calls}
+
+As shown in the figure above, the usual customization points
+are also available when refreshing tokens.
+
+To refresh the tokens after an application startup,
+the application needs to persist the refresh token securely,
+and set it with \l QAbstractOAuth2::setRefreshToken.
+\l QAbstractOAuth2::refreshTokens can
+then be called to request new tokens.
+
+New in Qt 6.9, applications can automatically refresh the tokens - see
+\l QAbstractOAuth2::accessTokenAboutToExpire,
+\l QAbstractOAuth2::autoRefresh, and
+\l QAbstractOAuth2::refreshLeadTime.
+
+The expiration time for a refresh token is generally not indicated by
+the authorization server (apart from the server's documentation).
+Their validity can range from days, months, or longer. Furthermore,
+as with other tokens, refresh tokens can be revoked by the user and thus
+invalidated at any time. Therefore, it is important to properly detect a failed
+refresh attempt with
+\l QAbstractOAuth::requestFailed or
+\l QAbstractOAuth2::serverReportedErrorOccurred.
+
+OAuth 2.0 flows require many user interaction, which can be intrusive
+to the user experience. To minimize these interactions,
+tokens can be silently refreshed for the user. Refer to the
+\l{RFC 6749 - Refreshing Access Tokens} for more information.
+
+\section1 Qt OpenID Connect support
+
+\l{OpenID Connect Core}{OpenID Connect (OIDC)} is a simple identity layer on
+top of OAuth 2.0. OIDC can use an authorization server for authenticating the
+identity of a user. Accessing simple user profile information is also possible
+with OIDC.
+
+Qt's support for OIDC is at the moment limited to getting
+ID tokens. An ID token is a \l{JSON Web Token (JWT)} that contains claims about
+the authentication event.
+
+\note ID token validation or ID token decryption is currently not implemented.
+You must use a \l{Third-party JWT Libraries}{third-party JWT library} for JWT
+token signing or verification.
+
+Assuming the application is able to \l{Validating an ID Token}{validate}
+the received tokens, the token can be used to establish
+the identity of the user reliably (so long as the OIDC provider itself
+is trusted).
+
+ID tokens are sensitive information and should be kept as a secret and
+are not the same as access tokens. ID tokens are not intended for sending out
+in API calls - the access token is intended for that purpose. Note that some
+vendors may use the same JWT format for access tokens, but that is not to be
+confused with actual ID tokens which use the same format. With ID
+tokens, the client receiving the token is responsible for verifying the token,
+whereas with access tokens it's the resource server accepting the token that is
+responsible for verification.
+
+\section2 Getting an ID token
+
+Getting an ID token is similar to getting an access token.
+First, we need to set the appropriate scope. The authorization Server
+vendor may support additional scope specifiers such as \c{profile}
+and \c{email}, but all OIDC requests must include \c{openid} scope:
+
+\snippet src_oauth_replyhandlers.cpp oidc-setting-scope
+
+For OIDC, it is strongly recommended to use
+\l{QAbstractOAuth2::nonce}{nonce} parameter.
+This is done by ensuring that appropriate
+\l{QAbstractOAuth2::NonceMode}{NonceMode} is set.
+
+\snippet src_oauth_replyhandlers.cpp oidc-setting-nonce-mode
+
+As the last step, we can listen for either \l QAbstractOAuth2::granted
+signal or the \l QAbstractOAuth2::idTokenChanged directly:
+
+\snippet src_oauth_replyhandlers.cpp oidc-listen-idtoken-change
+
+\section2 Validating an ID token
+
+Validating the received ID Token is a critical part of the
+authentication flow, and when fully implemented, a somewhat complicated task.
+Refer to the full at \l{OpenID Connect ID Validation}.
+
+As a small summary, validation consists of these steps:
+\list
+    \li Decrypting the token if needed
+        (\l{JSON Web Encryption (JWE)}{see JWE})
+    \li Extracting the token header, payload, and signature
+    \li Validating the signature
+    \li Validating the fields of the payload
+        (such as \c{aud, iss, exp, nonce, iat})
+\endlist
+
+Qt currently doesn't provide support for ID token validation,
+but there are
+\l{Third-party JWT Libraries}{Third-party JWT libraries},
+such as \l{jwt-cpp}.
+
+\section3 ID Token Verification example
+
+This section illustrates a simple verification example.
+As prerequisites, the development environment needs to have
+\l{OpenSSL Toolkit}{OpenSSL} libraries, and \l{jwt-cpp} in the include
+folder under the application project's source directory.
+
+In application project's \c CMakeLists.txt file, we first check
+that the pre-requisities are met:
+\snippet ../snippets/CMakeLists.txt oidc-jwt-cpp-available-cmake
+
+Then we add necessary includes and libraries:
+\snippet ../snippets/CMakeLists.txt oidc-jwt-cpp-link-and-include-cmake
+
+In the application source files, include the verification library:
+\snippet src_oauth_replyhandlers.cpp oidc-jwt-cpp-include
+
+Once the application receives an ID token, it's time to verify it.
+First we find a matching key from JSON Web Key Sets (JWKS), see
+\l{OpenID Connect Discovery}).
+\snippet src_oauth_replyhandlers.cpp oidc-jwt-cpp-key-matching
+
+And then we do the actual verification:
+\snippet src_oauth_replyhandlers.cpp oidc-jwt-cpp-verification
+
+\section2 Reading ID token values
+
+The ID token is in \l{JSON Web Token (JWT)} format and consists of a header,
+payload, and signature parts, separated by dots \c {.}.
+
+Reading the values of the ID token is straightforward. As an example,
+assume that there is a struct:
+
+\snippet src_oauth_replyhandlers_p.h oidc-id-token-struct
+
+And a function:
+\snippet src_oauth_replyhandlers_p.h oidc-id-token-parser-declaration
+
+The token can be extracted with:
+\snippet src_oauth_replyhandlers.cpp oidc-id-token-parsing
+
+In some cases the token may be encrypted as \l{JSON Web Encryption (JWE)}
+which internally contains a JWT token. In this case, the token must
+be decrypted first.
+
+\section2 OpenID Connect Discovery
+
+\l{OpenID Connect Discovery} defines the means to discover needed
+OpenID provider details, in order to interact with it. This includes
+information such as \c authorization_endpoint and \c token_endpoint URLs.
+
+While these provider details can be statically configured in the application,
+discovering the details at runtime may provide more flexibility and
+robustness in interacting with various providers.
+
+Getting the discovery document is a simple HTTP GET request.
+The document is typically located in
+\c{https://<domain name>/.well-known/openid_configuration}.
+
+\snippet src_oauth_replyhandlers.cpp oidc-get-openid-configuration
+
+Notably, for token validation, the \l{JSON Web Key (JWK) Set Format}{jwks_uri}
+field provides a link for accessing the current (public) security credentials.
+Using that removes the need to hard-code such credentials in the application
+directly. This also helps with key rotation; the vendors may change the used
+keys from time to time, and therefore ensuring an up-to-date key is important.
+
+Getting the keys is similarly a simple HTTP GET request:
+
+\snippet src_oauth_replyhandlers.cpp oidc-get-jwks-keys
+
+The key set typically contains several keys. The correct key is indicated
+in the JWT header (care must be taken to match the keys properly, just
+checking the key id, \c{kid}, field is not adequate).
+
+\section2 OpenID UserInfo Endpoint
+
+An alternative way to access user information is to use
+\l{OpenID Connect UserInfo Endpoint}, if the OIDC provider supports it. The URL
+for the userinfo is in \c userinfo_endpoint field of the
+\l{OpenID Connect Discovery} document.
+
+The UserInfo endpoint does not use the ID token, but is accessed with the
+access token. Accessing the UserInfo is similar to accessing any other resource
+with an access token.
+
+Assuming the access token is received and set for example by:
+
+\snippet src_oauth_replyhandlers.cpp oidc-set-bearertoken
+
+Then accessing the UserInfo is a HTTP GET request:
+
+\snippet src_oauth_replyhandlers.cpp oidc-read-userinfo
+
+*/

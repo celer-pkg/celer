@@ -1,0 +1,66 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+
+//! [proto-2]
+syntax = "proto3";
+
+package chat;
+
+import "QtCore/QtCore.proto";
+
+message ChatMessage {
+    string username = 1;
+    int64 timestamp = 2;
+    oneof content {
+        TextMessage text = 3;
+        FileMessage file = 4;
+        UserStatus user_status = 5;
+    }
+}
+//! [proto-2]
+
+message TextMessage {
+    string content = 1;
+}
+
+//! [proto-3]
+message FileMessage {
+    enum Type {
+        UNKNOWN = 0;
+        IMAGE = 1;
+        AUDIO = 2;
+        VIDEO = 3;
+        TEXT = 4;
+    }
+    Type type = 1;
+    string name = 2;
+    bytes content = 3;
+    uint64 size = 4;
+
+    message Continuation {
+        uint64 index = 1;
+        uint64 count = 2;
+        QtCore.QUuid uuid = 3;
+    }
+    optional Continuation continuation = 5;
+}
+//! [proto-3]
+
+message UserStatus {
+    enum Type {
+        NONE = 0;
+        LOGIN = 1;
+        ACTIVE = 2;
+        INACTIVE = 3;
+        LOGOUT = 4;
+    }
+    Type type = 1;
+    bool fetched = 2;
+}
+
+message Credentials {
+    string name = 1;
+    string password = 2;
+}
+
+message None {}

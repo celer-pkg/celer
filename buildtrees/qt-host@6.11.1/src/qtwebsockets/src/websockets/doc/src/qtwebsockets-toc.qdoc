@@ -1,0 +1,19 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtwebsockets-toc.html
+    \title Qt WebSockets module topics
+
+    The following list has links to all the individual topics (HTML files)
+    in the Qt WebSockets module.
+
+    \list
+    \li \l {Qt WebSockets Overview}{Overview}
+    \li \l {Testing Qt WebSockets}
+    \li \l {QWebSocket client example}{WebSocket client sample}
+    \li \l {WebSocket server example}{WebSocket server sample}
+    \li \l {Changes to Qt WebSockets}{Upgrading from Qt 5}
+    \endlist
+
+*/

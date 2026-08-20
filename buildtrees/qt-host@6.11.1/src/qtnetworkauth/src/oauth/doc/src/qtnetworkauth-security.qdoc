@@ -1,0 +1,138 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtnetworkauth-security
+    \title Qt Network Authorization Security Considerations
+    \ingroup security-considerations
+    \brief Access control, authorization, and authentication issues.
+
+    This page covers security considerations for applications using
+    \l{Qt Network Authorization}. Much of the content here focuses on
+    OAuth 2.0 Authorization Framework and OpenID.
+
+    Refer to \l{RFC 6749} for the OAuth 2.0 protocol flow and \l{RFC 8252} for
+    security issues regarding native applications.
+
+    \section1 Access control
+
+    Access control involves provisioning resources to users using a system for
+    checking identities and permissions. Access control then includes
+    authorization, authentication, and logging services. Qt Network
+    Authorization's API implements access control with focus on
+    OAuth 2.0 Authorization Framework. Qt Network Authorization supports the
+    Authorization Code flow (with PKCE) and the Device Authorization flow.
+
+    For systems, a deliberate separation according to privileges and
+    permissions is the first step of access control. User categories can
+    dictate the groups that may access certain resources and services.
+    Likewise, permissions on resources or services can dictate the available
+    actions on them. Request only the OAuth scopes your application needs.
+    Limiting scope reduces the potential impact if tokens are compromised.
+
+    Systems also must implement access management for flexibility and for
+    supervision. Provisioning access and services must be part of the system
+    design so that it is easy to add or remove users and resources without
+    compromising security. Activity logs aid audits and security
+    analysis.
+
+    A well known design is the \e {role-based access control} (RBAC).
+
+    \section1 Authentication and single sign-on
+
+    \e Authentication is checking for the identity of a user. Weak
+    authentication methods lead to granting access to the wrong users and can
+    result in private data exposure and execution of malicious actions.
+
+    Connected applications need to verify the identities of users that use
+    restricted resources. Typically, applications verify users by checking user
+    credentials such as username and password in an existing database. This
+    method is vulnerable to false authentications and data breaches. Many
+    mitigation techniques are about user behavior and applications can
+    enforce security policies such as requiring \e strong passwords.
+    Applications can use Qt's validators and widgets to guide users with
+    messages and by restricting the creation of weak passwords.
+
+    Using a centralized authentication system such as a single sign-on (SSO)
+    can minimize the mismanagement of passwords and identities.
+
+    \l{Qt Network Authorization} can retrieve JSON Web Tokens (JWT)
+    through OpenID Connect, an identity layer on top of OAuth 2.0.
+    Often, authentication and authorization are part of the same system.
+    Treat access tokens, refresh tokens, and ID tokens as sensitive data.
+    Store them securely using platform secure storage or encryption.
+    Do not store tokens in plain text.
+
+    \section1 Authorization and resource provision
+
+    \e Authorization is checking if a user has access to a resource based on
+    the user privileges and permissions on that resource. Without proper
+    authorization, users can access a resource and perform actions even though
+    they do not have the permission. Attackers can modify and reduce the
+    integrity of data or abuse resources, causing a denial of service.
+
+    As basic precaution, perform authorization checks before executing actions
+    that can lead to misuse of resources. This check can happen whenever users
+    access server-side resources. The users' privileges and the permissions on
+    the resources determine if the user may execute an action on the resource.
+    Additional authorization checks may be necessary according to the resource.
+    Revoke access and refresh tokens when users log out or when your
+    application no longer needs them.
+
+    \section1 Use an external user-agent
+
+    According to \l{RFC 8252}, applications can use either an
+    \e external or an \e embedded user-agent for the authorization
+    endpoint, as defined in \l{RFC 6749}{OAuth 2.0}. Embedded
+    user-agents are typically the webviews provided and controlled
+    within the application. External user-agents are the
+    system browsers or other applications not controlled by the
+    requesting application.
+
+    \l{RFC 8252} recommends using external user-agents rather than
+    embedded web views for authorization.
+    The application controls the embedded user-agent and fails to separate the
+    privileged access between the application and authorization node. This
+    setup is unsafe as the application can record keystrokes and can trick
+    users with a false sense of security. However, properly configured
+    embedded browsers like Qt WebEngine can also be used when external
+    user-agents are not practical.
+
+    Also, with the system browser as the external user-agent, browser
+    tabs and stored credentials can simplify the user experience. For
+    example, users can use their saved usernames and passwords in the
+    browser. Similarly, using password managers as the external
+    user-agent increases simplicity and trust.
+
+    \section1 PKCE and state parameter
+
+    \l{RFC 7636}{Proof Key for Code Exchange (PKCE)} protects against
+    authorization code interception attacks in the Authorization Code flow. Qt
+    Network Authorization enables PKCE by default.
+
+    Qt Network Authorization generates random state values by default to
+    prevent cross-site request forgery (CSRF) attacks. If you override
+    the state parameter, avoid using hard-coded strings.
+
+    \section1 Platform considerations
+
+    Redirect URI handling varies by platform. On \l{Mobile Platforms}
+    {mobile platforms}, HTTPS redirect URIs can be handled securely
+    through app-claimed URLs. On \l{desktop platforms}, HTTP redirect
+    URIs to localhost remain a valid option for native
+    applications.
+
+    \section1 Security resources for connected applications
+
+    Here are resources for cybersecurity guidance:
+
+    \list
+    \li \l{https://cwe.mitre.org/index.html}{Common Weakness Enumeration}
+    - A catalog of known issues and possible mitigation techniques.
+    \li \l{https://cheatsheetseries.owasp.org}{OWASP Cheat Sheet Series}
+    - A listing of various topics for securing applications.
+    \li \l{RFC 6749} - OAuth 2.0 Authorization Framework
+    \li \l{RFC 8252} - OAuth 2.0 for Native Apps
+    \li \l{RFC 7636} - Proof Key for Code Exchange (PKCE)
+    \endlist
+*/

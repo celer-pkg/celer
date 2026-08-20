@@ -1,0 +1,52 @@
+{
+    "QEN": {
+        "description": "Adds RGB or unified noise to the source item.",
+        "fragmentCode": [
+            "@requires NoiseHelper",
+            "@main",
+            "{",
+            "#if (NOISE_USE_RGB == 1)",
+            "#if (NOISE_USE_RANDOM == 1)",
+            "    uvec2 noiseCoord = uvec2(fragCoord) + HASH_BOX_SIZE * uint(iTime * 60);",
+            "    vec3 noiseColor = _hash13(noiseCoord.x + HASH_BOX_SIZE * noiseCoord.y);",
+            "#else",
+            "    vec3 noiseColor = hash23(fragCoord);",
+            "#endif // NOISE_USE_RANDOM",
+            "#else",
+            "#if (NOISE_USE_RANDOM == 1)",
+            "    uvec2 noiseCoord = uvec2(fragCoord) + HASH_BOX_SIZE * uint(iTime * 60);",
+            "    vec3 noiseColor = vec3(_hash21(noiseCoord));",
+            "#else",
+            "    vec3 noiseColor = vec3(hash21(fragCoord));",
+            "#endif // NOISE_USE_RANDOM",
+            "#endif // NOISE_USE_RGB",
+            "",
+            "    fragColor.rgb = mix(fragColor.rgb, noiseColor * fragColor.a, noiseAmount);",
+            "}"
+        ],
+        "name": "Noise",
+        "properties": [
+            {
+                "defaultValue": "1",
+                "description": "When this is set to 1, the noise affects all RGB color channels separately. When this is set to 0, noise affects all channels similarly.",
+                "name": "NOISE_USE_RGB",
+                "type": "define"
+            },
+            {
+                "defaultValue": "1",
+                "description": "When set to 1, noise animates randomly. When set to 0, noise remains static.",
+                "name": "NOISE_USE_RANDOM",
+                "type": "define"
+            },
+            {
+                "defaultValue": "0",
+                "description": "The amount of noise applied to the source.",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "noiseAmount",
+                "type": "float"
+            }
+        ],
+        "version": 1
+    }
+}

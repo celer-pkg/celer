@@ -1,0 +1,19 @@
+Version: 2
+Module only: True
+Configurations:
+-
+    Template: 'qtci-windows-10_22H2-x86_64-53'
+    Compiler: 'MSVC2019'
+    Features: ['DisableTests']
+-
+    Template: 'qtci-macos-13-x86_64-103'
+    Compiler: 'Clang'
+    Features: ['DisableTests']
+-
+    Template: 'qtci-linux-RHEL-9.6-x86_64-51'
+    Compiler: 'GCC'
+    Features: ['DisableTests']
+-
+    Template: 'qtci-linux-Ubuntu-22.04-x86_64-51'
+    Compiler: 'GCC'
+    Features: ['TestOnly', 'LicenseCheck', 'UseLegacyInstructions']

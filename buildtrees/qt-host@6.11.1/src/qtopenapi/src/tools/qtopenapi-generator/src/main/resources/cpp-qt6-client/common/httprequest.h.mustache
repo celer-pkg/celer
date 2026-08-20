@@ -1,0 +1,112 @@
+{{>licenseInfo}}
+
+#ifndef {{prefix}}_HTTPREQUESTWORKER_H
+#define {{prefix}}_HTTPREQUESTWORKER_H
+
+#include "{{prefixLowerCase}}{{packageNameLowerCase}}commonexports.h"
+
+#include <QtCore/qcontainerfwd.h>
+#include <QtCore/qstring.h> // for argument default value initialization
+
+#include <memory>
+
+QT_BEGIN_NAMESPACE
+class QHttpHeaders;
+class QHttpMultiPart;
+class QNetworkRequest;
+class QNetworkRequestFactory;
+class QRestAccessManager;
+class QRestReply;
+class QUrlQuery;
+QT_END_NAMESPACE
+
+{{#buildingQtSources}}
+QT_BEGIN_NAMESPACE
+{{/buildingQtSources}}
+
+{{#cppCommonNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppCommonNamespaceDeclarations}}
+
+class {{prefix}}HttpFileElement;
+
+class {{prefix}}HttpRequestInputPrivate;
+
+class {{prefix}}HttpRequestInput
+{
+public:
+    enum class VariableLayout {
+        NotSet,
+        Address,
+        UrlEncoded,
+        Multipart,
+    };
+
+    {{packageNameUpperCase}}_COMMON_EXPORT {{prefix}}HttpRequestInput();
+    {{packageNameUpperCase}}_COMMON_EXPORT ~{{prefix}}HttpRequestInput();
+    {{packageNameUpperCase}}_COMMON_EXPORT
+    {{prefix}}HttpRequestInput(const QString &vUrlStr, const QString &vHttpMethod);
+    Q_DISABLE_COPY_MOVE({{prefix}}HttpRequestInput)
+
+    {{packageNameUpperCase}}_COMMON_EXPORT
+    void addVariable(const QString &key, const QString &value);
+    {{packageNameUpperCase}}_COMMON_EXPORT
+    void addFieldHeaders(const QString &key, const QString &value);
+    {{packageNameUpperCase}}_COMMON_EXPORT
+    void addFile(const QString &variableName, const QString &localFilename, const QString &mimeType);
+
+    {{packageNameUpperCase}}_COMMON_EXPORT void setVariableLayout(VariableLayout layout);
+    {{packageNameUpperCase}}_COMMON_EXPORT VariableLayout variableLayout() const;
+
+    {{packageNameUpperCase}}_COMMON_EXPORT void setHeaders(const QHttpHeaders &newHeaders);
+    {{packageNameUpperCase}}_COMMON_EXPORT QHttpHeaders headers() const;
+    {{packageNameUpperCase}}_COMMON_EXPORT QHttpHeaders &headers();
+
+    {{packageNameUpperCase}}_COMMON_EXPORT void setIsFormData(bool isForm);
+    {{packageNameUpperCase}}_COMMON_EXPORT bool isFormData() const;
+
+    {{packageNameUpperCase}}_COMMON_EXPORT QString httpMethod() const;
+
+    {{packageNameUpperCase}}_COMMON_EXPORT bool hasMultiPart() const;
+    {{packageNameUpperCase}}_COMMON_EXPORT QHttpMultiPart* multiPart() const;
+    {{packageNameUpperCase}}_COMMON_EXPORT QHttpMultiPart* takeMultiPart();
+
+    {{packageNameUpperCase}}_COMMON_EXPORT void setRequestBody(const QByteArray &data);
+    {{packageNameUpperCase}}_COMMON_EXPORT QByteArray requestBody() const;
+
+private:
+    friend bool
+    operator==(const {{prefix}}HttpRequestInput &lhs, const {{prefix}}HttpRequestInput &rhs) = delete;
+    friend bool
+    operator!=(const {{prefix}}HttpRequestInput &lhs, const {{prefix}}HttpRequestInput &rhs) = delete;
+
+    friend size_t qHash(const {{prefix}}HttpRequestInput &value) = delete;
+    friend size_t qHash(const {{prefix}}HttpRequestInput &value, size_t seed) = delete;
+
+    friend class {{prefix}}HttpRequestInputPrivate;
+    std::unique_ptr<{{prefix}}HttpRequestInputPrivate> d_ptr;
+};
+
+namespace {{prefix}}HttpRequestWorker {
+    {{packageNameUpperCase}}_COMMON_EXPORT {{prefix}}HttpFileElement getHttpFileElement(const QMap<QString, {{prefix}}HttpFileElement> &files, const QString &fieldname = {});
+    {{packageNameUpperCase}}_COMMON_EXPORT QNetworkRequest getNetworkRequest({{prefix}}HttpRequestInput &input, QByteArray &requestContent, QNetworkRequestFactory factory, bool responseCompressionEnabled, bool requestCompressionEnabled);
+    {{packageNameUpperCase}}_COMMON_EXPORT QByteArray parseResponse(const QRestReply &reply, const QString &workDir, QMap<QString, {{prefix}}HttpFileElement> *files = nullptr);
+
+    enum class CompressionType {
+        Deflate,
+        Gzip,
+        None,
+    };
+    {{packageNameUpperCase}}_COMMON_EXPORT QByteArray decompressData(const QByteArray &data, CompressionType compressionType);
+    {{packageNameUpperCase}}_COMMON_EXPORT QByteArray compressData(const QByteArray &input, int level, CompressionType compressionType);
+} // namespace {{prefix}}HttpRequestWorker
+
+{{#cppCommonNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppCommonNamespaceDeclarations}}
+
+{{#buildingQtSources}}
+QT_END_NAMESPACE
+{{/buildingQtSources}}
+
+#endif // {{prefix}}_HTTPREQUESTWORKER_H

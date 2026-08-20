@@ -1,0 +1,62 @@
+{
+    "QEN": {
+        "description": "The FastBlur effect softens the source content by blurring it with algorithm which uses the source content downscaling and bilinear filtering.",
+        "fragmentCode": [
+            "@requires BlurHelper",
+            "@main",
+            "{",
+            "    vec4 blurredColor = texture(iSource, texCoord) * blurWeight1[0];",
+            "    blurredColor += texture(iSourceBlur1, texCoord) * blurWeight1[1];",
+            "#if (BLUR_HELPER_MAX_LEVEL > 2)",
+            "    blurredColor += texture(iSourceBlur2, texCoord) * blurWeight1[2];",
+            "#endif",
+            "#if (BLUR_HELPER_MAX_LEVEL > 8)",
+            "    blurredColor += texture(iSourceBlur3, texCoord) * blurWeight1[3];",
+            "#endif",
+            "#if (BLUR_HELPER_MAX_LEVEL > 16)",
+            "    blurredColor += texture(iSourceBlur4, texCoord) * blurWeight2[0];",
+            "#endif",
+            "#if (BLUR_HELPER_MAX_LEVEL > 32)",
+            "    blurredColor += texture(iSourceBlur5, texCoord) * blurWeight2[1];",
+            "#endif",
+            "",
+            "    fragColor = blurredColor;",
+            "}"
+        ],
+        "name": "FastBlur",
+        "properties": [
+            {
+                "defaultValue": "0",
+                "description": "This value defines the softness of the shadow. A larger value causes the edges of the shadow to appear more blurry.",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "fastBlurAmount",
+                "type": "float"
+            }
+        ],
+        "version": 1,
+        "vertexCode": [
+            "out vec4 blurWeight1;",
+            "out vec2 blurWeight2;",
+            "",
+            "float blurWeight(float v) {",
+            "    return max(0.0, min(1.0, 1.0 - v * 2.0));",
+            "}",
+            "",
+            "@main",
+            "{",
+            "    float blurLod = sqrt(fastBlurAmount * (BLUR_HELPER_MAX_LEVEL / 64.0)) * 1.2 - 0.2;",
+            "    float bw1 = blurWeight(abs(blurLod - 0.1));",
+            "    float bw2 = blurWeight(abs(blurLod - 0.3));",
+            "    float bw3 = blurWeight(abs(blurLod - 0.5));",
+            "    float bw4 = blurWeight(abs(blurLod - 0.7));",
+            "    float bw5 = blurWeight(abs(blurLod - 0.9));",
+            "    float bw6 = blurWeight(abs(blurLod - 1.1));",
+            "",
+            "    float bsum = bw1 + bw2 + bw3 + bw4 + bw5 + bw6;",
+            "    blurWeight1 = vec4(bw1 / bsum, bw2 / bsum, bw3 / bsum, bw4 / bsum);",
+            "    blurWeight2 = vec2(bw5 / bsum, bw6 / bsum);",
+            "}"
+        ]
+    }
+}

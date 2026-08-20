@@ -1,0 +1,51 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qmllint-warnings-and-errors-void.html
+\ingroup qmllint-warnings-and-errors
+
+\title Do not use void in expressions
+\brief [void] A void expression was used.
+
+\qmllintwarningcategory void
+
+\section1 Do not use void expressions
+
+\section2 What happened?
+A JavaScript void expression was used.
+
+\section2 Why is this bad?
+The void expression has become mostly redundant and can obscure the logic of
+some code by suppressing returned values. It is also prohibited in many code
+styles for being non-obvious and hard to read.
+
+\section2 Example
+\qml
+import QtQuick
+
+Item {
+    function undef() {
+        return void 0
+    }
+
+    function f() {
+        return void someFunction()
+    }
+}
+\endqml
+To fix this warning, remove or replace the use of void:
+\qml
+import QtQuick
+
+Item {
+    function undef() {
+        return undefined
+    }
+
+    function f() {
+        somefunction()
+    }
+}
+\endqml
+*/

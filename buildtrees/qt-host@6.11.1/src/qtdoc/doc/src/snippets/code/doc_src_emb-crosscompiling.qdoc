@@ -1,0 +1,39 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [0]
+export PATH=path/to/cross/compiler:$PATH
+//! [0]
+
+
+//! [1]
+./configure -embedded arm -platform qws/linux-arm-g++ -qt-host-path <path_to_host_qt_installation> <other options>
+//! [1]
+
+
+//! [2]
+cp path/to/QtEmbedded/mkspecs/qws/linux-mips-g++/...
+   path/to/QtEmbedded/mkspecs/qws/linux-myarchitecture-g++/...
+//! [2]
+
+
+//! [3]
+cd path/to/QtEmbedded
+./configure -embedded <architecture> -qt-kbd-<keyboarddriver>
+            -qt-mouse-<mousedriver> -qt-gfx-<screendriver>
+//! [3]
+
+
+//! [4]
+cd path/to/QtEmbedded
+./configure  <other options>
+             -L /path/to/libjpeg/libraries -I /path/to/libjpeg/headers
+//! [4]
+
+
+//! [5]
+cd path/to/myApplication
+qmake -project
+qmake
+make
+//! [5]

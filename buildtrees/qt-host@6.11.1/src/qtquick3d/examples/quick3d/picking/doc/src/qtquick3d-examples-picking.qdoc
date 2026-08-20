@@ -1,0 +1,54 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example picking
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - Picking example
+    \examplecategory {3D}
+    \brief Demonstrates picking of models.
+
+    This example demonstrates picking. There are 3 different animated models which can be picked.
+    When a model is picked, the animation is stopped and the model color changed to make it clear
+    which model got picked. Detailed information of the pick result is displayed on the top of
+    the application window.
+
+    \image picking-example.png
+           {Three objects with pick information showing selected cube position}
+
+    \section1 Making Model Pickable
+
+    To make a model pickable, the \l {Model::pickable}{pickable} property needs to be set to
+    \c {true}. We also add \c objectName for the model to be able to display the name of the
+    picked model.
+
+    \snippet picking/main.qml pickable model
+
+    The \c isPicked property was added to be used to toggle the animation and color.
+
+    \snippet picking/main.qml picked color
+
+    \dots
+
+    \snippet picking/main.qml picked animation
+
+    \section1 Getting Pick Results
+
+    To do the actual picking we need to add a \l MouseArea to cover the entire \l View3D.
+
+    \snippet picking/main.qml mouse area
+
+    In the \c onClicked handler of the mouse area, we use the \l {View3D::pick}{pick} method to get
+    the actual result of the pick.
+
+    \snippet picking/main.qml pick result
+
+    If the result has a \l {pickResult::objectHit}{target object}, we go through the
+    specifics of the result, and display them in the text field at the top of the application
+    view.
+
+    \snippet picking/main.qml pick specifics
+
+*/
+
+

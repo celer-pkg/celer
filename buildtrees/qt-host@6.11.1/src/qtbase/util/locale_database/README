@@ -1,0 +1,15 @@
+locale_database is used to generate qlocale data from CLDR.
+
+CLDR is the Common Locale Data Repository, a database for localized
+data (like date formats, country names etc).  It is provided by the
+Unicode consortium.
+
+See cldr2qlocalexml.py for how to run it and qlocalexml2cpp.py to
+update the locale data tables (principally text/qlocale_data_p.h,
+time/q*calendar_data_p.h and time/qtimezone*_data_p.h under
+src/corelib/). See enumdata.py and zonedata.py for when and how to
+update the data they provide. You shall definitely need to pass
+--no-verify or -n to git commit for these changes.
+
+NOTE: on Windows it is advisable to set the environment variable
+PYTHONUTF8 to 1 before running the scripts to avoid encoding errors.

@@ -1,0 +1,27 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtlocation-toc.html
+    \title Qt Location module topics
+
+    The following list has links to all the individual topics (HTML files)
+    in the Qt Location module.
+
+    \list
+    \li \l {Maps and Navigation (C++)}
+    \li \l {Maps and Navigation (QML)}
+    \li \l {Places (C++)}
+    \li \l {QML Places API}{Places (QML)}
+    \li \l {Places Backend}
+    \li \l {QML Maps}{Maps}
+        \list
+            \li \l{QML Maps Plugin}{Maps QML API}
+        \endlist
+    \li \l {Qt Location GeoServices}{GeoServices}
+    \li \l {Qt Location Open Street Map Plugin}{Open Street Map Plugin}
+    \li \l {Qt Location Items Overlay Plugin}{Items Overlay Plugin}
+    \li \l {Changes to Qt Location}{Upgrading from Qt 5}
+    \endlist
+
+*/

@@ -1,0 +1,11 @@
+{
+    "Keys": ["android"],
+    "Provider": "android",
+    "Version": 100,
+    "Priority": 100,
+    "Capabilities": [
+        "Speak",
+        "WordByWordProgress",
+        "Synthesize"
+    ]
+}

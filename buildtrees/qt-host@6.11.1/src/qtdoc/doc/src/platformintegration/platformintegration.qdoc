@@ -1,0 +1,214 @@
+// Copyright (C) 2020 The Qt Company Ltd
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page platform-integration.html
+    \title Platform Integration
+    \brief Integrating Qt with the native platform.
+    \ingroup explanations-platforms
+
+    Qt's main strength as a cross-platform toolkit for application development
+    is removing the need for duplicating the application code for each target
+    platform.
+
+    While Qt solves many of the typical tasks of writing an application,
+    there are always corner cases that Qt can not cover, or where it makes more
+    sense to build a feature on top of the platform specific APIs, or another
+    toolkit.
+
+    To support these use-cases, while still allowing Qt to handle the bulk of
+    the application logic, Qt provides a wide range of platform integration
+    APIs, from simple type conversions to platform specific native interfaces.
+
+    \section1 Type Conversions
+
+    \include platformintegration.qdocinc type-conversions
+
+    For example, to get the current user's username on Apple platforms:
+
+    \code
+        NSProcessInfo *processInfo = NSProcessInfo.processInfo;
+        QString userName = QString::fromNSString(processInfo.userName)
+    \endcode
+
+    For a complete list of all type conversions, see the \l{Type Conversions} overview.
+
+    \section1 Window Embedding
+
+    Windows created by the underlying platform APIs may be used as both
+    parent containers for Qt windows, or embedded into Qt windows as child
+    windows.
+
+    The former is useful if the application is mainly written using the native
+    platform APIs, but where parts of the application uses Qt, for example
+    to draw a specialized UI. To embed Qt into the window hierarchy of the
+    native application, use QWindow::winId() to get the native handle for
+    the Qt window, and then use the native APIs to re-parent the window
+    into the native UI.
+
+    The latter is useful if the native platform, or another toolkit, exposes
+    a specialized control as a native window. By using QWindow::fromWinId()
+    to wrap the native window handle in a QWindow, the window can then be
+    re-parented into the Qt window hierarchy as any other QWindow. To re-parent
+    this QWindow into a Qt Widget based UI, use the widgets-specific
+    QWidget::createWindowContainer() function.
+
+    \section1 Event Handling
+
+    Most event handling use-cases in Qt are sufficiently covered by the cross
+    platform event delivery, via QWindow::event() and friends, or through
+    QObject::installEventFilter().
+
+    In cases where this is not enough, Qt provides access to the delivery of the
+    native events. A global event filter that receives all native events can be
+    installed by using QCoreApplication::installNativeEventFilter(), while
+    per-window native events can be handled in QWindow::nativeEvent().
+
+    \note Interfering with the native event flow may put Qt in an inconsistent
+    state. These APIs should primarily be used to augment Qt's existing
+    event handling, for example for events Qt doesn't handle yet.
+
+    \section1 Native Interfaces
+
+    Platform specific functionality not covered by the APIs mentioned above
+    are handled by the more generic \l{Native Interfaces}{native interface}
+    mechanism in Qt. The interfaces provide access to native or platform
+    specific APIs of the classes they extend.
+
+    \include platformintegration.qdocinc native-interface-blurb
+
+    \include platformintegration.qdocinc native-interface-handle-access-example
+
+    For a complete list of all native interfaces, see the \l{Native Interfaces} overview.
+
+    \warning \include platformintegration.qdocinc native-interface-compat-warning
+
+    \section1 Platform Support
+
+    In addition to the application developer APIs, Qt also interfaces with the
+    platform when providing the underlying implementations of the cross-platform
+    building blocks in Qt.
+
+    Examples are the event dispatcher abstractions in \l{Qt Core} and the rendering
+    hardware abstractions in RHI.
+
+    The main abstraction layer here is the \l{Qt Platform Abstraction},
+    or QPA for short, which deals with window system integration and related use-cases.
+*/
+
+/*!
+    \group platform-type-conversions
+    \title Type Conversions
+
+    \include platformintegration.qdocinc type-conversions
+
+    The following list enumerates all of the available type conversions:
+*/
+
+/*!
+    \group native-interfaces
+    \title Native Interfaces
+
+    The native interfaces provide access to native or platform specific APIs of
+    the classes they extend.
+
+    \include platformintegration.qdocinc native-interface-blurb
+
+    \section1 Example Usage
+
+    \section2 Accessing underlying native handles
+
+    In situations where a feature of the native platform is not exposed in Qt,
+    it can be helpful to access the native handles maintained by Qt, and use
+    those to call the native APIs instead.
+
+    \include platformintegration.qdocinc native-interface-handle-access-example
+
+    The native interface is accessed through the QOpenGLContext::nativeInterface()
+    accessor, which ensures that the requested interface is available, and otherwise
+    returns \nullptr. The underlying NSOpenGLContext is then accessed through the
+    \l{QNativeInterface::QCocoaGLContext::nativeContext()}{nativeContext()} accessor.
+
+    \section2 Adopting existing native handles
+
+    Similarly to the \l{Window Embedding}{window embedding} use-case, there are
+    situations where the native platform, or another toolkit, has created a native
+    handle that you would like to pass on to Qt \mdash wrapping the existing handle
+    instead of creating a new one.
+
+    For example, to adopt an existing NSOpenGLContext, and use that to share
+    resources with a context created by Qt:
+
+    \code
+        using namespace QNativeInterface;
+        QOpenGLContext *adoptedContext = QCocoaGLContext::fromNativeContext(nsOpenGLContext);
+        anotherContext->setShareContext(adoptedContext);
+    \endcode
+
+    The adopted context is created by a platform specific factory function
+    in the QNativeInterface::QCocoaGLContext native interface.
+
+    \section2 Accessing platform specific APIs
+
+    In some cases an API is too platform specific to be included in the cross platform
+    Qt classes, but is still useful to include. These APIs are available either in the
+    same way as when accessing the underlying native handles, through the
+    \l{QOpenGLContext::nativeInterface()}{nativeInterface()} accessor, or directly
+    as static function in the native interface.
+
+    For example, to pull out the OpenGL module handle on Windows:
+
+    \code
+        using namespace QNativeInterface;
+        HMODULE moduleHandle = QWGLContext::openGLModuleHandle();
+    \endcode
+
+    \section1 Source and Binary Compatibility
+
+    \include platformintegration.qdocinc native-interface-compat-warning
+
+    \section1 Available Interfaces
+
+    For a list of all available interfaces, see the QNativeInterface namespace.
+
+    \section2 QOpenGLContext
+
+    Accessed through QOpenGLContext::nativeInterface().
+
+    \annotatedlist native-interfaces-qopenglcontext
+
+    \section2 QOffscreenSurface
+
+    Accessed through QOffscreenSurface::nativeInterface().
+
+    \annotatedlist native-interfaces-qoffscreensurface
+
+    \section2 QSGTexture
+
+    Accessed through QSGTexture::nativeInterface().
+
+    \annotatedlist native-interfaces-qsgtexture
+
+    \noautolist
+*/
+
+/*!
+    \namespace QNativeInterface
+    \inmodule QtPlatformIntegration
+    \since 6.0
+
+    \brief Contains the available native interfaces.
+
+    For documentation on how to use these interfaces, see the \l{Native Interfaces} overview.
+
+    \warning \include platformintegration.qdocinc native-interface-compat-warning
+*/
+
+/*!
+    \namespace QNativeInterface::Private
+    \inmodule QtPlatformIntegration
+    \internal
+    \since 6.0
+
+    \brief Contains the available private native interfaces.
+*/

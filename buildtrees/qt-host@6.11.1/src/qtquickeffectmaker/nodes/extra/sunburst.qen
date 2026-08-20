@@ -1,0 +1,79 @@
+{
+    "QEN": {
+        "description": "Renders a two coloured sunburst effect with adjustable colors, stripe count, angle, center point, center ring and smoothness",
+        "fragmentCode": [
+            "#define TAU 6.28318530718",
+            "@main",
+            "{",
+            "    const vec2 d = texCoord - sunburstCenterPoint;",
+            "    const float a = atan(d.y, d.x)  / TAU + sunburstAngle;",
+            "    const float stp = 1. / sunburstStripeCount;",
+            "    const float m = abs(mod(a, stp) / stp - 0.5) * 2.0;",
+            "    const float dist = sqrt(d.x*d.x + d.y*d.y) * 2.0;",
+            "    const float smth = sunburstSmoothness / dist;",
+            "    float p = smoothstep(0.5 - smth, 0.5 + smth, m);",
+            "    p = max(p, smoothstep(sunburstCenterRing + sunburstCenterSmoothness,  sunburstCenterRing, dist + 0.1));",
+            "    fragColor = mix(sunburstColor2, sunburstColor1, p);",
+            "}"
+        ],
+        "name": "Sunburst",
+        "properties": [
+            {
+                "defaultValue": "1, 1, 1, 1",
+                "name": "sunburstColor1",
+                "type": "color"
+            },
+            {
+                "defaultValue": "0, 0, 0, 0.5",
+                "name": "sunburstColor2",
+                "type": "color"
+            },
+            {
+                "defaultValue": "0.5, 0.5",
+                "maxValue": "1, 1",
+                "minValue": "0, 0",
+                "name": "sunburstCenterPoint",
+                "type": "vec2"
+            },
+            {
+                "defaultValue": "0",
+                "description": "Sunburst rotation angle, 1.0 is a full circle rotation.",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "sunburstAngle",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0.05",
+                "description": "Smoothing amount between the sunburst colors.",
+                "maxValue": "0.5",
+                "minValue": "0",
+                "name": "sunburstSmoothness",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0.1",
+                "maxValue": "1",
+                "minValue": "0",
+                "name": "sunburstCenterSmoothness",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0",
+                "description": "Paints a circle in the center of sunburst. Together with sunburstCenterSmoothness this reduces the moiré effect.",
+                "maxValue": "2",
+                "minValue": "0",
+                "name": "sunburstCenterRing",
+                "type": "float"
+            },
+            {
+                "defaultValue": "8",
+                "maxValue": "100",
+                "minValue": "3",
+                "name": "sunburstStripeCount",
+                "type": "int"
+            }
+        ],
+        "version": 1
+    }
+}

@@ -1,0 +1,36 @@
+# Copyright (C) 2025 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+openapi: 3.1.1
+servers:
+  - url: 'http://127.0.0.1:10205/v2'
+info:
+  title: The client1 specification
+  description: >
+    This specification is intended for testing purposes.
+  version: 1.0.0
+tags:
+  - name: client1Test
+    description: test client1. It will be generated with 'Gen-Client-Lib' option.
+
+paths:
+  /path/string/simple-explode/{stringParameter}:
+    get:
+      tags: [client1Test]
+      operationId: simpleExplodeString
+      summary: Simple style with explode set to true for string path parameter.
+      parameters:
+        - name: stringParameter
+          in: path
+          required: true
+          style: simple
+          explode: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string

@@ -1,0 +1,11 @@
+Model Information:
+* title: Block Rock
+* source: https://sketchfab.com/3d-models/block-rock-963974e36f474dc1b4e12d54ed46f643
+* author: bilgehan.korkmaz (https://sketchfab.com/bilgehan.korkmaz)
+
+Model License:
+* license type: CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements: Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Block Rock" (https://sketchfab.com/3d-models/block-rock-963974e36f474dc1b4e12d54ed46f643) by bilgehan.korkmaz (https://sketchfab.com/bilgehan.korkmaz) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

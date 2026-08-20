@@ -1,0 +1,201 @@
+# Copyright 2024-2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+package(
+    default_visibility = ["//ink:__subpackages__"],
+)
+
+cc_library(
+    name = "native",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":in_progress_stroke_jni",
+        ":mesh_creation_jni",
+        ":stroke_input_batch_jni",
+        ":stroke_jni",
+        "//ink/brush/internal/jni:native",
+    ],
+    alwayslink = 1,
+)
+
+cc_library(
+    name = "stroke_jni",
+    srcs = ["stroke_jni.cc"],
+    deps = [
+        ":stroke_input_jni_helper",
+        ":stroke_jni_helper",
+        "//ink/brush",
+        "//ink/brush/internal/jni:brush_jni_helper",
+        "//ink/geometry:partitioned_mesh",
+        "//ink/geometry/internal/jni:partitioned_mesh_jni_helper",
+        "//ink/jni/internal:jni_defines",
+        "//ink/strokes:stroke",
+        "//ink/strokes/input:stroke_input_batch",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/status",
+    ] + select({
+        "@platforms//os:android": [],
+        "//conditions:default": [
+            "@rules_jni//jni",
+        ],
+    }),
+    alwayslink = 1,
+)
+
+cc_library(
+    name = "stroke_jni_helper",
+    hdrs = ["stroke_jni_helper.h"],
+    deps = [
+        "//ink/strokes:stroke",
+        "@com_google_absl//absl/log:absl_check",
+    ] + select({
+        "@platforms//os:android": [],
+        "//conditions:default": [
+            "@rules_jni//jni",
+        ],
+    }),
+)
+
+cc_library(
+    name = "in_progress_stroke_jni",
+    srcs = ["in_progress_stroke_jni.cc"],
+    deps = [
+        ":in_progress_stroke_jni_helper",
+        ":stroke_input_jni_helper",
+        ":stroke_jni_helper",
+        "//ink/brush",
+        "//ink/brush/internal/jni:brush_jni_helper",
+        "//ink/geometry:envelope",
+        "//ink/geometry:mesh_format",
+        "//ink/geometry:mutable_mesh",
+        "//ink/geometry:point",
+        "//ink/geometry/internal/jni:box_accumulator_jni_helper",
+        "//ink/geometry/internal/jni:mesh_format_jni_helper",
+        "//ink/geometry/internal/jni:vec_jni_helper",
+        "//ink/jni/internal:jni_defines",
+        "//ink/jni/internal:jni_throw_util",
+        "//ink/strokes:in_progress_stroke",
+        "//ink/strokes:stroke",
+        "//ink/strokes/input:stroke_input",
+        "//ink/strokes/input:stroke_input_batch",
+        "//ink/types:duration",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/log:absl_log",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/types:span",
+    ] + select({
+        "@platforms//os:android": [],
+        "//conditions:default": [
+            "@rules_jni//jni",
+        ],
+    }),
+    alwayslink = 1,
+)
+
+cc_library(
+    name = "in_progress_stroke_jni_helper",
+    hdrs = ["in_progress_stroke_jni_helper.h"],
+    deps = [
+        "//ink/geometry:angle",
+        "//ink/jni/internal:jni_defines",
+        "//ink/strokes:in_progress_stroke",
+        "//ink/strokes/input:stroke_input",
+        "//ink/strokes/input:stroke_input_batch",
+        "//ink/types:duration",
+        "//ink/types:physical_distance",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+    ] + select({
+        "@platforms//os:android": [],
+        "//conditions:default": [
+            "@rules_jni//jni",
+        ],
+    }),
+)
+
+cc_library(
+    name = "stroke_input_jni_helper",
+    srcs = ["stroke_input_jni_helper.cc"],
+    hdrs = ["stroke_input_jni_helper.h"],
+    deps = [
+        "//ink/geometry:angle",
+        "//ink/jni/internal:jni_defines",
+        "//ink/jni/internal:jni_jvm_interface",
+        "//ink/strokes/input:stroke_input",
+        "//ink/strokes/input:stroke_input_batch",
+        "//ink/types:duration",
+        "//ink/types:physical_distance",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+    ] + select({
+        "@platforms//os:android": [],
+        "//conditions:default": [
+            "@rules_jni//jni",
+        ],
+    }),
+)
+
+cc_library(
+    name = "stroke_input_batch_jni",
+    srcs = ["stroke_input_batch_jni.cc"],
+    deps = [
+        ":stroke_input_jni_helper",
+        "//ink/geometry:angle",
+        "//ink/jni/internal:jni_defines",
+        "//ink/jni/internal:jni_throw_util",
+        "//ink/strokes/input:stroke_input",
+        "//ink/strokes/input:stroke_input_batch",
+        "//ink/types:duration",
+        "//ink/types:physical_distance",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/status",
+    ] + select({
+        "@platforms//os:android": [],
+        "//conditions:default": [
+            "@rules_jni//jni",
+        ],
+    }),
+    alwayslink = 1,
+)
+
+cc_library(
+    name = "mesh_creation_jni",
+    srcs = ["mesh_creation_jni.cc"],
+    deps = [
+        ":stroke_input_jni_helper",
+        "//ink/geometry:mesh",
+        "//ink/geometry:mesh_format",
+        "//ink/geometry:partitioned_mesh",
+        "//ink/geometry:point",
+        "//ink/geometry:tessellator",
+        "//ink/geometry/internal:polyline_processing",
+        "//ink/geometry/internal/jni:partitioned_mesh_jni_helper",
+        "//ink/geometry/internal/jni:vec_jni_helper",
+        "//ink/jni/internal:jni_defines",
+        "//ink/jni/internal:jni_throw_util",
+        "//ink/strokes/input:stroke_input_batch",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/types:span",
+    ] + select({
+        "@platforms//os:android": [],
+        "//conditions:default": [
+            "@rules_jni//jni",
+        ],
+    }),
+    alwayslink = 1,
+)

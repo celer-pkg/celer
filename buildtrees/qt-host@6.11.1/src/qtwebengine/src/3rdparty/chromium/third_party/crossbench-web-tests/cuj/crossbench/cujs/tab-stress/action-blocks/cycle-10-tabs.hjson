@@ -1,0 +1,45 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+[
+  {
+    action: switch_tab
+    url: $[SWITCH_RE0]
+  }
+  {
+    action: switch_tab
+    url: $[SWITCH_RE1]
+  }
+  {
+    action: switch_tab
+    url: $[SWITCH_RE2]
+  }
+  {
+    action: switch_tab
+    url: $[SWITCH_RE3]
+  }
+  {
+    action: switch_tab
+    url: $[SWITCH_RE4]
+  }
+  {
+    action: switch_tab
+    url: $[SWITCH_RE5]
+  }
+  {
+    action: switch_tab
+    url: $[SWITCH_RE6]
+  }
+  {
+    action: switch_tab
+    url: $[SWITCH_RE7]
+  }
+  {
+    action: switch_tab
+    url: $[SWITCH_RE8]
+  }
+  {
+    action: switch_tab
+    url: $[SWITCH_RE9]
+  }
+]

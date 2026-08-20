@@ -1,0 +1,109 @@
+<svg width="1000" height="500" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="normal">
+      <feColorMatrix
+        in="SourceGraphic"
+        type="matrix"
+        values="0 0 0 0 0
+                1 1 1 1 0
+                0 0 0 0 0
+                0 0 0 1 0" />
+      <feOffset dx="5" dy="5" />
+      <feBlend in2="SourceGraphic" mode="normal" />
+    </filter>
+    <filter id="multiply">
+      <feColorMatrix
+        in="SourceGraphic"
+        type="matrix"
+        values="0 0 0 0 0
+                1 1 1 1 0
+                0 0 0 0 0
+                0 0 0 1 0" />
+      <feOffset dx="5" dy="5" />
+      <feBlend in2="SourceGraphic" mode="multiply" />
+    </filter>
+    <filter id="screen">
+      <feColorMatrix
+        in="SourceGraphic"
+        type="matrix"
+        values="0 0 0 0 0
+                1 1 1 1 0
+                0 0 0 0 0
+                0 0 0 1 0" />
+      <feOffset dx="5" dy="5" />
+      <feBlend in2="SourceGraphic" mode="screen" />
+    </filter>
+    <filter id="darken">
+      <feColorMatrix
+        in="SourceGraphic"
+        type="matrix"
+        values="0 0 0 0 0
+                1 1 1 1 0
+                0 0 0 0 0
+                0 0 0 1 0" />
+      <feOffset dx="5" dy="5" />
+      <feBlend in2="SourceGraphic" mode="darken" />
+    </filter>
+    <filter id="lighten">
+      <feColorMatrix
+        in="SourceGraphic"
+        type="matrix"
+        values="0 0 0 0 0
+                1 1 1 1 0
+                0 0 0 0 0
+                0 0 0 1 0" />
+      <feOffset dx="5" dy="5" />
+      <feBlend in2="SourceGraphic" mode="lighten" />
+    </filter>
+  </defs>
+  <g transform="translate(0,25)">
+    <circle
+      cx="90"
+      cy="80"
+      r="70"
+      fill="#c00"
+      fill-opacity="0.7"
+      style="filter:url(#normal)" />
+    <text x="80" y="-5">normal</text>
+  </g>
+  <g transform="translate(200,25)">
+    <circle
+      cx="90"
+      cy="80"
+      r="70"
+      fill="#c00"
+      fill-opacity="0.7"
+      style="filter:url(#multiply)" />
+    <text x="80" y="-5">multiply</text>
+  </g>
+  <g transform="translate(400,25)">
+    <circle
+      cx="90"
+      cy="80"
+      r="70"
+      fill="#c00"
+      fill-opacity="0.7"
+      style="filter:url(#screen)" />
+    <text x="80" y="-5">screen</text>
+  </g>
+  <g transform="translate(600,25)">
+    <circle
+      cx="90"
+      cy="80"
+      r="70"
+      fill="#c00"
+      fill-opacity="0.7"
+      style="filter:url(#darken)" />
+    <text x="80" y="-5">darken</text>
+  </g>
+  <g transform="translate(0,240)">
+    <circle
+      cx="90"
+      cy="80"
+      r="70"
+      fill="#c00"
+      fill-opacity="0.7"
+      style="filter:url(#lighten)" />
+    <text x="80" y="-5">lighten</text>
+  </g>
+</svg>

@@ -1,0 +1,99 @@
+<h1>Qt Quick Effect Maker</h1>
+
+Qt Quick Effect Maker is a tool for creating custom shader effects for Qt Quick. It contains both a visual nodes view and a powerful code view to customize the effects. Start by adding nodes in the design mode and modifying their properties in the property view. Then optionally switch to the coding mode to see and modify the generated GLSL shader code. When ready, export the effect QML component as well as the shaders and utilize the component in your application.
+<br>
+<h2>Shader inputs & outputs</h2>
+<table cellpadding="2">
+<tr>
+<td>vec4</td><td><b>fragColor</b></td><td>Fragment shader's output for the color. The format is RGBA and it will be multiplied by default with the item opacity (qt_opacity).</td>
+</tr><tr>
+<td>vec2</td><td><b>texCoord</b></td><td>Normalized position of the fragment (0.0 - 1.0).</td>
+</tr><tr>
+<td>vec2</td><td><b>fragCoord</b></td><td>Position of the fragment in pixels (0.0 - iResolution.xy).</td>
+</tr><tr>
+<td>vec2</td><td><b>vertCoord</b></td><td>Position of the vertex in pixels (0.0 - iResolution.xy). Modify this in the vertex shader to move the vertices.</td>
+</tr><tr>
+<td>vec3</td><td><b>iResolution</b></td><td>Size of the source item / image in pixels. The z parameter is always 1.0</td>
+</tr><tr>
+<td>float</td><td><b>iTime</b></td><td>Animated time in seconds.</td>
+</tr><tr>
+<td>int</td><td><b>iFrame</b></td><td>Animated frame number.</td>
+</tr><tr>
+<td>sampler2D</td><td><b>iSource</b></td><td>Texture sampler of the source item / image.</td>
+</tr><tr>
+<td>vec4</td><td><b>iMouse</b></td><td>Mouse input helper where:<br>"iMouse.xy" is the current mouse position.<br>"abs(iMouse.zw)" is the starting position when the mouse button was pressed.<br>"iMouse.z > 0.0" is true if button is currently down.<br>"iMouse.w > 0.0" is briefly true when mouse button is pressed.</td>
+</tr>
+</table>
+<br>
+<h2>Tags</h2>
+Tags are special commands which are looked for from the shader sources. Format of these tags must be exactly as explained here, so don't modify them unless needed.
+<table cellpadding="2">
+<tr>
+<td><b>@main</b></td><td>This tag can be used in both vertex and fragment shaders to separate code which belongs into root and inside main() method. If the tag is missing, all code goes into main.</td>
+</tr><tr>
+<td><b>@requires [name]</b></td><td>This tag is used to inform that the node depends on other node called [name]. This dependency is not enforced, it is used just to inform the users.</td>
+</tr><tr>
+<td><b>@nodes</b></td><td>This tag is used in the main node vertex and fragment shaders. It will get replaced with the main shader code of the following nodes.</td>
+</tr><tr>
+<td><b>@mesh w, h</b></td><td>This optional tag is used in the vertex shaders to define GridMesh size. The default mesh size is (1, 1). If mesh tag is used multiple times (by different nodes), biggest values will be used. Example: "@mesh 20, 10" creates horizontally 20 and vertically 10 vertices grid mesh.</td>
+</tr><tr>
+<td><b>@blursources</b></td><td>This optional tag is used by BlurHelper to generate pre-blurred sources (iSourceBlur1-6) which other nodes can then utilize.</td>
+</tr>
+</table>
+<br>
+<h2>Porting shadertoy shaders</h2>
+Shadertoy (<a href="https://shadertoy.com">https://shadertoy.com</a>) is very popular website for creating and sharing shader effects. Here are few tips for porting those shaders into Qt Quick Effect Maker:
+<ul>
+<li>Create a new Custom (empty) node for the Shadertoy effect.</li>
+<li>Shadertoy shaders contain main entry as something like "void mainImage( ... ) { ... }". Replace that with the main tag "@main" and either remove the '{' and '}' or keep them in separate lines to have the shader code in its own scope.</li>
+<li>Not all features of Shadertoy are supported. Effects with multipass ("Buffer" tabs) can't be done with effect maker, you must build them separately and bind the output of the buffer ShaderEffect to the source of the next ShaderEffect. Also audio, cubemaps and 3D textures are not supported.</li>
+<li>Shadertoy only supports fragment shaders and built-in textures. To improve the performance of the effect with QQEM you can move some calculations into vertex shader and use custom images to simplify fragment shader.</li>
+<li>Coordinate system between Qt and Shadereffect differs so that Qt has origin (0,0) in top-left corner while Shadertoy and OpenGL use bottom-left corner. If this is important for the effect, consider flipping the y-coordinate in a suitable way. For example to flip fragCoord in Main node switch to: "fragCoord = vec2(qt_Vertex.x, iResolution.y - qt_Vertex.y)". Similarly you may need to adjust texCoord and iMouse.</li>
+</ul>
+<br>
+<h2>Questions and answers</h2>
+<br><br>
+<b>Q: How to get started?</b>
+<br>
+<b>A:</b> First, add an effect node. Either 'Custom' for empty node or any other provided nodes. Node view should always be completely connected, so start from 'Main' node, then custom nodes in desired order, and end to 'Output' node. Double click a node to see its source code and enabled modifying its properties. Press DESIGN / CODE button to switch between these modes. When you have something usable, export the effect to generate QML component and shaders that can be taken into use in your Qt Quick application.
+<br><br>
+<b>Q: Can all nodes be freely mixed?</b>
+<br>
+<b>A:</b> Yes and no. You can freely add any nodes after each other, but the output may not be what you would expect. This affects especially nodes which need to do texture lookups (blur, displace etc.) from the source. You should use only one of these in the effect and that node should be the first one. For example having colorize node first and then blur node results ignoring the colorize. If you need multiple of these nodes, that needs to be done by chaining separate effects as QQEM doesn't currently support building multipass effects.
+<br><br>
+<b>Q: What is the shader source code syntax?</b>
+<br>
+<b>A:</b> Qt 6 uses Vulkan-compatible GLSL (#version 440) as the input and bakes that to native Vulkan, OpenGL (ES), Metal, and Direct 3D shaders. If your target requires e.g. OpenGL ES 2.0, enable the legacy GLSL option from the preferences. But note that some built-in effect nodes use features not available in legacy GLSL (booleans, unsigned integers etc.) so porting might then be required.
+<br><br>
+<b>Q: Why am I seeing "iSourceBlur1: undeclared identifier" error?</b>
+<br>
+<b>A:</b> Most likely you have a node which required blurred sources (like FastBlur or DropShadow) and you haven't added "BlurHelper" node which those nodes depend on.
+<br><br>
+<b>Q: Why am I seeing error about "pseudo3dNoise", "hash21" or "HASH_BOX_SIZE"?</b>
+<br>
+<b>A:</b> Same as above, but this time you haven't added "NoiseHelper" node which contains common noise / hash functions which some nodes depend on.
+<br><br>
+<b>Q: Why am I seeing "[variable] redefinition" error?</b>
+<br>
+<b>A:</b> You are using same variable name in multiple places (nodes). There are different ways to fix this. You can for example rename either of the variables or place you nodes code inside '{ ... }' blocks to not leak the variables.
+<br><br>
+<b>Q: I try to add a node but "Add" button is disabled?</b>
+<br>
+<b>A:</b> You are probably trying to add a node which is already used in the node view, or the node contains some properties which would override existing nodes. This can't be allowed, if you need the new node you must first remove the overlapping node or modify its property names.
+<br><br>
+<b>Q: I try to add a property but "Add" button is disabled?</b>
+<br>
+<b>A:</b> Add property button is only visible in code mode and only enabled when some node other than Main or Output is selected. Reason for this is that properties belong to a node and Main & Output can't contain properties.
+<br><br>
+<b>Q: My effect uses FastBlur, DropShadow etc. but content gets clipped away?</b>
+<br>
+<b>A:</b> Some effects need bigger item area than the source image/item has. To see the effect borders, toggle on the "Show item borders" icon in the Preview view. To adjust these, please open the Edit -> Project Settings, and add suitable padding for the item. For exported items, this needs to be done manually by creating source with the required padding.
+<br><br>
+<b>Q: How can a pass variables from the vertex shader into fragment shader?</b>
+<br>
+<b>A:</b> To create varying/out variables in the vertex shader, prepand them with "out" in the root of the vertex shader e.g. "out vec4 thingColor;" or "out float movement;". There is no need to have matching "in" variables in the fragment shader or care about correct layout location, those are handled automatically.
+<br><br>
+<b>Q: Why changing some shader properties update the preview instantly and others with a short delay?</b>
+<br>
+<b>A:</b> If the property type is "define" or property "API" export button is toggled off, changing the value requires modifying and rebaking the shader which is fast but not instant. When the property is not exported, it doesn't appear as QML API into the effect, doesn't generate uniform and so can't be changed when using the effect. This can be useful to increase the performance and have cleaner API for the effect.
+<br>

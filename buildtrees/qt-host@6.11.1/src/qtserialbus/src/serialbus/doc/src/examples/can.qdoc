@@ -1,0 +1,67 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*! \example can
+    \title CAN Bus Manager
+    \ingroup qtserialbus-examples
+    \examplecategory Connectivity
+
+    \brief The example sends and receives CAN bus frames.
+
+    The example sends and receives CAN bus frames. Incoming frames
+    are ordered according to their type. A connect dialog is
+    provided to adjust the CAN Bus connection parameters.
+
+    Key \l{Qt Serial Bus} classes used in this example:
+
+    \list
+    \li \l{QCanBusDevice}
+    \li \l{QCanBusFrame}
+    \endlist
+
+    \image ../images/can-example.png
+
+    \section1 Creating a QCanBusDevice
+
+    An instance of \l QCanBusDevice is required to perform any CAN
+    communication.
+
+    The \c ConnectDialog allows to specify all the required parameters. After
+    that the device is created using the provided plugin and interface names:
+
+    \snippet can/mainwindow.cpp create_can_device_0
+    \snippet can/mainwindow.cpp create_can_device_1
+
+    The established connections allow to process incoming frames, control the
+    sent frames and handle errors.
+
+    When the device is created, use \l QCanBusDevice::connectDevice() to
+    start the communication.
+
+    \section1 Processing Incoming Frames
+
+    \l QCanBusDevice emits a \l {QCanBusDevice::}{framesReceived()} signal when
+    new frames are available. The \l {QCanBusDevice::}{readFrame()} method
+    can be used to read a single \l QCanBusFrame while there are
+    \l {QCanBusDevice::framesAvailable}{available frames}. Once the frame is
+    received, individual parameters such as \l {QCanBusFrame::}{frameId},
+    \l {QCanBusFrame::}{timeStamp}, or \l {QCanBusFrame::}{payload} can be
+    extracted from it:
+
+    \snippet can/mainwindow.cpp receive_can_frame
+
+    \section1 Sending Frames
+
+    To send custom data over the CAN bus, the user needs to provide at least
+    a \l {QCanBusFrame::}{frameId} and a \l {QCanBusFrame::}{payload}.
+    Optionally other \l QCanBusFrame parameters can be configured:
+
+    \snippet can/sendframebox.cpp prepare_can_frame
+
+    Once the frame is prepared, the \l QCanBusDevice::writeFrame() method can
+    be used to send it:
+
+    \snippet can/mainwindow.cpp send_can_frame
+
+    \include examples-run.qdocinc
+*/

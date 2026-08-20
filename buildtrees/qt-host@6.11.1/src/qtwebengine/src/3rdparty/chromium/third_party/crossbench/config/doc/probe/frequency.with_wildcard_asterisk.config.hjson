@@ -1,0 +1,10 @@
+{
+  probes: {
+    frequency: {
+      cpus: {
+        // If a wildcard is used, it should be the one key in the map.
+        *: "max"
+      }
+    }
+  }
+}

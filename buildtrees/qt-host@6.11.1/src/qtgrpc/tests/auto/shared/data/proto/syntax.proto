@@ -1,0 +1,155 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+syntax = "proto3";
+
+package qtprotobufnamespace.tests;
+
+message Message_Uderscore_name {
+    sint32 testField = 1;
+}
+
+message MessageUderscorename {
+    sint32 testField = 1;
+}
+
+message MessageUnderscoreField {
+    sint32 underScore_Message_field = 1;
+}
+
+message PriorMessageUnderscoreField {
+    sint32 _underScoreMessageField = 1;
+}
+
+message FollowingMessageUnderscoreField {
+    sint32 underScoreMessageField_ = 1;
+}
+
+message CombinedMessageUnderscoreField {
+    sint32 _underScoreMessage_Field_ = 1;
+}
+
+message MessageUpperCase {
+    sint32 TestField = 1;
+}
+
+message MessageReserved {
+    sint32 import = 1;
+    sint32 property = 2;
+    sint32 id = 3;
+}
+
+message MessageUpperCaseReserved {
+    sint32 Import = 1;
+    sint32 Property = 2;
+    sint32 Id = 3;
+}
+
+message UseForwardDeclaredNestedMessage {
+    lowerCaseMessageName.nestedLowerCaseMessage lowerField = 1;
+    lowerCaseMessageName.NestedUpperCaseMessage UpperField = 2;
+}
+
+message lowerCaseMessageName {
+    message nestedLowerCaseMessage {
+        sint32 testField = 1;
+    }
+    message NestedUpperCaseMessage {
+        sint32 testField = 1;
+    }
+    enum nestedLowerCaseEnum {
+        val0 = 0;
+    }
+    enum NestedUpperCaseEnum {
+        Val0 = 0;
+    }
+    sint32 testField = 1;
+    nestedLowerCaseMessage testField1 = 2;
+    NestedUpperCaseMessage testField2 = 3;
+}
+
+message LowerCaseFieldMessageName {
+    lowerCaseMessageName testField = 1;
+}
+
+message MessageEnumReserved {
+    enum ReservedEnum {
+        Import = 0;
+        Property = 1;
+        Id = 2;
+    }
+
+    enum LowerCaseEnum {
+        enumValue0 = 0;
+        enumValue1 = 1;
+        enumValue2 = 2;
+    }
+
+    enum UpperCaseEnum {
+        EnumValue0 = 0;
+        EnumValue1 = 1;
+        EnumValue2 = 2;
+    }
+
+    enum UnderScoreEnum {
+        _enumUnderscoreValue0 = 0;
+        _EnumUnderscoreValue1 = 1;
+    }
+}
+
+message CppKeywords {
+    bool private = 1;
+    bool if = 2;
+    bool else = 3;
+    bool for = 4;
+    bool while = 5;
+    bool switch = 6;
+    bool case = 7;
+    bool do = 8;
+    bool goto = 9;
+}
+
+message int {
+    enum long {
+        bool = 0;
+        char = 1;
+        float = 2;
+        double = 3;
+        unsigned = 4;
+    }
+
+    long enum = 1;
+}
+
+message if {
+    bool else = 1;
+}
+
+message QtCppKeywords {
+    sint32 slots = 1;
+    sint32 signals = 2;
+    bool emit = 3;
+}
+
+message NameClashing {
+}
+
+message NameClashingRepeated {
+}
+
+message NameClashing_Repeated {
+}
+
+message NameClashingMap {
+    map<int32, int32> field1 = 1;
+    int32 Field1_Entry = 2;
+    int32 Field2Entry = 3;
+}
+
+message MutFieldMessage {
+    int32 data = 1;
+}
+
+message NameClashingMutableGetters {
+    MutFieldMessage field = 1;
+    MutFieldMessage mutField = 2;
+}

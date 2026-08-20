@@ -1,0 +1,321 @@
+<svg
+  viewBox="-410 -30 540 540"
+  version="1.1"
+  xmlns="http://www.w3.org/2000/svg">
+
+  <style>
+    svg path.node { fill: inherit; stroke: inherit; }
+    [data-theme="dark"] svg .node-style { fill: #1A8550; stroke: #F2F2F2; }
+    [data-theme="dark"] svg #footnotes { fill: #F2F2F2; }
+    [data-theme="dark"] svg #arrow-tip { fill: #F2F2F2; }
+    [data-theme="dark"] svg .arrow-style { stroke: #F2F2F2; }
+    [data-theme="dark"] svg .text-style { font: 12px arial; fill: #F2F2F2; }
+    [data-theme="dark"] svg .text-style-arrows { font: 12px arial; fill: #F2F2F2; }
+
+    [data-theme="light"] svg .node-style { fill: #56E59D; stroke: #333333; }
+    [data-theme="light"] svg #footnotes { fill: #333333; }
+    [data-theme="light"] svg #arrow-tip { fill: #333333; }
+    [data-theme="light"] svg .arrow-style { stroke: #333333; }
+    [data-theme="light"] svg .text-style { font: 12px arial; fill: #333333; }
+    [data-theme="light"] svg .text-style-arrows { font: 12px arial; fill: #333333; }
+  </style>
+
+  <defs>
+    <path id="raute" class="node"
+      stroke-width="1px"
+      d="m 0 -40 L 80 0 L 0 40 L -80 0 z" />
+    <path id="lozenge" class="node"
+      stroke-width="1px"
+      d="M -60,-20
+        h 120
+        a 20,20 0 0 1 20,20
+        v 0
+        a 20,20 0 0 1 -20,20
+        h -120
+        a 20,20 0 0 1 -20,-20
+        v 0
+        a 20,20 0 0 1 20,-20
+        Z"/>
+    <path id="lozenge_small" class="node"
+      stroke-width="1px"
+      d="M -40,-20
+        h 80
+        a 20,20 0 0 1 20,20
+        v 0
+        a 20,20 0 0 1 -20,20
+        h -80
+        a 20,20 0 0 1 -20,-20
+        v 0
+        a 20,20 0 0 1 20,-20
+        Z"/>
+    <marker
+      id="triangle"
+      viewBox="0 0 10 10"
+      refX="1"
+      refY="5"
+      markerUnits="strokeWidth"
+      markerWidth="10"
+      markerHeight="10"
+      orient="auto">
+      <path id="arrow-tip" d="M 0 0 L 10 5 L 0 10 z" fill="#333333" />
+    </marker>
+  </defs>
+
+  <g id="start" transform="translate(-160, 0)">
+    <use class="node-style" href="#lozenge" fill="#56E59D" stroke="#333333" />
+    <text
+      font-size="12" font-family="Arial" fill="#333333"
+      text-anchor="middle" dominant-baseline="middle"
+      transform="translate(0, -6)"
+      class="text-style">
+      <tspan x="0" dy="0em">Choosing a string class</tspan>
+      <tspan x="0" dy="1.2em">for calling Qt functions</tspan>
+    </text>
+  </g>
+
+  <g id="param_or_return" transform="translate(-160, 100)">
+   <use class="node-style" href="#raute" fill="#56E59D" stroke="#333333" />
+   <text
+      font-size="12" font-family="Arial" fill="#333333"
+      text-anchor="middle" dominant-baseline="middle"
+      transform="translate(0, -12)"
+      class="text-style">
+      <tspan x="0" dy="0em">Is your string</tspan>
+      <tspan x="0" dy="1.2em">known at compile time</tspan>
+      <tspan x="0" dy="1.2em">(a literal)?</tspan>
+  </text>
+  </g>
+
+  <g id="ref_or_perm" transform="translate(-320, 200)">
+    <use class="node-style" href="#raute" fill="#56E59D" stroke="#333333" />
+     <text
+       font-size="12" font-family="Arial" fill="#333333"
+       text-anchor="middle" dominant-baseline="middle"
+       transform="translate(0, -6)"
+       class="text-style">
+       <tspan x="0" dy="0em">Is the parameter a</tspan>
+       <tspan x="0" dy="1.2em">QString or a Q*View?</tspan>
+  </text>
+  </g>
+
+
+  <g id="ref_or_perm" transform="translate(-320, 330)">
+    <use class="node-style" href="#raute" fill="#56E59D" stroke="#333333" />
+     <text
+       font-size="12" font-family="Arial" fill="#333333"
+       text-anchor="middle" dominant-baseline="middle"
+       transform="translate(0, -6)"
+       class="text-style">
+       <tspan x="0" dy="0em">Has the parameter a</tspan>
+       <tspan x="0" dy="1.2em">preferred² encoding?</tspan>
+  </text>
+  </g>
+
+
+  <g id="make_copy" transform="translate(-100, 330)">
+    <use class="node-style" href="#raute" fill="#56E59D" stroke="#333333" />
+    <text
+      font-size="12" font-family="Arial" fill="#333333"
+      text-anchor="middle" dominant-baseline="middle"
+      transform="translate(0, -6)"
+      class="text-style">
+      <tspan x="0" dy="0em">Is your string</tspan>
+      <tspan x="0" dy="1.2em">ASCII?</tspan>
+    </text>
+  </g>
+
+  <g transform="translate(40, 150)">
+    <use class="node-style" href="#lozenge" fill="#56E59D" stroke="#333333" />
+    <text
+      font-size="12" font-family="Arial" fill="#333333"
+      text-anchor="middle" dominant-baseline="middle"
+      transform="translate(0, -4)"
+      class="text-style">
+      <tspan x="0" dy="0em">QString¹</tspan>
+      <tspan font-size="8" x="0" dy="1.4em">or any other owning string</tspan>
+    </text>
+  </g>
+
+  <g transform="translate(-100, 200)">
+    <use class="node-style" href="#lozenge" fill="#56E59D" stroke="#333333" />
+    <text
+      font-size="12" font-family="Arial" fill="#333333"
+      text-anchor="middle" dominant-baseline="middle"
+      transform="translate(0, -4)"
+      class="text-style">
+      <tspan x="0" dy="0em">QStringLiteral</tspan>
+      <tspan font-size="8" x="0" dy="1.4em">same as u"foo"_s</tspan>
+    </text>
+  </g>
+
+  <g transform="translate(40, 390)">
+    <use class="node-style" href="#lozenge" fill="#56E59D" stroke="#333333" />
+    <text
+      font-size="12" font-family="Arial" fill="#333333"
+      text-anchor="middle" dominant-baseline="middle"
+      transform="translate(0, -4)"
+      class="text-style">
+      <tspan x="0" dy="0em">QLatin1StringView</tspan>
+      <tspan font-size="8" x="0" dy="1.4em">create with "foo"_L1</tspan>
+    </text>
+  </g>
+
+  <g transform="translate(-100, 430)">
+    <use class="node-style" href="#lozenge" fill="#56E59D" stroke="#333333" />
+    <text
+      font-size="12" font-family="Arial" fill="#333333"
+      text-anchor="middle" dominant-baseline="middle"
+      transform="translate(0, -4)"
+      class="text-style">
+      <tspan x="0" dy="0em">QStringView</tspan>
+      <tspan font-size="8" x="0" dy="1.4em">create with u"foo"</tspan>
+    </text>f
+  </g>
+
+
+  <g transform="translate(-320, 430)">
+    <use class="node-style" href="#lozenge" fill="#56E59D" stroke="#333333" />
+    <text
+      font-size="12" font-family="Arial" fill="#333333"
+      text-anchor="middle" dominant-baseline="middle"
+      transform="translate(0, -8)"
+      class="text-style">
+      <tspan x="0" dy="0em">Q*StringView</tspan>
+      <tspan font-size="8" x="0" dy="1.4em">of the preferred encoding,</tspan>
+      <tspan font-size="8" x="0" dy="1.2em">create with u"foo", u8"foo" or "foo"_L1</tspan>
+    </text>
+  </g>
+
+  <g transform="translate(-160, 20)">
+    <path
+      fill="none" stroke="#333333" marker-end="url(#triangle)"
+      class="arrow-style"
+      d="M 0 0 l 0 30" />
+  </g>
+
+  <g transform="translate(-240, 100)">
+    <path
+      fill="none" stroke="#333333" marker-end="url(#triangle)"
+      class="arrow-style"
+      d="M 0 0 l -80 0 l 0 50" />
+    <text x="-40" y="-5"
+      font-size="12" font-family="Arial" fill="#333333"
+      text-anchor="middle" dominant-baseline="auto"
+      class="text-style-arrows">
+      yes
+    </text>
+  </g>
+
+  <g transform="translate(-80, 100)">
+    <path
+      fill="none" stroke="#333333" marker-end="url(#triangle)"
+      class="arrow-style"
+      d="M 0 0 l 120 0 l 0 20" />
+    <text x="60" y="-5"
+      font-size="12" font-family="Arial" fill="#333333"
+      text-anchor="middle" dominant-baseline="auto"
+      class="text-style-arrows">
+      no
+    </text>
+  </g>
+
+
+  <g transform="translate(-240, 200)">
+    <path
+      fill="none" stroke="#333333" marker-end="url(#triangle)"
+      class="arrow-style"
+      d="M 0 0 l 50 0 " />
+    <text x="25" y="-5"
+      font-size="12" font-family="Arial" fill="#333333"
+      text-anchor="middle" dominant-baseline="auto"
+      class="text-style-arrows">
+      QString
+    </text>
+  </g>
+
+
+  <g transform="translate(-320, 240)">
+    <path
+      fill="none" stroke="#333333" marker-end="url(#triangle)"
+      class="arrow-style"
+      d="M 0 0 l 0 40 " />
+    <text x="5" y="20"
+      font-size="12" font-family="Arial" fill="#333333"
+      text-anchor="left" dominant-baseline="middle"
+      class="text-style-arrows">
+      Q*View
+    </text>
+  </g>
+
+  <g transform="translate(-240, 330)">
+    <path
+      fill="none" stroke="#333333" marker-end="url(#triangle)"
+      class="arrow-style"
+      d="M 0 0 l 50 0" />
+    <text x="30" y="-5"
+      font-size="12" font-family="Arial" fill="#333333"
+      text-anchor="middle" dominant-baseline="auto"
+      class="text-style-arrows">
+      no
+    </text>
+  </g>
+
+  <g transform="translate(-320, 370)">
+    <path
+      fill="none" stroke="#333333" marker-end="url(#triangle)"
+      class="arrow-style"
+      d="M 0 0 l 0 30" />
+    <text x="5" y="15"
+      font-size="12" font-family="Arial" fill="#333333"
+      text-anchor="left" dominant-baseline="middle"
+      class="text-style-arrows">
+      yes
+    </text>
+  </g>
+
+
+  <g transform="translate(-20, 330)">
+    <path
+      fill="none" stroke="#333333" marker-end="url(#triangle)"
+      class="arrow-style"
+      d="M 0 0 l 60 0 l 0 30" />
+    <text x="30" y="-5"
+      font-size="12" font-family="Arial" fill="#333333"
+      text-anchor="middle" dominant-baseline="auto"
+      class="text-style-arrows">
+      yes
+    </text>
+  </g>
+
+  <g transform="translate(-100, 370)">
+    <path
+      fill="none" stroke="#333333" marker-end="url(#triangle)"
+      class="arrow-style"
+      d="M 0 0 l 0 30" />
+    <text x="5" y="15"
+      font-size="12" font-family="Arial" fill="#333333"
+      text-anchor="left" dominant-baseline="middle"
+      class="text-style-arrows">
+      no
+    </text>
+  </g>
+
+  <g transform="translate(-400, 465)">
+    <text id="footnotes" x="5" y="5"
+      font-size="9" font-family="Arial" fill="#333333"
+      text-anchor="left" dominant-baseline="middle">
+      <tspan x="0" dy="0em">1:</tspan>
+      <tspan x="1em" dy="0em">An owning string is required to assemble or store
+        a string at runtime, if it is not known at compile time. This can be
+        QString or any</tspan>
+      <tspan x="1em" dy="1.2em">other owning string, such as std::string. The correct
+        choice depends on the required encoding.</tspan>
+      <tspan x="0" dy="1.4em">2:</tspan>
+      <tspan x="1em" dy="0em">Some functions are more effective when using the
+        preferred encoding. For example, QUtf8StringView::compare is fastest
+        with</tspan>
+      <tspan x="1em" dy="1.2em">QUtf8StringView. If you are unsure, proceed as
+        if there were no preferred encoding.</tspan>
+    </text>
+  </g>
+</svg>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="100">
+  <rect width="300" height="50" fill="green" style="stroke-width:3">
+    <animateColor attributeName="fill" from="blue" to="red" dur="200ms" repeatCount="1" />
+    <animateColor attributeName="stroke" from="red" to="yellow" dur="100ms" repeatCount="1" fill="freeze" />
+  </rect>
+
+  <rect width="300" height="50" y="50" fill="blue">
+    <animateColor attributeName="fill" from="yellow" to="green" dur="100ms" begin="200ms" repeatCount="2" fill="freeze" />
+  </rect>
+
+  <text font-size="20" x="10" y="25" fill="red">Red on green with yellow outline
+    <animateColor attributeName="fill" from="cyan" to="magenta" dur="200ms" begin="100ms" repeatCount="1"/>
+  </text>
+
+  <text font-size="20" x="10" y="75" fill="red">Magenta on green
+    <animateColor attributeName="fill" from="cyan" to="magenta" dur="200ms" begin="100ms" repeatCount="1" fill="freeze" />
+  </text>
+
+</svg>

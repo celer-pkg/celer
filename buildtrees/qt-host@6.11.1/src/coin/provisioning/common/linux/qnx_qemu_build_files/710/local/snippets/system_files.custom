@@ -1,0 +1,64 @@
+# local/snippets/system_files.custom
+# Placeholder for local list of files to add to system partition
+
+[perms=444] etc/ssh/sshd_config={
+HostKey /data/var/ssh/ssh_host_rsa_key
+HostKey /data/var/ssh/ssh_host_ed25519_key
+AuthorizedKeysFile .ssh/authorized_keys
+PermitUserEnvironment yes
+AuthenticationMethods none
+PermitEmptyPasswords yes
+PermitRootLogin yes
+PidFile none
+Subsystem sftp /system/xbin/sftp-server
+}
+
+# libraries Qt requires
+lib/libicuuc.so.67=usr/lib/libicuuc.so.67
+lib/libicudata.so.67=usr/lib/libicudata.so.67
+lib/libicui18n.so.67=usr/lib/libicui18n.so.67
+lib/libGLESv2.so.1=usr/lib/libGLESv2.so.1
+lib/libEGL.so.1=usr/lib/libEGL.so.1
+lib/libz.so.2=usr/lib/libz.so.2
+lib/libxml2.so.2=usr/lib/libxml2.so.2
+lib/libfreetype.so.24=usr/lib/libfreetype.so.24
+lib/libbz2.so.1=usr/lib/libbz2.so.1
+lib/liblzma.so.5=usr/lib/liblzma.so.5
+lib/libbacktrace.so.1=usr/lib/libbacktrace.so.1
+lib/libm.so.3=lib/libm.so.3
+
+#############################################
+### Image support
+#############################################
+etc/system/config/img.conf=etc/system/config/img.conf
+lib/libpng16.so.16=usr/lib/libpng16.so.16
+lib/libjpeg.so.9=lib/libjpeg.so.9
+lib/libimg.so.1=lib/libimg.so.1
+lib/dll/img_codec_bmp.so=lib/dll/img_codec_bmp.so
+lib/dll/img_codec_gif.so=lib/dll/img_codec_gif.so
+lib/dll/img_codec_jpg.so=lib/dll/img_codec_jpg.so
+lib/dll/img_codec_png.so=lib/dll/img_codec_png.so
+lib/dll/img_codec_sgi.so=lib/dll/img_codec_sgi.so
+lib/dll/img_codec_tga.so=lib/dll/img_codec_tga.so
+lib/dll/img_codec_tif.so=lib/dll/img_codec_tif.so
+
+# for inotify
+xbin/fsevmgr=sbin/fsevmgr
+
+##############################################
+### MM support
+##############################################
+lib/libstrm.so.1=usr/lib/libstrm.so.1
+lib/libcamapi.so.1=usr/lib/libcamapi.so.1
+lib/libmmrndclient.so.1=usr/lib/libmmrndclient.so.1
+lib/libscreen.so.1=usr/lib/libscreen.so.1
+
+# for fontconfig
+lib/libfontconfig.so.1=usr/lib/libfontconfig.so.1
+xbin/fc-cache=bin/fc-cache
+xbin/fc-match=local/misc_files/fc-match
+
+# network
+lib/libssl.so=usr/lib/libssl.so
+xbin/nslookup=usr/bin/nslookup
+xbin/curl=usr/bin/curl

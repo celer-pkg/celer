@@ -1,0 +1,63 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qt-for-education.html
+    \title Qt for Education
+
+    Welcome to learning Qt!
+
+    \e {Qt for Education} (Qt Edu) is a special licensing package for learning
+    purposes. You can find more information about educational licensing
+    \l {Qt Educational License}{here}.
+
+    These instructions walk you through the installation of the different
+    Qt Edu packages, as well as applying for the educational license.
+
+    \list
+        \li \l {Qt Edu for Designers} - for those interested in creating
+            user interfaces and functional user experiences
+        \li \l {Qt Edu for Developers} - for those interested in developing
+            Qt applications
+        \list
+            \li \l {Developing on Raspberry Pi}
+            \li \l {Developing with Qt for MCUs}
+        \endlist
+        \li \l {Qt Edu resources}
+    \endlist
+
+    \include qt-edu-for-designers.qdoc intro
+
+    \include qt-edu-for-developers.qdoc intro
+*/
+
+/*!
+    \page qt-edu-resources.html
+    \title Qt Edu resources
+
+    \section1 Information about Qt Account
+
+    \c {Qt Account} is where you'll find details about your license, its
+    expiration date, and have access to additional downloads and support
+    services.
+
+    An account is created automatically for you when you fill in the
+    \l {Qt Educational License} request form and create a password. Upon
+    renewal, the new license is linked to your existing Qt Account.
+
+    You can log in to your Qt Account at \l {https://login.qt.io/}{login.qt.io}.
+
+    If you have questions about your account, you can contact
+    \l {mailto://qtaccount@qt.io}{qtaccount@qt.io} or open a support ticket in
+    the account portal.
+
+    \section1 Useful links
+
+    \list
+        \li \l {https://www.qt.io/qt-educational-license}
+            {Frequently asked questions} about the Qt Educational License.
+        \li \l {https://forum.qt.io/category/19/qt-in-education}{Qt in Education}
+            in Qt Forum
+        \li \l {https://www.qt.io/academy}{Qt Academy}
+    \endlist
+*/

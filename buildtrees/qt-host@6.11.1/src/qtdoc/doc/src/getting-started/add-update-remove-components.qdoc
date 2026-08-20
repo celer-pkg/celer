@@ -1,0 +1,27 @@
+// Copyright (C) 2026 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page add-update-remove-components.html
+
+    \title Add, update, and remove installed Qt components
+    \brief Add, update, or remove installed Qt components with \QMT.
+
+    \QMT is included in every Qt installation. Use it to add, update, and remove installed
+    components. The tool is located in your Qt installation directory (typically \c{C:/Qt/}).
+
+    \image {maintenancetool.webp} {Add, remove, and update components in \QMT}
+
+
+    You can also use \QMT with the command-line interface, which is useful if you are:
+    \list
+      \li Updating installations on multiple machines.
+      \li Working with CI/CD pipelines.
+      \li Automating updates without user interaction.
+    \endlist
+
+
+    For more information about using \QMT with the command-line,
+    see \l{Get and Install Qt with Command Line Interface}.
+
+*/

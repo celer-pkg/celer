@@ -1,0 +1,53 @@
+Qt 5.14 introduces many new features and improvements as well as bugfixes
+over the 5.13.x series. For more details, refer to the online documentation
+included in this distribution. The documentation is also available online:
+
+https://doc.qt.io/qt-5/index.html
+
+The Qt version 5.14 series is binary compatible with the 5.13.x series.
+Applications compiled for 5.13 will continue to run with 5.14.
+
+Some of the changes listed in this file include issue tracking numbers
+corresponding to tasks in the Qt Bug Tracker:
+
+https://bugreports.qt.io/
+
+Each of these identifiers can be entered in the bug tracker to obtain more
+information about a particular change.
+
+****************************************************************************
+*                               Android                                    *
+****************************************************************************
+
+ - [QTBUG-67482] Ported Bluetooth device scanning API to BluetoothLeScanner
+   API. This API will be used on Android SDK v21+.
+
+ - [QTBUG-69615] Fixed classic device discovery problems on Android. Newer
+   Android versions (9+) require Location permission for classic device
+   discovery.
+
+****************************************************************************
+*                               QtBluetooth                                *
+****************************************************************************
+
+ - Added possibility to build win32 backend which also works on Windows 7.
+
+ - Deprecated QBluetoothServiceInfo::DataComplete.
+
+ - Signficant refactoring of the Apple platform Bluetooth code to bring it
+   closer to all other code lines. Previously the macOS and iOS code was very
+   distinct which caused duplicated code lines.
+
+ - Proved the examples for HighDPI use cases.
+
+ - Added QLowEnergyController::Authorization enum value.
+
+ - [QTBUG-76615] Added the ability to support multiple manufacturer data
+   entries per QBluetoothDeviceInfo instance. This is of relevance when dealing
+   with BluetoothDeviceDiscoveryAgent::deviceUpdated() signals.
+
+ - [QTBUG77390] Reduced likelyhood of blocking the main event loop on Linux when
+   doing a device scan.
+
+ - [BlueZ] [QTBUG-63019] Added QLowEnergyController::createCentral with
+   locale device overload.

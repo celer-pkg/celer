@@ -1,0 +1,9 @@
+# QTBUG-100254
+[keys]
+android
+
+[hoverAfterClosingWithEscape]
+wayland
+
+[closeByClickingOutside]
+wayland

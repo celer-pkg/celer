@@ -1,0 +1,55 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qt-edu-for-designers.html
+    \title Qt Edu for Designers
+
+//! [intro]
+    \e {Qt Edu for Designers} package contains \l {Qt Design Studio Manual}
+    {Qt Design Studio Enterprise}, allowing you to import your designs from
+    design tools such as \e Figma, \e Sketch, or \e {Adobe XD}, and develop
+    them further into functioning user interfaces on your target devices.
+//! [intro]
+
+    These instructions walk you through the installation of the Qt Edu for
+    Designers package.
+
+    \include qt-edu-steps.qdocinc {qt-edu-common-steps} {Qt Design Studio}
+
+    \image qt-edu-install-design-studio.png
+
+    With \e {Qt Edu for Designers} license, you get access to Qt Design
+    Studio. Select the \uicontrol {Design Tools} shortcut to install the
+    latest version of Qt Design Studio Enterprise.
+
+    Select \uicontrol {Next}.
+
+    \include qt-edu-steps.qdocinc qt-edu-license-agreement
+
+    \section1 9. Finish the installation
+
+    Select \uicontrol {Install} to start the installation process.
+
+    Once installation is complete, you'll see the following screen:
+
+    \image qt-edu-install-finish-design-studio.png
+
+    Select \uicontrol {Finish} to exit the installer.
+
+    \section1 10. Open Qt Design Studio
+
+    Go to the installation folder to see all tools that were installed
+    on your computer. Qt Design Studio is located under its own folder:
+
+    \image qt-edu-design-studio-open.png
+
+    Run the \uicontrol {Qt Design Studio} application:
+
+    \image qt-edu-design-studio-welcome.png
+
+    \b {Now you're ready to start creating user interfaces with Qt Design
+    Studio!}
+
+    Start learning at \l {https://resources.qt.io/learning-hub}{resources.qt.io/learning-hub}.
+*/

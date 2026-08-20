@@ -1,0 +1,19 @@
+# Copyright (C) 2022 The Qt Company Ltd.
+# SPDX-License-Identifier: BSD-3-Clause
+
+add_subdirectory(qquick3dparticle)
+add_subdirectory(qquick3dparticletargetdirection)
+add_subdirectory(qquick3dparticlevectordirection)
+add_subdirectory(qquick3dparticlegravity)
+add_subdirectory(qquick3dparticlesystem)
+add_subdirectory(qquick3dparticlemodelparticle)
+add_subdirectory(qquick3dparticlemodelblendparticle)
+add_subdirectory(qquick3dparticlespriteparticle)
+add_subdirectory(qquick3dparticleemitter)
+add_subdirectory(qquick3dparticleemitburst)
+add_subdirectory(qquick3dparticlepointrotator)
+add_subdirectory(qquick3dparticleshape)
+add_subdirectory(qquick3dparticletrailemitter)
+add_subdirectory(qquick3dparticlewander)
+add_subdirectory(qquick3dparticlelineparticle)
+add_subdirectory(qquick3dparticlesceneshape)

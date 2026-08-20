@@ -1,0 +1,6 @@
+[twoHandlersTwoTouches] # QTBUG-141430
+qnx
+windows
+macos
+[window]
+wayland

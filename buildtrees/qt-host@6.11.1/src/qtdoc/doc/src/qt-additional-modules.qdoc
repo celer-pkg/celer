@@ -1,0 +1,219 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qt-additional-modules.html
+    \title Additional Modules
+
+    \e{Qt Add-On} modules bring additional value for specific purposes. These
+    modules may only be available on some development platform. Many add-on
+    modules are either feature-complete and exist for backwards compatibility,
+    or are only applicable to certain platforms. Each add-on module specifies
+    its compatibility promise separately.
+
+    The Qt installers include the option of downloading the add-ons. For more
+    information, visit the \l{Getting Started with Qt} page.
+
+    \list
+        \li \l{activeqt-index.html}{Active Qt}
+
+            Classes for applications which use ActiveX and COM (Windows only).
+        \li \l{qtbluetooth-index.html}{Qt Bluetooth}
+
+            Provides access to Bluetooth hardware.
+
+        \li \l{qtcanvaspainter-index.html}{Qt Canvas Painter}
+
+            Provides an API for accelerated, imperative 2D painting.
+
+        \li \l{qtcharts-index.html}{Qt Charts}
+
+            UI Components for displaying visually pleasing charts,
+            driven by static or dynamic data models.
+
+        \li \l{qtcoap-index.html}{Qt CoAP}
+
+            Implements the client side of CoAP defined by RFC 7252.
+
+        \li \l{qtconcurrent-index.html}{Qt Concurrent}
+
+            Classes for writing multi-threaded programs without using low-level
+            threading primitives.
+        \li \l{qtcore5-index.html}{Qt 5 Core Compatibility APIs}
+
+            Qt Core APIs that were in Qt 5 but not Qt 6.
+
+        \li \l{qtdatavisualization-index.html}{Qt Data Visualization}
+
+            UI Components for creating stunning 3D data visualizations.
+        \li \l{qtgraphicaleffects5-index.html}{Qt 5 Compatibility APIs: Graphical Effects}
+
+            Qt Graphical Effects module from Qt 5 provided for compatibility.
+        \li \l{qtgraphs-index.html}{Qt Graphs}
+
+            Provides functionality for visualizing data in 3D as bar, scatter,
+            and surface graphs, as well as 2D in area, bar, donut, line, pie,
+            scatter, and spline graphs.
+
+        \li \l{qtgrpc-index.html}{Qt GRPC}
+
+            Provides an ability to generate Qt-based classes from protobuf
+            specifications used to communicate with gRPC® services.
+        \li \l{qthelp-index.html}{Qt Help}
+
+            Classes for integrating documentation into applications.
+        \li \l{qthttpserver-index.html}{Qt HTTP Server}
+
+            A framework for embedding an HTTP server into a Qt application.
+        \li \l{qtimageformats-index.html}{Qt Image Formats}
+
+            Plugins for additional image formats: TIFF, MNG, TGA, WBMP.
+        \li \l{qtlabsplatform-index.html}{Qt Labs Platform}
+
+            The experimental module that provides QML types for native platform
+            extensions.
+        \li \l{qtlabsstylekit-index.html}{Qt Labs StyleKit}
+
+            A dedicated styling API that streamlines styling
+            Qt Quick Controls through a set of shared design attributes.
+        \li \l{qtlocation-index.html}{Qt Location}
+
+            Provides QML and C++ interfaces to create location-aware
+            applications.
+        \li \l{qtlottieanimation-index.html}{Qt Lottie Animation}
+
+            A QML API for rendering graphics and animations in JSON format,
+            exported by the Bodymovin plugin for Adobe® After Effects.
+        \li \l{qtmqtt-index.html}{Qt MQTT}
+
+            Provides an implementation of the MQTT protocol specification.
+        \li \l{qtmultimedia-index.html}{Qt Multimedia}
+
+            A rich set of QML types and C++ classes to handle multimedia content.
+            Also includes APIs to handle camera access.
+        \li \l{qtnetworkauth-index.html}{Qt Network Authorization}
+
+            Provides support for OAuth-based authorization to online services.
+        \li \l{qtnfc-index.html}{Qt NFC}
+
+            Provides access to Near-Field communication (NFC) hardware. On desktop
+            platforms NDEF access is only supported for Type 4 tags.
+        \li \l{qtopcua-index.html}{Qt OPC UA}
+
+            Protocol for data modeling and exchange of data in industrial
+            applications.
+        \li \l{qtopenapi-index.html}{Qt OpenAPI}
+
+            Provides an extension of the upstream Open API generator that generates
+            Qt HTTP clients, typically used for RESTful APIs.
+        \li \l{qtopengl-index.html}{Qt OpenGL}
+
+            C++ classes that make it easy to use OpenGL in Qt applications.
+            A separate library (Qt OpenGL Widgets) provides a widget for
+            rendering OpenGL graphics.
+        \li \l{qtpdf-index.html}{Qt PDF}
+
+            Classes and functions for rendering PDF documents on desktop platforms.
+        \li \l{qtpositioning-index.html}{Qt Positioning}
+
+            Provides access to position, satellite info and area monitoring classes.
+        \li \l{qtprintsupport-index.html}{Qt Print Support}
+
+            Classes to make printing easier and more portable.
+        \li \l{qtprotobuf-index.html}{Qt Protobuf}
+
+            Provides an ability to generate Qt-based classes from protobuf specifications.
+        \li \l{qtquick3d-index.html}{Qt Quick 3D}
+
+            Provides a high-level API for creating 3D content or UIs based on
+            Qt Quick.
+        \li \l{qtquick3dphysics-index.html}{Qt Quick 3D Physics}
+
+            Qt Quick 3D Physics provides a high-level QML module adding physical
+            simulation capabilities to Qt Quick 3D.
+        \li \l{qtquicktimeline-index.html}{Qt Quick Timeline}
+
+            Enables keyframe-based animations and parameterization.
+        \li \l{qtremoteobjects-index.html}{Qt Remote Objects}
+
+            Provides an easy to use mechanism for sharing a QObject's API
+            (Properties/Signals/Slots) between processes or devices.
+        \li \l{qtscxml-index.html}{Qt SCXML}
+
+            Provides classes and tools for creating state machines from SCXML files and
+            embedding them in applications.
+        \li \l{qtsensors-index.html}{Qt Sensors}
+
+            Provides access to sensor hardware on Android, iOS, and Windows platforms.
+        \li \l{qtserialbus-index.html}{Qt Serial Bus}
+
+            Provides access to serial industrial bus interfaces. Currently, the module
+            supports the CAN bus and Modbus protocols.
+        \li \l{qtserialport-index.html}{Qt Serial Port}
+
+            Provides classes to interact with hardware and virtual serial ports.
+        \li \l{qtshadertools-index.html}{Qt Shader Tools}
+
+            Provides tools for the cross-platform Qt shader pipeline. These enable
+            processing graphics and compute shaders to make them usable for Qt Quick and other
+            components in the Qt ecosystem.
+        \li \l{qtspatialaudio-index.html}{Qt Spatial Audio}
+
+            Provides support for spatial audio. Create sound scenes in 3D space containing different
+            sound sources and room related properties such as reverb.
+        \li \l{qtsql-index.html}{Qt SQL}
+
+            Classes for database integration using SQL.
+        \li \l{qtstatemachine-index.html}{Qt State Machine}
+
+            Provides classes for creating and executing state graphs.
+        \li \l{qtsvg-index.html}{Qt SVG}
+
+            Classes for displaying the contents of SVG files. Supports a subset of the
+            SVG 1.2 Tiny standard. A separate library (Qt SVG Widgets) provides support
+            for rendering SVG files in a widget UI.
+
+        \li \l{qttasktree-index.html}{Qt TaskTree}
+
+            Provides a declarative way to compose and execute asynchronous task workflows.
+        \li \l{qttexttospeech-index.html}{Qt TextToSpeech}
+
+            Provides support for synthesizing speech from text and playing it as audio
+            output.
+        \li \l{qtuitools-index.html}{Qt UI Tools}
+
+            Classes for loading QWidget based forms created in \QD dynamically, at runtime.
+        \li \l{qtvirtualkeyboard-index.html}{Qt Virtual Keyboard}
+
+            A framework for implementing different input methods as
+            well as a QML virtual keyboard. Supports localized keyboard
+            layouts and custom visual themes.
+        \li \l{qtwaylandclient-index.html}{Qt Wayland Client}
+
+            Provides the necessary functions for an application to act as a
+            Wayland client and connect to a Wayland compositor.
+        \li \l{qtwaylandcompositor-index.html}{Qt Wayland Compositor}
+
+            Provides a framework to develop a Wayland compositor on Linux
+            and Boot to Qt targets.
+        \li \l{qtwebchannel-index.html}{Qt WebChannel}
+
+            Provides access to QObject or QML objects from HTML clients for seamless
+            integration of Qt applications with HTML/JavaScript clients.
+        \li \l{qtwebengine-index.html}{Qt WebEngine}
+
+            Classes and functions for embedding web content in applications using the
+            Chromium browser project.
+        \li \l{qtwebsockets-index.html}{Qt WebSockets}
+
+            Provides WebSocket communication compliant with RFC 6455.
+        \li \l{qtwebview-index.html}{Qt WebView}
+
+            Displays web content in a QML application by using APIs native to the platform,
+             without the need to include a full web browser stack.
+        \li \l{qtxml-index.html}{Qt XML}
+
+            Handling of XML in a Document Object Model (DOM) API.
+    \endlist
+
+*/

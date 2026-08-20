@@ -1,0 +1,40 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+
+project                 = QtGraphicalEffects5Compat
+description             = Qt 5 Compatibility APIs: Graphical Effects Reference Documentation
+version                 = $QT_VERSION
+moduleheader            =
+
+qhp.projects            = QtGraphicalEffects5Compat
+
+qhp.QtGraphicalEffects5Compat.file                = qtgraphicaleffects5compat.qhp
+qhp.QtGraphicalEffects5Compat.namespace           = org.qt-project.qtgraphicaleffects5.$QT_VERSION_TAG
+qhp.QtGraphicalEffects5Compat.virtualFolder       = qtgraphicaleffects5compat
+qhp.QtGraphicalEffects5Compat.indexTitle          = Qt 5 Compatibility APIs: Graphical Effects
+qhp.QtGraphicalEffects5Compat.indexRoot           =
+
+qhp.QtGraphicalEffects5Compat.subprojects         = qmltypes
+qhp.QtGraphicalEffects5Compat.subprojects.qmltypes.title = QML Types
+qhp.QtGraphicalEffects5Compat.subprojects.qmltypes.indexTitle = Qt 5 Compatibility APIs: Graphical Effect QML Types
+qhp.QtGraphicalEffects5Compat.subprojects.qmltypes.selectors = qmlclass
+qhp.QtGraphicalEffects5Compat.subprojects.qmltypes.sortPages = true
+
+headerdirs  += .. \
+
+sourcedirs  += .. \
+
+
+exampledirs += snippets/
+
+imagedirs   += images
+
+depends += qtqml qtquick qtdoc qtcore qtquickeffectmaker
+
+navigation.landingpage = "Qt 5 Compatibility APIs: Graphical Effects"
+navigation.qmltypespage = "Qt 5 Compatibility APIs: Graphical Effect QML Types"
+
+# Ensure alt text is provided for all images
+reportmissingalttextforimages = true
+
+# Allow zero warnings when testing documentation in CI
+warninglimit = 0

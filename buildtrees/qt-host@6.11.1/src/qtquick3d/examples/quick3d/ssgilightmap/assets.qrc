@@ -1,0 +1,18 @@
+<RCC>
+    <qresource prefix="/">
+        <file>assets/Bedroom/Bedroom.qml</file>
+        <file>assets/CornellBox/CornellBox.qml</file>
+        <file>assets/Sponza/Sponza.qml</file>
+        <file>assets/icons/baked.svg</file>
+        <file>assets/icons/bedroom.svg</file>
+        <file>assets/icons/cornell.svg</file>
+        <file>assets/icons/off.svg</file>
+        <file>assets/icons/reset-camera.svg</file>
+        <file>assets/icons/right-arrow.svg</file>
+        <file>assets/icons/sponza.svg</file>
+        <file>assets/icons/ssgi.svg</file>
+        <file>IconButton.qml</file>
+        <file>Main.qml</file>
+        <file>assets/SceneBase.qml</file>
+    </qresource>
+</RCC>

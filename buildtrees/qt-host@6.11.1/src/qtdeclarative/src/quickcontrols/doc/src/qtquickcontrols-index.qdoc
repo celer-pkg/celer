@@ -1,0 +1,153 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtquickcontrols-index.html
+    \keyword Qt Quick Controls 2
+    \title Qt Quick Controls
+
+    \brief Provides a set of UI controls for Qt Quick.
+
+    Qt Quick Controls provides a set of controls that can be used
+    to build complete interfaces in Qt Quick.
+
+    \image qtquickcontrols-styles.png
+           {Gallery of controls in Basic style}
+
+    Qt Quick Controls comes with a selection of customizable styles.
+    See \l {Styling Qt Quick Controls} for more details.
+
+
+    \section1 Using the Module
+
+    \section2 QML API
+
+    \include {module-use.qdocinc} {using the qml api} {QtQuick.Controls}
+
+    \section2 C++ API
+
+    \include {module-use.qdocinc} {using the c++ api}
+
+    \section3 Building with CMake
+
+    \include {module-use.qdocinc} {building with cmake} {QuickControls2}
+
+    \section3 Building with qmake
+
+    \include {module-use.qdocinc} {building_with_qmake} {quickcontrols2}
+
+    \section2 Building From Source
+
+    The \b{Qt Image Formats} module is recommended, but not
+    required. It provides support for the \c {.webp} format used by the
+    \l {Animated Images}{Imagine style}.
+
+    \section1 Controls
+
+    For the full list of Qt Quick Controls, see
+    \l {Qt Quick Controls QML Types}{QML Types}.
+
+    \section2 Button Controls
+
+    \annotatedlist qtquickcontrols-buttons
+
+    \section2 Container Controls
+
+    \annotatedlist qtquickcontrols-containers
+
+    \section2 Delegate Controls
+
+    \annotatedlist qtquickcontrols-delegates
+
+    \section2 Indicator Controls
+
+    \annotatedlist qtquickcontrols-indicators
+
+    \section2 Input Controls
+
+    \annotatedlist qtquickcontrols-input
+
+    \section2 Menu Controls
+
+    \annotatedlist qtquickcontrols-menus
+
+    \section2 Navigation Controls
+
+    \annotatedlist qtquickcontrols-navigation
+
+    \section2 Popup Controls
+
+    \annotatedlist qtquickcontrols-popups
+
+    \section2 Separator Controls
+
+    \annotatedlist qtquickcontrols-separators
+
+    \section1 Module Evolution
+
+    Qt Quick Controls was originally written with touch interfaces as the
+    primary focus.
+    While it is already possible to develop desktop interfaces, work is ongoing
+    to provide a more native look and feel.
+
+    \l{Changes to Qt Quick Controls} lists important changes in the
+    module API and functionality that were done for the Qt 6 series of Qt.
+
+    \l {Versioning scheme} describes the versioning scheme used for Qt Quick
+    Controls.
+
+    \section1 Articles and Guides
+
+    \list
+      \li \l{Getting Started with Qt Quick Controls}{Getting Started}
+      \li \l{Qt Quick Controls Guidelines}{Guidelines}
+      \li \l{Styling Qt Quick Controls}{Styling}
+      \li \l{Icons in Qt Quick Controls}{Icons}
+      \li \l{Customizing Qt Quick Controls}{Customization}
+      \li \l{Using File Selectors with Qt Quick Controls}{Using File Selectors}
+      \li \l{Deploying Qt Quick Controls Applications}{Deployment}
+      \li \l{Qt Quick Controls Configuration File}{Configuration File}
+      \li \l{Supported Environment Variables in Qt Quick Controls}
+            {Environment Variables}
+    \endlist
+
+    \section1 Examples
+
+    \list
+      \li \l{Qt Quick Controls - Gallery}{Gallery}
+      \li \l{Qt Quick Controls - Chat Tutorial}{Chat Tutorial}
+      \li \l{Qt Quick Controls - Text Editor}{Text Editor}
+      \li \l{Qt Quick Controls - Wearable Demo}{Wearable Demo}
+      \li \l{Qt Quick Controls - Imagine Style Example: Automotive}{Automotive Example}
+      \li \l{Qt Quick Controls Examples}{All Examples}
+    \endlist
+
+    \section1 Reference
+
+    \list
+      \li \l{Qt Quick Controls QML Types}{QML Types}
+      \li \l{Qt Quick Controls C++ Classes}{C++ Classes}
+    \endlist
+
+    \section1 Related Modules
+
+    \list
+      \li \l{Qt Quick}
+      \li \l{Qt Quick Layouts}
+      \li \l{Qt Quick Templates 2}
+      \li \l{Qt Labs Platform}
+    \endlist
+
+    \section1 License and Attributions
+
+    Qt Quick Controls is available under commercial licenses from \l{The Qt Company}.
+    In addition, it is available under the
+    \l{GNU Lesser General Public License, version 3}, or
+    the \l{GNU General Public License, version 2}.
+    See \l{Qt Licensing} for further details.
+
+    Furthermore, Qt Quick Controls potentially contains third party
+    modules under the following permissive licenses:
+
+    \annotatedlist attributions-qtquickcontrols
+*/

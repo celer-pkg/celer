@@ -1,0 +1,76 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example 2d/hellographs
+    \meta tags {Graphs, GraphsView, BarSeries, LineSeries}
+    \examplecategory {Data Visualization}
+    \title HelloGraphs
+    \ingroup qtgraphs_qmlexamples
+    \brief Using Graphs for 2D in a Qt Quick application.
+
+    \e {HelloGraphs} shows how to make a simple 2D bar graph and line graph.
+
+    \image hellographs-example.png
+
+    The following sections describe how to create a bar graph using BarSeries
+    and a line graph using LineSeries.
+
+    \include examples-run.qdocinc
+
+    \section1 BarGraph
+
+    The first graph in the example is a bar graph. Creating it starts with a GraphsView
+    component, setting the \l{GraphsView::axisX}{X axis}, \l{GraphsView::axisY}{Y axis} and
+    \l{GraphsView::theme}{theme}. X axis is a BarCategoryAxis with 3 categories.
+    Both the vertical grid and the axis lines are hidden. Y axis is a ValueAxis with visible range
+    between 20 and 100. Major ticks with labels will be shown on every 10 values using
+    \l{ValueAxis::tickInterval}{tickInterval}. Subticks will be shown on every 1 values using
+    \l{ValueAxis::tickInterval}{subTickCount} \c 9, which means that between every major tick
+    there will be 9 minor ones. Lastly, \l{GraphsView::theme}{theme} is added to one which is
+    suitable on dark backgrounds. This theme adjusts the graph background grid, axis lines and labels.
+
+    \snippet 2d/hellographs/qml/hellographs/main.qml bargraph
+    \dots
+
+    To make this a bar graph, add a \l BarSeries.
+
+    \snippet 2d/hellographs/qml/hellographs/main.qml barseries
+    \dots
+
+    Then data is added into \l BarSeries using \l BarSet. There are 3 bars with defined custom bars
+    color and border properties. These properties will override the possible
+    \l{GraphsTheme::seriesColors}{seriesColors} set for the \l GraphsTheme.
+
+    \snippet 2d/hellographs/qml/hellographs/main.qml barset
+
+    \section1 LineGraph
+
+    The second graph of the example is a line graph. It also starts by defining a
+    \l GraphsView element. Custom \l GraphsTheme is created to get a custom appearance.
+    \l GraphsTheme offers quite a wide range of customization possibilities for the background
+    grid and axis, which get applied after the \l{GraphsTheme::theme}{theme}.
+
+    The GraphsView defines \l{GraphsView::axisX}{axisX} and \l{GraphsView::axisY}{axisY}
+    suitable for this graph.
+
+    \snippet 2d/hellographs/qml/hellographs/main.qml linegraph
+    \dots
+
+    Custom \c Delegate component is used to visualize the data points.
+
+    \snippet 2d/hellographs/qml/hellographs/main.qml linemarker
+
+    To make this a line graph, add a \l LineSeries.
+    This sets the \l{XYSeries::pointDelegate}{pointDelegate} to use the custom
+    \c Delegate component that was created earlier. Data points are added using
+    \l XYPoint elements.
+
+    \snippet 2d/hellographs/qml/hellographs/main.qml lineseries1
+
+    The second line series is similar to the first.
+    As this is second \l LineSeries inside the \l GraphsView, second color from the \c seriesColors
+    gets automatically picked.
+
+    \snippet 2d/hellographs/qml/hellographs/main.qml lineseries2
+*/

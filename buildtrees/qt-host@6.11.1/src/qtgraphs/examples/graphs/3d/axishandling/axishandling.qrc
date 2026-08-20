@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/axishandling/AxisDragging.qml</file>
+        <file>qml/axishandling/AxisFormatting.qml</file>
+        <file>qml/axishandling/Data.qml</file>
+        <file>qml/axishandling/main.qml</file>
+        <file>qml/axishandling/cube.mesh</file>
+        <file>qml/axishandling/cubetexture.png</file>
+    </qresource>
+    <qresource prefix="/mesh"/>
+    <qresource prefix="/texture"/>
+</RCC>

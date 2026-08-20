@@ -1,0 +1,95 @@
+type: Group
+instructions:
+  - !include "{{qt/qtbase}}/prepare_building_env.yaml"
+  - !include "{{qt/qtbase}}/prepare_source_sbom_check.yaml"
+  - type: Group
+    instructions:
+      - type: Group
+        instructions:
+          - !include "{{qt/qtbase}}/cmake_module_build_instructions.yaml"
+          - !include "{{qt/qtbase}}/cmake_build_and_upload_test_artifacts_host.yaml"
+        disable_if:
+          condition: runtime
+          env_var: QT_CI_SKIP_MODULE_BUILD
+          not_equals_value: null
+      - !include "{{qt/qtbase}}/cmake_documentation_build.yaml"
+    enable_if:
+      condition: and
+      conditions:
+        - condition: property
+          property: host.os
+          equals_property: target.os
+        - condition: property
+          property: target.osVersion
+          not_in_values: [QEMU, WebAssembly, INTEGRITY, VxWorks]
+        - condition: property
+          property: features
+          not_contains_value: "TargetBuildOnly"
+        - condition: property
+          property: features
+          not_contains_value: "DebianPackaging"
+        - condition: runtime
+          env_var: AXIVION_ANALYSIS
+          not_equals_value: "1"
+  - type: Group
+    instructions:
+       - !include "{{qt/qtbase}}/coin_module_axivion_template_v2.yaml"
+    enable_if:
+      condition: and
+      conditions:
+        - condition: runtime
+          env_var: AXIVION_ANALYSIS
+          equals_value: "1"
+        - condition: runtime
+          env_var: TESTED_MODULE_COIN
+          not_equals_value: "qtdoc"
+        - condition: runtime
+          env_var: TESTED_MODULE_COIN
+          not_equals_value: "qtquickeffectmaker"
+        - condition: runtime
+          env_var: TESTED_MODULE_COIN
+          not_equals_value: "qttranslations"
+        - condition: runtime
+          env_var: TESTED_MODULE_COIN
+          not_equals_value: "qtwebengine"
+        - condition: runtime
+          env_var: TESTED_MODULE_COIN
+          not_equals_value: "qtactiveqt"
+  - type: Group
+    instructions:
+      - !include "{{qt/qtbase}}/cmake_cross_compilation_module_build_instructions.yaml"
+      - !include "{{qt/qtbase}}/cmake_build_and_upload_test_artifacts_target.yaml"
+    enable_if:
+      condition: or
+      conditions:
+        - condition: property
+          property: target.osVersion
+          in_values: [Android_ANY, QEMU, IOS_ANY, QNX_710, QNX_800, WebAssembly, INTEGRITY, VxWorks]
+        - condition: and
+          conditions:
+            - condition: property
+              property: target.os
+              equals_value: Windows
+            - condition: property
+              property: target.arch
+              not_equals_property: host.arch
+            - condition: property
+              property: features
+              not_contains_value: "DebianPackaging"
+  - type: Group
+    instructions:
+      - type: Group
+        instructions:
+          - !include "{{qt/qtbase}}/debian/debian_build_module.yaml"
+        enable_if:
+          condition: property
+          property: features
+          contains_value: "DebianPackaging"
+
+  # Normally the doc tools are only built in qtbase, but a repository can choose
+  # to opt into building the doc tools during the repo's build phase, instead of using
+  # the qtbase tools, perhaps to use a different qttools sha1.
+  # In that case, the repository must set the QT_CI_BUILD_REPO_DOC_TOOLS=1 environment variable
+  # in its module CI build phase instructions, and QT_CI_FETCH_REPO_DOC_TOOLS=1 in its test phase
+  # instructions.
+  - !include "{{qt/qtbase}}/coin_build_doc_tools_checked.yaml"

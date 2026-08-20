@@ -1,0 +1,20 @@
+// Copyright (C) 2015 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [12]
+cabarc N simpleax.cab simpleax.exe simple.inf
+//! [12]
+
+
+//! [13]
+<object ID="MyActiveX1" CLASSID="CLSID:ad90301a-849e-4e8b-9a91-0a6dc5f6461f">
+   ...
+<\object>
+//! [13]
+
+
+//! [14]
+<object ID=...>
+    <param name="name" value="value">
+<\object>
+//! [14]

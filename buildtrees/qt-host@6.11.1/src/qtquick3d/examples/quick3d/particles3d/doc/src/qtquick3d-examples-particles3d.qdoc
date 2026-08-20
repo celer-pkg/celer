@@ -1,0 +1,83 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example particles3d
+    \examplecategory {3D}
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - Particles 3D Testbed Example
+    \examplecategory {3D}
+    \brief Demonstrates how to use the Qt Quick 3D Particles3D module.
+    \image particles3d-testbed.jpg
+           {Four windows showing different particle system examples}
+
+    This example demonstrates different ways to use the
+    \l{Qt Quick 3D Particles3D QML Types}{QtQuick3D.Particles3D}
+    module features. Particles Testbed contains a collection of examples, some emphasizing a
+    particular feature and some combining more features for achieving the desired appearance.
+
+    \section1 Common Features
+
+    The examples inside the Testbed share some common features. To exit the example back to
+    launching screen, press the back arrow at the top-left corner.
+
+    Bottom-right corner of each example contain an icon that opens the logging view.
+    From this view, you can see different debug data about the particles. Each
+    \l ParticleSystem3D has its own row showing its \l ParticleSystem3DLogging data.
+
+    \image particles3d-loggingview.jpg
+           {Particle system statistics and performance metrics}
+
+    Top-right corner of the most examples contain a settings view which can be shown
+    or hidden by clicking its icon. These settings help to demonstrate individual API
+    features as well as the dynamic behavior of the particle systems.
+
+    \image particles3d-settings.jpg
+           {Control panel for fire, smoke, and sparkles particle effects}
+
+    \section1 Snowing Example
+
+    Let's go through the basics of \l{Qt Quick 3D Particles3D QML Types}
+    {Particles3D} by looking at the Snowing example.
+
+    \image particles3d-snowing.jpg
+           {Two colored cubes with falling snow particles and particle settings
+           panel}
+
+    First, import the \l{Qt Quick 3D Particles3D QML Types}
+    {QtQuick3D.Particles3D} module with the following statement:
+
+    \code
+    import QtQuick3D.Particles3D
+    \endcode
+
+    \l ParticleSystem3D is the root of the particle system which handles the system
+    timing and groups all the other related elements like particles, emitters,
+    and affectors together.
+
+    \snippet particles3d/Snowing.qml particle system
+
+    Then we create a \l SpriteParticle3D which is a visual 2D texture particle.
+    If we would need a 3D model particles we could alternatively use \l ModelParticle3D.
+    Defining the amount of particles with \l {Particle3D::maxAmount}{maxAmount} is important
+    so that optimal buffer sizes get allocated. Here our snowflakes are white, with varied
+    opacity and they fade in and out in 1000ms.
+
+    \snippet particles3d/Snowing.qml sprite particle
+
+    Next we will need \l ParticleEmitter3D to emit the above \c snowParticle particles.
+    The \l {ParticleEmitter3D::shape}{shape} property defines area where emitting is done.
+    Here we define snowflakes to have varied rotation and size. With the
+    \l {ParticleEmitter3D::velocity}{velocity} property you can define the initial
+    direction of speed of the emitted particles. Each snowflake particle exists for 15
+    seconds and the \l {ParticleEmitter3D::emitRate}{emiting rate} is controlled with
+    the settings sliders.
+
+    \snippet particles3d/Snowing.qml particle emitter
+
+    Usually also some affectors are used to make the particles movement more interesting.
+    In this Snowing example we use \l Wander3D to get the snowflakes flying with wavy curves
+    as well as \l PointRotator3D to simulate windy weather.
+
+    \snippet particles3d/Snowing.qml particle affectors
+*/

@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/qt/qml/testbed">
+        <file>qml/main.qml</file>
+        <file>qml/Settings.qml</file>
+        <file>qml/SettingsView.qml</file>
+        <file>qml/SettingsComponentSlider.qml</file>
+        <file>qml/images/arrow.png</file>
+        <file>qml/images/qt_logo_white_rgb.png</file>
+        <file>qml/SettingsComponentButton.qml</file>
+        <file>qml/SettingsComponentCheckBox.qml</file>
+    </qresource>
+</RCC>

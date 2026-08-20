@@ -1,0 +1,56 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  template: ../../probe-config.hjson
+  args: {
+    TRACE_PROCESSOR_QUERIES: [
+      {
+        name: Total Renderers
+        sql:
+          '''
+            include PERFETTO MODULE sql_packages.cujs.tab_stress.total_renderers;
+            SELECT * FROM total_renderers_output;
+          '''
+      }
+      {
+        template: ../../common-metrics/v1/uma_histogram_count.hjson
+        args: {
+          NAME: Discarding.DiscardingProtectedTab
+        }
+      }
+      {
+        template: ../../common-metrics/v1/uma_histogram_count.hjson
+        args: {
+          NAME: Discarding.DiscardingFocusedTab
+        }
+      }
+      {
+        template: ../../common-metrics/v1/uma_histogram_times.hjson
+        args: {
+          NAME: Browser.Tabs.TotalSwitchDuration3
+          UNITS_IN_MS: 1
+        }
+      }
+      {
+        template: ../../common-metrics/v1/uma_histogram_times.hjson
+        args: {
+          NAME: PageLoad.PaintTiming.NavigationToFirstContentfulPaint
+          UNITS_IN_MS: 1
+        }
+      }
+      ../../common-metrics/v1/dom_complete.hjson
+      ../../common-metrics/v1/lmk_kill_list.hjson
+      ../../common-metrics/v1/lmk_kill_count.hjson
+      ../../common-metrics/v1/tab_open_latency.hjson
+      ../../common-metrics/v1/meminfo_total.hjson
+    ]
+    METRIC_DEFINITIONS: [
+      ./metrics.textproto
+      ../../common-metrics/v2/tab_open_latency.textproto
+      ../../common-metrics/v2/meminfo_total.textproto
+      ../../common-metrics/v2/dom_complete.textproto
+    ]
+    TRACE_CONFIG: ../../trace-config/long-running-trace-config.pbtxt
+  }
+}

@@ -1,0 +1,9 @@
+BO_ 1234 Test : 7 Vector__XXX
+ SG_ s0 : 0|12@1+ (1,0) [0|0] "unit" Vector__XXX
+ SG_ s1 : 12|12@1- (1,0) [0|0] "unit" Vector__XXX
+
+SIG_VALTYPE_ 1234 s1 : 0;
+
+SG_ s2 : 24|32@1- (1,0) [0|0] "unit" Vector__XXX
+
+SIG_VALTYPE_ 1234 s2: 1;

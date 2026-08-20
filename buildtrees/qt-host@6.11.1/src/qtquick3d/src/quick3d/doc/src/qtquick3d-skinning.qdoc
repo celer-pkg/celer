@@ -1,0 +1,120 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+
+\title Vertex Skinning
+\page quick3d-vertex-skinning
+
+\section1 Introduction
+
+Qt Quick 3D supports vertex skinning for skeletal animation of mesh geometries.
+
+See the \l {Qt Quick 3D - Simple Skinning Example}{Simple Skinning Example} for a practical
+demonstration of skeletal animation.
+
+In most cases, application developers will not be using the skinning API manually. The normal workflow is to
+use an external content creation tool to define the skeleton and the skin (this is sometimes also referred to
+as \e rigging), and then use the \l {Balsam Asset Import Tool} to convert the asset to Qt Quick 3D's native format.
+
+\section1 Defining a skeleton
+
+The basis of skeletal animation is the \l {Skeleton}. This is an abstract representation of how the model
+can move, inspired by how a physical skeleton works for vertebrates. The "bones" of the skeleton
+is represented by a hierarchy of \l {Joint} nodes. These do not necessarily need to represent actual
+bones, of course.
+
+\qml
+    Skeleton {
+        id: qmlskeleton
+        Joint {
+            id: joint0
+            index: 0
+            skeletonRoot: qmlskeleton
+            Joint {
+                id: joint1
+                index: 1
+                skeletonRoot: qmlskeleton
+            }
+            Joint {
+                id: joint2
+                index: 2
+                skeletonRoot: qmlskeleton
+            }
+
+        }
+    }
+\endqml
+
+\section1 Connecting a skeleton to a model
+
+To apply a skeleton to a model, set the model's \l {Model::skeleton}{skeleton} property:
+
+\qml
+Model {
+    skeleton: qmlskeleton
+\endqml
+\dots
+
+In order for the skeleton to have an effect, the model's \l {Model::geometry}{geometry} needs to include
+skinning information. This is done by including \l {QQuick3DGeometry::addAttribute}{vertex attributes} with
+\c JointSemantic and \c WeightSemantic in the vertex buffer.
+
+The \c JointSemantic attribute determines \e which of the joints in the skeleton can influence a
+given vertex. This uses the index values specified by \l {Joint::index}{Joint.index}. Since this attribute
+contains 4 indexes, a maximum of 4 joints can influence one vertex.
+
+The \c WeightSemantic attribute describes the \e strength of the influence of those joints. It
+contains four floating point values, each value determining the weight given to the joint with the
+index at the corresponding position in the \c JointSemantic attribute.
+
+For example, given the skeleton above, if a vertex has these attributes:
+\table
+\header
+\li \c JointSemantic attribute
+\li \c WeightSemantic attribute
+\row
+\li  \c {QVector4D(2, 0, 0, 0)}
+\li  \c {QVector4D(1.0, 0.0, 0.0, 0.0)}
+\endtable
+that vertex will be 100% influenced by \e joint2, and it will move exactly as much as that
+joint. The last three indexes in the \c JointSemantic attribute are ignored since the
+corresponding weights are \c {0.0}.
+
+As another example, with these attributes:
+\table
+\header
+\li \c JointSemantic attribute
+\li \c WeightSemantic attribute
+\row
+\li  \c {QVector4D(1, 2, 0, 0)}
+\li  \c {QVector4D(0.5, 0.25, 0.0, 0.0)}
+\endtable
+the vertex will be moved by 50% of \e joint1's movement plus 25% of \e joint2's movement.
+
+In addition, since the skeleton is an abstract representation, the model need to specify geometry
+information for the joints. For performance reasons, this is not done by specifying the information
+directly. Instead, \l {Model::inverseBindPoses}{Model.inverseBindPoses} contains the \e inverse of the
+transformation matrix needed to move each joint to its initial position.
+
+\section1 Animating the skeleton
+
+Transforming a joint in a skeleton will move all vertexes connected to that joint. Since Joint
+inheriths from \l {Node}, a skeleton can be animated simply by using standard \l[QtQuick QML]
+{Animation}{QML animations}.
+
+\qml
+    NumberAnimation {
+        target: joint1
+        property: "eulerRotation.z"
+        duration: 5000
+        from: -90
+        to: 90
+        running: true
+    }
+\endqml
+
+While it is possible to create complex animations by nesting \l
+{SequentialAnimation}, \l {ParallelAnimation} and \l {NumberAnimation}, it is generally more
+convenient to use \l {Qt Quick Timeline Overview}{timeline animations} for animating skinned models.
+*/

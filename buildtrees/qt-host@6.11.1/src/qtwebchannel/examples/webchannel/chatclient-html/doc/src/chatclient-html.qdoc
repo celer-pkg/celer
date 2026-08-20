@@ -1,0 +1,40 @@
+// Copyright (C) 2016 basysKom GmbH, author Bernd Lamecker <bernd.lamecker@basyskom.com>
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example chatclient-html
+    \title Qt WebChannel ChatClient HTML Example
+    \ingroup qtwebchannel-examples
+    \examplecategory {Web Technologies}
+    \brief A HTML/JavaScript client that communicates over a WebSocket with a QWebChannel server.
+
+
+    \image chatclient-html.png
+
+    \e{ChatClient HTML} provides a simple QWebChannel client implemented using JavaScript and HTML.
+
+    \section1 Running the Example
+
+    To run the example, open the \c chatclient.html file in a browser.
+
+    \section1 Implementing a Web Channel Client
+
+    The client initializes a WebSocket connection to the chat server and receives an object
+    containing all the necessary signals, slots, and properties for implementing a chat client.
+
+    After login, the client can invoke the method \c sendMessage and receive the signal \c newMessage
+    to send and receive messages. Furthermore, a \c userList property provides the names of
+    all other connected clients. The list is automatically updated when its contents change.
+    Also, the client responds to the server's keep alive signal which is needed to detect disconnected
+    clients and remove them from the \c userList property.
+
+    The example shows how basic elements can be used with the client JavaScript implementation of
+    QWebChannel, like connecting to signals (\c newMessage), calling slots (\c sendMessage), and handling
+    property changes (\c userList).
+
+    The client is able to work with \l{Qt WebChannel ChatServer Example}.
+
+
+    \sa {Qt WebChannel ChatServer Example}, {Qt WebChannel ChatClient QML Application}
+
+*/

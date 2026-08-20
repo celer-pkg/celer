@@ -1,0 +1,396 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page topics-vectorimageformats.html
+\title Vector Image Formats in Qt
+\brief Details on Qt's support for vector image formats
+\ingroup explanations-graphicsandmultimedia
+
+Qt supports many standard file formats for loading graphical data, allowing applications to import
+content produced in other tools.
+
+This article focuses on vector images, and which considerations to take when producing vector
+graphics content for use in a Qt application.
+
+\note For general information on Qt's support for 2D graphics, see the
+\l{2D Graphics in Qt}{2D Graphics in Qt documentation}.
+
+\section1 File Format: SVG
+
+SVG files can be loaded in two different ways in \l{Qt Quick}: Either as a software-rasterized image
+using the \l{Image} component or using hardware-accelerated rendering with \l{VectorImage}
+(including converting the file ahead of time using \l{svgtoqml}.)
+
+In addition, \l{QSvgRenderer} provides general access to the software rasterizer. \l{QSvgWidget}
+and \l{QGraphicsSvgItem} provide convenience APIs for integrating SVG content in \l{Qt Widgets}
+applications.
+
+As a baseline, Qt supports the static features of the SVG 1.2 Tiny profile. A detailed list of the
+features supported by this profile is available in the
+\l{https://www.w3.org/TR/SVGMobile12/}{SVG 1.2 Tiny specification}.
+
+In addition, some extended features are supported. These are currently only supported by the
+software rasterizer and not the hardware-accelerated renderer in \l{VectorImage} or \l{svgtoqml}.
+
+Interactive features of SVG are not supported, but interaction can easily be implemented in either
+\l{Qt Quick} or \l{Qt Widgets}. Some specific animation types are also supported, using either the
+SMIL format or CSS keyframes.
+
+Here follows a high-level list of supported and unsupported features to give an overview of what to
+expect. Unsupported features will be ignored as far as it is possible, so that SVG files that depend
+on unsupported features will still show, but they may have omissions or errors.
+
+\table
+\header
+    \li High-level Feature
+    \li Software Rasterizer
+    \li VectorImage
+    \li Comment
+\row
+    \li Transformations
+    \li Yes
+    \li Yes
+    \li
+\row
+    \li Basic shapes
+    \li Yes
+    \li Yes
+    \li Circles, rectangles, ellipses, lines, polylines and polygons
+\row
+    \li Arbitrary shapes
+    \li Yes
+    \li Yes
+    \li Composite paths built from arbitrary bezier curves and lines.
+\row
+    \li Raster images
+    \li Yes
+    \li Yes
+    \li Both embedded and stored on file system
+\row
+    \li Indirections
+    \li Yes
+    \li Yes
+    \li Specifically the "use" element
+\row
+    \li Conditional processing
+    \li Yes
+    \li Yes
+    \li Specifically the "switch" element
+\row
+    \li Simple text layouts
+    \li Yes
+    \li Yes
+    \li
+\row
+    \li Embedded fonts
+    \li Yes
+    \li Yes
+    \li
+\row
+    \li Solid color fills
+    \li Yes
+    \li Yes
+    \li
+\row
+    \li Gradient fills
+    \li Yes
+    \li Yes
+    \li
+\row
+    \li Customizable strokes
+    \li Yes
+    \li Yes
+    \li Customizable width, line caps, line joins, and dashes
+\row
+    \li Cosmetic strokes
+    \li Yes
+    \li No
+    \li Outlines that do not scale with the view
+\row
+    \li Gradient strokes
+    \li Yes
+    \li Yes
+    \li
+\row
+    \li Multimedia
+    \li No
+    \li No
+    \li
+\row
+    \li Scripting
+    \li No
+    \li No
+    \li
+\row
+    \li Linking
+    \li No
+    \li No
+    \li
+\endtable
+
+In addition, the following extended features are supported from SVG 1.1 and SVG 2.0:
+
+\table
+\header
+    \li High-level Feature
+    \li Software Rasterizer
+    \li VectorImage
+    \li Comment
+\row
+    \li Masks
+    \li Yes
+    \li Yes
+    \li
+\row
+    \li Clip paths
+    \li No
+    \li No
+    \li
+\row
+    \li Patterns
+    \li Yes
+    \li No
+    \li
+\row
+    \li Markers
+    \li Yes
+    \li No
+    \li
+\row
+    \li Reusable symbols
+    \li Yes
+    \li Yes
+    \li
+\row
+    \li Post-processing filters
+    \li Yes
+    \li Yes
+    \li feColorMatrix, feFlood, feGaussianBlur, feOffset and feMerge.
+\endtable
+
+And finally, the following property animations are supported (animations not listed here are
+currently unsupported). Animations should be exported in the CSS keyframes format for best results.
+
+\table
+\header
+    \li Animation Feature
+    \li Software Rasterizer
+    \li VectorImage
+    \li Comment
+\row
+    \li Transform animations
+    \li Yes
+    \li Yes
+    \li
+\row
+    \li Color animations
+    \li Yes
+    \li Yes
+    \li
+\row
+    \li Opacity animations
+    \li Yes
+    \li Yes
+    \li
+\row
+    \li Offset-path animations
+    \li Yes
+    \li Yes
+    \li Animating item position and orientation along a path
+\endtable
+
+\section1 File Format: Lottie
+
+Similarly to SVG, there are different ways of loading files in the Lottie format in Qt.
+
+The LottieAnimation type loads an image and displays it using a software rasterizer, much
+like QSvgRenderer does for SVG.
+
+In addition, hardware accelerated rendering is possible using VectorImage and the \l{lottietoqml}
+tool.
+
+In order to use Lottie files with VectorImage, the \c vectorimageformats plugin included with the
+\l{Qt Lottie Animation} module must be deployed together with the application. In addition,
+the \l{QtQuick.VectorImage::VectorImage::assumeTrustedSource}{assumeTrustedSource} property of
+the VectorImage must be set to \c true.
+
+The \l{lottietoqml} tool can be used to pre-convert Lottie source files to QML. An example of this
+can be found in the \l{lottietoqml Example}.
+
+The following is a list of the high-level features supported by the LottieAnimation type (software
+rasterizer) and VectorImage (also including pre-converting files using \l{lottietoqml}.)
+
+\table
+\header
+    \li High-level Feature
+    \li LottieAnimation
+    \li VectorImage
+    \li Comment
+\row
+    \li Transformations
+    \li Yes
+    \li Yes
+    \li
+\row
+    \li Shapes
+    \li Yes
+    \li Yes
+    \li
+\row
+    \li Solid fills
+    \li Yes
+    \li Yes
+    \li
+\row
+    \li Gradient fills
+    \li Yes
+    \li Yes
+    \li
+\row
+    \li Customizable strokes
+    \li Yes
+    \li Yes
+    \li Customizable width, line caps, line joins, and dashes
+\row
+    \li Gradient strokes
+    \li No
+    \li No
+    \li
+\row
+    \li Image layers
+    \li Yes
+    \li Yes
+    \li Embedded data only
+\row
+    \li Precomposition layers
+    \li Yes
+    \li Yes
+    \li
+\row
+    \li Path trimming
+    \li Yes
+    \li Yes
+    \li
+\row
+    \li Mattes
+    \li Yes
+    \li Yes
+    \li
+\row
+    \li Masks
+    \li No
+    \li No
+    \li
+\row
+    \li Repeaters
+    \li Yes
+    \li No
+    \li
+\row
+    \li Layer effects
+    \li Fill effect only
+    \li No
+    \li
+\row
+    \li Text layers
+    \li No
+    \li No
+    \li
+\row
+    \li Multimedia
+    \li No
+    \li No
+    \li Audio and camera layers not supported.
+\row
+    \li Expressions
+    \li No
+    \li No
+    \li
+\row
+    \li 3D Layers
+    \li No
+    \li No
+    \li
+\row
+    \li Time remapping
+    \li No
+    \li No
+    \li
+\endtable
+
+In principle, almost any property in the Lottie format can be animated. For extensive support
+of animatable properties, use LottieAnimation. The VectorImage type (and \l{lottietoqml}) provides
+support for a selected subset of properties that are commonly used to create animations.
+
+\table
+\header
+    \li High-level Feature
+    \li LottieAnimation
+    \li VectorImage
+    \li Comment
+\row
+    \li Transform animations
+    \li Yes
+    \li Yes
+    \li
+\row
+    \li Path trim animations
+    \li Yes
+    \li Yes
+    \li
+\row
+    \li Color animations
+    \li Yes
+    \li Yes
+\row
+    \li Opacity animations
+    \li Yes
+    \li Yes
+    \li
+\row
+    \li Path animations
+    \li Yes
+    \li Yes
+    \li Morphing animations of control points of shapes.
+\row
+    \li Movement along paths
+    \li Yes
+    \li Yes
+    \li Animating item position and orientation along a path
+\row
+    \li Other property animations
+    \li Yes
+    \li No
+    \li
+\endtable
+
+\section1 File Format: Font Files as a Vector Image Format
+
+In addition to conventional format for vector graphics, like SVG, it is also possible to utilize
+custom font files where vector graphics assets are stored as glyphs.
+
+This has the advantage that simple illustrations can be inlined in text labels, with typographical
+properties similar to text. This, in turn, that can make the alignment of the images with text
+easier.
+
+Using font files for this purpose can also be a convenient way to distribute large icon libraries,
+as well as providing themes that can be replaced at run-time.
+
+However, font use in Qt is optimized for producing text, so there are some considerations when using
+icon fonts as an alternative to specialized vector image components like \l{VectorImage}.
+
+First of all, color fonts will always be pre-rasterized at the specified pixel size. This means
+that applying transforms to such text items will cause scaling artifacts. For illustrations that
+require zooming for instance, using \l{VectorImage} is preferable.
+
+Using the specialized components is also preferable for any animated vector image. While the
+variable font format extension makes morphing animations possible, this is not the use the font
+system in Qt is optimized for. Therefore, animating the variable axes of a font will be less
+efficient than using another vector image format.
+
+So for animated and/or multi-color vector images, using a format such as SVG should typically be
+preferred. For single-color, static ones, using a font is an option with certain conveniences.
+
+\note See also the \l{Icons in Qt Quick Controls}{standard icon support in Qt Quick Controls}.
+*/

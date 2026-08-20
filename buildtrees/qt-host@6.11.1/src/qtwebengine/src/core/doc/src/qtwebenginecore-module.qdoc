@@ -1,0 +1,32 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+
+/*!
+    \module QtWebEngineCore
+    \title Qt WebEngine Core C++ Classes
+    \brief Provides public API shared by both QtWebEngineQuick and QtWebEngineWidgets.
+    \since 5.6
+    \ingroup qtwebengine-modules
+    \ingroup modules
+    \qtvariable webenginecore
+    \qtcmakepackage WebEngineCore
+
+    If you use qmake to build your projects, \QWE Core is usually
+    indirectly included through the \l{Qt WebEngine QML Types}{Qt WebEngine Quick} or
+    \l{Qt WebEngine Widgets C++ Classes}{Qt WebEngine Widgets} modules.
+
+    \if !defined(qtforpython)
+    To link against the module using build with qmake,
+    add this line to your qmake project file:
+
+    \snippet qtwebenginecore_build_snippet.qdoc 0
+
+    However, \c webenginecore is implied by adding \c webenginequick or \c webenginewidgets.
+
+    For build with CMake use the \c find_package() command to locate the needed module components
+    in the Qt6 package and \c target_link_libraries() to link against the module:
+
+    \snippet qtwebenginecore_build_snippet.qdoc 2
+    \endif
+*/

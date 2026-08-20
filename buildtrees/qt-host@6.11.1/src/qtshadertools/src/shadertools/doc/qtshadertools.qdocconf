@@ -1,0 +1,40 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+
+project                 = QtShaderTools
+description             = Qt Shader Tools Reference Documentation
+version                 = $QT_VERSION
+
+qhp.projects            = QtShaderTools
+
+qhp.QtShaderTools.file                = qtshadertools.qhp
+qhp.QtShaderTools.namespace           = org.qt-project.qtshadertools.$QT_VERSION_TAG
+qhp.QtShaderTools.virtualFolder       = qtshadertools
+qhp.QtShaderTools.indexTitle          = Qt Shader Tools
+qhp.QtShaderTools.indexRoot           =
+
+qhp.QtShaderTools.subprojects = manual
+qhp.QtShaderTools.subprojects.manual.title = Qt Shader Tools
+qhp.QtShaderTools.subprojects.manual.indexTitle = Qt Shader Tools module topics
+qhp.QtShaderTools.subprojects.manual.type = manual
+
+tagfile                 = ../../../doc/qtshadertools/qtshadertools.tags
+
+depends += qtdoc qtcmake qmake qtcore qtgui qtquick
+
+headerdirs  += ..
+
+sourcedirs  += ..
+
+exampledirs += snippets
+
+imagedirs   += images
+
+navigation.landingpage = "Qt Shader Tools"
+# Autogenerate navigation linking based on "Qt Shader Tools module topics":
+navigation.toctitles = "Qt Shader Tools module topics"
+navigation.toctitles.inclusive = false
+
+macro.cmakeoptionsince = "\n\nThis option was introduced in Qt \1.\n\n"
+
+# Allow zero warnings when testing documentation in CI
+warninglimit = 0

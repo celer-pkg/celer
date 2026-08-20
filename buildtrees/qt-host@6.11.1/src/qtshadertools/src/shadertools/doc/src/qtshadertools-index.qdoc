@@ -1,0 +1,60 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\title Qt Shader Tools
+\page qtshadertools-index.html
+
+The Qt Shader Tools module builds on the SPIR-V Open Source Ecosystem as
+described at \l{https://www.khronos.org/spir/}{the Khronos SPIR-V web site}.
+
+The main components of the Qt shader conditioning system are:
+
+\list
+\li the \c qsb command-line tool
+\li CMake integration for the \c qsb tool
+\li QShader (part of the QtGui module)
+\li QShaderBaker (part of this module, the library equivalent of the \c qsb
+tool)
+\endlist
+
+\section1 Articles and Guides
+
+\list
+    \li \l {Qt Shader Tools Overview}
+    \li \l {QSB Manual}
+    \li \l {Qt Shader Tools Build System Integration} (CMake)
+\endlist
+
+\section2 C++ API
+
+\generatelist classesbymodule QtShaderTools
+
+\note Applications and libraries should avoid using the C++ API directly, unless
+they have a good reason to do so. Rather, prefer relying on offline
+pre-processing by invoking the \c qsb command-line tool at build time via CMake,
+or manually if invoking via CMake is not feasible. The \c qsb tool uses
+QShaderBaker and writes the serialized version of the generated QShader into a
+file. The usage of the C++ API should be restricted to cases where run time
+processing and translation cannot be avoided, and the performance implications
+are understood. An example of this are applications that work with user-provided
+or dynamically generated shader source strings.
+
+\section1 Licenses and Attributions
+
+Qt Shader Tools runtime library is available under commercial licenses from
+\l{The Qt Company}. In addition, it is available under free software licenses.
+Since Qt 6.3, these free software licenses are \l{GNU Lesser General Public
+License, version 3}, or the \l{GNU General Public License, version 2}.
+
+The \c qsb command-line tool is available under commercial licenses from
+\l{The Qt Company}. In addition, it is available under the \l {GNU General
+Public License, version 3}.
+
+See \l{Qt Licensing} for further details.
+
+Furthermore, Qt Shader Tools in \QtVersion may contain third party
+modules under following permissive licenses:
+
+\annotatedlist attributions-qtshadertools
+*/

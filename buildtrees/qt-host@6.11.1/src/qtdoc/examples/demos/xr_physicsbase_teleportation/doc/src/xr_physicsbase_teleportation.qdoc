@@ -1,0 +1,39 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Qt Quick 3D - XR Physics-base teleportation demo
+    \examplecategory {3D}
+    \ingroup qtquickdemos
+    \example demos/xr_physicsbase_teleportation
+    \brief Demonstrates how to make physics-affected locomotion in Qt Quick 3D XR.
+    \meta {tag} {demo,quick,3d,xr}
+    \borderedimage xr_physicsbase_teleportation.jpg
+
+    \section1 Overview
+
+    This demo shows how to navigate and interact with objects in the virtual environment using physics-affected locomotion.
+
+    \section2 Controls
+
+    When you run the example, use the following controls for navigation.
+
+    \table
+        \header
+            \li
+            \li
+        \row
+            \li Rotation
+            \li Left and Right stick on the right controller
+        \row
+            \li Aim and Teleport
+            \li Forward stick on the right controller
+        \row
+            \li Interact with objects
+            \li Squeeze the right controller
+    \endtable
+
+    \include examples-run.qdocinc
+
+    \sa {QML Applications}
+*/

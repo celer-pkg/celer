@@ -1,0 +1,10 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  args: {
+    PAGE_URL: https://www.tiktok.com/@alpnplab00/video/7451872408782294290
+    VIDEO_TIME: 2m
+  }
+  template: ./action-blocks/default-screen.hjson
+}

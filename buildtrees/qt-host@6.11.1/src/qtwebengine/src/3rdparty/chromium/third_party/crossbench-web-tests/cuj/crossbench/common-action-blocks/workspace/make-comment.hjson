@@ -1,0 +1,64 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  actions: [
+    {
+      action: wait_for_element
+      selector: "#docs-insert-menu[role='menuitem'][aria-disabled='false']"
+      timeout: 30s
+    }
+    {
+      action: js
+      path: ./scripts/make-comment-marks.js
+    }
+    {
+      action: click
+      pos: {
+        selector: "#docs-insert-menu[role='menuitem'][aria-disabled='false']"
+        required: true
+        scroll_into_view: true
+      }
+      source: $[CLICK_INPUT_SOURCE]
+      verify: "[aria-label='Comment m']"
+    }
+    {
+      action: click
+      pos: {
+        selector: "[aria-label='Comment m']"
+        required: true
+        scroll_into_view: true
+      }
+      source: $[CLICK_INPUT_SOURCE]
+      verify: "[aria-label='Comment draft']:focus"
+    }
+    {
+      action: js
+      script: performance.mark('comment-type-begin');
+    }
+    {
+      action: text_input
+      text: $[COMMENT_TEXT]
+      duration: 8s
+      source: keyboard
+    }
+    {
+      action: js
+      script:
+        '''
+        performance.mark('comment-type-end');
+        performance.measure('comment-type', 'comment-type-begin', 'comment-type-end');
+        '''
+    }
+    {
+      action: click
+      pos: {
+        selector: "[aria-label='Post Comment']"
+        required: true
+        scroll_into_view: true
+      }
+      source: $[CLICK_INPUT_SOURCE]
+      verify: body:not(:has([aria-label='Post Comment']))
+    }
+  ]
+}

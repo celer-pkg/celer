@@ -1,0 +1,49 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+
+/*!
+    \page toc-test.html
+    \title TOC
+
+    //! QTBUG-143171 - test for a \\generatelist command outside the \\list structure
+    \generatelist group3
+
+    \list
+        \li \l {Testing \PROD output from .qdoc files}{\PROD Testing}
+        \list
+          \li \l {Exhaustive testing of QDoc commands}
+        \endlist
+        \li Linking
+        \list
+            \li \l {QDoc Linking Test}
+            \list
+                \li \l {Link targets}
+            \endlist
+            \li \l {crash.html}{Random page}
+            \li \l {Table of Contents}
+        \endlist
+        \li Group
+        \generatelist group
+        \li \l {Group2}
+        \annotatedlist [descending] group2
+        \li Test exclusion of external links
+        \list
+            \li \l {Page}
+            \li \l {https://doc.qt.io}{Docs}
+            \li \l {http://localhost:9000/}
+            \li \l {External}
+            \li \l {Document Navigation}
+        \endlist
+    \endlist
+*/
+
+// Dummy pages for TOC testing
+/*!
+    \page page.html
+    \title Page
+*/
+
+/*!
+    \externalpage https://what.ever
+    \title External
+*/

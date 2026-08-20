@@ -1,0 +1,8 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+float qt_calculatePointLightAttenuation(vec3 attenuationConstants, float lightDistance)
+{
+    return 1.0 / (attenuationConstants.x + attenuationConstants.y * lightDistance
+                  + attenuationConstants.z * lightDistance * lightDistance);
+}

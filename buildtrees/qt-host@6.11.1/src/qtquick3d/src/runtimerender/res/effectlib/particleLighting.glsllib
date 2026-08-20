@@ -1,0 +1,51 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+/* Simplified lighting for particles
+ *
+ * Treat particles as points -> do not take normal into account
+ * -> directional lights become ambient
+ * -> point lights only account for attenuation
+ * -> spotlights only account for attenuation and spot angles
+ */
+vec4 qt_attenuate4(in vec4 dist, in vec4 catt, in vec4 latt, in vec4 qatt)
+{
+    vec4 factors = catt + dist * latt + dist * dist * qatt;
+    return vec4(1.0) / factors;
+}
+vec3 qt_calcPointLights(in vec3 position)
+{
+    vec4 lengths = vec4(length(position - lightData.qt_pointLightPosition[0].xyz),
+                        length(position - lightData.qt_pointLightPosition[1].xyz),
+                        length(position - lightData.qt_pointLightPosition[2].xyz),
+                        length(position - lightData.qt_pointLightPosition[3].xyz));
+    vec4 attenuations = qt_attenuate4(lengths, lightData.qt_pointLightConstantAtt, lightData.qt_pointLightLinearAtt, lightData.qt_pointLightQuadAtt);
+
+    return lightData.qt_pointLightColor[0].rgb * attenuations.x + lightData.qt_pointLightColor[1].rgb * attenuations.y + lightData.qt_pointLightColor[2].rgb * attenuations.z + lightData.qt_pointLightColor[3].rgb * attenuations.w;
+}
+vec3 qt_calcSpotLights(in vec3 position)
+{
+    vec3 lightVector0 = position - lightData.qt_spotLightPosition[0].xyz;
+    vec3 lightVector1 = position - lightData.qt_spotLightPosition[1].xyz;
+    vec3 lightVector2 = position - lightData.qt_spotLightPosition[2].xyz;
+    vec3 lightVector3 = position - lightData.qt_spotLightPosition[3].xyz;
+    vec4 lengths = vec4(length(lightVector0), length(lightVector1), length(lightVector2), length(lightVector3));
+    vec4 attenuations = qt_attenuate4(lengths, lightData.qt_spotLightConstantAtt, lightData.qt_spotLightLinearAtt, lightData.qt_spotLightQuadAtt);
+    vec4 spots = vec4(acos(dot(normalize(lightVector0), normalize(lightData.qt_spotLightDirection[0].xyz))),
+                      acos(dot(normalize(lightVector1), normalize(lightData.qt_spotLightDirection[1].xyz))),
+                      acos(dot(normalize(lightVector2), normalize(lightData.qt_spotLightDirection[2].xyz))),
+                      acos(dot(normalize(lightVector3), normalize(lightData.qt_spotLightDirection[3].xyz))));
+    vec4 cones = vec4(1.0 - smoothstep(lightData.qt_spotLightInnerConeAngle, lightData.qt_spotLightConeAngle, spots));
+    attenuations *= cones;
+    return lightData.qt_spotLightColor[0].rgb * attenuations.x + lightData.qt_spotLightColor[1].rgb * attenuations.y + lightData.qt_spotLightColor[2].rgb * attenuations.z + lightData.qt_spotLightColor[3].rgb * attenuations.w;
+}
+vec3 qt_calcLightColor(in vec3 position)
+{
+    vec3 color = vec3(0.0);
+
+    if (qt_pointLights)
+        color += qt_calcPointLights(position);
+    if (qt_spotLights)
+        color += qt_calcSpotLights(position);
+    return color + qt_light_ambient_total;
+}

@@ -1,0 +1,36 @@
+version = 1
+
+[[annotations]]
+path = ["qbig5codec.cpp"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["Copyright (C) 2000  Ming-Che Chuang",
+                          "Copyright (C) 2001, 2002  James Su, Turbolinux Inc.",
+                          "Copyright (C) 2002  WU Yi, HancomLinux Inc.",
+                          "Copyright (C) 2001, 2002  Anthony Fok, ThizLinux Laboratory Ltd."]
+SPDX-License-Identifier = "BSD-2-Clause"
+
+[[annotations]]
+path = ["qeucjpcodec.cpp", "qjiscodec.cpp", "qsjiscodec.cpp"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Copyright (C) 1999 Serika Kurusugawa"
+SPDX-License-Identifier = "BSD-2-Clause"
+
+[[annotations]]
+path = ["qeuckrcodec.cpp"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Copyright (C) 1999-2000 Mizi Research Inc."
+SPDX-License-Identifier = "BSD-2-Clause"
+
+[[annotations]]
+path = ["qtsciicodec.cpp"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Copyright (C) 2000 Hans Petter Bieker."
+SPDX-License-Identifier = "BSD-2-Clause"
+
+[[annotations]]
+path = ["qgb18030codec.cpp"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["Copyright (C) 2000 TurboLinux, Inc.  Written by Justin Yu and Sean Chen.",
+                          "Copyright (C) 2001, 2002 Turbolinux, Inc.  Written by James Su.",
+                          "Copyright (C) 2001, 2002 ThizLinux Laboratory Ltd.  Written by Anthony Fok."]
+SPDX-License-Identifier = "BSD-2-Clause"

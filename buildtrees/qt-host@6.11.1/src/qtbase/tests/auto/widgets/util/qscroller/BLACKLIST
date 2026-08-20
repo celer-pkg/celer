@@ -1,0 +1,12 @@
+[scrollTo]
+macos
+
+[scroll]
+macos
+# QTBUG-87409
+[scrollTo]
+android
+
+[overshoot_segments]
+macos #QTBUG-134105
+windows #QTBUG-134105

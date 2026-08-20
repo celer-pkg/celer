@@ -1,0 +1,15 @@
+# Generated from '.DEPS.git'
+build_with_chromium = true
+checkout_android = false
+checkout_android_prebuilts_build_tools = false
+checkout_android_native_support = true
+checkout_clusterfuzz_data = false
+checkout_glic_e2e_tests = false
+checkout_google_benchmark = false
+checkout_ios_webkit = false
+checkout_nacl = false
+checkout_openxr = false
+checkout_rts_model = false
+checkout_src_internal = false
+generate_location_tags = false
+mac_xcode_version = "default"

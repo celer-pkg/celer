@@ -1,0 +1,17 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \externalpage https://doc.qt.io/qt-5/qtquickcontrols2-differences.html
+    \title Qt 5.15: Qt Quick Controls vs Qt Quick Controls 1
+*/
+
+/*!
+    \externalpage https://m3.material.io/styles/shape/overview
+    \title Material Style: Shape
+*/
+
+/*!
+    \externalpage https://m3.material.io/components/text-fields/guidelines#2c4fc9be-b266-4975-bdef-968ead47736e
+    \title Material Style: Text Field Containers
+*/

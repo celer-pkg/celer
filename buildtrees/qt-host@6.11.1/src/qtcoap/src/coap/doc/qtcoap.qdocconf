@@ -1,0 +1,47 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+
+project                 = QtCoap
+description             = Qt CoAP Reference Documentation
+version                 = $QT_VERSION
+
+examplesinstallpath = coap
+
+qhp.projects            = QtCoap
+
+qhp.QtCoap.file                = qtcoap.qhp
+qhp.QtCoap.namespace           = org.qt-project.qtcoap.$QT_VERSION_TAG
+qhp.QtCoap.virtualFolder       = qtcoap
+qhp.QtCoap.indexTitle          = Qt CoAP
+qhp.QtCoap.indexRoot           =
+
+qhp.QtCoap.subprojects         = overview classes examples
+
+qhp.QtCoap.subprojects.examples.title         = Examples
+qhp.QtCoap.subprojects.examples.indexTitle    = Qt CoAP Examples
+qhp.QtCoap.subprojects.examples.selectors     = fake:example
+qhp.QtCoap.subprojects.examples.sortPages     = true
+
+qhp.QtCoap.subprojects.classes.title = C++ Classes
+qhp.QtCoap.subprojects.classes.indexTitle = Qt CoAP C++ Classes
+qhp.QtCoap.subprojects.classes.selectors = class fake:headerfile
+qhp.QtCoap.subprojects.classes.sortPages = true
+
+qhp.QtCoap.subprojects.overview.title         = Overview
+qhp.QtCoap.subprojects.overview.indexTitle    = Qt CoAP Overview
+qhp.QtCoap.subprojects.overview.selectors     = group:none
+
+headerdirs  += ..
+sourcedirs  += ..
+exampledirs = ../../../examples/coap
+excludedirs += ../qt4support
+
+depends += qtcore qtdoc qtnetwork qtqml qmake qtcmake
+
+#add generic thumbnail images for example documentation that does not have an image.
+#manifestmeta.thumbnail.names  += "QtCoap/WebSockets MQTT Subscription*"
+
+navigation.landingpage = "Qt CoAP"
+navigation.cppclassespage = "Qt CoAP C++ Classes"
+
+# Allow zero warnings when testing documentation in CI
+warninglimit = 0

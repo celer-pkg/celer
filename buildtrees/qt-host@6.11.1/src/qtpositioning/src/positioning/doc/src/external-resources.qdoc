@@ -1,0 +1,47 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\externalpage https://developer.android.com/about/versions/oreo/background-location-limits
+\title Background Location Limits
+*/
+
+/*!
+\externalpage https://developer.android.com/guide/components/foreground-services
+\title Foreground Service
+*/
+
+/*!
+\externalpage https://developer.android.com/reference/android/Manifest.permission#ACCESS_BACKGROUND_LOCATION
+\title ACCESS_BACKGROUND_LOCATION
+*/
+
+/*!
+\externalpage https://developer.android.com/training/location/background
+\title Access Location in the Background
+*/
+
+/*!
+\externalpage https://gitlab.freedesktop.org/geoclue/geoclue/-/wikis/home
+\title GeoClue service
+*/
+
+/*!
+\externalpage https://www.freedesktop.org/software/geoclue/docs/gdbus-org.freedesktop.GeoClue2.Client.html#gdbus-property-org-freedesktop-GeoClue2-Client.DesktopId
+\title GeoClue DesktopId property
+*/
+
+/*!
+\externalpage https://gypsy.freedesktop.org/wiki/
+\title Gypsy daemon
+*/
+
+/*!
+\externalpage https://developer.android.com/reference/android/location/Location.html#getBearingAccuracyDegrees%28%29
+\title Android getBearingAccuracyDegrees
+*/
+
+/*!
+\externalpage https://developer.apple.com/documentation/corelocation/cllocation/3524338-courseaccuracy?language=objc
+\title iOS courseAccuracy
+*/

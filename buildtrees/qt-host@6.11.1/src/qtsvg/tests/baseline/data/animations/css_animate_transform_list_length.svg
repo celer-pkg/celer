@@ -1,0 +1,15 @@
+<svg viewBox="0 0 400 450" xmlns="http://www.w3.org/2000/svg">
+  <style>
+  @keyframes transformRect1 {
+    0% {transform: translate(0px, 0px)}
+    50% {transform: translate(250px, 0px) rotate(60deg) scale(2, 2)}
+    100% {transform: translate(500px, 0px) rotate(90deg)}
+  }
+  #rect1 {
+    animation-duration: 2s;
+    animation-name: transformRect1;
+    animation-iteration-count: infinite;
+  }
+  </style>
+  <rect id="rect1" x="100" y="100" width="50" height="50" fill="blue" stroke-width="6"/>
+</svg>

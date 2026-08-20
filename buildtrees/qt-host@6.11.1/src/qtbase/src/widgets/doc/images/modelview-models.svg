@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="600"
+   height="285"
+   version="1.1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+
+<style>
+  svg .line-style { stroke: black; fill: none }
+  svg .text-style { font: 12px arial; fill: black }
+  svg .italic-style { font: 12px arial; fill: black; font-style: italic }
+  svg .bold-style { font: 14px arial; fill: black; font-weight: bold }
+  svg .item-style { font: 16px arial; fill: black }
+
+  svg.dark .line-style { stroke: #f2f2f2; fill: none }
+  svg.dark .text-style { font: 12px arial; fill: #f2f2f2 }
+  svg.dark .italic-style { font: 12px arial; fill: #f2f2f2; font-style: italic }
+  svg.dark .bold-style { font: 14px arial; fill: #f2f2f2; font-weight: bold }
+  svg.dark .item-style { font: 14px arial; fill: #f2f2f2 }
+
+  [data-theme="dark"] svg .line-style { stroke: #f2f2f2; fill: none }
+  [data-theme="dark"] svg .text-style { font: 12px arial; fill: #f2f2f2 }
+  [data-theme="dark"] svg .italic-style { font: 12px arial; fill: #f2f2f2; font-style: italic }
+  [data-theme="dark"] svg .bold-style { font: 14px arial; fill: #f2f2f2; font-weight: bold }
+  [data-theme="dark"] svg .item-style { font: 14px arial; fill: #f2f2f2 }
+
+  [data-theme="light"] svg .line-style { stroke: black; fill: none }
+  [data-theme="light"] svg .text-style { font: 12px arial; fill: black }
+  [data-theme="light"] svg .italic-style { font: 12px arial; fill: black; font-style: italic }
+  [data-theme="light"] svg .bold-style { font: 14px arial; fill: black; font-weight: bold }
+  [data-theme="light"] svg .item-style { font: 14px arial; fill: black }
+</style>
+
+<text x="35" y="16" font-family="arial" font-size="12px" font-weight="bold"
+      class="bold-style">List Model</text>
+<text x="215" y="16" font-family="arial" font-size="12px" font-weight="bold"
+      class="bold-style">Table Model</text>
+<text x="435" y="16" font-family="arial" font-size="12px" font-weight="bold"
+      class="bold-style">Tree Model</text>
+
+<path d="m 400.5,255.5 v 25" stroke="black" stroke-dasharray="3, 3"
+      class="line-style" />
+<path d="m 385.5,30.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      stroke-dasharray="5, 5"
+      class="line-style" />
+
+<text x="425" y="49" font-family="arial" font-size="12px" font-style="italic"
+      class="italic-style">Root item</text>
+<path d="m 400.5,60.5 v 195" stroke="black"
+      class="line-style" />
+<path d="m 420.5,70.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      class="line-style" />
+<path d="m 400.5,85.5 h 20" stroke="black"
+      class="line-style" />
+<path d="m 435.5,100.5 v 65" stroke="black"
+      class="line-style" />
+<path d="m 455.5,110.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      class="line-style" />
+<path d="m 435.5,125.5 h 20" stroke="black"
+      class="line-style" />
+<path d="m 455.5,150.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      class="line-style" />
+<path d="m 435.5,165.5 h 20" stroke="black"
+      class="line-style" />
+<path d="m 435.5,165.5 v 25" stroke="black" stroke-dasharray="3, 3"
+      class="line-style" />
+<path d="m 420.5,200.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      class="line-style" />
+<path d="m 400.5,215.5 h 20" stroke="black"
+      class="line-style" />
+<path d="m 420.5,240.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      class="line-style" />
+<path d="m 400.5,255.5 h 20" stroke="black"
+      class="line-style" />
+
+<path d="m 450.5,70.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      class="line-style" />
+<path d="m 485.5,110.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      class="line-style" />
+<path d="m 485.5,150.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      class="line-style" />
+<path d="m 450.5,200.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      class="line-style" />
+<path d="m 450.5,240.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      class="line-style" />
+<path d="m 480.5,70.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      stroke-dasharray="3, 3"
+      class="line-style" />
+<path d="m 515.5,110.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      stroke-dasharray="3, 3"
+      class="line-style" />
+<path d="m 515.5,150.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      stroke-dasharray="3, 3"
+      class="line-style" />
+<path d="m 480.5,200.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      stroke-dasharray="3, 3"
+      class="line-style" />
+<path d="m 480.5,240.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      stroke-dasharray="3, 3"
+      class="line-style" />
+
+<text x="515" y="89" font-family="arial" font-size="12px"
+      class="text-style">row = 0</text>
+<text x="550" y="129" font-family="arial" font-size="12px"
+      class="text-style">row = 0</text>
+<text x="550" y="169" font-family="arial" font-size="12px"
+      class="text-style">row = 1</text>
+<text x="515" y="219" font-family="arial" font-size="12px"
+      class="text-style">row = 1</text>
+<text x="515" y="259" font-family="arial" font-size="12px"
+      class="text-style">row = 2</text>
+
+<path d="m 155.5,30.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      stroke-dasharray="5, 5"
+      class="line-style" />
+<path d="m 10.5,30.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      stroke-dasharray="5, 5"
+      class="line-style" />
+<text x="50" y="49" font-family="arial" font-size="12px" font-style="italic"
+      class="italic-style">Root item</text>
+<path d="m 25.5,60.5 v 105" stroke="black"
+      class="line-style" />
+<path d="M 25.5,85.5 h 20" stroke="black"
+      class="line-style" />
+<path d="m 45.5,70.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      class="line-style" />
+<text x="80" y="89" font-family="arial" font-size="12px"
+      class="text-style">row = 0</text>
+<path d="m 25.5,165.5 v 25" stroke="black" stroke-dasharray="3, 3"
+      class="line-style" />
+<path d="m 25.5,125.5 h 20" stroke="black"
+      class="line-style" />
+<path d="m 45.5,110.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      class="line-style" />
+<text x="80" y="129" font-family="arial" font-size="12px"
+      class="text-style">row = 1</text>
+<path d="m 25.5,165.5 h 20" stroke="black"
+      class="line-style" />
+<path d="m 45.5,150.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      class="line-style" />
+<text x="80" y="169" font-family="arial" font-size="12px"
+      class="text-style">row = 2</text>
+
+<text x="195" y="49" font-family="arial" font-size="12px" font-style="italic"
+      class="italic-style">Root item</text>
+<text x="315" y="89" font-family="arial" font-size="12px"
+      class="text-style">row = 0</text>
+<text x="315" y="119" font-family="arial" font-size="12px"
+      class="text-style">row = 1</text>
+<text x="315" y="149" font-family="arial" font-size="12px"
+      class="text-style">row = 2</text>
+<text x="315" y="179" font-family="arial" font-size="12px"
+      class="text-style">row = 3</text>
+
+<path d="m 170.5,60.5 v 25" stroke="black"
+      class="line-style" />
+<path d="m 170.5,85.5 h 20" stroke="black"
+      class="line-style" />
+<path d="m 190.5,70.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      class="line-style" />
+<path d="m 220.5,70.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      class="line-style" />
+<path d="m 250.5,70.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      class="line-style" />
+<path d="m 280.5,70.5 h 30 v 30" stroke="black" fill="none"
+      stroke-dasharray="3, 3"
+      class="line-style" />
+<path d="m 190.5,100.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      class="line-style" />
+<path d="m 220.5,100.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      class="line-style" />
+<path d="m 250.5,100.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      class="line-style" />
+<path d="m 280.5,100.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      stroke-dasharray="3, 3"
+      class="line-style" />
+<path d="m 190.5,130.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      class="line-style" />
+<path d="m 220.5,130.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      class="line-style" />
+<path d="m 250.5,130.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      class="line-style" />
+<path d="m 220.5,160.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      stroke-dasharray="3, 3"
+      class="line-style" />
+<path d="m 190.5,160.5 v 30 h 30" stroke="black" fill="none"
+      stroke-dasharray="3, 3"
+      class="line-style" />
+<path d="m 250.5,190.5 h 30" stroke="black" stroke-dasharray="3, 3"
+      class="line-style" />
+<path d="m 280.5,160.5 h 30 v 30 h -30 z" stroke="black" fill="none"
+      stroke-dasharray="3, 3"
+      class="line-style" />
+<path d="m 310.5,130.5 v 30" stroke="black" stroke-dasharray="3, 3"
+      class="line-style" />
+
+<g transform="translate(200, 200)">
+<text x="0" y="0" font-family="arial" font-size="12px"
+      class="text-style" transform="rotate(90)">column = 0</text>
+<text x="0" y="-30" font-family="arial" font-size="12px"
+      class="text-style" transform="rotate(90)">column = 1</text>
+<text x="0" y="-60" font-family="arial" font-size="12px"
+      class="text-style" transform="rotate(90)">column = 2</text>
+<text x="0" y="-90" font-family="arial" font-size="12px"
+      class="text-style" transform="rotate(90)">column = 3</text>
+</g>
+</svg>

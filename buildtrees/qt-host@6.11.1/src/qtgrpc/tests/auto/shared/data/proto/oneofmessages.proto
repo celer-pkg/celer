@@ -1,0 +1,29 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+syntax = "proto3";
+
+import "basicmessages.proto";
+
+package qtprotobufnamespace.tests;
+
+message OneofSimpleMessage {
+    oneof testOneof {
+        int32 testOneofFieldInt = 1;
+        int32 testOneofFieldSecondInt = 2;
+    }
+}
+
+message OneofComplexMessage {
+    int32 testFieldInt = 1;
+    oneof testOneof {
+        int32 testOneofFieldInt = 42;
+        ComplexMessage testOneofComplexField = 3;
+        ComplexMessage testOneofSecondComplexField = 4;
+    }
+    oneof secondOneof {
+        int32 secondFieldInt = 43;
+        ComplexMessage secondComplexField = 5;
+        ComplexMessage secondSecondComplexField = 6;
+        int32 test_snake_case_field = 7;
+    }
+}

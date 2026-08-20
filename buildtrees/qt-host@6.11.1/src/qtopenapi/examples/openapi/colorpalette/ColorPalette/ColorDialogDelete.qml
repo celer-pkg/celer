@@ -1,0 +1,70 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+
+import QtOpenApiExampleStyle
+
+Popup {
+    id: colorDeleter
+    padding: 10
+    modal: true
+    focus: true
+    anchors.centerIn: parent
+    closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
+    signal deleteClicked(int cid)
+
+    property int colorId: -1
+
+    property string colorName: ""
+
+    function maybeDelete(data) {
+        colorName = data.name
+        colorId = data.id
+        open()
+    }
+
+    ColumnLayout {
+        anchors.fill: parent
+        spacing: 10
+
+        Text {
+            color: UIStyle.titletextColor
+            text: qsTr("Delete Color?")
+            font.pixelSize: UIStyle.fontSizeL
+            font.bold: true
+        }
+
+        Text {
+            color: UIStyle.textColor
+            text: qsTr("Are you sure, you want to delete color") + " \"" + colorDeleter.colorName + "\"?"
+            font.pixelSize: UIStyle.fontSizeM
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 10
+
+            Button {
+                Layout.fillWidth: true
+                text: qsTr("Cancel")
+                onClicked: colorDeleter.close()
+            }
+
+            Button {
+                Layout.fillWidth: true
+                text: qsTr("Delete")
+
+                buttonColor: UIStyle.colorRed
+                textColor: UIStyle.textOnLightBackground
+
+                onClicked: {
+                    colorDeleter.deleteClicked(colorDeleter.colorId)
+                    colorDeleter.close()
+                }
+            }
+       }
+    }
+}

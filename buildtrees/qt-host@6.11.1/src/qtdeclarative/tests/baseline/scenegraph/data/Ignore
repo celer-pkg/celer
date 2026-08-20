@@ -1,0 +1,13 @@
+# List of .qml files that should NOT be rendered
+
+# These are items to be used in other scenes; lack size
+borderimages/SimpleBorderImage.qml
+borderimages/SimpleNoBorder.qml
+shape/OrderedPaths.qml
+
+# This will not stabilize before the timeout
+text/text_2500_chinese_characters.qml
+
+# Depending on the system load etc. it can vary slightly at which
+# frame the animation gets frozen.
+shaders/propertyanimation/uniformanimator_stall.qml

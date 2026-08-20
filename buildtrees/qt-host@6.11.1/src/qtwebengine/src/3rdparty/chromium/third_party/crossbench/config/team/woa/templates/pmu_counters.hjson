@@ -1,0 +1,53 @@
+// Example config for collecting PMU counters for Chrome on Android.
+{
+  browsers: {
+    chrome: {
+      browser: "chrome-stable",
+      driver: {
+        type: "adb",
+      }
+    },
+  }
+  env: {
+  },
+  probes: {
+    trace_processor: {},
+    perfetto: {
+    // These Chrome tracing categories allow us to associate PMU counters with events.
+      textproto: '''
+buffers {
+  size_kb: 300000
+  fill_policy: DISCARD
+}
+data_sources: {
+  config {
+    name: "track_event"
+    track_event_config {
+      disabled_categories: "*"
+      enabled_categories: "blink.user_timing"
+    }
+  }
+}
+data_sources {
+  config {
+    name: "org.chromium.trace_metadata"
+  }
+}
+'''
+    }
+    profiling: {
+      // Profile the renderer main thread only.
+      target: "renderer_main_only"
+      pprof: false
+      events: ['cpu-cycles']
+      count: 500000
+      call_graph_mode: 'no_call_graph'
+      // Pin the big core, this could be a different CPU on your device.
+      cpu: [7]
+      pin_renderer_main_core: 7
+      add_counters: [
+        'raw-inst-retired',
+      ]
+    }
+  }
+}

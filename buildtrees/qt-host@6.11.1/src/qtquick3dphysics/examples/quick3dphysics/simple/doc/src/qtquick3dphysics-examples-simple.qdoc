@@ -1,0 +1,89 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example simple
+    \ingroup quick3dphysics-examples
+    \title Qt Quick 3D Physics - Simple Example
+    \examplecategory {3D}
+    \brief Demonstrates setting up a simple physics scene.
+    \image simple-example.jpg {Screenshot of a green landscape with three different 3d objects next
+           to each other}
+
+    This example gives an introductory overview of the basic Quick 3D Physics features by
+    going through the code of a simple example. Note that this introduction assumes a familiarity
+    with the Qt Quick 3D module.
+
+    \section1 Setup
+
+    The whole example is contained and set up in the \e main.qml file. Let's first look
+    at the object that creates the physical world. This node is called PhysicsWorld:
+
+    \snippet simple/main.qml world
+
+    We set the \l {PhysicsWorld::} {scene} property to the scene of our View3D. The \c scene property
+    defines where the simulation will look for physics nodes to simulate. Any physics nodes placed
+    outside of the scene node will not be part of the simulation.
+
+    \section1 Scene
+
+    Let's have a look at the scene.
+
+    \snippet simple/main.qml scene
+
+    Our scene is just a View3D since we want to draw our physical objects.
+    It contains a PerspectiveCamera and a DirectionalLight for rendering, but more importantly
+    it contains a StaticRigidBody and three DynamicRigidBody nodes. In physics, a rigid body is
+    a non-deformable, solid body with uniform density. We have two types of rigid bodies available;
+    StaticRigidBody and DynamicRigidBody. A StaticRigidBody is a QML node which contains a static (immovable) rigid body.
+    It is technically possible to move the body but it will incur a performance penalty. A DynamicRigidBody
+    on the other hand is used for objects that can move. A DynamicRigidBody has a \l {DynamicRigidBody::} {isKinematic}
+    property, when it is set to true the rigid body will not be influenced by external forces and can be
+    controlled from scripts and animations. For instance a football would not be kinematic but an elevator
+    or a moving platform typically would. This also means that if you update the \c position property
+    of the football it would not move to that position whereas the elevator would.
+
+    To be able to interact with other physical objects the \l {PhysicsNode::} {collisionShapes}
+    property needs to be set. The \l {PhysicsNode::} {collisionShapes} property is a list that
+    can contain one or more shapes and will act as one rigid unit combined. You can position and
+    rotate these shapes in relation to each other. Note that plane, triangle mesh and heightmap
+    shapes only work with dynamic bodies if the body is kinematic.
+
+    \section1 Shapes
+
+    Our scene contains four physical objects (plane, box, ball, capsule). We will go through them one at a time.
+
+    \section2 Plane
+
+    \snippet simple/main.qml plane
+
+    We create a plane by making a StaticRigidBody node. In this node we set the \l {PhysicsNode::} {collisionShapes}
+    property to contain a PlaneShape. Planes divide space into "above" and "below" them. Everything "below"
+    the plane will collide with it and be pushed above it. The Plane lies on the YZ plane with "above"
+    pointing towards positive X. We put a Model inside our StaticRigidBody node to render the plane.
+    This is a common pattern which makes sure that the model also moves and rotates in the same way
+    when the physical object interacts in the scene. Since we want the plane to lie on the XY plane
+    we rotate it using the \c eulerRotation property. We rotate the model in a similar way.
+
+    \section2 Box
+
+    \snippet simple/main.qml box
+
+    We create a sphere by making a DynamicRigidBody node and a single BoxShape in \l {PhysicsNode::} {collisionShapes}.
+    Since this is a dynamic node the box will interact with the scene by colliding and moving like a free object.
+    Since the cube model is a hundred times bigger than a unit cube we need to scale it accordingly.
+    Since this is a dynamic body and thus have a physical weight we set the \l {DynamicRigidBody::} {density} property.
+
+    \section2 Sphere
+
+    \snippet simple/main.qml sphere
+
+    We create a sphere by making a DynamicRigidBody node and a single SphereShape in \l {PhysicsNode::} {collisionShapes}.
+
+    \section2 Capsule
+
+    \snippet simple/main.qml capsule
+
+    We create a capsule by making a DynamicRigidBody node and a single CapsuleShape in \l {PhysicsNode::} {collisionShapes}.
+    We build a capsule model by using the built-in CapsuleGeometry provided by Qt Quick 3D.
+*/

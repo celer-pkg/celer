@@ -1,0 +1,213 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example btchat
+    \title Bluetooth Chat
+    \examplecategory {Connectivity}
+    \brief Shows communication through Bluetooth using RFCOMM protocol.
+
+    The Bluetooth Chat example shows how to use the \l{Qt Bluetooth} API to communicate
+    with another application on a remote device using Bluetooth RFCOMM protocol.
+
+    \image {btchat-example.png} {Qt Bluetooth chat UI}
+
+    The Bluetooth Chat example implements a simple chat program between multiple parties. The
+    application always acts as both a server and a client eliminating the need to determine who
+    should connect to whom.
+
+    \include examples-run.qdocinc
+
+    \section1 Chat Server
+
+    The chat server is implemented by the \c ChatServer class.
+    The \c ChatServer class is declared as:
+
+    \snippet btchat/chatserver.h declaration
+
+    The first thing the chat server needs to do is create an instance of
+    QBluetoothServer to listen for incoming Bluetooth connections. The
+    \c {clientConnected()} slot will be called whenever a new connection is
+    created.
+
+    \snippet btchat/chatserver.cpp Create the server
+
+    The chat server is only useful if others know that it is there. To enable other devices to
+    discover it, a record describing the service needs to be published in the system's SDP (Service
+    Discovery Protocol) database. The QBluetoothServiceInfo class encapsulates a service record.
+
+    We will publish a service record that contains some textual descriptions of the services, a
+    UUID that uniquely identifies the service, the discoverability attribute, and connection
+    parameters.
+
+    The textual description of the service is stored in the \c {ServiceName},
+    \c {ServiceDescription}, and \c {ServiceProvider} attributes.
+
+    \snippet btchat/chatserver.cpp Service name, description and provider
+
+    Bluetooth uses UUIDs as unique identifiers. The chat service uses a randomly generated
+    UUID.
+
+    \snippet btchat/chatserver.cpp Service UUID
+    \snippet btchat/chatserver.cpp Service UUID set
+
+    A Bluetooth service is only discoverable if it is in the
+    \l {QBluetoothUuid::}{PublicBrowseGroup}.
+
+    \snippet btchat/chatserver.cpp Service Discoverability
+
+    The \c ProtocolDescriptorList attribute is used to publish the connection parameters that the
+    remote device requires to connect to our service. Here we specify that the \c Rfcomm protocol
+    is used and set the port number to the port that our \c rfcommServer instance is listening to.
+
+    \snippet btchat/chatserver.cpp Protocol descriptor list
+
+    Finally, we register the service record with the system.
+
+    \snippet btchat/chatserver.cpp Register service
+
+    As mentioned earlier, incoming connections are handled in the
+    \c {clientConnected()} slot where pending connections are connected to the
+    \l {QBluetoothSocket::}{readyRead()} and
+    \l {QBluetoothSocket::}{disconnected()} signals. The signals notify others
+    that a new client has connected.
+
+    \snippet btchat/chatserver.cpp clientConnected
+
+    The \c {readSocket()} slot is called whenever data is ready to be read from
+    a client socket. The slot reads individual lines from the socket, converts
+    them from UTF-8, and emits the \c {messageReceived()} signal.
+
+    \snippet btchat/chatserver.cpp readSocket
+
+    The \c {clientDisconnected()} slot is called whenever a client disconnects
+    from the service. The slot emits a signal to notify others that a client
+    has disconnected, and deletes the socket.
+
+    \snippet btchat/chatserver.cpp clientDisconnected
+
+    The \c {sendMessage()} slot is used to send a message to all connected clients. The message is
+    converted into UTF-8 and appended with a newline before being sent to all clients.
+
+    \snippet btchat/chatserver.cpp sendMessage
+
+    When the chat server is stopped, the service record is removed from the
+    system SDP database, all connected client sockets are deleted, and the
+    \c rfcommServer instance is deleted.
+
+    \snippet btchat/chatserver.cpp stopServer
+
+    \section1 Service Discovery
+
+    Before connecting to the server, the client needs to scan the nearby
+    devices and search for the device that is advertising the chat service.
+    This is done by the \c RemoteSelector class.
+
+    To start service lookup, the \c RemoteSelector creates an instance of
+    \l QBluetoothServiceDiscoveryAgent and connects to its signals.
+
+    \snippet btchat/remoteselector.cpp createDiscoveryAgent
+
+    An UUID filter is set, so that the service discovery only shows the devices
+    that advertise the needed service. After that a
+    \l {QBluetoothServiceDiscoveryAgent::}{FullDiscovery} is started:
+
+    \snippet btchat/remoteselector.cpp startDiscovery
+
+    When a matching service is discovered, a
+    \l {QBluetoothServiceDiscoveryAgent::}{serviceDiscovered()} signal is
+    emitted with an instance of \l QBluetoothServiceInfo as a parameter. This
+    service info is used to extract the device name and the service name,
+    and add a new entry to the list of discovered remote devices:
+
+    \snippet btchat/remoteselector.cpp serviceDiscovered
+
+    Later the user can select one of the devices from the list and try to
+    connect to it.
+
+    \section1 Chat Client
+
+    The chat client is implemented by the \c ChatClient class.
+    The \c ChatClient class is declared as:
+
+    \snippet btchat/chatclient.h declaration
+
+    The client creates a new QBluetoothSocket and connects to the remote
+    service described by the \c remoteService parameter. Slots are connected
+    to the socket's \l {QBluetoothSocket::}{readyRead()},
+    \l {QBluetoothSocket::}{connected()}, and
+    \l {QBluetoothSocket::}{disconnected()} signals.
+
+    \snippet btchat/chatclient.cpp startClient
+
+    On successful socket connection we emit a signal to notify other users.
+
+    \snippet btchat/chatclient.cpp connected
+
+    Similarly to the chat server, the \c readSocket() slot is called when data
+    is available from the socket. Lines are read individually and converted
+    from UTF-8. The \c {messageReceived()} signal is emitted.
+
+    \snippet btchat/chatclient.cpp readSocket
+
+    The \c {sendMessage()} slot is used to send a message to the remote device.
+    The message is converted to UTF-8 and a newline is appended.
+
+    \snippet btchat/chatclient.cpp sendMessage
+
+    To disconnect from the remote chat service, the QBluetoothSocket instance is deleted.
+
+    \snippet btchat/chatclient.cpp stopClient
+
+    \section1 Chat Dialog
+
+    The main window of this example is the chat dialog, implemented in the
+    \c Chat class. This class displays a chat session between a single
+    \c ChatServer and zero or more \c {ChatClient}s. The \c Chat class is
+    declared as:
+
+    \snippet btchat/chat.h declaration
+
+    First we construct the user interface
+
+    \snippet btchat/chat.cpp Construct UI
+
+    We create an instance of the \c ChatServer and respond to its
+    \c {clientConnected()}, \c {clientDiconnected()}, and
+    \c {messageReceived()} signals.
+
+    \snippet btchat/chat.cpp Create Chat Server
+
+    In response to the \c {clientConnected()} and \c {clientDisconnected()}
+    signals of the \c ChatServer, we display the typical "X has joined chat."
+    and "Y has left." messages in the chat session.
+
+    \snippet btchat/chat.cpp clientConnected clientDisconnected
+
+    Incoming messages from clients connected to the \c ChatServer are handled
+    in the \c {showMessage()} slot. The message text tagged with the remote
+    device name is displayed in the chat session.
+
+    \snippet btchat/chat.cpp showMessage
+
+    In response to the connect button being clicked, the application starts service discovery and
+    presents a list of discovered chat services on remote devices. A \c ChatClient for the service
+    is selected by the user.
+
+    \snippet btchat/chat.cpp Connect to remote service
+
+    In reponse to the \c {connected()} signals from \c ChatClient, we display
+    the "Joined chat with X." message in the chat session.
+
+    \snippet btchat/chat.cpp connected
+
+    Messages are sent to all remote devices via the \c ChatServer and
+    \c ChatClient instances by emitting the \c {sendMessage()} signal.
+
+    \snippet btchat/chat.cpp sendClicked
+
+    We need to clean up \c ChatClient instances when the remote device forces
+    a disconnect.
+
+    \snippet btchat/chat.cpp clientDisconnected
+*/

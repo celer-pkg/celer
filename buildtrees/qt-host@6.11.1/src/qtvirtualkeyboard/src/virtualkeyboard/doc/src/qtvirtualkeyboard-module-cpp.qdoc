@@ -1,0 +1,32 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \module QtVirtualKeyboard
+    \title Qt Virtual Keyboard C++ Classes
+    \brief Provides classes to implement input methods for virtual keyboards.
+
+    \ingroup modules
+    \qtcmakepackage VirtualKeyboard
+    \qtvariable virtualkeyboard
+
+    To include the definitions of the module's classes, use the following directive:
+
+    \code
+    #include <QtVirtualKeyboard>
+    \endcode
+
+    \include module-use.qdocinc using qt module
+    \snippet cmake.txt find-and-link
+
+    See \l{Getting started with CMake} for more information.
+
+    \section2 Building with qmake
+
+    To link against this module, add the following line to your qmake \c .pro
+    file:
+
+    \badcode
+    QT += virtualkeyboard
+    \endcode
+*/

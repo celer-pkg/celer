@@ -1,0 +1,225 @@
+# Copyright 2024-2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "fuzz_domains",
+    testonly = 1,
+    srcs = ["fuzz_domains.cc"],
+    hdrs = ["fuzz_domains.h"],
+    deps = [
+        ":stroke_input",
+        ":stroke_input_batch",
+        "//ink/geometry:angle",
+        "//ink/geometry:fuzz_domains",
+        "//ink/geometry:point",
+        "//ink/geometry:rect",
+        "//ink/types:duration",
+        "//ink/types:fuzz_domains",
+        "//ink/types:physical_distance",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_fuzztest//fuzztest",
+    ],
+)
+
+cc_library(
+    name = "stroke_input_batch",
+    srcs = ["stroke_input_batch.cc"],
+    hdrs = ["stroke_input_batch.h"],
+    deps = [
+        ":stroke_input",
+        "//ink/geometry:affine_transform",
+        "//ink/geometry:angle",
+        "//ink/geometry:point",
+        "//ink/strokes/input/internal:stroke_input_validation_helpers",
+        "//ink/types:duration",
+        "//ink/types:physical_distance",
+        "//ink/types/internal:copy_on_write",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_library(
+    name = "stroke_input",
+    srcs = ["stroke_input.cc"],
+    hdrs = ["stroke_input.h"],
+    deps = [
+        "//ink/geometry:angle",
+        "//ink/geometry:point",
+        "//ink/types:duration",
+        "//ink/types:physical_distance",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_test(
+    name = "stroke_input_test",
+    srcs = ["stroke_input_test.cc"],
+    deps = [
+        ":stroke_input",
+        "//ink/geometry:angle",
+        "//ink/types:duration",
+        "//ink/types:physical_distance",
+        "@com_google_absl//absl/strings",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "stroke_input_batch_test",
+    srcs = ["stroke_input_batch_test.cc"],
+    deps = [
+        ":fuzz_domains",
+        ":stroke_input",
+        ":stroke_input_batch",
+        ":type_matchers",
+        "//ink/geometry:angle",
+        "//ink/types:duration",
+        "//ink/types:physical_distance",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:span",
+        "@com_google_fuzztest//fuzztest",
+        "@com_google_fuzztest//fuzztest:fuzztest_gtest_main",
+    ],
+)
+
+cc_test(
+    name = "stroke_input_batch_iterator_test",
+    srcs = ["stroke_input_batch_iterator_test.cc"],
+    deps = [
+        ":fuzz_domains",
+        ":stroke_input",
+        ":stroke_input_batch",
+        ":type_matchers",
+        "//ink/geometry:angle",
+        "//ink/geometry:type_matchers",
+        "//ink/types:duration",
+        "@com_google_absl//absl/status",
+        "@com_google_fuzztest//fuzztest",
+        "@com_google_fuzztest//fuzztest:fuzztest_gtest_main",
+    ],
+)
+
+cc_test(
+    name = "stroke_input_batch_transform_test",
+    srcs = ["stroke_input_batch_transform_test.cc"],
+    deps = [
+        ":stroke_input",
+        ":stroke_input_batch",
+        ":type_matchers",
+        "//ink/geometry:affine_transform",
+        "//ink/geometry:angle",
+        "//ink/types:duration",
+        "@com_google_absl//absl/status",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "type_matchers",
+    testonly = 1,
+    srcs = ["type_matchers.cc"],
+    hdrs = ["type_matchers.h"],
+    deps = [
+        ":stroke_input",
+        ":stroke_input_batch",
+        "//:gtest_for_library_testonly",
+        "//ink/geometry:type_matchers",
+        "//ink/types:type_matchers",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_library(
+    name = "synthetic_test_inputs",
+    testonly = 1,
+    srcs = ["synthetic_test_inputs.cc"],
+    hdrs = ["synthetic_test_inputs.h"],
+    deps = [
+        ":stroke_input",
+        ":stroke_input_batch",
+        "//ink/geometry:angle",
+        "//ink/geometry:rect",
+        "//ink/types:duration",
+        "//ink/types:physical_distance",
+        "@com_google_absl//absl/log:absl_check",
+    ],
+)
+
+cc_test(
+    name = "synthetic_test_inputs_test",
+    srcs = ["synthetic_test_inputs_test.cc"],
+    deps = [
+        ":stroke_input",
+        ":stroke_input_batch",
+        ":synthetic_test_inputs",
+        "//ink/geometry:envelope",
+        "//ink/geometry:rect",
+        "//ink/geometry:type_matchers",
+        "//ink/types:duration",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "recorded_test_inputs",
+    testonly = 1,
+    srcs = [
+        "recorded_test_inputs.cc",
+        "recorded_test_inputs_data.cc",
+        "recorded_test_inputs_data.h",
+    ],
+    hdrs = ["recorded_test_inputs.h"],
+    deps = [
+        ":stroke_input",
+        ":stroke_input_batch",
+        "//ink/geometry:affine_transform",
+        "//ink/geometry:angle",
+        "//ink/geometry:envelope",
+        "//ink/geometry:point",
+        "//ink/geometry:rect",
+        "//ink/types:duration",
+        "@com_google_absl//absl/log:absl_check",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "recorded_test_inputs_test",
+    srcs = [
+        "recorded_test_inputs_test.cc",
+    ],
+    deps = [
+        ":recorded_test_inputs",
+        ":stroke_input",
+        ":stroke_input_batch",
+        "//ink/geometry:envelope",
+        "//ink/geometry:rect",
+        "//ink/geometry:type_matchers",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

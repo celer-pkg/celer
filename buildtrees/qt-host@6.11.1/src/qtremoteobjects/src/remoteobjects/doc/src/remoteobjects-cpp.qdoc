@@ -1,0 +1,23 @@
+// Copyright (C) 2017 Ford Motor Company
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\module QtRemoteObjects
+\title Qt Remote Objects C++ Classes
+\brief Provides an easy to use mechanism for sharing a QObject's properties, signals, or slots, between processes.
+\ingroup modules
+\qtcmakepackage RemoteObjects
+\qtvariable remoteobjects
+
+    To link against the module using CMake, add the following lines to your \c cmake file:
+
+    \snippet cmake-macros/CMakeLists.txt remote_objects_cmake
+
+    \snippet cmake-macros/CMakeLists.txt remote_objects_cmake_link
+
+    To link against the module using \c qmake, add this line to your \c{.pro} file:
+
+    \snippet doc_src_simpleswitch.cpp simpleSwitch_remoteobjectsadd_example1
+
+    For more information, see \l{Getting Started with Qt Remote Objects}.
+*/

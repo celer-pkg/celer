@@ -1,0 +1,14 @@
+<RCC>
+    <qresource prefix="/qt/qml/emitters">
+        <file>emitters.qml</file>
+        <file>burstandpulse.qml</file>
+        <file>customemitter.qml</file>
+        <file>emitmask.qml</file>
+        <file>maximumemitted.qml</file>
+        <file>shapeanddirection.qml</file>
+        <file>trailemitter.qml</file>
+        <file>velocityfrommotion.qml</file>
+        <file>images/starfish_mask.png</file>
+        <file>images/portal_bg.png</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,66 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/config/exampleurl-qttools.qdocconf)
+
+project          = QDoc
+description      = QDoc Manual
+version          = $QT_VERSION
+moduleheader     =
+
+qhp.projects            = QDoc
+
+qhp.QDoc.file                = qdoc.qhp
+qhp.QDoc.namespace           = org.qt-project.qdoc.$QT_VERSION_TAG
+qhp.QDoc.virtualFolder       = qdoc
+qhp.QDoc.indexTitle          = QDoc Manual
+qhp.QDoc.indexRoot           =
+
+qhp.QDoc.subprojects = manual
+qhp.QDoc.subprojects.manual.title = QDoc Manual
+qhp.QDoc.subprojects.manual.indexTitle = QDoc Manual
+qhp.QDoc.subprojects.manual.type = manual
+
+sourcedirs = ..
+
+exampledirs = .. \
+              ../examples
+
+imagedirs = ../images
+
+tagfile = ../html/qdoc.tags
+
+examples.fileextensions = "*.cpp *.h *.js *.xq *.svg *.xml *.ui *.qhp *.qhcp *.qml *.css *.qdoc *.qdocinc *.sample"
+
+depends += \
+    qtconcurrent \
+    qtcore \
+    qtdbus \
+    qtdesigner \
+    qtdoc \
+    qthelp \
+    qtgui \
+    qtlinguist \
+    qtnetwork \
+    qtopengl \
+    qtprintsupport \
+    qtqml \
+    qtquick \
+    qtquickcontrols \
+    qtsql \
+    qtsvg \
+    qttestlib \
+    qtuitools \
+    qtwidgets \
+    qtxml \
+    qtassistant
+
+ignorewords += QDoc
+
+# Auto-generate navigation linking based on "QDoc Manual":
+navigation.toctitles = "QDoc Manual"
+navigation.toctitles.inclusive = true
+
+# Convenience macros for creating links to QDoc commands & configuration variables
+macro.qdoccmd = \\l{\1-command}{\\c{\\\1}}
+macro.qdocvar = \\l{\1-variable}{\\c{\1}}
+
+warninglimit = 0

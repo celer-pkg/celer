@@ -1,0 +1,18 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [building an app bundle]
+     To build your application as an application bundle with CMake, set the
+     \l {https://cmake.org/cmake/help/latest/prop_tgt/MACOSX_BUNDLE.html}
+     {\c {MACOSX_BUNDLE}} property on your executable target, as follows:
+
+     \badcode
+     qt_add_executable(MyApp)
+     if(APPLE)
+         set_target_properties(MyApp PROPERTIES MACOSX_BUNDLE TRUE)
+     endif()
+     \endcode
+
+    With qmake, bundles are the default. Set \c {CONFIG -= app_bundle} in your project
+    file (\c{.pro}) to disable it.
+//! [building an app bundle]

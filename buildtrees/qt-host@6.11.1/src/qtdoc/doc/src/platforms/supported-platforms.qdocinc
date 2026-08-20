@@ -1,0 +1,350 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+
+//! [all]
+\section1 Desktop Platforms
+//! [desktop]
+
+\section2 \l{Qt for Linux}{Linux}
+//! [linux]
+\table 80%
+    \header \li Distribution \li Architecture \li Compiler \li Notes
+    \row \li \tm{Red Hat} 8.10
+        \li \c x86_64
+        \li GCC 10 (toolset)
+        \li
+    \row \li \tm{Red Hat} 9.6
+        \li \c x86_64
+        \li GCC 11
+        \li
+    \row \li \tm{Red Hat} 10.0
+        \li \c x86_64
+        \li GCC 14
+        \li
+    \row \li openSUSE 15.6
+        \li \c x86_64
+        \li GCC 9, GCC 10, GCC 11, GCC 12
+        \li
+    \row \li openSUSE 16.0
+        \li \c x86_64
+        \li GCC 15
+        \li
+    \row \li SUSE Linux Enterprise Server 15 SP6
+        \li \c x86_64
+        \li GCC 11
+        \li
+    \row \li Ubuntu 22.04
+        \li \c x86_64
+        \li GCC as provided by Canonical, GCC 11.x
+        \li See also: \l {Enterprise Qt Debian Packages}.
+    \row \li Ubuntu 24.04
+        \li \c {x86_64, arm64}
+        \li GCC as provided by Canonical, GCC 13.x
+        \li See the \l {linux-on-arm-desktop-support}{note} regarding Linux on
+            Arm desktop support.
+    \row \li Debian 11.6
+        \li \c {x86_64, arm64}
+        \li GCC 10
+        \li See the \l {linux-on-arm-desktop-support}{note} regarding Linux on
+            Arm desktop support.
+    \row \li Debian 12
+        \li \c {x86_64, arm64}
+        \li GCC 12
+        \li See also: \l {Enterprise Qt Debian Packages}.
+
+            See the \l {linux-on-arm-desktop-support}{note} regarding Linux on
+            Arm desktop support.
+\endtable
+
+\target linux-on-arm-desktop-support
+\note For Linux on Arm on desktops, we use Raspberry Pi 5 with 8GB RAM and
+    Ubuntu 24.04 as a reference platform. If you have an issue with another
+    hardware, please try to reproduce the issue on Raspberry Pi 5. We plan to
+    move to regular platform support when a wider range of ARM-based desktop
+    hardware becomes available. The official binaries in \QOI are built on
+    Ubuntu 24.04 which ships with glibc 2.39, if your glibc is older than what
+    we build with, you need to rebuild from sources.
+
+//! [linux]
+
+\section2 \l{Qt for macOS}{\macos}
+//! [macos]
+\table 80%
+    \header \li Build Environment \li Target Platform \li Architecture
+    \row
+        \li Xcode \macOSMinXcodeVersion (\macos \macOSMinSdkVersion SDK) or higher
+        \li \macos \macOSMinVersion or higher (including \macos \macOSMaxVersionTested)
+        \li \c x86_64, \c x86_64h, \c arm64
+\endtable
+
+\include apple-common.qdocinc {forward-compatibility} {\macos}
+//! [macos]
+
+\section2 \l{Qt for Windows}{Windows}
+//! [windows]
+\table 80%
+    \header \li Operating System \li Architecture \li Compiler \li Notes
+    \row \li Windows 10 (1809 or later)
+        \li \c x86_64
+        \li MSVC 2022, Mingw-w64 13.1
+        \li
+    \row \li Windows 11
+        \li \c x86_64
+        \li MSVC 2022, Mingw-w64 13.1
+        \li
+    \row \li Windows on ARM
+        \li \c ARM64
+        \li MSVC 2022
+        \li
+\endtable
+
+\note Qt 6.12 will be the last version to support Windows 10.
+
+\note Currently Qt does not support ARM64EC on Windows on ARM devices.
+
+//! [windows]
+
+//! [desktop]
+
+\section1 Mobile Platforms
+//! [mobile]
+\target android_support
+\section2 \l{Qt for Android}{Android}
+//! [android]
+
+The following configurations are supported in this Qt release:
+
+\table 60%
+    \header \li Section \li Description
+    \row
+        \li \b Distribution
+        \li Android \AndroidMinVer (API \AndroidMinApiVer) \b {to}
+            \AndroidMaxVer (API \AndroidMaxApiVer)
+    \row
+        \li \b Architecture
+        \li \AndroidAbis
+    \row
+        \li \b Compiler
+        \li \NdkCompilerVer (NDK \NdkVer or \NdkFullVer)
+            \note It's recommended that Qt apps use the same NDK version
+            used for building the official Qt for Android libraries to avoid
+            missing symbol errors. In releases supporting multiple NDKs, the
+            newest supported NDK is used for building Qt.
+    \row
+        \li \b JDK
+        \li JDK \JdkVer
+    \row
+        \li \b Gradle
+        \li Gradle \GradleVer and AGP \AGPVer
+    \row
+        \li \b Package
+        \li Multi-ABI \c {APK}s, \c {AAB}s and \c {AAR}s
+            \note Multi-ABI builds are available only when using CMake. For more
+            information, see \l{QT_ANDROID_ABIS}{CMake Android Multi-ABIs}.
+\endtable
+
+For more information on the supported Android versions, see
+\l {Qt for Android Supported Versions Selection Guidelines}.
+
+//! [android]
+
+\section2 \l{Qt for iOS}{iOS}
+//! [ios]
+\table 80%
+    \header \li Build Environment \li Target Platform \li Architecture
+    \row
+        \li Xcode \iOSMinXcodeVersion (iOS \iOSMinSdkVersion SDK) or higher
+        \li iOS \iOSMinVersion or higher (including iOS \iOSMaxVersionTested)
+        \li \c armv8, \c arm64
+\endtable
+
+\include apple-common.qdocinc {forward-compatibility} {iOS}
+//! [ios]
+
+For information about support of WebAssembly on mobile platforms, see notes
+on \l {Qt for WebAssembly#Supported Browsers}{supported browsers}.
+
+//! [mobile]
+
+\section1 Embedded Platforms
+//! [embedded]
+
+//! [tier_support]
+
+\section2 Support Levels for Target Hardware
+
+There are multiple levels of support that apply across specific hardware and OS
+combinations.
+
+\note Qt for INTEGRITY, Qt for QNX, and Qt for VxWorks targets are only supported in Long Term
+Support (LTS) releases. To get support for these targets in non-LTS releases, contact
+\l {Qt Professional Services}.
+
+\section3 Tier 1: Reference Targets
+
+\list
+    \li Issues on reference targets are given a higher priority than lower
+    tier targets.
+    \li Covered under \l{Standard support}.
+    \li Releases are available via \QOI.
+\endlist
+
+\table
+    \header \li{5,1} Tier 1: Reference Targets
+    \header \li Vendor \li Board \li OS / Other \li Product \li Supported By
+    \row \li Intel \li NUC \li Yocto 5.3 \li \l{Boot to Qt} \li Qt Group
+    \row \li NVIDIA \li Jetson AGX Orin 64GB Developer Kit \li Yocto 5.3 \li \l{Boot to Qt} \li Qt Group
+    \row \li NXP \li i.MX 8QuadMax MEK \li AAOS 14 \li \l{Qt for Android Automotive} \li Qt Group
+    \row \li NXP \li i.MX 8QuadMax MEK \li Yocto 5.3 \li \l{Boot to Qt} \li Qt Group
+    \row \li Qualcomm \li SA8155P \li AAOS 10-13 \li \l{Qt for Android Automotive} \li Qt Group
+    \row \li Raspberry Pi \li Raspberry Pi 5 (SBC) \li Yocto 5.3 \li \l{Boot to Qt} \li Qt Group
+\endtable
+
+\section3 Tier 2: Verified Targets
+\target {embedded-platforms-tier2}
+
+\list
+    \li Issues on verified targets are given a lower priority than
+    \l{Tier 1: Reference Targets}.
+    \li Covered under \l{Premium support}.
+    \li Releases are available via \QOI.
+\endlist
+
+\table
+    \header \li{5,1} Tier 2: Verified Targets
+    \header \li Vendor \li Board \li OS / Other \li Product \li Supported by
+    \row \li NVIDIA \li Jetson AGX Orin Developer Kit \li Debian 12 \li \l{Enterprise Qt Debian Packages} \li Qt Group
+    \row \li NXP \li i.MX 8M Plus LPDDR4 EVK \li Yocto 5.3 \li \l{Boot to Qt} \li Qt Group
+    \row \li NXP \li i.MX 93 11x11 LPDDR4X EVK \li Yocto 5.3 \li \l{Boot to Qt} \li Qt Group
+    \row \li Qualcomm \li RB3 Gen 2 Vision Kit \li Yocto 5.0 \li \l{Boot to Qt} \li Qt Group
+    \row \li Raspberry Pi \li Raspberry Pi 4 64-bit \li Yocto 5.3 \li \l{Boot to Qt} \li Qt Group
+    \row \li ST \li STM32MP15 Discovery \li Yocto 5.0 \li \l{Boot to Qt} \li Qt Group
+    \row \li TI \li SK-AM62 \li Yocto 5.0 \li \l{Boot to Qt} \li Qt Group
+    \row \li Toradex \li Apalis iMX6 \li Yocto 5.0 \li \l{Boot to Qt} \li Qt Group
+    \row \li Toradex \li i.MX 95 Verdin \li Yocto 5.0 \li \l{Boot to Qt} \li Qt Group
+\endtable
+
+\section3 Tier 3: Other Targets
+
+\list
+    \li Issues on other targets are given a lower priority than
+    \l{Tier 1: Reference Targets} and \l{Tier 2: Verified Targets}.
+    \li Hardware is not regularly tested.
+    \li QBSP packages can be acquired from different vendors; the ones provided
+        by Qt Group are available either from \l {Qt Customer Portal} or via \QOI.
+\endlist
+
+\table
+    \header \li{5,1} Tier 3: Other Targets
+    \header \li Vendor \li Board \li OS / Other \li Product \li Supported by
+    \row \li NVIDIA \li Jetson Orin Nano Developer Kit \li Yocto 5.3 \li \l{Boot to Qt} \li Qt Group
+    \row \li NXP \li i.MX 8M Mini LPDDR4 EVK \li Yocto 5.3 \li \l{Boot to Qt} \li Qt Group
+    \row \li NXP \li i.MX 8M Nano LPDDR4 EVK \li Yocto 5.3 \li \l{Boot to Qt} \li Qt Group
+    \row \li ST \li STM32MP15 Evaluation \li Yocto 5.0 \li \l{Boot to Qt} \li Qt Group
+    \row \li StarFive \li VisionFive 2 \li Yocto 5.0 \li \l{Boot to Qt} \li Qt Group
+    \row \li Toradex \li Apalis iMX8 \li Yocto 5.0 \li \l{Boot to Qt} \li Qt Group
+    \row \li Toradex \li Colibri iMX6 ULL \li Yocto 5.0 \li \l{Boot to Qt} \li Qt Group
+\endtable
+
+
+See \l{Other Targets} for more information.
+
+See \l{Qt Support Terms and Conditions} for more information.
+//! [tier_support]
+\section2 Android Automotive OS
+
+\l{Qt for Android Automotive}, based on \l{Qt for Android}, extends support
+for Android Automotive OS features on version \AAOSVer.
+
+\section2 webOS OSE
+
+\l{Qt for webOS}{webOS OSE}, open-source edition of webOS, supports Qt
+application development.
+
+\section2 \l{Qt for Embedded Linux}{Embedded Linux}
+
+Refer to \l{Configure an Embedded Linux Device} for information on generic
+cross-compilation of Qt for Embedded Linux devices.
+
+For further embedded Linux platform support, consult the \l{Boot to Qt}
+documentation.
+
+\section2 Real Time Operating Systems
+
+\table 80%
+    \header \li Operating System \li Architecture \li Compiler \li Provided in
+    \row \li INTEGRITY 19.0.13
+    \li \c arm64
+    \li GHS compiler version 2020.1.4 or newer
+    \li \l{Qt for INTEGRITY}
+    \row \li QNX 7.1
+    \li
+        \list
+            \li \c ARMle-v7
+            \li \c AArch64le and x86-64 (64-bit)
+        \endlist
+    \li QCC from QNX7.1 SDP (based on GCC8.3)
+    \li \l{Qt for QNX}
+    \row \li QNX 8.0
+    \li
+        \list
+            \li \c AArch64le and x86-64 (64-bit)
+        \endlist
+    \li QCC from QNX8.0 SDP (based on GCC12.2)
+    \li \l{Qt for QNX}
+    \row \li Free RTOS
+    \li Platform specific. For details, see \l {Supported Qt for MCUs platforms}.
+    \li Platform specific. For details, see \l {Supported Qt for MCUs platforms}.
+    \li \l{Qt for MCUs documentation}{Qt for MCUs}
+    \row \li VxWorks 24.03
+    \li
+        \list
+            \li \c armv7 (i.mx6)
+        \endlist
+    \li Clang version 17.0.6.1
+    \li \l{Qt for VxWorks}
+    \row \li VxWorks 25.03
+    \li
+        \list
+            \li \c armv7 (i.mx6)
+            \li \c x86_64 (Intel SkyLake, Intel KabyLake with Intel GPU)
+        \endlist
+    \li Clang version 17.0.6.3
+    \li \l{Qt for VxWorks}
+    \row \li Zephyr
+    \li Platform specific. For details, see \l {Supported Qt for MCUs platforms}.
+    \li Platform specific. For details, see \l {Supported Qt for MCUs platforms}.
+    \li \l{Qt for MCUs documentation}{Qt for MCUs}
+\endtable
+
+//! [embedded]
+
+\section1 Web Platforms
+//! [web]
+
+\section2  \l{Qt for WebAssembly}{WebAssembly}
+\table 80%
+    \header \li Platform \li Architecture \li Compiler \li Implementations
+    \row \li Web Browser
+        \li \c wasm32
+        \li Emscripten 4.0.7
+        \li Chrome, Edge, Firefox, Safari
+\endtable
+
+Qt for WebAssembly is a platform-agnostic technology that allows running apps on
+compatible browsers regardless of the underlying operating system. Qt for
+WebAssembly is well supported and tested on desktop browsers including Chrome,
+Edge, Firefox, and Safari. While Qt for WebAssembly is designed to function
+smoothly on desktop browsers, it is important to note that some mobile browsers
+may still lack some necessary features for reliably executing WebAssembly apps.
+Therefore, we strongly recommend application providers targeting mobile
+browsers to conduct comprehensive testing to ensure compatibility and
+performance.
+
+//! [web]
+
+//! [all]
+
+*/

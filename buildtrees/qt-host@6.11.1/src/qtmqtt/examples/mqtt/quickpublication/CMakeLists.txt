@@ -1,0 +1,52 @@
+# Copyright (C) 2022 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+
+cmake_minimum_required(VERSION 3.16)
+project(quickpublication LANGUAGES CXX)
+
+if(NOT DEFINED INSTALL_EXAMPLESDIR)
+    set(INSTALL_EXAMPLESDIR "examples")
+endif()
+
+set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/mqtt/quickpublication")
+
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Mqtt Qml Quick)
+
+qt_standard_project_setup(REQUIRES 6.5)
+
+qt_add_executable(quickpublication
+    WIN32
+    MACOSX_BUNDLE
+    main.cpp
+)
+
+set_target_properties(quickpublication PROPERTIES
+    WIN32_EXECUTABLE TRUE
+    MACOSX_BUNDLE TRUE
+)
+
+target_compile_definitions(quickpublication PUBLIC
+    QT_DEPRECATED_WARNINGS
+)
+
+target_link_libraries(quickpublication PRIVATE
+    Qt::Core
+    Qt::Gui
+    Qt::Mqtt
+    Qt::Qml
+    Qt::Quick
+)
+
+qt_add_qml_module(quickpublication
+    URI publication
+    QML_FILES
+        "Main.qml"
+    SOURCES
+        qmlmqttclient.cpp qmlmqttclient.h
+)
+
+install(TARGETS quickpublication
+    RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
+    BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"
+    LIBRARY DESTINATION "${INSTALL_EXAMPLEDIR}"
+)

@@ -1,0 +1,135 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example tasktree/demo
+    \meta tags {widgets}
+    \examplecategory {Data Processing & I/O}
+    \title TaskTree Demo
+    \ingroup tasktree_examples
+    \brief Demonstrates how different execution modes and workflow policies
+           affect the complex TaskTree execution.
+
+    The \e {TaskTree Demo} shows how to construct a nested TaskTree
+    recipe using \l {QtTaskTree::} {timeoutTask}, and demonstrates
+    different \l {Execution Mode} {execution modes} and
+    \l {Workflow Policy} {workflow policies}.
+    Its application provides a graphical overview of progress as the
+    TaskTree executes the various work items making up the task.
+
+    \image tasktree-demo-example.png
+           {Nested task groups with color-coded states showing progress at 78 percent}
+
+    The demo application uses a single QWidget to display and manage a TaskTree
+    hierarchy. Here's what you'll find in the interface:
+
+    \list
+        \li \b Tasks appear as leaf nodes on the right side of the tree.
+
+            For each task, you can set the execution duration and configure
+            success or error completion states.
+        \li \b {Group nodes} appear on the left and middle of the tree.
+
+            Each group can contain multiple child tasks or nested groups. You
+            can configure \l {Execution Mode} {execution modes} and
+            \l {Workflow Policy} {workflow policies} for each group.
+        \li \b {Color indicators} show the current execution state of each node.
+    \endlist
+
+    The following sections describe more details of the example's code.
+
+    \section1 Helper Glue Classes
+
+    The \c GlueItem abstract class connects the user interface (UI) components
+    with their corresponding TaskTree recipes. This design pattern enables clean
+    separation between the UI and task logic.
+
+    \snippet tasktree/demo/main.cpp 0
+
+    The \c GlueItem class defines three key virtual methods:
+    \table
+    \header
+        \li Method
+        \li Purpose
+    \row
+        \li \c recipe()
+        \li Creates and returns a TaskTree recipe that defines the item's behavior
+    \row
+        \li \c widget()
+        \li Provides access to the associated UI component
+    \row
+        \li \c reset()
+        \li Restores the UI component to its initial state
+    \endtable
+
+    The \c GroupGlueItem class manages \l{QtTaskTree::} {Group} elements in
+    your task hierarchy. Each group can hold other \c GlueItem elements as
+    children, including nested \c {GroupGlueItem}s or \c {TaskGlueItem}s.
+
+    Here's how the \c {recipe()} method creates and configures a group:
+
+    \snippet tasktree/demo/main.cpp 1
+
+    Key components of the implementation:
+    \list
+        \li Creates a new \l {QtTaskTree::} {Group} with child recipes
+        \li Applies \l {Execution Mode} {execution mode}
+            and \l {Workflow Policy} {workflow policy} from UI settings
+        \li Uses \l {QtTaskTree::onGroupSetup} {onGroupSetup()} to update
+            UI when execution begins
+        \li Uses \l {QtTaskTree::onGroupDone} {onGroupDone()} to reflect
+            execution results in the UI
+    \endlist
+
+    The \c TaskGlueItem class implements leaf nodes in your task tree using
+    \l {QtTaskTree::} {timeoutTask}.
+
+    Here's the \c {recipe()} implementation that creates the task:
+
+    \snippet tasktree/demo/main.cpp 2
+
+    The implementation:
+    \list
+        \li Creates a \l {QtTaskTree::} {Group} that wraps a
+            \l {QtTaskTree::} {timeoutTask}
+        \li Uses UI settings to configure duration and expected outcome
+        \li Updates UI state when task begins via
+            \l {QtTaskTree::onGroupSetup} {onGroupSetup()}
+        \li Reflects task completion state via
+            \l {QtTaskTree::onGroupDone} {onGroupDone()}
+    \endlist
+
+    \section1 Building the task hierarchy
+
+    Two helper methods simplify the creation of task trees:
+
+    \snippet tasktree/demo/main.cpp 3
+
+    \list
+        \li \c {group()}: Creates a new \c GroupGlueItem
+        \li \c {task()}: Creates a new \c TaskGlueItem
+    \endlist
+
+    \section1 Defining the tree structure
+
+    The following code shows how you can build a complete task hierarchy:
+
+    \snippet tasktree/demo/main.cpp 4
+
+    You can modify the above construct to create different tree structures.
+
+    \section1 Connecting the UI with TaskTree
+
+    The final step connects the task tree with the application's UI controls:
+
+    \snippet tasktree/demo/main.cpp 5
+
+    This code:
+    \list
+        \li Creates a QSingleTaskTreeRunner to execute the task tree
+        \li Sets up handlers for the Start, Cancel, and Reset buttons
+        \li Connects the progress bar to track task execution
+    \endlist
+
+    \include examples-run.qdocinc
+*/

@@ -1,0 +1,79 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+//TESTED_COMPONENT=qtdeclarative
+
+testcase = {
+
+    pre_existing_elements_data: {
+        Rectangle: ["Rectangle"],
+        Image: ["Image"],
+        AnimatedImage: ["AnimatedImage"],
+        BorderImage: ["BorderImage"],
+        SystemPalette: ["SystemPalette"],
+        Text: ["Text"],
+        TextInput: ["TextInput"],
+        TextEdit: ["TextEdit"],
+        FontLoader: ["FontLoader"],
+        Flipable: ["Flipable"],
+        Flickable: ["Flickable"],
+        IntValidator: ["IntValidator"],
+        DoubleValidator: ["DoubleValidator"],
+        Column: ["Column"],
+        Row: ["Row"],
+        Flow: ["Flow"],
+        Grid: ["Grid"],
+        Repeater: ["Repeater"],
+        ListView: ["ListView"],
+        Keys: ["Keys"],
+        MouseArea: ["MouseArea"],
+        SequentialAnimation: ["SequentialAnimation"],
+        ParallelAnimation: ["ParallelAnimation"],
+        XmlListModel: ["XmlListModel"],
+        Scale: ["Scale"]
+    },
+
+    pre_existing_elements: function(name) {
+        // Test Meta-data
+        testTitle = name+ " Element";
+        testBinary = "qmlscene tests/testapplications/elements/elements.qml";
+        testGoal = "Verify the "+name+" element is shown correctly";
+        testPreconditions = "None";
+        testGroups = "BAT";
+
+        // Test Steps
+        prompt(twiki('---+++ ' + testTitle + '<br><br>
+        *Goal:* ' + testGoal + '<br>
+        *Pre-Requisites:* ' + testPreconditions + '<br>
+        *Tested Binary:* ' + testBinary + '<br>
+    | Select the '+name+' list item | Verify that the '+name+' application is displayed |
+    | Follow the instructions in the in-app test | Verify all steps are completed successfully |'));
+    },
+
+    new_elements_data: {
+        ParticleSystem: ["ParticleSystem"],
+        ImageParticle: ["ImageParticle"],
+        Emitter: ["Emitter"],
+        Affector: ["Affector"],
+        Shape: ["Shape",],
+        TrailEmitter: ["TrailEmitter"],
+        Direction: ["Direction"]
+    },
+
+    new_elements: function(name) {
+        // Test Meta-data
+        testTitle = name+ " Element";
+        testBinary = "qmlscene tests/testapplications/elements/elements.qml";
+        testGoal = "Verify the "+name+" element is shown correctly";
+        testPreconditions = "None";
+        testGroups = "BAT";
+
+        // Test Steps
+        prompt(twiki('---+++ ' + testTitle + '<br><br>
+        *Goal:* ' + testGoal + '<br>
+        *Pre-Requisites:* ' + testPreconditions + '<br>
+        *Tested Binary:* ' + testBinary + '<br>
+    | Select the '+name+' list item | Verify that the '+name+' application is displayed |
+    | Follow the instructions in the in-app test | Verify all steps are completed successfully |'));
+    }
+}

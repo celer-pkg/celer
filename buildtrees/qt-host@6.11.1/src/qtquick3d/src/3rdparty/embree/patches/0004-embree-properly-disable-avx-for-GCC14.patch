@@ -1,0 +1,30 @@
+From ae28850ddb92450e30e1fa6bbace00af0775e907 Mon Sep 17 00:00:00 2001
+From: Samuli Piippo <samuli.piippo@qt.io>
+Date: Tue, 22 Oct 2024 10:24:11 +0000
+Subject: [PATCH] embree: properly disable avx for GCC14
+
+GCC 14 does not keep avx disabled just by undef'ing __AVX__ .
+Add pragma option to do this properly.
+
+Fixes: QTBUG-130381
+Change-Id: Ia2ae6edc50bfb24b83753fff184469c86daa88dc
+---
+ src/3rdparty/embree/common/sys/platform.h     |  4 +++
+ 2 files changed, 30 insertions(+)
+ create mode 100644 src/3rdparty/embree/patches/0004-embree-properly-disable-avx-for-GCC14.patch
+
+diff --git a/src/3rdparty/embree/common/sys/platform.h b/src/3rdparty/embree/common/sys/platform.h
+index 78d8afce5..5e218fa37 100644
+--- a/src/3rdparty/embree/common/sys/platform.h
++++ b/src/3rdparty/embree/common/sys/platform.h
+@@ -3,6 +3,10 @@
+ 
+ #pragma once
+ 
++#if defined (__AVX__)
++#pragma GCC target("no-sse3")
++#endif
++
+ #define _CRT_SECURE_NO_WARNINGS
+ 
+ #include <cstddef>

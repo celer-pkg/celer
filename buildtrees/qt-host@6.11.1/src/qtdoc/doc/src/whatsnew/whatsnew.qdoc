@@ -1,0 +1,19 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \group whatsnewqt6
+    \title What's new in Qt 6
+    \brief Lists the changes in Qt 6 minor versions.
+    \keyword New Classes and Functions
+    \noautolist
+
+    The pages below describe changes per Qt 6 minor version. For an overview of changes in Qt 6
+    compared to Qt 5, see \l{Changes to Qt Modules in Qt 6}.
+
+    \generatelist [descending] whatsnewqt6
+
+    \section1 Detailed API changes
+
+    \generatelist [descending] whatsnewqt6-api
+*/

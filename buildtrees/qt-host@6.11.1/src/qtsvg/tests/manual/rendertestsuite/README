@@ -1,0 +1,32 @@
+This little helper program can be used together with the SVG Tiny 1.2 test
+suite to determine the visual impact of changes to the renderer on the basis of
+the test suite.
+
+Suppose you have the test suite installed in ~/tests, then you can create a
+base line of renderings of all the SVG images by running
+
+    mkdir baseline
+    ./rendertestsuite create-baseline ~/tests
+
+and the output will be stored in the 'baseline/' sub-directory.
+
+After making changes to the renderer, you can create a new set of images by running
+
+    mkdir difference
+    ./rendertestsuite diff ~/tests
+
+and side-by-side images of the old and the new images in case they differ will
+be stored in the sub-directory 'difference/'.
+
+An easy way to inspect the output is by using KDE's gwenview:
+
+    gwenview difference/
+
+
+Note that due to rounding errors there will always be subtle differences, even
+when not doing any changes to the renderer.
+
+
+You can find the test suite at
+
+    https://www.w3.org/Graphics/SVG/WG/wiki/Test_Suite_Overview#SVG_1.2_Tiny_Test_Suite:_12_September_2008

@@ -1,0 +1,13 @@
+diff --git a/src/3rdparty/PhysX/source/geomutils/src/hf/GuHeightField.cpp b/src/3rdparty/PhysX/source/geomutils/src/hf/GuHeightField.cpp
+index 8a40f3b..fc5c25c 100644
+--- a/src/3rdparty/PhysX/source/geomutils/src/hf/GuHeightField.cpp
++++ b/src/3rdparty/PhysX/source/geomutils/src/hf/GuHeightField.cpp
+@@ -88,7 +88,7 @@ Gu::HeightField::~HeightField()
+ void Gu::HeightField::onRefCountZero()
+ {
+ 	PX_ASSERT(mMeshFactory);
+-	if(mMeshFactory->removeHeightField(*this))
++	if ((!mData.samples) || mMeshFactory->removeHeightField(*this))
+ 	{
+ 		GuMeshFactory* mf = mMeshFactory;
+ 		Cm::deletePxBase(this);

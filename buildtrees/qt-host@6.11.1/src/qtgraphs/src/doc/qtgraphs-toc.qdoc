@@ -1,0 +1,36 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtgraphs-toc.html
+    \title Qt Graphs module topics
+
+    The following list has links to all the individual topics (HTML files)
+    in the Qt Graphs module.
+
+    \list
+        \li \l {Qt Graphs Overview for 2D}{Qt Graphs 2D}
+            \list
+                \li \l {Qt Graphs Migration from Qt Charts}{Migration from Qt Charts}
+                \li \l {Qt Graphs C++ Classes for 2D}{C++ Classes}
+                \li \l {Qt Graphs QML Types for 2D}{QML Types}
+            \endlist
+        \li \l {Qt Graphs Overview for 3D}{Qt Graphs 3D}
+            \list
+                \li \l {Qt Graphs Integration with Qt Quick 3D}{Integration with Qt Quick 3D}
+                \li \l {Qt Graphs Data Handling with 3D}{Data Handling}
+                \li \l {Qt Graphs Interacting with Data in 3D}{Interacting with Data}
+                \li \l {Qt Graphs Migration from Qt DataVisualization}{Migration from Qt DataVisualization}
+                \li \l {Qt Graphs C++ Classes for 3D}{C++ Classes}
+                \li \l {Qt Graphs QML Types for 3D}{QML Types}
+            \endlist
+        \li \l {Qt Graphs Widgets}
+            \list
+                \li \l {Qt Graphs C++ Classes for Widgets}{C++ Classes}
+            \endlist
+        \li \l {Qt Graphs Theme Overview}{Theming}
+        \li \l {Qt Graphs Configure Options}{Configure Options}
+        \li \l {Qt Graphs Known Issues}{Known Issues}
+    \endlist
+
+*/

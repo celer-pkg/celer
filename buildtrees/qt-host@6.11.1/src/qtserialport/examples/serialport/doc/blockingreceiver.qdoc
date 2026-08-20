@@ -1,0 +1,145 @@
+// Copyright (C) 2011 - 2012 Denis Shienkov <denis.shienkov@gmail.com>
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example blockingreceiver
+    \title Blocking Receiver
+    \ingroup qtserialport-examples
+    \examplecategory Connectivity
+
+    \brief Shows how to use the synchronous API of QSerialPort in a non-GUI thread.
+
+    \e{Blocking Receiver} shows how to create an application for a serial interface
+    using QSerialPort's synchronous API in a non-GUI thread.
+
+    \image {blockingreceiver-example.png} {Qt serial port blocking receiver}
+
+    QSerialPort supports two general programming approaches:
+
+    \list
+
+    \li \e{The asynchronous (non-blocking) approach.} Operations are scheduled
+    and performed when the control returns to Qt's event loop. QSerialPort emits
+    a signal when the operation is finished. For example, QSerialPort::write()
+    returns immediately. When the data is sent to the serial port, QSerialPort
+    emits \l{QIODevice::bytesWritten()}{bytesWritten()}.
+
+    \li \e{The synchronous (blocking) approach.} In non-GUI and multithreaded
+    applications, the \c waitFor...() functions can be called (i.e.
+    QSerialPort::waitForReadyRead()) to suspend the calling thread until the
+    operation has completed.
+
+    \endlist
+
+    In this example, the synchronous approach is demonstrated. The
+    \l{terminal}{Terminal} example illustrates the
+    asynchronous approach.
+
+    The purpose of this example is to demonstrate a pattern that you can use
+    to simplify your serial programming code, without losing responsiveness
+    in your user interface. Use of Qt's blocking serial programming API often
+    leads to simpler code, but because of its blocking behavior, it should only
+    be used in non-GUI threads to prevent the user interface from freezing.
+    But contrary to what many think, using threads with QThread does not
+    necessarily add unmanageable complexity to your application.
+
+    This application is a Receiver, that demonstrate the work paired with the
+    sender application \l{blockingsender}{Blocking Sender example}.
+
+    The Receiver application receives the request via serial port from
+    the Sender application and send a response to it.
+
+    We will start with the ReceiverThread class, which handles the serial
+    programming code.
+
+    \snippet blockingreceiver/receiverthread.h 0
+
+    ReceiverThread is a QThread subclass that provides an API for receive requests
+    from Sender, and it has signals for delivering responses and reporting
+    errors.
+
+    You should call startReceiver() to startup Receiver application. This method
+    transfers to the ReceiverThread desired parameters for configure and startup
+    the serial interface. When ReceiverThread received from Sender any request then
+    emitted the request() signal. If any error occurs, the error() or timeout()
+    signals is emitted.
+
+    It's important to notice that startReceiver() is called from the main, GUI
+    thread, but the response data and other parameters will be accessed from
+    ReceiverThread's thread. ReceiverThread's data members are read and written
+    from different threads concurrently, so it is advisable to use QMutex to
+    synchronize access.
+
+    \snippet blockingreceiver/receiverthread.cpp 2
+
+    The startReceiver() function stores the serial port name, timeout and response
+    data, and QMutexLocker locks the mutex to protect these data. We then
+    start the thread, unless it is already running. QWaitCondition::wakeOne()
+    will be discussed later.
+
+    \snippet blockingreceiver/receiverthread.cpp 4
+    \snippet blockingreceiver/receiverthread.cpp 5
+
+    In the run() function, start by acquiring the mutex lock, fetch the
+    serial port name, timeout and response data from the member data, and then
+    release the lock again. Under no circumstance should the method \c startReceiver()
+    be called simultaneously with a process fetching these data. QString is reentrant
+    but not thread-safe, and it is not recommended to read the serial port name
+    from one startup, call and timeout or response data of another. ReceiverThread
+    can only handle one startup at a time.
+
+    The QSerialPort object we construct on stack into run() function before loop
+    enter:
+
+    \snippet blockingreceiver/receiverthread.cpp 6
+
+    This allows us once to create an object, while running loop, and also means
+    that all the methods of the object will be executed in the context of the
+    run() thread.
+
+    In the loop, check whether the name of the serial port for the current
+    startup has changed or not. If it has, re-open and reconfigure the serial port.
+
+    \snippet blockingreceiver/receiverthread.cpp 7
+
+    The loop will continue waiting for request data:
+
+    \snippet blockingreceiver/receiverthread.cpp 8
+
+    \warning The method waitForReadyRead() should be used before each read()
+    call for the blocking approach, because it processes all the I/O routines
+    instead of Qt event-loop.
+
+    The timeout() signal is emitted if an error occurs when reading data.
+
+    \snippet blockingreceiver/receiverthread.cpp 9
+
+    After a successful read, try to send a response and wait for completion of the
+    transfer:
+
+    \snippet blockingreceiver/receiverthread.cpp 10
+
+    \warning The method waitForBytesWritten() should be used after each write()
+    call for the blocking approach, because it processes all the I/O routines
+    instead of Qt event-loop.
+
+    The timeout() signal is emitted if an error occurs when writing data.
+
+    \snippet blockingreceiver/receiverthread.cpp 11
+
+    After a successful writing is emitted, request() signal containing the
+    data received from the Sender application:
+
+    \snippet blockingreceiver/receiverthread.cpp 12
+
+    Next, the thread switches to reading the current parameters for the serial
+    interface, because they can already have been updated, and run the loop
+    from the beginning.
+
+    \snippet blockingreceiver/receiverthread.cpp 13
+
+    \sa {Serial Terminal}, {Blocking Sender}
+
+    \include examples-run.qdocinc
+*/

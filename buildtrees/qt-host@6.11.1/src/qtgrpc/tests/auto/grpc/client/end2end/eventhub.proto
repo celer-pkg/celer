@@ -1,0 +1,16 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+syntax = "proto3";
+
+import "event.proto";
+
+message None {}
+
+service EventHub {
+    rpc Push(Event) returns (None) {}
+    rpc Subscribe(None) returns (stream Event) {}
+    rpc SubscribeList(None) returns (stream EventList) {}
+    rpc Notify(stream Event) returns (None) {}
+    rpc Exchange(stream Event) returns (stream Event) {}
+}

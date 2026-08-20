@@ -1,0 +1,25 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example redditclient
+    \examplecategory {Networking}
+    \title Reddit Example
+    \ingroup examples-qtnetworkauth
+    \brief Demonstrates authenticating with OAuth 2 to access Reddit.
+    \image redditclient-example.png Screenshot of the example
+
+    The \e {Reddit} example uses OAuth 2, as supported by
+    \l {Qt Network Authorization}, to sign in to Reddit and display the
+    Reddit posts (in text format) associated with the authenticated user.
+
+    To use this example, a consumer key from Reddit is needed.
+    To register the application visit \l{https://www.reddit.com/prefs/apps/}.
+    \note Choose \e {installed app} when creating the application.
+    \note Set the redirect URI to \e http://localhost:1337/ in Reddit settings.
+
+    \include examples-run.qdocinc
+
+    Before launching, add \c --client-id to the executable command line,
+    followed by your consumer key from \l {https://www.reddit.com/prefs/apps/}.
+*/

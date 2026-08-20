@@ -1,0 +1,89 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+  \example demos/android/splashscreen/manifest
+  \title Implementing a splash screen with Qt on Android
+  \ingroup android-platform-extra-topics
+  \brief Showcase how to setup a splash screen with Qt for Android.
+  \meta {tag}{android}
+  \image splash-screen-launch.webp
+
+  This is a simple example which demonstrates one way to show a splash screen
+  with Qt. When the app starts, The Qt splash screen with a logo and a
+  background color is shown for two seconds. The Qt splash screen is then faded
+  out to show the app main view. The main view consists of a simple label and a
+  close button.
+
+  In this example, the Android default splash screen (Since Android 12) is
+  hidden.
+
+  This example is one of series of two similar examples demonstrating splash
+  screen. This one uses AndroidManifest flags
+  \l{Implementing a splash screen with Qt Quick on Android}{the other}
+  uses QML view.
+
+  \section1 Using the Qt splash screen on Android
+
+  The Qt splash screen for Android is defined in the AndroidManifest.xml.
+  The Android project files can be created manually or using the Qt Creator
+  template generator. To create an Android project file using the Qt Creator
+  template generator:
+  \list 1
+    \li Open \uicontrol {Projects}
+    \li Go to \uicontrol {Build Steps} subsection
+    \li Open \uicontrol {Build Android APK}
+    \li Select \uicontrol {Create Templates} from \uicontrol {Application}
+    subsection
+  \endlist
+
+  \snippet demos/android/splashscreen/manifest/android/AndroidManifest.xml Splash screen flags
+
+  In the previous snippet:
+  \list
+    \li \l {android-manifest-qt-specific-metadata}{android.app.splash_screen_drawable}
+    defines the resource file defining the Qt splash screen.
+    \li \l {android-manifest-qt-specific-metadata}{android.app.splash_screen_sticky}
+    keeps the Qt splash screen on the screen until QNativeInterface::QAndroidApplication::hideSplashScreen()
+    function is called.
+    \snippet demos/android/splashscreen/manifest/main.cpp Hide splash screen call
+  \endlist
+
+  Since Android 12, Android has a default splash screen. On launch, the default
+  splash screen is shown before the first view of the application is shown.
+  There are instructions and an API to modify it. See
+  \l{Android Splash screens}.
+  \br By default, Android uses applications icon for the splash screen. On Qt
+  applications this can be used as is, or modified to be used as the
+  applications splash screen or it can be combined with Qt splash screen. To
+  keep the launch user experience consistent between platforms, it may be needed
+  to hide the Android splash screen. To do this, define a translucent theme that
+  effectively hides the Android splash screen.
+
+  \quotefile demos/android/splashscreen/manifest/android/res/values/splashstarttheme.xml
+
+  There is a problem though. Orientation changes stop working if we have
+  translucent theme. This is caused by the fact that the Android view gets
+  its orientation from the underlying view, usually this is an Application
+  Drawer which does not change its orientation. And because the theme cannot be
+  changed after the Activity view is set, we end up with an application stuck
+  in one orientation.
+  \br As a workaround we can create throwaway Activity with translucent theme
+  for the Android splash screen. As soon as possible we launch another Activity,
+  which has all the bells and whistles our application requires.
+
+  \snippet demos/android/splashscreen/manifest/android/AndroidManifest.xml Startup activity
+
+  To launch the Qt splash screen, we also need to override the Android Activity
+  \c onCreate and use an Intent to launch the QtActivity.
+
+  \quotefromfile demos/android/splashscreen/manifest/android/java/io/qt/qtsplashscreeninandroid/SplashActivity.java
+  \skipto package
+  \printuntil
+
+  In this example the main view contains just a single view with an exit button.
+
+  \quotefromfile demos/android/splashscreen/manifest/Main.qml
+  \skipto import
+  \printuntil
+*/

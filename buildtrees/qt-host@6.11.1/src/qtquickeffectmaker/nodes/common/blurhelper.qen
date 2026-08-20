@@ -1,0 +1,26 @@
+{
+    "QEN": {
+        "description": "This node is required e.g. for FastBlur and DropShadow. It generates blurred iSourceBlur[1..6] samplers to be available for shaders.",
+        "fragmentCode": [
+            "@blursources"
+        ],
+        "name": "BlurHelper",
+        "properties": [
+            {
+                "defaultValue": "64",
+                "description": "This property defines the maximum pixel radius that blur with value 1.0 will reach.\n\nMeaningful range of this value is from 2 (subtle blur) to 64 (high blur). By default, the property is set to 32. For the most optimal performance, select as small value as you need.\n\nNote: This affects to both blur and shadow effects.",
+                "name": "BLUR_HELPER_MAX_LEVEL",
+                "type": "define"
+            },
+            {
+                "defaultValue": "0",
+                "description": "This property defines a multiplier for extending the blur radius.\n\nThe value ranges from 0.0 (not multiplied) to inf. By default, the property is set to 0.0. Incresing the multiplier extends the blur radius, but decreases the blur quality. This is more performant option for a bigger blur radius than BLUR_HELPER_MAX_LEVEL as it doesn't increase the amount of texture lookups.\n\nNote: This affects to both blur and shadow effects.",
+                "maxValue": "2",
+                "minValue": "0",
+                "name": "blurMultiplier",
+                "type": "float"
+            }
+        ],
+        "version": 1
+    }
+}

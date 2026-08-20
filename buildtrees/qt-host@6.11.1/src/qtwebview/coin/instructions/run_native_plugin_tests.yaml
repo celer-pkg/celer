@@ -1,0 +1,21 @@
+type: Group
+enable_if:
+  condition: or
+  conditions:
+    - condition: property
+      property: target.os
+      equals_value: Windows
+    - condition: property
+      property: target.osVersion
+      equals_value: Android_ANY
+    - condition: property
+      property: target.os
+      equals_value: MacOS
+    - condition: property
+      property: target.os
+      equals_value: IOS
+instructions:
+  - type: EnvironmentVariable
+    variableName: QT_WEBVIEW_PLUGIN
+    variableValue: native
+  - !include "{{qt/qtbase}}/coin_module_test_template_v3.yaml"

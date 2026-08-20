@@ -1,0 +1,9 @@
+#include "export_header.h"
+
+POD Q_REPCLIB_EXPORT MyPod(int number)
+
+class Q_REPCLIB_EXPORT MyAttributeClass
+{
+    PROP(bool myProp READONLY)
+    MODEL tracks(title)
+}

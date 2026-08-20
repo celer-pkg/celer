@@ -1,0 +1,95 @@
+{{>licenseInfo}}
+/**
+ * Representing a Server configuration.
+ */
+#ifndef {{prefix}}_SERVERVCONFIGURATION_H
+#define {{prefix}}_SERVERVCONFIGURATION_H
+
+#include "{{prefixLowerCase}}{{packageNameLowerCase}}commonexports.h"
+#include "{{prefixLowerCase}}servervariable.h"
+
+#include <QtCore/qcontainerfwd.h>
+#include <QtCore/qshareddata.h>
+
+QT_BEGIN_NAMESPACE
+class QUrl;
+QT_END_NAMESPACE
+
+{{#buildingQtSources}}
+QT_BEGIN_NAMESPACE
+{{/buildingQtSources}}
+
+{{#cppCommonNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppCommonNamespaceDeclarations}}
+
+class {{prefix}}ServerConfigurationPrivate;
+
+class {{prefix}}ServerConfiguration {
+public:
+    /**
+     * @param urlTemplate A URL template to the target host.
+     * @param description A description of the host designated by the URL.
+     * @param variables A map between a variable name and its value. The value is used for substitution in the server's URL template.
+     */
+    {{packageNameUpperCase}}_COMMON_EXPORT
+    {{prefix}}ServerConfiguration(const QString &urlTemplate, const QString &description,
+                                  const QMap<QString, {{prefix}}ServerVariable> &variables);
+    {{packageNameUpperCase}}_COMMON_EXPORT {{prefix}}ServerConfiguration();
+    {{packageNameUpperCase}}_COMMON_EXPORT ~{{prefix}}ServerConfiguration();
+
+    {{packageNameUpperCase}}_COMMON_EXPORT
+    {{prefix}}ServerConfiguration(const {{prefix}}ServerConfiguration &other);
+    {{packageNameUpperCase}}_COMMON_EXPORT
+    {{prefix}}ServerConfiguration &operator=(const {{prefix}}ServerConfiguration &other);
+
+    {{packageNameUpperCase}}_COMMON_EXPORT
+    {{prefix}}ServerConfiguration({{prefix}}ServerConfiguration &&other) noexcept;
+    {{packageNameUpperCase}}_COMMON_EXPORT
+    {{prefix}}ServerConfiguration &operator=({{prefix}}ServerConfiguration &&other) noexcept;
+
+    {{packageNameUpperCase}}_COMMON_EXPORT void swap({{prefix}}ServerConfiguration &other) noexcept;
+
+    /**
+    * Original URL template
+    *
+    * @return Original URL template.
+    */
+    {{packageNameUpperCase}}_COMMON_EXPORT QString urlTemplate() const;
+
+    /**
+     * Format URL template using server's variables.
+     *
+     * @return URL, where the server variables are substituted with actual values.
+     */
+    {{packageNameUpperCase}}_COMMON_EXPORT QUrl url() const;
+
+    {{packageNameUpperCase}}_COMMON_EXPORT {{prefix}}ServerVariable::ServerError
+    setVariableValue(const QString &variable, const QString &value);
+
+private:
+    {{packageNameUpperCase}}_COMMON_EXPORT friend bool
+    comparesEqual(const {{prefix}}ServerConfiguration &lhs, const {{prefix}}ServerConfiguration &rhs) noexcept;
+
+    friend bool
+    operator==(const {{prefix}}ServerConfiguration &lhs, const {{prefix}}ServerConfiguration &rhs) noexcept
+    { return comparesEqual(lhs, rhs); }
+    friend bool
+    operator!=(const {{prefix}}ServerConfiguration &lhs, const {{prefix}}ServerConfiguration &rhs) noexcept
+    { return !comparesEqual(lhs, rhs); }
+
+    friend size_t qHash(const {{prefix}}ServerConfiguration &value) = delete;
+    friend size_t qHash(const {{prefix}}ServerConfiguration &value, size_t seed) = delete;
+
+    QExplicitlySharedDataPointer<{{prefix}}ServerConfigurationPrivate> d_ptr;
+};
+
+{{#cppCommonNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppCommonNamespaceDeclarations}}
+
+{{#buildingQtSources}}
+QT_END_NAMESPACE
+{{/buildingQtSources}}
+
+#endif // {{prefix}}_SERVERVCONFIGURATION_H

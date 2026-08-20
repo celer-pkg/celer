@@ -1,0 +1,7 @@
+version = 1
+
+[[annotations]]
+path = ["config.h", "revision.h"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright (c) 2006-2026, assimp team"
+SPDX-License-Identifier = "BSD-3-Clause"

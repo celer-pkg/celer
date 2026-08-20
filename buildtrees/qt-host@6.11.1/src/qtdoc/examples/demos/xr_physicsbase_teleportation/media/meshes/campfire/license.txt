@@ -1,0 +1,11 @@
+Model Information:
+* title: metal decor torch
+* source: https://sketchfab.com/3d-models/metal-decor-torch-a7d2f60c656942caac78e1a0e225bab7
+* author: Rson (https://sketchfab.com/DimanRson)
+
+Model License:
+* license type: CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements: Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "metal decor torch" (https://sketchfab.com/3d-models/metal-decor-torch-a7d2f60c656942caac78e1a0e225bab7) by Rson (https://sketchfab.com/DimanRson) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

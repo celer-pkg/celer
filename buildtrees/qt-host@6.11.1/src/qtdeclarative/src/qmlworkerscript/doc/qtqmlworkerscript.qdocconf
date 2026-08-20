@@ -1,0 +1,36 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/config/exampleurl-qtdeclarative.qdocconf)
+
+project                 = QtQmlWorkerScript
+description             = Qt Qml WorkerScript Reference Documentation
+version                 = $QT_VERSION
+moduleheader            = QtQmlWorkerScript
+qhp.projects            = QtQmlWorkerScript
+
+qhp.QtQmlWorkerScript.file                = qtqmlworkerscript.qhp
+qhp.QtQmlWorkerScript.namespace           = org.qt-project.qtqmlworkerscript.$QT_VERSION_TAG
+qhp.QtQmlWorkerScript.virtualFolder       = qtqmlworkerscript
+qhp.QtQmlWorkerScript.indexRoot           =
+qhp.QtQmlWorkerScript.indexTitle          = Qt Qml WorkerScript
+
+qhp.QtQmlWorkerScript.subprojects         = qmltypes
+
+qhp.QtQmlWorkerScript.subprojects.qmltypes.title = QML Types
+qhp.QtQmlWorkerScript.subprojects.qmltypes.indexTitle = Qt Qml WorkerScript QML Types
+qhp.QtQmlWorkerScript.subprojects.qmltypes.selectors = qmltype
+qhp.QtQmlWorkerScript.subprojects.qmltypes.sortPages = true
+
+tagfile      = qtqmlworkerscript.tags
+
+depends += qtcore qtqml qtquick qtdoc
+
+headerdirs  += ..
+
+sourcedirs  += ..
+
+exampledirs += snippets
+
+navigation.qmltypespage = "Qt Qml WorkerScript QML Types"
+
+# Enforce zero documentation warnings
+warninglimit = 0

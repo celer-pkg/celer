@@ -1,0 +1,252 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \externalpage https://gstreamer.freedesktop.org
+    \title gstreamer
+*/
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Pixel_Format
+    \title pixel format
+*/
+
+/*!
+    \externalpage https://developer.apple.com/documentation/bundleresources/information_property_list
+    \title Info.plist
+*/
+
+/*!
+    \externalpage https://www.wix.com/blog/photography/2018/10/04/photography-terms/
+    \title photo glossary
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qt-6/qtqml-syntax-imports.html
+    \title qtqml import syntax
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Sonification
+    \title Sonification
+*/
+
+/*!
+    \externalpage http://www.sengpielaudio.com/calculator-loudness.htm
+    \title loudness
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/List_of_ISO_639-2_codes
+    \title ISO 639-2 code
+*/
+
+/*!
+    \externalpage https://www.dr-lex.be/info-stuff/volumecontrols.html
+    \title volume controls
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Hyperfocal_distance
+    \title hyperfocal
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Depth_of_field
+    \title DOF
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Media_type#Mime.types
+    \title MIME type
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qt-5/qml-qtmultimedia-audio.html
+    \title Audio QML Type
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Windows_Media_Audio
+    \title Windows Media Audio
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Advanced_Audio_Coding
+    \title Advanced Audio Coding
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/ALAC
+    \title Apple Lossless Audio Codec
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Matroska
+    \title Matroska (MKV)
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Windows_Media_Video
+    \title Windows Media Video
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/MP3
+    \title MPEG-1 Audio Layer III or MPEG-2 Audio Layer III
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/WAV
+    \title Waveform Audio File Format
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Ogg
+    \title Ogg
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/MPEG-4
+    \title MPEG-4
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Audio_Video_Interleave
+    \title Audio Video Interleave
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/QuickTime
+    \title QuickTime
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/WebM
+    \title WebM
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/MPEG-4_Part_3
+    \title MPEG-4 Part 3 or MPEG-4 Audio (formally ISO/IEC 14496-3)
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/FLAC
+    \title Free Lossless Audio Codec
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Dolby_Digital
+    \title Dolby Digital
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Dolby_Digital_Plus
+    \title Dolby Digital Plus (EAC3)
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Opus_(audio_format)
+    \title Opus Audio Format
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Dolby_TrueHD
+    \title Dolby TrueHD
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Vorbis
+    \title Ogg Vorbis
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/VP8
+    \title VP8
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/MPEG-2
+    \title MPEG-2
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/MPEG-1
+    \title MPEG-1
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/High_Efficiency_Video_Coding
+    \title High Efficiency Video Coding (HEVC)
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Advanced_Video_Coding
+    \title Advanced Video Coding
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/AV1
+    \title AOMedia Video 1
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Motion_JPEG
+    \title MotionJPEG
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/VP9
+    \title VP9
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Theora
+    \title Theora
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Windows_Media_Player
+    \title Windows Media Player
+*/
+
+
+/*!
+    \externalpage https://support.microsoft.com/en-us/topic/file-types-supported-by-windows-media-player-32d9998e-dc8f-af54-7ba1-e996f74375d9
+    \title Windows Media Player documentation
+*/
+
+/*!
+    \externalpage https://www.codecguide.com/guides.htm
+    \title codec guide
+*/
+
+/*!
+    \externalpage https://developer.android.com/guide/topics/media/media-formats
+    \title Android supported media formats
+*/
+
+/*!
+    \externalpage https://developer.android.com/media/grow/media-projection#foreground_service_permission
+    \title Android foreground service permission
+*/
+
+/*!
+    \externalpage https://gstreamer.freedesktop.org/
+    \title GStreamer
+*/
+
+/*!
+    \externalpage https://android-developers.googleblog.com/2025/05/prepare-play-apps-for-devices-with-16kb-page-size.html
+    \title Google Play 16 KB page size compatibility requirement
+*/
+
+/*!
+    \externalpage http://www.rossbencina.com/code/real-time-audio-programming-101-time-waits-for-nothing
+    \title Real-time audio programming 101: time waits for nothing
+*/
+
+/*!
+    \externalpage https://clang.llvm.org/docs/RealtimeSanitizer.html
+    \title Realtime sanitizer
+*/

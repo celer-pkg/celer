@@ -1,0 +1,27 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+syntax = "proto3";
+
+package qtgrpc.examples;
+import "google/protobuf/empty.proto";
+
+
+//! [Proto types]
+message SpeedMsg {
+    int32 speed = 1;
+}
+
+message RpmMsg {
+    int32 rpm = 1;
+}
+
+message AutonomyMsg {
+    int32 autonomy = 1;
+}
+
+service VehicleService {
+    rpc getSpeedStream(google.protobuf.Empty) returns (stream SpeedMsg) {}
+    rpc getRpmStream(google.protobuf.Empty) returns (stream RpmMsg) {}
+    rpc getAutonomy(google.protobuf.Empty) returns (AutonomyMsg) {}
+}
+//! [Proto types]

@@ -1,0 +1,18 @@
+version = 1
+
+[[annotations]]
+path = ["login.svg", "logout.svg", "user.svg", "delete.svg", "edit.svg",
+        "update.svg", "plus.svg", "login_dark.svg", "logout_dark.svg",
+        "user_dark.svg", "delete_dark.svg", "edit_dark.svg", "update_dark.svg",
+        "plus_dark.svg"]
+comment = "files listed in the qt_attribution.json file"
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright 2018 Google, Inc. All Rights Reserved."
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["qt.png", "userMask.svg"]
+comment = "files not listed in the qt_attribution.json"
+precedence = "closest"
+SPDX-FileCopyrightText = "Copyright 2018 Google, Inc. All Rights Reserved."
+SPDX-License-Identifier = "Apache-2.0"

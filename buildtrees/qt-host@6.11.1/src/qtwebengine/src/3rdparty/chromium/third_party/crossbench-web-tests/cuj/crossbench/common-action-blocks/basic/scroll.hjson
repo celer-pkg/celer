@@ -1,0 +1,74 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  actions: [
+    {
+      action: js
+      script: performance.mark('scroll-begin');
+    }
+    {
+      action: scroll
+      source: touch
+      selector: $[SCROLL_SELECTOR]
+      distance: 512
+      duration: 0.3s
+    }
+    {
+      action: wait
+      duration: 0.5s
+    }
+    {
+      action: scroll
+      source: touch
+      selector: $[SCROLL_SELECTOR]
+      distance: 512
+      duration: 0.3s
+    }
+    {
+      action: wait
+      duration: 0.5s
+    }
+    {
+      action: scroll
+      source: touch
+      selector: $[SCROLL_SELECTOR]
+      distance: 512
+      duration: 0.3s
+    }
+    {
+      action: wait
+      duration: 0.5s
+    }
+    {
+      action: scroll
+      source: touch
+      selector: $[SCROLL_SELECTOR]
+      distance: 512
+      duration: 0.3s
+    }
+    {
+      action: wait
+      duration: 0.5s
+    }
+    {
+      action: scroll
+      source: touch
+      selector: $[SCROLL_SELECTOR]
+      distance: 512
+      duration: 0.3s
+    }
+    {
+      action: js
+      script:
+        '''
+        performance.mark('scroll-end', {detail: document.querySelector('$[SCROLL_END_DISTANCE_SELECTOR]').scrollTop});
+        performance.measure('scroll', 'scroll-begin', 'scroll-end');
+        '''
+    }
+    {
+      action: wait
+      duration: 0.5s
+    }
+  ]
+}

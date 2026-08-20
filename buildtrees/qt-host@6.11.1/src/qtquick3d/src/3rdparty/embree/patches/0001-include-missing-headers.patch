@@ -1,0 +1,40 @@
+From 463be222ac5ff2af82eae34fe1f75178f82941c2 Mon Sep 17 00:00:00 2001
+From: Tim Blechmann <tim@klingt.org>
+Date: Fri, 15 Aug 2025 19:23:33 +0800
+Subject: [PATCH] include missing headers
+
+`std::alignment_of` is in `type_traits`, `std::exception_ptr` is in
+<exxception> so they need to be included.
+Fixes a compile error with xcode when compiling in c++23.
+---
+ common/sys/vector.h                    | 1 +
+ common/tasking/taskschedulerinternal.h | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/common/sys/vector.h b/common/sys/vector.h
+index 2d30d6725..a8138de83 100644
+--- a/common/sys/vector.h
++++ b/common/sys/vector.h
+@@ -5,6 +5,7 @@
+ 
+ #include "alloc.h"
+ #include <algorithm>
++#include <type_traits>
+ 
+ namespace embree
+ {
+diff --git a/common/tasking/taskschedulerinternal.h b/common/tasking/taskschedulerinternal.h
+index b01bebf7c..fc7ee2863 100644
+--- a/common/tasking/taskschedulerinternal.h
++++ b/common/tasking/taskschedulerinternal.h
+@@ -14,6 +14,7 @@
+ #include "../sys/atomic.h"
+ #include "../math/range.h"
+ 
++#include <exception>
+ #include <list>
+ 
+ namespace embree
+-- 
+2.50.1
+

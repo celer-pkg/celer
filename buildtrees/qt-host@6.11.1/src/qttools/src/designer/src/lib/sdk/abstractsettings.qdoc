@@ -1,0 +1,23 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \class QDesignerSettingsInterface
+
+    \brief The QDesignerSettingsInterface provides an abstraction of QSettings to be used in \QD.
+
+    \QD uses the QDesignerSettingsInterface to save and retrieve its settings.
+    The default implementation in \QD is based on QSettings, using a file in .ini-format.
+    IDE integrations can provide their own implementations that for
+    example store the settings in a database instead of a file.
+
+    The virtual functions are equivalent to the functions of the same name in the
+    QSettings class.
+
+    \sa QDesignerFormEditorInterface::setSettingsManager(), QDesignerFormEditorInterface::settingsManager()
+    \sa QSettings
+
+    \internal
+    \inmodule QtDesigner
+    \since 5.0
+*/

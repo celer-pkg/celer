@@ -1,0 +1,72 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#ifndef BSDF_GLSLIB
+#define BSDF_GLSLIB 1
+
+#ifndef M_PI
+#define M_PI 3.14159265359
+#endif
+
+vec3 qt_schlick3(in vec3 f0, in vec3 f90, in float VdotH, in float fresnelPower)
+{
+    return f0 + (f90 - f0) * (1.0 - clamp(pow( VdotH, fresnelPower), 0.0, 1.0 ) );
+}
+
+float qt_G_GGX_2cos(in float cos_theta_m, in float alpha) {
+    float k = 0.5 * alpha;
+    return 0.5 / (cos_theta_m * (1.0 - k) + k);
+}
+
+float qt_D_GGX(in float cos_theta_m, in float alpha) {
+    float alpha2 = alpha * alpha;
+    float d = 1.0 + (alpha2 - 1.0) * cos_theta_m * cos_theta_m;
+    return alpha2 / (M_PI * d * d);
+}
+
+float qt_V_GGX(in float NdotL, in float NdotV, in float alphaRoughness)
+{
+    return qt_G_GGX_2cos(NdotL, alphaRoughness) * qt_G_GGX_2cos(NdotV, alphaRoughness);
+}
+
+// An alternative to using a LUT is to use this function
+// see: https://www.unrealengine.com/en-US/blog/physically-based-shading-on-mobile
+vec2 qt_brdfApproximation(in vec3 N, in vec3 viewDir, in float roughness)
+{
+    float nDotV = clamp(dot(N, viewDir), 0.0, 1.0);
+    const vec4 c0 = vec4(-1.0, -0.0275, -0.572, 0.022);
+    const vec4 c1 = vec4(1.0, 0.0425, 1.04, -0.04);
+    vec4 r = roughness * c0 + c1;
+    float a004 = min(r.x * r.x, exp2(-9.28 * nDotV)) * r.x + r.y;
+    return vec2(-1.04, 1.04) * a004 + r.zw;
+}
+
+float qt_applyIorToRoughness(in float roughness, in float ior)
+{
+    // Scale roughness with IOR so that an IOR of 1.0 results in no microfacet refraction and
+    // an IOR of 1.5 results in the default amount of microfacet refraction.
+    return roughness * clamp(ior * 2.0 - 2.0, 0.0, 1.0);
+}
+
+vec3 qt_getPunctualRadianceTransmission(in vec3 normal, in vec3 view, in vec3 pointToLight, in float roughness,
+    in vec3 f0, in vec3 f90, in vec3 baseColor, in float ior)
+{
+    float clampedRoughness = clamp(roughness, 0.001, 1.0);
+    float alphaRoughness = clampedRoughness * clampedRoughness;
+    float transmissionRougness = qt_applyIorToRoughness(alphaRoughness, ior);
+
+    vec3 n = normalize(normal);           // Outward direction of surface point
+    vec3 v = normalize(view);             // Direction from surface point to view
+    vec3 l = normalize(pointToLight);
+    vec3 l_mirror = normalize(l + 2.0*n*dot(-l, n));     // Mirror light reflection vector on surface
+    vec3 h = normalize(l_mirror + v);            // Halfway vector between transmission light vector and v
+
+    float D = qt_D_GGX(clamp(dot(n, h), 0.001, 1.0), clamp(transmissionRougness, 0.001, 1.0));
+    vec3 F = qt_schlick3(f0, f90, clamp(dot(v, h), 0.0, 1.0), 5.0);
+    float Vis = qt_V_GGX(clamp(dot(n, l_mirror), 0.0, 1.0), clamp(dot(n, v), 0.0, 1.0), transmissionRougness);
+
+    // Transmission BTDF
+    return (1.0 - F) * baseColor * D * Vis;
+}
+
+#endif

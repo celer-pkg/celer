@@ -1,0 +1,85 @@
+// Copyright (C) 2015 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example audiorecorder
+    \title Audio Recorder Example
+    \ingroup multimedia_examples
+    \ingroup audio_examples
+    \examplecategory {Multimedia}
+    \brief Discovering the available devices and supported codecs.
+    \meta {tag} {widgets}
+
+    \e{Audio Recorder} demonstrates how to identify the available devices and
+    supported codecs, and the use of QAudioRecorder class.
+
+    \image audiorecorder.png
+           {Settings panel for choosing audio input, codec, and format type}
+
+    \include examples-run.qdocinc
+
+    \section1 Displaying the Window and Audio Settings
+
+    We display a window for the user to select the appropriate audio input,
+    codec, container, sample rate, and channels. It allows setting of either
+    quality or bit rate. Finally, the output file can be selected and recording
+    can be started.
+
+    The lists are populated using the following methods:
+    \list
+    \li \l{QMediaDevices::audioInputs()}
+    \li \l{QMediaFormat::supportedAudioCodecs}
+    \li \l{QMediaFormat::supportedFileFormats}
+    \li \l{QAudioDevice::maximumSampleRate()}
+    \li \l{QAudioDevice::minimumSampleRate()}
+    \endlist
+    The quality slider is setup from 0 (zero) to
+    \l{QMediaRecorder::VeryHighQuality} with a default value of
+    \l{QMediaRecorder::NormalQuality}, while the bit rate box are hard-coded
+    into the list.
+
+    \section1 Recording Audio
+
+    To record audio we simply create a QAudioRecorder object,
+
+    \code
+    audioRecorder = new QAudioRecorder(this);
+    \endcode
+
+    and setup the lists as described above. The text on the record and pause
+    buttons are toggled depending on the \l{QMediaRecorder::RecorderState}{state} of
+    the \c audioRecorder object. This means that if the state is
+    \l{QMediaRecorder::StoppedState} then the button text will be "Record" and
+    "Pause". In \l{QMediaRecorder::RecordingState} the record button will have
+    the text "Stop", and in \l{QMediaRecorder::PausedState} the pause button
+    will have the text "Resume".
+
+    Pressing the buttons will also result in a toggle based on the state. If
+    recording is stopped, then pressing the record button will set the encoding
+    settings and container on the \c audioRecorder object, and start recording
+    using the \l{QMediaRecorder::record()}{record()} method.
+
+    \code
+        QMediaFormat format;
+        format.setCodec(boxValue(ui->audioCodecBox).toString());
+        audioRecorder->setMediaFormat(format);
+        audioRecorder->setSampleRate(boxValue(ui->sampleRateBox).toInt());
+        audioRecorder->setBitRate(boxValue(ui->bitrateBox).toInt());
+        audioRecorder->setQuality(QMediaRecorder::EncodingQuality(ui->qualitySlider->value()));
+        audioRecorder->setEncodingMode(ui->constantQualityRadioButton->isChecked() ?
+                                 QMediaRecorder::ConstantQualityEncoding :
+                                 QMediaRecorder::ConstantBitRateEncoding);
+
+        QString container = boxValue(ui->containerBox).toString();
+
+        audioRecorder->record();
+    \endcode
+
+    While recording, the status bar of the application is updated with duration information
+    from the \l{QMediaRecorder::durationChanged()}{durationChanged} signal from the
+    \c audioRecorder object.
+
+    \code
+    ui->statusbar->showMessage(tr("Recorded %1 sec").arg(duration / 1000));
+    \endcode
+*/

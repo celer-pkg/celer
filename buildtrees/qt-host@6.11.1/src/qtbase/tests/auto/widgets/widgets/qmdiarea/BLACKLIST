@@ -1,0 +1,21 @@
+[tileSubWindows]
+centos
+opensuse-leap
+macos
+[resizeTimer]
+macos
+
+# QTBUG-87420
+[subWindowActivated]
+android
+[subWindowActivated2]
+android
+[addAndRemoveWindows]
+android
+[activateNextAndPreviousWindow]
+android
+[subWindowList]
+android
+
+[updateScrollBars]
+macos

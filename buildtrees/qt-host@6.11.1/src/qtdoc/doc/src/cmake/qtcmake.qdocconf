@@ -1,0 +1,56 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+include($QT_INSTALL_DOCS/global/externalsites.qdocconf)
+
+project                 = QtCMake
+description             = Using Qt with CMake
+version                 = $QT_VERSION
+
+qhp.projects            = qtcmake
+
+qhp.qtcmake.file                = qtcmake.qhp
+qhp.qtcmake.namespace           = org.qt-project.qtcmake.$QT_VERSION_TAG
+qhp.qtcmake.virtualFolder       = qtcmake
+qhp.qtcmake.indexTitle          = Build with CMake
+
+qhp.qtcmake.subprojects         = manual
+qhp.qtcmake.subprojects.manual.title = Manual
+qhp.qtcmake.subprojects.manual.indexTitle = Build with CMake
+qhp.qtcmake.subprojects.manual.type = manual
+
+sources                 = cmake-manual.qdoc
+
+exampledirs             = .
+
+# Instruct Clang not to look for a module header
+moduleheader =
+
+depends += \
+    qmake \
+    qtcore \
+    qtdbus \
+    qtdesigner \
+    qtdoc \
+    qtgui \
+    qtinterfaceframework \
+    qtlinguist \
+    qtlottieanimation \
+    qtmultimedia \
+    qtnetwork \
+    qtopenapi \
+    qtprotobuf \
+    qtgrpc \
+    qtqml \
+    qtquick \
+    qtquick3d \
+    qtremoteobjects \
+    qtscxml \
+    qtshadertools \
+    qtsql \
+    qtwebengine \
+    qtwidgets \
+    qtwaylandcompositor \
+    qtwaylandclient \
+
+navigation.landingpage = "Build with CMake"
+navigation.toctitles = "Build with CMake"
+navigation.toctitles.inclusive = false

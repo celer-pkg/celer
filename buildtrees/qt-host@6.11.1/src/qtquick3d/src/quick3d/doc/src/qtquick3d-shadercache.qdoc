@@ -1,0 +1,87 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\title Persistent Caching of Shaders with Qt Quick 3D
+\page quick3d-shadercache
+
+\section1 Shaders and 3D Materials
+
+Rendering a 3D object with a material involves a vertex and fragment shader.
+
+The following happens at run time when a material is encountered for the
+first time during the lifetime of a 3D scene:
+
+\list
+
+\li The shader source texts are generated.
+
+\li The shaders are sent through \l{Qt Shader Tools}{the standard Qt shader pipeline}.
+    The result is an intermediate bytecode version of the shader (SPIR-V), a number
+    of source code variants for other 3D APIs (GLSL for OpenGL, HLSL for Direct3D, etc.),
+    and additional metadata.
+
+\li When the 3D engine creates a \l{QRhiGraphicsPipeline}{graphics pipeline}, a bytecode or
+    source variant suitable for the 3D API used is chosen, and then the underlying 3D API will
+    likely perform a second-phase compilation targeting the actual GPU instruction set.
+
+\endlist
+
+All this together can be a costly operation. To avoid this in subsequent runs of
+the application, two persistent, disk-based caches are employed.
+
+\section1 Low-level Cache
+
+Qt Quick 3D builds on Qt Quick and the scenegraph. When it comes to persistent,
+disk-based caching of OpenGL program binaries, Vulkan pipelines, etc., the same
+infrastructure is used.
+
+See \l{QQuickGraphicsConfiguration#Pipeline Cache Save and Load} for a detailed
+discussion of this.
+
+By default the shader disk cache is enabled. This means that even when the
+platform or 3D API implementation does not perform its own persistent caching of
+compiled shaders, Qt may still store the OpenGL program binaries or similar
+assets that get collected during the lifetime of a \l QQuickWindow. Writing the
+data to disk happens when the window is closed, and it is reloaded on the
+next run of the application. This way the creation of graphics pipelines may be
+significantly faster when the shaders were encountered during previous runs of
+the application.
+
+The shaders to 3D materials and post-processing effects participate in this too.
+
+\section1 Material Shader Cache
+
+Unlike Qt Quick, Qt Quick 3D currently relies on run time generation of the
+shader source texts for 3D materials and effects. The exception for this is
+when the \l{Shadergen Tool} is used, however that feature is experimental
+and is not recommended for production use at the moment.
+
+Generating the shader source texts and then performing the first-phase
+compilation and transpilation (see \l{Qt Shader Tools} for details) can be an
+expensive operation. For 2D materials and effects this typically happens at build time,
+whereas for 3D that is not an option currently.
+
+Therefore, Qt Quick 3D employs another disk-based cache. This stores the assets
+for the generated 3D materials and effects.
+
+This means that, in combination with the low-level cache, a 3D scene with a
+material that has been encountered during the previous runs of the application
+will not lead to an expensive, blocking operation when encountered again in
+subsequent runs.
+
+\note Just as with the low-level shader and pipeline cache, this requires a
+writable filesystem and that the platform provides a writable cache location via
+QStandardPaths.
+
+The application attribute Qt::AA_DisableShaderDiskCache and the corresponding
+environment variable apply to the material shader cache as well. When set, both
+Qt's low-level and Qt Quick 3D's material cache will get disabled.
+
+\note The \c qml tool sets this attribute by default. Pass the
+\c{--enable-shader-cache} command-line argument to get a behavior identical to
+standalone Qt applications.
+
+Enable the logging category \c{qt.quick3d.cache} to get some information printed
+regarding the 3D material cache at run time.
+*/

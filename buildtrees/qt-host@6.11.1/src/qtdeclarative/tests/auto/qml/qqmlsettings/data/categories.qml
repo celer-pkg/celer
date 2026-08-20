@@ -1,0 +1,8 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+import Qt.labs.settings 1.0
+
+Settings {
+    category: "initialCategory"
+    property string value: "initialValue"
+}

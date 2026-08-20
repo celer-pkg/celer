@@ -1,0 +1,28 @@
+# Copyright (C) 2025 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+openapi: 3.1.1
+servers:
+  - url: 'http://127.0.0.1:20203/v2'
+info:
+  title: Compression Test
+  description: >
+    This specification is needed to check how the compression is implemented.
+  version: 1.0.0
+tags:
+  - name: test
+    description: test operations
+
+paths:
+  /compression/dummy:
+    post:
+      tags: [test]
+      operationId: dummyOperation
+      summary: "not used for now"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string

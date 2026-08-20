@@ -1,0 +1,48 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title Graphs with CSV Data
+    \examplecategory {Data Visualization}
+    \ingroup qtquickdemos
+    \example demos/graphs_csv
+    \brief How to visualize data from a CSV file in Qt Graphs.
+    \meta {tag} {demo,quick,graphs}
+    \meta {docdependencies} {QtGraphs}
+
+    \borderedimage qtquick-demo-graphs-csv.png
+
+    The \b {Graphs with CSV Data} example shows how to display data from a CSV file in
+    a 2D bar chart. The application reads the CSV file using a third-party CSV parser.
+    The data is inserted into a custom model that inherits from
+    the \l QAbstractTableModel. After the data is inserted into the model, the leftmost
+    column contains the vertical header data, while the top row contains the horizontal
+    header data.
+
+    The selected third-party library knows nothing about \l{The Qt Resource System}{Qt Resource System},
+    so it cannot load the CSV file from the file path. Therefore, the source's contents
+    must be loaded before passing it to the library. The CSV library in this example accepts
+    the file as either file path, \c {std::fstream}, or \c {std::stringstream}. Since
+    the CSV file is in Qt resources, the library doesn't know how to load it, and
+    \l QFile doesn't support \c {std::fstream}; the only option left is to use
+    \c {std::stringstream}. The whole file can be read into a string via
+    \l QFile::readAll(), and then that string is opened into
+    a \c {std::stringstream}.
+
+    In the application window, a table view presents the data from the model.
+    From the table view, a user can select a subsection of data that is
+    then displayed in the bar graph.
+
+    As the bar series doesn't modify category axis labels, updating the series doesn't
+    update the axis labels. That is handled in JavaScript by extracting label names
+    from the model's leftmost column. The extracted label names are then set to
+    the category axis's labels property.
+
+    \quotefromfile demos/graphs_csv/components/CustomTableView.qml
+    \skipto extractBarSetGategories
+    \printuntil }
+
+    \include examples-run.qdocinc
+
+    \sa {QML Applications}
+*/

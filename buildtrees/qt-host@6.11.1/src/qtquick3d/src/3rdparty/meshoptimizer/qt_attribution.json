@@ -1,0 +1,18 @@
+{
+    "Id": "meshoptimizer",
+    "Name": "meshoptimizer",
+    "QDocModule": "qtquick3d",
+    "Description": "Provides algorithms to help optimize meshes for GPU render stages, reduce the mesh complexity and storage overhead.",
+    "QtUsage": "Used to generate Level of Detail meshes for Models in Qt Quick 3D",
+
+    "Homepage": "https://github.com/zeux/meshoptimizer",
+    "PURL": [
+        "pkg:github/zeux/meshoptimizer@v$<VERSION>"
+    ],
+    "Comment": "No relevant CPE found",
+    "Version": "1.0",
+    "License": "MIT License",
+    "LicenseId": "MIT",
+    "LicenseFile": "LICENSE.md",
+    "Copyright": "Copyright (c) 2016-2026 Arseny Kapoulkine"
+}

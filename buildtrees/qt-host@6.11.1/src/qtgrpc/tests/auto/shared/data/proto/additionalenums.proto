@@ -1,0 +1,43 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+syntax = "proto3";
+
+package qtprotobufnamespace.tests.enums;
+
+message SimpleEnumMessage {
+    enum LocalEnum {
+        LOCAL_ENUM_VALUE0 = 0;
+        LOCAL_ENUM_VALUE1 = 1;
+        LOCAL_ENUM_VALUE2 = 2;
+        LOCAL_ENUM_VALUE3 = 3;
+    }
+
+    LocalEnum localEnum = 1;
+}
+
+message MixedEnumUsageMessage {
+    enum LocalEnum {
+        LOCAL_ENUM_VALUE0 = 0;
+        LOCAL_ENUM_VALUE1 = 1;
+        LOCAL_ENUM_VALUE2 = 2;
+        LOCAL_ENUM_VALUE3 = 3;
+    }
+
+    LocalEnum localEnum = 1;
+    repeated LocalEnum localEnumList = 2;
+    map<string, LocalEnum> localEnumMap = 3;
+}
+
+enum TestEnum {
+    TEST_ENUM_VALUE0 = 0;
+    TEST_ENUM_VALUE1 = 1;
+    TEST_ENUM_VALUE2 = 2;
+    TEST_ENUM_VALUE3 = 4;
+    TEST_ENUM_VALUE4 = 3;
+}
+
+enum TestEnumSecondInFile {
+    TEST_ENUM_SIF_VALUE0 = 0;
+    TEST_ENUM_SIF_VALUE1 = 1;
+    TEST_ENUM_SIF_VALUE2 = 2;
+}

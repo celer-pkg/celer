@@ -1,0 +1,18 @@
+import QtQuick.tooling 1.2
+
+Module {
+    Component {
+        file: "mysingletonfromcppheader.h"
+        lineNumber: 42
+        name: "MySingletonFromCpp"
+        accessSemantics: "reference"
+        prototype: "QObject"
+        exports: ["ModuleWithSingleton/MySingletonFromCpp 254.0"]
+        isCreatable: false
+        isSingleton: true
+        Property {
+            name: "myValue"
+            type: "int"
+        }
+    }
+}

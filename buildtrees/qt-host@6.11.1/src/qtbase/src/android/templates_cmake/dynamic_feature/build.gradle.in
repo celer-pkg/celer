@@ -1,0 +1,53 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:9.0.0'
+    }
+}
+
+apply plugin: '@GRADLE_PLUGIN_TYPE@'
+
+dependencies {
+    @GRADLE_DEPENDENCIES@
+}
+
+android {
+    namespace '@PACKAGE_NAME@'
+    compileSdkVersion '@ANDROID_COMPILE_SDK_VERSION@'
+    buildToolsVersion '@ANDROID_BUILD_TOOLS_VERSION@'
+    ndkVersion '@ANDROID_NDK_REVISION@'
+
+    defaultConfig {
+        @DEFAULT_CONFIG_VALUES@
+    }
+
+    sourceSets {
+        main {
+@SOURCE_SETS@
+        }
+    }
+
+    tasks.withType(JavaCompile) {
+        options.incremental = true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+
+    aaptOptions {
+        // Do not compress Qt binary resources file
+        noCompress 'rcc'
+    }
+
+    @ANDROID_DEPLOYMENT_EXTRAS@
+}

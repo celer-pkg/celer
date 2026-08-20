@@ -1,0 +1,15 @@
+version = 1
+
+[[annotations]]
+path = ["tinyexr.h"]
+comment = ["Part of the in file copyright is on two line",
+           "Second line does not start with copyright word and is ignored by reuse."]
+precedence = "override"
+SPDX-FileCopyrightText = ["Copyright (c) 2002, Industrial Light & Magic, a division of Lucas Digital Ltd. LLC",
+                          "Copyright (c) 2014 - 2021, Syoyo Fujita and many contributors."]
+SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
+path = ["exr_reader.hh", "streamreader.hh"]
+SPDX-FileCopyrightText = "Copyright (c) 2025, Syoyo Fujita and many contributors."
+SPDX-License-Identifier = "BSD-3-Clause"

@@ -1,0 +1,18 @@
+{
+    "Id": "embree",
+    "Name": "Intel Embree",
+    "QDocModule": "qtquick3d",
+    "Description": "Intel Embree is a collection of high performance ray tracing kernels that helps graphics application engineers to improve the performance of their photorealistic rendering application.",
+    "QtUsage": "Used for baking lightmaps in Qt Quick 3D",
+
+    "Homepage": "https://www.embree.org/",
+    "PURL": [
+        "pkg:github/RenderKit/embree@$v<VERSION>"
+    ],
+    "Comment": "No relevant CPE found",
+    "Version": "3.13.3",
+    "License": "Apache License 2.0",
+    "LicenseId": "Apache-2.0",
+    "LicenseFile": "LICENSE.txt",
+    "Copyright": "Copyright 2009-2021 Intel Corporation"
+}

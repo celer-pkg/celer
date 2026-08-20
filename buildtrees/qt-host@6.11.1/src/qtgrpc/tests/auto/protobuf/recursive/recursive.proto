@@ -1,0 +1,10 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+syntax = "proto3";
+
+package qtprotobufnamespace.tests;
+
+message RecursiveMessage {
+    int32 testFieldInt = 1;
+    RecursiveMessage testFieldRecursive = 2;
+}

@@ -1,0 +1,168 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+
+\title Instanced Rendering
+\page quick3d-instancing
+
+\section1 Introduction
+
+Qt Quick 3D supports instancing of \l [QtQuick3D | QML] {Model} objects. Instancing refers to a
+technique where one object is rendered multiple times with a single draw call. (For example the
+OpenGL function \c glDrawElementsInstanced.)
+
+Instancing allows duplicating a model with variations. In contrast to using a \l{Repeater3D}, the
+model and its graphics resources are only allocated once. The rendering of the duplicated instances
+is done at a low level by the GPU. Depending on the complexity of the model, this can give a
+performance improvement of several orders of magnitude.
+
+In practice, instancing is done by defining a table that specifies how each instance is modified
+relative to the base model.
+
+\section1 Instancing API
+
+The main principle of the instancing API is that it is explicit: It doesn't try to autodetect
+opportunities for instancing within the existing API. Instead, each model is marked individually by
+setting its \l{Model::instancing}{instancing} property to reference an \l [QtQuick3D | QML]
+{QtQuick3D::Instancing}{Instancing} object. The same Instancing object can be used on multiple
+models at the same time.
+
+The Instancing object specifies a table that defines how each copy is rendered. The available modifications are:
+\list
+\li \e{transformation}: position, rotation, and scale
+\li \e{color}: a color that is blended with the model’s material
+\li \e{custom data}: data that can be used by custom materials
+\endlist
+
+Qt provides three QML types that inherit from Instancing:
+\list
+\li  \l {InstanceList} enumerates all instances and allows binding to the properties of each instance.
+\li \l {RandomInstancing} provides a way to quickly test and prototype by generating random instances within defined bounds.
+\li \l {FileInstancing} reads an instance table from an external file.
+\endlist
+
+The \l{Qt Quick 3D - Instanced Rendering Example}{instancing example} shows how to create a scene using the QML API.
+
+Other kinds of instance tables can be defined in C++ by subclassing \l{QQuick3DInstancing}. For example, the
+\l {ParticleSystem3D}{particle system} uses its own instancing table internally. It is available as
+\l{ModelParticle3D::instanceTable}{ModelParticle3D.instanceTable}.
+
+By writing custom shader code, it is possible to use instancing to control additional properties,
+such as variables for physically based rendering, skeletal animation weights, distortion, or anything
+else that can be expressed with custom materials. The custom data in the instancing table consists
+of four floating point numbers.
+
+The \l{Qt Quick 3D - Custom Instanced Rendering}{custom instancing example} shows how to combine
+custom materials and an instance table implemented in C++.
+
+
+\section1 Alpha-blending and instancing
+
+Correct alpha blending requires that semi-transparent objects are rendered back-to-front. For this
+reason, QtQuick3D sorts opaque and semi-transparent objects separately, and renders them in the
+correct order. With instancing, however, the GPU will render the instances in the order specified by
+the instancing table, if \l {Instancing::depthSortingEnabled}{depth-sorting} is not turned on.
+For performance reasons, QtQuick3D does not sort the table by default as it can take long time with
+large number of instances. This means that if semi-transparent instances overlap with each other,
+or with other semi-transparent objects, the results may look wrong. In general, the error is less
+visible when the opacity is low.
+
+Fully opaque objects together with non-overlapping semi-transparent objects will always be rendered
+correctly, since Qt uses depth buffer testing to avoid drawing behind opaque objects. However, the
+lack of sorting has potential performance implications for opaque objects: They may not be rendered
+in the optimal order, meaning that the same pixel can be written multiple times, making more work
+for the fragment shader.
+
+The renderer does not inspect the contents of the instancing table, so it must be specified
+explicitly when an instance table contains semi-transparent alpha values: Set the
+\l{Instancing::hasTransparency}{hasTransparency} property to to \c true to make sure that the renderer enables alpha
+blending. This applies to all the instances: Even fully opaque instances will be rendered
+without depth testing, potentially causing visible errors.
+
+The rendering order relative to the rest of the scene can be adjusted by setting the \l{Model::depthBias}{depth bias} of the model.
+
+\section1 Transforms and instancing
+
+Each instance has its own transform in the instance table. This is combined with the transforms on
+the instanced model. This is slightly complex, since there are several use cases:
+
+\list
+\li Doing a transform on the model that is applied to each individual instance. This allows cheap
+animations, for example by rotating all instances at once without having to change the instance table.
+\li Transforming the entire group of instances at once.
+\li Instancing a model hierarchy.
+\endlist
+
+To support all these cases, The model’s transform is split into two parts: the
+\e{local instance transform}, and the \e{global instance transform}.
+Conceptually, instancing is performed like this:
+
+\list
+\li First the model is transformed according to the local instance transform.
+\li Then each instance is calculated by applying the instance table transform
+\li Finally, the whole group of instanced objects is transformed according to the global instance transform.
+\endlist
+
+By default, the local instance transform of a model consists of the model’s scale and rotation,
+while the rest goes into the global instance transform.
+
+This can be controlled by setting the model’s \l{Model::instanceRoot}{instanceRoot} property. This
+defines the origin of the instance’s coordinate system. The most common use is when instancing a
+hierarchy of models. For example, a sphere orbiting around a cube:
+
+\qml
+Model {
+    id: cube
+    instancing: someInstanceTable
+    source: "#Cube"
+    materials: DefaultMaterial { diffuseColor: "lightgray" }
+    Node {
+        Model {
+            source: "#Sphere"
+            instanceRoot: cube
+            instancing: cube.instancing
+            x: 150
+            materials: DefaultMaterial { diffuseColor: "gray" }
+        }
+        NumberAnimation on eulerRotation.y {
+            from: 0
+            to: 360
+            duration: 4000
+            loops: Animation.Infinite
+        }
+    }
+}
+\endqml
+
+The \c instanceRoot is necessary to specify that the sphere instance should be positioned as if it were an element of the cube.
+Each model in a hierarchy still needs to specify the \c instancing property: in normal cases they should all be set to the same \c Instancing object.
+
+\c instanceRoot can also be used when instancing a single model. For example, a cylinder rotating around an off-center point:
+\qml
+ Node {
+    id: parentNode
+    Model {
+        source: "#Cylinder"
+        instanceRoot: parentNode
+        instancing: anotherInstanceTable
+        x: 25
+        materials: DefaultMaterial { diffuseColor: "white" }
+    }
+    NumberAnimation on eulerRotation.y {
+        from: 0
+        to: 360
+        duration: 1000
+        loops: Animation.Infinite
+    }
+}
+\endqml
+
+\section1 Picking and instancing
+
+\l{View3D::pick}{Picking} is a mechanism that enables selecting a model from a user interface
+interaction. With instanced rendering, there are several representations of the same model, so the
+pick result will include an \l {pickResult::instanceIndex}{instance index}. Instanced picking is
+enabled by setting the \l {Model::pickable}{pickable} property on the base model.
+
+*/

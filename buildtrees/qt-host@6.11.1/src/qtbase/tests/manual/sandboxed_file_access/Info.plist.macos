@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>BuildMachineOSBuild</key>
+	<string>25B78</string>
+	<key>CFBundleAllowMixedLocalizations</key>
+	<true/>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleExecutable</key>
+	<string>tst_manual_sandboxed_file_access</string>
+	<key>CFBundleIdentifier</key>
+	<string>io.qt.dev.tst-manual-sandboxed-file-access</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>tst_manual_sandboxed_file_access</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>6.0</string>
+	<key>CFBundleSupportedPlatforms</key>
+	<array>
+		<string>MacOSX</string>
+	</array>
+	<key>CFBundleVersion</key>
+	<string>6.0.0</string>
+	<key>DTCompiler</key>
+	<string>com.apple.compilers.llvm.clang.1_0</string>
+	<key>DTPlatformBuild</key>
+	<string>25B74</string>
+	<key>DTPlatformName</key>
+	<string>macosx</string>
+	<key>DTPlatformVersion</key>
+	<string>26.1</string>
+	<key>DTSDKBuild</key>
+	<string>25B74</string>
+	<key>DTSDKName</key>
+	<string>macosx26.1</string>
+	<key>DTXcode</key>
+	<string>2610</string>
+	<key>DTXcodeBuild</key>
+	<string>17B55</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>13</string>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+	<key>NSSupportsAutomaticGraphicsSwitching</key>
+	<true/>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.text</string>
+			</array>
+			<!-- These two don't seem to be needed to make things work -->
+			<key>LSHandlerRank</key>
+			<string>Default</string>
+			<key>CFBundleTypeName</key>
+			<string>Text files</string>
+		</dict>
+	 </array>
+</dict>
+</plist>

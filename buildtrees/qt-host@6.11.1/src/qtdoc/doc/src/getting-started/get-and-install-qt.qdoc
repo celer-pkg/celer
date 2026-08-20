@@ -1,0 +1,66 @@
+// Copyright (C) 2026 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page get-and-install-qt.html
+
+    \title Get and Install Qt
+    \brief Overview of the different ways to download and install Qt.
+
+    You can install Qt on your computer in different ways. The table below outlines each
+    method and when it is most useful.
+
+    \table
+      \header
+        \li Method
+        \li Description
+        \li When to use
+      \row
+        \li \l{Get and Install Qt with \QOI}{\QOI (GUI)}
+        \li A graphical installer that lets you choose Qt versions, modules, and tools
+            interactively. In most cases, this is the best way to install Qt.
+        \li
+          \list
+            \li You're new to Qt.
+            \li You prefer a visual interface.
+            \li You're installing Qt on a desktop computer.
+          \endlist
+      \row
+        \li \l{Get and Install Qt with Command Line Interface}{\QOI (command line)}
+        \li Allows unattended installation using scripts or automation tools.
+        \li
+          \list
+            \li You need to install Qt on multiple machines.
+            \li You're setting up CI/CD pipelines.
+            \li You want to automate the installation without user interaction.
+          \endlist
+      \row
+        \li \l{Building Qt Sources}{Build from sources}
+        \li Download and compile Qt manually from source code.
+        \li
+          \list
+            \li You need a custom build (for example, with patches or debug options).
+            \li Your platform isn't supported by prebuilt packages.
+            \li You're contributing to Qt or debugging its internals.
+          \endlist
+      \row
+        \li Package managers:
+          \list
+            \li \l{Qt for macOS - Alternative ways of installing Qt}{macOS}
+            \li \l{Qt for Linux - Alternative ways of installing Qt}{Linux}
+          \endlist
+        \li Allows you to install a recent version of Qt without requiring a Qt account.
+        \li
+          \list
+            \li Lightweight and good for automation.
+            \li You need to install Qt as a dependency for your applications, but don't plan
+            to do development work with Qt yourself.
+            \li You don't need special or commercial-only modules.
+          \endlist
+    \endtable
+
+After you have installed Qt, you can add, update, and remove components with \QMT
+(included in every Qt installation). For more information, see
+\l{Add, update, and remove installed Qt components}{Add, update, and remove components}.
+
+*/

@@ -1,0 +1,16 @@
+{
+  "extends": "../../config/typescript/tsconfig.base.json",
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "allowUnreachableCode": false,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "allowUmdGlobalAccess": true,
+    "paths": {
+      "lit-html": ["./third_party/lit-html"],
+      "lit-html/*": ["./third_party/lit-html/*"]
+    }
+  },
+  "include": ["src/*.ts", "tests/*.ts"]
+}

@@ -1,0 +1,46 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qmllint-warnings-and-errors-syntax.duplicate-ids.html
+\ingroup qmllint-warnings-and-errors
+
+\title Duplicate id
+\brief [syntax.duplicate-ids] An id is not unique.
+
+\qmllintwarningcategory syntax.duplicate-ids
+
+\section1 Found a duplicated id
+
+\section2 What happened?
+You used the same value for different \l{qtqml-syntax-objectattributes.html#the-id-attribute}{ids}.
+
+\section2 Why is this bad?
+The QML language forbids duplicate ids: they should all be unique in the same QML component.
+
+\section2 Example
+\qml
+import QtQuick
+
+Item {
+    id: root
+    Item {
+        id: root
+    }
+}
+
+\endqml
+To fix this warning, rename the duplicate to become unique:
+\qml
+import QtQuick
+
+Item {
+    id: root
+    Item {
+        id: notRoot
+    }
+}
+
+\endqml
+*/
+

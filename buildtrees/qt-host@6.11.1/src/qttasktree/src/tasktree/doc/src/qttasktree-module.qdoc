@@ -1,0 +1,96 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qttasktree-index.html
+    \title Qt TaskTree
+    \brief Contains a general purpose library for asynchronous task execution.
+
+    Qt TaskTree provides a declarative way to compose and execute asynchronous
+    task workflows with proper error handling and execution policies.
+
+    \note Qt TaskTree in \QtVer is in \e{Technology Preview}, excluding its
+    API from \l[QtDoc]{Compatibility promises}{Qt's compatibility promises}.
+
+    \section1 Getting started
+
+    Qt TaskTree allows you to create complex task hierarchies with different
+    execution policies, parallel/sequential execution, and proper error
+    handling.
+
+    Key concepts:
+    \list
+    \li \b {Recipes} - Declarative descriptions of task workflows.
+    \li \b {Groups} - Containers that define execution policies for child
+                      tasks.
+    \li \b {Storage} - Thread-local storage system for sharing data between
+                       tasks.
+    \li \b {Iterators} - Support for loops and repetitive task execution.
+    \endlist
+
+    \section1 Using the Module
+
+    \include {module-use.qdocinc} {using the c++ api}
+
+    \section2 Building with CMake
+
+    \include {module-use.qdocinc} {building with cmake} {TaskTree}
+
+    \section2 Building with qmake
+
+    \include {module-use.qdocinc} {building_with_qmake} {tasktree}
+
+    \section1 Task adapters
+
+    The module includes several built-in task adapters for common operations:
+    \list
+    \li \l{QtTaskTree::}{QProcessTask} - Executes external processes.
+    \li \l{QtTaskTree::}{QThreadFunctionTask} - Runs functions in separate threads.
+    \li \l{QtTaskTree::}{QNetworkReplyWrapperTask} - Handles network operations.
+    \li \l{QtTaskTree::}{QTcpSocketWrapperTask} - Handles TCP socket operations.
+    \li \l{QtTaskTree::}{QBarrierTask} - Provides synchronization primitives.
+    \li \l{QtTaskTree::}{QTimeoutTask} - Provides timer-based delays.
+    \endlist
+
+    \section1 Workflow Policies
+
+    Groups support different workflow policies for handling task results:
+    \list
+    \li \l{QtTaskTree::}{StopOnError} - Stops execution on first error (default).
+    \li \l{QtTaskTree::}{ContinueOnError} - Continues execution despite errors.
+    \li \l{QtTaskTree::}{StopOnSuccess} - Stops on first successful task.
+    \li \l{QtTaskTree::}{ContinueOnSuccess} - Continues despite successful tasks.
+    \li \l{QtTaskTree::}{StopOnSuccessOrError} - Stops on first completed task.
+    \li \l{QtTaskTree::}{FinishAllAndSuccess} - Runs all tasks, reports success.
+    \li \l{QtTaskTree::}{FinishAllAndError} - Runs all tasks, reports error.
+    \endlist
+
+    \section1 Examples
+
+    \list
+        \li \l{Qt TaskTree Examples}
+    \endlist
+
+    \section1 Reference
+
+    \list
+        \li \l{Qt TaskTree C++ Classes}
+    \endlist
+
+    \section1 Licenses
+
+    The Qt TaskTree module is available under commercial licenses from \l{The Qt Company}.
+    In addition, it is available under free software licenses:
+    The \l{GNU Lesser General Public License, version 3}, or
+    the \l{GNU General Public License, version 2}.
+    See \l{Qt Licensing} for further details.
+*/
+
+/*!
+    \group tasktree_examples
+    \title Qt TaskTree Examples
+
+    \ingroup all-examples
+
+    \brief Examples demonstrating the Qt TaskTree module.
+*/

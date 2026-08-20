@@ -1,0 +1,14 @@
+Version: 2
+Module only: True
+
+# Please add nightly/beta configs to macos.yaml with the appropriate
+# COIN_CTEST_IGNORE_EXIT_CODE to make it insignificant.
+
+Include: [
+    macos.yaml: [
+        'macos-universal-on-arm64',
+        'macos-26-arm64-tests',
+        'macos-26-arm64-developer-build',
+        'macos-26-arm64-developer-build-tests'
+    ],
+]

@@ -1,0 +1,120 @@
+<svg
+  width="200%"
+  height="200%"
+  viewBox="-80 0 180 450"
+  preserveAspectRatio="xMidYMid meet"
+  xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink">
+  <!-- ref -->
+  <defs>
+    <g id="circles" color-interpolation="linearRGB" >
+      <circle cx="30" cy="30" r="20" fill="blue" fill-opacity="0.5" />
+      <circle cx="20" cy="50" r="20" fill="green" fill-opacity="0.5" />
+      <circle cx="40" cy="50" r="20" fill="red" fill-opacity="0.5" />
+    </g>
+    <g id="circles2" color-interpolation="sRGB" >
+      <circle cx="-40" cy="30" r="20" fill="blue" fill-opacity="0.5" />
+      <circle cx="-50" cy="50" r="20" fill="green" fill-opacity="0.5" />
+      <circle cx="-30" cy="50" r="20" fill="red" fill-opacity="0.5" />
+    </g>
+  </defs>
+  <use href="#circles" />
+  <use href="#circles2" />
+  <text x="70" y="50">Reference</text>
+
+  <!-- identity matrix -->
+  <filter id="colorMeTheSame">
+    <feColorMatrix
+      in="SourceGraphic"
+      type="matrix"
+      values="1 0 0 0 0
+              0 1 0 0 0
+              0 0 1 0 0
+              0 0 0 1 0" />
+  </filter>
+  <use
+    href="#circles"
+    transform="translate(0 70)"
+    filter="url(#colorMeTheSame)" />
+  <use
+    href="#circles2"
+    transform="translate(0 70)"
+    filter="url(#colorMeTheSame)" />
+  <text x="70" y="120">Identity matrix</text>
+
+  <!-- Combine RGB into green matrix -->
+  <filter id="colorMeGreen">
+    <feColorMatrix
+      in="SourceGraphic"
+      type="matrix"
+      values="0 0 0 0 0
+              1 1 1 1 0
+              0 0 0 0 0
+              0 0 0 1 0" 
+      color-interpolation-filters="linearRGB" />
+  </filter>
+  <filter id="colorMeGreen2">
+    <feColorMatrix
+      in="SourceGraphic"
+      type="matrix"
+      values="0 0 0 0 0
+              1 1 1 1 0
+              0 0 0 0 0
+              0 0 0 1 0" 
+      color-interpolation-filters="sRGB" />
+  </filter>
+  <use
+    href="#circles"
+    transform="translate(0 140)"
+    filter="url(#colorMeGreen)" />
+  <use
+    href="#circles2"
+    transform="translate(0 140)"
+    filter="url(#colorMeGreen2)" />
+  <text x="70" y="190">rgbToGreen</text>
+
+  <!-- saturate -->
+  <filter id="colorMeSaturate">
+    <feColorMatrix in="SourceGraphic" type="saturate" values="0.2" color-interpolation-filters="linearRGB"/>
+  </filter>
+  <filter id="colorMeSaturate2">
+    <feColorMatrix in="SourceGraphic" type="saturate" values="0.2" color-interpolation-filters="sRGB"/>
+  </filter>
+  <use
+    href="#circles"
+    transform="translate(0 210)"
+    filter="url(#colorMeSaturate)" />
+  <use
+    href="#circles2"
+    transform="translate(0 210)"
+    filter="url(#colorMeSaturate2)" />
+  <text x="70" y="260">saturate</text>
+
+  <!-- hueRotate -->
+  <filter id="colorMeHueRotate">
+    <feColorMatrix in="SourceGraphic" type="hueRotate" values="180" color-interpolation-filters="linearRGB"/>
+  </filter>
+  <filter id="colorMeHueRotate2">
+    <feColorMatrix in="SourceGraphic" type="hueRotate" values="180" color-interpolation-filters="sRGB"/>
+  </filter>
+  <use
+    href="#circles"
+    transform="translate(0 280)"
+    filter="url(#colorMeHueRotate)" />
+  <use
+    href="#circles2"
+    transform="translate(0 280)"
+    filter="url(#colorMeHueRotate2)" />
+  <text x="70" y="330">hueRotate</text>
+
+  <!-- luminanceToAlpha -->
+  <filter id="colorMeLTA">
+    <feColorMatrix in="SourceGraphic" type="luminanceToAlpha" color-interpolation-filters="linearRGB"/>
+  </filter>
+  <filter id="colorMeLTA2">
+    <feColorMatrix in="SourceGraphic" type="luminanceToAlpha" color-interpolation-filters="sRGB"/>
+  </filter>
+  <use href="#circles" transform="translate(0 350)" filter="url(#colorMeLTA)" />
+  <use href="#circles2" transform="translate(0 350)" filter="url(#colorMeLTA2)" />
+  <text x="70" y="400">luminanceToAlpha</text>
+</svg>

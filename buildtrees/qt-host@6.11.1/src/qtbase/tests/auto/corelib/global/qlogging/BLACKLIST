@@ -1,0 +1,7 @@
+[qMessagePattern:backtrace]
+# QTBUG-121389
+b2qt 32bit
+
+[qMessagePattern:backtrace depth,separator]
+# QTBUG-121389
+b2qt 32bit

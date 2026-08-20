@@ -1,0 +1,9 @@
+{
+  cujs: {
+    agsa-simple: [
+      {action: "wait", duration: "3s"},
+      {action: "text_input", duration: "1s", text: "Hello World\n", source: "keyboard"},
+      {action: "wait", duration: "3s"},
+    ],
+  },
+}

@@ -1,0 +1,75 @@
+type: Group
+instructions:
+  - !include "{{qt/qtbase}}/prepare_building_env.yaml"
+  - !include "{{qt/qtbase}}/prepare_source_sbom_check.yaml"
+  - type: Group
+    instructions:
+      - !include "{{qt/qtbase}}/cmake_qtbase_build_instructions.yaml"
+      - !include "{{qt/qtbase}}/cmake_build_and_upload_test_artifacts_host.yaml"
+    enable_if:
+      condition: and
+      conditions:
+        - condition: property
+          property: host.os
+          equals_property: target.os
+        - condition: property
+          property: target.osVersion
+          not_in_values: [QEMU, WebAssembly, INTEGRITY, VxWorks]
+        - condition: property
+          property: features
+          not_contains_value: "TargetBuildOnly"
+        - condition: property
+          property: features
+          not_contains_value: "DebianPackaging"
+        - condition: runtime
+          env_var: AXIVION_ANALYSIS
+          not_equals_value: "1"
+  - type: Group
+    instructions:
+       - !include "{{qt/qtbase}}/coin_module_axivion_template_v2.yaml"
+    enable_if:
+      condition: runtime
+      env_var: AXIVION_ANALYSIS
+      equals_value: "1"
+  - type: Group
+    instructions:
+      - type: Group
+        instructions:
+          - !include "{{qt/qtbase}}/cmake_cross_compilation_qtbase_build_instructions.yaml"
+        disable_if:
+          condition: and
+          conditions:
+            - condition: property
+              property: target.osVersion
+              equals_value: Android_ANY
+            - condition: property
+              property: target.arch
+              equals_value: Multi
+      - !include "{{qt/qtbase}}/prepare_android_multi_abi_env.yaml"
+      - !include "{{qt/qtbase}}/cmake_build_and_upload_test_artifacts_target.yaml"
+    enable_if:
+      condition: or
+      conditions:
+        - condition: property
+          property: target.osVersion
+          in_values: [Android_ANY, QEMU, IOS_ANY, QNX_710, QNX_800, WebAssembly, INTEGRITY, VxWorks]
+        - condition: and
+          conditions:
+            - condition: property
+              property: target.os
+              equals_value: Windows
+            - condition: property
+              property: target.arch
+              not_equals_property: host.arch
+            - condition: property
+              property: features
+              not_contains_value: "DebianPackaging"
+  - type: Group
+    instructions:
+      - type: Group
+        instructions:
+          - !include "{{qt/qtbase}}/debian/debian_build_module.yaml"
+        enable_if:
+          condition: property
+          property: features
+          contains_value: "DebianPackaging"

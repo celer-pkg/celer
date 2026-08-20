@@ -1,0 +1,220 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page whatsnew61.html
+    \title What's New in Qt 6.1
+    \brief Lists the new features in Qt 6.1.
+    \ingroup whatsnewqt6
+    \meta sortkey 601
+
+    \section1 New and Restored Modules in Qt 6.1
+
+    Qt 6.1 adds the following modules:
+
+    \section2 Active Qt Module
+
+    \l [ActiveQt]{Active Qt} provides ActiveX and COM support that lets Qt for
+    Windows developers:
+
+    \list
+        \li Access and use ActiveX controls and COM objects provided by any
+            ActiveX server in their Qt applications.
+        \li Make their Qt applications available as COM servers, with any
+            number of Qt objects and widgets as COM objects and ActiveX
+            controls.
+    \endlist
+
+    \section2 Qt Charts Module
+
+    \l {Qt Charts} still supports only OpenGL for accelerated series
+    (AbstractSeries.useOpenGL). Such series will not render in Qt Quick if
+    another graphics API is used for rendering.
+
+    \section2 Qt Data Visualization Module
+    \l {Qt Data Visualization} only supports the OpenGL RHI backend, and
+    requires setting of the environment variable \c QSG_RHI_BACKEND to
+    \c{opengl}. This can either be done at the system level, or defined in the
+    application's \e{main()} with \c{qputenv("QSG_RHI_BACKEND", "opengl");}.
+
+    \section2 Qt Device Utilities Module
+
+    Support for networking functionality only.
+
+    \section2 Qt Lottie Module
+
+    The \l {Qt Lottie Animation} module has been ported to Qt 6 and the CMake
+    build system.
+
+    \section2 Qt SCXML and Qt StateMachine
+
+    \l {Qt State Machine} contains APIs that were part of Qt Core in Qt 5. The
+    \e{Qt State Machines} package in the installer contains both the
+    \l{Qt SCXML} and \l {Qt State Machine} modules.
+
+    \section2 Qt Virtual Keyboard Module
+
+    The \l{Qt Virtual Keyboard} module has been ported to Qt 6 and the CMake
+    build system.
+
+    \list
+        \li A new dictionary manager allows user defined dictionaries
+            (e.g. phone book) to be implemented by the application.
+        \li There are new properties in VirtualKeyboardSettings.
+        \li Support is added for Cerence Handwriting (T9 Write) and XT9.
+    \endlist
+
+    \section1 New Features in Qt 6.1
+
+    \section2 Qt Core Module
+
+    \list
+    \li QFuture has new convenience functions to create futures in various
+        states and can now invoke its continuation in a context object's
+        thread.
+    \li qfloat16 can be constructed uninitialized.
+    \li <QtMath> provides qHypot(), generalising std::hypot() to
+        arbitrarily-many arguments and supporting qfloat16 arguments.
+    \li Overflow-safe arithmetic is now supported by the functions
+        qAddOverflow(), qSubOverflow(), and qMulOverflow().
+    \li removeIf() methods and erase_if() support are extended to more classes:
+    \list
+        \li QHash, QMap and their Multi variants, whose predicates take either
+            a std::pair or the container's own iterator.
+        \li QSet, which also gains an insert() overload that takes
+            (but ignores) a location hint, for compatibility with the standard
+            library.
+        \li QString, QByteArray and QList, which also gain erase() support to
+            remove all instances of a specified value.
+        \li QVarLengthArray, along with erase() support and methods removeAll()
+            and removeOne().
+    \endlist
+    \li QStringView's API now includes count(), contains(), indexOf(),
+        lastIndexOf(), constBegin(), and constEnd().
+    \li QLocale provides mappings from its enums to ISO codes and back:
+        languageToCode(), scriptToCode(), countryToCode(), codeToLanguage(),
+        codeToScript(), and codeToCountry().
+    \li QSocketNotifier now supports more flexible creation.
+    \li Added QOperatingSystemVersion::version(),
+        QMetaType::hasRegisteredDataStreamOperators(),
+        and QUntypedBindable::isReadOnly(), whose names hopefully say enough.
+    \li Added QJniObject and QJniEnvironment as public API (mainly used for
+        Android).
+    \li Object property bindings have received API refinements, and bindings
+        are added to Qt Core classes - see the
+        \l{https://www.qt.io/blog/property-bindings-in-qt-6}{Property bindings}
+        blog post for context.
+    \endlist
+
+    \section2 Qt Gui Module
+
+    \list
+        \li QColorSpace can now set custom transfer-functions as tables.
+        \li QTextDocument now lets you to set a resource provider function,
+            instead of sub-classing QTextDocument and overloading
+            loadResource().
+        \li The Vulkan API wrappers (QVulkanFunctions, QVulkanDeviceFunctions)
+            now expose the Vulkan 1.1 and 1.2 core APIs as well.
+        \list
+            \li With relevant new functionality (supportedApiVersion()) added
+                to QVulkanInstance to allow querying the supported
+                instance-level version before instance creation.
+        \endlist
+        \li Added QPainter::VerticalSubpixelPositioning hint. This is currently
+            only supported on the Freetype font backend, and when available it
+            will enable subpixel positioning of text in vertical direction at
+            the expense of some memory and additional work. For most use cases,
+            this should be left off, but it can be useful for very specific
+            cases where you want to align painted elements vertically on a
+            dynamically transformed painter.
+    \endlist
+
+    \section2 Qt Widgets Module
+
+    \list
+        \li QLabel has setter and getter methods for the resource provider
+            function in QTextDocument. Inspect the \l{Qt Gui Module} changes
+            for further information.
+    \endlist
+
+    \section2 Qt Network Module
+
+    \list
+        \li QNetworkCookie now supports the SameSite feature.
+        \li Introduced QNetworkInformation:
+        \list
+            \li QNetworkInformation currently exposes the reachability of the
+                system, using system API.
+            \li Currently supports Darwin, Windows, Android, and NetworkManager
+                on Linux.
+        \endlist
+        \li TLS backends, powering QSslSocket and related QSsl classes, were
+            converted to plugin-oriented design.
+        \list
+            \li Public and private classes in the 'ssl' sub-module of QtNetwork
+                are now TLS implementation neutral and are not exposed to
+                low-level APIs/details.
+            \li Existing TLS-backends (OpenSSL, SecureTransport, Schannel) now
+                report which classes, features and protocols they support.
+            \li It's possible (for an application, using Qt) to provide its own
+                backend to be used by QSslSocket and related classes.
+        \endlist
+    \endlist
+
+    \section2 Qt Qml Module
+
+    \list
+        \li Added QJSPrimitiveValue and QJSManagedValue for a more fine-grained
+            control over JavaScript execution than it was possible with
+            QJSValue alone.
+        \li The qt6_add_qml_module CMake function (still in Tech Preview) adds
+            a qmllint target, which runs qmllint on the target's QML files.
+        \li Added \c{freeze()} and multi-\c{insert()} to \l{QQmlPropertyMap}.
+    \endlist
+
+    \section2 Qt Quick 3D Module
+
+    \list
+        \li Technology preview: "Instanced Rendering", an optimized way of
+            drawing multiple instances of the same objects with different
+            transformations. This feature is considered feature-complete, but
+            may still undergo minor API changes based on user feedback. It is
+            planned for finalization in Qt 6.2.
+        \li Technology preview: 3D Particles, an API for adding particle
+            effects to 3D scenes. This API is ready for testing, but is not yet
+            feature-complete.
+        \li Qt Quick 3D now supports morph target animations, i.e. animations
+            where all vertices interpolate between two sets of positions,
+            giving the impression that one shape is morphing into another.
+    \endlist
+
+    \section2 Qt 5 Compatibility Module
+
+    While Qt Graphical Effects does not ship with Qt 6, a number of effects
+    have been ported to the new graphics architecture and added to the
+    Qt5Compat module. For example, to gain access to DropShadow, add the QML
+    import \e{Qt5Compat.GraphicalEffects}. Some complex effects that rely on
+    dynamic shader generation, such as a number of blur variants, have been
+    removed.
+
+    \section1 List of API Changes
+
+    These pages contain an overview of API changes in Qt 6.1:
+    \list
+        \li \l {New Classes and Functions in Qt 6.1}
+        \li \l {Obsolete Classes}
+    \endlist
+*/
+
+/*!
+    \page newclasses61.html
+    \title New Classes and Functions in Qt 6.1
+    \ingroup whatsnewqt6-api
+    \meta sortkey 601
+    \brief A list of new APIs in Qt 6.1.
+
+    This page contains a comprehensive list of all new classes and functions
+    introduced in Qt 6.1.
+
+    \sincelist 6.1
+*/

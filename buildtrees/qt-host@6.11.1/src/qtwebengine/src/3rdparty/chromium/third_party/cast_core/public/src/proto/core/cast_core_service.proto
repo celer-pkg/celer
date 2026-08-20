@@ -1,0 +1,89 @@
+// Copyright 2021 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package cast.core;
+
+import "proto/common/runtime_metadata.proto";
+import "proto/common/service_info.proto";
+
+option optimize_for = LITE_RUNTIME;
+
+// CastCore service.
+service CastCoreService {
+  // Registers a Cast Runtime. Usually called by platform.
+  rpc RegisterRuntime(RegisterRuntimeRequest) returns (RegisterRuntimeResponse);
+
+  // Unregisters a Cast Runtime. Usually called by platform.
+  rpc UnregisterRuntime(UnregisterRuntimeRequest)
+      returns (UnregisterRuntimeResponse);
+
+  // Updates the PrelaunchType of runtime.
+  rpc UpdatePrelaunchType(UpdatePrelaunchTypeRequest)
+      returns (UpdatePrelaunchTypeResponse);
+
+  // Authenticates anactively running runtime usage of Cast Core, and reports
+  // its endpoint information.
+  rpc AuthenticateRuntime(AuthenticateRuntimeRequest)
+      returns (AuthenticateRuntimeResponse);
+}
+
+message RegisterRuntimeRequest {
+  // Metadata about the runtime.
+  cast.common.RuntimeMetadata runtime_metadata = 2;
+}
+
+message RegisterRuntimeResponse {
+  // A randomly generated runtime ID. Cast Core will use this ID to reference a
+  // particular Runtime.
+  string runtime_id = 1;
+}
+
+message UnregisterRuntimeRequest {
+  // Runtime ID.
+  string runtime_id = 1;
+}
+
+message UnregisterRuntimeResponse {}
+
+// Request to update the PrelaunchType of the runtime.
+message UpdatePrelaunchTypeRequest {
+  // Runtime id.
+  string runtime_id = 1;
+  // Prelaunch type.
+  cast.common.PrelaunchType.Type prelaunch_type = 2;
+}
+
+message UpdatePrelaunchTypeResponse {}
+
+message AuthenticateRuntimeRequest {
+  // Runtime id.
+  string runtime_id = 1;
+  // Opaque token to authenticate the runtime.
+  string authentication_token = 2;
+  // The endpoint the runtime is running on.
+  cast.common.ServiceInfo runtime_service_info = 3;
+  // Optional challenge for Cast Core to sign.
+  string challenge = 4;
+}
+
+message AuthenticateRuntimeResponse {
+  // Device certificate chain excluding the Cast Root CA.
+  repeated string certificate_chain = 1;
+  // Optional signature of the challenge token. Present if runtime sent it in
+  // the request. The signature can be verified with the 0th certificate in the
+  // `certificate_chain`.
+  string challenge_signature = 2;
+}

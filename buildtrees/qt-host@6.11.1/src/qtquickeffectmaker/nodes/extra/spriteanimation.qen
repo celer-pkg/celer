@@ -1,0 +1,108 @@
+{
+    "QEN": {
+        "description": "SpriteAnimation node for animating sprite sequences.",
+        "fragmentCode": [
+            "@main",
+            "{",
+            "    vec4 sprite = vec4(0.0);",
+            "#if (SPRITE_ANIMATION_INTERPOLATE == 1)",
+            "    vec2 spriteUV;",
+            "    spriteUV.x = spriteArea.x + texCoord.x * spriteArea.z;",
+            "    spriteUV.y = spriteArea.y + texCoord.y * spriteArea.w;",
+            "    vec4 sprite1 = texture(spriteAnimationImage, spriteUV);",
+            "",
+            "    vec2 spriteUV2;",
+            "    spriteUV2.x = spriteArea2.x + texCoord.x * spriteArea2.z;",
+            "    spriteUV2.y = spriteArea2.y + texCoord.y * spriteArea2.w;",
+            "    vec4 sprite2 = texture(spriteAnimationImage, spriteUV2);",
+            "",
+            "    float anim = clamp(mod(iTime * (1.0 / spriteAnimationFrameDuration), 1.0), 0.0, 1.0);",
+            "    sprite = mix(sprite1, sprite2, anim);",
+            "#else",
+            "    vec2 spriteUV;",
+            "    spriteUV.x = spriteArea.x + texCoord.x * spriteArea.z;",
+            "    spriteUV.y = spriteArea.y + texCoord.y * spriteArea.w;",
+            "    sprite = texture(spriteAnimationImage, spriteUV);",
+            "#endif",
+            "    fragColor = mix(fragColor, sprite, sprite.a);",
+            "}"
+        ],
+        "name": "SpriteAnimation",
+        "properties": [
+            {
+                "defaultValue": "0",
+                "description": "If 1, interpolation will occur between sprite frames to make the animation appear smoother. Interpolation requires 2 texture lookups.",
+                "name": "SPRITE_ANIMATION_INTERPOLATE",
+                "type": "define"
+            },
+            {
+                "defaultValue": "../images/qt-logo-sheet.png",
+                "description": "Sprite sheet Image.",
+                "name": "spriteAnimationImage",
+                "type": "image"
+            },
+            {
+                "defaultValue": "4",
+                "description": "The amount of rows in the sprite image.",
+                "maxValue": "8",
+                "minValue": "1",
+                "name": "spriteAnimationRows",
+                "type": "int"
+            },
+            {
+                "defaultValue": "4",
+                "description": "The amount of columns in the sprite image.",
+                "maxValue": "16",
+                "minValue": "1",
+                "name": "spriteAnimationColumns",
+                "type": "int"
+            },
+            {
+                "defaultValue": "16",
+                "description": "Total amount of frames in the image sequence. This is often rows * columns, but can be also smaller if grid is not full of images or only want to animate part of the sprite images.",
+                "maxValue": "64",
+                "minValue": "1",
+                "name": "spriteAnimationFrameCount",
+                "type": "int"
+            },
+            {
+                "defaultValue": "0.1",
+                "description": "How long a single frame is shown in seconds.",
+                "maxValue": "1",
+                "minValue": "0.01",
+                "name": "spriteAnimationFrameDuration",
+                "type": "float"
+            }
+        ],
+        "version": 1,
+        "vertexCode": [
+            "out vec4 spriteArea;",
+            "#if (SPRITE_ANIMATION_INTERPOLATE == 1)",
+            "out vec4 spriteArea2;",
+            "#endif",
+            "@main",
+            "{",
+            "    float columnSize = 1.0 / spriteAnimationColumns;",
+            "    float rowSize  = 1.0 / spriteAnimationRows;    ",
+            "    float frameIndexF = mod(iTime / spriteAnimationFrameDuration, spriteAnimationFrameCount);",
+            "    ",
+            "    float frameIndex = floor(frameIndexF);",
+            "    float frameColumn = mod(frameIndex, spriteAnimationColumns);",
+            "    float frameRow = floor(float(frameIndex) / spriteAnimationColumns);",
+            "    spriteArea = vec4(frameColumn * columnSize,",
+            "                      frameRow * rowSize,",
+            "                      columnSize,",
+            "                      rowSize);",
+            "#if (SPRITE_ANIMATION_INTERPOLATE == 1)",
+            "    float frameIndex2 = mod(ceil(frameIndexF), spriteAnimationFrameCount);",
+            "    float frameColumn2 = mod(frameIndex2, spriteAnimationColumns);",
+            "    float frameRow2 = floor(float(frameIndex2) / spriteAnimationColumns);",
+            "    spriteArea2 = vec4(frameColumn2 * columnSize,",
+            "                      frameRow2 * rowSize,",
+            "                      columnSize,",
+            "                      rowSize);",
+            "#endif",
+            "}"
+        ]
+    }
+}

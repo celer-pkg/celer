@@ -1,0 +1,153 @@
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+
+\title Optimizing 3D Assets
+\page quick3d-asset-conditioning-3d-assets
+
+In Qt Quick 3D, you can import 3D models and scenes that are created using 3D modeling tools. To
+see the supported file formats, see the \l {Balsam Asset Import Tool}{Balsam tool} documentation.
+
+\section1 3D Content Overview
+
+In this section, you will find an overview of creating and exporting 3D assets to use in
+Qt Quick 3D. For more detailed information, see the section for the
+\l {Exporting from Different Tools}{specific 3D modeling tool} that you are using.
+
+\section2 Geometry
+
+\list
+\li
+    \b {Use Triangles}
+    Qt Quick 3D only supports geometry exported as triangles. Many 3D modeling tools provide an
+    option to triangulate meshes during export, while you must do it manually before the export
+    with some tools. If models are not triangulated on export, they will be triangulated on import
+    which may lead to less than optimal results. If models are exported using primitives that can
+    not be triangulated, then those primitives will be ignored on import.
+\li
+    \b {Handling Pivot Points}
+    Each DCC (Digital Content Creation) tool handles pivot points differently. In Qt Quick 3D, there
+    is only one pivot per object and it is used as the origin for position, scale, and rotation
+    operations. In your DCC tool, feel free to adjust the position of a 3D model's pivot as needed.
+    However, extreme edits to pivots in 3D modeling tools can cause problems upon import, especially
+    if animated. This difference is often manifested as a difference in the position or orientation
+    of an object. As an artist, you can prevent these kinds of problems by only making simple edits
+    to your pivot points. Keep your pivot points to the default (world) alignment, don't scale them,
+    and make sure that if you have multiple pivots (Maya) that they are all at the same location in
+    space.
+\li
+    \b {Transformation}
+    As you would expect you can import full 3D transform information including position, rotation,
+    scale, and pivot. Qt Quick 3D can handle right-handed coordinate systems, Y-up
+    and quaternion based rotation. The principal limitation in this area is pivot points.
+    As discussed above, only simple edits to pivot points are supported.
+
+    Most DCC tools allow artists to freeze transformations, and we highly recommend performing this
+    operation before importing mesh data into Qt Quick 3D. This operation ensures that the imported
+    mesh has clean transformation data and no arbitrary transformation values, which can be
+    confusing or an impediment to your work.
+
+    \note After freezing transforms, you may have to reposition the pivot point in some DCC tools.
+\endlist
+
+\section2 Animations
+
+Animations are supported on imported attribute. Position, rotation, scale, and pivot can all be
+animated. An example of our advanced support for animations would be a hierarchy of items, rotated
+simultaneously on an arbitrary axis.
+
+\list
+\li
+    \b {Time-based Animations}
+    By default, in many 3D modeling tools, when you are creating keyframes you are associating them
+    with certain frame numbers. This is great in the film industry where frame rates are constant,
+    but this technique necessarily has problems in applications where the frame rate may not
+    be rock solid. Our solution to this problem is to express the locations of keyframes in time
+    values instead of frame numbers. That way, if you say \e {"this logo animation plays for 3
+    seconds\"}, we can guarantee that it plays for 3 seconds. If you express it in frames,
+    \e {\"this logo animation plays for 180 frames\"}, it may play for 3 seconds if you're
+    getting 60 fps, but if you drop to 30 fps the animation is going to go much slower.
+
+    Luckily, accounting for this is relatively simple. Many 3D modeling tools default to a setting
+    of 24 frames per second, so your keyframes are translated at that ratio. If you want a keyframe
+    at one second, put it on frame 24. Two seconds? Frame 48, and so on. Usually, configurable
+    frame rates are offered, and the frame rate setting should be respected upon import.
+    It's also worthwhile to note that for example Maya, starts at frame one by default. If you have
+    a keyframe at frame one, the time for that keyframe is 1/24 or 0.041 seconds. It may be a
+    good idea to go into your Maya animation settings and start your animations at frame 0, or
+    0/24 = 0 seconds.
+\li
+    \b{Different Animation Systems}
+    3D modeling tools offer highly complex and specialized animation systems. We recommend using
+    Qt Quick 3D's animation capabilities whenever practical. This helps in keeping the mesh
+    information clean on import.
+\li
+    \b {Baking Animations}
+    You must bake all animations before exporting.
+\endlist
+
+\section2 Materials
+
+For materials, material slot IDs and UV layouts are imported.
+
+\list
+\li
+    \b {Textures}
+    Images applied to different material IDs are imported. We recommend using \c .png or compressed
+    image formats.
+\li
+    \b {Using Powers of Two Texture Map Pixel Dimensions}
+    As is the case with most real-time graphics, texture maps run optimally when their pixel
+    dimensions are set to powers of two.
+\endlist
+
+\section2 Lights and Cameras
+
+Lights and cameras can be imported.
+
+\list
+\li
+    \b {Lights}
+    For light, directional, point, and spot lights with position, rotation, light color, and
+    the attenuation factors properties will be imported.
+\li
+    \b {Cameras}
+    Perspective and orthographic cameras can be imported. Position, and rotation properties
+    are imported, as well as start and end clipping. For perspective cameras, field of view is
+    also imported.
+\endlist
+
+\section2 Other
+
+\list
+\li
+    \b {Axis Conversion}
+    Qt Quick 3D uses a Y-up coordinate system, ensure that \c {Up Axis} is set to \c {Y}.
+\li
+    \b {Hierarchy}
+    Qt Quick 3D supports importing hierarchical information. Hierarchies of arbitrary depth are
+    supported, including grouped nodes. Hierarchical transforms are applied as expected.
+\endlist
+
+\section1 Exporting from Different Tools
+
+\table
+\header
+    \li
+    \b Tool
+\row
+    \li
+    \b {\l{Exporting from Maya}{Maya}}
+\row
+    \li
+    \b {\l{Exporting from Blender}{Blender}}
+\row
+    \li
+    \b {\l{Exporting from 3D Studio Max}{3D Studio Max}}
+\row
+    \li
+    \b {\l{Exporting from Modo}{Modo}}
+\endtable
+
+*/

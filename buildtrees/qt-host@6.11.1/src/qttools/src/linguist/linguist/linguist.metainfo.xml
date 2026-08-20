@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='utf-8'?>
+<component type="desktop-application">
+  <id>io.qt.Linguist</id>
+  <name>Qt Linguist</name>
+  <summary>Add translations to Qt applications</summary>
+  <developer id="org.qt-project">
+    <name>Qt Project</name>
+  </developer>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0</project_license>
+  <project_group>Qt</project_group>
+  <description>
+    <p>Qt Linguist allows you to translate Qt applications.</p>
+  </description>
+  <screenshots>
+    <screenshot type="default">
+      <caption>The main window</caption>
+      <image type="source">https://doc.qt.io/qt-6/images/linguist-linguist_2.png</image>
+    </screenshot>
+  </screenshots>
+  <url type="homepage">https://www.qt.io/</url>
+  <url type="bugtracker">https://bugreports.qt.io/</url>
+  <url type="help">https://doc.qt.io/qt-6/qtlinguist-index.html</url>
+  <url type="vcs-browser">https://code.qt.io/cgit/qt/qttools.git/tree/src/linguist/linguist</url>
+  <url type="contribute">https://www.qt.io/community/contribute-to-qt</url>
+  <categories>
+    <category>Translation</category>
+    <category>Qt</category>
+  </categories>
+  <requires>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </requires>
+  <content_rating type="oars-1.1"/>
+  <launchable type="desktop-id">linguist.desktop</launchable>
+  <provides>
+    <binary>linguist6</binary>
+    <mediatype>text/vnd.trolltech.linguist</mediatype>
+    <mediatype>application/x-linguist</mediatype>
+  </provides>
+</component>

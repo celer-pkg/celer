@@ -1,0 +1,13 @@
+[
+    {
+        "Id": "lottiedocs-examples",
+        "Name": "Example Lottie files from github.com/LottieFiles/lottie-docs",
+        "QDocModule": "qtlottieanimation",
+        "QtUsage": "Used for baseline testing",
+        "QtParts": [ "tests" ],
+        "Path": "docsamples",
+        "LicenseId": "CC-BY-4.0",
+        "License": "Creative Commons Attribution 4.0 International",
+        "Copyright": "Copyright © 2022 Design Barn Inc."
+    }
+]

@@ -1,0 +1,598 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// Qt-Security score:significant reason:default
+
+#include <AppKit/AppKit.h>
+
+#include "qcocoatheme.h"
+
+#include <QtCore/QVariant>
+
+#include "qcocoasystemtrayicon.h"
+#include "qcocoamenuitem.h"
+#include "qcocoamenu.h"
+#include "qcocoamenubar.h"
+#include "qcocoahelpers.h"
+
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qstandardpaths.h>
+#include <QtCore/private/qcore_mac_p.h>
+#include <QtGui/private/qfont_p.h>
+#include <QtGui/private/qguiapplication_p.h>
+#include <QtGui/private/qcoregraphics_p.h>
+#include <QtGui/qpainter.h>
+#include <QtGui/qtextformat.h>
+#include <QtGui/private/qcoretextfontdatabase_p.h>
+#include <QtGui/private/qapplefileiconengine_p.h>
+#include <QtGui/private/qappleiconengine_p.h>
+#include <QtGui/private/qfontengine_coretext_p.h>
+#include <QtGui/private/qabstractfileiconengine_p.h>
+#include <qpa/qplatformdialoghelper.h>
+#include <qpa/qplatformintegration.h>
+#include <qpa/qplatformnativeinterface.h>
+
+#include "qcocoacolordialoghelper.h"
+#include "qcocoafiledialoghelper.h"
+#include "qcocoafontdialoghelper.h"
+#include "qcocoamessagedialog.h"
+
+#include <CoreServices/CoreServices.h>
+#include <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
+
+QT_BEGIN_NAMESPACE
+
+static QPalette *qt_mac_createSystemPalette()
+{
+    QColor qc;
+
+    // Standard palette initialization (copied from Qt 4 styles)
+    QBrush backgroundBrush = qt_mac_toQBrush([NSColor windowBackgroundColor]);
+    QColor background = backgroundBrush.color();
+    QColor light(background.lighter(110));
+    QColor dark(background.darker(160));
+    QColor mid(background.darker(140));
+    QPalette *palette = new QPalette(Qt::black, background, light, dark, mid, Qt::black, Qt::white);
+
+    palette->setBrush(QPalette::Window, backgroundBrush);
+
+    palette->setBrush(QPalette::Disabled, QPalette::WindowText, dark);
+    palette->setBrush(QPalette::Disabled, QPalette::Text, dark);
+    palette->setBrush(QPalette::Disabled, QPalette::Base, backgroundBrush);
+    QBrush textBackgroundBrush = qt_mac_toQBrush([NSColor textBackgroundColor]);
+    palette->setBrush(QPalette::Active, QPalette::Base, textBackgroundBrush);
+    palette->setBrush(QPalette::Inactive, QPalette::Base, textBackgroundBrush);
+    palette->setColor(QPalette::Disabled, QPalette::Dark, QColor(191, 191, 191));
+    palette->setColor(QPalette::Active, QPalette::Dark, QColor(191, 191, 191));
+    palette->setColor(QPalette::Inactive, QPalette::Dark, QColor(191, 191, 191));
+
+    // System palette initialization:
+    QBrush br = qt_mac_toQBrush([NSColor selectedControlColor]);
+    palette->setBrush(QPalette::Active, QPalette::Highlight, br);
+    const auto inactiveHighlight = qt_mac_toQBrush([NSColor unemphasizedSelectedContentBackgroundColor]);
+    palette->setBrush(QPalette::Inactive, QPalette::Highlight, inactiveHighlight);
+    palette->setBrush(QPalette::Disabled, QPalette::Highlight, inactiveHighlight);
+
+    palette->setBrush(QPalette::Shadow, qt_mac_toQColor([NSColor shadowColor]));
+
+    qc = qt_mac_toQColor([NSColor controlTextColor]);
+    palette->setColor(QPalette::Active, QPalette::Text, qc);
+    palette->setColor(QPalette::Active, QPalette::ButtonText, qc);
+    palette->setColor(QPalette::Active, QPalette::WindowText, qc);
+    palette->setColor(QPalette::Active, QPalette::HighlightedText, qc);
+    palette->setColor(QPalette::Inactive, QPalette::Text, qc);
+    palette->setColor(QPalette::Inactive, QPalette::WindowText, qc);
+    palette->setColor(QPalette::Inactive, QPalette::HighlightedText, qc);
+
+    qc = qt_mac_toQColor([NSColor disabledControlTextColor]);
+    palette->setColor(QPalette::Disabled, QPalette::Text, qc);
+    palette->setColor(QPalette::Disabled, QPalette::ButtonText, qc);
+    palette->setColor(QPalette::Disabled, QPalette::WindowText, qc);
+    palette->setColor(QPalette::Disabled, QPalette::HighlightedText, qc);
+
+    palette->setBrush(QPalette::ToolTipBase, qt_mac_toQBrush([NSColor controlColor]));
+
+    palette->setColor(QPalette::Normal, QPalette::Link, qt_mac_toQColor([NSColor linkColor]));
+
+    qc = qt_mac_toQColor([NSColor placeholderTextColor]);
+    palette->setColor(QPalette::Active, QPalette::PlaceholderText, qc);
+    palette->setColor(QPalette::Inactive, QPalette::PlaceholderText, qc);
+    palette->setColor(QPalette::Disabled, QPalette::PlaceholderText, qc);
+
+    qc = qt_mac_toQColor([NSColor controlAccentColor]);
+    palette->setColor(QPalette::Accent, qc);
+
+    return palette;
+}
+
+struct QMacPaletteMap {
+    inline QMacPaletteMap(QPlatformTheme::Palette p, NSColor *a, NSColor *i) :
+        active(a), inactive(i), paletteRole(p) { }
+
+    NSColor *active;
+    NSColor *inactive;
+    QPlatformTheme::Palette paletteRole;
+};
+
+#define MAC_PALETTE_ENTRY(pal, active, inactive) \
+    QMacPaletteMap(pal, [NSColor active], [NSColor inactive])
+static QMacPaletteMap mac_widget_colors[] = {
+    MAC_PALETTE_ENTRY(QPlatformTheme::ToolButtonPalette, controlTextColor, disabledControlTextColor),
+    MAC_PALETTE_ENTRY(QPlatformTheme::ButtonPalette, controlTextColor, disabledControlTextColor),
+    MAC_PALETTE_ENTRY(QPlatformTheme::HeaderPalette, headerTextColor, disabledControlTextColor),
+    MAC_PALETTE_ENTRY(QPlatformTheme::ComboBoxPalette, controlTextColor, disabledControlTextColor),
+    MAC_PALETTE_ENTRY(QPlatformTheme::ItemViewPalette, textColor, disabledControlTextColor),
+    MAC_PALETTE_ENTRY(QPlatformTheme::MessageBoxLabelPalette, textColor, disabledControlTextColor),
+    MAC_PALETTE_ENTRY(QPlatformTheme::TabBarPalette, controlTextColor, disabledControlTextColor),
+    MAC_PALETTE_ENTRY(QPlatformTheme::LabelPalette, textColor, disabledControlTextColor),
+    MAC_PALETTE_ENTRY(QPlatformTheme::GroupBoxPalette, textColor, disabledControlTextColor),
+    MAC_PALETTE_ENTRY(QPlatformTheme::MenuPalette, controlTextColor, disabledControlTextColor),
+    MAC_PALETTE_ENTRY(QPlatformTheme::MenuBarPalette, controlTextColor, disabledControlTextColor),
+    MAC_PALETTE_ENTRY(QPlatformTheme::TextEditPalette, textColor, disabledControlTextColor),
+    MAC_PALETTE_ENTRY(QPlatformTheme::TextLineEditPalette, textColor, disabledControlTextColor)
+};
+#undef MAC_PALETTE_ENTRY
+
+static const int mac_widget_colors_count = sizeof(mac_widget_colors) / sizeof(mac_widget_colors[0]);
+
+static QHash<QPlatformTheme::Palette, QPalette*> qt_mac_createRolePalettes()
+{
+    QHash<QPlatformTheme::Palette, QPalette*> palettes;
+    QColor qc;
+    for (int i = 0; i < mac_widget_colors_count; i++) {
+        QPalette &pal = *qt_mac_createSystemPalette();
+        if (mac_widget_colors[i].active) {
+            qc = qt_mac_toQColor(mac_widget_colors[i].active);
+            pal.setColor(QPalette::Active, QPalette::Text, qc);
+            pal.setColor(QPalette::Inactive, QPalette::Text, qc);
+            pal.setColor(QPalette::Active, QPalette::WindowText, qc);
+            pal.setColor(QPalette::Inactive, QPalette::WindowText, qc);
+            pal.setColor(QPalette::Active, QPalette::HighlightedText, qc);
+            pal.setColor(QPalette::Inactive, QPalette::HighlightedText, qc);
+            pal.setColor(QPalette::Active, QPalette::ButtonText, qc);
+            pal.setColor(QPalette::Inactive, QPalette::ButtonText, qc);
+            qc = qt_mac_toQColor(mac_widget_colors[i].inactive);
+            pal.setColor(QPalette::Disabled, QPalette::Text, qc);
+            pal.setColor(QPalette::Disabled, QPalette::WindowText, qc);
+            pal.setColor(QPalette::Disabled, QPalette::HighlightedText, qc);
+            pal.setColor(QPalette::Disabled, QPalette::ButtonText, qc);
+        }
+        if (mac_widget_colors[i].paletteRole == QPlatformTheme::MenuPalette
+                || mac_widget_colors[i].paletteRole == QPlatformTheme::MenuBarPalette) {
+            // Cheap approximation for NSVisualEffectView (see deprecation note for selectedMenuItemTextColor)
+            auto selectedMenuItemColor = [[NSColor controlAccentColor] highlightWithLevel:0.3];
+            pal.setBrush(QPalette::Highlight, qt_mac_toQColor(selectedMenuItemColor));
+            qc = qt_mac_toQColor([NSColor labelColor]);
+            pal.setBrush(QPalette::ButtonText, qc);
+            pal.setBrush(QPalette::Text, qc);
+            qc = qt_mac_toQColor([NSColor selectedMenuItemTextColor]);
+            pal.setBrush(QPalette::HighlightedText, qc);
+            qc = qt_mac_toQColor([NSColor disabledControlTextColor]);
+            pal.setBrush(QPalette::Disabled, QPalette::Text, qc);
+        } else if ((mac_widget_colors[i].paletteRole == QPlatformTheme::ButtonPalette)
+                || (mac_widget_colors[i].paletteRole == QPlatformTheme::HeaderPalette)
+                || (mac_widget_colors[i].paletteRole == QPlatformTheme::TabBarPalette)) {
+            pal.setColor(QPalette::Disabled, QPalette::ButtonText,
+                         pal.color(QPalette::Disabled, QPalette::Text));
+            pal.setColor(QPalette::Inactive, QPalette::ButtonText,
+                         pal.color(QPalette::Inactive, QPalette::Text));
+            pal.setColor(QPalette::Active, QPalette::ButtonText,
+                         pal.color(QPalette::Active, QPalette::Text));
+        } else if (mac_widget_colors[i].paletteRole == QPlatformTheme::ItemViewPalette) {
+            NSArray<NSColor *> *baseColors = nil;
+            NSColor *activeHighlightColor = nil;
+            baseColors = [NSColor alternatingContentBackgroundColors];
+            activeHighlightColor = [NSColor selectedContentBackgroundColor];
+            pal.setBrush(QPalette::Inactive, QPalette::HighlightedText,
+                         qt_mac_toQBrush([NSColor unemphasizedSelectedTextColor]));
+            pal.setBrush(QPalette::Base, qt_mac_toQBrush(baseColors[0]));
+            pal.setBrush(QPalette::AlternateBase, qt_mac_toQBrush(baseColors[1]));
+            pal.setBrush(QPalette::Active, QPalette::Highlight,
+                         qt_mac_toQBrush(activeHighlightColor));
+            pal.setBrush(QPalette::Active, QPalette::HighlightedText,
+                         qt_mac_toQBrush([NSColor alternateSelectedControlTextColor]));
+            pal.setBrush(QPalette::Inactive, QPalette::Text,
+                         pal.brush(QPalette::Active, QPalette::Text));
+        } else if (mac_widget_colors[i].paletteRole == QPlatformTheme::TextEditPalette) {
+            pal.setBrush(QPalette::Active, QPalette::Base, qt_mac_toQColor([NSColor textBackgroundColor]));
+            pal.setBrush(QPalette::Inactive, QPalette::Text,
+                          pal.brush(QPalette::Active, QPalette::Text));
+            pal.setBrush(QPalette::Inactive, QPalette::HighlightedText,
+                          pal.brush(QPalette::Active, QPalette::Text));
+        } else if (mac_widget_colors[i].paletteRole == QPlatformTheme::TextLineEditPalette
+                   || mac_widget_colors[i].paletteRole == QPlatformTheme::ComboBoxPalette) {
+            pal.setBrush(QPalette::Active, QPalette::Base, qt_mac_toQColor([NSColor textBackgroundColor]));
+            pal.setBrush(QPalette::Disabled, QPalette::Base,
+                         pal.brush(QPalette::Active, QPalette::Base));
+        } else if (mac_widget_colors[i].paletteRole == QPlatformTheme::LabelPalette) {
+            qc = qt_mac_toQColor([NSColor labelColor]);
+            pal.setBrush(QPalette::Inactive, QPalette::ToolTipText, qc);
+        }
+        palettes.insert(mac_widget_colors[i].paletteRole, &pal);
+    }
+    return palettes;
+}
+
+const char *QCocoaTheme::name = "cocoa";
+
+QCocoaTheme::QCocoaTheme()
+    : m_systemPalette(nullptr)
+{
+    m_appearanceObserver = QMacKeyValueObserver(NSApp, @"effectiveAppearance", [this] {
+        handleSystemThemeChange();
+    });
+
+    m_systemColorObserver = QMacNotificationObserver(nil,
+        NSSystemColorsDidChangeNotification, [this] {
+            handleSystemThemeChange();
+    });
+
+    updateColorScheme();
+}
+
+QCocoaTheme::~QCocoaTheme()
+{
+    reset();
+}
+
+void QCocoaTheme::reset()
+{
+    delete m_systemPalette;
+    m_systemPalette = nullptr;
+    qDeleteAll(m_palettes);
+    m_palettes.clear();
+}
+
+void QCocoaTheme::handleSystemThemeChange()
+{
+    reset();
+
+    updateColorScheme();
+
+    if (QCoreTextFontEngine::fontSmoothing() == QCoreTextFontEngine::FontSmoothing::Grayscale) {
+        // Re-populate glyph caches based on the new appearance's assumed text fill color
+        QFontCache::instance()->clear();
+    }
+
+    QWindowSystemInterface::handleThemeChange<QWindowSystemInterface::SynchronousDelivery>();
+}
+
+bool QCocoaTheme::usePlatformNativeDialog(DialogType dialogType) const
+{
+    switch (dialogType) {
+    case QPlatformTheme::FileDialog:
+    case QPlatformTheme::ColorDialog:
+    case QPlatformTheme::FontDialog:
+    case QPlatformTheme::MessageDialog:
+        return true;
+    default:
+        return false;
+    }
+}
+
+QPlatformDialogHelper *QCocoaTheme::createPlatformDialogHelper(DialogType dialogType) const
+{
+    switch (dialogType) {
+    case QPlatformTheme::FileDialog:
+        return new QCocoaFileDialogHelper();
+    case QPlatformTheme::ColorDialog:
+        return new QCocoaColorDialogHelper();
+    case QPlatformTheme::FontDialog:
+        return new QCocoaFontDialogHelper();
+    case QPlatformTheme::MessageDialog:
+        return new QCocoaMessageDialog;
+    default:
+        return nullptr;
+    }
+}
+
+#ifndef QT_NO_SYSTEMTRAYICON
+QPlatformSystemTrayIcon *QCocoaTheme::createPlatformSystemTrayIcon() const
+{
+    return new QCocoaSystemTrayIcon;
+}
+#endif
+
+const QPalette *QCocoaTheme::palette(Palette type) const
+{
+    // Note: NSColor resolves its RGB values based on the current
+    // drawing appearance, so we need to propagate the effective
+    // appearance when (re)creating the palettes.
+
+    if (type == SystemPalette) {
+        if (!m_systemPalette) {
+            [NSApp.effectiveAppearance performAsCurrentDrawingAppearance:^{
+                m_systemPalette = qt_mac_createSystemPalette();
+            }];
+        }
+        return m_systemPalette;
+    } else {
+        if (m_palettes.isEmpty()) {
+            [NSApp.effectiveAppearance performAsCurrentDrawingAppearance:^{
+                m_palettes = qt_mac_createRolePalettes();
+            }];
+        }
+        return m_palettes.value(type, nullptr);
+    }
+    return nullptr;
+}
+
+const QFont *QCocoaTheme::font(Font type) const
+{
+    const auto *platformIntegration = QGuiApplicationPrivate::platformIntegration();
+    const auto *coreTextFontDatabase = static_cast<QCoreTextFontDatabase *>(platformIntegration->fontDatabase());
+    return coreTextFontDatabase->themeFont(type);
+}
+
+//! \internal
+QPixmap qt_mac_convert_iconref(const IconRef icon, int width, int height)
+{
+    QPixmap ret(width, height);
+    ret.fill(QColor(0, 0, 0, 0));
+
+    CGRect rect = CGRectMake(0, 0, width, height);
+
+    QMacCGContext ctx(&ret);
+    CGAffineTransform old_xform = CGContextGetCTM(ctx);
+    CGContextConcatCTM(ctx, CGAffineTransformInvert(old_xform));
+    CGContextConcatCTM(ctx, CGAffineTransformIdentity);
+
+    ::RGBColor b;
+    b.blue = b.green = b.red = 255*255;
+    PlotIconRefInContext(ctx, &rect, kAlignNone, kTransformNone, &b, kPlotIconRefNormalFlags, icon);
+    return ret;
+}
+
+QPixmap QCocoaTheme::standardPixmap(StandardPixmap sp, const QSizeF &size) const
+{
+    OSType iconType = 0;
+    switch (sp) {
+    case MessageBoxQuestion:
+        iconType = kQuestionMarkIcon;
+        break;
+    case MessageBoxInformation:
+        iconType = kAlertNoteIcon;
+        break;
+    case MessageBoxWarning:
+        iconType = kAlertCautionIcon;
+        break;
+    case MessageBoxCritical:
+        iconType = kAlertStopIcon;
+        break;
+    case DesktopIcon: {
+        auto desktop = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
+        NSImage *icon = [NSWorkspace.sharedWorkspace iconForFile:desktop.toNSString()];
+        return qt_mac_toQPixmap(icon, size);
+    }
+    case DirHomeIcon: {
+        auto home = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+        NSImage *icon = [NSWorkspace.sharedWorkspace iconForFile:home.toNSString()];
+        return qt_mac_toQPixmap(icon, size);
+    }
+    case TrashIcon:
+        iconType = kTrashIcon;
+        break;
+    case ComputerIcon:
+        iconType = kComputerIcon;
+        break;
+    case DriveFDIcon:
+        iconType = kGenericFloppyIcon;
+        break;
+    case DriveHDIcon:
+        iconType = kGenericHardDiskIcon;
+        break;
+    case DriveCDIcon:
+    case DriveDVDIcon:
+        iconType = kGenericCDROMIcon;
+        break;
+    case DriveNetIcon:
+        iconType = kGenericNetworkIcon;
+        break;
+    case DirOpenIcon:
+    case DirLinkOpenIcon:
+    case DirIcon:
+    case DirClosedIcon:
+    case DirLinkIcon: {
+        NSImage *icon = [NSWorkspace.sharedWorkspace iconForContentType:UTTypeFolder];
+        return qt_mac_toQPixmap(icon, size);
+    }
+    case FileLinkIcon:
+    case FileIcon:
+        iconType = kGenericDocumentIcon;
+        break;
+    default:
+        break;
+    }
+    if (iconType != 0) {
+        QPixmap pixmap;
+        IconRef icon = nullptr;
+        QT_IGNORE_DEPRECATIONS(GetIconRef(kOnSystemDisk, kSystemIconsCreator, iconType, &icon));
+
+        if (icon) {
+            pixmap = qt_mac_convert_iconref(icon, size.width(), size.height());
+            QT_IGNORE_DEPRECATIONS(ReleaseIconRef(icon));
+        }
+
+        return pixmap;
+    }
+
+    return QPlatformTheme::standardPixmap(sp, size);
+}
+
+QIcon QCocoaTheme::fileIcon(const QFileInfo &fileInfo, QPlatformTheme::IconOptions iconOptions) const
+{
+    return QIcon(new QAppleFileIconEngine(fileInfo, iconOptions));
+}
+
+QIconEngine *QCocoaTheme::createIconEngine(const QString &iconName) const
+{
+    return new QAppleIconEngine(iconName);
+}
+
+QVariant QCocoaTheme::themeHint(ThemeHint hint) const
+{
+    switch (hint) {
+    case QPlatformTheme::StyleNames:
+        return QStringList(QStringLiteral("macOS"));
+    case QPlatformTheme::DialogButtonBoxLayout:
+        return QVariant(QPlatformDialogHelper::MacLayout);
+    case KeyboardScheme:
+        return QVariant(int(MacKeyboardScheme));
+    case TabFocusBehavior:
+        return QVariant([[NSApplication sharedApplication] isFullKeyboardAccessEnabled] ?
+                    int(Qt::TabFocusAllControls) : int(Qt::TabFocusTextControls | Qt::TabFocusListControls));
+    case IconPixmapSizes:
+        return QVariant::fromValue(QAppleIconEngine::availableIconSizes());
+    case QPlatformTheme::PasswordMaskCharacter:
+        return QVariant(QChar(0x2022));
+    case QPlatformTheme::UiEffects:
+        return QVariant(int(HoverEffect));
+    case QPlatformTheme::SpellCheckUnderlineStyle:
+        return QVariant(int(QTextCharFormat::DotLine));
+    case QPlatformTheme::UseFullScreenForPopupMenu:
+            return false;
+    case QPlatformTheme::InteractiveResizeAcrossScreens:
+        return !NSScreen.screensHaveSeparateSpaces;
+    case QPlatformTheme::ShowDirectoriesFirst:
+        return false;
+    case QPlatformTheme::MouseDoubleClickInterval:
+        return NSEvent.doubleClickInterval * 1000;
+    case QPlatformTheme::KeyboardInputInterval:
+        return NSEvent.keyRepeatDelay * 1000;
+    case QPlatformTheme::KeyboardAutoRepeatRate:
+        return 1.0 / NSEvent.keyRepeatInterval;
+    case QPlatformTheme::ShowIconsInMenus:
+        return QOperatingSystemVersion::current() >= QOperatingSystemVersion::MacOSTahoe;
+    case QPlatformTheme::MenuSelectionWraps:
+        return false;
+    default:
+        break;
+    }
+    return QPlatformTheme::themeHint(hint);
+}
+
+Qt::ColorScheme QCocoaTheme::colorScheme() const
+{
+    return m_colorScheme;
+}
+
+void QCocoaTheme::requestColorScheme(Qt::ColorScheme scheme)
+{
+    NSAppearance *appearance = nil;
+    switch (scheme) {
+    case Qt::ColorScheme::Dark:
+        appearance = [NSAppearance appearanceNamed:NSAppearanceNameDarkAqua];
+        break;
+    case Qt::ColorScheme::Light:
+        appearance = [NSAppearance appearanceNamed:NSAppearanceNameAqua];
+        break;
+    case Qt::ColorScheme::Unknown:
+        break;
+    }
+
+    // Always override the appearance, even if it's the same
+    // as the current effective appearance, as otherwise the
+    // requested appearance won't stick on system theme changes.
+    NSApp.appearance = appearance;
+}
+
+/*
+    Update the theme's color scheme based on the current appearance.
+
+    We can only reference the appearance on the main thread, but the
+    CoreText font engine needs to know the color scheme, and might be
+    used from secondary threads, so we cache the color scheme.
+*/
+void QCocoaTheme::updateColorScheme()
+{
+    auto appearance = [NSApp.effectiveAppearance bestMatchFromAppearancesWithNames:
+            @[ NSAppearanceNameAqua, NSAppearanceNameDarkAqua ]];
+    m_colorScheme = [appearance isEqualToString:NSAppearanceNameDarkAqua] ?
+        Qt::ColorScheme::Dark : Qt::ColorScheme::Light;
+}
+
+Qt::ContrastPreference QCocoaTheme::contrastPreference() const
+{
+    return NSWorkspace.sharedWorkspace.accessibilityDisplayShouldIncreaseContrast ? Qt::ContrastPreference::HighContrast
+                                                                                  : Qt::ContrastPreference::NoPreference;
+}
+
+QString QCocoaTheme::standardButtonText(int button) const
+{
+    return button == QPlatformDialogHelper::Discard ?
+        QCoreApplication::translate("QCocoaTheme", "Don't Save")
+      : QPlatformTheme::standardButtonText(button);
+}
+
+QKeySequence QCocoaTheme::standardButtonShortcut(int button) const
+{
+    return button == QPlatformDialogHelper::Discard ? QKeySequence(Qt::CTRL | Qt::Key_Delete)
+                                                    : QPlatformTheme::standardButtonShortcut(button);
+}
+
+QPlatformMenuItem *QCocoaTheme::createPlatformMenuItem() const
+{
+    auto *menuItem = new QCocoaMenuItem();
+    qCDebug(lcQpaMenus) << "Created" << menuItem;
+    return menuItem;
+}
+
+QPlatformMenu *QCocoaTheme::createPlatformMenu() const
+{
+    auto *menu = new QCocoaMenu();
+    qCDebug(lcQpaMenus) << "Created" << menu;
+    return menu;
+}
+
+QPlatformMenuBar *QCocoaTheme::createPlatformMenuBar() const
+{
+    static bool haveMenubar = false;
+    if (!haveMenubar) {
+        haveMenubar = true;
+        QObject::connect(qGuiApp, SIGNAL(focusWindowChanged(QWindow*)),
+            QGuiApplicationPrivate::platformIntegration()->nativeInterface(),
+                SLOT(onAppFocusWindowChanged(QWindow*)));
+    }
+
+    auto *menuBar = new QCocoaMenuBar();
+    qCDebug(lcQpaMenus) << "Created" << menuBar;
+    return menuBar;
+}
+
+#ifndef QT_NO_SHORTCUT
+QList<QKeySequence> QCocoaTheme::keyBindings(QKeySequence::StandardKey key) const
+{
+    // The default key bindings in QPlatformTheme all hard-coded to use the Ctrl
+    // modifier, to match other platforms. In the normal case, when translating
+    // those to key sequences, we'll end up with Qt::ControlModifier+X, which is
+    // then matched against incoming key events that have been mapped from the
+    // command key to Qt::ControlModifier, and we'll get a match. If, however,
+    // the AA_MacDontSwapCtrlAndMeta application attribute is set, we need to
+    // fix the resulting key sequence so that it will match against unmapped
+    // key events that contain Qt::MetaModifier.
+    auto bindings = QPlatformTheme::keyBindings(key);
+
+    if (qApp->testAttribute(Qt::AA_MacDontSwapCtrlAndMeta)) {
+        static auto swapCtrlMeta = [](QKeyCombination keyCombination) {
+            const auto originalKeyModifiers = keyCombination.keyboardModifiers();
+            auto newKeyboardModifiers = originalKeyModifiers & ~(Qt::ControlModifier | Qt::MetaModifier);
+            if (originalKeyModifiers & Qt::ControlModifier)
+                newKeyboardModifiers |= Qt::MetaModifier;
+            if (originalKeyModifiers & Qt::MetaModifier)
+                newKeyboardModifiers |= Qt::ControlModifier;
+            return QKeyCombination(newKeyboardModifiers, keyCombination.key());
+        };
+
+        QList<QKeySequence> swappedBindings;
+        for (auto binding : bindings) {
+            Q_ASSERT(binding.count() == 1);
+            swappedBindings.append(QKeySequence(swapCtrlMeta(binding[0])));
+        }
+
+        bindings = swappedBindings;
+    }
+
+    return bindings;
+}
+#endif
+
+QT_END_NAMESPACE

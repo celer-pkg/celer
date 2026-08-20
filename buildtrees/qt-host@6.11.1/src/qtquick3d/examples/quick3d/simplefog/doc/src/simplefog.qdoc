@@ -1,0 +1,19 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example simplefog
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - Simple Fog Example
+    \examplecategory {3D}
+    \brief Demonstrates how to enable fog in the 3D scene.
+    \image simplefog.jpg
+           {3D scene with colorful spheres and fog controls}
+
+    This example demonstrates the usage of the \l {SceneEnvironment}'s
+    \l{SceneEnvironment::fog}{fog} property. The scene contains a number of
+    instanced spheres, with controls that can be used to tune the various
+    properties of the \l{Fog}{Fog object}.
+
+    \snippet simplefog/main.qml fogitem
+*/

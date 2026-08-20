@@ -1,0 +1,111 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\ingroup qtopenapi-examples
+\example colorpalette
+\examplecategory {Networking}
+\meta tags {quick, network, http, openapi}
+\title ColorPalette RESTful API client
+\brief Example of how to generate the OpenAPI client code and integrate it into
+an application.
+\image {colorpalette_listing.webp}
+       {Color palette table with color swatches, names, hex RGB values,
+        Pantone values, and action buttons}
+
+This example demonstrates how to use the Qt OpenAPI generator to create RESTful
+API client code from the \c colorpalette.yaml specification and integrate it
+into a QML application. Its structure and UI closely match the
+\l {Qt Quick Demo - RESTful API client} example so that the differences in the
+networking and integration approach are easy to identify.
+
+\include examples-run.qdocinc
+
+\section1 Application functionality
+
+The example provides the same basic functionalities as
+\l {Qt Quick Demo - RESTful API client}.
+
+\section2 Server selection
+
+At startup, the application presents a predefined server option that the Color
+Palette client can communicate with:
+\list
+    \li \l {RESTful API Server} {Qt-based REST API server example} in
+        \l QtHttpServer
+\endlist
+Once the server is selected and the \c Connect button is pressed, the RESTful
+API client issues a test HTTP GET request to verify that the server is
+available. If the server is not running, the application remains on the server
+selection view.
+
+\image {colorpalette_urlselection.webp}
+       {Server selection dialog with Qt-based REST API server option and
+        Connect button}
+
+\section1 Generating client code from an OpenAPI specification
+
+The \c CMakeLists.txt file invokes the Qt OpenAPI generator to generate
+client code from the \c colorpalette.yaml specification by calling the
+\l qt6_add_openapi_client function.
+
+\snippet colorpalette/CMakeLists.txt 0
+
+The generated API classes \c ColorsApi and \c UsersApi handle all the low-level
+HTTP details:
+\list
+    \li Server configuration
+    \li HTTP request construction for all standard HTTP methods
+    \li Serialization of input parameters according to the specification
+    \li Deserialization of server responses into typed objects
+    \li Success and errors are reported through Qt signals
+\endlist
+
+Compared to \l {Qt Quick Demo - RESTful API client}
+{the other version of the example} that uses the QtNetworkAuth APIs directly,
+this approach eliminates manual network request construction.
+
+\section1 Exposing generated APIs to QML
+
+The generated API classes \c ColorsApi and \c UsersApi are exposed to QML via
+helper classes defined in \c{ApiBridges.h}. Each helper uses the \l QML_FOREIGN
+macro and registers the underlying C++ instance as a singleton, allowing QML to
+access the same object while ownership remains in C++.
+For more details on this topic, check the Qt QML documentation on
+\l {Singletons in QML#Exposing an Existing Object as a Singleton}
+{exposing an existing object as a singleton}.
+
+\snippet colorpalette/ApiBridges.h 0
+\snippet colorpalette/ApiBridges.h 1
+
+\section1 Using the APIs from QML
+
+Once registered, the APIs are available globally in QML.
+This allows QML components to directly access \c ColorsApi and \c UsersApi
+and call their methods, as shown below:
+
+\snippet colorpalette/ColorPalette/ColorView.qml 0
+
+Each API method emits signals when the operation succeeds or fails, allowing QML
+components to handle the server responses:
+
+\snippet colorpalette/ColorPalette/ColorView.qml 1
+
+\section2 Helper singleton types
+
+Some API methods take non-trivial types as parameters, such as \c Credentials
+and \c Color. The example provides QML singletons to construct instances of such
+types in \c{ApiBridges.h}:
+
+\snippet colorpalette/ApiBridges.h 2
+
+These singletons can then be used in QML when calling API methods. For example,
+\c Credentials is used to create a credentials object before logging in:
+
+\snippet colorpalette/ColorPalette/UserMenu.qml 0
+
+\section1 Source files
+
+\sa {All Qt Examples}, {Qt Quick Demo - RESTful API client},
+{RESTful API Server}
+*/

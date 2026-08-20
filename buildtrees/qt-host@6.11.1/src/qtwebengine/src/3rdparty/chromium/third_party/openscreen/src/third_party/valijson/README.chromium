@@ -1,0 +1,17 @@
+Name: Valijson
+Short Name: valijson
+URL: https://github.com/tristanpenman/valijson
+Security Critical: yes
+Shipped: no
+License: BSD-2-Clause
+License File: src/LICENSE
+Version: 1.0
+Revision: 78ac8a737df56b5334354efe104ea8f99e2a2f00
+
+Description:
+Valijson is a header-only JSON Schema Validation library for C++11.
+
+Valijson provides a simple validation API that allows you to load JSON Schemas,
+and validate documents loaded by one of several supported parser libraries. In
+Open Screen, Valijson is used exclusively with JsonCpp.
+

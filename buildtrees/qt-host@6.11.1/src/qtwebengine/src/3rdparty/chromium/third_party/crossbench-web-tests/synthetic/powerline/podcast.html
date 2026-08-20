@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+    <head><title>Powerline background audio test</title></head>
+    <body>
+        <p>The audio is playing (but muted).</p>
+        <video id="audio" muted playsinline controls autoplay loop>
+            <source src="./Chrome-Scheduler-Optimization-Benchmarks.ogg" type="audio/ogg" />
+        </video>
+        <button id="unmuteButton">Click to unmmute</button>
+
+        <script>
+        document.getElementById("unmuteButton").addEventListener('click', function() {
+            document.getElementById("audio").muted = false;
+        });
+        </script>
+    </body>
+</html>

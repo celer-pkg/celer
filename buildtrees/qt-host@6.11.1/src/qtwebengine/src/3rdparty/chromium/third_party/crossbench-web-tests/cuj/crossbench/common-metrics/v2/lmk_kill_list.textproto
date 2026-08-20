@@ -1,0 +1,165 @@
+# Copyright 2025 The Chromium Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+query: {
+  id: "lmk_kill_list_query"
+  # Selects it_id, process_name, ts and other details from the "lmk_kill_list_output"
+  # view.
+  table {
+    table_name: "lmk_kill_list_output"
+    module_name: "sql_packages.queries.lmk_kill_list"
+
+    # Dimension columns: iteration ID, process name and timestamp are used
+    # to uniquely identify the lmk kill event.
+    column_names: "it_id"
+    column_names: "process_name"
+    column_names: "ts"
+
+    # Value columns:
+    column_names: "oom_adj_score"
+    column_names: "min_oom_score"
+    column_names: "page_fault"
+    column_names: "page_major_fault"
+    column_names: "rss_in_bytes"
+    column_names: "cache_in_bytes"
+    column_names: "swap_in_bytes"
+    column_names: "free_mem_kb"
+    column_names: "free_swap_kb"
+    column_names: "thrashing"
+    column_names: "max_thrashing"
+    column_names: "total_foreground_services"
+  }
+}
+
+metric_spec: {
+  id: "cuj.common-metrics.lmk_kill_list.oom_adj_score"
+  query {
+    inner_query_id: "lmk_kill_list_query"
+  }
+  dimensions: "it_id"
+  dimensions: "process_name"
+  dimensions: "ts"
+  value: "oom_adj_score"
+}
+
+metric_spec: {
+  id: "cuj.common-metrics.lmk_kill_list.min_oom_score"
+  query {
+    inner_query_id: "lmk_kill_list_query"
+  }
+  dimensions: "it_id"
+  dimensions: "process_name"
+  dimensions: "ts"
+  value: "min_oom_score"
+}
+
+metric_spec: {
+  id: "cuj.common-metrics.lmk_kill_list.page_fault"
+  query {
+    inner_query_id: "lmk_kill_list_query"
+  }
+  dimensions: "it_id"
+  dimensions: "process_name"
+  dimensions: "ts"
+  value: "page_fault"
+}
+
+metric_spec: {
+  id: "cuj.common-metrics.lmk_kill_list.page_major_fault"
+  query {
+    inner_query_id: "lmk_kill_list_query"
+  }
+  dimensions: "it_id"
+  dimensions: "process_name"
+  dimensions: "ts"
+  value: "page_major_fault"
+}
+
+metric_spec: {
+  id: "cuj.common-metrics.lmk_kill_list.rss_in_bytes"
+  query {
+    inner_query_id: "lmk_kill_list_query"
+  }
+  dimensions: "it_id"
+  dimensions: "process_name"
+  dimensions: "ts"
+  value: "rss_in_bytes"
+}
+
+metric_spec: {
+  id: "cuj.common-metrics.lmk_kill_list.cache_in_bytes"
+  query {
+    inner_query_id: "lmk_kill_list_query"
+  }
+  dimensions: "it_id"
+  dimensions: "process_name"
+  dimensions: "ts"
+  value: "cache_in_bytes"
+}
+
+metric_spec: {
+  id: "cuj.common-metrics.lmk_kill_list.swap_in_bytes"
+  query {
+    inner_query_id: "lmk_kill_list_query"
+  }
+  dimensions: "it_id"
+  dimensions: "process_name"
+  dimensions: "ts"
+  value: "swap_in_bytes"
+}
+
+metric_spec: {
+  id: "cuj.common-metrics.lmk_kill_list.free_mem_kb"
+  query {
+    inner_query_id: "lmk_kill_list_query"
+  }
+  dimensions: "it_id"
+  dimensions: "process_name"
+  dimensions: "ts"
+  value: "free_mem_kb"
+}
+
+metric_spec: {
+  id: "cuj.common-metrics.lmk_kill_list.free_swap_kb"
+  query {
+    inner_query_id: "lmk_kill_list_query"
+  }
+  dimensions: "it_id"
+  dimensions: "process_name"
+  dimensions: "ts"
+  value: "free_swap_kb"
+}
+
+metric_spec: {
+  id: "cuj.common-metrics.lmk_kill_list.thrashing"
+  query {
+    inner_query_id: "lmk_kill_list_query"
+  }
+  dimensions: "it_id"
+  dimensions: "process_name"
+  dimensions: "ts"
+  value: "thrashing"
+}
+
+metric_spec: {
+  id: "cuj.common-metrics.lmk_kill_list.max_thrashing"
+  query {
+    inner_query_id: "lmk_kill_list_query"
+  }
+  dimensions: "it_id"
+  dimensions: "process_name"
+  dimensions: "ts"
+  value: "max_thrashing"
+}
+
+metric_spec: {
+  id: "cuj.common-metrics.lmk_kill_list.total_foreground_services"
+  query {
+    inner_query_id: "lmk_kill_list_query"
+  }
+  dimensions: "it_id"
+  dimensions: "process_name"
+  dimensions: "ts"
+  value: "total_foreground_services"
+}

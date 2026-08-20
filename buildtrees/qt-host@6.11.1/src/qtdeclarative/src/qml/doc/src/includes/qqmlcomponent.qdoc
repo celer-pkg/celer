@@ -1,0 +1,11 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [url-note]
+Ensure that the URL provided is full and correct, in particular, use
+\l QUrl::fromLocalFile() when loading a file from the local filesystem.
+
+Relative paths will be resolved against
+\l {QQmlEngine::baseUrl}{QQmlEngine::baseUrl()}, which is the current working directory
+unless specified.
+//! [url-note]

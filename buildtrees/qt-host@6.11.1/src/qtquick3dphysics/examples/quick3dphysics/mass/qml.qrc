@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>RolyPoly.qml</file>
+        <file>Sphere.qml</file>
+    </qresource>
+</RCC>

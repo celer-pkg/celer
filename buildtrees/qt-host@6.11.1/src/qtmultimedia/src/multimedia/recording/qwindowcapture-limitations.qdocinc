@@ -1,0 +1,25 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    //! [content]
+    \section1 Window Capture Limitations
+    The following limitations apply to using \1WindowCapture:
+    \list
+        \li \1WindowCapture is only supported with the FFmpeg backend.
+    \endlist
+    The following limitations apply when using \c QWindowCapture on X11 systems:
+    \list
+        \li On Linux X11 systems, when a window is moved partially outside
+            the visible screen area, only the visible region is captured.
+            As a result, the emitted video frames may have a size smaller
+            than the window’s geometry.
+        \li Windows that are outside the visible screen area cannot be captured,
+            and an error signal is emitted in that case.
+        \li The behavior of minimized windows or those located on an invisible
+            virtual workspace depends on the window manager. For example,
+            such windows can be captured on GNOME, whereas on WindowMaker or Xfwm
+            such capturing is not allowed, and the window capture instance emits an error.
+    \endlist
+    //! [content]
+*/

@@ -1,0 +1,61 @@
+{
+    "QEN": {
+        "description": "Adds lava effect to the source. The effect is based on texture so it is easy to adjust to different needs.",
+        "fragmentCode": [
+            "@main",
+            "{",
+            "    vec4 lavaTexture = texture(lavaImage, lavaTexturePos);",
+            "    vec4 lava = lavaTexture * lavaTextureColor;",
+            "    fragColor = mix(fragColor, lava * fragColor.a, lavaColor.a);",
+            "}"
+        ],
+        "name": "Lava",
+        "properties": [
+            {
+                "defaultValue": "../images/lava.png",
+                "description": "Lava texture image.",
+                "name": "lavaImage",
+                "type": "image"
+            },
+            {
+                "defaultValue": "1, 1, 0.5, 0.5",
+                "description": "Color used as multiplier for the texture image. The alpha channel defines opacity for the effect.",
+                "name": "lavaColor",
+                "type": "color"
+            },
+            {
+                "defaultValue": "0.5",
+                "description": "Speed how fast the effect animates.",
+                "maxValue": "5",
+                "minValue": "0.1",
+                "name": "lavaAnimationSpeed",
+                "type": "float"
+            },
+            {
+                "defaultValue": "0.2",
+                "description": "The amount of movement used in the animation.",
+                "maxValue": "1",
+                "minValue": "0.01",
+                "name": "lavaWaveAmount",
+                "type": "float"
+            }
+        ],
+        "version": 1,
+        "vertexCode": [
+            "@mesh 16, 16",
+            "out vec2 lavaTexturePos;",
+            "out vec4 lavaTextureColor;",
+            "@main",
+            "{",
+            "    float time = iTime * lavaAnimationSpeed;",
+            "    lavaTexturePos = texCoord;",
+            "    lavaTexturePos.x +=  texCoord.x * (1.0 - texCoord.x) * lavaWaveAmount * sin((texCoord.y  + sin(time * 0.3)) * 2.0);",
+            "    lavaTexturePos.y +=  texCoord.y * (1.0 - texCoord.y) * lavaWaveAmount * sin((texCoord.x  + sin(time * 0.2)) * 3.0);",
+            "    float colorHighlights = 0.2 * (cos(texCoord.x * 16.0 + time) * cos(texCoord.y * 16.0));",
+            "    float colorHighlights2 = 0.4 * (cos(texCoord.x * 4.0+ time * 0.2) * cos(texCoord.y * 3.0 + time * 0.5));",
+            "    lavaTextureColor = lavaColor * (1.0 + colorHighlights + colorHighlights2);",
+            "}",
+            ""
+        ]
+    }
+}

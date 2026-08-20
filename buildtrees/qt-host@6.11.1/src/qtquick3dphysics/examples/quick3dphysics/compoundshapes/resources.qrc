@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/">
+        <file>meshes/ring.mesh</file>
+        <file>meshes/segmentedRing_001.mesh</file>
+        <file>meshes/segmentedRing_002.mesh</file>
+        <file>meshes/segmentedRing_003.mesh</file>
+        <file>meshes/segmentedRing_004.mesh</file>
+        <file>meshes/segmentedRing_005.mesh</file>
+        <file>meshes/segmentedRing_006.mesh</file>
+        <file>meshes/segmentedRing_007.mesh</file>
+        <file>meshes/segmentedRing_008.mesh</file>
+        <file>meshes/segmentedRing_009.mesh</file>
+        <file>meshes/segmentedRing_010.mesh</file>
+        <file>meshes/segmentedRing_011.mesh</file>
+        <file>meshes/segmentedRing_012.mesh</file>
+    </qresource>
+</RCC>

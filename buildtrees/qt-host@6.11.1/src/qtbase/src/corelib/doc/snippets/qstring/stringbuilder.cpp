@@ -1,0 +1,47 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+
+#include <QString>
+
+//! [0]
+// Required for using the '_L1' string literal.
+using namespace Qt::StringLiterals;
+// ...
+
+    QString foo;
+    QString type = "long";
+
+    foo = "vector<"_L1 + type + ">::iterator"_L1;
+
+    if (foo.startsWith("(" + type + ") 0x"))
+        ...
+//! [0]
+
+//! [5]
+    #include <QStringBuilder>
+
+    QString hello("hello");
+    QStringView el = QStringView{ hello }.sliced(2, 3);
+    QString message =  hello % el % "world"_L1 % QChar('!');
+//! [5]
+
+//! [6]
+    QString str("QStringBuilder");
+
+    // "s" type is deduced as QStringBuilder<...>
+    auto s = "Like hot glue, " % str % " concatenates strings";
+
+    // Similarly the return type of this lambda is deduced as QStringBuilder<...>
+    auto concatenateStr = []() {
+        return "Like hot glue, " % str % " concatenates strings";
+    };
+//! [6]
+
+//! [7]
+    QString s = "Like hot glue, " % str % " concatenates strings";
+
+    // With a lambda, specify a trailing return type:
+    auto concatenateStr = []() -> QString {
+        return "Like hot glue, " % str % " concatenates strings";
+    };
+//! [7]

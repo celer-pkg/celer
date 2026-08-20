@@ -1,0 +1,76 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+   \page qtpurchasing-androidclasses.html
+   \title Demo Android Classes
+   \brief Android classes are used in the purchasing demo to enable purchasing in Android.
+
+   \section1 Classes
+   \table
+      \row
+         \li \l AndroidInAppProduct
+         \li A product registered in the store.
+      \row
+         \li \l AndroidInAppTransaction
+         \li Contains information about a transaction in the external app store.
+      \row
+         \li \l AndroidInAppPurchaseBackend
+         \li Comminucates with external store.
+      \row
+         \li \c{androidjni.cpp} and \c{InAppPurchase.java}
+         \li Communication between Google Play's billing system and C++.
+   \endtable
+
+   Check out \l {Base Classes}
+
+   \section1 AndroidInAppProduct
+
+   AndroidInAppProduct adds purchase() for initializing purchasing process.
+
+   \section1 AndroidInAppTransaction
+
+   AndroidInAppTransaction is created in the AndroidInAppPurchaseBackend using
+   purchaseSucceeded(), purchaseFailed() and checkFinalizationStatus().
+
+   AndroidInAppTransaction adds new parameters and return types.
+   Class has finalize() function that separates Consumable and Unlockable
+   products to be either acknowledged or consumed in the InAppPurchase.java.
+
+   \section1 AndroidInAppPurchaseBackend
+
+   AndroidInAppPurchaseBackend makes and receives calls from InAppPurchase.java.
+   This class is one of the back end components in the application.
+
+   \section2 Initialize
+
+   Shows the products information on the store page.
+
+   \list 1
+      \li AndroidInAppPurchaseBackend is called from InAppStore::setupBackend().
+      \li At initialization AndroidInAppPurchaseBackend will give \l {https://developer.android.com/reference/android/content/Context} {Context} and
+         pointer of its self to the Java in the calls constructor and then
+         initializes the connection to the Google Play store using the initialize()
+         function.
+      \li When the connection is successful, androidjni will call registerRedy() which
+         emits the ready() signal to InAppStore and starts queryProducts() function to get
+         the information of the purchasable items.
+      \li When the query is done, productQueryDone() signal is emitted and
+         the item's information will be visible on the application's store page.
+   \endlist
+
+   \section2 Purchasing
+
+   When pressing one of the products on the applications store page a call is routed
+   through \c AndroidInAppProduct::purchase() to purchaseProduct() function. This then calls
+   the Java method launchBillingFlow() which opens Goole Plays billing flow to the user.
+
+   \section1 InAppPurchase.java and androidjni.cpp
+
+   AndroidInAppPurchaseBackend makes calls directly to \c InAppPurchase.java and
+   receives Java calls from androidjni. The demo application communicates
+   with Java function using \l QJniObject.
+
+   \sa {https://developer.android.com/google/play/billing/integrate#java}{Integrate the Google Play Billing Library},
+       QJniObject, and QJniEnvironment.
+*/

@@ -1,0 +1,54 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtscxml-scxml-compliance.html
+    \title SCXML Compliance
+    \brief Describes the compliance of the Qt SCXML implementation with the
+    SCXML specification.
+
+    \section1 Supported Data Models
+
+    Qt SCXML supports the following data models:
+
+    \list
+      \li null data model, as described in
+        \l {SCXML Specification - B.1 The Null Data Model}
+      \li ECMAScript data model, as described in
+        \l {SCXML Specification - B.2 The ECMAScript Data Model}
+      \li C++ data model, as described in the QScxmlCppDataModel documentation
+    \endlist
+
+    \section1 Supported Elements and Attributes
+
+    The Qt SCXML implementation is SCXML compliant, with a few exceptions:
+
+    \list
+    \li Event data (\c _event.data) is implemented as a QVariant. If parameters
+        are passed to \c <send>, the QVariant holds a QVariantMap, so multiple
+        parameters with the same name are not supported.
+    \li There is no "raw" representation of an event.
+    \li The (optional) basic http event I/O processor is not supported.
+    \li The contents of a \c <script> tag and a \c <data> tag must be valid for
+        the chosen data model. So, as an example: XML content inside <data> is
+        not supported. However, the ECMAScript data model does support data in
+        JSON format.
+    \li The only service that can be instantiated with \c <invoke> is another
+        SCXML state machine.
+    \li To keep the behavior of dynamically created state machines and compiled
+        state machines the same, the \e typeexpr and \e srcexpr attributes are
+        not supported. Moreover, if a \c <content> tag is
+        used inside an \c <invoke> tag, that content must be XML. Specifically,
+        dynamically creating SCXML, for example by concatenating strings with
+        the ECMAScript data model, is not supported.
+    \endlist
+
+    \section1 Qt SCXML Extensions
+
+    The Qt SCXML implementation extends SCXML in the following ways:
+
+    \list
+    \li If the event is an error event, \c _event.errorMessage will contain a
+        more detailed description of the error.
+    \endlist
+*/

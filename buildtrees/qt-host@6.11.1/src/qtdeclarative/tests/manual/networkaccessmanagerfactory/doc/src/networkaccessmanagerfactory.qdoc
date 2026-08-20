@@ -1,0 +1,15 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example networkaccessmanagerfactory
+    \title C++ Extensions: Network Access Manager Factory Example
+    \brief Implements a custom network access manager for the QML engine.
+
+    This example shows how to use QQmlNetworkAccessManagerFactory to create a QNetworkAccessManager
+    with a proxy.
+
+    Usage:
+     networkaccessmanagerfactory [-host <proxy> -port <port>] [file]
+*/
+

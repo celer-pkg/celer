@@ -1,0 +1,56 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \headerfile <qtwebenginecoreglobal.h>
+    \inmodule QtWebEngineCore
+    \title Global Qt WebEngine Core Declarations
+    \ingroup funclists
+
+    \brief Helper functions for the \QWE Core module.
+
+*/
+
+
+/*!
+    \fn const char *qWebEngineVersion() noexcept
+    \relates <qtwebenginecoreglobal.h>
+    \since 6.2
+
+    Returns the version number of \QWE at run-time as a string
+    (for example, "6.2.0"). This may be a different version than the
+    version the application was compiled against, and a different version
+    than Qt.
+*/
+
+/*!
+    \fn const char *qWebEngineChromiumVersion() noexcept
+    \relates <qtwebenginecoreglobal.h>
+    \since 6.2
+
+    Returns the version number of Chromium used by \QWE at run-time
+    as a string (for example, "83.0.4103.122").
+*/
+
+/*!
+    \fn const char *qWebEngineChromiumSecurityPatchVersion() noexcept
+    \relates <qtwebenginecoreglobal.h>
+    \since 6.3
+
+    Returns the version number of last Chromium version security patches have been
+    merged from.
+*/
+
+/*!
+    \fn QString qWebEngineGetDomainAndRegistry(const QUrl &url)
+    \relates <qtwebenginecoreglobal.h>
+    \since 6.6
+
+    Returns the domain of the host, that is, the effective top-level domain
+    (eTLD) and the first domain below it, from \a url.
+
+    This function supports internationalized domain names (IDN). In this case,
+    it returns the domain encoded in Punycode.
+
+    If the host is not a domain, returns an empty string.
+*/

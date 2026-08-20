@@ -1,0 +1,88 @@
+From 009d17e920cc20f53df190fa9ce8e096b66ed4a5 Mon Sep 17 00:00:00 2001
+From: Jonas Karlsson <jonas.karlsson@qt.io>
+Date: Mon, 11 Apr 2022 16:46:50 +0200
+Subject: [PATCH] fix PhysX windows build
+
+---
+ .../PhysX/source/foundation/src/windows/PsWindowsThread.cpp     | 2 ++
+ src/3rdparty/PhysX/source/lowlevel/api/include/PxvGeometry.h    | 2 +-
+ .../PhysX/source/lowleveldynamics/src/DyArticulation.cpp        | 2 +-
+ .../PhysX/source/lowleveldynamics/src/DyArticulationUtils.h     | 2 +-
+ .../source/lowleveldynamics/src/DyFeatherstoneArticulation.cpp  | 2 +-
+ 5 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/src/3rdparty/PhysX/source/foundation/src/windows/PsWindowsThread.cpp b/src/3rdparty/PhysX/source/foundation/src/windows/PsWindowsThread.cpp
+index a810258..a6c3288 100644
+--- a/src/3rdparty/PhysX/source/foundation/src/windows/PsWindowsThread.cpp
++++ b/src/3rdparty/PhysX/source/foundation/src/windows/PsWindowsThread.cpp
+@@ -327,6 +327,7 @@ void ThreadImpl::setName(const char* name)
+ 
+ 		// C++ Exceptions are disabled for this project, but SEH is not (and cannot be)
+ 		// http://stackoverflow.com/questions/943087/what-exactly-will-happen-if-i-disable-c-exceptions-in-a-project
++#if 0
+ 		__try
+ 		{
+ 			RaiseException(NS_MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR*)&info);
+@@ -335,6 +336,7 @@ void ThreadImpl::setName(const char* name)
+ 		{
+ 			// this runs if not attached to a debugger (thus not really naming the thread)
+ 		}
++#endif
+ 	}
+ }
+ 
+diff --git a/src/3rdparty/PhysX/source/lowlevel/api/include/PxvGeometry.h b/src/3rdparty/PhysX/source/lowlevel/api/include/PxvGeometry.h
+index 8a90f3f..af36671 100644
+--- a/src/3rdparty/PhysX/source/lowlevel/api/include/PxvGeometry.h
++++ b/src/3rdparty/PhysX/source/lowlevel/api/include/PxvGeometry.h
+@@ -73,7 +73,7 @@ struct PxsShapeCore
+ 	Gu::GeometryUnion	geometry;
+ };
+ 
+-PX_COMPILE_TIME_ASSERT( (sizeof(PxsShapeCore)&0xf) == 0);
++//PX_COMPILE_TIME_ASSERT( (sizeof(PxsShapeCore)&0xf) == 0);
+ 
+ }
+ 
+diff --git a/src/3rdparty/PhysX/source/lowleveldynamics/src/DyArticulation.cpp b/src/3rdparty/PhysX/source/lowleveldynamics/src/DyArticulation.cpp
+index d97e7ab..1ab373e 100644
+--- a/src/3rdparty/PhysX/source/lowleveldynamics/src/DyArticulation.cpp
++++ b/src/3rdparty/PhysX/source/lowleveldynamics/src/DyArticulation.cpp
+@@ -85,7 +85,7 @@ namespace physx
+ 			rows[0].inertia = Fns::invertInertia(rows[0].inertia);
+ 		}
+ 
+-PX_COMPILE_TIME_ASSERT((sizeof(Articulation)&(DY_ARTICULATION_MAX_SIZE-1))==0);
++//PX_COMPILE_TIME_ASSERT((sizeof(Articulation)&(DY_ARTICULATION_MAX_SIZE-1))==0);
+ 
+ Articulation::Articulation(void* userData) :
+ 	ArticulationV	(userData, eMaximumCoordinate),
+diff --git a/src/3rdparty/PhysX/source/lowleveldynamics/src/DyArticulationUtils.h b/src/3rdparty/PhysX/source/lowleveldynamics/src/DyArticulationUtils.h
+index d6d177d..ea54ba9 100644
+--- a/src/3rdparty/PhysX/source/lowleveldynamics/src/DyArticulationUtils.h
++++ b/src/3rdparty/PhysX/source/lowleveldynamics/src/DyArticulationUtils.h
+@@ -163,7 +163,7 @@ struct FsData
+ 	PxU8				parent[DY_ARTICULATION_MAX_SIZE];											//128
+ };
+ 
+-PX_COMPILE_TIME_ASSERT(0 == (sizeof(FsData) & 0x0f));
++//PX_COMPILE_TIME_ASSERT(0 == (sizeof(FsData) & 0x0f));
+ 
+ #define SOLVER_BODY_SOLVER_PROGRESS_OFFSET 28	
+ #define SOLVER_BODY_MAX_SOLVER_PROGRESS_OFFSET 12
+diff --git a/src/3rdparty/PhysX/source/lowleveldynamics/src/DyFeatherstoneArticulation.cpp b/src/3rdparty/PhysX/source/lowleveldynamics/src/DyFeatherstoneArticulation.cpp
+index 475acca..fcc64a3 100644
+--- a/src/3rdparty/PhysX/source/lowleveldynamics/src/DyFeatherstoneArticulation.cpp
++++ b/src/3rdparty/PhysX/source/lowleveldynamics/src/DyFeatherstoneArticulation.cpp
+@@ -248,7 +248,7 @@ namespace Dy
+ 		}
+ 	}
+ 
+-	PX_COMPILE_TIME_ASSERT((sizeof(Articulation)&(DY_ARTICULATION_MAX_SIZE - 1)) == 0);
++    //PX_COMPILE_TIME_ASSERT((sizeof(Articulation)&(DY_ARTICULATION_MAX_SIZE - 1)) == 0);
+ 
+ 	FeatherstoneArticulation::FeatherstoneArticulation(void* userData)
+ 		: ArticulationV(userData, Articulation::eReducedCoordinate), mHasSphericalJoint(false)
+-- 
+2.35.1
+

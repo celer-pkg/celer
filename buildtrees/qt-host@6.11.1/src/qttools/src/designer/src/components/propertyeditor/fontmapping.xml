@@ -1,0 +1,35 @@
+<!--
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+-->
+
+<!DOCTYPE fontmapping
+[
+<!ENTITY ce "Windows CE" >
+<!ENTITY qe "Qt Embedded" >
+]>
+
+<fontmappings>
+<mapping><family>DejaVu Sans</family><display>DejaVu Sans [&qe;]</display></mapping>
+<mapping><family>DejaVu Sans</family><display>DejaVu Sans [&qe;]</display></mapping>
+<mapping><family>DejaVu Sans</family><display>DejaVu Sans [&qe;]</display></mapping>
+<mapping><family>DejaVu Sans</family><display>DejaVu Sans [&qe;]</display></mapping>
+<mapping><family>DejaVu Sans Mono</family><display>DejaVu Sans Mono [&qe;]</display></mapping>
+<mapping><family>DejaVu Sans Mono</family><display>DejaVu Sans Mono [&qe;]</display></mapping>
+<mapping><family>DejaVu Sans Mono</family><display>DejaVu Sans Mono [&qe;]</display></mapping>
+<mapping><family>DejaVu Sans Mono</family><display>DejaVu Sans Mono [&qe;]</display></mapping>
+<mapping><family>DejaVu Serif</family><display>DejaVu Serif [&qe;]</display></mapping>
+<mapping><family>DejaVu Serif</family><display>DejaVu Serif [&qe;]</display></mapping>
+<mapping><family>DejaVu Serif</family><display>DejaVu Serif [&qe;]</display></mapping>
+<mapping><family>DejaVu Serif</family><display>DejaVu Serif [&qe;]</display></mapping>
+<mapping><family>Bitstream Vera Sans</family><display>Bitstream Vera Sans [&qe;]</display></mapping>
+<mapping><family>Bitstream Vera Sans</family><display>Bitstream Vera Sans [&qe;]</display></mapping>
+<mapping><family>Bitstream Vera Sans</family><display>Bitstream Vera Sans [&qe;]</display></mapping>
+<mapping><family>Bitstream Vera Sans</family><display>Bitstream Vera Sans [&qe;]</display></mapping>
+<mapping><family>Bitstream Vera Sans Mono</family><display>Bitstream Vera Sans Mono [&qe;]</display></mapping>
+<mapping><family>Bitstream Vera Sans Mono</family><display>Bitstream Vera Sans Mono [&qe;]</display></mapping>
+<mapping><family>Bitstream Vera Sans Mono</family><display>Bitstream Vera Sans Mono [&qe;]</display></mapping>
+<mapping><family>Bitstream Vera Sans Mono</family><display>Bitstream Vera Sans Mono [&qe;]</display></mapping>
+<mapping><family>Bitstream Vera Serif</family><display>Bitstream Vera Serif [&qe;]</display></mapping>
+<mapping><family>Bitstream Vera Serif</family><display>Bitstream Vera Serif [&qe;]</display></mapping>
+</fontmappings>

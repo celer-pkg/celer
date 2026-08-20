@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>circles.qml</file>
+        <file>polylines.qml</file>
+        <file>rectangles.qml</file>
+    </qresource>
+</RCC>

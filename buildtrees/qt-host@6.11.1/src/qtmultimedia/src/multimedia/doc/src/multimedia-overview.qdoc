@@ -1,0 +1,141 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+
+
+/*!
+\page multimediaoverview.html
+\title Multimedia Overview
+\brief A set of APIs for working with audio, video and camera devices.
+\ingroup explanations-graphicsandmultimedia
+
+Multimedia support in Qt is provided by the \l{Qt Multimedia} module. The Qt
+Multimedia module provides a rich feature set that enables you to easily take
+advantage of a platform's multimedia capabilities, such as media playback and
+the use of camera devices.
+
+\section1 Features
+
+Here are some things you can do with the Qt Multimedia APIs:
+
+\list
+\li Access raw audio devices for input and output.
+\li Play low latency sound effects.
+\li Play 3D spatial audio.
+\li Play media files in playlists (such as compressed audio or video files).
+\li Record audio and compress it.
+\li Use a camera, including viewfinder, image capture, and movie recording
+\li Decode audio media files into memory for processing.
+\endlist
+
+\section1 Multimedia Components
+
+The Qt Multimedia APIs are categorized into three main components. More
+information specific to each component is available in the overview pages. You
+can also take a look at some \l{Multimedia Recipes}{recipes}.
+
+\list
+\li \l {Audio Overview}
+\li \l {Video Overview}
+\li \l {Camera Overview}
+\li \l {Spatial Audio Overview} (Technology Preview)
+\endlist
+
+\section1 Multimedia Recipes
+
+For some quick recipes, see this table:
+
+\table 70%
+    \header
+        \li Use case
+        \li Examples
+        \li QML Types
+        \li C++ Classes
+    \row
+        \li Playing a sound effect
+        \li
+        \li \l{SoundEffect}
+        \li QSoundEffect
+    \row
+        \li Playing 3D sound
+        \li \l{Spatial Audio Panning Example}{audiopanning}
+        \li SpatialSound, AudioEngine
+        \li QSpatialSound, QAudioEngine
+    \row
+        \li Playing encoded audio (MP3, AAC etc)
+        \li \l{Media Player Example}{player}
+        \li \l{MediaPlayer}
+        \li QMediaPlayer
+    \row
+        \li Playing raw audio data with low latency
+        \li \l{Audio Output Example}{audiooutput}
+        \li
+        \li QAudioSink
+    \row
+        \li Accessing raw audio input data
+        \li \l{Audio Source Example}{audiosource}
+        \li
+        \li QAudioSource
+    \row
+        \li Recording encoded audio data
+        \li \l{Audio Recorder Example}{audiorecorder}
+        \li \l{CaptureSession}, \l{AudioInput}, \l{MediaRecorder}
+        \li QMediaCaptureSession, QAudioInput, QMediaRecorder
+    \row
+        \li Discovering audio and video devices
+        \li \l{Audio Devices Example}{audiodevices}
+        \li \l{MediaDevices}, \l{audioDevice}, \l{cameraDevice}
+        \li QMediaDevices, QAudioDevice, QCameraDevice
+    \row
+        \li Video Playback
+        \li \l{Media Player Example}{player},
+            \l{QML Media Player Example}{mediaplayer}
+        \li \l MediaPlayer, \l VideoOutput, \l Video
+        \li QMediaPlayer, QVideoWidget, QGraphicsVideoItem
+    \row
+        \li Capturing audio and video
+        \li \l {Camera Example}{camera},
+            \l {QML Video Recorder}{recorder}
+        \li \l CaptureSession, \l Camera, \l AudioInput \l VideoOutput
+        \li QMediaCaptureSession, QCamera, QAudioInput, QVideoWidget
+    \row
+        \li Capturing photos
+        \li \l {Camera Example}{camera},
+            \l {QML Video Recorder}{recorder}
+        \li \l CaptureSession, \l Camera, \l ImageCapture
+        \li QMediaCaptureSession, QCamera, QImageCapture
+    \row
+        \li Capturing movies
+        \li \l {Camera Example}{camera},
+            \l {QML Video Recorder}{recorder}
+        \li \l CaptureSession, \l Camera, \l MediaRecorder
+        \li QMediaCaptureSession, QCamera, QMediaRecorder
+\endtable
+
+\section1 Limitations
+
+The Qt Multimedia APIs build upon the multimedia framework of the underlying
+platform. This can mean that support for various codecs, or containers will vary
+between machines. This support depends on what the end user has installed.
+See \l{Supported Media Formats} for more detail.
+
+\note Qt Multimedia APIs depend on functionality provided by QCoreApplication,
+and multimedia objects created using the Qt Multimedia APIs can only be used
+during the lifetime of this application object. It is therefore important to
+create a QCoreApplication, QGuiApplication, or QApplication before accessing
+any of the Qt Multimedia APIs. If the application object is recreated, make
+sure that any Qt Multimedia objects are also recreated.
+
+\section1 Changes from Previous Versions
+
+If you previously used Qt Multimedia in Qt 5, see
+\l{Changes to Qt Multimedia} for more information on what has changed, and what
+you might need to change when porting code to Qt 6.
+
+\section1 Reference Documentation
+
+\list
+    \li \l{Qt Multimedia C++ Classes}{C++ Classes}
+    \li \l{Qt Multimedia QML Types}{QML Types}
+\endlist
+*/

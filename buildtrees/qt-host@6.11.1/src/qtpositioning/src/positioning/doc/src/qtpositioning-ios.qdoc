@@ -1,0 +1,53 @@
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtpositioning-ios.html
+\inmodule QtPositioning
+\title Qt Positioning on iOS
+\brief Notes on using Qt Positioning on iOS
+
+\section1 Using Qt Positioning Services from an iOS App
+
+To enable an app to use positioning services on an iOS device, entries must
+be added to the Info.plist file based on whether the positioning services
+are needed when the app is in use or when the app is running in the
+background.
+
+Once the permission is added, the user needs to grant the permission for the
+positioning services to be available when the app requests the positioning
+service. The user can change this by going into Settings > Privacy >
+Location Services, scrolling down to find the app, and selecting an option.
+The location services must be on for the positioning services to work.
+
+\section2 Using Foreground Location Services Permission
+
+If an app makes use of the positioning services when it is running, the
+Info.plist file needs to have an entry with the key \c
+NSLocationWhenInUseUsageDescription and a value with a text string giving the
+user the reason the app makes use of it.
+
+\badcode
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>The reason why the app needs location services</string>
+\endcode
+
+\section2 Use Background Location Services Permission
+
+If the app makes use of location services even when it is running in the
+background, there needs to be an entry with the key \c
+NSLocationAlwaysAndWhenInUseUsageDescription and the reason as string value
+as well as \c NSLocationWhenInUseUsageDescription.
+
+\badcode
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>The reason why the app needs location services</string>
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+<string>The reason why the app needs location services</string>
+\endcode
+
+\note The Info.plist file is automatically generated, and changes made can be
+overwritten by qmake or CMake unless measures are taken. See
+\l {Platform Notes - iOS} for more information.
+
+*/

@@ -1,0 +1,87 @@
+{{>licenseInfo}}
+/**
+ * Representing a Server Variable for server URL template substitution.
+ */
+#ifndef {{prefix}}_SERVERVARIABLE_H
+#define {{prefix}}_SERVERVARIABLE_H
+
+#include "{{prefixLowerCase}}{{packageNameLowerCase}}commonexports.h"
+
+#include <QtCore/qcontainerfwd.h>
+#include <QtCore/qshareddata.h>
+
+{{#buildingQtSources}}
+QT_BEGIN_NAMESPACE
+{{/buildingQtSources}}
+
+{{#cppCommonNamespaceDeclarations}}
+namespace {{this}} {
+{{/cppCommonNamespaceDeclarations}}
+
+class {{prefix}}ServerVariablePrivate;
+class {{prefix}}ServerVariable {
+public:
+    enum class ServerError
+    {
+        NoError = 0, // Success
+        ServerVariableNotFound = -1,
+        EnumValueNotFound = -2,   // The value is not defined in m_enumValues
+        OperationNotFound = -3,
+        ServerIndexNotFound = -4,
+    };
+
+    /**
+     * @param description A description for the server variable.
+     * @param defaultValue The default value to use for substitution.
+     * @param enumValues An enumeration of string values to be used if the substitution options are from a limited set.
+     */
+    {{packageNameUpperCase}}_COMMON_EXPORT
+    {{prefix}}ServerVariable(const QString &description, const QString &defaultValue, const QSet<QString> &enumValues);
+
+    {{packageNameUpperCase}}_COMMON_EXPORT {{prefix}}ServerVariable();
+    {{packageNameUpperCase}}_COMMON_EXPORT ~{{prefix}}ServerVariable();
+
+    {{packageNameUpperCase}}_COMMON_EXPORT
+    {{prefix}}ServerVariable(const {{prefix}}ServerVariable &other);
+    {{packageNameUpperCase}}_COMMON_EXPORT
+    {{prefix}}ServerVariable &operator=(const {{prefix}}ServerVariable &other);
+
+    {{packageNameUpperCase}}_COMMON_EXPORT
+    {{prefix}}ServerVariable({{prefix}}ServerVariable &&other) noexcept;
+    {{packageNameUpperCase}}_COMMON_EXPORT
+    {{prefix}}ServerVariable &operator=({{prefix}}ServerVariable &&other) noexcept;
+
+    {{packageNameUpperCase}}_COMMON_EXPORT void swap({{prefix}}ServerVariable &other) noexcept;
+
+    {{packageNameUpperCase}}_COMMON_EXPORT ServerError setValue(const QString& value);
+
+    {{packageNameUpperCase}}_COMMON_EXPORT QString value() const;
+    {{packageNameUpperCase}}_COMMON_EXPORT QSet<QString> enumValues() const;
+    {{packageNameUpperCase}}_COMMON_EXPORT QString description() const;
+
+private:
+    {{packageNameUpperCase}}_COMMON_EXPORT friend bool
+    comparesEqual(const {{prefix}}ServerVariable &lhs, const {{prefix}}ServerVariable &rhs) noexcept;
+
+    friend bool
+    operator==(const {{prefix}}ServerVariable &lhs, const {{prefix}}ServerVariable &rhs) noexcept
+    { return comparesEqual(lhs, rhs); }
+    friend bool
+    operator!=(const {{prefix}}ServerVariable &lhs, const {{prefix}}ServerVariable &rhs) noexcept
+    { return !comparesEqual(lhs, rhs); }
+
+    friend size_t qHash(const {{prefix}}ServerVariable &value) = delete;
+    friend size_t qHash(const {{prefix}}ServerVariable &value, size_t seed) = delete;
+
+    QExplicitlySharedDataPointer<{{prefix}}ServerVariablePrivate> d_ptr;
+};
+
+{{#cppCommonNamespaceDeclarations}}
+} // namespace {{this}}
+{{/cppCommonNamespaceDeclarations}}
+
+{{#buildingQtSources}}
+QT_END_NAMESPACE
+{{/buildingQtSources}}
+
+#endif // {{prefix}}_SERVERVARIABLE_H

@@ -1,0 +1,46 @@
+Qt 5.13 introduces many new features and improvements as well as bugfixes
+over the 5.12.x series. For more details, refer to the online documentation
+included in this distribution. The documentation is also available online:
+
+https://doc.qt.io/qt-5/index.html
+
+The Qt version 5.13 series is binary compatible with the 5.12.x series.
+Applications compiled for 5.12 will continue to run with 5.13.
+
+Some of the changes listed in this file include issue tracking numbers
+corresponding to tasks in the Qt Bug Tracker:
+
+https://bugreports.qt.io/
+
+Each of these identifiers can be entered in the bug tracker to obtain more
+information about a particular change.
+
+****************************************************************************
+*                                QtLocation                                *
+****************************************************************************
+
+ - Added a GeoJSON parser which can be used to annotate maps with tracks,
+   polygonal boundaries, etc.
+ - GeoJSON returned in Nominatim queries is now converted into the corresponding
+   geoshapes using QGeoJson.
+ - GeoJSON returned in Nominatim queries is now converted into the corresponding
+   geoshapes using QGeoJson.
+ - Introduced Qt.labs.location QtLocationLabs singleton type, offering tech-preview
+   map related API.
+ - Added departure time attribute to route queries.
+ - Introduced QGeoMapObject::geoShape property.
+ - Additional navigation information now exposed via Navigator.
+ - Fixed crash when removing items from MapboxGL maps.
+ - Renamed MapIconObject.size to MapIconObject.iconSize.
+ - Added Map.fitViewportToGeoShape(shape, margins).
+ - Added Navigator currentRouteLeg property.
+ - Introduced extendedAttributes property to Geo Location types.
+ - Introduced extendedAttributes property to Geo Routes types.
+
+****************************************************************************
+*                                QtPositioning                             *
+****************************************************************************
+
+- Added holes support to QGeoPolygon, currently rendered only when using the
+  MapboxGL backend.
+

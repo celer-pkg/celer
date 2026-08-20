@@ -1,0 +1,57 @@
+// Copyright (C) 2025 The Qt Company Ltd
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page cmake-making-qt-available.html
+    \title Making Qt available in CMake projects
+    \brief Provides an overview of how to make Qt's packages available in CMake projects.
+
+    Currently the only supported method of making Qt available for user projects is by
+    having it pre-installed on the system, or any equivalent workflow that builds
+    Qt ahead of time and makes it available to
+    \l {https://cmake.org/cmake/help/latest/command/find_package.html} {\c find_package}, such as
+    \c{vcpkg}.
+
+    When using \l{\QC Documentation}{\QC} or \c{qt-cmake} (\c{qt-cmake.bat} on Windows),
+    the Qt installation location is automatically forwarded to the underlying CMake call.
+
+    When using \c{cmake} directly, the general search paths used by CMake should cover most non-user
+    installations of Qt. For more control over which Qt package to use, you can pass
+    \l{https://cmake.org/cmake/help/latest/variable/PackageName_ROOT.html}
+    \c{Qt6_ROOT} as an environment or cache variable pointing to the Qt installation path, or by
+    adding or appending to the \c{CMAKE_PREFIX_PATH} in a similar way. For
+    example, if the installation path is \tt{"~/Qt/\QtVersion/gcc_64"}, you would pass it on the
+    command line as \tt{-DQt6_ROOT=$HOME/Qt/\QtVersion/gcc_64}.
+
+    \note When cross-compiling (compiling for a platform other than the one you
+    are on, such as WebAssembly or Android) and when using vanilla \c{cmake},
+    set \c{CMAKE_TOOLCHAIN_FILE} instead of search paths like \c{Qt6_ROOT} or \c{CMAKE_PREFIX_PATH}.
+    On Linux, the toolchain file (specific to a particular target platform) is typically
+    located at a path similar to this:
+    \tt{"~/Qt/\QtVersion/wasm_singlethread/lib/cmake/Qt6/qt.toolchain.cmake"}. It sets
+    the required variables like \c{CMAKE_PREFIX_PATH}, \c{CMAKE_FIND_ROOT_PATH},
+    and \c{QT_HOST_PATH}.
+
+    \quotefromfile snippets/cmake/import_qt_minimal.cmake
+    \skipto cmake_minimum_required
+    \printuntil
+
+    The Qt package is split into various modules that you need to include
+    depending on the scope of your project, most basic of which is
+
+    \quotefromfile snippets/cmake/helloworld_qtcore.cmake
+    \skipto find_package
+    \printuntil find_package
+
+    Modern CMake supports other dependency providers such as \c{FetchContent},
+    however using Qt with \c{FetchContent} is not supported due to a tight integration
+    of Qt features inside CMake itself. Adding Qt sources via \c{add_subdirectory} and Git
+    submodules is not supported either.
+
+    \note Calling \c{find_package(Qt6)} in a subdirectory other than where it is used, or
+          inside a \c{function} is not supported. Doing so can cause various failures in
+          unpredictable locations.
+
+          Instead, repeatedly call \c{find_package(Qt6)} in all subdirectory scopes that use
+          Qt functions, or move the \c{find_package(Qt6)} call to the root \c{CMakeLists.txt}.
+*/

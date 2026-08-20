@@ -1,0 +1,14 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//![0]
+<!DOCTYPE RCC>
+<RCC version="1.0">
+
+<qresource prefix="/">
+    <file>main.qml</file>
+    <file>images/background.png</file>
+</qresource>
+
+</RCC>
+//![0]

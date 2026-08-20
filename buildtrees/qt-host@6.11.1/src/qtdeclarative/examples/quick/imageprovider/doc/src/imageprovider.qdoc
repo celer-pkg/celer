@@ -1,0 +1,15 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \title C++ Extensions: Image Provider Example
+    \brief How to load images in QML with QQuickImageProvider.
+    \example imageprovider
+    \examplecategory {Graphics}
+
+    This examples shows how to use QQuickImageProvider to serve images
+    to QML image elements.
+
+    \image qml-imageprovider-example.png
+*/
+

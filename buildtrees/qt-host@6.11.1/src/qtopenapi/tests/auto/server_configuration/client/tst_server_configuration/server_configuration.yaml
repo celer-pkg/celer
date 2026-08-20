@@ -1,0 +1,79 @@
+# Copyright (C) 2025 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+openapi: 3.1.1
+servers:
+  - url: 'http://127.0.0.1:{port}/{basePath}'
+    variables:
+      port:
+        default: '20303'
+      basePath:
+        enum:
+          - v1
+          - v2
+        default: v1
+info:
+  title: Server Configuration Test
+  description: >
+    This specification is needed to check how various server configurations are handled.
+  version: 1.0.0
+tags:
+  - name: test
+    description: test operations
+
+paths:
+  /operations/dummy:
+    post:
+      tags: [test]
+      operationId: dummyOperation
+      summary: "not used for now"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+  /operations/customServers:
+    servers:
+      - url: 'http://{user}.some.server:{port}/api'
+        variables:
+          user:
+            default: admin
+          port:
+            enum:
+              - '80'
+              - '443'
+            default: '80'
+      - url: 'http://other.server/api'
+    get:
+      tags: [test]
+      operationId: customServersGet
+      summary: "Uses the servers from the path"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+    post:
+      tags: [test]
+      operationId: customServersPost
+      summary: "The servers in the operation should override the servers from path"
+      servers:
+        - url: 'http://127.0.0.1:20303/{basePath}'
+          variables:
+            basePath:
+              enum:
+                - v1
+                - v2
+              default: v1
+        - url: 'http://fake.server/api'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string

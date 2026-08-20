@@ -1,0 +1,259 @@
+{
+    "QEP": {
+        "QQEM": "0.43",
+        "connections": [
+            {
+                "fromId": 0,
+                "toId": 8
+            },
+            {
+                "fromId": 2,
+                "toId": 7
+            },
+            {
+                "fromId": 7,
+                "toId": 1
+            },
+            {
+                "fromId": 8,
+                "toId": 2
+            }
+        ],
+        "exportDirectory": ".",
+        "exportFlags": 3,
+        "exportName": "WigglyEffect",
+        "nodes": [
+            {
+                "fragmentCode": [
+                    "void main() {",
+                    "    fragColor = texture(iSource, texCoord);",
+                    "    @nodes",
+                    "    fragColor = fragColor * qt_Opacity;",
+                    "}"
+                ],
+                "name": "Main",
+                "nodeId": 0,
+                "type": 0,
+                "vertexCode": [
+                    "void main() {",
+                    "    texCoord = qt_MultiTexCoord0;",
+                    "    fragCoord = qt_Vertex.xy;",
+                    "    vec2 vertCoord = qt_Vertex.xy;",
+                    "    @nodes",
+                    "    gl_Position = qt_Matrix * vec4(vertCoord, 0.0, 1.0);",
+                    "}"
+                ],
+                "x": 140,
+                "y": 35.25
+            },
+            {
+                "name": "Output",
+                "nodeId": 1,
+                "type": 1,
+                "x": 140,
+                "y": 589.75
+            },
+            {
+                "fragmentCode": [
+                    "@main",
+                    "{",
+                    "    fragColor.rgb *= wigglyColor * fragColor.a;",
+                    "}"
+                ],
+                "name": "Wiggly",
+                "nodeId": 2,
+                "properties": [
+                    {
+                        "defaultValue": "20",
+                        "maxValue": "100",
+                        "minValue": "0",
+                        "name": "wigglyAmountX",
+                        "type": "float",
+                        "value": "20"
+                    },
+                    {
+                        "defaultValue": "50",
+                        "maxValue": "100",
+                        "minValue": "0",
+                        "name": "wigglyAmountY",
+                        "type": "float",
+                        "value": "50"
+                    },
+                    {
+                        "defaultValue": "0.5",
+                        "maxValue": "1",
+                        "minValue": "0",
+                        "name": "wigglyShadows",
+                        "type": "float",
+                        "value": "0.5"
+                    }
+                ],
+                "type": 2,
+                "vertexCode": [
+                    "@mesh 63, 1",
+                    "out vec3 wigglyColor;",
+                    "",
+                    "float rainbowColor(float phase) {",
+                    "    return abs(sin(texCoord.x * 2.0 + iTime + phase));",
+                    "}",
+                    "",
+                    "@main",
+                    "{",
+                    "    float wave = sin(vertCoord.x * 0.01 + iTime * 3.0);",
+                    "    vertCoord.x += wigglyAmountX * wave;",
+                    "    vertCoord.y += wigglyAmountY * wave;",
+                    "    const float tau = 6.28318530718;",
+                    "    wigglyColor.r = rainbowColor(0.0);",
+                    "    wigglyColor.g = rainbowColor(1.0/3.0 * tau);",
+                    "    wigglyColor.b = rainbowColor(2.0/3.0 * tau);",
+                    "    float shadowAmount = (wigglyAmountX + wigglyAmountY) * wave;",
+                    "    wigglyColor.rgb += shadowAmount * wigglyShadows * 0.01;",
+                    "}"
+                ],
+                "x": 105,
+                "y": 327.5
+            },
+            {
+                "description": "Generates electric clouds type of effect for the source item.",
+                "fragmentCode": [
+                    "@requires NoiseHelper",
+                    "@main",
+                    "{",
+                    "    vec2 uv = fragCoord.xy / iResolution.y;",
+                    "    float cloudVal = 0.0;",
+                    "    float sum = 0.0;",
+                    "    float multiplier = 1.0;",
+                    "    for (int i = 0; i < electricCloudLevels; i++) {",
+                    "        vec3 noisePos = vec3(uv, iTime / multiplier);",
+                    "        cloudVal += multiplier * abs(pseudo3dNoise(noisePos));",
+                    "        sum += multiplier;",
+                    "        multiplier *= 0.5;",
+                    "        uv = 2.0 * uv;",
+                    "    }",
+                    "    cloudVal /= sum;",
+                    "    fragColor.rgb = mix(fragColor.rgb, vec3(cos(TAU * cloudVal)) * electricCloudColor.rgb * fragColor.a, electricCloudColor.a * cloudVal);",
+                    "}"
+                ],
+                "name": "ElectricClouds",
+                "nodeId": 7,
+                "properties": [
+                    {
+                        "defaultValue": "6",
+                        "description": "The levels of details for the electic clouds. Bigger value means more detailed rending which also requires more processing power. The default value is 6 and practical range is between 1 and 10.",
+                        "maxValue": "10",
+                        "minValue": "1",
+                        "name": "electricCloudLevels",
+                        "type": "int",
+                        "value": "6"
+                    },
+                    {
+                        "defaultValue": "1, 1, 1, 0.6",
+                        "description": "The color used for the clouds. Alpha channel defines the amount of opacity this effect has.",
+                        "name": "electricCloudColor",
+                        "type": "color",
+                        "value": "1, 1, 1, 1"
+                    }
+                ],
+                "type": 2,
+                "x": 105,
+                "y": 473.625
+            },
+            {
+                "description": "This node contains noise / hash helper functions which other nodes can utilize.",
+                "fragmentCode": [
+                    "#define HASH_BOX_SIZE 1920U",
+                    "#define PI 3.14159265359",
+                    "#define TAU 6.28318530718",
+                    "#define SQRT2 1.41421356237",
+                    "",
+                    "float hash21(vec2 n);",
+                    "vec3 hash23(vec2 n);",
+                    "float _hash11(uint n);",
+                    "float _hash21( uvec2 x );",
+                    "vec3 _hash13(uint n);",
+                    "",
+                    "// Hash from vec2 to float",
+                    "// Can be used directly with fragCoord",
+                    "float hash21(vec2 n)",
+                    "{",
+                    "    uvec2 uin = uvec2(n);",
+                    "    return _hash21(uin);",
+                    "}",
+                    "",
+                    "// Hash from vec2 to vec3",
+                    "// Can be used directly with fragCoord",
+                    "vec3 hash23(vec2 n)",
+                    "{",
+                    "    uvec2 uin = uvec2(n);",
+                    "    return _hash13(uin.x + HASH_BOX_SIZE * uin.y);",
+                    "}",
+                    "",
+                    "// Hash from uint to float",
+                    "float _hash11(uint n)",
+                    "{",
+                    "    n = (n << 13U) ^ n;",
+                    "    n = n * (n * n * 15731U + 789221U) + 1376312589U;",
+                    "    return float( n & uint(0x7fffffffU))/float(0x7fffffff);",
+                    "}",
+                    "",
+                    "// Hash from uvec2 to float",
+                    "float _hash21( uvec2 x )",
+                    "{",
+                    "    uvec2 q = 1103515245U * ( (x>>1U) ^ (x.yx   ) );",
+                    "    uint  n = 1103515245U * ( (q.x  ) ^ (q.y>>3U) );",
+                    "    return float(n) * (1.0/float(0xffffffffU));",
+                    "}",
+                    "",
+                    "// Hash from uint to vec3",
+                    "vec3 _hash13(uint n)",
+                    "{",
+                    "    n = (n << 13U) ^ n;",
+                    "    n = n * (n * n * 15731U + 789221U) + 1376312589U;",
+                    "    uvec3 k = n * uvec3(n,n*16807U,n*48271U);",
+                    "    return vec3( k & uvec3(0x7fffffffU))/float(0x7fffffff);",
+                    "}",
+                    "",
+                    "vec2 pseudo3dNoiseLevel(vec2 intPos, float t) {",
+                    "    float rand = hash21(intPos);",
+                    "    float angle = TAU * rand + t * rand;",
+                    "    return vec2(cos(angle), sin(angle));",
+                    "}",
+                    "",
+                    "// Generates noise which resembles 3D perlin-noise",
+                    "float pseudo3dNoise(vec3 pos) {",
+                    "    const vec2 i = floor(pos.xy);",
+                    "    const vec2 f = fract(pos.xy);",
+                    "    const vec2 blend = f * f * (3.0 - 2.0 * f);",
+                    "    float noiseVal = mix(",
+                    "        mix(",
+                    "            dot(pseudo3dNoiseLevel(i + vec2(0.0, 0.0), pos.z), f - vec2(0.0, 0.0)),",
+                    "            dot(pseudo3dNoiseLevel(i + vec2(1.0, 0.0), pos.z), f - vec2(1.0, 0.0)),",
+                    "            blend.x),",
+                    "        mix(",
+                    "            dot(pseudo3dNoiseLevel(i + vec2(0.0, 1.0), pos.z), f - vec2(0.0, 1.0)),",
+                    "            dot(pseudo3dNoiseLevel(i + vec2(1.0, 1.0), pos.z), f - vec2(1.0, 1.0)),",
+                    "            blend.x),",
+                    "        blend.y);",
+                    "    return noiseVal * SQRT2;",
+                    "}",
+                    "",
+                    "@main"
+                ],
+                "name": "NoiseHelper",
+                "nodeId": 8,
+                "type": 2,
+                "x": 105,
+                "y": 181.375
+            }
+        ],
+        "settings": {
+            "headings": [
+                "// Copyright (C) 2023 The Qt Company Ltd.",
+                "// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause"
+            ],
+            "paddingBottom": 100,
+            "paddingTop": 100
+        },
+        "version": 1
+    }
+}

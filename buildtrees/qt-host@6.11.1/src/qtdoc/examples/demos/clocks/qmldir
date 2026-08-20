@@ -1,0 +1,3 @@
+module clocks
+Main 254.0 Main.qml
+Clock 254.0 Clock.qml

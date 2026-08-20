@@ -1,0 +1,146 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  args: {
+    // PAGE args
+    REDIRECT_URL: https://storage.googleapis.com/chromiumos-test-assets-public/power_LoadTest/v2_config/redirect.html
+    VERSION: 2023-08-09
+    URL_PREFIX: $[REDIRECT_URL]?ver=$[VERSION]&dest=
+    PER_PAGE_DURATION: 180
+    PAGE_1: $[URL_PREFIX]amazon_product
+    PAGE_2: $[URL_PREFIX]amazon_search
+    PAGE_3: $[URL_PREFIX]apple
+    PAGE_4: $[URL_PREFIX]ebay
+    PAGE_5: $[URL_PREFIX]google
+    PAGE_6: $[URL_PREFIX]imdb
+    PAGE_7: $[URL_PREFIX]weather
+    PAGE_8: $[URL_PREFIX]office
+    PAGE_9: $[URL_PREFIX]stackoverflow
+    PAGE_10: $[URL_PREFIX]wikipedia
+  }
+  template: {
+    pages: {
+      page-scroll-1: {
+        template: ./action-blocks/switch-tab-and-page-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_1]
+          TARGET: _self
+          TAB_INDEX: 0
+        }
+        unbound_args: [
+          PAGE_1
+          PER_PAGE_DURATION
+        ]
+      }
+      page-scroll-2: {
+        template: ./action-blocks/switch-tab-and-page-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_2]
+          TARGET: _new_tab
+          TAB_INDEX: 1
+        }
+        unbound_args: [
+          PAGE_2
+          PER_PAGE_DURATION
+        ]
+      }
+      page-scroll-3: {
+        template: ./action-blocks/switch-tab-and-page-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_3]
+          TARGET: _new_tab
+          TAB_INDEX: 2
+        }
+        unbound_args: [
+          PAGE_3
+          PER_PAGE_DURATION
+        ]
+      }
+      page-scroll-4: {
+        template: ./action-blocks/switch-tab-and-page-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_4]
+          TARGET: _new_tab
+          TAB_INDEX: 3
+        }
+        unbound_args: [
+          PAGE_4
+          PER_PAGE_DURATION
+        ]
+      }
+      page-scroll-5: {
+        template: ./action-blocks/switch-tab-and-page-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_5]
+          TARGET: _new_tab
+          TAB_INDEX: 4
+        }
+        unbound_args: [
+          PAGE_5
+          PER_PAGE_DURATION
+        ]
+      }
+      page-scroll-6: {
+        template: ./action-blocks/switch-tab-and-page-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_6]
+          TARGET: _new_tab
+          TAB_INDEX: 5
+        }
+        unbound_args: [
+          PAGE_6
+          PER_PAGE_DURATION
+        ]
+      }
+      page-scroll-7: {
+        template: ./action-blocks/switch-tab-and-page-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_7]
+          TARGET: _new_tab
+          TAB_INDEX: 6
+        }
+        unbound_args: [
+          PAGE_7
+          PER_PAGE_DURATION
+        ]
+      }
+      page-scroll-8: {
+        template: ./action-blocks/switch-tab-and-page-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_8]
+          TARGET: _new_tab
+          TAB_INDEX: 7
+        }
+        unbound_args: [
+          PAGE_8
+          PER_PAGE_DURATION
+        ]
+      }
+      page-scroll-9: {
+        template: ./action-blocks/switch-tab-and-page-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_9]
+          TARGET: _new_tab
+          TAB_INDEX: 8
+        }
+        unbound_args: [
+          PAGE_9
+          PER_PAGE_DURATION
+        ]
+      }
+      page-scroll-10: {
+        template: ./action-blocks/switch-tab-and-page-scroll.hjson
+        args: {
+          PAGE_URL: $[PAGE_10]
+          TARGET: _new_tab
+          TAB_INDEX: 9
+        }
+        unbound_args: [
+          PAGE_10
+          PER_PAGE_DURATION
+        ]
+      }
+    }
+  }
+}

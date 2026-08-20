@@ -1,0 +1,12 @@
+Version: 2
+Module only: True
+Include: [
+  cmake_platforms.yaml: [
+    "ubuntu-22.04"
+  ]
+]
+Configurations: []
+Overrides:
+-
+    Id: 'ubuntu-22.04'
+    Features: ['Axivion', 'DisableTests', 'UseConfigure', 'VMSize16']

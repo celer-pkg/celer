@@ -1,0 +1,176 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qmllint-warnings-and-errors-missing-property.html
+\ingroup qmllint-warnings-and-errors
+
+\title Missing property
+\brief [missing-property] Binding a value to a non-existing property.
+
+\qmllintwarningcategory missing-property
+
+\section1 Can't assign to non-existent default property
+
+\section2 What happened?
+You assigned an object to a non-existing default property.
+
+\section2 Why is this bad?
+The QML engine can't assign this object at runtime.
+
+\section2 Example
+\qml
+import QtQuick
+
+Item {
+    component MyType: QtObject { property Item myItem; }
+
+    MyType {
+        Item {}
+    }
+}
+
+\endqml
+To fix this warning, specify the property you want to bind to or, if you are the author
+of the type, mark a property as default:
+\qml
+import QtQuick
+
+Item {
+    component MyType: QtObject { property Item myItem; }
+
+    MyType {
+        myItem: Item {}
+    }
+
+    component AlternativeMyType: QtObject { default property Item myItem; }
+
+    AlternativeMyType {
+        Item {} // bound to myItem via default property
+    }
+}
+\endqml
+
+\section1 Property does not exist
+
+\section2 What happened?
+You assigned an expression to a non-existing property.
+
+\section2 Why is this bad?
+The QML engine can't assign this expression at runtime.
+
+\section2 Example
+\qml
+import QtQuick
+
+Item {
+    property int myInt
+    myItn: 42
+}
+
+\endqml
+To fix this warning, remove the binding or correct a possible typo:
+\qml
+import QtQuick
+
+Item {
+    property int myInt
+    myInt: 42
+}
+
+\endqml
+
+\section1 Member not found on type
+
+\section2 What happened?
+You accessed a member in a field member expression that can't be found by QML tooling.
+A field member expression is an expression of the form \c {someId.someProperty}.
+
+The member might not exist at all, for example when you made a typo. Or it might exist
+at runtime (because it exists on a specific sub-type that is always present), but not
+on the statically declared type.
+
+\section2 Why is this bad?
+The QML tooling can't find this member, meaning that features like go-to-definition and
+autocomplete won't work.
+At runtime, there might be an error or you might get an incorrect result if the member
+really does not exist.
+There won't be an error if the member actually always exist at runtime, however in that
+case there can still be a performance cost due to missed optimizations.
+
+\section2 Example
+
+\section3 Property does not actually exist
+\qml
+import QtQuick
+
+Item {
+    id: self
+    property int myInt
+    property int myInt2: 1 + self.myItn
+}
+
+\endqml
+To fix this warning, remove the binding or correct a possible typo:
+\qml
+import QtQuick
+
+Item {
+    id: self
+    property int myInt
+    property int myInt2: 1 + self.myInt
+}
+\endqml
+
+\section3 Property exists, but type is not precise enough
+\qml
+import QtQuick
+import QtQuick.Controls.Basic
+
+Item {
+  component Message : Item {
+    required property string sender
+    required property string text
+  }
+  ListView {
+    id: messageView
+    delegate: Message {}
+  }
+
+  Button {
+    text: "Reply to %1".arg(messageView.currentItem.sender) // not ok
+  }
+}
+\endqml
+
+To fix this warning, \l{Type annotations and assertions}{cast the object} you
+read from to the more specific type:
+
+\qml
+import QtQuick
+import QtQuick.Controls.Basic
+
+Item {
+  component Message : Item {
+    required property string sender
+    required property string text
+  }
+  ListView {
+    id: messageView
+    delegate: Message {}
+  }
+
+  Button {
+    text: "Reply to %1".arg((messageView.currentItem as Message).sender) // now ok
+  }
+}
+\endqml
+
+In the example, the declared type of \c{messageView}'s
+\l{ListView::}{currentItem} property is \l Item, which has no \c sender
+property: \c sender is defined only in \c Message. Here, we know however that
+\c currentItem always contains a \c Message, so we can cast \c currentItem to
+\c Message using a \l{Type annotations and assertions}{type assertion}.
+
+*/
+

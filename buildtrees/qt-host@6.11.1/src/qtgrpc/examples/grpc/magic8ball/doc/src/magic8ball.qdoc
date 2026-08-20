@@ -1,0 +1,63 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example magic8ball
+    \ingroup qtgrpc-examples
+    \examplecategory {Networking}
+    \meta tag {network,protobuf,grpc}
+    \title Magic 8 Ball
+
+    \brief Creating a HTTP2 connection between a Qt \gRPC client and a C++ \gRPC server.
+
+    Magic 8 ball sends a question to a server and displays the received answer:
+    \image magic8ballScreenshot.webp "Magic 8 ball example screenshot"
+
+    The example code includes the following components:
+    \list
+    \li \c magic8ball Qt \gRPC client application that uses
+        the \l {qt_add_protobuf}{qt_add_protobuf()} and
+        \l {qt_add_grpc}{qt_add_grpc()}
+        CMake functions for message and service Qt code generation.
+    \li \c server application that calls C++ \gRPC plugin
+        for generating server code and implementing simple server
+        logic.
+    \endlist
+
+    \note you need the C++ \gRPC plugin installed.
+    Find details here: \l {Module prerequisites}
+
+    Both components use generated messages from the protobuf schema described in the
+    \c {exampleservice.proto} file:
+    \quotefromfile magic8ball/proto/exampleservice.proto
+    \skipto syntax = "proto3";
+    \printuntil
+
+    The \gRPC client is defined as a QML object \b{which is available after the code is compiled}.
+    \snippet magic8ball/Main.qml exampleServiceClient
+
+    The client service connects to the \c localhost with port \c {50051}, which is specified in the
+    \gRPC channel options:
+    \snippet magic8ball/Main.qml channelOptions
+
+    And sends a request to the server part:
+    \quotefromfile magic8ball/Main.qml
+    \snippet magic8ball/Main.qml requestAnswerFunction
+    \dots 8
+    \snippet magic8ball/Main.qml requestAnswerFunctionBody
+
+    \c answerMethod is a \gRPC method that the client calls. It has four parameters: the request
+    object, a finish callback function, an error callback function and a
+    \l {GrpcCallOptions} object.
+
+    Click the \uicontrol {Ask} button to send the request to the magic8ball server.
+
+    \note You have to run the server in parallel with the client application.
+
+    The \c server application chooses a random answer from the list of answers and sends
+    the data to the client's port. It also checks that the request contains a non empty field
+    \c question. If the field is empty, it returns a \c StatusCode::INVALID_ARGUMENT
+    \snippet magic8ball/server/main.cpp answerMethod
+
+    After receiving a response, the client application shows the answer.
+*/

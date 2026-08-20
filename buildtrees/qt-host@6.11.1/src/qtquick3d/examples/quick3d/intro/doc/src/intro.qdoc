@@ -1,0 +1,101 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example intro
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - Introduction
+    \examplecategory {3D}
+    \brief Demonstrates how to render a scene in Qt Quick 3D.
+    \image intro.png
+           {Blue sphere hovering over red disc}
+
+    This example gives an introductory overview of the basic Quick 3D features by going
+    through the code of a simple example.
+
+    \section1 Setting Up the Scene
+
+    We set up the entire scene in the \e main.qml file.
+
+    To be able to use the types in the QtQuick3D module, we must import it:
+
+    \snippet intro/main.qml import
+
+    To draw any 3D scene, we need a 3D viewport within the Qt Quick scene.  This is
+    provided by the View3D class, and this is where we define our scene. It is also
+    possible to have multiple views in one application, see \l{Qt Quick 3D - View3D
+    Example}.
+
+    We start with defining the environment of our scene. In this example we just clear the
+    background color with \c skyblue, which we specify in a SceneEnvironment for the \c
+    environment property of the view. SceneEnvironment describes various properties
+    related to the environment of the scene, such as tonemapping settings, light probe
+    settings for image based lighting, background mode, or ambient occlusion
+    parameters. It can also control anti-aliasing, see \l{Qt Quick 3D - Antialiasing
+    Example}. In our example we set the \c clearColor and \c backgroundMode properties
+    to get a blue background.
+
+    \snippet intro/main.qml environment
+
+    \section1 Meshes
+
+    To make the scene a bit more interesting we are now going to add some meshes. In Quick
+    3D there are a number of builtin meshes for convenience, for example sphere, cube,
+    cone, or cylinder. These are referenced by using the special identifiers, such as \c
+    #Sphere, \c #Cube, or\c #Rectangle in the source property of a Model node. Besides the
+    built-in primitives, a \c{.mesh} file can be specified. To generate \c{.mesh} files
+    from FBX or glTF2 assets, the assets need to be processed using the \l{Balsam Asset
+    Import Tool}. Below shows the code adding a blue sphere and a red flattened cylinder:
+
+    \snippet intro/main.qml objects
+
+    To add the meshes, we use two Model nodes, with \c #Sphere and \c #Cylinder as the
+    \l{Model::source}{source} to load our built-in meshes. To give the model a color we
+    need to first specify a material. In this case we use a \l PrincipledMaterial with a red
+    and blue base color. There are three different materials available with different
+    properties, namely PrincipledMaterial, SpecularGlossyMaterial and CustomMaterial, see \l{Qt
+    Quick 3D - Principled Material Example} and \l{Programmable Materials, Effects,
+    Geometry, and Texture data}. The mesh loaded by a \l Model can have multiple
+    sub-meshes, and each sub-mesh needs to have a material specified. In the example only
+    the built-in meshes are used, and those only have one sub-mesh each, and therefore it
+    is sufficient to specify a single PrincipledMaterial in the
+    \l{Model::materials}{materials} list.
+
+    A \l Model is a \l Node, so it has an associated transformation. To apply a
+    translation, we use the \c position property. It is also possible to rotate the model
+    by setting the \c eulerRotation property. To make the cylinder look like a plate we
+    set the \c scale property accordingly.
+
+    \section1 Camera
+
+    Then we define a camera, which specifies how the content of the 3D scene is projected
+    onto a 2D surface. In this example, we use \l PerspectiveCamera which gives us a
+    perspective projection. Orthographic projection is also possible through the
+    OrthographicCamera type. The default orientation of the camera has its forward vector
+    pointing along the negative Z axis and its up vector along the positive Y axis. The
+    example moves the camera back to 300 on the Z axis. In addition, it is moved up an the
+    Y axis a bit, and is rotated slightly around the X axis to look slightly downwards.
+
+    \snippet intro/main.qml camera
+
+    \section1 Lights
+
+    The scene also needs a light source in order to be able to see the models in our
+    scene. A DirectionalLight, which can be thought of as a distant sun shining from a
+    certain direction, is added to the scene. There are two other light sources available,
+    namely SpotLight and PointLight, see \l{Qt Quick 3D - Lights Example}.
+
+    \snippet intro/main.qml light
+
+    \section1 Animation
+
+    Finally, we are also going to animate the sphere. We do this by applying a
+    SequentialAnimation on the \c y component, moving the sphere up and down infinitely.
+
+    \snippet intro/main.qml animation
+
+    With all these parts working together we are able to render our 3D scene. This example
+    touches only some of the basic capabilities of Qt Quick 3D. Visit the \l{Qt Quick 3D
+    Examples and Tutorials}{examples} page for further examples.
+
+*/

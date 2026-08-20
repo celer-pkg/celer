@@ -1,0 +1,65 @@
+# Copyright 2020 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("../../../scripts/build/ninja/devtools_entrypoint.gni")
+import("../../../scripts/build/ninja/devtools_module.gni")
+import("../../../scripts/build/typescript/typescript.gni")
+import("../visibility.gni")
+
+devtools_module("formatter") {
+  sources = [
+    "FormatterWorkerPool.ts",
+    "ScriptFormatter.ts",
+  ]
+
+  deps = [
+    "../../core/common:bundle",
+    "../../core/platform:bundle",
+    "../../core/sdk:bundle",
+    "../../entrypoints/formatter_worker:formatter_actions",
+    "../../models/bindings:bundle",
+    "../../models/text_utils:bundle",
+    "../../models/workspace:bundle",
+  ]
+}
+
+devtools_entrypoint("bundle") {
+  entrypoint = "formatter.ts"
+
+  deps = [
+    ":formatter",
+    "../../entrypoints/formatter_worker:worker_entrypoint",
+  ]
+
+  visibility = [
+    ":*",
+    "../../entrypoints/formatter_worker/*",
+    "../../models/breakpoints/*",
+    "../../models/source_map_scopes/*",
+    "../../models/workspace_diff/*",
+    "../../panels/coverage/*",
+    "../../panels/sources/*",
+    "../../panels/utils/*",
+    "../../ui/components/text_editor/*",
+    "../../ui/legacy/components/object_ui/*",
+    "../../ui/legacy/components/source_frame/*",
+  ]
+
+  visibility += devtools_models_visibility
+}
+
+ts_library("unittests") {
+  testonly = true
+
+  sources = [ "ScriptFormatter.test.ts" ]
+
+  deps = [
+    ":bundle",
+    "../../core/common:bundle",
+    "../../core/sdk:bundle",
+    "../../models/bindings:bundle",
+    "../../models/workspace:bundle",
+    "../../testing",
+  ]
+}

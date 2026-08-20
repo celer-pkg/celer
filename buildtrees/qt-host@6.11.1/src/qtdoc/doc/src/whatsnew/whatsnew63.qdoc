@@ -1,0 +1,441 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page whatsnew63.html
+    \title What's New in Qt 6.3
+    \brief Lists the new features in Qt 6.3.
+    \ingroup whatsnewqt6
+    \meta sortkey 603
+
+    \section1 New and Restored Modules in Qt 6.3
+
+    Qt 6.3 adds the following module:
+
+    \list
+
+        \li Qt Language Server: implements the \l
+            {https://microsoft.github.io/language-server-protocol/specifications/specification-current/}
+            {Language Server Protocol Specification} and the \l
+            {https://www.jsonrpc.org/specification} {JsonRpc 2.0}
+            protocol.
+            The module does not contain a public API.
+
+    \endlist
+
+    Qt 6.3 reintroduces the following modules that were not present in Qt 6.2.
+    All listed modules were ported to Qt 6 and the CMake build system.
+
+    \list
+        \li \l [QtPDF]{Qt PDF} (in Technology Preview)
+    \endlist
+
+
+    A more detailed list of changes to each module can be found in
+    \l {Changes to Qt Modules in Qt 6}.
+
+    \section1 New Features in Qt 6.3
+
+    \section2 Qt Core Module
+
+    \list
+        \li Added QtFuture::whenAll() and QtFuture::whenAny() functions
+            for combining multiple futures.
+        \li Added QDir::mkdir() and QFile::open() overloads accepting
+            a permission argument.
+        \li QMetaType can now convert any QFuture<T> to QFuture<void>.
+        \li Added QDirIterator::nextFileInfo(), to advance and get
+            full file information.
+        \li QLocale's mappings of language codes to and from Language
+            values now have overloads specifying which ISO 639 code
+            types to consider.
+        \li QRegularExpressionMatch now has
+            \l{QRegularExpressionMatch::hasCaptured()}{hasCaptured()} methods to
+            test whether a given group was captured at all.
+        \li QProcessEnvironment gained a new enum and constructor that allows you to
+            choose whether the process environment shall be inherited from the parent
+            process when a respective QProcess is launched.
+
+            \warning In older Qt versions, the default behavior was to inherit, although the
+            documentation said it won't. Qt 6.3 changes the behavior of the default
+            constructor to actually match the documentation. That is, launching
+            a QProcess with a QProcessEnvironment created by
+            \l{QProcessEnvironment::QProcessEnvironment()}{QProcessEnvironment()} will
+            be launched in an empty environment. Use
+            QProcessEnvironment(QProcessEnvironment::InheritFromParent) to revert
+            to the old behavior.
+
+            Also, added method
+            \l{QProcessEnvironment::inheritsFromParent()}{inheritsFromParent()} to test
+            for an instance constructed the new way.
+        \li QVarLengthArray now has \l{QVarLengthArray::emplace()}{emplace()}
+            and \l{QVarLengthArray::emplace_back()}{emplace_back()} methods.
+        \li Time formats used by QLocale, QTime and QDateTime's parsing and
+            serialization now recognize 'aP' and 'Ap' format specifiers to
+            obtain an AM/PM indicator, using the locale-appropriate case for the
+            indicator, where previously the author of a time format had to pick
+            a case that might conflict with the user's locale. For QTime and
+            QDateTime the locale is always C, whose indicators are
+            uppercase. For QLocale, the case will now match that of amText() or
+            pmText(). Previously, 'aP' would have been read as a lower-case
+            indicator followed by a 'P' and 'Ap' as an upper-case indicator
+            followed by a 'p'. The 'P' or 'p' will now be treated as part of the
+            format specifier: if the prior behavior is desired, either use 'APp'
+            or 'apP' as format specifier or quote the 'p' or 'P' in the
+            format. The prior 'a', 'ap', 'A' and 'AP' specifiers are otherwise
+            unaffected.
+        \li QDebug can now stream QVarLengthArray objects.
+        \li QObject::findChildren() now has an overload taking no name.
+        \li Added overloads and method names to QSemaphore for greater
+            compatibility with std::counting_semaphore and std::chrono.
+        \li QJsonValue now has rvalue constructors taking QJsonArray
+            and QJsonObject.
+        \li QCborMap::fromJsonObject() and QCborArray::fromJsonArray()
+            now have rvalue overloads.
+        \li Added QByteArrayView::trimmed() to elide leading and trailing space.
+        \li Added number-parsing methods to QByteArrayView.
+        \li Added isValidUtf8() methods to QByteArray, QByteArrayView,
+            and QUtf8StringView.
+        \li Added QCryptographicHash::resultView() to provide a view over
+            \l{QCryptographicHash::result()}{result()}.
+        \li QStringBuilder now supports QByteArrayView.
+        \li QUuid can now be constructed from QAnyStringView.
+        \li QLocale now has a constructor taking a QStringView.
+        \li QByteArrayList::join() now has an overload taking QByteArrayView.
+        \li \l{QCryptographicHash::addData(QIODevice*)}{QCryptographicHash::addData()} now has
+            an overload taking QByteArrayView.
+        \li qSwap() is now constexpr.
+        \li Added new public CMake API:
+        \list
+            \li for setting up project-wide defaults:
+                \l{qt_standard_project_setup}{qt_standard_project_setup()}
+            \li for deploying applications:
+                \l{qt_generate_deploy_app_script}{qt_generate_deploy_app_script()}
+                (in Technology Preview)
+            \li for generating a qt.conf file at installation time:
+                \l{qt_deploy_qt_conf}{qt_deploy_qt_conf()}
+                 (in Technology Preview)
+            \li for deploying runtime dependencies at installation time:
+                \l{qt_deploy_runtime_dependencies}{qt_deploy_runtime_dependencies()}
+                 (in Technology Preview)
+            \li for performing platform-specific tasks associated with a Qt project:
+                \l{qt_finalize_project}{qt_finalize_project()}
+                 (in Technology Preview)
+        \endlist
+    \endlist
+
+    \section2 Qt GUI Module
+
+    \list
+        \li Calling QGuiApplication::setLayoutDirection() with a non-auto value
+            now disables the auto-detection based on installed translators.
+        \li URL handlers passed to QDesktopServices::setUrlHandler() must now be
+            removed by calling \l {QDesktopServices::}{unsetUrlHandler()} before
+            they are destroyed. Relying on the handler's destructor to
+            implicitly unset them is deprecated.
+        \li QVulkanWindow now enables all Vulkan 1.0 features that are reported
+            as supported by the physical device.
+    \endlist
+
+    \section2 Qt Quick Module
+
+    \list
+        \li New item added: \l [QML] TreeView.
+        \li All \l {Qt Quick Input Handlers}{pointer handlers} have settable \c parent properties.
+        \li \l [QML] HoverHandler and \l [QML] WheelHandler have a \c blocking property to
+            control whether the hover and wheel events respectively propagate
+            to items and handlers behind the handler's \c parent.
+        \li \l [QML] TapHandler now has one more \l {TapHandler::gesturePolicy}{gesturePolicy}
+            value: \c DragWithinBounds; it is similar to \c WithinBounds,
+            except that even if the user drags while holding the point pressed,
+            \l {TapHandler::timeHeld}{timeHeld} is not reset during dragging,
+            and the \l {TapHandler::longPressed}{longPressed} signal is emitted
+            regardless of the drag threshold, if the user holds it that long.
+            This is useful for implementing press-drag-release components such as menus
+            (like the pie menu in the pointer handlers example) while using \c timeHeld
+            to directly drive an "opening" animation.
+            \image ../images/piemenu.gif
+        \li \l QQuickItem::clipRect() now provides the region visible in the \l {QQuickItem::viewportItem()}{viewport}
+            (the parent \l [QML] Flickable or \l [QML] Window), and can be used to limit scene graph node
+            vertices as an optimization in custom items, at the cost of having
+            \l {QQuickItem::updatePaintNode()}{updatePaintNode()} called more often.
+            See docs about the new \l {QQuickItem::ItemObservesViewport} and
+            \l {QQuickItem::ItemIsViewport} flags.
+        \li To save memory and startup time, \l [QML] Text and \l [QML] TextEdit now avoid
+            generating scene graph nodes for large portions of text that are
+            invisible because of falling outside the viewport (\l [QML] Flickable or \l [QML] Window).
+        \li \l [QML] Text now renders horizontal rules from HTML or Markdown.
+        \li In \l [QML] Text, horizontal rules and underline/overline/strikethrough lines
+            can be colored by CSS rules included in HTML source.
+            \snippet snippets/declarative/text-lines.qml 0
+        \li QQuickItem::dumpItemTree() has been added; it
+            can be called from C++ (similar to QObject::dumpObjectTree()) or
+            from QML, to show the qDebug-operator output for an item and all
+            its children, indented to show the tree structure.
+        \li \l [QML] TapHandler \l {TapHandler::tapped}{tapped}, \l {TapHandler::singleTapped}{singleTapped}
+            and \l {TapHandler::doubleTapped}{doubleTapped} signals now have two arguments:
+            the \l QEventPoint instance, and the \c button being tapped. If you need a signal handler,
+            you should write an explicit function to receive those arguments:
+            \qml
+            onTapped: function(point, button) { ... }
+            onDoubleTapped: (point, button)=> ...
+            \endqml
+        \li \l [QML] DragHandler \l {DragHandler::activeTranslation}{activeTranslation}
+            now holds the amount of movement since the drag gesture began.
+            \l {DragHandler::persistentTranslation}{persistentTranslation} holds the accumulated sum of movement
+            that has occurred during subsequent drag gestures, and can be reset to arbitrary values between gestures.
+    \endlist
+
+    \section2 Qt Quick Controls Module
+
+    \list
+        \li New controls added: \l [QML] TreeViewDelegate, \l [QML] Calendar,
+            \l [QML] CalendarModel, \l [QML] DayOfWeekRow, \l [QML] MonthGrid,
+            \l [QML] WeekNumberColumn.
+    \endlist
+
+    \section2 Qt Quick Dialogs Module
+
+    \list
+        \li Added \l [QtQuickDialogs] {FolderDialog} and \l [QtQuickDialogs] {MessageDialog}. These are native dialogs on
+            platforms that support it, and non-native Qt Quick dialogs on other
+            platforms.
+
+            The non-native dialogs support all of the non-native styles: Basic,
+            Fusion, Imagine, Material and Universal.
+    \endlist
+
+    \section2 Qt Widgets Module
+
+    \list
+        \li QToolBar now supports scrolling with a kinetic wheel or track
+            pad.
+    \endlist
+
+    Several new QStyle enum values are available to allow styles to customize
+    additional look and feel aspects of a widget-based UI:
+
+    \list
+        \li \l {QStyle::}{PM_LineEditIconMargin} to customize the margin around an icon
+            in a QLineEdit.
+        \li \l {QStyle::}{SH_Table_AlwaysDrawLeftTopGridLines} to control whether
+            the left and top grid lines are always painted, also when
+            the headers are hidden.
+        \li \l {QStyle::}{SH_SpinBox_SelectOnStep} to control whether changing the
+            value using the up/down buttons should select the text.
+        \li \l {QStyle::}{SP_TabCloseButton} to specify an icon for the close button
+            in the tab of a QTabBar
+    \endlist
+
+    \section2 Qt Network Module
+
+    \list
+        \li QNetworkInformation learned transportMedium. A property that
+            returns the transport medium of the primary network interface.
+        \li QNetworkInformation also learned isMetered. A property that
+            returns whether the network is metered.
+    \endlist
+
+    \section2 Qt QML Module
+
+    \list
+        \li Added tech preview QML type compiler (\c qmltc) that compiles QML
+            type structure to C++.
+        \li Added several new warnings to qmllint which now uses compiler
+            infrastructure.
+        \li The header only qmlintegration module allows to mark types for registration in a QML module,
+            without adding a dependency to qtdeclarative. Those can then be added to a QML module via
+            the new \l{qt6_generate_foreign_qml_types}{qt_generate_foreign_qml_types()} CMake API.
+        \li qmlcachegen compiles suitable functions and expressions to C++ now, for improved
+            performance.
+        \li Added generalized group properties support in \l{Binding} and
+            \l{PropertyChanges}, allowing group property syntax
+            (e.g., \c{someId.someProperty}) to be used in these contexts.
+        \li Introduced basic QML Language Server.
+        \li Introduced support for namespaces as extensions to other
+            namespaces, via QML_NAMESPACE_EXTENDED.
+        \li Added new public CMake API:
+        \list
+            \li for registering a target's foreign types in a QML module:
+                \l{qt_generate_foreign_qml_types}{qt_generate_foreign_qml_types()}
+                (in Technology Preview)
+            \li for compiling QML code into C++:
+                \l{qt_target_compile_qml_to_cpp}{qt_target_compile_qml_to_cpp()}
+                (in Technology Preview)
+            \li for deploying QML applications:
+                \l{qt_generate_deploy_qml_app_script}{qt_generate_deploy_qml_app_script()}
+                (in Technology Preview)
+            \li for deploying the runtime components of QML modules at installation time:
+                \l{qt_deploy_qml_imports}{qt_deploy_qml_imports()}
+                (in Technology Preview)
+            \li for querying information about a QML module:
+                \l{qt_query_qml_module}{qt_query_qml_module()}
+                (in Technology Preview)
+        \endlist
+    \endlist
+
+    \section2 Qt Quick 3D Module
+
+    \list
+        \li Added ReflectionProbe, making it possible for models to
+            show reflections.
+        \li Particles3D: New \c ParticleCustomShape3D element which loads emitting shapes
+            from custom CBOR binary files.
+        \li Particles3D: Sprite particles now have support for the 3D environment lights.
+        \li Particles3D: New \c DynamicBurst element for declarative dynamic emitting
+            and for emitting at trail start/end times.
+        \li Added \l [QML] ResourceLoader component for explicit setting of resource lifetimes
+            (in Technology Preview)
+        \li PrincipledMaterial: Added support for ClearCoat, Transmission, and Refraction.
+        \li glTF2: Importers now support the following additional extensions: KHR_materials_clearcoat,
+            KHR_materials_ior, KHR_materials_transmission, KHR_materials_volume
+    \endlist
+
+    \section2 Qt WebEngine Module
+
+    \list
+        \li Now builds with Python 3 instead of Python 2
+        \li Added API for replacing QML touch selection menu
+        \li Added new public CMake API:
+        \list
+            \li for converting Hunspell dictionaries to the Qt WebEngine \c .bdic binary format:
+                \l{qt_add_webengine_dictionary}{qt_add_webengine_dictionary()}
+        \endlist
+    \endlist
+
+    \section2 Qt Data Visualization Module
+
+    \list
+        \li Added a new \l {QSurface3DSeries::}{wireframeColor} property to set the wireframe color
+            for a QSurface3DSeries in Q3DSurface.
+        \li Added a new \l {QBar3DSeries::}{rowColors} property to set different colors for rows of bars in Q3DBars.
+        \li Added a new \l {Q3DBars::}{barSeriesMargin} property to set the margin for individual bars in Q3DBars.
+        \li Added a \l {QAbstract3DGraph::}{hasSeries} function to check whether a series is already added in QAbstract3DGraph.
+        \li Added support for 16-bit height maps.
+    \endlist
+
+    \section2 Qt Positioning Module
+
+    \list
+        \li New \l {QGeoPositionInfo::}{DirectionAccuracy} attribute is added
+            for Android and iOS platforms. It represents the accuracy of the
+            provided bearing.
+    \endlist
+
+    \section2 Qt Bluetooth Module
+
+    \list
+        \li Extended the Windows implementation of \l QBluetoothLocalDevice.
+            It reports the adapter state correctly, and allows to toggle its
+            state. Support for connected/disconnected devices tracking is still
+            missing.
+        \li Extended \l QBluetoothDeviceInfo API to expose Bluetooth Low Energy
+            service data as published during the advertisement.
+    \endlist
+
+    \section2 Qt Wayland Compositor Module
+
+    \list
+        \li Added an API to create custom shell extensions. For instructions on usage, see
+            \l{Custom Shell}{the example}.
+        \li Added a \l{QtShell Compositor}{Qt Shell} which
+            supports all windowing system features available in Qt.
+        \li Added support for the \l[QML]{PresentationTime}{presentation-time} protocol.
+        \li Added support for multiple input method protocols in the same server, in order to
+            support clients from different sources.
+    \endlist
+
+    \section1 Platform Changes
+
+    \section2 Technology Preview Platforms
+
+    \section3 WebAssembly
+        Several improvements have been made for Qt for WebAssembly. See the platform documentation
+        at \l{Qt for WebAssembly} for details.
+
+        \list
+            \li Added support for copy/paste of images and html text to the system clipboard.
+            \li Added SIMD support. Note that enabling SIMD requires building Qt from source.
+            \li Added support for calling QEventLoop::exec() and QThread::exec() on secondary threads.
+            \li Added support for calling QEventLoop::exec() and QDialog::exec() on the main thread using
+               \l{https://emscripten.org/docs/porting/asyncify.html}{Emscripten Asyncify}.
+               Note that enabling asyncify requires building Qt from source.
+            \li Drag-and-drop now works for asyncify-enabled builds.
+            \li Added support for tunneling TCP and UDP sockets over WebSockets, using Emscriptens
+               \l{https://emscripten.org/docs/porting/networking.html}{Emulated POSIX TCP Sockets over WebSockets}.
+               This support is limited to async sockets on the main thread.
+        \endlist
+
+    \section3 Windows on ARM
+        Windows on ARM64 remains in Technology Preview as problems with optimized builds of
+        Qt could not be resolved yet.
+
+    \section2 Mobile Platforms
+
+    \section3 Android
+
+    \list
+        \li The \l{In-App purchasing demo} and Qt 3D: Planets QML Example
+        had android specific improvements.
+        \li Updated Gradle to 7.2.0 and the Android Gradle Plugin (AGP) to 7.0.2
+        (requires JDK 11 or above).
+        \li Added missing _make_aab target for CMake Android projects.
+        \li Added multi-ABI build for CMake, see \l{QT_ANDROID_ABIS}.
+        \li QML modules are now staged to a common directory named "android-qml" under the
+        user's build folder. This acts as a common import path for
+        \l{The androiddeployqt Tool}.
+        \li The QML Test Bench now works for Android builds.
+    \endlist
+
+    \section3 iOS
+
+    \list
+        \li CMake-based projects now generate a default launch screen.
+    \endlist
+
+    \section2 Embedded Platforms
+
+    \section3 Boot to Qt
+
+    \list
+        \li Boot to Qt stack was updated to use Yocto 3.4 (honister).
+        \li Qt PDF and Qt Language Server were included in Boot to Qt stack.
+    \endlist
+
+    \section2 Other
+
+    \section3 Wayland
+
+    \list
+        \li Implemented support for \c DataDeviceV3 protocol.
+        \li Upgraded \c wl_seat support to version 7.
+        \li Added support for selecting input method protocol, if the server supports multiple
+            interfaces. This can be done by setting QT_WAYLAND_TEXT_INPUT_PROTOCOL to the name of
+            the protocol.
+    \endlist
+
+    \section1 List of API Changes
+
+    These pages contain an overview of API changes in Qt 6.3:
+    \list
+        \li \l {New Classes and Functions in Qt 6.3}
+        \li \l {Obsolete Classes}
+    \endlist
+
+    \section1 Additions to All Qt 6 Releases
+
+    \annotatedlist whatsnewqt6
+*/
+
+/*!
+    \page newclasses63.html
+    \title New Classes and Functions in Qt 6.3
+    \ingroup whatsnewqt6-api
+    \meta sortkey 603
+    \brief A list of new APIs in Qt 6.3.
+
+    This page contains a comprehensive list of all new classes and functions
+    introduced in Qt 6.3.
+
+    \sincelist 6.3
+*/

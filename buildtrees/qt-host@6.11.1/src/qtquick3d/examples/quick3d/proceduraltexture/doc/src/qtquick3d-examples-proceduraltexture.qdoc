@@ -1,0 +1,79 @@
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \example proceduraltexture
+    \ingroup quick3d-examples
+    \title Qt Quick 3D - Procedural Texture Example
+    \examplecategory {3D}
+    \brief Demonstrates how to provide custom texture data from C++ or QML.
+    \image proceduraltexture-example.jpg
+           {Gradient cube with procedural texture size and color controls}
+
+    This demonstrates the various ways to provide texture data generated dynamically at
+    runtime instead of loading it from a static asset. For demonstration purposes
+    this example generates vertical gradient textures from provided start and end
+    colors.
+
+    First we define a C++ class for our texture data. We make it a subclass
+    of QQuick3DTextureData. This is not strictly necessary, since there are no
+    virtual functions, but it is much more convenient to have everything in
+    one class. We define the properties we are going to use, and add
+    \l QML_NAMED_ELEMENT to make it available from QML:
+
+    \snippet proceduraltexture/gradienttexture.h class definition
+    \dots
+
+    We add a function to update the texture. It uses setSize,
+    and setFormat to configure the texture, and
+    setTextureData to set the image data:
+    \snippet proceduraltexture/gradienttexture.cpp updateTexture
+
+    The function \c generateTexture creates a QByteArray of the correct size, and
+    fills it with image data:
+    \snippet proceduraltexture/gradienttexture.cpp generateTexture
+
+    We call \c updateTexture each time a property is changed:
+    \snippet proceduraltexture/gradienttexture.cpp property
+
+    Finally, we can use our new texture from QML:
+    \snippet proceduraltexture/Main.qml cppTexture
+
+    It is also possible to generate the same texture data in QML. In this case we
+    use the ProceduralTextureData component:
+    \snippet proceduraltexture/Main.qml qmlTexture
+
+    Just like in C++ we fill a QByteArray with image data that reflects the size and
+    format of the texture. When doing this from QML use the ArrayBuffer type to avoid
+    unnecessary type conversion.
+
+    For the previous two examples, all of the data for the texture is generated on the
+    CPU side, then uploaded to the GPU for use as texture data. It is also possible to
+    generate the texture data directly on the GPU. In this case we use subclass
+    of QQuick3DTextureProviderExtension instead.
+    \snippet proceduraltexture/gradienttextureprovider.h class definition
+
+    QQuick3DTextureProviderExtension based classes define render extensions using the
+    Qt RHI API. The subclass must return a QSSGRenderExtension based object when
+    QQuick3DTextureProviderExtension::updateSpatialNode() is called.
+    \snippet proceduraltexture/gradienttextureprovider.cpp updateSpatialNode
+
+    What actually gets rendered is defined by this QSSGRenderExtension subclass:
+    \snippet proceduraltexture/gradienttextureprovider.cpp GradientTextureProviderNode
+
+    By implementing the interfaces of QSSGRenderExtension, the extension can render
+    the texture data directly on the GPU. The prepareDate implementation makes sure that
+    the output texture is created with the correct size and format, as well as registers
+    the output texture as the texture that is being provided.
+    \snippet proceduraltexture/gradienttextureprovider.cpp prepareData
+
+    The prepareRender is where the pipelines are created, and the uniform buffers are
+    updated.
+    \snippet proceduraltexture/gradienttextureprovider.cpp prepareRender
+
+    The actual rendering for the pass is defined in the render function.
+    \snippet proceduraltexture/gradienttextureprovider.cpp render
+
+    The example uses the texture provider in QML like this:
+    \snippet proceduraltexture/Main.qml gpuTexture
+*/

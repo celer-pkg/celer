@@ -1,0 +1,19 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+[
+  {
+    action: get
+    url: $[PAGE_URL]
+    ready_state: $[READY_STATE]
+    timeout: 3m
+    target: $[TAB_TARGET]
+  }
+  {
+    action: js
+    path: ./scripts/on-page-load.js
+    replacements: {
+      PAGE_URL: $[PAGE_URL]
+    }
+  }
+]

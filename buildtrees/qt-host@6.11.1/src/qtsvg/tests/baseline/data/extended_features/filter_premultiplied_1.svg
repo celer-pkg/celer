@@ -1,0 +1,14 @@
+<!--SVG standard filter primitives equations assume that color values are premultiplied by alpha.
+This test is intended to check if an object with transparency is rendered correctly
+when it uses <filter>-->
+<svg width="500" height="500" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="filter1">
+      <feGaussianBlur stdDeviation="10" result="blur1"/>
+      <feComposite in="blur1" in2="SourceGraphic" operator="arithmetic" k1="0.1" k2="0.2" k3="0.3" k4="0.8"/>
+    </filter>
+  </defs>
+  <g>
+    <circle cx="250" cy="250" r="200" fill="#c00000" fill-opacity="0.5" style="filter:url(#filter1)"/>
+  </g>
+</svg>

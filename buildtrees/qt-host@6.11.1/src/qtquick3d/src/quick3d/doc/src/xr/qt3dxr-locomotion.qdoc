@@ -1,0 +1,55 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \page qtxr-locomotion.html
+    \title Locomotion in \qxr
+
+    \brief This page describes locomotion and gives examples of moving actors in \qxr.
+
+    In fully immersive VR, the user can move around in the virtual world by walking or even
+    running with enough space, but in most cases, the user is limited to a small area and needs to
+    move around in the virtual world using some form of locomotion that allows for movement over
+    greater distances, or even terrains that aren't possible to replicate in a realistic way in the
+    real world. In VR, locomotion is the act of moving from one place to another, either by having a
+    appropriately sized area (Room Scale) or using some form of input and/or gesture other than
+    physically moving.
+
+    In VR, locomotion is achieved using different techniques. Other than room scale, the most
+    common techniques are teleportation or continuous movement. Teleportation is instantly moving
+    the user from one place to another. Continuous movement is moving the user  continuously from
+    one place to another, usually using a controller or a keyboard. In both cases, it is essential
+    to design the movement to minimize motion sickness and user disorientation. Getting this right can
+    be a challenge and requires careful design and testing.
+
+    \section1 Room scale
+
+    The best way to experience VR is to have a room-scale setup where the user can walk around in
+    a large enough space. In this setup, the user can move around in the virtual world as they
+    would in the real world, but usually within a predefined space with a sufficient margin to avoid
+    walking into walls or other physical obstacles.
+    This is the most immersive way to experience VR if the user's physical environment allows it.
+
+    \section1 Teleportation
+
+    Teleportation can be done in different ways but is usually done by pointing at a location and then
+    teleporting the user to that location. To avoid causing motion sickness, some form of effect
+    is usually added to indicate that the player was indeed moved without disconnecting the
+    user's view from the real-world head motion inputs from the HMD. This can be done by fading
+    The screen turns black and then fades back to the VR view once the teleportation is done.
+    Teleportation is a good way to move around in larger virtual spaces. In \qxr, you can find a
+    reference implementation for doing freeform teleportation, see the
+    \l {Qt Quick 3D - XR Freeform Teleportation Example}{Freeform teleportation example} for more
+    information.
+
+    \section1 Continuous movement
+
+    Continuous movement is usually better suited for when the explorable area is small or when the
+    user needs more fine-grained control over the movement using a controller or a keyboard. See
+    the \l XrController documentation for more information on how to get the data from the
+    controller. As with teleportation, it is important to minimize motion sickness and
+    disorientation when using continuous movement. This can be done by, for example, adding a
+    tunneling effect or other effects that soften the movement to avoid motion sickness. This is
+    especially important when starting and stopping movement.
+
+*/

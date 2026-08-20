@@ -1,0 +1,45 @@
+--- .upstream/moc.cpp	2025-12-08 08:44:49.600222497 +0100
++++ moc.cpp	2025-12-08 11:47:45.363161643 +0100
+@@ -12,19 +12,15 @@
+ #include <QtCore/qdir.h>
+ #include <QtCore/qjsondocument.h>
+ 
+-// for normalizeTypeInternal
+-#include <private/qmetaobject_p.h>
+-#include <private/qmetaobject_moc_p.h>
+-#include <private/qduplicatetracker_p.h>
+-
+-// This is a bootstrapped tool, so we can't rely on QCryptographicHash for the
+-// faster SHA1 implementations from OpenSSL.
+-#include "../../3rdparty/sha1/sha1.cpp"
++// -- QtScxml
++#include <QtCore/qjsonobject.h>
++// -- QtScxml
+ 
+ QT_BEGIN_NAMESPACE
+ 
+ using namespace Qt::StringLiterals;
+ 
++#if 0 // -- QtScxml
+ // only moc needs this function
+ static QByteArray normalizeType(const QByteArray &ba)
+ {
+@@ -2131,6 +2127,7 @@
+         }
+     }
+ }
++#endif // -- QtScxml
+ 
+ QJsonObject ClassDef::toJson() const
+ {
+@@ -2329,8 +2326,8 @@
+         def["alias"_L1] = QString::fromUtf8(enumName);
+     if (!type.isEmpty())
+         def["type"_L1] = QString::fromUtf8(type);
+-    def["isFlag"_L1] = (flags & EnumIsFlag) != 0;
+-    def["isClass"_L1] = (flags & EnumIsScoped) != 0;
++    def["isFlag"_L1] = (flags & QtMocConstants::EnumIsFlag) != 0;
++    def["isClass"_L1] = (flags & QtMocConstants::EnumIsScoped) != 0;
+ 
+     QJsonArray valueArr;
+     for (const QByteArray &value: values)

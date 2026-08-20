@@ -1,0 +1,13 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \module QtQmlCompiler
+    \preliminary
+    \title Qt Qml Compiler C++ Classes
+    \qtcmakepackage QmlCompiler
+
+    For more information on the Qt QmlCompiler module, see the
+    \l{Qt Qml Compiler} module documentation.\brief The Qt Qml Compiler module provides tools
+    for static analysis of QML code.
+*/

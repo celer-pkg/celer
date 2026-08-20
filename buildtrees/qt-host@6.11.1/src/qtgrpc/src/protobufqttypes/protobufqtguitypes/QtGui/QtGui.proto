@@ -1,0 +1,56 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+
+syntax = "proto3";
+
+package QtGui;
+
+message QRgba64 {
+    uint64 rgba64 = 1;
+}
+
+message QColor {
+    oneof color {
+        QRgba64 rgba64 = 1;
+        uint32 rgba = 2;
+    }
+}
+
+message QMatrix4x4 {
+    // 16 floats in row-major order
+    repeated float m = 1;
+}
+
+message QVector2D {
+    float x_pos = 1;
+    float y_pos = 2;
+}
+
+message QVector3D {
+    float x_pos = 1;
+    float y_pos = 2;
+    float z_pos = 3;
+}
+
+message QVector4D {
+    float x_pos = 1;
+    float y_pos = 2;
+    float z_pos = 3;
+    float w_pos = 4;
+}
+
+message QTransform {
+    repeated double m = 1;
+}
+
+message QQuaternion {
+    float scalar = 1;
+    float x = 2;
+    float y = 3;
+    float z = 4;
+}
+
+message QImage {
+    bytes data = 1;
+    string format = 2;  // see QImageWriter::supportedImageFormats()
+}

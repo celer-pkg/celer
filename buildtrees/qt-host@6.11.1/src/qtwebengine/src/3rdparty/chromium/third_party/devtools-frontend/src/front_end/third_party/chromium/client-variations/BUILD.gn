@@ -1,0 +1,39 @@
+# Copyright 2020 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("../../../../scripts/build/ninja/devtools_entrypoint.gni")
+import("../../../../scripts/build/ninja/devtools_pre_built.gni")
+import("../../../../scripts/build/typescript/typescript.gni")
+import("../../visibility.gni")
+
+devtools_pre_built("client-variations") {
+  sources_are_release = false
+
+  sources = [
+    "ClientVariations.d.ts",
+    "ClientVariations.js",
+    "client-variations-tsconfig.json",
+  ]
+}
+
+devtools_entrypoint("bundle") {
+  entrypoint = "client-variations.ts"
+
+  deps = [ ":client-variations" ]
+
+  visibility = [
+    ":*",
+    "../../../panels/network/*",
+  ]
+
+  visibility += devtools_third_party_visibility
+}
+
+ts_library("unittests") {
+  testonly = true
+
+  sources = [ "ClientVariations.test.ts" ]
+
+  deps = [ ":bundle" ]
+}

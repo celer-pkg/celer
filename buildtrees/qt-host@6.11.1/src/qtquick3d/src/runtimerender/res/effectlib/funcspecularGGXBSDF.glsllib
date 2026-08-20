@@ -1,0 +1,26 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
+
+#include "bsdf.glsllib"
+#include "principledMaterialFresnel.glsllib"
+
+vec4 qt_specularGGXBSDF(in vec3 normal, in vec3 L, in vec3 V, in vec3 lightSpecular, in vec3 F0, in vec3 F90, in float roughness)
+{
+    float NdotL = dot(normal, L);
+    float cNdotL = max(0.0, NdotL);
+    float NdotV = dot(normal, V);
+    float cNdotV = max(0.0, NdotV);
+    vec3 H = normalize(V + L);
+    float cLdotH = max(0.0, dot(L, H));
+    float cNdotH = max(0.001, dot(normal, H)); // arguments for qt_D_GGX must not be 0
+    float alpha_ggx = clamp(roughness * roughness, 0.001, 1.0);
+    float GGX_D = qt_D_GGX(cNdotH, alpha_ggx);
+    float GGX_V = qt_V_GGX(cNdotL, cNdotV, alpha_ggx);
+
+    float cLdotH5 = qt_schlick(cLdotH);
+    vec3 F = mix(vec3(cLdotH5), F90, F0);
+
+    vec3 specular_brdf_NL = cNdotL * GGX_D * F * GGX_V;
+
+    return vec4(specular_brdf_NL * lightSpecular, 1.0);
+}

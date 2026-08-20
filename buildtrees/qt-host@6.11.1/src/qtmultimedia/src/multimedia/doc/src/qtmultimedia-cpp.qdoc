@@ -1,0 +1,45 @@
+// Copyright (C) 2015 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \module QtMultimedia
+    \title Qt Multimedia Module C++ Classes
+    \ingroup modules
+    \qtvariable multimedia
+    \qtcmakepackage Multimedia
+
+    \brief The \l {Qt Multimedia} module provides audio, video and camera
+    functionality.
+
+    \include module-use.qdocinc using qt module
+    \code
+        find_package(Qt6 REQUIRED COMPONENTS Multimedia)
+        target_link_libraries(mytarget PRIVATE Qt6::Multimedia)
+    \endcode
+*/
+
+/*!
+    \page qtmultimedia-modules.html
+    \title Qt Multimedia C++ Classes
+    \brief Provides C++ class for multimedia use cases.
+
+    The C++ classes provide more control over the multimedia content than the
+    QML alternatives. If your application is serving complex use cases such as
+    decoding media files, accessing video or audio buffers, use the C++
+    alternative. For more details about the complex audio, video, and camera use
+    cases supported by the C++ classes, refer to \l {Qt Multimedia}{Multimedia Overview}.
+
+    \section1 Namespaces
+    \annotatedlist multimedia-namespaces
+
+    \section1 Classes
+
+    \section2 Qt Multimedia Module
+    \generatelist {classesbymodule QtMultimedia}
+
+    \section2 Qt Multimedia Widgets Module
+    \generatelist {classesbymodule QtMultimediaWidgets}
+
+    \section2 Qt Spatial Audio Module
+    \generatelist {classesbymodule QtSpatialAudio}
+*/

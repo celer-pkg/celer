@@ -1,0 +1,15 @@
+###############################################################################
+# Bazel now uses Bzlmod by default to manage external dependencies.
+# Please consider migrating your external dependencies from WORKSPACE to MODULE.bazel.
+#
+# For more details, please check https://github.com/bazelbuild/bazel/issues/18958
+###############################################################################
+module(
+    name = "anonymous-tokens",
+)
+
+bazel_dep(name = "rules_cc", version = "0.1.1")
+bazel_dep(name = "protobuf", version = "29.3", repo_name = "com_google_protobuf")
+bazel_dep(name = "abseil-cpp", version = "20240722.0.bcr.2", repo_name = "com_google_absl")
+bazel_dep(name = "boringssl", version = "0.20241209.0")
+bazel_dep(name = "googletest", version = "1.15.2", repo_name = "com_github_google_googletest")

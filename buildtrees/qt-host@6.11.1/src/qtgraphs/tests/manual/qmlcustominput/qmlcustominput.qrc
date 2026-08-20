@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/qmlcustominput/Data.qml</file>
+        <file>qml/qmlcustominput/main.qml</file>
+    </qresource>
+</RCC>

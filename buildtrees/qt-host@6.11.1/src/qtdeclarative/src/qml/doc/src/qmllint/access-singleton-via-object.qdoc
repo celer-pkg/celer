@@ -1,0 +1,49 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qmllint-warnings-and-errors-access-singleton-via-object.html
+\ingroup qmllint-warnings-and-errors
+
+\title Cannot access singleton as a property of an object
+\brief [access-singleton-via-object] A singleton was incorrectly accessed.
+
+\qmllintwarningcategory access-singleton-via-object
+
+\section1 Access singleton via object
+
+\section2 What happened?
+You accessed a singleton using the syntax for accessing attached properties
+from a namespace.
+
+\section2 Why is this bad?
+Singletons can't be accessed in this way. The expression will evaluate to undefined.
+
+\section2 Example
+\qml
+import QtQml
+import QtQuick as QQ
+
+QtObject {
+    id: root
+    // Cannot access singleton as a property of an object. Did you want to access an attached object?
+    property var singletonAccess: root.QQ.Application.platform
+}
+\endqml
+
+To fix this warning, remove the \c{id} or property in front of the namespace if
+you intended to use the singleton. Alternatively, check for typos if you wanted
+to access an attached property.
+
+\qml
+import QtQml
+import QtQuick as QQ
+
+QtObject {
+    id: root
+    property var singletonAccess: QQ.Application.platform
+    property bool attachedPropertyAccess: root.QQ.ListView.isCurrentItem
+}
+\endqml
+*/
+

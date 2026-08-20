@@ -1,0 +1,148 @@
+// Copyright 2025 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+{
+  args: {
+    CLICK_INPUT_SOURCE: touch
+    // This should be the last slide of the slides.
+    SLIDE_INSERT_POSITION: "50"
+    ARIA_DISABLED: ""
+  }
+  template: {
+    pages: {
+      SLIDES-CUJ: {
+        login: google
+        blocks: {
+          copy-slides: ./action-blocks/copy-slides.hjson
+          scroll: ./action-blocks/scroll-slides.hjson
+          new-slide: [
+            // The loading mechanism of Google Slides' thumbnails is lazy loading.
+            // In order to ensure that the expected elements can be loaded, js processing is used here.
+            {
+              action: js
+              path: ./action-blocks/scripts/scroll-slides.js
+              replacements: {
+                "$[[SLIDE_INSERT_POSITION]": $[SLIDE_INSERT_POSITION]
+              }
+            }
+            {
+              action: click
+              pos: {
+                selector: xpath///*[local-name()='g' and @class='punch-filmstrip-thumbnail']//*[local-name()='text' and @x and @y and text()='$[SLIDE_INSERT_POSITION]']
+                wait: true
+                scroll_into_view: true
+              }
+              source: $[CLICK_INPUT_SOURCE]
+            }
+            {
+              action: click
+              pos: {
+                selector: "#newSlideButton"
+                wait: true
+              }
+              source: $[CLICK_INPUT_SOURCE]
+              verify: xpath/(//*[local-name()='g' and @class='punch-filmstrip-thumbnail']//*[local-name()='text' and @x and @y])[number($[SLIDE_INSERT_POSITION]) + number(1)]
+            }
+            {
+              action: js
+              script: performance.mark('new-slide-created');
+            }
+          ]
+          type-text: [
+            // type text on the new slide page
+            {
+              action: click
+              pos: {
+                selector: "#textboxButton"
+                wait: true
+              }
+              source: $[CLICK_INPUT_SOURCE]
+            }
+            {
+              action: click
+              pos: {
+                selector: "#canvas-container"
+                wait: true
+              }
+              source: $[CLICK_INPUT_SOURCE]
+            }
+            {
+              action: js
+              script: performance.mark('type-text-begin');
+            }
+            {
+              action: text_input
+              text: Prototyping Presentation - The best marketing tool for your business!
+              source: keyboard
+              duration: 8s
+            }
+            {
+              action: js
+              script:
+                '''
+                performance.mark('type-text-end');
+                performance.measure('type-text', 'type-text-begin', 'type-text-end');
+                '''
+            }
+            {
+              action: click
+              pos: {
+                selector: "#canvas-container"
+                wait: true
+              }
+              source: $[CLICK_INPUT_SOURCE]
+            }
+            {
+              action: click
+              pos: {
+                selector: "#selectButton"
+                wait: true
+              }
+              source: $[CLICK_INPUT_SOURCE]
+            }
+            {
+              action: click
+              pos: {
+                selector: "#selectButton"
+                wait: true
+              }
+              source: $[CLICK_INPUT_SOURCE]
+            }
+          ]
+          delete-slide: [
+            {
+              action: click
+              pos: {
+                selector: xpath/(//*[local-name()='g' and @class='punch-filmstrip-thumbnail']//*[local-name()='text' and @x and @y])[number($[SLIDE_INSERT_POSITION]) + number(1)]
+              }
+              source: $[CLICK_INPUT_SOURCE]
+            }
+            {
+              action: click
+              pos: {
+                selector: "#docs-edit-menu[role='menuitem'][aria-disabled='false']"
+                required: true
+              }
+              verify: "[aria-label='Delete e']"
+              source: $[CLICK_INPUT_SOURCE]
+            }
+            {
+              action: click
+              pos: {
+                selector: "[aria-label='Delete e']"
+                required: true
+              }
+              source: $[CLICK_INPUT_SOURCE]
+              verify: xpath///div[@id='punch-total-slide-count' and text()='$[SLIDE_INSERT_POSITION] total slides']
+            }
+            {
+              action: js
+              script: performance.mark('new-slide-deleted');
+            }
+          ]
+          cleanup: ../../common-action-blocks/workspace/cleanup-doc.hjson
+        }
+      }
+    }
+  }
+}

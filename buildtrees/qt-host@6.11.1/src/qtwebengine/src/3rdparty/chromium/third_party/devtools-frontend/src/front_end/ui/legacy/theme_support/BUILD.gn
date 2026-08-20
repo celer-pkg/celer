@@ -1,0 +1,49 @@
+# Copyright 2020 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("../../../../scripts/build/ninja/devtools_entrypoint.gni")
+import("../../../../scripts/build/ninja/devtools_module.gni")
+import("../../../../scripts/build/typescript/typescript.gni")
+
+devtools_module("theme_support") {
+  sources = [ "ThemeSupport.ts" ]
+
+  deps = [
+    "../../../core/common:bundle",
+    "../../../core/host:bundle",
+    "../../../core/root:bundle",
+  ]
+}
+
+devtools_entrypoint("bundle") {
+  entrypoint = "theme_support.ts"
+
+  deps = [
+    ":theme_support",
+    "../:css_files",
+  ]
+
+  visibility = [
+    "../*",
+    "../../../entrypoints/main/*",
+    "../../../models/extensions/*",
+    "../../../panels/*",
+    "../../../testing/*",
+    "../../components/docs/*",
+    "../../components/helpers/*",
+  ]
+}
+
+ts_library("unittests") {
+  testonly = true
+
+  sources = [ "ThemeSupport.test.ts" ]
+
+  deps = [
+    ":bundle",
+    "../../../core/common:bundle",
+    "../../../core/host:bundle",
+    "../../../testing",
+  ]
+}
