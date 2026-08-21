@@ -527,7 +527,7 @@ func (b BuildConfig) Clean() error {
 		return nil
 	}
 
-	if err := git.Clean(b.PortConfig.nameVersion(), b.PortConfig.RepoDir); err != nil {
+	if err := git.CleanRepo(b.PortConfig.nameVersion(), b.PortConfig.RepoDir); err != nil {
 		return err
 	}
 
