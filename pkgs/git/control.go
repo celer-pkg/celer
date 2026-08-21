@@ -313,30 +313,6 @@ func Rebase(title, repoRef, repoDir string, rebaseRefs []string) error {
 	return nil
 }
 
-// Clean clean git repo.
-func Clean(target, repoDir string) error {
-	if !fileio.PathExists(repoDir) {
-		return errors.ErrDirNotExist
-	}
-	if !fileio.PathExists(filepath.Join(repoDir, ".git")) {
-		return errors.ErrNotGitDir
-	}
-
-	var commands []string
-	commands = append(commands, "git reset --hard")
-	commands = append(commands, "git clean -ffdx")
-
-	title := fmt.Sprintf("[clean %s]", target)
-	commandLine := strings.Join(commands, " && ")
-	executor := cmd.NewExecutor(title, commandLine)
-	executor.SetWorkDir(repoDir)
-	if output, err := executor.ExecuteOutputLive(); err != nil {
-		return fmt.Errorf("failed to clean '%s' -> %s -> %w", target, output, err)
-	}
-
-	return nil
-}
-
 // HardReset hard resets the repo to the given commit and cleans untracked files.
 // If the commit is not available locally, it fetches from origin first.
 func HardReset(repoDir, commit string) error {

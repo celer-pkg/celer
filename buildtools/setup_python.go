@@ -20,7 +20,7 @@ import (
 
 var PythonTool *pythonTool
 
-func pip3Install(ctx context.Context, pipConfig context.PythonConfig, libraries *[]string) error {
+func pipInstall(ctx context.Context, pipConfig context.PythonConfig, libraries *[]string) error {
 	// Get python version from project config if available, otherwise use default version.
 	pythonVersion := GetDefaultPythonVersion()
 	pythonConfig := ctx.PythonConfig()
@@ -29,20 +29,25 @@ func pip3Install(ctx context.Context, pipConfig context.PythonConfig, libraries 
 	}
 	venvDir := getPythonVenvPath(pythonVersion, ctx.Project().GetName())
 
-	// Setup python3 using conda.
+	// Setup python using conda.
 	if err := setupPython(ctx, pythonVersion); err != nil {
-		return fmt.Errorf("failed to setup python3 -> %w", err)
+		return fmt.Errorf("failed to setup python -> %w", err)
 	}
 
 	// Install extra tools. Check if package is already installed in PYTHONUSERBASE to avoid frequent PyPI requests.
 	// PYTHONUSERBASE is already set globally, so pip will install to workspace directory.
 	for _, library := range *libraries {
-		if !strings.HasPrefix(library, "python3:") {
+		if !strings.HasPrefix(library, "python3:") && !strings.HasPrefix(library, "python:") {
 			continue
 		}
 
 		// Format python3 library name version.
-		nameVersion := strings.TrimPrefix(library, "python3:")
+		var nameVersion string
+		if strings.HasPrefix(library, "python:") {
+			nameVersion = strings.TrimPrefix(library, "python:")
+		} else {
+			nameVersion = strings.TrimPrefix(library, "python3:")
+		}
 		nameVersion = strings.ReplaceAll(nameVersion, "@", "==")
 
 		// Check if package is already installed in PYTHONUSERBASE to avoid frequent PyPI requests.
@@ -396,6 +401,5 @@ func (p pythonTool) RegisterExprVars(exprVars *context.ExprVars) {
 		return
 	}
 	exprVars.Put("PYTHON_PATH", fileio.ToRelPath(p.Path))
-	exprVars.Put("PYTHON_VENV_DIR", p.venvDir)
-	exprVars.Put("PYTHON_VENV_EXE", p.Path)
+	exprVars.Put("PYTHON_VENV_DIR", fileio.ToRelPath(p.venvDir))
 }

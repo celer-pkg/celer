@@ -54,6 +54,7 @@ func CheckTools(ctx context.Context, tools ...string) error {
 		return err
 	}
 
+	// Merge conf build tools and builtin build tools.
 	confToolsFile := filepath.Join(dirs.WorkspaceDir, "conf", "buildtools", arch+"-"+runtime.GOOS+".toml")
 	if fileio.PathExists(confToolsFile) {
 		bytes, err := os.ReadFile(confToolsFile)
@@ -74,9 +75,10 @@ func CheckTools(ctx context.Context, tools ...string) error {
 			continue
 		}
 		if len != 1 {
-			return fmt.Errorf("invalid tool format: %s", tool)
+			return fmt.Errorf("invalid build tool format: %s, it should be like `xxx:yyy`", tool)
 		}
 
+		// Append msys2 and python3 into uniqueTools.
 		if strings.HasPrefix(tool, "msys2:") && !slices.Contains(uniqueTools, "msys2") {
 			uniqueTools = append(uniqueTools, "msys2")
 			continue
@@ -87,7 +89,7 @@ func CheckTools(ctx context.Context, tools ...string) error {
 		}
 	}
 
-	var msys2Tool *BuildTool
+	var msys2Tool, pythonTool *BuildTool
 
 	// Find tool instances of python3 and msys2 from buildTools.
 	for _, tool := range uniqueTools {
@@ -112,6 +114,8 @@ func CheckTools(ctx context.Context, tools ...string) error {
 		switch toolFound.Name {
 		case "msys2":
 			msys2Tool = toolFound
+		case "python", "python2", "python3":
+			pythonTool = toolFound
 		}
 	}
 
@@ -127,16 +131,27 @@ func CheckTools(ctx context.Context, tools ...string) error {
 		}
 	}
 
-	// Check if we need to install python3 packages.
-	python3Required := slices.ContainsFunc(uniqueTools, func(tool string) bool {
-		return strings.HasPrefix(tool, "python3")
+	// Check if we need to install python packages.
+	pythonRequired := slices.ContainsFunc(uniqueTools, func(tool string) bool {
+		return strings.HasPrefix(tool, "python")
 	})
 
-	// Install python3 packages.
-	if python3Required {
-		pythonConfig := ctx.PythonConfig()
-		if err := pip3Install(ctx, pythonConfig, &uniqueTools); err != nil {
+	// Install python packages.
+	pythonConfig := ctx.PythonConfig()
+	if pythonRequired {
+		if err := pipInstall(ctx, pythonConfig, &uniqueTools); err != nil {
 			return err
+		}
+	} else if pythonTool != nil || pythonConfig != nil {
+		// Get python version from project config if available, otherwise use default version.
+		pythonVersion := GetDefaultPythonVersion()
+		if pythonConfig != nil && pythonConfig.GetVersion() != "" {
+			pythonVersion = pythonConfig.GetVersion()
+		}
+
+		// Setup python using conda.
+		if err := setupPython(ctx, pythonVersion); err != nil {
+			return fmt.Errorf("failed to setup python -> %w", err)
 		}
 	}
 
