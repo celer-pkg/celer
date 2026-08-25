@@ -13,7 +13,6 @@ import (
 
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/expr"
 )
 
 type downloader struct {
@@ -21,6 +20,7 @@ type downloader struct {
 	downloads  string
 	archive    string
 	maxRetries int
+	headers    map[string]string
 }
 
 func NewDownloader(url, downloads string) *downloader {
@@ -37,6 +37,14 @@ func (d *downloader) WithArchive(archive string) {
 
 func (d *downloader) WithMaxRetries(maxRetries int) {
 	d.maxRetries = maxRetries
+}
+
+// WithHeader adds a custom header to the download request.
+func (d *downloader) WithHeader(key, value string) {
+	if d.headers == nil {
+		d.headers = make(map[string]string)
+	}
+	d.headers[key] = value
 }
 
 func (d downloader) Start(httpClient *http.Client) (downloaded string, err error) {
@@ -66,6 +74,9 @@ func (d downloader) startOnce(httpClient *http.Client) (downloaded string, err e
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
 	req.Header.Set("Accept", "*/*")
 	req.Header.Set("Connection", "keep-alive")
+	for k, v := range d.headers {
+		req.Header.Set(k, v)
+	}
 
 	// Do http request.
 	resp, err := httpClient.Do(req)
@@ -80,11 +91,11 @@ func (d downloader) startOnce(httpClient *http.Client) (downloaded string, err e
 	}
 
 	// Get file name.
-	fileName, err := getFileName(d.url)
+	fileName, err := d.getFileName(d.url)
 	if err != nil {
 		return "", err
 	}
-	
+
 	// Ensure tmp files dir exists always.
 	if err := os.MkdirAll(dirs.TmpFilesDir, os.ModePerm); err != nil {
 		return "", fmt.Errorf("cannot create tmp files dir -> %w", err)
@@ -96,7 +107,11 @@ func (d downloader) startOnce(httpClient *http.Client) (downloaded string, err e
 	}
 
 	// Copy to local file with progress.
-	progress := NewProgressBar(fileName, resp.ContentLength)
+	completed := func(formattedTimeCost, formattedSize string) {
+		color.PrintInline(color.Pass, "[✔] %s (%s) in %s\n", d.archive+" is downloaded", formattedSize, formattedTimeCost)
+		color.PrintHint("Location: %s", d.downloads)
+	}
+	progress := NewProgressBar("download: "+fileName, resp.ContentLength, completed)
 	if _, err := io.Copy(io.MultiWriter(file, progress), resp.Body); err != nil {
 		file.Close()
 		return "", err
@@ -128,7 +143,7 @@ func (d downloader) startOnce(httpClient *http.Client) (downloaded string, err e
 	return downloaded, nil
 }
 
-func getFileName(downloadURL string) (string, error) {
+func (d downloader) getFileName(downloadURL string) (string, error) {
 	// Read file name from URL.
 	u, err := url.Parse(downloadURL)
 	if err != nil {
@@ -153,122 +168,4 @@ func getFileName(downloadURL string) (string, error) {
 		return match[1], nil
 	}
 	return "", nil
-}
-
-type progressBar struct {
-	fileName     string
-	fileSize     int64
-	currentSize  int64
-	width        int
-	lastProgress int
-	startTime    time.Time
-	lastTime     time.Time
-	lastSize     int64
-	started      bool
-}
-
-func NewProgressBar(fileName string, fileSize int64) *progressBar {
-	now := time.Now()
-	return &progressBar{
-		fileName:  fileName,
-		fileSize:  fileSize,
-		width:     50,
-		startTime: now,
-		lastTime:  now,
-	}
-}
-
-func (p *progressBar) Write(b []byte) (int, error) {
-	n := len(b)
-	p.currentSize += int64(n)
-	progress := int(float64(p.currentSize*100) / float64(p.fileSize))
-
-	if progress > p.lastProgress {
-		p.lastProgress = progress
-
-		// Print a blank line before progress bar if it's the first time to print.
-		if !p.started {
-			fmt.Println()
-			p.started = true
-		}
-
-		// Calculate download speed
-		now := time.Now()
-		elapsedSec := now.Sub(p.startTime).Seconds()
-		speed := float64(0)
-		if elapsedSec > 0 {
-			speed = float64(p.currentSize) / elapsedSec
-		}
-
-		// Calculate ETA
-		eta := ""
-		if speed > 0 && p.currentSize < p.fileSize {
-			remainingBytes := float64(p.fileSize - p.currentSize)
-			remainingSec := remainingBytes / speed
-			eta = formatDuration(int64(remainingSec))
-		}
-
-		// Format speed with appropriate units
-		speedStr := expr.FormatSize(int64(speed)) + "/s"
-
-		// Build progress bar (20 characters width)
-		barWidth := 20
-		filledWidth := (progress * barWidth) / 100
-		progressBar := ""
-		for i := range barWidth {
-			if i < filledWidth {
-				progressBar += "█"
-			} else {
-				progressBar += "░"
-			}
-		}
-
-		// Build compact progress display
-		var content string
-		if eta != "" {
-			content = fmt.Sprintf("- downloading: %s [%s] %d%% (%s ETA:%s)",
-				p.fileName,
-				progressBar,
-				progress,
-				speedStr,
-				eta,
-			)
-		} else {
-			content = fmt.Sprintf("- downloading: %s [%s] %d%% (%s)",
-				p.fileName,
-				progressBar,
-				progress,
-				speedStr,
-			)
-		}
-
-		color.PrintInline(color.Hint, "%s", content)
-		if progress == 100 {
-			totalSec := time.Since(p.startTime).Seconds()
-			color.PrintInline(color.Hint, "✔ downloaded %s (%s) in %s",
-				p.fileName,
-				expr.FormatSize(p.fileSize),
-				formatDuration(int64(totalSec)),
-			)
-		}
-	}
-
-	return n, nil
-}
-
-// formatDuration converts seconds to a human-readable format (e.g., "2m 30s", "45s")
-func formatDuration(seconds int64) string {
-	if seconds < 60 {
-		return fmt.Sprintf("%ds", seconds)
-	}
-
-	minutes := seconds / 60
-	secs := seconds % 60
-	if minutes < 60 {
-		return fmt.Sprintf("%dm %ds", minutes, secs)
-	}
-
-	hours := minutes / 60
-	mins := minutes % 60
-	return fmt.Sprintf("%dh %dm %ds", hours, mins, secs)
 }

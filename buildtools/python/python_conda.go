@@ -47,7 +47,7 @@ func (c *CondaPython) installConda(scriptPath, installDir string) error {
 		if fileio.PathExists(condaBinary) {
 			if err := exec.Command(condaBinary, "--version").Run(); err == nil {
 				color.PrintPass("tool: %s", "conda-"+c.condaVersion)
-				color.PrintHint("Location: %s\n", installDir)
+				color.PrintHint("Location: %s", installDir)
 				return nil
 			}
 		}
@@ -157,13 +157,13 @@ func (c *CondaPython) GetExecutable() (string, error) {
 
 	// Environment not found, attempt to create it with the specified Python version.
 	// Use conda-forge channel as the default source.
-	color.Printf(color.Hint, "- creating conda environment for Python %s (venv name: %s)", minorVersion, envName)
+	color.Printf(color.Hint, "[-] creating conda environment for Python %s (venv name: %s)", minorVersion, envName)
 	createCmd := exec.Command(c.condaBinary, "create", "-y", "-c", "conda-forge", "-n", envName, fmt.Sprintf("python=%s", minorVersion))
 	if output, err := createCmd.CombinedOutput(); err != nil {
 		return "", fmt.Errorf("failed to create conda environment for Python %s -> %s -> %w",
 			minorVersion, string(output), err)
 	}
-	color.PrintInline(color.Hint, "✔ creating conda environment for Python %s (venv name: %s)\n", minorVersion, envName)
+	color.PrintInline(color.Hint, "[✔] creating conda environment for Python %s (venv name: %s)\n", minorVersion, envName)
 
 	// Verify the new environment was created.
 	cmd = exec.Command(c.condaBinary, "run", "-n", envName, "python", "--version")

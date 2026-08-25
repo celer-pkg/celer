@@ -188,7 +188,7 @@ func (p Project) stripDeployed() error {
 		if _, err := cmd.NewExecutor("", stripBin, path).ExecuteOutput(); err != nil {
 			return nil
 		}
-		color.PrintHint("✔ strip %s", path)
+		color.PrintHint("[✔] strip %s", path)
 		return nil
 	})
 	if err != nil {

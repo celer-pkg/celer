@@ -2,9 +2,9 @@ package netfs
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
@@ -55,33 +55,31 @@ func (d DownloadConfig) Restore(fileName, sha256 string) (string, error) {
 	}
 
 	color.Printf(color.Title, "\n%s\n", fmt.Sprintf("[validating file cache: %s]", fileName))
-	color.PrintInline(color.Hint, "- validating with sha256: %s", sha256)
+	color.PrintInline(color.Hint, "[-] validating with sha256: %s", sha256)
 
 	// Verify file's sha256.
 	computedHash, err := fileio.SHA256Sum(cachedFilePath)
 	if err != nil {
-		color.PrintInline(color.Hint, "✘ validate with sha256: %s\n", sha256)
+		color.PrintInline(color.Hint, "[✘] validate with sha256: %s\n", sha256)
 		return "", fmt.Errorf("failed to compute sha-256 for cached file -> %w", err)
 	}
 	if computedHash == sha256 {
-		color.PrintInline(color.Hint, "✔ validate with sha256: %s\n", sha256)
+		color.PrintInline(color.Hint, "[✔] validate with sha256: %s\n", sha256)
 		return cachedFilePath, nil
 	}
 
-	color.PrintInline(color.Hint, "✘ validate with sha256: %s\n", sha256)
+	color.PrintInline(color.Hint, "[✘] validate with sha256: %s\n", sha256)
 	return "", nil
 }
 
 // Store saves a downloaded file to the cache directory using SHA256 in the filename.
-func (d DownloadConfig) Store(fileName, sha256, srcFile string) (string, error) {
+func (d DownloadConfig) Store(fileName, sha256, srcPath string) (string, error) {
 	if sha256 == "" {
 		panic(fmt.Sprintf("no sha-256 provided when caching file to pkgcache for %s", fileName))
 	}
 
-	if !fileio.PathExists(d.cacheDir) {
-		if err := os.MkdirAll(d.cacheDir, fileio.CacheDirPerm); err != nil {
-			return "", fmt.Errorf("failed to create cache dir -> %w", err)
-		}
+	if err := os.MkdirAll(d.cacheDir, fileio.CacheDirPerm); err != nil {
+		return "", fmt.Errorf("failed to create cache dir -> %w", err)
 	}
 
 	cachedFileName := fmt.Sprintf("%s-%s%s", fileio.Base(fileName), sha256, fileio.Ext(fileName))
@@ -97,25 +95,59 @@ func (d DownloadConfig) Store(fileName, sha256, srcFile string) (string, error) 
 	// Write to NFS tmp dir first (excluded from chattr +a),
 	// then atomically rename into final location to avoid partial reads.
 	nfsTmpDir := filepath.Join(filepath.Dir(d.cacheDir), "tmp")
-	nfsTmpFileName := fmt.Sprintf("%s-%d%s", fileio.Base(fileName), time.Now().UnixNano(), fileio.Ext(fileName))
-	nfsTmpPath := filepath.Join(nfsTmpDir, nfsTmpFileName)
 	if err := os.MkdirAll(nfsTmpDir, fileio.CacheDirPerm); err != nil {
 		return "", fmt.Errorf("failed to create tmp dir -> %w", err)
 	}
-	if err := fileio.CopyFile(srcFile, nfsTmpPath); err != nil {
+
+	// Create a local tmp file as the copy dest.
+	destTmpFile, err := os.CreateTemp(nfsTmpDir, fmt.Sprintf("%s-*", fileName))
+	if err != nil {
+		return "", fmt.Errorf("failed to create nfs tmp file: %s -> %w", fileName, err)
+	}
+	defer func() {
+		destTmpFile.Close()
+		os.Remove(destTmpFile.Name())
+	}()
+
+	// Get file info to get file size.
+	info, err := os.Stat(srcPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to get file info for %s -> %w", srcPath, err)
+	}
+
+	// This is the file to copy from.
+	srcFile, err := os.Open(srcPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to open src file: %s -> %w", srcPath, err)
+	}
+	defer srcFile.Close()
+
+	// Cache to pkgcache in progress.
+	completed := func(formattedTimeCost, formattedSize string) {
+		color.PrintInline(color.Pass, "[✔] %s (%s) in %s\n", fileName+" is stored", formattedSize, formattedTimeCost)
+		color.PrintHint("Location: %s", d.cacheDir)
+	}
+	progress := fileio.NewProgressBar("caching to pkgcache: "+fileName, info.Size(), completed)
+	if _, err := io.Copy(io.MultiWriter(destTmpFile, progress), srcFile); err != nil {
 		return "", fmt.Errorf("failed to copy file to cache -> %w", err)
 	}
-	defer os.Remove(nfsTmpPath)
 
-	if err := os.Rename(nfsTmpPath, cachedFilePath); err != nil {
+	// Flush and close before rename.
+	if err := destTmpFile.Sync(); err != nil {
+		return "", fmt.Errorf("failed to sync file to cache -> %w", err)
+	}
+	if err := destTmpFile.Close(); err != nil {
+		return "", fmt.Errorf("failed to close tmp file -> %w", err)
+	}
+
+	if err := os.Rename(destTmpFile.Name(), cachedFilePath); err != nil {
 		// Dest may have appeared between our check and rename (another user won the race).
 		if fileio.VerifyFileSHA256(cachedFilePath, sha256) {
 			return cachedFilePath, nil
 		}
 
-		// Rename failed — likely chattr +a dir with existing corrupt dest.
-		// Fall back to in-place overwrite (O_TRUNC).
-		if err := fileio.CopyFile(srcFile, cachedFilePath); err != nil {
+		// Rename failed — just try again.
+		if err := fileio.CopyFile(srcPath, cachedFilePath); err != nil {
 			return "", fmt.Errorf("failed to copy file to cache -> %w", err)
 		}
 	}

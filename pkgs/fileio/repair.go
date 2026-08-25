@@ -100,7 +100,7 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 	if needToDownload && canUseCache {
 		cachedFile, err := r.tryRestoreFromCache(fileName)
 		if err != nil {
-			color.Printf(color.Warning, "✘ failed to search pkgcache: %v\n", err)
+			color.Printf(color.Warning, "[✘] failed to search pkgcache: %v\n", err)
 		} else if cachedFile != "" {
 			if err := os.MkdirAll(ctx.Downloads(), os.ModePerm); err != nil {
 				return fmt.Errorf("failed to mkdir downloads dir -> %w", err)
@@ -108,7 +108,7 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 			if err := CopyFile(cachedFile, downloaded); err != nil {
 				return fmt.Errorf("failed to restore cached file %s -> %w", fileName, err)
 			}
-			color.Printf(color.Hint, "✔ restore from pkgcache: %s\n", fileName)
+			color.Printf(color.Hint, "[✔] restore from pkgcache: %s\n", fileName)
 			needToDownload = false
 		}
 	}
@@ -127,14 +127,12 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 				return fmt.Errorf("sha-256 mismatch for %s: expected %s", fileName, r.sha256)
 			}
 
-			color.Printf(color.Hint, "- caching to pkgcache: %s", fileName)
 			downloadCache := pkgCacheConfig.GetDownloadCache()
 			if downloadCache != nil {
 				cachedPath, err := downloadCache.Store(fileName, r.sha256, downloaded)
 				if err != nil {
 					return fmt.Errorf("failed to cache downloaded file %s -> %w", fileName, err)
 				}
-				color.PrintInline(color.Hint, "✔ cached to pkgcache: %s\n", fileName)
 				downloaded = cachedPath
 			}
 		}

@@ -333,32 +333,34 @@ func InitAsLocalRepo(repoDir, message string) error {
 		"GIT_COMMITTER_EMAIL=ci@celer.com",
 	)
 
+	color.Printf(color.Title, "\n%s\n", "[init for tracking file change]")
+
 	// git init
-	color.Printf(color.Hint, "- git -C %s init", repoDir)
+	color.Printf(color.Hint, "[-] git -C %s init", repoDir)
 	cmd := exec.Command("git", "-C", repoDir, "init")
 	cmd.Env = gitEnv
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("failed to git init repo: %s -> %w", output, err)
 	}
-	color.PrintInline(color.Hint, "✔ git -C %s init\n", repoDir)
+	color.PrintInline(color.Hint, "[✔] git -C %s init\n", repoDir)
 
 	// git add
-	color.Printf(color.Hint, "- git -C %s add -A", repoDir)
+	color.Printf(color.Hint, "[-] git -C %s add -A", repoDir)
 	cmd = exec.Command("git", "-C", repoDir, "add", "-A")
 	cmd.Env = gitEnv
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("failed to git add -A: %w (output: %s)", err, output)
 	}
-	color.PrintInline(color.Hint, "✔ git -C %s add -A\n", repoDir)
+	color.PrintInline(color.Hint, "[✔] git -C %s add -A\n", repoDir)
 
 	// git commit
-	color.Printf(color.Hint, "- git -C %s commit -m %s", repoDir, message)
+	color.Printf(color.Hint, "[-] git -C %s commit -m %s", repoDir, message)
 	cmd = exec.Command("git", "-C", repoDir, "commit", "-m", message)
 	cmd.Env = gitEnv
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("failed to git commit: %w (output: %s)", err, output)
 	}
-	color.PrintInline(color.Hint, "✔ git -C %s commit -m %s\n", repoDir, message)
+	color.PrintInline(color.Hint, "[✔] git -C %s commit -m %s\n", repoDir, message)
 
 	return nil
 }

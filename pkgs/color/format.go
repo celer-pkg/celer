@@ -42,19 +42,19 @@ func PrintError(err error, format string, args ...any) error {
 }
 
 func PrintWarning(format string, args ...any) {
-	Printf(Warning, "\n[!] %s", fmt.Sprintf(format, args...))
+	Printf(Warning, "[!] %s\n", fmt.Sprintf(format, args...))
 }
 
 func PrintPass(format string, args ...any) {
-	Printf(Pass, "\n[✔] %s", fmt.Sprintf(format, args...))
+	Printf(Pass, "\n[✔] %s\n", fmt.Sprintf(format, args...))
 }
 
 func PrintInfo(format string, args ...any) {
-	Printf(Info, "\n%s", fmt.Sprintf(format, args...))
+	Printf(Info, "%s\n", fmt.Sprintf(format, args...))
 }
 
 func PrintHint(format string, args ...any) {
-	Printf(Hint, "\n%s", fmt.Sprintf(format, args...))
+	Printf(Hint, "%s\n", fmt.Sprintf(format, args...))
 }
 
 func PrintInline(colorFmt *Style, format string, args ...any) {
@@ -67,12 +67,12 @@ func PrintInline(colorFmt *Style, format string, args ...any) {
 	}
 
 	// Calculate padding to fill the rest of the line using display width.
-	padding := terminalWidth() - runewidth.StringWidth(content)
+	padding := TerminalWidth() - runewidth.StringWidth(content)
 	if padding > 0 {
 		content += strings.Repeat(" ", padding)
 	}
 
-	// Add back the newline if it existed
+	// Add back the newline if it existed.
 	if hasNewline {
 		content += "\n"
 	}
@@ -83,7 +83,9 @@ func PrintInline(colorFmt *Style, format string, args ...any) {
 	os.Stdout.Sync()
 }
 
-func terminalWidth() int {
+// TerminalWidth returns the current terminal width, or a 150-column fallback
+// when stdout is not a terminal (e.g. piped to a file).
+func TerminalWidth() int {
 	width, _, err := term.GetSize(int(os.Stdout.Fd()))
 	if err != nil {
 		return 150
