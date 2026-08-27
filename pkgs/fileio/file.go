@@ -14,12 +14,6 @@ import (
 	"github.com/celer-pkg/celer/pkgs/dirs"
 )
 
-// Permission modes for directory and file.
-const (
-	CacheDirPerm  os.FileMode = 02775 // rwxrwsr-x: group writable + setgid for multi-user cache access
-	CacheFilePerm os.FileMode = 0664  // rw-rw-r--: group can overwrite in-place, others read-only
-)
-
 // IsExecutable check if file was executable
 func IsExecutable(filepath string) bool {
 	info, err := os.Stat(filepath)

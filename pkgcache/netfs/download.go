@@ -78,7 +78,7 @@ func (d DownloadConfig) Store(fileName, sha256, srcPath string) (string, error) 
 		panic(fmt.Sprintf("no sha-256 provided when caching file to pkgcache for %s", fileName))
 	}
 
-	if err := os.MkdirAll(d.cacheDir, fileio.CacheDirPerm); err != nil {
+	if err := os.MkdirAll(d.cacheDir, os.ModePerm); err != nil {
 		return "", fmt.Errorf("failed to create cache dir -> %w", err)
 	}
 
@@ -95,7 +95,7 @@ func (d DownloadConfig) Store(fileName, sha256, srcPath string) (string, error) 
 	// Write to NFS tmp dir first (excluded from chattr +a),
 	// then atomically rename into final location to avoid partial reads.
 	nfsTmpDir := filepath.Join(filepath.Dir(d.cacheDir), "tmp")
-	if err := os.MkdirAll(nfsTmpDir, fileio.CacheDirPerm); err != nil {
+	if err := os.MkdirAll(nfsTmpDir, os.ModePerm); err != nil {
 		return "", fmt.Errorf("failed to create tmp dir -> %w", err)
 	}
 

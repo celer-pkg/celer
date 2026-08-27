@@ -52,7 +52,7 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 
 	// Create folder to store repo archive.
 	cacheRepoDir := r.ctx.PkgCacheConfig().GetDir(pkgcache.PkgCacheDirRepos)
-	if err := os.MkdirAll(cacheRepoDir, fileio.CacheDirPerm); err != nil {
+	if err := os.MkdirAll(cacheRepoDir, os.ModePerm); err != nil {
 		return "", err
 	}
 
@@ -74,7 +74,7 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 		}
 
 		// Create repo name folder.
-		if err := os.MkdirAll(filepath.Dir(archivePath), fileio.CacheDirPerm); err != nil {
+		if err := os.MkdirAll(filepath.Dir(archivePath), os.ModePerm); err != nil {
 			return "", err
 		}
 
@@ -91,7 +91,7 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 
 		// Write to remote tmp dir, then atomically rename.
 		remoteTmpFile := filepath.Join(remoteTmpDir, fmt.Sprintf("repo-%s-%d.tar.gz", nameVersion, time.Now().UnixNano()))
-		if err := os.MkdirAll(remoteTmpDir, fileio.CacheDirPerm); err != nil {
+		if err := os.MkdirAll(remoteTmpDir, os.ModePerm); err != nil {
 			return "", err
 		}
 		if err := fileio.CopyFile(localTmpFile, archivePath); err != nil {
@@ -132,13 +132,13 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 		}
 
 		// Create repo name folder.
-		if err := fileio.MkdirAll(filepath.Dir(archivePath), fileio.CacheDirPerm); err != nil {
+		if err := fileio.MkdirAll(filepath.Dir(archivePath), os.ModePerm); err != nil {
 			return "", err
 		}
 
 		// Write to remote tmp dir, then atomically rename.
 		remoteTmpArchive := filepath.Join(remoteTmpDir, fmt.Sprintf("repo-%s-%d%s", nameVersion, time.Now().UnixNano(), ext))
-		if err := os.MkdirAll(remoteTmpDir, fileio.CacheDirPerm); err != nil {
+		if err := os.MkdirAll(remoteTmpDir, os.ModePerm); err != nil {
 			return "", err
 		}
 		if err := fileio.CopyFile(archiveFile, remoteTmpArchive); err != nil {

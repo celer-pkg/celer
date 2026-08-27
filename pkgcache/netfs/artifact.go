@@ -52,7 +52,7 @@ func (a ArtifactConfig) Restore(nameVersion, buildHash, packageDir string) (stri
 	remoteArchiveDir := filepath.Join(artifactCacheDir, platformName, projectName, buildType, nameVersion)
 	remoteArchivePath := filepath.Join(remoteArchiveDir, buildHash+".tar.gz")
 	if !fileio.PathExists(remoteArchivePath) {
-		color.PrintWarning("======== no artifact found for %s and it'll build from source ========\n", nameVersion)
+		color.PrintWarning("======== no artifact found for %s and it'll build from source ========", nameVersion)
 		return "", nil // not an error even not exist.
 	}
 
@@ -61,7 +61,8 @@ func (a ArtifactConfig) Restore(nameVersion, buildHash, packageDir string) (stri
 	metaBytes, err := os.ReadFile(metaPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return "", fmt.Errorf("cache archive exists but metadata is missing: %s", metaPath)
+			color.PrintWarning("======== cached artifact for %s has no metadata, it'll build from source ========", nameVersion)
+			return "", nil
 		}
 		return "", err
 	}
@@ -216,17 +217,43 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		return err
 	}
 
-	// Create dirs and write to cache.
-	if err := os.MkdirAll(destDir, fileio.CacheDirPerm); err != nil {
+	if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
 		return err
 	}
-	if err := os.MkdirAll(metaDir, fileio.CacheDirPerm); err != nil {
+	if err := os.MkdirAll(metaDir, os.ModePerm); err != nil {
 		return err
 	}
 
-	// Write the archive here first, then atomically os.Rename into the +a-protected dir.
+	// Files are staged here, then atomically os.Rename into the final dir.
 	cacheRootDir := a.ctx.PkgCacheConfig().GetDir(pkgcache.PkgCacheDirRoot)
 	remoteTmpDir := filepath.Join(cacheRootDir, "tmp")
+
+	// Write the meta file before the archive.
+	metaPath := filepath.Join(metaDir, hash+".meta")
+	if err := os.MkdirAll(remoteTmpDir, os.ModePerm); err != nil {
+		return err
+	}
+	tmpMetaName := fmt.Sprintf("%s-%d.meta", hash, time.Now().UnixNano())
+	remoteTmpMeta := filepath.Join(remoteTmpDir, tmpMetaName)
+	if err := os.WriteFile(remoteTmpMeta, []byte(meta), os.ModePerm); err != nil {
+		return err
+	}
+	defer os.Remove(remoteTmpMeta)
+
+	// metaAtPathOk reports whether the meta file already at path hashes to hash.
+	metaAtPathOk := func(path string) bool {
+		data, err := os.ReadFile(path)
+		return err == nil && fmt.Sprintf("%x", sha256.Sum256(data)) == hash
+	}
+
+	// Atomic rename meta to final location.
+	if err := os.Rename(remoteTmpMeta, metaPath); err != nil {
+		if !metaAtPathOk(metaPath) {
+			if err := os.WriteFile(metaPath, []byte(meta), os.ModePerm); err != nil {
+				return err
+			}
+		}
+	}
 
 	// Copy to tmp with retry for transient IO failures.
 	tmpArchiveName := fmt.Sprintf("%s-%d.tar.gz", hash, time.Now().UnixNano())
@@ -234,7 +261,7 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 
 	var storeErr error
 	for attempt := 1; attempt <= a.maxRetries; attempt++ {
-		if err := os.MkdirAll(remoteTmpDir, fileio.CacheDirPerm); err != nil {
+		if err := os.MkdirAll(remoteTmpDir, os.ModePerm); err != nil {
 			return err
 		}
 		storeErr = fileio.CopyFile(tempArchivePath, tmpArchive)
@@ -266,27 +293,6 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 			return nil
 		}
 		return err
-	}
-
-	// Write meta file atomically — same pattern.
-	metaPath := filepath.Join(metaDir, hash+".meta")
-	tmpMetaName := fmt.Sprintf("%s-%d.meta", hash, time.Now().UnixNano())
-	remoteTmpMeta := filepath.Join(remoteTmpDir, tmpMetaName)
-	if err := os.WriteFile(remoteTmpMeta, []byte(meta), fileio.CacheFilePerm); err != nil {
-		return err
-	}
-	defer os.Remove(remoteTmpMeta)
-
-	// Atomic rename meta to final location.
-	if err := os.Rename(remoteTmpMeta, metaPath); err != nil {
-		if fileio.PathExists(metaPath) {
-			return nil // race: another user wrote it first.
-		}
-
-		// Fallback: write directly (meta is small; partial-read risk is minimal).
-		if err := os.WriteFile(metaPath, []byte(meta), fileio.CacheFilePerm); err != nil {
-			return err
-		}
 	}
 
 	return nil
