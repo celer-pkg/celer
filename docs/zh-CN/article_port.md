@@ -46,6 +46,7 @@
   lib_dirs = []                           # 可选字段，额外库文件搜索目录
   patches = []                            # 可选字段
   build_in_source = false                 # 可选字段，默认 false
+  shorten_build_folder = false            # 可选字段，默认 false，仅 Windows 目标构建
   autogen_options = []                    # 可选字段
   pre_configure = []                      # 可选字段
   post_configure = []                     # 可选字段
@@ -230,6 +231,10 @@
 ### apply_envs
 
 &emsp;&emsp;可选配置，默认 **false**。CMake 构建默认跳过 port 的 envs（编译器工具由 toolchain_file.cmake 定义）。设置 **apply_envs = true** 可将 port 的 envs 应用到构建环境。适用于 Rust/Cargo 交叉编译等需要 `CC`/`CXX` 环境变量的场景。
+
+### shorten_build_folder
+
+&emsp;&emsp;可选，默认 **false**，仅 Windows 目标构建。当 `buildtrees` 路径过深、可能触发 MSVC MAX_PATH 限制时，将 build 目录缩短为哈希名（`packages` 路径不变）。Qt 等深层 object 路径的项目可设为 `true`。支持 `shorten_build_folder_windows` 等平台字段。
 
 ### autogen_options
 

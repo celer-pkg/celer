@@ -275,11 +275,18 @@ type BuildConfig struct {
 	LibDirs_Linux   []string `toml:"lib_dirs_linux,omitempty"`
 	LibDirs_Darwin  []string `toml:"lib_dirs_darwin,omitempty"`
 
-	// Event hooks for disableDevCache
+	// DisableDevCache
 	DisableDevCache         bool `toml:"disable_dev_cache,omitempty"`
 	DisableDevCache_Windows bool `toml:"disable_dev_cache_windows,omitempty"`
 	DisableDevCache_Linux   bool `toml:"disable_dev_cache_linux,omitempty"`
 	DisableDevCache_Darwin  bool `toml:"disable_dev_cache_darwin,omitempty"`
+
+	// ShortenBuildFolder uses a hashed buildtrees folder name on Windows to avoid
+	// MSVC MAX_PATH issues with very deep object paths.
+	ShortenBuildFolder         bool `toml:"shorten_build_folder,omitempty"`
+	ShortenBuildFolder_Windows bool `toml:"shorten_build_folder_windows,omitempty"`
+	ShortenBuildFolder_Linux   bool `toml:"shorten_build_folder_linux,omitempty"`
+	ShortenBuildFolder_Darwin  bool `toml:"shorten_build_folder_darwin,omitempty"`
 
 	// Configure Options
 	Options         []string `toml:"options,omitempty"`
