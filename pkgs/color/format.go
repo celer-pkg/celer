@@ -46,7 +46,7 @@ func PrintWarning(format string, args ...any) {
 }
 
 func PrintPass(format string, args ...any) {
-	Printf(Pass, "\n[✔] %s\n", fmt.Sprintf(format, args...))
+	Printf(Pass, "[✔] %s\n", fmt.Sprintf(format, args...))
 }
 
 func PrintInfo(format string, args ...any) {
