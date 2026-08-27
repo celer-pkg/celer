@@ -44,7 +44,7 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 			}
 
 			color.PrintPass("%s's install report is generated", p.NameVersion())
-			color.PrintHint("Location: %s\n", reportPath)
+			color.PrintHint("Location: %s", reportPath)
 		}
 	}()
 
@@ -83,7 +83,7 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 	if installed && !options.Force {
 		if p.IsHostSupported() {
 			color.PrintPass("package: %s", p.NameVersion())
-			color.PrintHint("Location: %s\n", installedDir)
+			color.PrintHint("Location: %s", installedDir)
 		}
 		installedFrom = "preinstalled"
 		retErr = nil
@@ -319,7 +319,7 @@ func (p Port) doInstallFromPkgCache(options InstallOptions) (bool, error) {
 	artifactCache := p.ctx.PkgCacheConfig().GetArtifactCache()
 	if artifactCache != nil {
 		if fromWhere, err := artifactCache.Restore(p.NameVersion(), buildhash, p.PackageDir); err != nil {
-			return false, fmt.Errorf("read cache with buildhash: %s", err)
+			return false, fmt.Errorf("read cache with build hash: %s", err)
 		} else if fromWhere != "" {
 			return true, nil
 		}
@@ -643,13 +643,13 @@ func (p *Port) doInstallFromDevCache(options InstallOptions) (bool, error) {
 	// Calculate buildhash.
 	buildhash, err := p.buildhash()
 	if err != nil {
-		return false, fmt.Errorf("failed to calculate buildhash -> %w", err)
+		return false, fmt.Errorf("failed to calculate build hash -> %w", err)
 	}
 
 	// Read cache file and extract them to package dir.
 	devArtifactCache := p.ctx.DevCacheConfig().GetDevArtifactCache()
 	if fromWhere, err := devArtifactCache.Restore(p.NameVersion(), buildhash, p.PackageDir); err != nil {
-		return false, fmt.Errorf("read cache with buildhash: %s", err)
+		return false, fmt.Errorf("failed to read cache with build hash -> %w", err)
 	} else if fromWhere != "" {
 		return true, nil
 	}
@@ -1199,7 +1199,7 @@ func (p Port) prepareTmpDeps() error {
 			return err
 		}
 
-		color.Printf(color.Hint, "✔ prepare deps %-15s -- [dev]\n", port.NameVersion())
+		color.Printf(color.Hint, "[✔] prepare deps %-15s -- [dev]\n", port.NameVersion())
 	}
 
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
@@ -1240,7 +1240,7 @@ func (p Port) prepareTmpDeps() error {
 			return err
 		}
 
-		content := expr.If(port.DevDep || port.HostDep, "✔ prepare deps %-15s -- [dev]\n", "✔ prepare deps %s\n")
+		content := expr.If(port.DevDep || port.HostDep, "[✔] prepare deps %-15s -- [dev]\n", "[✔] prepare deps %s\n")
 		color.Printf(color.Hint, content, port.NameVersion())
 	}
 
@@ -1279,7 +1279,7 @@ func (p Port) writeTraceFile(installedFrom string) error {
 
 	// Print install trace.
 	color.PrintPass("%s is installed from %s", p.NameVersion(), installedFrom)
-	if p.MatchedConfig.SystemName == "python" {
+	if p.MatchedConfig.BuildSystem == "python" {
 		color.PrintHint("Location: %s\n", buildtools.PythonTool.VenvDir())
 	} else {
 		color.PrintHint("Location: %s\n", p.InstalledDir)

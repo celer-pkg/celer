@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -48,25 +49,68 @@ func (a ArtifactConfig) Restore(nameVersion, buildHash, packageDir string) (stri
 	buildType := a.ctx.BuildType()
 
 	artifactCacheDir := a.ctx.PkgCacheConfig().GetDir(pkgcache.PkgCacheDirArtifacts)
-	archiveDir := filepath.Join(artifactCacheDir, platformName, projectName, buildType, nameVersion)
-	archivePath := filepath.Join(archiveDir, buildHash+".tar.gz")
-	if !fileio.PathExists(archivePath) {
+	remoteArchiveDir := filepath.Join(artifactCacheDir, platformName, projectName, buildType, nameVersion)
+	remoteArchivePath := filepath.Join(remoteArchiveDir, buildHash+".tar.gz")
+	if !fileio.PathExists(remoteArchivePath) {
 		color.PrintWarning("======== no artifact found for %s and it'll build from source ========", nameVersion)
 		return "", nil // not an error even not exist.
 	}
 
 	// The meta file hash should be the same as hash that calcuated dynamically.
-	metaPath := filepath.Join(archiveDir, "metas", buildHash+".meta")
+	metaPath := filepath.Join(remoteArchiveDir, "metas", buildHash+".meta")
 	metaBytes, err := os.ReadFile(metaPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return "", fmt.Errorf("cache archive exists but metadata is missing: %s", metaPath)
+			color.PrintWarning("======== cached artifact for %s has no metadata, it'll build from source ========", nameVersion)
+			return "", nil
 		}
 		return "", err
 	}
 	metaHash := sha256.Sum256(metaBytes)
 	if fmt.Sprintf("%x", metaHash) != buildHash {
 		return "", fmt.Errorf("cache metadata checksum mismatch for %s", nameVersion)
+	}
+
+	// Copy remote archive file with progress.
+	remoteArchiveFile, err := os.OpenFile(remoteArchivePath, os.O_RDONLY, os.ModePerm)
+	if err != nil {
+		return "", fmt.Errorf("can not open archive path: %s -> %w", remoteArchivePath, err)
+	}
+	defer remoteArchiveFile.Close()
+
+	// Create a local tmp file as the copy destination.
+	destFile, err := os.CreateTemp(os.TempDir(), "artifact-*.tar.gz")
+	if err != nil {
+		return "", fmt.Errorf("can not create tmp artifact file -> %w", err)
+	}
+	localArchivePath := destFile.Name()
+	defer func() {
+		destFile.Close()
+		os.Remove(localArchivePath)
+	}()
+
+	// Read file info to get file size.
+	info, err := os.Stat(remoteArchivePath)
+	if err != nil {
+		return "", fmt.Errorf("can not get file info for %s -> %w", remoteArchivePath, err)
+	}
+
+	// Copy file to local with progress bar.
+	completed := func(formattedTimeCost, formattedSize string) {
+		color.PrintInline(color.Pass, "[✔] %s (%s) in %s\n", nameVersion+"'s artifact is restored", formattedSize, formattedTimeCost)
+		color.PrintHint("Location: %s", remoteArchivePath)
+	}
+	progress := fileio.NewProgressBar("restore artifact", info.Size(), completed)
+	if _, err := io.Copy(io.MultiWriter(destFile, progress), remoteArchiveFile); err != nil {
+		return "", fmt.Errorf("failed to restore %s from pkgcache -> %w", nameVersion, err)
+	}
+
+	// Flush and close the local archive so extraction can read it (esp. on Windows).
+	if err := destFile.Sync(); err != nil {
+		return "", fmt.Errorf("failed to sync file to cache -> %w", err)
+	}
+	if err := destFile.Close(); err != nil {
+		return "", fmt.Errorf("failed to close tmp artifact file -> %w", err)
 	}
 
 	// Create tmp dir for extracting inside.
@@ -79,10 +123,10 @@ func (a ArtifactConfig) Restore(nameVersion, buildHash, packageDir string) (stri
 	}
 	defer os.RemoveAll(tempDir)
 
-	// Extract to a tmp dir (retry for NFS read hiccups).
+	// Extract to a tmp dir (retry for read hiccups).
 	var restoreErr error
 	for attempt := 1; attempt <= a.maxRetries; attempt++ {
-		restoreErr = fileio.Extract(archivePath, tempDir)
+		restoreErr = fileio.Extract(localArchivePath, tempDir)
 		if restoreErr == nil {
 			break
 		}
@@ -94,17 +138,20 @@ func (a ArtifactConfig) Restore(nameVersion, buildHash, packageDir string) (stri
 	if restoreErr != nil {
 		return "", restoreErr
 	}
+
+	// Clean package dir.
 	if err := os.RemoveAll(packageDir); err != nil {
 		return "", err
 	}
 	if err := os.MkdirAll(filepath.Dir(packageDir), os.ModePerm); err != nil {
 		return "", err
 	}
+
 	if err := os.Rename(tempDir, packageDir); err != nil {
 		return "", err
 	}
 
-	return archivePath, nil
+	return remoteArchivePath, nil
 }
 
 // Store compresses the package dir and store in cache,
@@ -153,11 +200,6 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 	hash := fmt.Sprintf("%x", data)
 	archivePath := filepath.Join(destDir, hash+".tar.gz")
 
-	// Skip if already cached — rebuild with same metadata produces identical output.
-	if fileio.PathExists(archivePath) {
-		return nil
-	}
-
 	// Compress package dir to a temp archive.
 	archiveName := fmt.Sprintf("%s@%s.tar.gz", libName, libVersion)
 	if err := dirs.CleanTmpFilesDir(); err != nil {
@@ -175,33 +217,81 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		return err
 	}
 
-	// Create dirs and write to cache (with retry for NFS transient issues).
-	if err := os.MkdirAll(destDir, fileio.CacheDirPerm); err != nil {
+	if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
 		return err
 	}
-	if err := os.MkdirAll(metaDir, fileio.CacheDirPerm); err != nil {
+	if err := os.MkdirAll(metaDir, os.ModePerm); err != nil {
 		return err
 	}
 
-	// Copy the compressed archive to cache. Retry on transient IO failures.
+	// Files are staged here, then atomically os.Rename into the final dir.
+	cacheRootDir := a.ctx.PkgCacheConfig().GetDir(pkgcache.PkgCacheDirRoot)
+	remoteTmpDir := filepath.Join(cacheRootDir, "tmp")
+
+	// Write the meta file before the archive.
+	metaPath := filepath.Join(metaDir, hash+".meta")
+	if err := os.MkdirAll(remoteTmpDir, os.ModePerm); err != nil {
+		return err
+	}
+	tmpMetaName := fmt.Sprintf("%s-%d.meta", hash, time.Now().UnixNano())
+	remoteTmpMeta := filepath.Join(remoteTmpDir, tmpMetaName)
+	if err := os.WriteFile(remoteTmpMeta, []byte(meta), os.ModePerm); err != nil {
+		return err
+	}
+	defer os.Remove(remoteTmpMeta)
+
+	// metaAtPathOk reports whether the meta file already at path hashes to hash.
+	metaAtPathOk := func(path string) bool {
+		data, err := os.ReadFile(path)
+		return err == nil && fmt.Sprintf("%x", sha256.Sum256(data)) == hash
+	}
+
+	// Atomic rename meta to final location.
+	if err := os.Rename(remoteTmpMeta, metaPath); err != nil {
+		if !metaAtPathOk(metaPath) {
+			if err := os.WriteFile(metaPath, []byte(meta), os.ModePerm); err != nil {
+				return err
+			}
+		}
+	}
+
+	// Copy to tmp with retry for transient IO failures.
+	tmpArchiveName := fmt.Sprintf("%s-%d.tar.gz", hash, time.Now().UnixNano())
+	tmpArchive := filepath.Join(remoteTmpDir, tmpArchiveName)
+
 	var storeErr error
 	for attempt := 1; attempt <= a.maxRetries; attempt++ {
-		storeErr = fileio.CopyFile(tempArchivePath, archivePath)
+		if err := os.MkdirAll(remoteTmpDir, os.ModePerm); err != nil {
+			return err
+		}
+		storeErr = fileio.CopyFile(tempArchivePath, tmpArchive)
 		if storeErr == nil {
 			break
 		}
 		if attempt < a.maxRetries {
-			color.Printf(color.Warning, "Store pkgcache failed (attempt %d/%d): %v\n", attempt, a.maxRetries, err)
+			color.Printf(color.Warning, "Store pkgcache failed (attempt %d/%d): %v\n", attempt, a.maxRetries, storeErr)
 			time.Sleep(time.Duration(attempt) * time.Second)
 		}
 	}
 	if storeErr != nil {
+		os.Remove(tmpArchive) // best-effort cleanup
 		return err
 	}
+	defer os.Remove(tmpArchive) // cleanup on success or early return
 
-	// Write meta file.
-	metaPath := filepath.Join(metaDir, hash+".meta")
-	if err := os.WriteFile(metaPath, []byte(meta), fileio.CacheFilePerm); err != nil {
+	// Check if another user already cached this archive (multi-user race).
+	if fileio.PathExists(archivePath) {
+		return nil
+	}
+
+	// Atomically place the file at its final path.
+	// Source is in tmp/ (no +a), dest is in artifacts/… (has +a, but dest does not
+	// exist yet so rename only creates a new entry — which +a allows).
+	if err := os.Rename(tmpArchive, archivePath); err != nil {
+		// Dest may have appeared between our check and rename (another user won the race).
+		if fileio.PathExists(archivePath) {
+			return nil
+		}
 		return err
 	}
 
