@@ -84,18 +84,34 @@ func GetRemoteRefCommit(target, repoUrl, repoRef string) (string, error) {
 	}
 	if isTag {
 		title := fmt.Sprintf("[read remote tag commit: %s]", target)
-		output, err := cmd.NewExecutor(title, "git", "ls-remote", repoUrl, "refs/tags/"+repoRef).
+		ref := "refs/tags/" + repoRef
+		// Query both the tag reference and its peeled form, prefer the commit pointed
+		// to by ref^{} when available.
+		output, err := cmd.NewExecutor(title, "git", "ls-remote", repoUrl, ref, ref+"^{}").
 			WithRetry(retryMaxAttempts).ExecuteOutput()
 		if err != nil {
 			return "", fmt.Errorf("failed to read git commit hash -> %s -> %w", output, err)
 		}
 
-		fields := strings.Fields(output)
-		if len(fields) < 1 {
+		var commit string
+		for line := range strings.SplitSeq(output, "\n") {
+			fields := strings.Fields(line)
+			if len(fields) < 2 {
+				continue
+			}
+
+			// Prefer the commit pointed to by ref^{} if available.
+			if strings.HasSuffix(fields[1], "^{}") {
+				return fields[0], nil
+			}
+
+			// This is the fallback commit pointed to by ref.
+			commit = fields[0]
+		}
+		if commit == "" {
 			return "", fmt.Errorf("invalid git commit hash: %s", output)
 		}
-
-		return fields[0], nil
+		return commit, nil
 	}
 
 	// The repoRef may be a commit.
