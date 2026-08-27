@@ -413,15 +413,16 @@ func (c *cmake) detectGenerator() error {
 }
 
 func (c cmake) multiConfigGenerator() bool {
-	toolchain := c.Ctx.Platform().GetToolchain()
-
-	if runtime.GOOS == "windows" {
-		return toolchain.GetName() == "msvc" ||
-			toolchain.GetName() == "clang-cl" ||
-			toolchain.GetName() == "clang"
+	switch {
+	case strings.HasPrefix(c.CMakeGenerator, "Visual Studio"):
+		return true
+	case c.CMakeGenerator == "Xcode":
+		return true
+	case c.CMakeGenerator == "Ninja Multi-Config":
+		return true
+	default:
+		return false
 	}
-
-	return false
 }
 
 func detectMSVCGenerator() (string, error) {

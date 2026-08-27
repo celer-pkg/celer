@@ -10,6 +10,8 @@ import (
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/cmd"
 	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/errors"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 // GetRepoUrl get git repo origin URL.
@@ -51,20 +53,22 @@ func IsModified(repoDir string) (bool, error) {
 	return len(lines) > 0, nil
 }
 
-// CleanRepo clean local changes of a repo to HEAD.
-func CleanRepo(repoDir string) error {
-	// git clean
-	cmd1 := exec.Command("git", "-C", repoDir, "clean", "-ffdx")
-	output1, err := cmd1.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("git clean failed: %s", output1)
+// Clean clean git repo.
+func CleanRepo(target, repoDir string) error {
+	if !fileio.PathExists(repoDir) {
+		return errors.ErrDirNotExist
+	}
+	if !fileio.PathExists(repoDir + "/.git") {
+		return errors.ErrNotGitDir
 	}
 
-	// git reset
-	cmd2 := exec.Command("git", "-C", repoDir, "reset", "--hard")
-	output2, err := cmd2.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("git reset --hard failed: %s", output2)
+	title := fmt.Sprintf("[clean %s]", target)
+	commands := []string{"git reset --hard", "git clean -ffdx"}
+	commandLine := strings.Join(commands, " && ")
+	executor := cmd.NewExecutor(title, commandLine)
+	executor.SetWorkDir(repoDir)
+	if output, err := executor.ExecuteOutputLive(); err != nil {
+		return fmt.Errorf("failed to clean '%s' -> %s -> %w", target, output, err)
 	}
 
 	return nil
