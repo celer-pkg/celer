@@ -195,21 +195,18 @@ func (p Port) GetCommitHash(nameVersion string, native bool) (string, error) {
 
 	// Don't cache ErrRepoNotExit — the repo may be cloned later in the same run.
 	result, err := p.doGetCommitHash(nameVersion, native)
-	if err == nil || !errors.Is(err, errors.ErrRepoNotExit) {
-		commitHashCache.Store(key, metaResult{meta: result, err: err})
+	if err != nil {
+		return "", err
 	}
-	return result, err
+
+	commitHashCache.Store(key, metaResult{meta: result, err: err})
+	return result, nil
 }
 
 func (p Port) doGetCommitHash(nameVersion string, native bool) (string, error) {
 	var port = Port{DevDep: native}
 	if err := port.Init(p.ctx, nameVersion); err != nil {
 		return "", err
-	}
-
-	// Check if repo cloned or downloaded.
-	if !fileio.PathExists(port.MatchedConfig.PortConfig.RepoDir) {
-		return "", errors.ErrRepoNotExit
 	}
 
 	// No commit hash for virtual project.
@@ -219,6 +216,19 @@ func (p Port) doGetCommitHash(nameVersion string, native bool) (string, error) {
 
 	// Get commit hash or archive checksum.
 	if strings.HasSuffix(port.Package.Url, ".git") {
+		// Git clone repo if missing.
+		if !fileio.PathExists(port.MatchedConfig.PortConfig.RepoDir) {
+			if err := port.MatchedConfig.Clone(
+				port.Package.Url,
+				port.Package.Ref,
+				port.Package.Archive,
+				port.Package.Depth,
+			); err != nil {
+				return "", fmt.Errorf("failed to clone repo %s -> %w", nameVersion, err)
+			}
+		}
+
+		// Read local git repo commit.
 		commit, err := git.GetCommitHash(port.MatchedConfig.PortConfig.RepoDir)
 		if err != nil {
 			return "", fmt.Errorf("failed to read git commit hash -> %w", err)
@@ -234,7 +244,7 @@ func (p Port) doGetCommitHash(nameVersion string, native bool) (string, error) {
 			filePath = filepath.Join(p.ctx.Downloads(), archive)
 		}
 
-		// Auto-download source archive if missing, then continue checksum.
+		// Download source archive if missing.
 		if !fileio.PathExists(filePath) {
 			if err := os.RemoveAll(port.MatchedConfig.PortConfig.RepoDir); err != nil {
 				return "", err
@@ -246,14 +256,14 @@ func (p Port) doGetCommitHash(nameVersion string, native bool) (string, error) {
 				archive,
 				port.Package.Depth,
 			); err != nil {
-				return "", fmt.Errorf("archive file is missing and auto-download failed for %s -> %w", nameVersion, err)
+				return "", fmt.Errorf("failed to download %s -> %w", nameVersion, err)
 			}
 		}
 
 		// Calculate checksum of archive file.
 		commit, err := fileio.SHA256Sum(filePath)
 		if err != nil {
-			return "", fmt.Errorf("failed to get checksum of part's archive %s -> %w", nameVersion, err)
+			return "", fmt.Errorf("failed to get checksum of archive %s -> %w", nameVersion, err)
 		}
 		return commit, nil
 	}

@@ -241,10 +241,10 @@ func (t *Toolchain) CheckAndRepair(silent bool) error {
 	if !silent {
 		if t.rootDir == "" {
 			color.PrintPass("toolchain: %s", "local")
-			color.PrintHint("Location: %s\n", strings.ReplaceAll(t.Url, "file:///", ""))
+			color.PrintHint("Location: %s", strings.ReplaceAll(t.Url, "file:///", ""))
 		} else {
 			color.PrintPass("toolchain: %s", t.displayName)
-			color.PrintHint("Location: %s\n", t.rootDir)
+			color.PrintHint("Location: %s", t.rootDir)
 		}
 	}
 	return nil
