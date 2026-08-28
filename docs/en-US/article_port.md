@@ -38,6 +38,7 @@ Let's look at an example port.toml file: **ports/glog/0.6.0/port.toml**:
   lib_dirs            = [...]                 # optional field, additional library search directories
   patches             = [...]                 # optional field
   build_in_source     = false                 # optional field, default is **false**
+  shorten_build_folder = false                # optional field, default is **false**, Windows target builds only
   autogen_options     = [...]                 # optional field
   pre_configure       = [...]                 # optional field
   post_configure      = [...]                 # optional field
@@ -222,6 +223,10 @@ Currently supported build systems and mappings:
 ### apply_envs
 
 &emsp;&emsp;Optional, default **false**. CMake builds normally skip port `envs` (compiler tools are defined in toolchain_file.cmake). Set **apply_envs = true** to apply port `envs` to the build environment. Useful for Rust/Cargo cross-compilation that needs `CC`/`CXX` env vars.
+
+### shorten_build_folder
+
+&emsp;&emsp;Optional, default **false**, Windows target builds only. Shortens the build folder under `buildtrees` to a hash name when the path would exceed MSVC MAX_PATH (`packages` paths unchanged). Use `true` for deep builds such as Qt. Platform-specific fields like `shorten_build_folder_windows` are supported.
 
 ### autogen_options
 

@@ -79,6 +79,17 @@ func (b *BuildConfig) mergeConfig() {
 			buildTypeField.SetString(strings.ToLower(buildType))
 		}
 	}
+
+	for _, name := range []string{"ShortenBuildFolder", "DisableDevCache"} {
+		platformField := bVal.FieldByName(name + platformSuffix)
+		if !platformField.IsValid() || platformField.Kind() != reflect.Bool {
+			continue
+		}
+
+		if platformField.Bool() {
+			bVal.FieldByName(name).SetBool(true)
+		}
+	}
 }
 
 // getPlatformSuffix returns the platform suffix for field names

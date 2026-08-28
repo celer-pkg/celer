@@ -64,7 +64,7 @@
 | --- | --- | --- |
 | `${REPO_DIR}` | 当前端口 | 端口源码仓库目录 |
 | `${SRC_DIR}` | 当前端口 | 端口源码解压目录 |
-| `${BUILD_DIR}` | 当前端口 | 端口构建目录 |
+| `${BUILD_DIR}` | 当前端口 | 端口构建目录；Windows 上若启用 `shorten_build_folder`，此处可能为缩短后的哈希目录名 |
 | `${PACKAGE_DIR}` | 当前端口 | 端口打包输出目录 |
 | `${DEV_DEPS_DIR}` | workspace tmp deps | 主机构建工具依赖目录 |
 | `${DEPS_DIR}` | workspace tmp deps | 当前模式（dev/target）对应依赖目录 |

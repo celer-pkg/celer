@@ -2,9 +2,11 @@ package configs
 
 import (
 	"fmt"
+	"hash/fnv"
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 
 	"github.com/celer-pkg/celer/buildsystems"
@@ -21,12 +23,19 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 	platformName := p.ctx.Platform().GetName()
 	projectName := p.ctx.Project().GetName()
 
+	if err := p.mergeBuildConfigs(); err != nil {
+		return err
+	}
+
 	// host example: x86_64-linux-dev
 	// target example: aarch64-linux-ubuntu-22.04-gcc-11.5.0-test_project_001-release
 	buildFolder := expr.If(p.DevDep || p.HostDep,
 		filepath.Join(nameVersion, hostName+"-dev"),
 		filepath.Join(nameVersion, fmt.Sprintf("%s-%s-%s", platformName, projectName, buildType)),
 	)
+	if runtime.GOOS == "windows" && !p.DevDep && !p.HostDep && p.MatchedConfig.ShortenBuildFolder {
+		buildFolder = p.shortenBuildFolder(buildFolder, nameVersion, platformName, projectName, buildType)
+	}
 
 	// host example: x86_64-linux-dev
 	// target example: aarch64-linux-ubuntu-22.04-gcc-11.5.0/test_project_001/release
@@ -87,32 +96,6 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 
 	if len(p.BuildConfigs) > 0 {
 		for index := range p.BuildConfigs {
-			// Merge ports defined in project if exists.
-			publicPort := dirs.GetPortPath(p.Name, p.Version)
-			projectPort := p.portFile != "" && p.portFile != publicPort
-			if fileio.PathExists(publicPort) && projectPort {
-				bytes, err := os.ReadFile(p.portFile)
-				if err != nil {
-					return fmt.Errorf("failed to read project port -> %w", err)
-				}
-
-				var portInProject Port
-				if err := toml.Unmarshal(bytes, &portInProject); err != nil {
-					return fmt.Errorf("failed to unmarshal project port -> %w", err)
-				}
-				portInProject.ctx = p.ctx
-
-				// Convert build type to lowercase for all build configs in project port.
-				for i := range portInProject.BuildConfigs {
-					portInProject.BuildConfigs[i].BuildType = strings.ToLower(portInProject.BuildConfigs[i].BuildType)
-					portInProject.BuildConfigs[i].BuildType_Windows = strings.ToLower(portInProject.BuildConfigs[i].BuildType_Windows)
-					portInProject.BuildConfigs[i].BuildType_Linux = strings.ToLower(portInProject.BuildConfigs[i].BuildType_Linux)
-					portInProject.BuildConfigs[i].BuildType_Darwin = strings.ToLower(portInProject.BuildConfigs[i].BuildType_Darwin)
-					p.mergeFromProject(index, &portInProject.BuildConfigs[i])
-				}
-			}
-
-			p.BuildConfigs[index].Ctx = p.ctx
 			p.BuildConfigs[index].ExprVars = p.exprVars
 			p.BuildConfigs[index].PortConfig = portConfig
 			p.BuildConfigs[index].DevDep = p.DevDep
@@ -133,10 +116,71 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 	return nil
 }
 
+func (p *Port) mergeBuildConfigs() error {
+	for i := range p.BuildConfigs {
+		publicPort := dirs.GetPortPath(p.Name, p.Version)
+		projectPort := p.portFile != "" && p.portFile != publicPort
+		if !fileio.PathExists(publicPort) || !projectPort {
+			continue
+		}
+
+		bytes, err := os.ReadFile(p.portFile)
+		if err != nil {
+			return fmt.Errorf("failed to read project port: %s -> %w", p.portFile, err)
+		}
+
+		var portInProject = Port{ctx: p.ctx}
+		if err := toml.Unmarshal(bytes, &portInProject); err != nil {
+			return fmt.Errorf("failed to unmarshal project port: %s -> %w", p.portFile, err)
+		}
+
+		for j := range portInProject.BuildConfigs {
+			p.mergeFromProject(i, &portInProject.BuildConfigs[j])
+		}
+
+		p.BuildConfigs[i].Ctx = p.ctx
+	}
+	return nil
+}
+
+const (
+	windowsMaxObjPath           = 260
+	windowsShortBuildObjReserve = 210
+)
+
+func (p *Port) windowsBuildDirFits(buildFolder string, objReserve int) bool {
+	buildDir := filepath.Join(dirs.WorkspaceDir, "buildtrees", buildFolder)
+	return len(buildDir)+1+objReserve <= windowsMaxObjPath
+}
+
+func (p *Port) shortenBuildFolder(longFolder, nameVersion, platformName, projectName, buildType string) string {
+	if p.windowsBuildDirFits(longFolder, windowsShortBuildObjReserve) {
+		return longFolder
+	}
+
+	hash := fnv.New32a()
+	fmt.Fprintf(hash, "%s\x00%s\x00%s", platformName, projectName, buildType)
+	tag := fmt.Sprintf("%06x", hash.Sum32()&0xffffff)
+	bt := expr.If(buildType == "", "r", buildType[:1])
+
+	// Prefer keeping platform in the folder name when it still fits.
+	withPlatform := filepath.Join(nameVersion, fmt.Sprintf("%s-%s-%s", platformName, tag, bt))
+	if p.windowsBuildDirFits(withPlatform, windowsShortBuildObjReserve) {
+		return withPlatform
+	}
+	return filepath.Join(nameVersion, fmt.Sprintf("%s-%s", tag, bt))
+}
+
 func (p *Port) mergeFromProject(index int, overrideConfig *buildsystems.BuildConfig) {
 	if overrideConfig == nil {
 		return
 	}
+
+	// Format build_type as lower case.
+	overrideConfig.BuildType = strings.ToLower(overrideConfig.BuildType)
+	overrideConfig.BuildType_Windows = strings.ToLower(overrideConfig.BuildType_Windows)
+	overrideConfig.BuildType_Linux = strings.ToLower(overrideConfig.BuildType_Linux)
+	overrideConfig.BuildType_Darwin = strings.ToLower(overrideConfig.BuildType_Darwin)
 
 	// Helper function to merge field with platform variants.
 	mergeField := func(fieldName string) {
@@ -176,7 +220,7 @@ func (p *Port) mergeFromProject(index int, overrideConfig *buildsystems.BuildCon
 		"PreConfigure", "CustomConfigure", "PostConfigure",
 		"PreBuild", "CustomBuild", "PostBuild",
 		"PreInstall", "CustomInstall", "PostInstall",
-		"AutogenOptions", "Options",
+		"AutogenOptions", "Options", "DisableDevCache", "ShortenBuildFolder",
 	}
 
 	for _, field := range fields {
