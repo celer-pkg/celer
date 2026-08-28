@@ -96,6 +96,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 
 	if len(p.BuildConfigs) > 0 {
 		for index := range p.BuildConfigs {
+			p.BuildConfigs[index].Ctx = p.ctx
 			p.BuildConfigs[index].ExprVars = p.exprVars
 			p.BuildConfigs[index].PortConfig = portConfig
 			p.BuildConfigs[index].DevDep = p.DevDep
