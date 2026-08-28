@@ -28,8 +28,6 @@ func (f fakeContext) Version() string                         { return "test" }
 func (f fakeContext) Platform() context.Platform              { return fakePlatform{name: f.platform} }
 func (f fakeContext) RootFS() context.RootFS                  { return nil }
 func (f fakeContext) Project() context.Project                { return fakeProject{name: f.project} }
-func (f fakeContext) PlatformName() string                    { return f.platform }
-func (f fakeContext) ProjectName() string                     { return f.project }
 func (f fakeContext) BuildType() string                       { return f.build }
 func (f fakeContext) LibraryFolder() string                   { return "" }
 func (f fakeContext) Downloads() string                       { return f.downloads }
@@ -144,14 +142,15 @@ func TestArtifactCache_StoreAndFetch(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		// Restore cache to test_package.
+		// Restore cache to test_package. Missing metadata is treated as a cache
+		// miss so the package builds from source instead of failing.
 		packageDir := filepath.Join(tmpWorkspace, "test_package")
 		fromWhere, err := artifactCache.Restore(nameVersion, hash, packageDir)
-		if err == nil {
-			t.Fatal("expected error when metadata is missing")
+		if err != nil {
+			t.Fatalf("expected no error when metadata is missing, got: %v", err)
 		}
 		if fromWhere != "" {
-			t.Fatal("expected not installed when metadata is missing")
+			t.Fatal("expected not installed (cache miss) when metadata is missing")
 		}
 	})
 

@@ -52,9 +52,13 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 
 	// Create folder to store repo archive.
 	cacheRepoDir := r.ctx.PkgCacheConfig().GetDir(pkgcache.PkgCacheDirRepos)
-	if err := os.MkdirAll(cacheRepoDir, fileio.CacheDirPerm); err != nil {
+	if err := os.MkdirAll(cacheRepoDir, os.ModePerm); err != nil {
 		return "", err
 	}
+
+	// Remote root tmp dir for atomic writes.
+	cacheRootDir := r.ctx.PkgCacheConfig().GetDir(pkgcache.PkgCacheDirRoot)
+	remoteTmpDir := filepath.Join(cacheRootDir, "tmp")
 
 	if strings.HasSuffix(repoUrl, ".git") {
 		commit, err := git.GetCommitHash(repoDir)
@@ -70,21 +74,38 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 		}
 
 		// Create repo name folder.
-		if err := os.MkdirAll(filepath.Dir(archivePath), fileio.CacheDirPerm); err != nil {
+		if err := os.MkdirAll(filepath.Dir(archivePath), os.ModePerm); err != nil {
 			return "", err
 		}
 
-		// Compress to temp dir first (outside cache), then copy to final path.
-		// chattr +a allows creating new files but not renaming.
+		// Compress to local temp dir first (outside cache), then copy to remote tmp dir.
+		// Finally atomically rename into the +a-protected repo cache dir.
 		if err := dirs.CleanTmpFilesDir(); err != nil {
 			return "", fmt.Errorf("failed to clean tmp files dir -> %w", err)
 		}
-		tempArchivePath := filepath.Join(dirs.TmpFilesDir, fmt.Sprintf("%s-%d.tar.gz", nameVersion, time.Now().UnixMilli()))
-		if err := fileio.Targz(tempArchivePath, repoDir, false); err != nil {
+		localTmpFile := filepath.Join(dirs.TmpFilesDir, fmt.Sprintf("%s-%d.tar.gz", nameVersion, time.Now().UnixMilli()))
+		if err := fileio.Targz(localTmpFile, repoDir, false); err != nil {
 			return "", err
 		}
-		defer os.Remove(tempArchivePath)
-		if err := fileio.CopyFile(tempArchivePath, archivePath); err != nil {
+		defer os.Remove(localTmpFile)
+
+		// Write to remote tmp dir, then atomically rename.
+		remoteTmpFile := filepath.Join(remoteTmpDir, fmt.Sprintf("repo-%s-%d.tar.gz", nameVersion, time.Now().UnixNano()))
+		if err := os.MkdirAll(remoteTmpDir, os.ModePerm); err != nil {
+			return "", err
+		}
+		if err := fileio.CopyFile(localTmpFile, archivePath); err != nil {
+			return "", err
+		}
+		defer os.Remove(remoteTmpFile)
+
+		if fileio.PathExists(archivePath) {
+			return archivePath, nil // another user cached it first.
+		}
+		if err := os.Rename(remoteTmpFile, archivePath); err != nil {
+			if fileio.PathExists(archivePath) {
+				return archivePath, nil
+			}
 			return "", err
 		}
 
@@ -111,12 +132,27 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 		}
 
 		// Create repo name folder.
-		if err := fileio.MkdirAll(filepath.Dir(archivePath), fileio.CacheDirPerm); err != nil {
+		if err := fileio.MkdirAll(filepath.Dir(archivePath), os.ModePerm); err != nil {
 			return "", err
 		}
 
-		// Copy original archive to repo cache dir.
-		if err := fileio.CopyFile(archiveFile, archivePath); err != nil {
+		// Write to remote tmp dir, then atomically rename.
+		remoteTmpArchive := filepath.Join(remoteTmpDir, fmt.Sprintf("repo-%s-%d%s", nameVersion, time.Now().UnixNano(), ext))
+		if err := os.MkdirAll(remoteTmpDir, os.ModePerm); err != nil {
+			return "", err
+		}
+		if err := fileio.CopyFile(archiveFile, remoteTmpArchive); err != nil {
+			return "", err
+		}
+		defer os.Remove(remoteTmpArchive)
+
+		if fileio.PathExists(archivePath) {
+			return archivePath, nil // another user cached it first.
+		}
+		if err := os.Rename(remoteTmpArchive, archivePath); err != nil {
+			if fileio.PathExists(archivePath) {
+				return archivePath, nil
+			}
 			return "", err
 		}
 

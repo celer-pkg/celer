@@ -78,7 +78,7 @@ func (r *RootFS) CheckAndRepair() error {
 	// Print download & extract info.
 	location := filepath.Join(toolsDir, folderName)
 	color.PrintPass("rootfs: %s", fileio.Base(r.Url))
-	color.PrintHint("Location: %s\n", r.ctx.ExprVars().Expand(location))
+	color.PrintHint("Location: %s", r.ctx.ExprVars().Expand(location))
 
 	return nil
 }
