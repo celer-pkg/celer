@@ -183,6 +183,27 @@ func GetDefaultBranch(nameVersion, repoDir string) (string, error) {
 	return "", fmt.Errorf("default branch not found of %s", repoDir)
 }
 
+// CheckIfLocalBranch check if repoRef is a local branch.
+func CheckIfLocalBranch(repoDir, repoRef string) (bool, error) {
+	title := fmt.Sprintf("[query local branch: %s]", repoRef)
+	output, err := cmd.NewExecutor(title, "git", "-C", repoDir, "branch", "--list", repoRef).ExecuteOutput()
+	if err != nil {
+		return false, fmt.Errorf("failed to query local branch %s -> %s -> %w", repoRef, output, err)
+	}
+
+	return strings.TrimSpace(output) != "", nil
+}
+
+// CheckIfLocalTag check if repoRef is a local tag.
+func CheckIfLocalTag(repoDir, repoRef string) (bool, error) {
+	title := fmt.Sprintf("[query local tag: %s]", repoRef)
+	output, err := cmd.NewExecutor(title, "git", "-C", repoDir, "tag", "--list", repoRef).ExecuteOutput()
+	if err != nil {
+		return false, fmt.Errorf("failed to query local tag %s -> %s -> %w", repoRef, output, err)
+	}
+	return strings.TrimSpace(output) != "", nil
+}
+
 // shortHash returns a concise git hash format: first 7 chars...last 7 chars
 func shortHash(hash string) string {
 	if len(hash) <= 14 {

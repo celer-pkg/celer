@@ -13,10 +13,10 @@ Celer 通过 Linux `chattr +a`（append-only）属性 + 系统用户组 + `celer
 
 ## 缓存目录结构
 
-配置 `pkgcache.dir` 后，Celer 会在该目录下按功能划分子目录：
+配置 pkgcache 后端后，Celer 会在该目录下按功能划分子目录：
 
 ```text
-/mnt/data/pkgcache/                       # pkgcache.dir
+/home/test/pkgcache/                      # pkgcache.fs.dir
     ├── artifacts-v0.2.7/                  # 构建产物缓存（按版本隔离）
     │   └── x86_64-linux-ubuntu-22.04-gcc-11.5.0/
     │       └── project_01/
@@ -43,7 +43,7 @@ Celer 通过 Linux `chattr +a`（append-only）属性 + 系统用户组 + `celer
 
 ## 配置方法
 
-在 `celer.toml` 中添加 `[pkgcache]` 部分：
+PkgCache 有两个互斥的后端。在 `celer.toml` 中添加 `[pkgcache.fs]` 部分（本地目录或 NFS、SMB 等网络挂载目录）：
 
 ```toml
 [main]
@@ -51,27 +51,58 @@ Celer 通过 Linux `chattr +a`（append-only）属性 + 系统用户组 + `celer
   platform = "x86_64-linux-ubuntu-22.04-gcc-11.5.0"
   project = "project_01"
 
-[pkgcache]
+[pkgcache.fs]
   dir = "/home/test/pkgcache"   # 本地目录或网络挂载目录（NFS、SMB 等）
+
+[pkgcache.options]              # 所有后端共享的选项
   writable = true               # 是否允许写入缓存
-  cache_artifacts = true        # 是否启用构建产物缓存
-  cache_downloads = true        # 是否启用下载文件缓存
+  downloads = true              # 是否启用下载文件缓存
+  artifacts = true              # 是否启用构建产物缓存
+  repos = true                  # 是否启用源码仓库缓存
+```
+
+或者添加 `[pkgcache.minio]` 部分（S3 兼容的 MinIO 服务）：
+
+```toml
+[pkgcache.minio]
+  host = "http://minio.example.com:9000"
+  access_key = "xxx"
+  secret_key = "yyy"
+
+[pkgcache.options]
+  writable = true
+  downloads = true
+  artifacts = true
+  repos = true
 ```
 
 **配置项说明：**
 
 | 字段 | 说明 |
 |------|------|
-| `dir` | 缓存根目录，必须是一个已存在的目录 |
-| `writable` | `true` 时允许写入缓存，`false` 时只读 |
-| `cache_artifacts` | 是否启用构建产物缓存 |
-| `cache_downloads` | 是否启用下载文件缓存 |
+| `pkgcache.fs.dir` | fs 后端缓存根目录，必须是一个已存在的目录 |
+| `pkgcache.minio.host` / `access_key` / `secret_key` | minio 后端服务地址与访问凭证，host 必须可访问 |
+| `pkgcache.options.writable` | `true` 时允许写入缓存，`false` 时只读 |
+| `pkgcache.options.downloads` | 是否启用下载文件缓存 |
+| `pkgcache.options.artifacts` | 是否启用构建产物缓存 |
+| `pkgcache.options.repos` | 是否启用源码仓库缓存 |
+
+首次配置任一后端（fs 或 minio）时，`[pkgcache.options]` 中的选项默认全部为 `true`。
 
 也可以通过命令行动态配置：
 
 ```bash
-celer configure --pkgcache-dir=/home/test/pkgcache
+# fs 后端
+celer configure --pkgcache-fs-dir=/home/test/pkgcache
+
+# minio 后端（fs 与 minio 互斥）
+celer configure --pkgcache-minio-host=http://minio.example.com:9000 \
+                --pkgcache-minio-access-key=xxx \
+                --pkgcache-minio-secret-key=yyy
+
+# 共享选项
 celer configure --pkgcache-writable=true
+celer configure --pkgcache-cache-repos=false
 ```
 
 ### 解决方案：chattr +a（append-only）

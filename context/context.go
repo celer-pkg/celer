@@ -1,6 +1,10 @@
 package context
 
-import "github.com/celer-pkg/celer/pkgcache"
+import (
+	"context"
+
+	"github.com/celer-pkg/celer/pkgcache"
+)
 
 // ========================== context ========================== //
 // Context exposes the workspace's global config (platform, project, build
@@ -18,8 +22,8 @@ type Context interface {
 	Verbose() bool
 	InstalledDir() string
 	InstalledDevDir() string
-	PkgCacheConfig() pkgcache.PkgCacheConfig
-	DevCacheConfig() pkgcache.DevCacheConfig
+	PkgCache() pkgcache.PkgCache
+	DevCache() pkgcache.DevCache
 	ProxyHostPort() (host string, port int)
 	CCacheEnabled() bool
 	GenerateToolchainFile() error
@@ -39,4 +43,9 @@ type PythonConfig interface {
 // Features features during development, can be configure temportary.
 type Features interface {
 	ShouldIgnoreCheckCMakeAbsPath() bool
+}
+
+// Background pointing to context.Background()
+func Background() context.Context {
+	return context.Background()
 }

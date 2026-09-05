@@ -1,4 +1,4 @@
-package netfs
+package minio
 
 import (
 	"fmt"
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
@@ -15,7 +16,7 @@ import (
 )
 
 type RepoConfig struct {
-	netfsCache
+	minioCache
 	ctx      context.Context
 	cacheDir string
 	writable bool
@@ -68,10 +69,22 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 	}
 
 	// Locate cached archive by repoRef.
-	remoteFilePath := filepath.Join(r.cacheDir, nameVersion, repoRef+ext)
-	if !fileio.PathExists(remoteFilePath) {
+	objectName := filepath.Join(r.cacheDir, nameVersion, repoRef+ext)
+
+	// Check if the cached archive exists before downloading.
+	remoteInfo, err := r.GetFileInfo(objectName)
+	if err != nil {
+		return false, fmt.Errorf("failed to get object info for '%s' -> %w", objectName, err)
+	}
+	if remoteInfo == nil {
 		return false, nil
 	}
+
+	downloaded, err := r.DownloadFile(objectName)
+	if err != nil {
+		return false, fmt.Errorf("failed to download '%s' -> %w", objectName, err)
+	}
+	defer os.Remove(downloaded)
 
 	// Create a clean repo dir.
 	if err := os.RemoveAll(repoDir); err != nil {
@@ -82,7 +95,7 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 	}
 
 	// Extract archive to repo dir.
-	if err := fileio.Extract(remoteFilePath, repoDir); err != nil {
+	if err := fileio.Extract(downloaded, repoDir); err != nil {
 		return false, err
 	}
 
@@ -94,17 +107,16 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 		}
 	}
 
-	// Verify cached archive integrity.
 	if strings.HasSuffix(repoUrl, ".git") {
 		// Check if stored repo was modified by comparing git tag.
 		currentTag, err := git.GetCurrentTag(repoDir)
 		if err != nil {
 			_ = os.RemoveAll(repoDir)
-			return false, fmt.Errorf("invalid cached repo, read current tag failed for %s -> %w", nameVersion, err)
+			return false, fmt.Errorf("invalid cached repo, read current tag failed for '%s' -> %w", nameVersion, err)
 		}
 		if currentTag != repoRef {
 			_ = os.RemoveAll(repoDir)
-			return false, fmt.Errorf("repo tags don't match, expect '%s', got '%s'", repoRef, currentTag)
+			return false, fmt.Errorf("repo refs don't match, expect '%s', got '%s'", repoRef, currentTag)
 		}
 
 		// Verify checksum if not empty also.
@@ -119,9 +131,18 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 			}
 		}
 	} else {
-		// Verify checksum if not empty.
+		// Check if stored repo was modified by comparing sha256.
+		if expected := r.metaSha256(remoteInfo); expected != "" {
+			if got, err := fileio.SHA256Sum(downloaded); err != nil {
+				return false, err
+			} else if got != expected {
+				return false, nil
+			}
+		}
+
+		// Verify checksum if not empty also.
 		if checksum != "" {
-			localChecksum, err := fileio.SHA256Sum(remoteFilePath)
+			localChecksum, err := fileio.SHA256Sum(downloaded)
 			if err != nil {
 				_ = os.RemoveAll(repoDir)
 				return false, fmt.Errorf("invalid cached repo, verify checksum failed for %s -> %w", nameVersion, err)
@@ -138,7 +159,7 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 			return false, fmt.Errorf("failed to init %s for tracing file change -> %w", nameVersion, err)
 		}
 
-		// Copy to downloads also, it's required to compute meta when build.
+		// Restore to downloads also, it's required to compute meta when build.
 		downloadsDir := r.ctx.Downloads()
 		fileName, err := fileio.FileName(r.ctx, repoUrl)
 		if err != nil {
@@ -149,7 +170,7 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 		if err := os.MkdirAll(downloadsDir, os.ModePerm); err != nil {
 			return false, fmt.Errorf("failed to mkdir downloads '%s' -> %w", downloadsDir, err)
 		}
-		if err := fileio.CopyFile(remoteFilePath, destArchivePath); err != nil {
+		if err := fileio.CopyFile(downloaded, destArchivePath); err != nil {
 			return false, fmt.Errorf("failed to move archive to downloads -> %w", err)
 		}
 	}
@@ -158,56 +179,65 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 }
 
 func (r RepoConfig) storeGitRepo(repoDir, repoRef, nameVersion string) error {
-	// Ignore when repo archive is stored before.
-	// Archive name will be like: repos/x264@stable/stable.tar.gz
-	// The repo content is verified against repoRef (tag) and checksum (commit)
-	// on restore, a mismatch just falls back to a fresh clone.
-	archivePath := filepath.Join(r.cacheDir, nameVersion, repoRef+".tar.gz")
-	if fileio.PathExists(archivePath) {
+	// Skip uploading if already cached.
+	remotePath := filepath.Join(r.cacheDir, nameVersion, repoRef+".tar.gz")
+	remoteInfo, err := r.GetFileInfo(remotePath)
+	if err != nil {
+		return fmt.Errorf("failed to get minio object info for '%s' -> %w", remotePath, err)
+	}
+	if remoteInfo != nil {
 		return nil
 	}
 
-	// Compress to a local temp file first (outside cache), then upload it.
+	// Compress to local temp dir.
 	localTmpFile := filepath.Join(os.TempDir(), fmt.Sprintf("celer-repo-%s-%d.tar.gz", nameVersion, time.Now().UnixMilli()))
 	if err := fileio.Targz(localTmpFile, repoDir, false); err != nil {
 		return err
 	}
 	defer os.Remove(localTmpFile)
 
-	// The archive is named after the repoRef, use its sha256 to skip re-uploads.
-	archiveSha256, err := fileio.SHA256Sum(localTmpFile)
-	if err != nil {
-		return err
-	}
-	if err := r.uploadFile(localTmpFile, archivePath, archiveSha256, false); err != nil {
-		return err
+	// Upload repo archive with progress.
+	if _, err := r.UploadFile(localTmpFile, remotePath, func(percent int) {
+		if percent < 100 {
+			color.PrintInline(color.Hint, "[-] %s is uploading repo archive: %d%%", nameVersion, percent)
+		} else if percent == 100 {
+			color.PrintInline(color.Pass, "[✔] %s is stored to pkgcache as repo archive.\n", nameVersion)
+		}
+	}); err != nil {
+		return fmt.Errorf("failed to upload repo for '%s' -> %w", nameVersion, err)
 	}
 
 	return nil
 }
 
-func (r RepoConfig) storeArchiveRepo(repoRef, nameVersion, archiveFile string) error {
+func (r RepoConfig) storeArchiveRepo(repoRef, nameVersion, archivePath string) error {
 	// Skip when original archive is not available (e.g. file:/// URLs).
-	if !fileio.PathExists(archiveFile) {
+	if !fileio.PathExists(archivePath) {
 		return nil
 	}
 
 	// Preserve original archive extension so extract dispatches correctly.
-	ext := fileio.Ext(archiveFile)
-	archivePath := filepath.Join(r.cacheDir, nameVersion, repoRef+ext)
+	ext := fileio.Ext(archivePath)
+	remotePath := filepath.Join(r.cacheDir, nameVersion, repoRef+ext)
 
-	// Skip if already cached.
-	if fileio.PathExists(archivePath) {
+	// Skip uploading if already cached.
+	remoteInfo, err := r.GetFileInfo(remotePath)
+	if err != nil {
+		return fmt.Errorf("failed to get minio object info for '%s' -> %w", remotePath, err)
+	}
+	if remoteInfo != nil {
 		return nil
 	}
 
-	checksum, err := fileio.SHA256Sum(archiveFile)
-	if err != nil {
-		return err
-	}
-
-	if err := r.uploadFile(archiveFile, archivePath, checksum, false); err != nil {
-		return err
+	// Upload repo archive with progress.
+	if _, err := r.UploadFile(archivePath, remotePath, func(percent int) {
+		if percent < 100 {
+			color.PrintInline(color.Hint, "[-] %s is uploading repo archive: %d%%", nameVersion, percent)
+		} else if percent == 100 {
+			color.PrintInline(color.Hint, "[✔] %s is stored to pkgcache as repo archive.\n", nameVersion)
+		}
+	}); err != nil {
+		return fmt.Errorf("failed to upload repo for '%s' -> %w", nameVersion, err)
 	}
 
 	return nil

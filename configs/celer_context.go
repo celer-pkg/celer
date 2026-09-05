@@ -67,15 +67,15 @@ func (c *Celer) ProjectName() string {
 	return c.project.Name
 }
 
-func (c *Celer) PkgCacheConfig() pkgcache.PkgCacheConfig {
-	if c.configData.PkgCacheConfig == nil {
+func (c *Celer) PkgCache() pkgcache.PkgCache {
+	if c.configData.PkgCache == nil {
 		return nil
 	}
 
-	return c.configData.PkgCacheConfig
+	return c.configData.PkgCache
 }
 
-func (c *Celer) DevCacheConfig() pkgcache.DevCacheConfig {
+func (c *Celer) DevCache() pkgcache.DevCache {
 	return c.devCacheConfig
 }
 

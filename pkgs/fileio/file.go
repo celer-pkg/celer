@@ -3,12 +3,15 @@ package fileio
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/celer-pkg/celer/pkgs/dirs"
@@ -99,80 +102,34 @@ func CopyDir(srcDir, dstDir string) error {
 	})
 }
 
-// RenameDir rename files in src to dest.
-func RenameDir(srcDir, dstDir string) error {
-	// Check if dstDir is a child of srcDir to avoid conflicts.
-	srcDirAbs, err := filepath.Abs(srcDir)
-	if err != nil {
-		return fmt.Errorf("get absolute path for srcDir -> %w", err)
-	}
-	dstDirAbs, err := filepath.Abs(dstDir)
-	if err != nil {
-		return fmt.Errorf("get absolute path for dstDir -> %w", err)
-	}
-
-	// If dstDir is within srcDir, use a temp directory first.
-	if relPath, err := filepath.Rel(srcDirAbs, dstDirAbs); err == nil && !strings.HasPrefix(relPath, "..") {
-		tempDir := filepath.Join(filepath.Dir(srcDirAbs), ".temp_rename_"+filepath.Base(srcDirAbs))
-		if err := RenameDir(srcDirAbs, tempDir); err != nil {
-			os.RemoveAll(tempDir)
-			return err
-		}
-		if err := RenameDir(tempDir, dstDir); err != nil {
-			os.RemoveAll(tempDir)
-			return err
-		}
-		return nil
-	}
-
-	if err := filepath.Walk(srcDir, func(srcPath string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		relPath, err := filepath.Rel(srcDir, srcPath)
-		if err != nil {
-			return err
-		}
-		dstPath := filepath.Join(dstDir, relPath)
-
-		if info.IsDir() {
-			return os.MkdirAll(dstPath, info.Mode())
-		}
-
-		if err := RenameFile(srcPath, dstPath); err != nil {
-			return err
-		}
-
-		// Try remove parent folder if it's empty.
-		if err := RemoveFolderRecursively(filepath.Dir(srcPath)); err != nil {
-			return fmt.Errorf("cannot remove parent folder: %s", err)
-		}
-
-		return nil
-	}); err != nil {
-		return err
-	}
-
-	// Remove the source directory after all files are moved
-	return os.RemoveAll(srcDir)
-}
-
 // FlattenNestedDir flattens a single wrapping directory into its parent.
 // Many source archives extract into a single subdirectory like ffmpeg-4.4/;
 // this moves the contents up into dir, removing the extra nesting level.
 // Directories named "include" are left as-is to preserve system include layouts.
 func FlattenNestedDir(dir string) error {
+	dir = filepath.Clean(dir)
 	entities, err := os.ReadDir(dir)
 	if err != nil {
 		return fmt.Errorf("failed to read dir -> %w", err)
 	}
 
-	if len(entities) == 1 && entities[0].IsDir() && entities[0].Name() != "include" {
-		srcDir := filepath.Join(dir, entities[0].Name())
-		if err := RenameDir(srcDir, dir); err != nil {
-			return fmt.Errorf("failed to flatten nested dir -> %w", err)
-		}
+	if len(entities) != 1 || !entities[0].IsDir() || entities[0].Name() == "include" {
+		return nil
+	}
+
+	// dir holds only the wrapper, so flattening is three renames: move the
+	// wrapper aside, drop the now-empty dir, let the wrapper take its place.
+	srcDir := filepath.Join(dir, entities[0].Name())
+	tmpDir := dir + ".flatten"
+	if err := os.Rename(srcDir, tmpDir); err != nil {
+		return fmt.Errorf("failed to flatten nested dir -> %w", err)
+	}
+	if err := os.Remove(dir); err != nil {
+		os.Rename(tmpDir, srcDir) // Best-effort rollback.
+		return fmt.Errorf("failed to flatten nested dir -> %w", err)
+	}
+	if err := os.Rename(tmpDir, dir); err != nil {
+		return fmt.Errorf("failed to flatten nested dir -> %w", err)
 	}
 
 	return nil
@@ -203,95 +160,96 @@ func CopyFile(src, dest string) error {
 		return os.Symlink(target, dest)
 	}
 
-	// Copy normal file.
-	srcFile, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer srcFile.Close()
-
-	// Remove dest if it exists to avoid "permission denied" for read-only files.
-	if _, err := os.Lstat(dest); err == nil {
-		if err := os.Remove(dest); err != nil {
-			return err
-		}
-	}
-
-	destFile, err := os.Create(dest)
-	if err != nil {
-		return err
-	}
-	defer destFile.Close()
-
-	if _, err := io.Copy(destFile, srcFile); err != nil {
-		return err
-	}
-
-	// Set the same permissions as the source file.
-	if err := os.Chmod(dest, info.Mode()); err != nil {
-		return err
-	}
-
-	return nil
+	return copyFileContent(src, dest, false)
 }
 
-func RenameFile(src, dst string) error {
+// MoveFile moves src to dst. It creates the destination directory, handles
+// symlinks, retries renames blocked by transient Windows file locks, and falls
+// back to copy+delete when rename cannot be done (e.g. across file systems).
+func MoveFile(src, dst string) error {
 	info, err := os.Lstat(src)
 	if err != nil {
 		return fmt.Errorf("stat source -> %w", err)
 	}
 
+	// Symlinks are moved by recreating them at dst.
 	if info.Mode()&os.ModeSymlink != 0 {
-		return handleSymlink(src, dst)
+		return moveSymlink(src, dst)
+	}
+
+	if err := MkdirAll(filepath.Dir(dst), os.ModePerm); err != nil {
+		return fmt.Errorf("failed to create directory -> %w", err)
 	}
 
 	// On Windows, files under heavy access in short time are often locked,
 	// we need to retries with delays.
-	return renameWithRetry(src, dst, 3) // Retry 3 times.
-}
-
-func handleSymlink(src, dst string) error {
-	target, err := os.Readlink(src)
-	if err != nil {
-		return fmt.Errorf("read symlink -> %w", err)
-	}
-	if err := os.MkdirAll(filepath.Dir(dst), os.ModePerm); err != nil {
-		return fmt.Errorf("create directory for symlink -> %w", err)
-	}
-	return os.Symlink(target, dst)
-}
-
-func renameWithRetry(src, dst string, maxRetries int) error {
-	if err := os.MkdirAll(filepath.Dir(dst), os.ModePerm); err != nil {
-		return fmt.Errorf("create directory -> %w", err)
-	}
-
-	var lastErr error
-	for range maxRetries {
-		if err := os.Rename(src, dst); err == nil {
-			return nil
-		} else {
-			lastErr = err
-			time.Sleep(100 * time.Millisecond)
-		}
-	}
-	return fmt.Errorf("failed after %d retries -> %w", maxRetries, lastErr)
-}
-
-func MoveFile(src, dst string) error {
-	// Try atomic rename first.
-	if err := os.Rename(src, dst); err == nil {
+	if err := renameWithRetry(src, dst, 3); err == nil {
 		return nil
 	}
 
-	// Fallback to copy+delete mode.
-	if err := fileCopy(src, dst); err != nil {
+	// Rename failed (e.g. across file systems), fall back to copy+delete.
+	if err := copyFileContent(src, dst, true); err != nil {
 		return err
 	}
 	return os.Remove(src)
 }
 
-func fileCopy(src, dst string) error {
+// moveSymlink re-creates the symlink at dst and removes the source.
+func moveSymlink(src, dst string) error {
+	target, err := os.Readlink(src)
+	if err != nil {
+		return fmt.Errorf("read symlink -> %w", err)
+	}
+	if err := MkdirAll(filepath.Dir(dst), os.ModePerm); err != nil {
+		return fmt.Errorf("create directory for symlink -> %w", err)
+	}
+
+	// Remove dst if it exists, otherwise creating the symlink fails.
+	if _, err := os.Lstat(dst); err != nil {
+		if !os.IsNotExist(err) {
+			return fmt.Errorf("stat dst -> %w", err)
+		}
+	} else if err := os.Remove(dst); err != nil {
+		return err
+	}
+
+	if err := os.Symlink(target, dst); err != nil {
+		return fmt.Errorf("create symlink -> %w", err)
+	}
+	return os.Remove(src)
+}
+
+func renameWithRetry(src, dst string, maxRetries int) error {
+	var lastErr error
+	for range maxRetries {
+		err := os.Rename(src, dst)
+		if err == nil {
+			return nil
+		}
+		lastErr = err
+
+		// Permanent errors fail fast, only transient ones are retried.
+		if !isRetryableRenameErr(err) {
+			return err
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	return fmt.Errorf("failed after %d retries -> %w", maxRetries, lastErr)
+}
+
+func isRetryableRenameErr(err error) bool {
+	// Missing paths or cross-device renames never recover on retry.
+	if errors.Is(err, syscall.EXDEV) || errors.Is(err, fs.ErrNotExist) || errors.Is(err, fs.ErrInvalid) {
+		return false
+	}
+
+	// Everything else (e.g. Windows file locks) may be transient.
+	return true
+}
+
+// copyFileContent copies a regular file, preserving its mode; sync makes the
+// dest durable before returning, callers that delete src afterwards want this.
+func copyFileContent(src, dest string, sync bool) error {
 	// Close src file after copy.
 	srcFile, err := os.Open(src)
 	if err != nil {
@@ -305,14 +263,14 @@ func fileCopy(src, dst string) error {
 		return err
 	}
 
-	// Remove dst if it exists to avoid "permission denied" for read-only files.
-	if _, err := os.Lstat(dst); err == nil {
-		if err := os.Remove(dst); err != nil {
+	// Remove dest if it exists to avoid "permission denied" for read-only files.
+	if _, err := os.Lstat(dest); err == nil {
+		if err := os.Remove(dest); err != nil {
 			return err
 		}
 	}
 
-	dstFile, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, stat.Mode())
+	dstFile, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, stat.Mode())
 	if err != nil {
 		return err
 	}
@@ -322,7 +280,15 @@ func fileCopy(src, dst string) error {
 		return err
 	}
 
-	return dstFile.Sync()
+	// Chmod to the exact source mode, creation above is subject to umask.
+	if err := os.Chmod(dest, stat.Mode()); err != nil {
+		return err
+	}
+
+	if sync {
+		return dstFile.Sync()
+	}
+	return nil
 }
 
 func moveNestedFolderIfExist(filePath string) error {
@@ -337,23 +303,25 @@ func moveNestedFolderIfExist(filePath string) error {
 	return nil
 }
 
+// findNestedFolder A nested folder only exists when the archive extracted a single wrapping directory.
 func findNestedFolder(parentDir string) string {
 	entries, err := os.ReadDir(parentDir)
 	if err != nil {
 		return ""
 	}
 
-	folderName := filepath.Base(parentDir)
+	if len(entries) != 1 || !entries[0].IsDir() {
+		return ""
+	}
 
-	for _, entry := range entries {
-		// If a folder is found that isn't the one we are currently in,
-		// it's considered a nested folder.
-		if entry.IsDir() && folderName == entry.Name() {
-			nestedDir := filepath.Join(parentDir, entry.Name())
-			if _, err := os.Stat(nestedDir); err == nil {
-				return nestedDir
-			}
-		}
+	folderName := filepath.Base(parentDir)
+	if entries[0].Name() != folderName {
+		return ""
+	}
+
+	nestedDir := filepath.Join(parentDir, entries[0].Name())
+	if _, err := os.Stat(nestedDir); err == nil {
+		return nestedDir
 	}
 
 	return ""
@@ -458,7 +426,7 @@ func MkdirAll(path string, perm os.FileMode) error {
 	}
 
 	// Retry mkdir several times.
-	for range 4 {
+	for range 3 {
 		time.Sleep(10 * time.Millisecond)
 		err = os.MkdirAll(path, perm)
 		if err == nil {
@@ -587,6 +555,11 @@ func SHA256Sum(filePath string) (string, error) {
 	hash := sha256.New()
 	if _, err := io.Copy(hash, file); err != nil {
 		return "", fmt.Errorf("failed to compute hash -> %w", err)
+	}
+
+	// Reset file seek.
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		return "", err
 	}
 
 	return hex.EncodeToString(hash.Sum(nil)), nil

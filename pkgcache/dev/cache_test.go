@@ -186,12 +186,12 @@ func TestDevRestore_CacheHit(t *testing.T) {
 
 	// Restore to a fresh location (simulating a new workspace).
 	destDir := filepath.Join(t.TempDir(), "restored", "gflags@2.2.2")
-	fromPath, err := cache.Restore("gflags@2.2.2", hash, destDir)
+	restored, err := cache.Restore(destDir, "gflags@2.2.2", hash)
 	if err != nil {
 		t.Fatalf("Restore failed: %v", err)
 	}
-	if fromPath == "" {
-		t.Fatal("expected cache hit, got empty path")
+	if !restored {
+		t.Fatal("Restore should report a cache hit")
 	}
 
 	// Verify restored files exist.
@@ -207,12 +207,12 @@ func TestDevRestore_CacheMiss(t *testing.T) {
 	cache := newTestDevArtifactCache(t)
 	destDir := filepath.Join(t.TempDir(), "dest")
 
-	fromPath, err := cache.Restore("nonexistent@1.0", "somehash", destDir)
+	restored, err := cache.Restore(destDir, "nonexistent@1.0", "somehash")
 	if err != nil {
 		t.Fatalf("unexpected error on cache miss: %v", err)
 	}
-	if fromPath != "" {
-		t.Errorf("expected empty path on cache miss, got %s", fromPath)
+	if restored {
+		t.Fatal("Restore should report a cache miss for a nonexistent package")
 	}
 }
 
@@ -233,12 +233,12 @@ func TestDevRestore_TamperedMetaFails(t *testing.T) {
 	}
 
 	destDir := filepath.Join(t.TempDir(), "dest")
-	fromPath, err := cache.Restore("glog@0.6.0", hash, destDir)
+	restored, err := cache.Restore(destDir, "glog@0.6.0", hash)
 	if err != nil {
 		t.Fatalf("Restore should not error on tampered meta, just miss: %v", err)
 	}
-	if fromPath != "" {
-		t.Error("expected cache miss when meta is tampered, got cache hit")
+	if restored {
+		t.Fatal("Restore should report a cache miss for tampered meta")
 	}
 }
 
@@ -252,12 +252,12 @@ func TestDevRestore_DifferentHashMisses(t *testing.T) {
 
 	// Restore with a wrong hash → miss.
 	destDir := filepath.Join(t.TempDir(), "dest")
-	fromPath, err := cache.Restore("eigen@3.4.0", "wrong-hash", destDir)
+	restored, err := cache.Restore(destDir, "eigen@3.4.0", "wrong-hash")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if fromPath != "" {
-		t.Error("expected miss for wrong hash")
+	if restored {
+		t.Fatal("Restore should report a cache miss for a wrong hash")
 	}
 }
 
@@ -280,12 +280,12 @@ func TestDevRestore_OverwritesExistingPackageDir(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fromPath, err := cache.Restore("gflags@2.2.2", hash, destDir)
+	restored, err := cache.Restore(destDir, "gflags@2.2.2", hash)
 	if err != nil {
 		t.Fatalf("Restore failed: %v", err)
 	}
-	if fromPath == "" {
-		t.Fatal("expected cache hit")
+	if !restored {
+		t.Fatal("Restore should report a cache hit")
 	}
 
 	// old.txt should be gone (dest was removed and replaced).
@@ -311,8 +311,12 @@ func TestDevStoreRestore_RoundTrip(t *testing.T) {
 	hash := computeHash(meta)
 
 	destDir := filepath.Join(t.TempDir(), "roundtrip", "boost@1.82.0")
-	if _, err := cache.Restore("boost@1.82.0", hash, destDir); err != nil {
+	restored, err := cache.Restore(destDir, "boost@1.82.0", hash)
+	if err != nil {
 		t.Fatal(err)
+	}
+	if !restored {
+		t.Fatal("Restore should report a cache hit")
 	}
 
 	// Compare original and restored file content.

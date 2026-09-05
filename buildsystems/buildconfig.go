@@ -71,7 +71,7 @@ type buildSystem interface {
 	Clean() error
 
 	// Clone & patch source code
-	Clone(repoUrl, repoRef, archive string, depth int) error
+	Clone(repoUrl, repoRef, archiveName string, depth int) error
 	ApplyPatches() error
 	UpdateSubmodules() error
 
@@ -339,7 +339,7 @@ func (b BuildConfig) Validate() error {
 	return nil
 }
 
-func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) (err error) {
+func (b BuildConfig) Clone(repoUrl, repoRef, archiveName string, depth int) (err error) {
 	if fileio.PathExists(b.PortConfig.RepoDir) {
 		entities, err := os.ReadDir(b.PortConfig.RepoDir)
 		if err != nil {
@@ -381,9 +381,9 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) (err err
 
 	// Try to fetch repo from pkgcache.
 	var repoCache pkgcache.RepoCache
-	pkgCacheConfig := b.Ctx.PkgCacheConfig()
-	if pkgCacheConfig != nil {
-		repoCache = pkgCacheConfig.GetRepoCache()
+	pkgCache := b.Ctx.PkgCache()
+	if pkgCache != nil {
+		repoCache = pkgCache.GetRepoCache()
 	}
 
 	// Restore repo from pkgcache condition:
@@ -392,25 +392,11 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) (err err
 	// - pkgcache is configured.
 	// - current port is one of third-party ports.
 	// - checksum is not empty.
-	if repoUrl != "_" && pkgCacheConfig != nil && repoCache != nil {
-		if fromWhere, err := repoCache.Restore(nameVersion, repoUrl, b.PortConfig.RepoDir, b.PortConfig.Checksum); err != nil {
-			color.PrintWarning("failed to restore %s from repo cache, because of %s", nameVersion, err)
-			color.PrintHint("Location: %s", fromWhere)
-		} else if fromWhere != "" {
-			color.PrintPass("%s's source is restored from repo cache", nameVersion)
-			color.PrintHint("Location: %s", fromWhere)
-
-			// Restore to downloads also, it's required to compute meta when build.
-			if !strings.HasSuffix(repoUrl, ".git") {
-				archive = expr.If(archive == "", filepath.Base(repoUrl), archive)
-				downloadsArchive := filepath.Join(b.Ctx.Downloads(), archive)
-				if err := os.MkdirAll(b.Ctx.Downloads(), os.ModePerm); err != nil {
-					return fmt.Errorf("failed to create downloads dir -> %w", err)
-				}
-				if err := fileio.CopyFile(fromWhere, downloadsArchive); err != nil {
-					return fmt.Errorf("failed to restore archive to downloads -> %w", err)
-				}
-			}
+	if repoUrl != "_" && pkgCache != nil && repoCache != nil {
+		if restored, err := repoCache.Restore(b.PortConfig.RepoDir, repoUrl, repoRef, nameVersion, b.PortConfig.Checksum, archiveName); err != nil {
+			return fmt.Errorf("failed to restore %s from repo cache -> %w", nameVersion, err)
+		} else if restored {
+			color.PrintHint("[✔] restore repo source '%s' from pkgcache", nameVersion)
 			return nil
 		}
 	}
@@ -440,8 +426,8 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) (err err
 		color.Printf(color.Title, "\n[fetch repo %s]", b.PortConfig.nameVersion())
 
 		// Check and repair resource.
-		archive = expr.If(archive == "", filepath.Base(repoUrl), archive)
-		repair := fileio.NewRepair(repoUrl, b.Ctx.Downloads(), archive, ".", b.PortConfig.RepoDir, b.PortConfig.Checksum)
+		archiveName = expr.If(archiveName == "", filepath.Base(repoUrl), archiveName)
+		repair := fileio.NewRepair(repoUrl, b.Ctx.Downloads(), archiveName, ".", b.PortConfig.RepoDir, b.PortConfig.Checksum)
 		if err := repair.CheckAndRepair(b.Ctx); err != nil {
 			return err
 		}
@@ -496,12 +482,11 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) (err err
 	// stays keyed by the original archive checksum without the generated .git directory.
 	// Store repo even checksum is empty, then can fill checksum in port.toml, if you want restore it from pkgcache/repos.
 	if repoUrl != "_" && repoCache != nil {
-		archiveFile := filepath.Join(b.Ctx.Downloads(), archive)
-		if whereStored, err := repoCache.Store(nameVersion, repoUrl, b.PortConfig.RepoDir, archiveFile); err != nil {
-			return fmt.Errorf("failed to store repo cache for %s -> %w", nameVersion, err)
-		} else if whereStored != "" {
+		archiveFile := filepath.Join(b.Ctx.Downloads(), archiveName)
+		if err := repoCache.Store(b.PortConfig.RepoDir, repoUrl, repoRef, nameVersion, archiveFile); err != nil {
+			return fmt.Errorf("failed to store repo cache for '%s' -> %w", nameVersion, err)
+		} else {
 			color.PrintPass("%s is stored to repo cache", nameVersion)
-			color.PrintHint("Location: %s", whereStored)
 		}
 	}
 

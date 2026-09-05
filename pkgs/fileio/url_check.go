@@ -6,9 +6,12 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"path"
+	"regexp"
 	"strings"
 	"time"
 
+	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/color"
 )
 
@@ -137,4 +140,71 @@ func checkFTPAccessible(ftpURL string) error {
 	}
 	conn.Close()
 	return nil
+}
+
+// FileName try to get filename from its url first, if empty then try to get filename http header.
+func FileName(ctx context.Context, httpUrl string) (string, error) {
+	fileName := getFileNameFromURL(httpUrl)
+	if fileName != "" {
+		return fileName, nil
+	}
+
+	const maxRetries = 3
+	var lastErr error
+	httpClient := httpClient(ctx.ProxyHostPort())
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		resp, err := httpClient.Head(httpUrl)
+		if err == nil {
+			return getFileNameFromResponse(resp), nil
+		}
+
+		lastErr = err
+		color.Printf(color.Warning, "Get file name failed (attempt %d/%d): %v\n", attempt, maxRetries, err)
+		if attempt < maxRetries {
+			time.Sleep(time.Duration(attempt) * time.Second) // Exponential backoff.
+		}
+	}
+
+	return "'", lastErr
+}
+
+func getFileNameFromURL(httpUrl string) string {
+	parsedURL, err := url.Parse(httpUrl)
+	if err != nil {
+		return ""
+	}
+
+	fileName := path.Base(parsedURL.Path)
+	if fileName == "" || fileName == "." || fileName == "/" {
+		return ""
+	}
+
+	if index := strings.Index(fileName, "?"); index != -1 {
+		fileName = fileName[:index]
+	}
+
+	return fileName
+}
+
+func getFileNameFromResponse(resp *http.Response) string {
+	contentDisposition := resp.Header.Get("Content-Disposition")
+	if contentDisposition == "" {
+		return ""
+	}
+
+	patterns := []string{
+		`filename\*=UTF-8''([^;]+)`,
+		`filename="([^"]+)"`,
+		`filename=([^;]+)`,
+	}
+
+	for _, pattern := range patterns {
+		rex := regexp.MustCompile(pattern)
+		matches := rex.FindStringSubmatch(contentDisposition)
+		if len(matches) > 1 {
+			return strings.TrimSpace(matches[1])
+		}
+	}
+
+	return ""
 }
