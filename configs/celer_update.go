@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/fileio"
@@ -52,8 +53,8 @@ func (c *Celer) readOrCreate() error {
 		if c.configData.CCache != nil {
 			c.configData.CCache.Dir = filepath.ToSlash(c.configData.CCache.Dir)
 		}
-		if c.configData.PkgCacheConfig != nil {
-			c.configData.PkgCacheConfig.Dir = filepath.ToSlash(c.configData.PkgCacheConfig.Dir)
+		if c.configData.PkgCache != nil && c.configData.PkgCache.FS != nil {
+			c.configData.PkgCache.FS.Dir = filepath.ToSlash(c.configData.PkgCache.FS.Dir)
 		}
 
 		if c.Main.Jobs == 0 {
@@ -198,7 +199,7 @@ func (c *Celer) SetVerbose(vebose bool) error {
 	return nil
 }
 
-func (c *Celer) SetPkgCacheDir(dir string) error {
+func (c *Celer) SetPkgCacheFSDir(dir string) error {
 	// Check dir empty and exist.
 	if strings.TrimSpace(dir) == "" {
 		return errors.ErrPkgCacheDirEmpty
@@ -211,81 +212,148 @@ func (c *Celer) SetPkgCacheDir(dir string) error {
 		return err
 	}
 
-	// Update package cache dir.
-	if c.configData.PkgCacheConfig == nil {
-		c.configData.PkgCacheConfig = NewPkgCacheConfig()
+	if c.configData.PkgCache == nil {
+		c.configData.PkgCache = NewPkgCache()
 	}
-	c.configData.PkgCacheConfig.Dir = filepath.ToSlash(dir)
-	c.initPkgCacheCaches()
-	if err := c.save(); err != nil {
+
+	// fs and minio are mutually exclusive.
+	if c.configData.PkgCache.Minio != nil {
+		return errors.ErrPkgCacheDuplicated
+	}
+
+	// Enable all shared options when the first backend gets configured.
+	if c.configData.PkgCache.FS == nil {
+		c.configData.PkgCache.Options = pkgcache.Options{
+			Writable:  true,
+			Downloads: true,
+			Artifacts: true,
+			Repos:     true,
+		}
+	}
+
+	// Update fs dir.
+	if c.configData.PkgCache.FS == nil {
+		c.configData.PkgCache.FS = &pkgcache.FS{
+			Dir: filepath.ToSlash(dir),
+		}
+	} else {
+		c.configData.PkgCache.FS.Dir = filepath.ToSlash(dir)
+	}
+
+	// Refresh pkgcache config.
+	if err := c.initPkgCacheCaches(); err != nil {
+		return err
+	}
+	return c.save()
+}
+
+// SetPkgCacheMinio configures the minio backend of pkgcache. Empty arguments
+// keep the current value, so host or keys can be rotated alone.
+func (c *Celer) SetPkgCacheMinio(host, accessKey, secretKey string) error {
+	if err := c.readOrCreate(); err != nil {
 		return err
 	}
 
-	return nil
+	if c.configData.PkgCache == nil {
+		c.configData.PkgCache = NewPkgCache()
+	}
+
+	// fs and minio are mutually exclusive.
+	if c.configData.PkgCache.FS != nil {
+		return errors.ErrPkgCacheDuplicated
+	}
+
+	// Enable all shared options when the first backend gets configured.
+	if c.configData.PkgCache.Minio == nil {
+		c.configData.PkgCache.Options = pkgcache.Options{
+			Writable:  true,
+			Downloads: true,
+			Artifacts: true,
+			Repos:     true,
+		}
+	}
+
+	// Update minio config, empty value means unchanged.
+	if c.configData.PkgCache.Minio == nil {
+		c.configData.PkgCache.Minio = &pkgcache.Minio{}
+	}
+	if host != "" {
+		c.configData.PkgCache.Minio.Host = host
+	}
+	if accessKey != "" {
+		c.configData.PkgCache.Minio.AccessKey = accessKey
+	}
+	if secretKey != "" {
+		c.configData.PkgCache.Minio.SecretKey = secretKey
+	}
+
+	// Validate the merged config before saving, to avoid writing a
+	// celer.toml that fails on next init.
+	if err := c.configData.PkgCache.Minio.Validate(); err != nil {
+		return err
+	}
+	if err := c.checkAccessible(c.configData.PkgCache.Minio.Host); err != nil {
+		return fmt.Errorf("cannot access '%s' of pkgcache.minio.host -> %w", c.configData.PkgCache.Minio.Host, err)
+	}
+
+	// Refresh pkgcache config.
+	if err := c.initPkgCacheCaches(); err != nil {
+		return err
+	}
+	return c.save()
+}
+
+// checkAccessible verifies the minio host is reachable.
+func (c *Celer) checkAccessible(host string) error {
+	checkUrl := host
+	if !strings.Contains(checkUrl, "://") {
+		checkUrl = "http://" + checkUrl
+	}
+	return fileio.CheckAccessible(checkUrl)
+}
+
+// updatePkgCacheOptions applies set to the options shared by all pkgcache
+// backends; a backend (fs or minio) must be configured first.
+func (c *Celer) updatePkgCacheOptions(set func(options *pkgcache.Options)) error {
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	if c.configData.PkgCache == nil || (c.configData.PkgCache.Minio == nil && c.configData.PkgCache.FS == nil) {
+		return errors.ErrPkgCacheNotConfigured
+	}
+
+	set(&c.configData.PkgCache.Options)
+
+	// Refresh pkgcache config.
+	if err := c.initPkgCacheCaches(); err != nil {
+		return err
+	}
+	return c.save()
 }
 
 func (c *Celer) SetPkgCacheWritable(writable bool) error {
-	if err := c.readOrCreate(); err != nil {
-		return err
-	}
-
-	if c.configData.PkgCacheConfig == nil || strings.TrimSpace(c.configData.PkgCacheConfig.Dir) == "" {
-		return errors.ErrPkgCacheDirEmpty
-	}
-	if !fileio.PathExists(c.configData.PkgCacheConfig.Dir) {
-		return errors.ErrPkgCacheDirNotExist
-	}
-
-	// Update pkgcache wriatable.
-	c.configData.PkgCacheConfig.Writable = writable
-	c.initPkgCacheCaches()
-	if err := c.save(); err != nil {
-		return err
-	}
-
-	return nil
+	return c.updatePkgCacheOptions(func(options *pkgcache.Options) {
+		options.Writable = writable
+	})
 }
 
-func (c *Celer) CacheArtifacts(cacheArtifacts bool) error {
-	if err := c.readOrCreate(); err != nil {
-		return err
-	}
-
-	if c.configData.PkgCacheConfig == nil || strings.TrimSpace(c.configData.PkgCacheConfig.Dir) == "" {
-		return errors.ErrPkgCacheDirEmpty
-	}
-	if !fileio.PathExists(c.configData.PkgCacheConfig.Dir) {
-		return errors.ErrPkgCacheDirNotExist
-	}
-
-	// Update cacheArtifacts.
-	c.configData.PkgCacheConfig.CacheArtifacts = cacheArtifacts
-	if err := c.save(); err != nil {
-		return err
-	}
-
-	return nil
+func (c *Celer) SetPkgCacheCacheDownloads(cacheDownloads bool) error {
+	return c.updatePkgCacheOptions(func(options *pkgcache.Options) {
+		options.Downloads = cacheDownloads
+	})
 }
 
-func (c *Celer) CacheDownloads(cacheDownloads bool) error {
-	if err := c.readOrCreate(); err != nil {
-		return err
-	}
+func (c *Celer) SetPkgCacheCacheArtifacts(cacheArtifacts bool) error {
+	return c.updatePkgCacheOptions(func(options *pkgcache.Options) {
+		options.Artifacts = cacheArtifacts
+	})
+}
 
-	if c.configData.PkgCacheConfig == nil || strings.TrimSpace(c.configData.PkgCacheConfig.Dir) == "" {
-		return errors.ErrPkgCacheDirEmpty
-	}
-	if !fileio.PathExists(c.configData.PkgCacheConfig.Dir) {
-		return errors.ErrPkgCacheDirNotExist
-	}
-
-	// Update cachedownloads.
-	c.configData.PkgCacheConfig.CacheDownloads = cacheDownloads
-	if err := c.save(); err != nil {
-		return err
-	}
-
-	return nil
+func (c *Celer) SetPkgCacheCacheRepos(cacheRepos bool) error {
+	return c.updatePkgCacheOptions(func(options *pkgcache.Options) {
+		options.Repos = cacheRepos
+	})
 }
 
 func (c *Celer) SetProxyHost(host string) error {

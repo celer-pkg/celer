@@ -6,7 +6,18 @@ import (
 	"testing"
 
 	"github.com/celer-pkg/celer/configs/toolchains"
+	"github.com/celer-pkg/celer/context"
 )
+
+// fakeContext implements the subset of context.Context used by toolchain
+// tests; any other method call panics via the nil embedded interface.
+type fakeContext struct {
+	context.Context
+	build string
+}
+
+func (f fakeContext) BuildType() string           { return f.build }
+func (f fakeContext) ExprVars() *context.ExprVars { return nil }
 
 func TestToolchainEffectiveFlags(t *testing.T) {
 	toolchain := Toolchain{}

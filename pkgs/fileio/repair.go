@@ -87,8 +87,8 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 	}
 
 	// Check if local file is valid. If not, try to restore from cache or download again.
-	pkgCacheConfig := ctx.PkgCacheConfig()
-	canUseCache := r.sha256 != "" && !r.ctx.Offline() && pkgCacheConfig != nil && pkgCacheConfig.IsWritable()
+	pkgCache := ctx.PkgCache()
+	canUseCache := r.sha256 != "" && !r.ctx.Offline() && pkgCache != nil && pkgCache.GetOptions().Writable
 
 	// Determine if download is needed.
 	needToDownload, err := r.needToDownload(fileName, r.sha256)
@@ -98,17 +98,10 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 
 	// Try restore from cache if local file is invalid.
 	if needToDownload && canUseCache {
-		cachedFile, err := r.tryRestoreFromCache(fileName)
-		if err != nil {
+		if restored, err := r.tryRestoreFromCache(fileName); err != nil {
 			color.Printf(color.Warning, "[✘] failed to search pkgcache: %v\n", err)
-		} else if cachedFile != "" {
-			if err := os.MkdirAll(ctx.Downloads(), os.ModePerm); err != nil {
-				return fmt.Errorf("failed to mkdir downloads dir -> %w", err)
-			}
-			if err := CopyFile(cachedFile, downloaded); err != nil {
-				return fmt.Errorf("failed to restore cached file %s -> %w", fileName, err)
-			}
-			color.Printf(color.Hint, "[✔] restore from pkgcache: %s\n", fileName)
+		} else if restored {
+			color.PrintPass("restore '%s' from pkgcache", fileName)
 			needToDownload = false
 		}
 	}
@@ -127,13 +120,11 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 				return fmt.Errorf("sha-256 mismatch for %s: expected %s", fileName, r.sha256)
 			}
 
-			downloadCache := pkgCacheConfig.GetDownloadCache()
+			downloadCache := pkgCache.GetDownloadCache()
 			if downloadCache != nil {
-				cachedPath, err := downloadCache.Store(fileName, r.sha256, downloaded)
-				if err != nil {
-					return fmt.Errorf("failed to cache downloaded file %s -> %w", fileName, err)
+				if err := downloadCache.Store(fileName, r.sha256, downloaded); err != nil {
+					return fmt.Errorf("failed to cache file %s -> %w", fileName, err)
 				}
-				downloaded = cachedPath
 			}
 		}
 	}
@@ -210,7 +201,7 @@ func (r *Repair) deploySingleFile(downloaded, destDir string) error {
 	destFile := filepath.Join(destDir, destFileName)
 
 	if err := CopyFile(downloaded, destFile); err != nil {
-		return fmt.Errorf("failed to copy %s to %s -> %w", downloaded, destFile, err)
+		return fmt.Errorf("failed to copy '%s' to '%s' -> %w", downloaded, destFile, err)
 	}
 
 	return nil
@@ -219,11 +210,11 @@ func (r *Repair) deploySingleFile(downloaded, destDir string) error {
 // deployArchive extracts archive to destination.
 func (r *Repair) deployArchive(downloaded, destDir string) error {
 	if err := Extract(downloaded, destDir); err != nil {
-		return fmt.Errorf("failed to extract %s -> %w", downloaded, err)
+		return fmt.Errorf("failed to extract '%s' -> %w", downloaded, err)
 	}
 
 	if err := moveNestedFolderIfExist(destDir); err != nil {
-		return fmt.Errorf("failed to move nested folder in %s -> %w", destDir, err)
+		return fmt.Errorf("failed to move nested folder in '%s' -> %w", destDir, err)
 	}
 
 	return nil
@@ -287,35 +278,25 @@ func (r Repair) needToDownload(archive, sha256 string) (needToDownload bool, err
 }
 
 // tryRestoreFromCache attempts to find and verify cached file by comparing sha256.
-// Returns cached file path if found empty string otherwise.
-func (r *Repair) tryRestoreFromCache(fileName string) (string, error) {
+func (r *Repair) tryRestoreFromCache(fileName string) (bool, error) {
 	if r.sha256 == "" {
-		return "", nil
+		return false, nil
 	}
 
 	if r.ctx.Offline() {
-		return "", nil
+		return false, nil
 	}
 
-	pkgCacheConfig := r.ctx.PkgCacheConfig()
-	if pkgCacheConfig == nil {
-		return "", nil
+	pkgCache := r.ctx.PkgCache()
+	if pkgCache == nil {
+		return false, nil
 	}
 
-	downloadCache := pkgCacheConfig.GetDownloadCache()
+	downloadCache := pkgCache.GetDownloadCache()
 	if downloadCache == nil {
-		return "", nil
+		return false, nil
 	}
 
 	// Find cached file by sha256 via the DownloadCache interface.
-	cachedFile, err := downloadCache.Restore(fileName, r.sha256)
-	if err != nil {
-		return "", err
-	}
-	if cachedFile == "" {
-		return "", nil
-	}
-
-	// Return cached file.
-	return cachedFile, nil
+	return downloadCache.Restore(fileName, r.sha256)
 }

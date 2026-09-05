@@ -11,6 +11,7 @@ import (
 	"github.com/celer-pkg/celer/configs/toolchains"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/envs"
+	"github.com/celer-pkg/celer/pkgcache/minio"
 	"github.com/celer-pkg/celer/pkgcache/netfs"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
@@ -110,12 +111,12 @@ func (p *Python) GetTrustedHosts() []string {
 }
 
 type configData struct {
-	Main           Main            `toml:"main"`
-	Proxy          *Proxy          `toml:"proxy,omitempty"`
-	PkgCacheConfig *PkgCacheConfig `toml:"pkgcache,omitempty"`
-	CCache         *CCache         `toml:"ccache,omitempty"`
-	Python         *Python         `toml:"python,omitempty"`
-	Features       *features       `toml:"features,omitempty"`
+	Main     Main      `toml:"main"`
+	Proxy    *Proxy    `toml:"proxy,omitempty"`
+	PkgCache *PkgCache `toml:"pkgcache,omitempty"`
+	CCache   *CCache   `toml:"ccache,omitempty"`
+	Python   *Python   `toml:"python,omitempty"`
+	Features *features `toml:"features,omitempty"`
 }
 
 // Init initializes celer with default options.
@@ -194,8 +195,8 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 		if c.configData.CCache != nil {
 			c.configData.CCache.Dir = filepath.ToSlash(c.configData.CCache.Dir)
 		}
-		if c.configData.PkgCacheConfig != nil {
-			c.configData.PkgCacheConfig.Dir = filepath.ToSlash(c.configData.PkgCacheConfig.Dir)
+		if c.configData.PkgCache != nil && c.configData.PkgCache.FS != nil {
+			c.configData.PkgCache.FS.Dir = filepath.ToSlash(c.configData.PkgCache.FS.Dir)
 		}
 
 		// Use lower case build type in celer as default.
@@ -229,11 +230,26 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 		}
 
 		// Validate package cache.
-		if c.configData.PkgCacheConfig != nil {
-			if strings.TrimSpace(c.configData.PkgCacheConfig.Dir) == "" {
-				return fmt.Errorf("pkgcache dir is empty")
+		if c.configData.PkgCache != nil {
+			if c.configData.PkgCache.Minio != nil && c.configData.PkgCache.FS != nil {
+				return fmt.Errorf("can not provide both minio and fs for pkgcache in celer.toml")
 			}
-			c.initPkgCacheCaches()
+
+			if c.configData.PkgCache.Minio != nil {
+				if err := c.configData.PkgCache.Minio.Validate(); err != nil {
+					return fmt.Errorf("failed to validate pkgcache.minio -> %w", err)
+				}
+			}
+
+			if c.configData.PkgCache.FS != nil {
+				if err := c.configData.PkgCache.FS.Validate(); err != nil {
+					return fmt.Errorf("failed to validate pkgcache.fs -> %w", err)
+				}
+			}
+
+			if err := c.initPkgCacheCaches(); err != nil {
+				return fmt.Errorf("failed to init pkgcache -> %w", err)
+			}
 		}
 
 		// Setup ccache.
@@ -457,15 +473,28 @@ func (c *Celer) GetProjectName() string {
 	return cfg.Main.Project
 }
 
-// initPkgCacheCaches populates repoCache, artifactCache and downloadCache on PkgCacheConfig.
-func (c *Celer) initPkgCacheCaches() {
-	if c.configData.PkgCacheConfig == nil {
-		return
+// initPkgCacheCaches populates repoCache, artifactCache and downloadCache on PkgCache.
+func (c *Celer) initPkgCacheCaches() error {
+	if c.configData.PkgCache == nil {
+		return nil
 	}
 
-	c.configData.PkgCacheConfig.repoCache = netfs.NewRepoConfig(c)
-	c.configData.PkgCacheConfig.artifactCache = netfs.NewArtifactConfig(c)
-	c.configData.PkgCacheConfig.downloadCache = netfs.NewDownloadConfig(c)
+	if c.configData.PkgCache.Minio != nil {
+		downloadConfig, repoConfig, artifactConfig, err := minio.InitPkgCache(c)
+		if err != nil {
+			return err
+		}
+		c.configData.PkgCache.downloadCache = downloadConfig
+		c.configData.PkgCache.repoCache = repoConfig
+		c.configData.PkgCache.artifactCache = artifactConfig
+	} else if c.configData.PkgCache.FS != nil {
+		downloadConfig, repoConfig, artifactConfig := netfs.InitPkgCache(c)
+		c.configData.PkgCache.downloadCache = downloadConfig
+		c.configData.PkgCache.repoCache = repoConfig
+		c.configData.PkgCache.artifactCache = artifactConfig
+	}
+
+	return nil
 }
 
 func (c *Celer) portsRepoUrl() string {

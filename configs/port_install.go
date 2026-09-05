@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/buildtools"
-	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
@@ -43,7 +42,7 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 				return
 			}
 
-			color.PrintPass("%s's install report is generated", p.NameVersion())
+			color.PrintPass("generate installation report for '%s'", p.NameVersion())
 			color.PrintHint("Location: %s", reportPath)
 		}
 	}()
@@ -316,15 +315,14 @@ func (p Port) doInstallFromPkgCache(options InstallOptions) (bool, error) {
 	}
 
 	// Read cache file and extract them to package dir.
-	artifactCache := p.ctx.PkgCacheConfig().GetArtifactCache()
+	artifactCache := p.ctx.PkgCache().GetArtifactCache()
 	if artifactCache != nil {
-		if fromWhere, err := artifactCache.Restore(p.NameVersion(), buildhash, p.PackageDir); err != nil {
+		restored, err := artifactCache.Restore(p.PackageDir, p.NameVersion(), buildhash)
+		if err != nil {
 			return false, fmt.Errorf("read cache with build hash: %s", err)
-		} else if fromWhere != "" {
-			return true, nil
 		}
+		return restored, nil
 	}
-
 	return false, nil
 }
 
@@ -410,9 +408,9 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 }
 
 func (p *Port) InstallFromPkgCache(options InstallOptions) (bool, error) {
-	// Check if pkgCacheConfig has been configured.
-	pkgCacheConfig := p.ctx.PkgCacheConfig()
-	if pkgCacheConfig == nil || pkgCacheConfig.GetDir(pkgcache.PkgCacheDirRoot) == "" {
+	// Check if pkgCache has been configured.
+	pkgCache := p.ctx.PkgCache()
+	if pkgCache == nil || (pkgCache.GetFS() == nil && pkgCache.GetMinio() == nil) {
 		return false, nil
 	}
 
@@ -435,8 +433,14 @@ func (p *Port) InstallFromPkgCache(options InstallOptions) (bool, error) {
 			return false, err
 		}
 
-		fromDir := pkgCacheConfig.GetDir(pkgcache.PkgCacheDirRoot)
-		return true, p.writeTraceFile(fmt.Sprintf("pkg-cache: %q", fromDir))
+		// Tell where installed from.
+		var installedFrom string
+		if pkgCache.GetMinio() != nil {
+			installedFrom = "pkgcache - minio"
+		} else if pkgCache.GetFS() != nil {
+			installedFrom = "pkgcache - fs"
+		}
+		return true, p.writeTraceFile(installedFrom)
 	}
 
 	return false, nil
@@ -459,9 +463,9 @@ func (p *Port) InstallFromDevCache(options InstallOptions) (bool, error) {
 		return false, nil
 	}
 
-	// Check if devCacheConfig has been configured.
-	devCacheConfig := p.ctx.DevCacheConfig()
-	if devCacheConfig == nil {
+	// Check if devCache has been configured.
+	devCache := p.ctx.DevCache()
+	if devCache == nil {
 		return false, nil
 	}
 
@@ -484,7 +488,7 @@ func (p *Port) InstallFromDevCache(options InstallOptions) (bool, error) {
 			return false, err
 		}
 
-		fromDir := devCacheConfig.GetDir()
+		fromDir := devCache.GetDir()
 		return true, p.writeTraceFile(fmt.Sprintf("dev-cache: %q", fromDir))
 	}
 
@@ -647,14 +651,13 @@ func (p *Port) doInstallFromDevCache(options InstallOptions) (bool, error) {
 	}
 
 	// Read cache file and extract them to package dir.
-	devArtifactCache := p.ctx.DevCacheConfig().GetDevArtifactCache()
-	if fromWhere, err := devArtifactCache.Restore(p.NameVersion(), buildhash, p.PackageDir); err != nil {
+	devArtifactCache := p.ctx.DevCache().GetDevArtifactCache()
+	restored, err := devArtifactCache.Restore(p.PackageDir, p.NameVersion(), buildhash)
+	if err != nil {
 		return false, fmt.Errorf("failed to read cache with build hash -> %w", err)
-	} else if fromWhere != "" {
-		return true, nil
 	}
 
-	return false, nil
+	return restored, nil
 }
 
 func (p *Port) doInstallFromSource() error {
@@ -714,8 +717,8 @@ func (p *Port) doInstallFromSource() error {
 		}
 
 		// Store package cache with meta file inside.
-		pkgCache := p.ctx.PkgCacheConfig()
-		if pkgCache != nil && pkgCache.GetDir(pkgcache.PkgCacheDirRoot) != "" && pkgCache.IsWritable() {
+		pkgCache := p.ctx.PkgCache()
+		if pkgCache != nil && pkgCache.GetOptions().Writable && (pkgCache.GetFS() != nil || pkgCache.GetMinio() != nil) {
 			if p.pkgCacheStoreSkippedReason == "" && !p.shouldSkipArtifactPkgCache() {
 				artifactCache := pkgCache.GetArtifactCache()
 				if artifactCache != nil {
@@ -728,7 +731,7 @@ func (p *Port) doInstallFromSource() error {
 
 		// Store hostDep/devDep into local dir to speed up building them in new workspace.
 		if p.HostDep || p.DevDep {
-			devArtifactCache := p.ctx.DevCacheConfig().GetDevArtifactCache()
+			devArtifactCache := p.ctx.DevCache().GetDevArtifactCache()
 			if err := devArtifactCache.Store(p.PackageDir, metaData); err != nil {
 				return err
 			}
@@ -1279,11 +1282,6 @@ func (p Port) writeTraceFile(installedFrom string) error {
 
 	// Print install trace.
 	color.PrintPass("%s is installed from %s", p.NameVersion(), installedFrom)
-	if p.MatchedConfig.BuildSystem == "python" {
-		color.PrintHint("Location: %s\n", buildtools.PythonTool.VenvDir())
-	} else {
-		color.PrintHint("Location: %s\n", p.InstalledDir)
-	}
 
 	return nil
 }

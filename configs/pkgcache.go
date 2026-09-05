@@ -9,13 +9,12 @@ import (
 	"github.com/celer-pkg/celer/pkgcache/dev"
 )
 
-// ================= PkgCacheConfig ================= //
+// ================= PkgCache ================= //
 
-type PkgCacheConfig struct {
-	Dir            string `toml:"dir"`
-	Writable       bool   `toml:"writable"`
-	CacheArtifacts bool   `toml:"cache_artifacts"`
-	CacheDownloads bool   `toml:"cache_downloads"`
+type PkgCache struct {
+	Minio   *pkgcache.Minio   `toml:"minio"`
+	FS      *pkgcache.FS      `toml:"fs"`
+	Options pkgcache.Options  `toml:"options"`
 
 	// Internal field.
 	artifactCache pkgcache.AritifactCache
@@ -23,57 +22,38 @@ type PkgCacheConfig struct {
 	downloadCache pkgcache.DownloadCache
 }
 
-func NewPkgCacheConfig() *PkgCacheConfig {
-	return &PkgCacheConfig{
-		CacheArtifacts: true,
-		CacheDownloads: true,
-		Writable:       true,
-	}
+func NewPkgCache() *PkgCache {
+	return &PkgCache{}
 }
 
-func (p PkgCacheConfig) GetDir(dirType pkgcache.PkgCacheDirType) string {
-	switch dirType {
-	case pkgcache.PkgCacheDirArtifacts:
-		return filepath.Join(p.Dir, "artifacts-"+Version)
-
-	case pkgcache.PkgCacheDirRepos:
-		return filepath.Join(p.Dir, "repos")
-
-	case pkgcache.PkgCacheDirDownloads:
-		return filepath.Join(p.Dir, "downloads")
-
-	default:
-		return p.Dir
-	}
+func (p PkgCache) GetMinio() *pkgcache.Minio {
+	return p.Minio
 }
 
-func (p PkgCacheConfig) IsWritable() bool {
-	return p.Writable
+func (p PkgCache) GetFS() *pkgcache.FS {
+	return p.FS
 }
 
-func (p PkgCacheConfig) GetCacheArtifacts() bool {
-	return p.CacheArtifacts
+// GetOptions returns the options shared by all pkgcache backends.
+func (p PkgCache) GetOptions() pkgcache.Options {
+	return p.Options
 }
 
-func (p PkgCacheConfig) GetCacheDownloads() bool {
-	return p.CacheDownloads
-}
-
-func (p PkgCacheConfig) GetArtifactCache() pkgcache.AritifactCache {
+func (p PkgCache) GetArtifactCache() pkgcache.AritifactCache {
 	if p.artifactCache == nil {
 		return nil
 	}
 	return p.artifactCache
 }
 
-func (p PkgCacheConfig) GetRepoCache() pkgcache.RepoCache {
+func (p PkgCache) GetRepoCache() pkgcache.RepoCache {
 	if p.repoCache == nil {
 		return nil
 	}
 	return p.repoCache
 }
 
-func (p PkgCacheConfig) GetDownloadCache() pkgcache.DownloadCache {
+func (p PkgCache) GetDownloadCache() pkgcache.DownloadCache {
 	if p.downloadCache == nil {
 		return nil
 	}
