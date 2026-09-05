@@ -101,7 +101,7 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 		if restored, err := r.tryRestoreFromCache(fileName); err != nil {
 			color.Printf(color.Warning, "[✘] failed to search pkgcache: %v\n", err)
 		} else if restored {
-			color.PrintPass("restore '%s' from pkgcache", fileName)
+			color.PrintInline(color.Hint, "[✔] restore '%s' from pkgcache", fileName)
 			needToDownload = false
 		}
 	}

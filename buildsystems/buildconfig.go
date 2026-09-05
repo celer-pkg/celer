@@ -396,7 +396,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archiveName string, depth int) (err
 		if restored, err := repoCache.Restore(b.PortConfig.RepoDir, repoUrl, repoRef, nameVersion, b.PortConfig.Checksum, archiveName); err != nil {
 			return fmt.Errorf("failed to restore %s from repo cache -> %w", nameVersion, err)
 		} else if restored {
-			color.PrintHint("[✔] repo source of '%s' from pkgcache", nameVersion)
+			color.PrintHint("[✔] restore repo source '%s' from pkgcache", nameVersion)
 			return nil
 		}
 	}

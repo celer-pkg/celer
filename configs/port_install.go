@@ -433,14 +433,7 @@ func (p *Port) InstallFromPkgCache(options InstallOptions) (bool, error) {
 			return false, err
 		}
 
-		// Tell where installed from.
-		var installedFrom string
-		if pkgCache.GetMinio() != nil {
-			installedFrom = "pkgcache - minio"
-		} else if pkgCache.GetFS() != nil {
-			installedFrom = "pkgcache - fs"
-		}
-		return true, p.writeTraceFile(installedFrom)
+		return true, p.writeTraceFile("pkgcache")
 	}
 
 	return false, nil

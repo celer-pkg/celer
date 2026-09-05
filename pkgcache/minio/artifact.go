@@ -92,7 +92,7 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		if percent < 100 {
 			color.PrintInline(color.Hint, "[-] %s is uploading artifact archive: %d%%", fileName, percent)
 		} else if percent == 100 {
-			color.PrintInline(color.Pass, "[✔] %s is stored to pkgcache as artifact archive.\n", fileName)
+			color.PrintInline(color.Hint, "[✔] %s is stored to pkgcache as artifact archive.\n", fileName)
 		}
 	}); err != nil {
 		return fmt.Errorf("failed to upload artifact for '%s' -> %w", nameVersion, err)
