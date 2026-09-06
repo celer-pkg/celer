@@ -25,7 +25,7 @@ Celer 使用**基于哈希的缓存**来存储和检索构建制品：
 
 ### 步骤1：配置缓存位置
 
-在 `celer.toml` 中添加 `[pkgcache]` 部分以启用缓存检索：
+在 `celer.toml` 中添加 `[pkgcache.fs]` 部分以启用缓存检索：
 
 ```toml
 [main]
@@ -34,8 +34,10 @@ Celer 使用**基于哈希的缓存**来存储和检索构建制品：
 	project = "project_01"
 	jobs = 32
 
-[pkgcache]
+[pkgcache.fs]
 	dir = "/home/test/pkgcache"  # 本地或网络挂载目录
+
+[pkgcache.options]
 	writable = false             # 只读缓存（默认），只有为true时候才会在编译过程中写入缓存
 ```
 
@@ -73,12 +75,12 @@ celer install eigen@3.4.0
 
 **自动跳过写缓存的常见情况：**
 - `pkgcache` 没有配置
-- `pkgcache.dir` 没有配置
-- `pkgcache.writable=false` 配置了只读
+- 没有配置任何 pkgcache 后端（`pkgcache.fs` 或 `pkgcache.minio`）
+- `pkgcache.options.writable=false` 配置了只读
 - 源码仓库在构建前已有人为本地修改
 
 **自动寻找匹配的存储制品的过程**
-- 判断`pkgcache`和`pkgcache.dir`是否配置，如果没有配置则放弃寻找
+- 判断`pkgcache`及其后端是否配置，如果没有配置则放弃寻找
 - 检查当前仓库是否已经被修改，如果有修改则放弃寻找
 - 读取当前仓库的git commit hash, 并根据当前的构建配置生成哈希
 - 带着哈希以及构建配置参数去 `pkgcache/artifacts-{Version}` 目录寻找匹配的制品存储

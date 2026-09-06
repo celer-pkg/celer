@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
@@ -31,34 +32,41 @@ type configureCmd struct {
 	portUrl string
 	portRef string
 
-	pkgCacheConfig configs.PkgCacheConfig
-	proxy          configs.Proxy
-	ccache         configs.CCache
+	// Pkg-cache flags, bound to the backend configs and shared options directly.
+	pkgCacheFS      pkgcache.FS
+	pkgCacheMinio   pkgcache.Minio
+	pkgCacheOptions pkgcache.Options
+	proxy           configs.Proxy
+	ccache          configs.CCache
 }
 
 var flagGroup = map[string]string{
-	"platform":                 "platform",
-	"project":                  "project",
-	"build-type":               "build-type",
-	"downloads":                "downloads",
-	"jobs":                     "jobs",
-	"offline":                  "offline",
-	"verbose":                  "verbose",
-	"pkgcache-dir":             "pkgcache",
-	"pkgcache-writable":        "pkgcache",
-	"pkgcache-cache-artifacts": "pkgcache",
-	"pkgcache-cache-downloads": "pkgcache",
-	"proxy-host":               "proxy",
-	"proxy-port":               "proxy",
-	"proxy-remove":             "proxy",
-	"ccache-enabled":           "ccache",
-	"ccache-dir":               "ccache",
-	"ccache-maxsize":           "ccache",
-	"ccache-remote-storage":    "ccache",
-	"ccache-remote-only":       "ccache",
-	"port":                     "port",
-	"port-url":                 "port",
-	"port-ref":                 "port",
+	"platform":                  "platform",
+	"project":                   "project",
+	"build-type":                "build-type",
+	"downloads":                 "downloads",
+	"jobs":                      "jobs",
+	"offline":                   "offline",
+	"verbose":                   "verbose",
+	"pkgcache-fs-dir":           "pkgcache",
+	"pkgcache-minio-host":       "pkgcache",
+	"pkgcache-minio-access-key": "pkgcache",
+	"pkgcache-minio-secret-key": "pkgcache",
+	"pkgcache-writable":         "pkgcache",
+	"pkgcache-cache-downloads":  "pkgcache",
+	"pkgcache-cache-artifacts":  "pkgcache",
+	"pkgcache-cache-repos":      "pkgcache",
+	"proxy-host":                "proxy",
+	"proxy-port":                "proxy",
+	"proxy-remove":              "proxy",
+	"ccache-enabled":            "ccache",
+	"ccache-dir":                "ccache",
+	"ccache-maxsize":            "ccache",
+	"ccache-remote-storage":     "ccache",
+	"ccache-remote-only":        "ccache",
+	"port":                      "port",
+	"port-url":                  "port",
+	"port-ref":                  "port",
 }
 
 func (c *configureCmd) Command(celer *configs.Celer) *cobra.Command {
@@ -89,11 +97,17 @@ Available Configuration Options:
     --offline                   Enable/disable offline mode (true/false)
     --verbose                   Enable/disable verbose output (true/false)
 
-  PkgCache Configuration:
-    --pkgcache-dir              Set the pkgcache directory path
-    --pkgcache-writable         Set whether the package cache is writable (true/false)
-    --pkgcache-cache-artifacts  Cache built artifacts into the package cache (true/false)
-    --pkgcache-cache-downloads  Cache downloaded sources into the package cache (true/false)
+  PkgCache Configuration (fs and minio are mutually exclusive backends):
+    --pkgcache-fs-dir             Set the fs backend directory path
+    --pkgcache-minio-host         Set the minio backend host (e.g. http://minio.example.com:9000)
+    --pkgcache-minio-access-key   Set the minio access key
+    --pkgcache-minio-secret-key   Set the minio secret key
+
+  PkgCache Options (shared by all backends, all enabled on first backend configuration):
+    --pkgcache-writable           Set whether the package cache is writable (true/false)
+    --pkgcache-cache-downloads    Cache downloaded sources into the package cache (true/false)
+    --pkgcache-cache-artifacts    Cache built artifacts into the package cache (true/false)
+    --pkgcache-cache-repos        Cache source repos into the package cache (true/false)
 
   Proxy Configuration:
     --proxy-host                Set the proxy server hostname
@@ -120,9 +134,12 @@ Examples:
   celer configure --jobs=8                                         # Use 8 parallel build jobs
   celer configure --offline=true                                   # Enable offline mode
   celer configure --verbose=false                                  # Disable verbose output
-  celer configure --pkgcache-dir=/tmp/cache                        # Set pkgcache directory
-  celer configure --pkgcache-writable=true                         # Enable pkgcache write
-  celer configure --pkgcache-cache-artifacts=true                  # Cache built artifacts
+  celer configure --pkgcache-fs-dir=/tmp/cache                  # Set pkgcache.fs directory
+  celer configure --pkgcache-minio-host=http://srv:9000 \
+                  --pkgcache-minio-access-key=xxx \
+                  --pkgcache-minio-secret-key=yyy               # Configure pkgcache.minio
+  celer configure --pkgcache-writable=false                     # Disable pkgcache write
+  celer configure --pkgcache-cache-artifacts=true               # Cache built artifacts
   celer configure --proxy-host=proxy.example.com                   # Set proxy host
   celer configure --proxy-port=8080                                # Set proxy port
   celer configure --proxy-remove                                   # Remove http/https proxy
@@ -206,11 +223,19 @@ Examples:
 	flags.BoolVar(&c.offline, "offline", false, "configure offline mode.")
 	flags.BoolVar(&c.verbose, "verbose", false, "configure verbose mode.")
 
-	// Pkg-cache flags.
-	flags.StringVar(&c.pkgCacheConfig.Dir, "pkgcache-dir", "", "configure package cache dir.")
-	flags.BoolVar(&c.pkgCacheConfig.Writable, "pkgcache-writable", true, "configure pkg-cache writable.")
-	flags.BoolVar(&c.pkgCacheConfig.CacheArtifacts, "pkgcache-cache-artifacts", false, "configure pkg-cache to cache artifacts.")
-	flags.BoolVar(&c.pkgCacheConfig.CacheDownloads, "pkgcache-cache-downloads", false, "configure pkg-cache to cache downloads.")
+	// Pkg-cache flags, grouped by backend (fs or minio).
+	flags.StringVar(&c.pkgCacheFS.Dir, "pkgcache-fs-dir", "", "configure pkgcache.fs dir.")
+
+	flags.StringVar(&c.pkgCacheMinio.Host, "pkgcache-minio-host", "", "configure pkgcache.minio host (e.g. http://minio.example.com:9000).")
+	flags.StringVar(&c.pkgCacheMinio.AccessKey, "pkgcache-minio-access-key", "", "configure pkgcache.minio access key.")
+	flags.StringVar(&c.pkgCacheMinio.SecretKey, "pkgcache-minio-secret-key", "", "configure pkgcache.minio secret key.")
+
+	// Options shared by all pkgcache backends, all enabled by default on
+	// the first backend configuration.
+	flags.BoolVar(&c.pkgCacheOptions.Writable, "pkgcache-writable", true, "configure pkgcache writable.")
+	flags.BoolVar(&c.pkgCacheOptions.Downloads, "pkgcache-cache-downloads", true, "configure pkgcache to cache downloads.")
+	flags.BoolVar(&c.pkgCacheOptions.Artifacts, "pkgcache-cache-artifacts", true, "configure pkgcache to cache artifacts.")
+	flags.BoolVar(&c.pkgCacheOptions.Repos, "pkgcache-cache-repos", true, "configure pkgcache to cache repos.")
 
 	// Proxy flags.
 	flags.StringVar(&c.proxy.Host, "proxy-host", "", "configure proxy host.")
@@ -238,8 +263,9 @@ Examples:
 
 	// PkgCache flag completions.
 	command.RegisterFlagCompletionFunc("pkgcache-writable", boolCompletion)
-	command.RegisterFlagCompletionFunc("pkgcache-cache-artifacts", boolCompletion)
 	command.RegisterFlagCompletionFunc("pkgcache-cache-downloads", boolCompletion)
+	command.RegisterFlagCompletionFunc("pkgcache-cache-artifacts", boolCompletion)
+	command.RegisterFlagCompletionFunc("pkgcache-cache-repos", boolCompletion)
 
 	// CCache flag completions.
 	command.RegisterFlagCompletionFunc("ccache-enabled", boolCompletion)
@@ -392,29 +418,47 @@ func (c *configureCmd) configureProxy(flags *pflag.FlagSet) error {
 }
 
 func (c *configureCmd) configurePkgCache(flags *pflag.FlagSet) error {
-	if flags.Changed("pkgcache-dir") {
-		if err := c.celer.SetPkgCacheDir(c.pkgCacheConfig.Dir); err != nil {
-			return color.PrintError(err, "failed to set pkgcache dir: %s", c.pkgCacheConfig.Dir)
+	// fs backend.
+	if flags.Changed("pkgcache-fs-dir") {
+		if err := c.celer.SetPkgCacheFSDir(c.pkgCacheFS.Dir); err != nil {
+			return color.PrintError(err, "failed to set pkgcache.fs dir: %s", c.pkgCacheFS.Dir)
 		}
-		color.PrintSuccess("current pkgcache dir: %s", expr.If(c.pkgCacheConfig.Dir != "", c.pkgCacheConfig.Dir, "empty"))
+		color.PrintSuccess("current pkgcache.fs dir: %s.", expr.If(c.pkgCacheFS.Dir != "", c.pkgCacheFS.Dir, "empty"))
 	}
+
+	// minio backend. Empty values keep the current host/keys, so a single
+	// flag can rotate them alone.
+	if flags.Changed("pkgcache-minio-host") || flags.Changed("pkgcache-minio-access-key") || flags.Changed("pkgcache-minio-secret-key") {
+		if err := c.celer.SetPkgCacheMinio(c.pkgCacheMinio.Host, c.pkgCacheMinio.AccessKey, c.pkgCacheMinio.SecretKey); err != nil {
+			return color.PrintError(err, "failed to set pkgcache.minio: %s", c.pkgCacheMinio.Host)
+		}
+		color.PrintSuccess("current pkgcache.minio host: %s.", expr.If(c.pkgCacheMinio.Host != "", c.pkgCacheMinio.Host, "unchanged"))
+	}
+
+	// Options shared by all backends.
 	if flags.Changed("pkgcache-writable") {
-		if err := c.celer.SetPkgCacheWritable(c.pkgCacheConfig.Writable); err != nil {
-			return color.PrintError(err, "failed to set pkgcache writable: %s", expr.If(c.pkgCacheConfig.Writable, "true", "false"))
+		if err := c.celer.SetPkgCacheWritable(c.pkgCacheOptions.Writable); err != nil {
+			return color.PrintError(err, "failed to set pkgcache writable: %s", expr.If(c.pkgCacheOptions.Writable, "true", "false"))
 		}
-		color.PrintSuccess("current pkgcache writable: %s", expr.If(c.pkgCacheConfig.Writable, "true", "false"))
-	}
-	if flags.Changed("pkgcache-cache-artifacts") {
-		if err := c.celer.CacheArtifacts(c.pkgCacheConfig.CacheArtifacts); err != nil {
-			return color.PrintError(err, "failed to set pkgcache cache-artifacts: %s", expr.If(c.pkgCacheConfig.CacheArtifacts, "true", "false"))
-		}
-		color.PrintSuccess("current pkgcache cache-artifacts: %s", expr.If(c.pkgCacheConfig.CacheArtifacts, "true", "false"))
+		color.PrintSuccess("current pkgcache writable: %s.", expr.If(c.pkgCacheOptions.Writable, "true", "false"))
 	}
 	if flags.Changed("pkgcache-cache-downloads") {
-		if err := c.celer.CacheDownloads(c.pkgCacheConfig.CacheDownloads); err != nil {
-			return color.PrintError(err, "failed to set pkgcache cache-downloads: %s", expr.If(c.pkgCacheConfig.CacheDownloads, "true", "false"))
+		if err := c.celer.SetPkgCacheCacheDownloads(c.pkgCacheOptions.Downloads); err != nil {
+			return color.PrintError(err, "failed to set pkgcache cache-downloads: %s", expr.If(c.pkgCacheOptions.Downloads, "true", "false"))
 		}
-		color.PrintSuccess("current pkgcache cache-downloads: %s", expr.If(c.pkgCacheConfig.CacheDownloads, "true", "false"))
+		color.PrintSuccess("current pkgcache cache-downloads: %s.", expr.If(c.pkgCacheOptions.Downloads, "true", "false"))
+	}
+	if flags.Changed("pkgcache-cache-artifacts") {
+		if err := c.celer.SetPkgCacheCacheArtifacts(c.pkgCacheOptions.Artifacts); err != nil {
+			return color.PrintError(err, "failed to set pkgcache cache-artifacts: %s", expr.If(c.pkgCacheOptions.Artifacts, "true", "false"))
+		}
+		color.PrintSuccess("current pkgcache cache-artifacts: %s.", expr.If(c.pkgCacheOptions.Artifacts, "true", "false"))
+	}
+	if flags.Changed("pkgcache-cache-repos") {
+		if err := c.celer.SetPkgCacheCacheRepos(c.pkgCacheOptions.Repos); err != nil {
+			return color.PrintError(err, "failed to set pkgcache cache-repos: %s", expr.If(c.pkgCacheOptions.Repos, "true", "false"))
+		}
+		color.PrintSuccess("current pkgcache cache-repos: %s.", expr.If(c.pkgCacheOptions.Repos, "true", "false"))
 	}
 
 	return nil
@@ -469,10 +513,14 @@ func (c *configureCmd) completion(cmd *cobra.Command, args []string, toComplete 
 		"--jobs",
 		"--offline",
 		"--verbose",
-		"--pkgcache-dir",
+		"--pkgcache-fs-dir",
+		"--pkgcache-minio-host",
+		"--pkgcache-minio-access-key",
+		"--pkgcache-minio-secret-key",
 		"--pkgcache-writable",
-		"--pkgcache-cache-artifacts",
 		"--pkgcache-cache-downloads",
+		"--pkgcache-cache-artifacts",
+		"--pkgcache-cache-repos",
 		"--proxy-host",
 		"--proxy-port",
 		"--proxy-remove",

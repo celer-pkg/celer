@@ -25,7 +25,7 @@ Celer uses **hash-based caching** to store and retrieve build artifacts:
 
 ### Step 1: Configure the Cache Location
 
-Add a `[pkgcache]` section to `celer.toml` to enable cache lookup:
+Add a `[pkgcache.fs]` section to `celer.toml` to enable cache lookup:
 
 ```toml
 [main]
@@ -34,8 +34,10 @@ Add a `[pkgcache]` section to `celer.toml` to enable cache lookup:
 	project = "project_01"
 	jobs = 32
 
-[pkgcache]
+[pkgcache.fs]
 	dir = "/home/test/pkgcache"  # Local or network-mounted directory
+
+[pkgcache.options]
 	writable = false             # Read-only cache by default; artifacts are written only when true
 ```
 
@@ -73,12 +75,12 @@ celer install eigen@3.4.0
 
 **Common cases where writing to cache is skipped automatically:**
 - `pkgcache` is not configured
-- `pkgcache.dir` is not configured
-- `pkgcache.writable=false` makes the cache read-only
+- No pkgcache backend (`pkgcache.fs` or `pkgcache.minio`) is configured
+- `pkgcache.options.writable=false` makes the cache read-only
 - The source repository has local manual modifications before the build starts
 
 **How Celer looks up a matching stored artifact:**
-- Check whether `pkgcache` and `pkgcache.dir` are configured; if not, stop looking
+- Check whether `pkgcache` and one of its backends are configured; if not, stop looking
 - Check whether the current repository has local modifications; if it does, stop looking
 - Read the current git commit hash and generate a cache hash from the current build configuration
 - Search under `pkgcache/artifacts-{Version}` using that hash and the current build configuration

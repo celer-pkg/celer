@@ -221,8 +221,12 @@ func (b *BuildTool) validate() error {
 	// Set global vars.
 	for _, value := range b.Vars {
 		parts := strings.SplitN(value, "=", 2)
-		if _, ok := b.ctx.ExprVars().Lookup(parts[0]); ok {
-			return fmt.Errorf("${%s} exist already, so build_tool '%s' can't define it", parts[0], b.Name)
+		if oldValue, ok := b.ctx.ExprVars().Lookup(parts[0]); ok {
+			if oldValue != parts[1] {
+				return fmt.Errorf("${%s} already defined as %q, so build_tool '%s@%s' can't redefine it to %q",
+					parts[0], oldValue, b.Name, b.Version, parts[1])
+			}
+			continue
 		}
 		b.ctx.ExprVars().Put(parts[0], parts[1])
 	}
@@ -230,8 +234,12 @@ func (b *BuildTool) validate() error {
 	// Set environment vars.
 	for _, env := range b.Envs {
 		parts := strings.SplitN(env, "=", 2)
-		if _, ok := os.LookupEnv(parts[0]); ok {
-			return fmt.Errorf("$ENV{%s} exist already, so build_tool '%s' can't define it", parts[0], b.Name)
+		if oldValue, ok := os.LookupEnv(parts[0]); ok {
+			if oldValue != parts[1] {
+				return fmt.Errorf("$ENV{%s} already defined as %q, so build_tool '%s@%s' can't redefine it to %q",
+					parts[0], oldValue, b.Name, b.Version, parts[1])
+			}
+			continue
 		}
 		os.Setenv(parts[0], parts[1])
 	}

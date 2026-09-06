@@ -103,7 +103,7 @@ func TestCeler_Init_InvalidCacheDir(t *testing.T) {
 	celerPath := filepath.Join(tmpDir, "celer.toml")
 
 	// Create config with invalid cache dir.
-	configWithInvalidCache := `[pkgcache]
+	configWithInvalidCache := `[pkgcache.fs]
 dir = ""
 `
 	if err := os.MkdirAll(tmpDir, os.ModePerm); err != nil {

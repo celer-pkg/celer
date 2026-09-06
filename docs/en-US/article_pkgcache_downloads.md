@@ -25,7 +25,7 @@ Celer caches downloaded files using **SHA-256-based verification** to ensure int
 
 ### Step 1: Configure the Cache Directory
 
-Add a `[pkgcache]` section to `celer.toml` to enable download caching:
+Add a `[pkgcache.fs]` section to `celer.toml` to enable download caching:
 
 ```toml
 [main]
@@ -34,8 +34,10 @@ Add a `[pkgcache]` section to `celer.toml` to enable download caching:
 	project = "project_01"
 	jobs = 32
 
-[pkgcache]
+[pkgcache.fs]
 	dir = "/home/test/pkgcache"  # Local or network-mounted directory, can be FTP, SMB, NFS, etc.
+
+[pkgcache.options]
 	writable = true              # Must be true to write cached downloads
 ```
 
