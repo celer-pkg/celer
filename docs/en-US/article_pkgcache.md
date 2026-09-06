@@ -13,10 +13,10 @@ Celer uses Linux `chattr +a` (append-only), a system user/group, and `celer setu
 
 ## Cache Directory Layout
 
-After `pkgcache.dir` is configured, Celer organizes cache data into functional subdirectories:
+After a pkgcache backend is configured, Celer organizes cache data into functional subdirectories:
 
 ```text
-/mnt/data/pkgcache/                       # pkgcache.dir
+/home/test/pkgcache/                      # pkgcache.fs.dir
     ├── artifacts-v0.2.7/                  # Artifact cache, isolated by Celer version
     │   └── x86_64-linux-ubuntu-22.04-gcc-11.5.0/
     │       └── project_01/
@@ -43,7 +43,7 @@ For details about each cache type, see:
 
 ## Configuration
 
-Add a `[pkgcache]` section to `celer.toml`:
+PkgCache has two mutually exclusive backends. Add a `[pkgcache.fs]` section (local directory or network-mounted directory such as NFS or SMB) to `celer.toml`:
 
 ```toml
 [main]
@@ -51,27 +51,58 @@ Add a `[pkgcache]` section to `celer.toml`:
   platform = "x86_64-linux-ubuntu-22.04-gcc-11.5.0"
   project = "project_01"
 
-[pkgcache]
+[pkgcache.fs]
   dir = "/home/test/pkgcache"   # Local directory or network-mounted directory, such as NFS or SMB
+
+[pkgcache.options]              # Shared by all backends
   writable = true               # Whether Celer can write to the cache
-  cache_artifacts = true        # Whether artifact cache is enabled
-  cache_downloads = true        # Whether download cache is enabled
+  downloads = true              # Whether download cache is enabled
+  artifacts = true              # Whether artifact cache is enabled
+  repos = true                  # Whether repo cache is enabled
+```
+
+Or a `[pkgcache.minio]` section (S3-compatible MinIO service):
+
+```toml
+[pkgcache.minio]
+  host = "http://minio.example.com:9000"
+  access_key = "xxx"
+  secret_key = "yyy"
+
+[pkgcache.options]
+  writable = true
+  downloads = true
+  artifacts = true
+  repos = true
 ```
 
 **Configuration fields:**
 
 | Field | Description |
 |------|-------------|
-| `dir` | Cache root directory. It must already exist. |
-| `writable` | `true` allows Celer to write cache entries; `false` makes the cache read-only. |
-| `cache_artifacts` | Whether artifact cache is enabled. |
-| `cache_downloads` | Whether download cache is enabled. |
+| `pkgcache.fs.dir` | fs backend cache root directory. It must already exist. |
+| `pkgcache.minio.host` / `access_key` / `secret_key` | minio backend service address and credentials. The host must be reachable. |
+| `pkgcache.options.writable` | `true` allows Celer to write cache entries; `false` makes the cache read-only. |
+| `pkgcache.options.downloads` | Whether download cache is enabled. |
+| `pkgcache.options.artifacts` | Whether artifact cache is enabled. |
+| `pkgcache.options.repos` | Whether repo cache is enabled. |
+
+All options in `[pkgcache.options]` default to `true` when the first backend (fs or minio) is configured.
 
 You can also configure pkgcache from the command line:
 
 ```bash
-celer configure --pkgcache-dir=/home/test/pkgcache
+# fs backend
+celer configure --pkgcache-fs-dir=/home/test/pkgcache
+
+# minio backend (fs and minio are mutually exclusive)
+celer configure --pkgcache-minio-host=http://minio.example.com:9000 \
+                --pkgcache-minio-access-key=xxx \
+                --pkgcache-minio-secret-key=yyy
+
+# Shared options
 celer configure --pkgcache-writable=true
+celer configure --pkgcache-cache-repos=false
 ```
 
 ### Solution: chattr +a (append-only)

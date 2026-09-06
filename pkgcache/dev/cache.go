@@ -21,53 +21,52 @@ func NewDevArtifactCache(cacheDir string) *DevArtifactCache {
 	}
 }
 
-// Restore restores the cached package to package directory if cache hit, and return the archive path.
-// If cache miss, just return empty string without error.
-func (d DevArtifactCache) Restore(nameVersion, buildHash, packageDir string) (string, error) {
+// Restore restores the cached package to package directory if cache hit.
+func (d DevArtifactCache) Restore(packageDir, nameVersion, buildHash string) (bool, error) {
 	cachePath := filepath.Join(d.cacheDir, nameVersion, buildHash+".tar.gz")
 	if !fileio.PathExists(cachePath) {
-		return "", nil // not an error even not exist.
+		return false, nil // not an error even not exist.
 	}
 
 	// The meta file hash should be the same as hash that calcuated dynamically.
 	metaPath := filepath.Join(d.cacheDir, nameVersion, "metas", buildHash+".meta")
 	if !fileio.PathExists(metaPath) {
-		return "", nil
+		return false, nil
 	}
 	metaBytes, err := os.ReadFile(metaPath)
 	if err != nil {
-		return "", err
+		return false, err
 	}
 	metaHash := sha256.Sum256(metaBytes)
 	if fmt.Sprintf("%x", metaHash) != buildHash {
-		return "", nil
+		return false, nil
 	}
 
 	// Create tmp dir for extracting inside.
 	if err := dirs.CleanTmpFilesDir(); err != nil {
-		return "", fmt.Errorf("failed to clean tmp files dir -> %w", err)
+		return false, fmt.Errorf("failed to clean tmp files dir -> %w", err)
 	}
 	tempDir, err := os.MkdirTemp(dirs.TmpFilesDir, "devcache-extract-*")
 	if err != nil {
-		return "", err
+		return false, err
 	}
 	defer os.RemoveAll(tempDir)
 
 	// Extract to a tmp dir and move back to dest dir.
 	if err := fileio.Extract(cachePath, tempDir); err != nil {
-		return "", err
+		return false, err
 	}
 	if err := os.RemoveAll(packageDir); err != nil {
-		return "", err
+		return false, err
 	}
 	if err := os.MkdirAll(filepath.Dir(packageDir), os.ModePerm); err != nil {
-		return "", err
+		return false, err
 	}
 	if err := os.Rename(tempDir, packageDir); err != nil {
-		return "", err
+		return false, err
 	}
 
-	return cachePath, nil
+	return true, nil
 }
 
 // Store compresses the package dir and store in cache,

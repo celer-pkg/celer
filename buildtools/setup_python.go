@@ -43,8 +43,8 @@ func pipInstall(ctx context.Context, pipConfig context.PythonConfig, libraries *
 
 		// Format python3 library name version.
 		var nameVersion string
-		if strings.HasPrefix(library, "python:") {
-			nameVersion = strings.TrimPrefix(library, "python:")
+		if after, ok := strings.CutPrefix(library, "python:"); ok {
+			nameVersion = after
 		} else {
 			nameVersion = strings.TrimPrefix(library, "python3:")
 		}

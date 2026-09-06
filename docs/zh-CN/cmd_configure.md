@@ -26,10 +26,14 @@ celer configure [flags]
 | --verbose                  | 布尔    | 开启/关闭详细日志模式                   |
 | --proxy-host               | 字符串  | 设置代理地址                           |
 | --proxy-port               | 整数    | 设置代理端口                           |
-| --pkgcache-dir             | 字符串  | 设置 pkgcache 目录                     |
-| --pkgcache-writable        | 布尔    | 设置 pkgcache 是否可写                  |
-| --pkgcache-cache-artifacts | 布尔    | 是否将构建产物缓存到 pkgcache           |
-| --pkgcache-cache-downloads | 布尔    | 是否将下载源码缓存到 pkgcache           |
+| --pkgcache-fs-dir             | 字符串  | 设置 pkgcache fs 后端目录                       |
+| --pkgcache-minio-host         | 字符串  | 设置 pkgcache minio 后端地址（fs 与 minio 互斥）|
+| --pkgcache-minio-access-key   | 字符串  | 设置 pkgcache minio access key                  |
+| --pkgcache-minio-secret-key   | 字符串  | 设置 pkgcache minio secret key                  |
+| --pkgcache-writable           | 布尔    | 设置 pkgcache 是否可写                          |
+| --pkgcache-cache-downloads    | 布尔    | 是否将下载源码缓存到 pkgcache                   |
+| --pkgcache-cache-artifacts    | 布尔    | 是否将构建产物缓存到 pkgcache                   |
+| --pkgcache-cache-repos        | 布尔    | 是否将源码仓库缓存到 pkgcache                   |
 | --ccache-enabled           | 布尔    | 开启/关闭 ccache                       |
 | --ccache-dir               | 字符串  | 设置 ccache 工作目录                   |
 | --ccache-maxsize           | 字符串  | 设置 ccache 最大容量                   |
@@ -56,9 +60,15 @@ celer configure --offline=true
 celer configure --verbose=false
 
 # pkgcache 组（可同命令组合）
-celer configure --pkgcache-dir=/home/xxx/cache --pkgcache-writable=true
+# fs 与 minio 为互斥后端；首次配置后端时，共享选项默认全部开启。
+celer configure --pkgcache-fs-dir=/home/xxx/cache --pkgcache-writable=true
+celer configure --pkgcache-minio-host=http://minio.example.com:9000 \
+                --pkgcache-minio-access-key=xxx \
+                --pkgcache-minio-secret-key=yyy
+celer configure --pkgcache-minio-secret-key=new-key   # 单独轮换密钥，其余保持不变
 celer configure --pkgcache-cache-artifacts=true
 celer configure --pkgcache-cache-downloads=true
+celer configure --pkgcache-cache-repos=false
 
 # proxy 组（可同命令组合）
 celer configure --proxy-host=127.0.0.1 --proxy-port=7890
@@ -79,9 +89,10 @@ celer configure --port=eigen@3.4.0 --port-url=https://example.com/eigen.git --po
 - `--build-type`：支持 `Release`、`Debug`、`RelWithDebInfo`、`MinSizeRel`（保存时转为小写）。
 - `--downloads`：目录必须已存在。
 - `--jobs`：必须大于 `0`。
-- `--pkgcache-dir`：不能为空，且目录必须已存在。
-- `--pkgcache-writable`：布尔值；使用前需先配置 `--pkgcache-dir`（可同命令一起配置）。
-- `--pkgcache-cache-artifacts` / `--pkgcache-cache-downloads`：布尔值；使用前需先配置 `--pkgcache-dir`。
+- `--pkgcache-fs-dir`：不能为空，且目录必须已存在。
+- `--pkgcache-minio-host` / `--pkgcache-minio-access-key` / `--pkgcache-minio-secret-key`：host 必须可访问；空值表示保持不变，因此可以单独轮换某个密钥。
+- fs 与 minio 后端互斥；已配置其中一个后再配置另一个会报错。
+- `--pkgcache-writable` / `--pkgcache-cache-downloads` / `--pkgcache-cache-artifacts` / `--pkgcache-cache-repos`：所有后端共享的布尔选项；使用前需先配置任一后端（可同命令一起配置）。首次配置后端时这些选项默认全部为 `true`。
 - `--proxy-host`：不能为空。
 - `--proxy-port`：必须大于 `0`。
 - `--ccache-dir`：目录必须已存在。

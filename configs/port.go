@@ -540,6 +540,7 @@ func (p Port) matchBuildConfig(config buildsystems.BuildConfig) bool {
 			return true
 		}
 	}
+
 	return false
 }
 

@@ -14,11 +14,14 @@ var (
 	ErrPlatformNotExist         = errors.New("platform not exist")
 	ErrProjectNotExist          = errors.New("project not exist")
 	ErrInvalidBuildType         = errors.New("invalid build type, must be Release, Debug, RelWithDebInfo or MinSizeRel")
+	ErrPkgCacheNotConfigured    = errors.New("pkgcache supports 'minio' and 'fs', but none of them was configured yet")
+	ErrPkgCacheDuplicated       = errors.New("pkgcache can not configure both 'minio' and 'fs'")
 	ErrPkgCacheDirEmpty         = errors.New("pkgcache dir is invalid")
 	ErrPkgCacheDirNotExist      = errors.New("pkgcache dir not exist")
 	ErrPkgCacheArtifactNotFound = errors.New("artifact cache missing with commit")
 	ErrNotGitDir                = errors.New("refuse to run git commands in non-repo dir")
 	ErrDirNotExist              = errors.New("dir not exist")
+	ErrSha256Mismatch           = errors.New("sha256 mismatch")
 )
 
 // Is same as errors.Is

@@ -28,7 +28,7 @@ func Extract(archiveFile, destDir string) error {
 	}
 
 	if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
-		return fmt.Errorf("mkdir for extract -> %w", err)
+		return fmt.Errorf("failed to mkdir '%s' -> %w", destDir, err)
 	}
 
 	// var command string

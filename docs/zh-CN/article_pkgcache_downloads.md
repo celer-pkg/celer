@@ -25,7 +25,7 @@ Celer 使用**基于 SHA-256 的验证**来缓存下载文件并确保数据完�
 
 ### 第一步：配置缓存目录
 
-在 `celer.toml` 中添加 `[pkgcache]` 部分以启用下载缓存：
+在 `celer.toml` 中添加 `[pkgcache.fs]` 部分以启用下载缓存：
 
 ```toml
 [main]
@@ -34,8 +34,10 @@ Celer 使用**基于 SHA-256 的验证**来缓存下载文件并确保数据完�
 	project = "project_01"
 	jobs = 32
 
-[pkgcache]
+[pkgcache.fs]
 	dir = "/home/test/pkgcache"  # 本地或网络挂载目录, 可以为FTP，SMB，或者NFS等
+
+[pkgcache.options]
 	writable = true              # 必须为 true 才能自动缓存下载
 ```
 

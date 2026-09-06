@@ -45,7 +45,7 @@ func TestInstall_PkgCache_Artifact_Success(t *testing.T) {
 	}
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetPkgCacheDir(dirs.TestPkgCacheDir))
+	check(celer.SetPkgCacheFSDir(dirs.TestPkgCacheDir))
 	check(celer.SetPkgCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
@@ -118,7 +118,7 @@ func TestInstall_PkgCache_Artifact_With_Deps_Success(t *testing.T) {
 	}
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetPkgCacheDir(dirs.TestPkgCacheDir))
+	check(celer.SetPkgCacheFSDir(dirs.TestPkgCacheDir))
 	check(celer.SetPkgCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
@@ -203,7 +203,7 @@ func TestInstall_PkgCache_Prebuilt_Success(t *testing.T) {
 	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetPkgCacheDir(dirs.TestPkgCacheDir))
+	check(celer.SetPkgCacheFSDir(dirs.TestPkgCacheDir))
 	check(celer.SetPkgCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
@@ -314,7 +314,7 @@ func TestInstall_PkgCache_With_Commit_Success(t *testing.T) {
 	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetPkgCacheDir(dirs.TestPkgCacheDir))
+	check(celer.SetPkgCacheFSDir(dirs.TestPkgCacheDir))
 	check(celer.SetPkgCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
@@ -377,7 +377,7 @@ func TestInstall_PkgCache_With_Commit_Missing_FallsBackToSource(t *testing.T) {
 	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetPkgCacheDir(dirs.TestPkgCacheDir))
+	check(celer.SetPkgCacheFSDir(dirs.TestPkgCacheDir))
 	check(celer.SetPkgCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
@@ -396,7 +396,9 @@ func TestInstall_PkgCache_With_Commit_Missing_FallsBackToSource(t *testing.T) {
 		BuildCache: true,
 	}
 	check(port.Remove(removeOptions))
-	check(celer.PkgCacheConfig().GetArtifactCache().(interface{ Remove(string) error }).Remove(nameVersion))
+	// Drop the cached artifact to simulate a cache miss; the fs pkgcache layout
+	// is {cache_dir}/artifacts-{version}/{platform}/{project}/{buildType}/{nameVersion}.
+	check(os.RemoveAll(filepath.Join(dirs.TestPkgCacheDir, "artifacts-"+celer.Version())))
 
 	port.Package.Checksum = commit
 	port.MatchedConfig.PortConfig.Checksum = commit
@@ -459,7 +461,7 @@ func TestInstall_Command_ReportContainsPkgCacheSource(t *testing.T) {
 	}
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetPkgCacheDir(dirs.TestPkgCacheDir))
+	check(celer.SetPkgCacheFSDir(dirs.TestPkgCacheDir))
 	check(celer.SetPkgCacheWritable(true))
 	check(celer.SetPlatform(platform))
 

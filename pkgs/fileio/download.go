@@ -108,8 +108,7 @@ func (d downloader) startOnce(httpClient *http.Client) (downloaded string, err e
 
 	// Copy to local file with progress.
 	completed := func(formattedTimeCost, formattedSize string) {
-		color.PrintInline(color.Pass, "[✔] %s (%s) in %s\n", d.archive+" is downloaded", formattedSize, formattedTimeCost)
-		color.PrintHint("Location: %s", d.downloads)
+		color.PrintInline(color.Hint, "[✔] %s (%s) in %s\n", d.archive+" is downloaded", formattedSize, formattedTimeCost)
 	}
 	progress := NewProgressBar("download: "+fileName, resp.ContentLength, completed)
 	if _, err := io.Copy(io.MultiWriter(file, progress), resp.Body); err != nil {
