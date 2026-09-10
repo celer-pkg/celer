@@ -71,11 +71,13 @@ func buildWithAMD64ClangCL(t *testing.T, platform, nameVersion string, nobuild b
 
 	var (
 		port    configs.Port
-		options configs.InstallOptions
+		options = configs.InstallOptions{Prefer: configs.PreferSource}
 	)
 
 	check(port.Init(celer, nameVersion))
-	check(port.InstallFromSource(options))
+	if _, err := port.Install(options); err != nil {
+		t.Fatal(err)
+	}
 
 	// Check if installed.
 	installed, err := port.Installed()

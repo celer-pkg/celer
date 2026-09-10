@@ -5,7 +5,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mattn/go-runewidth"
 	"golang.org/x/term"
 )
 
@@ -42,7 +41,7 @@ func PrintError(err error, format string, args ...any) error {
 }
 
 func PrintWarning(format string, args ...any) {
-	Printf(Warning, "[!] %s\n", fmt.Sprintf(format, args...))
+	Printf(Warning, "\n[!] %s\n", fmt.Sprintf(format, args...))
 }
 
 func PrintPass(format string, args ...any) {
@@ -60,24 +59,21 @@ func PrintHint(format string, args ...any) {
 func PrintInline(colorFmt *Style, format string, args ...any) {
 	content := fmt.Sprintf(format, args...)
 
-	// Handle newline separately
-	hasNewline := strings.HasSuffix(content, "\n")
-	if hasNewline {
-		content = strings.TrimSuffix(content, "\n")
-	}
+	// Keep a trailing newline out of the erase sequence so the line ends cleanly
+	// after the visible content.
+	newline := strings.HasSuffix(content, "\n")
+	content = strings.TrimSuffix(content, "\n")
 
-	// Calculate padding to fill the rest of the line using display width.
-	padding := TerminalWidth() - runewidth.StringWidth(content)
-	if padding > 0 {
-		content += strings.Repeat(" ", padding)
+	// Erase any leftover from a previously longer in-progress line，
+	// only emit it on a real terminal.
+	if term.IsTerminal(int(os.Stdout.Fd())) {
+		content += "\033[K"
 	}
-
-	// Add back the newline if it existed.
-	if hasNewline {
+	if newline {
 		content += "\n"
 	}
 
-	fmt.Printf("\r"+colorFmt.Format(), content)
+	writeStdout(colorFmt, content, true)
 
 	// Flush to ensure immediate display
 	os.Stdout.Sync()

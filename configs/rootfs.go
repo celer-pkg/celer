@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/pc"
@@ -65,7 +65,7 @@ func (r *RootFS) CheckAndRepair() error {
 	archiveName := expr.If(r.Archive != "", r.Archive, filepath.Base(r.Url))
 	toolsDir := filepath.Join(r.ctx.Downloads(), "tools")
 	repair := fileio.NewRepair(r.Url, r.ctx.Downloads(), archiveName, folderName, toolsDir, r.SHA256)
-	if err := repair.CheckAndRepair(r.ctx); err != nil {
+	if err := repair.CheckAndRepair(r.ctx, pkgcache.KindBuildTool); err != nil {
 		return err
 	}
 
@@ -74,11 +74,6 @@ func (r *RootFS) CheckAndRepair() error {
 	if err := pc.FixupRootFSPC(r.abspath); err != nil {
 		return fmt.Errorf("fixup rootfs pkgconfig -> %w", err)
 	}
-
-	// Print download & extract info.
-	location := filepath.Join(toolsDir, folderName)
-	color.PrintPass("rootfs: %s", fileio.Base(r.Url))
-	color.PrintHint("Location: %s", r.ctx.ExprVars().Expand(location))
 
 	return nil
 }

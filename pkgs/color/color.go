@@ -42,12 +42,12 @@ func (w *Writer) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-func Print(colorFmt *Style, message string) {
-	fmt.Printf(colorFmt.Format(), message)
+func Print(style *Style, message string) {
+	writeStdout(style, message, false)
 }
 
-func Printf(colorFmt *Style, format string, args ...any) {
-	fmt.Printf(colorFmt.Format(), fmt.Sprintf(format, args...))
+func Printf(style *Style, format string, args ...any) {
+	writeStdout(style, fmt.Sprintf(format, args...), false)
 }
 
 func Fprintf(w io.Writer, style *Style, format string, args ...any) {
@@ -55,7 +55,7 @@ func Fprintf(w io.Writer, style *Style, format string, args ...any) {
 }
 
 func Println(style *Style, message string) {
-	fmt.Printf(style.Format()+"\n", message)
+	writeStdout(style, message+"\n", false)
 }
 
 func Sprintf(style *Style, format string, args ...any) string {

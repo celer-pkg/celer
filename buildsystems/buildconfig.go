@@ -275,7 +275,7 @@ type BuildConfig struct {
 	LibDirs_Linux   []string `toml:"lib_dirs_linux,omitempty"`
 	LibDirs_Darwin  []string `toml:"lib_dirs_darwin,omitempty"`
 
-	// DisableDevCache
+	// Event hooks for disableDevCache
 	DisableDevCache         bool `toml:"disable_dev_cache,omitempty"`
 	DisableDevCache_Windows bool `toml:"disable_dev_cache_windows,omitempty"`
 	DisableDevCache_Linux   bool `toml:"disable_dev_cache_linux,omitempty"`
@@ -396,7 +396,6 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archiveName string, depth int) (err
 		if restored, err := repoCache.Restore(b.PortConfig.RepoDir, repoUrl, repoRef, nameVersion, b.PortConfig.Checksum, archiveName); err != nil {
 			return fmt.Errorf("failed to restore %s from repo cache -> %w", nameVersion, err)
 		} else if restored {
-			color.PrintHint("[✔] restore repo source '%s' from pkgcache", nameVersion)
 			return nil
 		}
 	}
@@ -423,12 +422,12 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archiveName string, depth int) (err
 			}
 		}
 	} else if repoUrl != "_" {
-		color.Printf(color.Title, "\n[fetch repo %s]", b.PortConfig.nameVersion())
+		color.Printf(color.Title, "[fetch repo %s]", b.PortConfig.nameVersion())
 
 		// Check and repair resource.
 		archiveName = expr.If(archiveName == "", filepath.Base(repoUrl), archiveName)
 		repair := fileio.NewRepair(repoUrl, b.Ctx.Downloads(), archiveName, ".", b.PortConfig.RepoDir, b.PortConfig.Checksum)
-		if err := repair.CheckAndRepair(b.Ctx); err != nil {
+		if err := repair.CheckAndRepair(b.Ctx, pkgcache.KindRepo); err != nil {
 			return err
 		}
 
@@ -440,11 +439,11 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archiveName string, depth int) (err
 
 		// Move extracted files to repo dir if it's not "include".
 		if len(entities) == 1 && entities[0].IsDir() && entities[0].Name() != "include" {
-			color.Printf(color.Hint, "[-] extract to %s", b.PortConfig.RepoDir)
+			color.Printf(color.Hint, "[-] %-18s %-22s %s", "[Extract Repo]", b.PortConfig.nameVersion(), b.PortConfig.RepoDir)
 			if err := fileio.FlattenNestedDir(b.PortConfig.RepoDir); err != nil {
 				return err
 			}
-			color.PrintInline(color.Hint, "[✔] extract to %s\n", b.PortConfig.RepoDir)
+			color.PrintInline(color.Success, "[✔] %-18s %-22s %s\n", "[Extract Repo]", b.PortConfig.nameVersion(), b.PortConfig.RepoDir)
 		}
 
 		// Some tests the b.buildSystem may not initialized by initBuildSystem()
@@ -485,15 +484,13 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archiveName string, depth int) (err
 		archiveFile := filepath.Join(b.Ctx.Downloads(), archiveName)
 		if err := repoCache.Store(b.PortConfig.RepoDir, repoUrl, repoRef, nameVersion, archiveFile); err != nil {
 			return fmt.Errorf("failed to store repo cache for '%s' -> %w", nameVersion, err)
-		} else {
-			color.PrintPass("%s is stored to repo cache", nameVersion)
 		}
 	}
 
 	// Initialize archive source as local git repo after internal generated files
 	// are ready, so they won't be treated as user local modifications.
 	if trackArchiveAsLocalRepo {
-		if err := git.InitAsLocalRepo(b.PortConfig.RepoDir, `"init for tracking file change"`); err != nil {
+		if err := git.InitAsLocalRepo(b.PortConfig.RepoDir, b.PortConfig.nameVersion()); err != nil {
 			return err
 		}
 	}

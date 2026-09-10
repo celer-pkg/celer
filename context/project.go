@@ -6,5 +6,6 @@ type Project interface {
 	GetPorts() []string
 	GetTargetPlatform() string
 	GetVars() []string
+	GetEnvs() []string
 	Write(platformPath string, override bool) error
 }

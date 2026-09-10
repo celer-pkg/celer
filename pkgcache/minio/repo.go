@@ -9,7 +9,6 @@ import (
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
@@ -100,7 +99,7 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 		return false, nil
 	}
 
-	downloaded, err := r.DownloadFile(objectName)
+	downloaded, err := r.downloadFile(pkgcache.KindRepo, objectName, nameVersion)
 	if err != nil {
 		return false, fmt.Errorf("failed to download '%s' -> %w", objectName, err)
 	}
@@ -128,26 +127,29 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 	}
 
 	if strings.HasSuffix(repoUrl, ".git") {
-		// Check if stored repo was modified by comparing git tag.
-		currentTag, err := git.GetCurrentTag(repoDir)
-		if err != nil {
-			_ = os.RemoveAll(repoDir)
-			return false, fmt.Errorf("invalid cached repo, read current tag failed for '%s' -> %w", nameVersion, err)
-		}
-		if currentTag != repoRef {
-			_ = os.RemoveAll(repoDir)
-			return false, fmt.Errorf("repo refs don't match, expect '%s', got '%s'", repoRef, currentTag)
+		// Verify the checkout matches the expected commit. Prefer the known
+		// checksum; otherwise resolve repoRef to its commit locally. Comparing
+		// commits instead of tag names is robust when several tags point at the
+		// same commit (e.g. spirv-tools tags both 'vulkan-sdk-1.4.335.0' and
+		// 'v2025.5' at the same commit).
+		expectedCommit := strings.TrimSpace(checksum)
+		if expectedCommit == "" {
+			commit, err := git.ResolveRefCommit(repoDir, repoRef)
+			if err != nil {
+				_ = os.RemoveAll(repoDir)
+				return false, fmt.Errorf("invalid cached repo, resolve ref '%s' failed for '%s' -> %w", repoRef, nameVersion, err)
+			}
+			expectedCommit = commit
 		}
 
-		// Verify checksum if not empty also.
-		if checksum != "" {
+		if expectedCommit != "" {
 			localCommit, err := git.GetCommitHash(repoDir)
 			if err != nil {
 				_ = os.RemoveAll(repoDir)
 				return false, fmt.Errorf("git repo is broken for '%s' -> %w", repoDir, err)
-			} else if localCommit != checksum {
+			} else if localCommit != expectedCommit {
 				_ = os.RemoveAll(repoDir)
-				return false, fmt.Errorf("repo commit don't match, expect '%s', got '%s'", checksum, localCommit)
+				return false, fmt.Errorf("repo commit don't match, expect '%s', got '%s'", expectedCommit, localCommit)
 			}
 		}
 	} else {
@@ -175,17 +177,13 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 		// Initialize archive source as local git repo, so they won't be treated as user local modifications.
 		// Clone returns early after successful Restore, so the git init that normally happens
 		// in the Clone archive branch is skipped. Restore must init the git repo itself.
-		if err := git.InitAsLocalRepo(repoDir, `"init for tracking file change"`); err != nil {
+		if err := git.InitAsLocalRepo(repoDir, nameVersion); err != nil {
 			return false, fmt.Errorf("failed to init %s for tracing file change -> %w", nameVersion, err)
 		}
 
 		// Restore to downloads also, it's required to compute meta when build.
 		downloadsDir := r.ctx.Downloads()
-		fileName, err := fileio.FileName(r.ctx, repoUrl)
-		if err != nil {
-			return false, fmt.Errorf("failed to get file name with '%s' -> %w", repoUrl, err)
-		}
-		archiveName = expr.If(archiveName == "", fileName, archiveName)
+		archiveName = expr.If(archiveName == "", filepath.Base(repoUrl), archiveName)
 		destArchivePath := filepath.Join(downloadsDir, archiveName)
 		if err := os.MkdirAll(downloadsDir, os.ModePerm); err != nil {
 			return false, fmt.Errorf("failed to mkdir downloads '%s' -> %w", downloadsDir, err)
@@ -217,13 +215,7 @@ func (r RepoConfig) storeGitRepo(repoDir, repoRef, nameVersion string) error {
 	defer os.Remove(localTmpFile)
 
 	// Upload repo archive with progress.
-	if _, err := r.UploadFile(localTmpFile, remotePath, func(percent int) {
-		if percent < 100 {
-			color.PrintInline(color.Hint, "[-] %s is uploading repo archive: %d%%", nameVersion, percent)
-		} else if percent == 100 {
-			color.PrintInline(color.Pass, "[✔] %s is stored to pkgcache as repo archive.\n", nameVersion)
-		}
-	}); err != nil {
+	if err := r.uploadFile(pkgcache.KindRepo, localTmpFile, remotePath, nameVersion); err != nil {
 		return fmt.Errorf("failed to upload repo for '%s' -> %w", nameVersion, err)
 	}
 
@@ -250,13 +242,7 @@ func (r RepoConfig) storeArchiveRepo(repoRef, nameVersion, archivePath string) e
 	}
 
 	// Upload repo archive with progress.
-	if _, err := r.UploadFile(archivePath, remotePath, func(percent int) {
-		if percent < 100 {
-			color.PrintInline(color.Hint, "[-] %s is uploading repo archive: %d%%", nameVersion, percent)
-		} else if percent == 100 {
-			color.PrintInline(color.Hint, "[✔] %s is stored to pkgcache as repo archive.\n", nameVersion)
-		}
-	}); err != nil {
+	if err := r.uploadFile(pkgcache.KindRepo, archivePath, remotePath, nameVersion); err != nil {
 		return fmt.Errorf("failed to upload repo for '%s' -> %w", nameVersion, err)
 	}
 

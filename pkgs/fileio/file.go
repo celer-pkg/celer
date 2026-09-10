@@ -285,7 +285,7 @@ func copyFileContent(src, dest string) error {
 		return err
 	}
 
-	return dstFile.Sync()
+	return nil
 }
 
 func moveNestedFolderIfExist(filePath string) error {

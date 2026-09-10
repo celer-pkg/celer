@@ -11,6 +11,7 @@ import (
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/minio/minio-go/v7"
 )
@@ -103,19 +104,13 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 	if _, err := metaFile.WriteString(meta); err != nil {
 		return fmt.Errorf("failed to write meta into file for '%s' -> %w", nameVersion, err)
 	}
-	if _, err := a.UploadFile(metaFile.Name(), metaFilePath, nil); err != nil {
+	if err := a.uploadSilent(metaFile.Name(), metaFilePath); err != nil {
 		return fmt.Errorf("failed to upload meta for '%s' to minio -> %w", nameVersion, err)
 	}
 	defer metaFile.Close()
 
 	// Upload archive file with progress.
-	if _, err := a.UploadFile(tmpArchivePath, remoteArtifactPath, func(percent int) {
-		if percent < 100 {
-			color.PrintInline(color.Hint, "[-] %s is uploading artifact archive: %d%%", fileName, percent)
-		} else if percent == 100 {
-			color.PrintInline(color.Hint, "[✔] %s is stored to pkgcache as artifact archive.\n", fileName)
-		}
-	}); err != nil {
+	if err := a.uploadFile(pkgcache.KindArtifact, tmpArchivePath, remoteArtifactPath, nameVersion); err != nil {
 		return fmt.Errorf("failed to upload artifact for '%s' -> %w", nameVersion, err)
 	}
 
@@ -142,25 +137,27 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 	if err != nil {
 		return false, fmt.Errorf("failed to get file object info '%s' -> %w", remoteMetaFilePath, err)
 	}
+
+	// The meta is a tiny cache-metadata check downloaded silently; only the
+	// archive download below prints a done line.
 	if remoteMetaInfo == nil {
 		color.PrintWarning("======== cached artifact for %s has no metadata, it'll build from source ========", nameVersion)
 		return false, nil
-	} else {
-		tmpMetaFile, err := a.DownloadFile(remoteMetaFilePath)
-		if err != nil {
-			return false, fmt.Errorf("failed to download meta file '%s' -> %w", remoteMetaFilePath, err)
-		}
-		defer os.Remove(tmpMetaFile)
+	}
+	tmpMetaFile, err := a.downloadSilent(remoteMetaFilePath)
+	if err != nil {
+		return false, fmt.Errorf("failed to download meta file '%s' -> %w", remoteMetaFilePath, err)
+	}
+	defer os.Remove(tmpMetaFile)
 
-		// Meta meta file and check if meta matches.
-		metaBytes, err := os.ReadFile(tmpMetaFile)
-		if err != nil {
-			return false, fmt.Errorf("failed to read meta file '%s' -> %w", tmpMetaFile, err)
-		}
-		metaHash := sha256.Sum256(metaBytes)
-		if fmt.Sprintf("%x", metaHash) != buildHash {
-			return false, fmt.Errorf("cache metadata checksum mismatch for %s", nameVersion)
-		}
+	// Meta meta file and check if meta matches.
+	metaBytes, err := os.ReadFile(tmpMetaFile)
+	if err != nil {
+		return false, fmt.Errorf("failed to read meta file '%s' -> %w", tmpMetaFile, err)
+	}
+	metaHash := sha256.Sum256(metaBytes)
+	if fmt.Sprintf("%x", metaHash) != buildHash {
+		return false, fmt.Errorf("cache metadata checksum mismatch for %s", nameVersion)
 	}
 
 	// Get file archive info and check if checksum matches.
@@ -173,7 +170,7 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 		return false, nil
 	}
 
-	downloaded, err := a.DownloadFile(remoteArtifactPath)
+	downloaded, err := a.downloadFile(pkgcache.KindArtifact, remoteArtifactPath, nameVersion)
 	if err != nil {
 		return false, fmt.Errorf("failed to download artifact '%s' -> %w", remoteArtifactPath, err)
 	}
@@ -189,7 +186,7 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 		}
 	}
 
-	tempDir, err := os.MkdirTemp(os.TempDir(), "celer-pkgcache-artifact-extract-*")
+	tempDir, err := os.MkdirTemp(dirs.TmpFilesDir, "celer-pkgcache-artifact-extract-*")
 	if err != nil {
 		return false, err
 	}

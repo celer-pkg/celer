@@ -11,8 +11,8 @@ import (
 	"github.com/celer-pkg/celer/configs/toolchains"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/envs"
+	"github.com/celer-pkg/celer/pkgcache/filesystem"
 	"github.com/celer-pkg/celer/pkgcache/minio"
-	"github.com/celer-pkg/celer/pkgcache/netfs"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
@@ -489,7 +489,7 @@ func (c *Celer) initPkgCacheCaches() error {
 		c.configData.PkgCache.repoCache = repoConfig
 		c.configData.PkgCache.artifactCache = artifactConfig
 	} else if c.configData.PkgCache.FS != nil {
-		downloadConfig, repoConfig, artifactConfig := netfs.InitPkgCache(c)
+		downloadConfig, repoConfig, artifactConfig := filesystem.InitPkgCache(c)
 		c.configData.PkgCache.downloadCache = downloadConfig
 		c.configData.PkgCache.repoCache = repoConfig
 		c.configData.PkgCache.artifactCache = artifactConfig

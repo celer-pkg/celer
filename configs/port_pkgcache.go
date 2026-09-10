@@ -132,8 +132,9 @@ func (c Port) GenPlatformTomlString() (string, error) {
 }
 
 func (p Port) GenPortTomlString(nameVersion string, devDep bool) (string, error) {
-	// Checksum from caller affects the result, so include it in the cache key.
-	key := fmt.Sprintf("%s|%t|%s", nameVersion, devDep, p.Package.Checksum)
+	// The result depends only on the port's own on-disk config (loaded by Init
+	// below), so key by nameVersion and devDep.
+	key := fmt.Sprintf("%s|%t", nameVersion, devDep)
 	if v, ok := portTomlCache.Load(key); ok {
 		r := v.(metaResult)
 		return r.meta, r.err
@@ -154,9 +155,11 @@ func (p Port) GenPortTomlString(nameVersion string, devDep bool) (string, error)
 	port.BuildConfigs = []buildsystems.BuildConfig{*matchedConfig}
 
 	// Resolve the source to an immutable value for metadata.
-	// If the caller's checksum differs from Init (e.g. tampered for cache miss test), use the caller's value.
-	if p.Package.Checksum != "" {
-		port.Package.Ref = p.Package.Checksum
+	// Prefer the port's own configured checksum; otherwise resolve the commit
+	// (which may lazily clone/download the source). Using the port's own
+	// checksum avoids a lazy Clone for cached deps during pre-warm.
+	if port.Package.Checksum != "" {
+		port.Package.Ref = port.Package.Checksum
 	} else {
 		commit, err := port.GetCommitHash(nameVersion, devDep)
 		if err != nil {

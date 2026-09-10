@@ -33,6 +33,7 @@ var (
 type InstallOptions struct {
 	Force     bool
 	Recursive bool
+	Prefer    InstallPrefer
 }
 
 type RemoveOptions struct {
@@ -83,10 +84,12 @@ func (p Port) NameVersion() string {
 
 // visitedKey is the key used in visitedPorts to dedupe per-command processing.
 func (p Port) visitedKey() string {
-	if p.DevDep || p.HostDep {
-		return p.NameVersion() + " [dev]"
-	}
-	return p.NameVersion()
+	return visitedKeyOf(p.NameVersion(), p.DevDep, p.HostDep)
+}
+
+// visitedKeyOf builds the dedupe key for a port with the given dev/host flags.
+func visitedKeyOf(nameVersion string, devDep, hostDep bool) string {
+	return expr.If(devDep || hostDep, nameVersion+"[dev]", nameVersion)
 }
 
 func (p *Port) Init(ctx context.Context, nameVersion string) error {

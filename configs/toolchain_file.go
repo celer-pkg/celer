@@ -403,7 +403,7 @@ func (c *Celer) appendVars(toolchain *strings.Builder) {
 
 func (c *Celer) appendEnvs(toolchain *strings.Builder) {
 	for index, item := range c.project.Envs {
-		parts := strings.Split(item, "=")
+		parts := strings.SplitN(item, "=", 2)
 		if len(parts) != 2 {
 			panic("invalid env var: " + item)
 		}
@@ -412,8 +412,15 @@ func (c *Celer) appendEnvs(toolchain *strings.Builder) {
 			fmt.Fprintf(toolchain, "\n# =============== Global environment variables =============== #\n")
 		}
 
-		parts[1] = c.exprVars.Expand(parts[1])
-		fmt.Fprintf(toolchain, `set(ENV{%s} "%s%s$ENV{%s}")`+"\n", parts[0], parts[1], string(os.PathListSeparator), parts[0])
+		key := strings.TrimSpace(parts[0])
+		value := c.exprVars.Expand(strings.TrimSpace(parts[1]))
+
+		switch key {
+		case "CPATH", "LIBRARY_PATH", "PATH":
+			fmt.Fprintf(toolchain, `set(ENV{%s} "%s%s$ENV{%s}")`+"\n", key, value, string(os.PathListSeparator), key)
+		default:
+			fmt.Fprintf(toolchain, `set(ENV{%s} "%s")`+"\n", key, value)
+		}
 	}
 }
 

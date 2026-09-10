@@ -30,7 +30,24 @@ func FormatSize(byteSize int64) string {
 		unit = "GB"
 	}
 
-	return fmt.Sprintf("%.2f%s", size, unit)
+	return fmt.Sprintf("%.2f %s", size, unit)
+}
+
+// FormatDuration converts seconds to a human-readable form (e.g. "45s", "2m 30s").
+func FormatDuration(seconds int64) string {
+	if seconds < 60 {
+		return fmt.Sprintf("%ds", seconds)
+	}
+
+	minutes := seconds / 60
+	secs := seconds % 60
+	if minutes < 60 {
+		return fmt.Sprintf("%dm %ds", minutes, secs)
+	}
+
+	hours := minutes / 60
+	mins := minutes % 60
+	return fmt.Sprintf("%dh %dm %ds", hours, mins, secs)
 }
 
 func If[T any](condition bool, first T, second T) T {

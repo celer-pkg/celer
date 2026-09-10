@@ -458,8 +458,8 @@ func (m makefiles) configureRequired() bool {
 		fileio.PathExists(m.PortConfig.SrcDir+"/autogen.sh")
 }
 
+// shouldConfigureWithPerl Some libraries should be configured with perl, such as openssl.
 func (m makefiles) shouldConfigureWithPerl() bool {
-	// Some libraries should be configured with perl, such as openssl.
 	entities, err := os.ReadDir(m.PortConfig.SrcDir)
 	if err != nil {
 		return false

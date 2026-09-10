@@ -117,6 +117,10 @@ func (p Project) GetVars() []string {
 	return p.Vars
 }
 
+func (p Project) GetEnvs() []string {
+	return p.Envs
+}
+
 func (p Project) deploy(force, strip bool) error {
 	options := InstallOptions{
 		Force:     force,

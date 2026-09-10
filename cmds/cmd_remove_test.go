@@ -565,11 +565,13 @@ func installForTestRemove(t *testing.T, nameVersion string, option configs.Remov
 	var (
 		packageFolder = filepath.Join(platform, project, celer.BuildType(), nameVersion)
 		port          configs.Port
-		options       configs.InstallOptions
+		options       = configs.InstallOptions{Prefer: configs.PreferSource}
 	)
 
 	check(port.Init(celer, nameVersion))
-	check(port.InstallFromSource(options))
+	if _, err := port.Install(options); err != nil {
+		t.Fatal(err)
+	}
 
 	// Check if package dir exists.
 	packageDir := filepath.Join(dirs.PackagesDir, packageFolder)

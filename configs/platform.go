@@ -195,7 +195,7 @@ func (p *Platform) Setup() error {
 	}
 
 	// Repair toolchain.
-	if err := p.Toolchain.CheckAndRepair(false); err != nil {
+	if err := p.Toolchain.CheckAndRepair(); err != nil {
 		return fmt.Errorf("failed to check and repair toolchain -> %w", err)
 	}
 

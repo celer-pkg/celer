@@ -11,12 +11,14 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 )
 
 type downloader struct {
 	url        string
+	kind       pkgcache.Kind
 	downloads  string
 	archive    string
 	maxRetries int
@@ -29,6 +31,10 @@ func NewDownloader(url, downloads string) *downloader {
 		downloads:  downloads,
 		maxRetries: 3,
 	}
+}
+
+func (d *downloader) WithKind(kind pkgcache.Kind) {
+	d.kind = kind
 }
 
 func (d *downloader) WithArchive(archive string) {
@@ -108,7 +114,9 @@ func (d downloader) startOnce(httpClient *http.Client) (downloaded string, err e
 
 	// Copy to local file with progress.
 	completed := func(formattedTimeCost, formattedSize string) {
-		color.PrintInline(color.Hint, "[✔] %s (%s) in %s\n", d.archive+" is downloaded", formattedSize, formattedTimeCost)
+		color.PrintInline(color.Success, "[✔] %-18s %-22s (%s) (%s)\n",
+			fmt.Sprintf("[Download %s]", d.kind),
+			d.archive, formattedSize, formattedTimeCost)
 	}
 	progress := NewProgressBar("download: "+fileName, resp.ContentLength, completed)
 	if _, err := io.Copy(io.MultiWriter(file, progress), resp.Body); err != nil {

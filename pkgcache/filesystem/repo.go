@@ -1,4 +1,4 @@
-package netfs
+package filesystem
 
 import (
 	"fmt"
@@ -16,7 +16,7 @@ import (
 )
 
 type RepoConfig struct {
-	netfsCache
+	fsCache
 	ctx      context.Context
 	cacheDir string
 	writable bool
@@ -28,15 +28,16 @@ func NewRepoConfig(ctx context.Context) *RepoConfig {
 		return nil
 	}
 
-	fs := pkgCache.GetFS()
-	writable := pkgCache.GetOptions().Writable
-	netfsCache := netfsCache{cacheDirRoot: fs.GetDir(pkgcache.DirRoot, ctx.Version())}
-
+	filesystem := pkgCache.GetFS()
+	cacheRootDir := filesystem.GetDir(pkgcache.DirRoot, ctx.Version())
+	repoCacheDir := filesystem.GetDir(pkgcache.DirRepos, ctx.Version())
 	return &RepoConfig{
-		netfsCache: netfsCache,
-		ctx:        ctx,
-		cacheDir:   fs.GetDir(pkgcache.DirArtifacts, ctx.Version()),
-		writable:   writable,
+		fsCache: fsCache{
+			cacheDirRoot: cacheRootDir,
+		},
+		ctx:      ctx,
+		cacheDir: repoCacheDir,
+		writable: pkgCache.GetOptions().Writable,
 	}
 }
 
@@ -91,6 +92,13 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 		return false, nil
 	}
 
+	// Download the cached archive to a local tmp file with progress.
+	downloaded, err := r.downloadFile(pkgcache.KindRepo, remoteFilePath, nameVersion)
+	if err != nil {
+		return false, fmt.Errorf("failed to download '%s' -> %w", remoteFilePath, err)
+	}
+	defer os.Remove(downloaded)
+
 	// Create a clean repo dir.
 	if err := os.RemoveAll(repoDir); err != nil {
 		return false, err
@@ -100,7 +108,7 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 	}
 
 	// Extract archive to repo dir.
-	if err := fileio.Extract(remoteFilePath, repoDir); err != nil {
+	if err := fileio.Extract(downloaded, repoDir); err != nil {
 		return false, err
 	}
 
@@ -114,33 +122,36 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 
 	// Verify cached archive integrity.
 	if strings.HasSuffix(repoUrl, ".git") {
-		// Check if stored repo was modified by comparing git tag.
-		currentTag, err := git.GetCurrentTag(repoDir)
-		if err != nil {
-			_ = os.RemoveAll(repoDir)
-			return false, fmt.Errorf("invalid cached repo, read current tag failed for %s -> %w", nameVersion, err)
-		}
-		if currentTag != repoRef {
-			_ = os.RemoveAll(repoDir)
-			return false, fmt.Errorf("repo tags don't match, expect '%s', got '%s'", repoRef, currentTag)
+		// Verify the checkout matches the expected commit. Prefer the known
+		// checksum; otherwise resolve repoRef to its commit locally. Comparing
+		// commits instead of tag names is robust when several tags point at the
+		// same commit (e.g. spirv-tools tags both 'vulkan-sdk-1.4.335.0' and
+		// 'v2025.5' at the same commit).
+		expectedCommit := strings.TrimSpace(checksum)
+		if expectedCommit == "" {
+			commit, err := git.ResolveRefCommit(repoDir, repoRef)
+			if err != nil {
+				_ = os.RemoveAll(repoDir)
+				return false, fmt.Errorf("invalid cached repo, resolve ref '%s' failed for '%s' -> %w", repoRef, nameVersion, err)
+			}
+			expectedCommit = commit
 		}
 
-		// Verify checksum if not empty also.
-		if checksum != "" {
+		if expectedCommit != "" {
 			localCommit, err := git.GetCommitHash(repoDir)
 			if err != nil {
 				_ = os.RemoveAll(repoDir)
 				return false, fmt.Errorf("git repo is broken for '%s' -> %w", repoDir, err)
 			}
-			if localCommit != checksum {
+			if localCommit != expectedCommit {
 				_ = os.RemoveAll(repoDir)
-				return false, fmt.Errorf("repo commit don't match, expect '%s', got '%s'", checksum, localCommit)
+				return false, fmt.Errorf("repo commit don't match, expect '%s', got '%s'", expectedCommit, localCommit)
 			}
 		}
 	} else {
 		// Verify checksum if not empty.
 		if checksum != "" {
-			remoteChecksum, err := fileio.SHA256Sum(remoteFilePath)
+			remoteChecksum, err := fileio.SHA256Sum(downloaded)
 			if err != nil {
 				_ = os.RemoveAll(repoDir)
 				return false, fmt.Errorf("invalid cached repo, verify checksum failed for %s -> %w", nameVersion, err)
@@ -154,7 +165,7 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 		// Initialize archive source as local git repo, so they won't be treated as user local modifications.
 		// Clone returns early after successful Restore, so the git init that normally happens
 		// in the Clone archive branch is skipped. Restore must init the git repo itself.
-		if err := git.InitAsLocalRepo(repoDir, `"init for tracking file change"`); err != nil {
+		if err := git.InitAsLocalRepo(repoDir, nameVersion); err != nil {
 			return false, fmt.Errorf("failed to init %s for tracing file change -> %w", nameVersion, err)
 		}
 
@@ -169,7 +180,7 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 		if err := os.MkdirAll(downloadsDir, os.ModePerm); err != nil {
 			return false, fmt.Errorf("failed to mkdir downloads '%s' -> %w", downloadsDir, err)
 		}
-		if err := fileio.CopyFile(remoteFilePath, destArchivePath); err != nil {
+		if err := fileio.CopyFile(downloaded, destArchivePath); err != nil {
 			return false, fmt.Errorf("failed to move archive to downloads -> %w", err)
 		}
 	}
@@ -203,7 +214,7 @@ func (r RepoConfig) storeGitRepo(repoDir, repoRef, nameVersion string) error {
 	if err != nil {
 		return err
 	}
-	return r.uploadFile(localTmpFile, remoteFilePath, archiveSha256, false)
+	return r.uploadFile(pkgcache.KindRepo, localTmpFile, remoteFilePath, archiveSha256, nameVersion)
 }
 
 func (r RepoConfig) storeArchiveRepo(repoRef, nameVersion, archiveFile string) error {
@@ -226,13 +237,13 @@ func (r RepoConfig) storeArchiveRepo(repoRef, nameVersion, archiveFile string) e
 		return nil
 	}
 
-	// The archive's sha256 lets doUploadFile skip re-uploads and resolve
+	// The archive's sha256 lets uploadFile skip re-uploads and resolve
 	// multi-user races (another user stored the same archive first).
 	checksum, err := fileio.SHA256Sum(archiveFile)
 	if err != nil {
 		return err
 	}
-	return r.uploadFile(archiveFile, archivePath, checksum, false)
+	return r.uploadFile(pkgcache.KindRepo, archiveFile, archivePath, checksum, nameVersion)
 }
 
 // shouldCacheRepo default we cache all third-party library repos that defined in ports dir.

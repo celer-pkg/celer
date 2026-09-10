@@ -18,6 +18,16 @@ const (
 	DirDownloads
 )
 
+// The kind of restore/store
+type Kind string
+
+const (
+	KindBuildTool Kind = "BuildTool"
+	KindRepo      Kind = "Repo"
+	KindArtifact  Kind = "Artifact"
+)
+
+// FS is the config for the fs backend of pkgcache.
 type FS struct {
 	Dir string `toml:"dir"`
 }
@@ -30,19 +40,24 @@ func (f FS) Validate() error {
 	return nil
 }
 
+// GetDir returns the path for a cache subdir under the nfs root.
 func (f FS) GetDir(dirType DirType, version string) string {
 	switch dirType {
 	case DirArtifacts:
 		return filepath.Join(f.Dir, "artifacts-"+version)
+
 	case DirRepos:
 		return filepath.Join(f.Dir, "repos")
+
 	case DirDownloads:
 		return filepath.Join(f.Dir, "downloads")
+
 	default:
 		return f.Dir
 	}
 }
 
+// Minio is the config for the minio backend of pkgcache.
 type Minio struct {
 	Host      string `toml:"host"`
 	AccessKey string `toml:"access_key"`
@@ -65,6 +80,8 @@ func (m Minio) Validate() error {
 	return nil
 }
 
+// GetDir returns the object key prefix for a cache subdir. Unlike the fs
+// backends these are not filesystem paths, so no filepath.Join here.
 func (m Minio) GetDir(dirType DirType, version string) string {
 	switch dirType {
 	case DirArtifacts:
@@ -81,8 +98,8 @@ func (m Minio) GetDir(dirType DirType, version string) string {
 	}
 }
 
-// Options holds the pkgcache options shared by all backends: fs and minio
-// are mutually exclusive, so these options live here instead of being
+// Options holds the pkgcache options shared by all backends: fs and
+// minio are mutually exclusive, so these options live here instead of being
 // duplicated per backend.
 type Options struct {
 	Writable  bool `toml:"writable"`
@@ -91,8 +108,10 @@ type Options struct {
 	Repos     bool `toml:"repos"`
 }
 
-// PkgCache is the shared (typically NFS/FTP) package cache: stores/restores
+// PkgCache is the shared package cache: stores/restores
 // source repos and built artifacts so repeat builds skip clone and compile.
+// The NFS/FTP backend is configured via FS, the minio backend via Minio; the
+// two are mutually exclusive.
 type PkgCache interface {
 	GetMinio() *Minio
 	GetFS() *FS
@@ -116,8 +135,8 @@ type RepoCache interface {
 
 // DownloadCache stores/restores downloaded files (tools, archives), keyed by SHA256.
 type DownloadCache interface {
-	Restore(fileName, sha256 string) (bool, error)
-	Store(fileName, sha256, srcFile string) error
+	Restore(kind Kind, fileName, sha256 string) (bool, error)
+	Store(kind Kind, fileName, sha256, srcFile string) error
 }
 
 // ========================== dev cache ========================== //
