@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/expr"
 )
@@ -25,6 +26,7 @@ type Repair struct {
 	folder     string
 	destDir    string
 	sha256     string
+	kind       pkgcache.Kind
 }
 
 func NewRepair(url, downloads, archive, folder, destDir, sha256 string) *Repair {
@@ -39,7 +41,7 @@ func NewRepair(url, downloads, archive, folder, destDir, sha256 string) *Repair 
 	}
 }
 
-func (r *Repair) CheckAndRepair(ctx context.Context) error {
+func (r *Repair) CheckAndRepair(ctx context.Context, kind pkgcache.Kind) error {
 	// Skip if this file has already been checked and repaired.
 	checkedKey := r.fileCheckedKey()
 	if _, loaded := checkedFiles.LoadOrStore(checkedKey, true); loaded {
@@ -55,7 +57,9 @@ func (r *Repair) CheckAndRepair(ctx context.Context) error {
 	}
 
 	r.ctx = ctx
+	r.kind = kind
 	r.httpClient = httpClient(r.ctx.ProxyHostPort())
+	r.downloader.WithKind(kind)
 
 	switch {
 	case strings.HasPrefix(r.downloader.url, "http"), strings.HasPrefix(r.downloader.url, "ftp"):
@@ -101,7 +105,6 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 		if restored, err := r.tryRestoreFromCache(fileName); err != nil {
 			color.Printf(color.Warning, "[✘] failed to search pkgcache: %v\n", err)
 		} else if restored {
-			color.PrintInline(color.Hint, "[✔] restore '%s' from pkgcache", fileName)
 			needToDownload = false
 		}
 	}
@@ -122,7 +125,7 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 
 			downloadCache := pkgCache.GetDownloadCache()
 			if downloadCache != nil {
-				if err := downloadCache.Store(fileName, r.sha256, downloaded); err != nil {
+				if err := downloadCache.Store(r.kind, fileName, r.sha256, downloaded); err != nil {
 					return fmt.Errorf("failed to cache file %s -> %w", fileName, err)
 				}
 			}
@@ -298,5 +301,5 @@ func (r *Repair) tryRestoreFromCache(fileName string) (bool, error) {
 	}
 
 	// Find cached file by sha256 via the DownloadCache interface.
-	return downloadCache.Restore(fileName, r.sha256)
+	return downloadCache.Restore(r.kind, fileName, r.sha256)
 }

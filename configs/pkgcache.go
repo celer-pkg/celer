@@ -12,9 +12,9 @@ import (
 // ================= PkgCache ================= //
 
 type PkgCache struct {
-	Minio   *pkgcache.Minio   `toml:"minio"`
-	FS      *pkgcache.FS      `toml:"fs"`
-	Options pkgcache.Options  `toml:"options"`
+	Minio   *pkgcache.Minio  `toml:"minio"`
+	FS      *pkgcache.FS     `toml:"fs"`
+	Options pkgcache.Options `toml:"options"`
 
 	// Internal field.
 	artifactCache pkgcache.AritifactCache

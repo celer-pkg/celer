@@ -114,7 +114,7 @@ func (d *depcheck) CheckCircular(ctx context.Context, port configs.Port) error {
 
 func (d *depcheck) checkCircular(port configs.Port) error {
 	if port.DevDep || port.HostDep {
-		portKey := port.NameVersion() + " [dev]"
+		portKey := port.NameVersion() + "[dev]"
 
 		// Check if the port is already in the path.
 		if slices.Contains(d.path, portKey) {

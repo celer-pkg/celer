@@ -15,8 +15,8 @@ import (
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/configs/toolchains"
 	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/cmd"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/env"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
@@ -219,7 +219,7 @@ func (t *Toolchain) Validate() error {
 	return nil
 }
 
-func (t *Toolchain) CheckAndRepair(silent bool) error {
+func (t *Toolchain) CheckAndRepair() error {
 	// Default folder name is the first folder name of archive name,
 	// but it can be specified by archive name.
 	folderName, _, _ := strings.Cut(filepath.ToSlash(t.Path), "/")
@@ -233,20 +233,10 @@ func (t *Toolchain) CheckAndRepair(silent bool) error {
 	// Check and repair resource.
 	toolsDir := filepath.Join(t.ctx.Downloads(), "tools")
 	repair := fileio.NewRepair(t.Url, t.ctx.Downloads(), archive, folderName, toolsDir, t.SHA256)
-	if err := repair.CheckAndRepair(t.ctx); err != nil {
+	if err := repair.CheckAndRepair(t.ctx, pkgcache.KindBuildTool); err != nil {
 		return err
 	}
 
-	// Print download & extract info.
-	if !silent {
-		if t.rootDir == "" {
-			color.PrintPass("toolchain: %s", "local")
-			color.PrintHint("Location: %s", strings.ReplaceAll(t.Url, "file:///", ""))
-		} else {
-			color.PrintPass("toolchain: %s", t.displayName)
-			color.PrintHint("Location: %s", t.rootDir)
-		}
-	}
 	return nil
 }
 
@@ -296,7 +286,7 @@ func (t *Toolchain) Detect(toolchainName string) error {
 		return err
 	}
 
-	if err := t.CheckAndRepair(true); err != nil {
+	if err := t.CheckAndRepair(); err != nil {
 		return err
 	}
 

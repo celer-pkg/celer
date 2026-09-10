@@ -49,9 +49,11 @@ func TestInstall_BuildType(t *testing.T) {
 		)
 
 		var port configs.Port
-		var options configs.InstallOptions
+		var options = configs.InstallOptions{Prefer: configs.PreferSource}
 		check(port.Init(celer, nameVersion))
-		check(port.InstallFromSource(options))
+		if _, err := port.Install(options); err != nil {
+			t.Fatal(err)
+		}
 
 		// Check if package dir exists.
 		if !fileio.PathExists(packageDir) {
@@ -86,9 +88,11 @@ func TestInstall_BuildType(t *testing.T) {
 		)
 
 		var port configs.Port
-		var options configs.InstallOptions
+		var options = configs.InstallOptions{Prefer: configs.PreferSource}
 		check(port.Init(celer, nameVersion))
-		check(port.InstallFromSource(options))
+		if _, err := port.Install(options); err != nil {
+			t.Fatal(err)
+		}
 
 		// Check if package dir exists.
 		if !fileio.PathExists(packageDir) {

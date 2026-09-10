@@ -50,9 +50,11 @@ func TestInstall_PkgCache_Artifact_Success(t *testing.T) {
 	check(celer.SetPlatform(platform))
 
 	var port configs.Port
-	var installOptions = configs.InstallOptions{}
+	var options = configs.InstallOptions{Prefer: configs.PreferSource}
 	check(port.Init(celer, nameVersion))
-	check(port.InstallFromSource(installOptions))
+	if _, err := port.Install(options); err != nil {
+		t.Fatal(err)
+	}
 
 	// Check package.
 	packageDir := filepath.Join(dirs.PackagesDir, platform, project, celer.BuildType(), nameVersion)
@@ -70,16 +72,18 @@ func TestInstall_PkgCache_Artifact_Success(t *testing.T) {
 	check(port.MatchedConfig.Clean())
 
 	// Install from package should fail.
-	installed, err := port.InstallFromPackage(installOptions)
-	check(err)
-	if installed {
+	options.Prefer = configs.PreferPackage
+	if fromWhere, err := port.Install(options); err != nil {
+		t.Fatal(err)
+	} else if fromWhere != "" {
 		t.Fatal("should install failed from package")
 	}
 
 	// Install from cache should success.
-	installed, err = port.InstallFromPkgCache(installOptions)
-	check(err)
-	if !installed {
+	options.Prefer = configs.PreferPkgCache
+	if fromWhere, err := port.Install(options); err != nil {
+		t.Fatal(err)
+	} else if fromWhere == "" {
 		t.Fatal("should install successfully from cache")
 	}
 
@@ -123,9 +127,11 @@ func TestInstall_PkgCache_Artifact_With_Deps_Success(t *testing.T) {
 	check(celer.SetPlatform(platform))
 
 	var glogPort configs.Port
-	var options = configs.InstallOptions{}
+	var options = configs.InstallOptions{Prefer: configs.PreferSource}
 	check(glogPort.Init(celer, nameVersion))
-	check(glogPort.InstallFromSource(options))
+	if _, err := glogPort.Install(options); err != nil {
+		t.Fatal(err)
+	}
 
 	packageDir := func(nameVersion string) string {
 		return filepath.Join(dirs.PackagesDir, platform, project, celer.BuildType(), nameVersion)
@@ -147,25 +153,27 @@ func TestInstall_PkgCache_Artifact_With_Deps_Success(t *testing.T) {
 	check(glogPort.MatchedConfig.Clean())
 
 	// Install from package should fail.
-	installed, err := glogPort.InstallFromPackage(options)
-	check(err)
-	if installed {
+	options.Prefer = configs.PreferPackage
+	if fromWhere, err := glogPort.Install(options); err != nil {
+		t.Fatal(err)
+	} else if fromWhere != "" {
 		t.Fatal("should install failed from package")
 	}
 
 	// Install from cache should success.
-	installed, err = glogPort.InstallFromPkgCache(options)
-	check(err)
-	if !installed {
+	options.Prefer = configs.PreferPkgCache
+	if fromWhere, err := glogPort.Install(options); err != nil {
+		t.Fatal(err)
+	} else if fromWhere == "" {
 		t.Fatal("should install successfully from cache")
 	}
 
 	// gflags should also be installed from cache.
 	var gflagsPort configs.Port
 	check(gflagsPort.Init(celer, "gflags@2.2.2"))
-	installed, err = gflagsPort.Installed()
-	check(err)
-	if !installed {
+	if fromWhere, err := gflagsPort.Installed(); err != nil {
+		t.Fatal(err)
+	} else if !fromWhere {
 		t.Fatal("gflags not installed")
 	}
 
@@ -208,9 +216,11 @@ func TestInstall_PkgCache_Prebuilt_Success(t *testing.T) {
 	check(celer.SetPlatform(platform))
 
 	var port configs.Port
-	var options = configs.InstallOptions{}
+	var options = configs.InstallOptions{Prefer: configs.PreferSource}
 	check(port.Init(celer, nameVersion))
-	check(port.InstallFromSource(options))
+	if _, err := port.Install(options); err != nil {
+		t.Fatal(err)
+	}
 
 	// Check package & repo.
 	packageDir := filepath.Join(dirs.PackagesDir, platform, project, celer.BuildType(), nameVersion)
@@ -231,16 +241,18 @@ func TestInstall_PkgCache_Prebuilt_Success(t *testing.T) {
 	check(port.Remove(removeOptions))
 
 	// Install from package should fail.
-	installed, err := port.InstallFromPackage(options)
-	check(err)
-	if installed {
+	options.Prefer = configs.PreferPackage
+	if fromWhere, err := port.Install(options); err != nil {
+		t.Fatal(err)
+	} else if fromWhere != "" {
 		t.Fatal("should install failed from package")
 	}
 
 	// Install from cache should success.
-	installed, err = port.InstallFromPkgCache(options)
-	check(err)
-	if !installed {
+	options.Prefer = configs.PreferPkgCache
+	if fromWhere, err := port.Install(options); err != nil {
+		t.Fatal(err)
+	} else if fromWhere == "" {
 		t.Fatal("should install successfully from cache")
 	}
 
@@ -280,9 +292,11 @@ func TestInstall_PkgCache_DirNotDefined_ShouldSkipStoreCache(t *testing.T) {
 	check(celer.SetPlatform(platform))
 
 	var port configs.Port
-	var options = configs.InstallOptions{}
+	var options = configs.InstallOptions{Prefer: configs.PreferSource}
 	check(port.Init(celer, nameVersion))
-	check(port.InstallFromSource(options))
+	if _, err := port.Install(options); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestInstall_PkgCache_With_Commit_Success(t *testing.T) {
@@ -319,9 +333,11 @@ func TestInstall_PkgCache_With_Commit_Success(t *testing.T) {
 	check(celer.SetPlatform(platform))
 
 	var port configs.Port
-	var options = configs.InstallOptions{}
+	var options = configs.InstallOptions{Prefer: configs.PreferSource}
 	check(port.Init(celer, nameVersion))
-	check(port.InstallFromSource(options))
+	if _, err := port.Install(options); err != nil {
+		t.Fatal(err)
+	}
 
 	// Read commit hash.
 	commit, err := git.GetCommitHash(port.MatchedConfig.PortConfig.RepoDir)
@@ -338,9 +354,10 @@ func TestInstall_PkgCache_With_Commit_Success(t *testing.T) {
 
 	// Install from cache with commit.
 	port.Package.Checksum = commit
-	installed, err := port.InstallFromPkgCache(options)
-	check(err)
-	if !installed {
+	options.Prefer = configs.PreferPkgCache
+	if fromWhere, err := port.Install(options); err != nil {
+		t.Fatal(err)
+	} else if fromWhere == "" {
 		t.Fatal("should be installed from cache")
 	}
 
@@ -382,9 +399,11 @@ func TestInstall_PkgCache_With_Commit_Missing_FallsBackToSource(t *testing.T) {
 	check(celer.SetPlatform(platform))
 
 	var port configs.Port
-	var options = configs.InstallOptions{}
+	var options = configs.InstallOptions{Prefer: configs.PreferSource}
 	check(port.Init(celer, nameVersion))
-	check(port.InstallFromSource(options))
+	if _, err := port.Install(options); err != nil {
+		t.Fatal(err)
+	}
 
 	commit, err := git.GetCommitHash(port.MatchedConfig.PortConfig.RepoDir)
 	check(err)
@@ -403,12 +422,14 @@ func TestInstall_PkgCache_With_Commit_Missing_FallsBackToSource(t *testing.T) {
 	port.Package.Checksum = commit
 	port.MatchedConfig.PortConfig.Checksum = commit
 
-	installed, err := port.InstallFromPkgCache(options)
-	check(err)
-	if installed {
+	options.Prefer = configs.PreferPkgCache
+	if fromWhere, err := port.Install(options); err != nil {
+		t.Fatal(err)
+	} else if fromWhere != "" {
 		t.Fatal("should not be installed from missing artifact cache")
 	}
 
+	options.Prefer = configs.PreferNone
 	installedFrom, err := port.Install(options)
 	check(err)
 	if installedFrom != "source" {
@@ -467,8 +488,11 @@ func TestInstall_Command_ReportContainsPkgCacheSource(t *testing.T) {
 
 	// Prepare cache by installing from source once.
 	var port configs.Port
+	var options = configs.InstallOptions{Prefer: configs.PreferSource}
 	check(port.Init(celer, nameVersion))
-	check(port.InstallFromSource(configs.InstallOptions{}))
+	if _, err := port.Install(options); err != nil {
+		t.Fatal(err)
+	}
 
 	// Remove installed and source to force package-cache path.
 	removeOptions := configs.RemoveOptions{

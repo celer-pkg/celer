@@ -286,7 +286,7 @@ func CheckIfRefMatches(ctx context.Context, nameVersion, repoDir, expectedRef st
 		}
 	}
 
-	upstreamCommit, err := revParseCommit(repoDir, upstreamBranch)
+	upstreamCommit, err := ResolveRefCommit(repoDir, upstreamBranch)
 	if err != nil {
 		return "", err
 	}
@@ -340,7 +340,7 @@ func getUpstreamBranch(repoDir string) (string, error) {
 }
 
 // InitAsLocalRepo init folder as a local repo.
-func InitAsLocalRepo(repoDir, message string) error {
+func InitAsLocalRepo(repoDir, target string) error {
 	// Check if repo directory exists
 	if _, err := os.Stat(repoDir); err != nil {
 		return fmt.Errorf("directory error -> %w", err)
@@ -354,7 +354,7 @@ func InitAsLocalRepo(repoDir, message string) error {
 		"GIT_COMMITTER_EMAIL=ci@celer.com",
 	)
 
-	color.Printf(color.Title, "\n%s\n", "[init for tracking file change]")
+	color.Printf(color.Title, "\n[Init '%s' for tracking file change]\n", target)
 
 	// git init
 	color.Printf(color.Hint, "[-] git -C %s init", repoDir)
@@ -375,6 +375,7 @@ func InitAsLocalRepo(repoDir, message string) error {
 	color.PrintInline(color.Hint, "[✔] git -C %s add -A\n", repoDir)
 
 	// git commit
+	message := `"Init for tracking file change"`
 	color.Printf(color.Hint, "[-] git -C %s commit -m %s", repoDir, message)
 	cmd = exec.Command("git", "-C", repoDir, "commit", "-m", message)
 	cmd.Env = gitEnv
@@ -405,18 +406,20 @@ func RevParseRepoRef(ctx context.Context, nameVersion, repoDir, repoRef string) 
 			if err := fetchRemoteRef(nameVersion, repoDir, remoteName, repoRef); err != nil {
 				return "", err
 			}
-			if remoteCommit, err := revParseCommit(repoDir, remoteName+"/"+repoRef); err == nil {
+			if remoteCommit, err := ResolveRefCommit(repoDir, remoteName+"/"+repoRef); err == nil {
 				return remoteCommit, nil
 			}
 		}
 	}
 
 	// Fall back to any locally resolvable ref: commit hash, tag, branch, etc.
-	return revParseCommit(repoDir, repoRef)
+	return ResolveRefCommit(repoDir, repoRef)
 }
 
-// revParseCommit returns the full commit hash for the given repo ref.
-func revParseCommit(repoDir, repoRef string) (string, error) {
+// ResolveRefCommit returns the full commit hash for the given repo ref, using
+// only the local repository (no fetch). The ref can be a commit hash, tag,
+// branch, or HEAD. It returns an empty string for an empty ref.
+func ResolveRefCommit(repoDir, repoRef string) (string, error) {
 	repoRef = strings.TrimSpace(repoRef)
 	if repoRef == "" {
 		return "", nil

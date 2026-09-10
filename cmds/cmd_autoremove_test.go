@@ -52,7 +52,8 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 	if err := port.Init(celer, portNameVersion); err != nil {
 		t.Fatal(err)
 	}
-	if err := port.InstallFromSource(configs.InstallOptions{}); err != nil {
+	options := configs.InstallOptions{Prefer: configs.PreferSource}
+	if _, err := port.Install(options); err != nil {
 		t.Fatal(err)
 	}
 
@@ -111,7 +112,9 @@ func TestAutoRemove_With_BuildCache(t *testing.T) {
 	if err := port.Init(celer, portNameVersion); err != nil {
 		t.Fatal(err)
 	}
-	if err := port.InstallFromSource(configs.InstallOptions{}); err != nil {
+
+	options := configs.InstallOptions{Prefer: configs.PreferSource}
+	if _, err := port.Install(options); err != nil {
 		t.Fatal(err)
 	}
 

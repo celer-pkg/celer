@@ -17,7 +17,6 @@ type progressBar struct {
 	currentSize  int64
 	lastProgress int
 	startTime    time.Time
-	started      bool
 
 	// Callbacks you can register.
 	completed Completed
@@ -44,12 +43,6 @@ func (p *progressBar) Write(b []byte) (int, error) {
 
 	progress := int(float64(p.currentSize*100) / float64(p.fileSize))
 	if progress > p.lastProgress {
-		// Print progress bar in a new line.
-		if !p.started {
-			fmt.Println()
-			p.started = true
-		}
-
 		p.lastProgress = progress
 
 		// Calculate download speed.
@@ -65,7 +58,7 @@ func (p *progressBar) Write(b []byte) (int, error) {
 		if speed > 0 && p.currentSize < p.fileSize {
 			remainingBytes := float64(p.fileSize - p.currentSize)
 			remainingSec := remainingBytes / speed
-			eta = p.formatDuration(int64(remainingSec))
+			eta = expr.FormatDuration(int64(remainingSec))
 		}
 
 		// Format speed with appropriate units.
@@ -113,29 +106,12 @@ func (p *progressBar) Write(b []byte) (int, error) {
 		if progress == 100 {
 			totalSec := time.Since(p.startTime).Seconds()
 			if p.completed != nil {
-				p.completed(p.formatDuration(int64(totalSec)), expr.FormatSize(p.fileSize))
+				p.completed(expr.FormatDuration(int64(totalSec)), expr.FormatSize(p.fileSize))
 			}
 		}
 	}
 
 	return n, nil
-}
-
-// formatDuration converts seconds to a human-readable format (e.g., "2m 30s", "45s")
-func (p *progressBar) formatDuration(seconds int64) string {
-	if seconds < 60 {
-		return fmt.Sprintf("%ds", seconds)
-	}
-
-	minutes := seconds / 60
-	secs := seconds % 60
-	if minutes < 60 {
-		return fmt.Sprintf("%dm %ds", minutes, secs)
-	}
-
-	hours := minutes / 60
-	mins := minutes % 60
-	return fmt.Sprintf("%dh %dm %ds", hours, mins, secs)
 }
 
 // truncateMiddle shortens content to at most max runes, keeping both ends with "..."

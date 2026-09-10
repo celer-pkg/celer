@@ -7,7 +7,6 @@ import (
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/minio/minio-go/v7"
 )
@@ -40,7 +39,7 @@ func NewDownloadConfig(ctx context.Context, client *minio.Client) *DownloadConfi
 }
 
 // Store saves a downloaded file to the cache directory using SHA256 in the filename.
-func (d DownloadConfig) Store(fileName, sha256, srcPath string) error {
+func (d DownloadConfig) Store(kind pkgcache.Kind, fileName, sha256, srcPath string) error {
 	// skip when offline.
 	if d.ctx.Offline() {
 		return nil
@@ -76,13 +75,7 @@ func (d DownloadConfig) Store(fileName, sha256, srcPath string) error {
 	}
 
 	// Upload file with progress.
-	if _, err := d.UploadFile(fileToStore, cachedFilePath, func(percent int) {
-		if percent < 100 {
-			color.PrintInline(color.Hint, "[-] %s is uploading %d%%", fileName, percent)
-		} else if percent == 100 {
-			color.PrintInline(color.Pass, "[✔] %s is stored to pkgcache.\n", fileName)
-		}
-	}); err != nil {
+	if err := d.uploadFile(kind, fileToStore, cachedFilePath, fileName); err != nil {
 		return err
 	}
 
@@ -91,7 +84,7 @@ func (d DownloadConfig) Store(fileName, sha256, srcPath string) error {
 
 // Restore finds a cached file matching the given SHA256 and restores it to
 // the downloads dir.
-func (d DownloadConfig) Restore(fileName, sha256 string) (bool, error) {
+func (d DownloadConfig) Restore(kind pkgcache.Kind, fileName, sha256 string) (bool, error) {
 	// skip when offline.
 	if d.ctx.Offline() {
 		return false, nil
@@ -121,7 +114,7 @@ func (d DownloadConfig) Restore(fileName, sha256 string) (bool, error) {
 		return false, nil
 	}
 
-	downloaded, err := d.DownloadFile(remoteFilePath)
+	downloaded, err := d.downloadFile(kind, remoteFilePath, fileName)
 	if err != nil {
 		return false, err
 	}

@@ -119,11 +119,13 @@ func buildWithAArch64GCC(t *testing.T, platform, nameVersion string, nobuild boo
 	var (
 		packageFolder = filepath.Join(platform, project, celer.BuildType(), nameVersion)
 		port          configs.Port
-		options       configs.InstallOptions
+		options       = configs.InstallOptions{Prefer: configs.PreferSource}
 	)
 
 	check(port.Init(celer, nameVersion))
-	check(port.InstallFromSource(options))
+	if _, err := port.Install(options); err != nil {
+		t.Fatal(err)
+	}
 
 	// Check if package dir exists.
 	if !nobuild {

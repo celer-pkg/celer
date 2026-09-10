@@ -42,10 +42,14 @@ func TestInstall_FromPackage(t *testing.T) {
 	check(celer.SetProject(project))
 
 	t.Run("install success", func(t *testing.T) {
+
 		var port configs.Port
-		var options configs.InstallOptions
+		var options = configs.InstallOptions{Prefer: configs.PreferSource}
 		check(port.Init(celer, nameVersion))
-		check(port.InstallFromSource(options))
+
+		if _, err := port.Install(options); err != nil {
+			t.Fatal(err)
+		}
 
 		if !fileio.PathExists(packageDir) {
 			t.Fatal("package cannot found")
@@ -58,8 +62,10 @@ func TestInstall_FromPackage(t *testing.T) {
 		}
 		check(port.Remove(removeOptions))
 
-		installed, err := port.InstallFromPackage(options)
-		check(err)
+		options.Prefer = configs.PreferPackage
+		if _, err := port.Install(options); err != nil {
+			t.Fatal(err)
+		}
 
 		t.Cleanup(func() {
 			removeOptions := configs.RemoveOptions{
@@ -70,16 +76,16 @@ func TestInstall_FromPackage(t *testing.T) {
 			check(port.Remove(removeOptions))
 		})
 
-		if !installed {
-			t.Fatal("should not be successfully installed from package")
-		}
 	})
 
 	t.Run("install failed", func(t *testing.T) {
+
 		var port configs.Port
-		var options configs.InstallOptions
+		var options = configs.InstallOptions{Prefer: configs.PreferSource}
 		check(port.Init(celer, nameVersion))
-		check(port.InstallFromSource(options))
+		if _, err := port.Install(options); err != nil {
+			t.Fatal(err)
+		}
 
 		if !fileio.PathExists(packageDir) {
 			t.Fatal("package cannot found")
@@ -91,10 +97,9 @@ func TestInstall_FromPackage(t *testing.T) {
 		}
 		check(port.Remove(removeOptions))
 
-		installed, err := port.InstallFromPackage(options)
-		check(err)
-		if installed {
-			t.Fatal("it should be failed to install from package.")
+		options.Prefer = configs.PreferPackage
+		if _, err := port.Install(options); err != nil {
+			t.Fatal(err)
 		}
 	})
 }

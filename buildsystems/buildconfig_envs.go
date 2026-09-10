@@ -55,7 +55,11 @@ func (b *BuildConfig) setupEnvs() {
 		toolchain.SetupEnvs()
 	}
 
-	for _, env := range b.Envs {
+	// Project-level envs are applied before port-level envs so project-wide
+	// defaults apply to every port.
+	allEnvs := append(slices.Clone(b.Ctx.Project().GetEnvs()), b.Envs...)
+
+	for _, env := range allEnvs {
 		env = strings.TrimSpace(env)
 
 		before, after, ok := strings.Cut(env, "=")

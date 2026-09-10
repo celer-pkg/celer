@@ -1,4 +1,4 @@
-package netfs
+package filesystem
 
 import (
 	"crypto/sha256"
@@ -16,9 +16,9 @@ import (
 )
 
 type ArtifactConfig struct {
-	netfsCache
+	fsCache
 	ctx        context.Context
-	cacheDir   string // ${pkgcache_root}/artifacts
+	cacheDir   string
 	writable   bool
 	maxRetries int
 }
@@ -29,22 +29,20 @@ func NewArtifactConfig(ctx context.Context) *ArtifactConfig {
 		return nil
 	}
 
-	fs := pkgCache.GetFS()
-	writable := pkgCache.GetOptions().Writable
-	netfsCache := netfsCache{cacheDirRoot: fs.GetDir(pkgcache.DirRoot, ctx.Version())}
-
+	cacheRootDir := pkgCache.GetFS().GetDir(pkgcache.DirRoot, ctx.Version())
 	return &ArtifactConfig{
-		netfsCache: netfsCache,
+		fsCache: fsCache{
+			cacheDirRoot: cacheRootDir,
+		},
 		ctx:        ctx,
-		cacheDir:   fs.GetDir(pkgcache.DirArtifacts, ctx.Version()),
-		writable:   writable,
+		cacheDir:   pkgCache.GetFS().GetDir(pkgcache.DirArtifacts, ctx.Version()),
+		writable:   pkgCache.GetOptions().Writable,
 		maxRetries: 3,
 	}
 }
 
 // Restore restores the cached package to package directory if cache hit.
-// Returns false when there is no valid cached artifact, it's then the
-// caller's job to build from source.
+// Returns true when the package was restored from cache, false on cache miss.
 func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool, error) {
 	// skip when offline.
 	if a.ctx.Offline() {
@@ -77,33 +75,31 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 		return false, fmt.Errorf("cache metadata checksum mismatch for %s", nameVersion)
 	}
 
-	// Copy remote archive to a local tmp file with progress.
-	destFile, err := os.CreateTemp(os.TempDir(), "celer-pkgcache-artifact-*.tar.gz")
-	if err != nil {
-		return false, fmt.Errorf("can not create tmp artifact file -> %w", err)
-	}
-	destFile.Close()
-	defer os.Remove(destFile.Name())
-
-	if err := a.copyWithProgress(remoteFilePath, destFile.Name(),
-		"restore artifact", nameVersion+"'s artifact is restored"); err != nil {
-		return false, fmt.Errorf("failed to restore %s from pkgcache -> %w", nameVersion, err)
-	}
-
-	// Create tmp dir and extract inside.
+	// Create tmp dir for extracting inside (cleaned before the download so the
+	// downloaded tmp file is not wiped).
 	if err := dirs.CleanTmpFilesDir(); err != nil {
 		return false, fmt.Errorf("failed to clean tmp files dir -> %w", err)
 	}
-	tempDir, err := os.MkdirTemp(dirs.TmpFilesDir, "celer-pkgcache-pkgcache-extract-*")
+
+	// Download the remote archive to a local tmp file with progress.
+	downloaded, err := a.downloadFile(pkgcache.KindArtifact, remoteFilePath, nameVersion)
+	if err != nil {
+		return false, fmt.Errorf("failed to restore %s from pkgcache -> %w", nameVersion, err)
+	}
+	defer os.Remove(downloaded)
+
+	tempDir, err := os.MkdirTemp(dirs.TmpFilesDir, "pkgcache-extract-*")
 	if err != nil {
 		return false, err
 	}
 	defer os.RemoveAll(tempDir)
-	if err := fileio.Extract(destFile.Name(), tempDir); err != nil {
-		return false, fmt.Errorf("failed to extract '%s' to '%s'-> %w", destFile.Name(), tempDir, err)
+
+	// Extract to a tmp dir.
+	if err := fileio.Extract(downloaded, tempDir); err != nil {
+		return false, fmt.Errorf("failed to extract '%s' to '%s' -> %w", downloaded, tempDir, err)
 	}
 
-	// Clean package dir and move to it.
+	// Clean package dir and rename to pacakge dir.
 	if err := os.RemoveAll(packageDir); err != nil {
 		return false, err
 	}
@@ -156,43 +152,48 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 	// Calculate checksum of metadata，this would be the cache key.
 	data := sha256.Sum256([]byte(meta))
 	hash := fmt.Sprintf("%x", data)
-
-	remoteFileDir := filepath.Join(a.cacheDir, platformName, projectName, buildType, nameVersion)
-	remoteFilePath := filepath.Join(remoteFileDir, hash+".tar.gz")
-	metaPath := filepath.Join(remoteFileDir, "metas", hash+".meta")
+	destDir := filepath.Join(a.cacheDir, platformName, projectName, buildType, nameVersion)
+	archivePath := filepath.Join(destDir, hash+".tar.gz")
+	metaPath := filepath.Join(destDir, "metas", hash+".meta")
 
 	// Compress package dir to a temp archive.
+	archiveName := fmt.Sprintf("%s@%s.tar.gz", libName, libVersion)
 	if err := dirs.CleanTmpFilesDir(); err != nil {
 		return fmt.Errorf("failed to clean tmp files dir -> %w", err)
 	}
-	tmpFile, err := os.CreateTemp(dirs.TmpFilesDir, fmt.Sprintf("%s@%s-*.tar.gz", libName, libVersion))
+	tempArchive, err := os.CreateTemp(dirs.TmpFilesDir, archiveName+".*")
 	if err != nil {
 		return err
 	}
-	tmpFile.Close()
-	defer os.Remove(tmpFile.Name())
+	tempArchivePath := tempArchive.Name()
+	tempArchive.Close()
+	defer os.Remove(tempArchivePath)
 
-	if err := fileio.Targz(tmpFile.Name(), packageDir, false); err != nil {
+	if err := fileio.Targz(tempArchivePath, packageDir, false); err != nil {
 		return err
 	}
 
-	// Store the meta file before the archive, it's tiny so skip the progress bar.
+	// Store the meta file before the archive. It is tiny so skip the progress
+	// bar. uploadFile stages it in the FS root tmp dir, then atomically renames
+	// it into the meta's dir.
 	metaTmpPath := filepath.Join(dirs.TmpFilesDir, hash+".meta")
 	if err := os.WriteFile(metaTmpPath, []byte(meta), os.ModePerm); err != nil {
 		return err
 	}
 	defer os.Remove(metaTmpPath)
-	if err := a.uploadFile(metaTmpPath, metaPath, hash, false); err != nil {
+	if err := a.uploadSilent(metaTmpPath, metaPath, hash); err != nil {
 		return err
 	}
 
-	// Store the archive with retry for transient IO failures.
-	tmpFileSha256, err := fileio.SHA256Sum(tmpFile.Name())
+	// Store the archive with retry for transient IO failures. uploadFile skips
+	// the upload when the remote archive already matches sha256 (e.g. another
+	// user won the race), so retries are always safe.
+	archiveSha256, err := fileio.SHA256Sum(tempArchivePath)
 	if err != nil {
 		return err
 	}
-	if err := a.UploadFile(tmpFile.Name(), remoteFilePath, tmpFileSha256); err != nil {
-		return err
+	if err := a.uploadFile(pkgcache.KindArtifact, tempArchivePath, archivePath, archiveSha256, nameVersion); err != nil {
+		return fmt.Errorf("failed to upload file '%s' -> %w", nameVersion, err)
 	}
 
 	return nil

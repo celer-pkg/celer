@@ -17,22 +17,34 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+type InstallPrefer int
+
+const (
+	PreferNone InstallPrefer = iota
+	PreferSource
+	PreferPackage
+	PreferPkgCache
+	PreferDevCache
+)
+
 // Install install a port and tell me where it was installed from.
-func (p *Port) Install(options InstallOptions) (installedFrom string, retErr error) {
+func (p *Port) Install(options InstallOptions) (fromWhere string, retErr error) {
 	// At the top-level entry, reset the installReport.
 	if p.Parent == "" {
 		p.installReport = newInstallReport(p.NameVersion())
 	}
+
 	defer func() {
 		if retErr != nil || p.installReport == nil {
 			return
 		}
 
-		finalFrom := installedFrom
-		if finalFrom == "" {
-			finalFrom = "preinstalled"
+		// An empty fromWhere signals a strict "Prefer" miss (the port was not
+		// installed from the requested path), so there is nothing to report.
+		if fromWhere == "" {
+			return
 		}
-		p.installReport.add(p, finalFrom)
+		p.installReport.add(p, fromWhere)
 
 		// Only top-level port writes report files.
 		if p.Parent == "" {
@@ -46,12 +58,6 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 			color.PrintHint("Location: %s", reportPath)
 		}
 	}()
-
-	installedDir := expr.If(p.DevDep || p.HostDep,
-		filepath.Join(dirs.InstalledDir, p.ctx.Platform().GetHostName()+"-dev"),
-		filepath.Join(dirs.InstalledDir,
-			p.ctx.Platform().GetName()+"@"+p.ctx.Project().GetName()+"@"+p.ctx.BuildType()),
-	)
 
 	// There is no need to read p.Installed() if build with --force, this API may time-consuming.
 	var installed bool
@@ -73,25 +79,30 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 			BuildCache: false,
 		}
 		if err := p.Remove(options); err != nil {
-			return "", fmt.Errorf("failed to remove installed package -> %w", err)
+			return "", fmt.Errorf("failed to remove installed package '%s' -> %w", p.NameVersion(), err)
 		}
 		installed = false // Mark as not installed.
 	}
 
 	// If preinstalled and not with "--force/-f", report and return.
 	if installed && !options.Force {
+		installedDir := expr.If(p.DevDep || p.HostDep,
+			filepath.Join(dirs.InstalledDir, p.ctx.Platform().GetHostName()+"-dev"),
+			filepath.Join(dirs.InstalledDir,
+				p.ctx.Platform().GetName()+"@"+p.ctx.Project().GetName()+"@"+p.ctx.BuildType()),
+		)
+
 		if p.IsHostSupported() {
 			color.PrintPass("package: %s", p.NameVersion())
 			color.PrintHint("Location: %s", installedDir)
 		}
-		installedFrom = "preinstalled"
-		retErr = nil
-		return
+		return "preinstalled", nil
 	}
 
-	// Check all tools at the beginning (only for top-level port)
-	if p.Parent == "" {
-		if err := p.checkAllTools(); err != nil {
+	// Check if cpython version conflicts with venv version defined in celer.toml.
+	// Skip this check when the top-level port is cpython itself.
+	if p.Parent == "" && p.Name != "cpython" {
+		if err := p.checkCPythonVersionConflict(); err != nil {
 			return "", err
 		}
 	}
@@ -119,60 +130,111 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 		}
 	}
 
+	// Pre-warm repos and the meta cache for the whole dependency tree up front, so
+	// every install path (package/pkgcache/devcache/source) hits warm caches instead
+	// of restoring/cloning repos serially per dependency during buildhash.
+	if p.Parent == "" {
+		// Clone all repos.
+		visitedPorts = map[string]bool{}
+		clonedPorts = map[string]bool{}
+		if err := p.Clone(); err != nil {
+			return "", err
+		}
+
+		// Some build tools are detected from source, so we need to check all tools
+		// after all source are cloned.
+		if err := p.checkAllTools(); err != nil {
+			return "", err
+		}
+
+		if err := p.preWarmMetaCache(); err != nil {
+			return "", err
+		}
+	}
+
 	// No config or explicit prebuilt-with-url -> treat as nobuild or prebuilt.
-	if len(p.BuildConfigs) == 0 ||
-		(p.MatchedConfig.BuildSystem == "prebuilt" && p.MatchedConfig.Url != "") {
-		if err := p.InstallFromSource(options); err != nil {
+	// Only for the default (PreferNone) path; explicit Prefer requests are
+	// handled by the switch below.
+	if options.Prefer == PreferNone && (len(p.BuildConfigs) == 0 ||
+		(p.MatchedConfig.BuildSystem == "prebuilt" && p.MatchedConfig.Url != "")) {
+		if err := p.installFromSource(options); err != nil {
 			return "", err
 		}
 		if len(p.BuildConfigs) == 0 {
-			installedFrom = "nobuild"
-			retErr = nil
-			return
+			return "nobuild", nil
 		}
 
-		installedFrom = "prebuilt"
-		retErr = nil
-		return
+		return "prebuilt", nil
 	}
 
+	// Strict single-path installs: for every Prefer value except PreferNone,
+	// only the requested path is attempted. If that path is unavailable the
+	// port is left uninstalled and fromWhere stays empty.
+	switch options.Prefer {
+	case PreferSource:
+		if err := p.installFromSource(options); err != nil {
+			return "", err
+		}
+		return "source", nil
+
+	case PreferPackage:
+		if installed, err := p.installFromPackage(options); err != nil {
+			return "", err
+		} else if installed {
+			return "package", nil
+		}
+		return "", nil
+
+	case PreferPkgCache:
+		if forceClear || p.shouldSkipArtifactPkgCache() {
+			return "", nil
+		}
+		if installed, err := p.installFromPkgCache(options); err != nil {
+			return "", err
+		} else if installed {
+			return "pkgcache", nil
+		}
+		return "", nil
+
+	case PreferDevCache:
+		if installed, err := p.installFromDevCache(options); err != nil {
+			return "", err
+		} else if installed {
+			return "devcache", nil
+		}
+		return "", nil
+	}
+
+	// PreferNone: default ordered fallback (package -> pkgcache -> devcache -> source).
 	// 1. Try to install from package.
-	if installed, err := p.InstallFromPackage(options); err != nil {
+	if installed, err := p.installFromPackage(options); err != nil {
 		return "", err
 	} else if installed {
-		installedFrom = "package"
-		retErr = nil
-		return
+		return "package", nil
 	}
 
 	// 2. Try to install from artifact package cache for target packages only.
 	if !forceClear && !p.shouldSkipArtifactPkgCache() {
-		if installed, err := p.InstallFromPkgCache(options); err != nil {
+		if installed, err := p.installFromPkgCache(options); err != nil {
 			return "", err
 		} else if installed {
-			installedFrom = "pkgcache"
-			retErr = nil
-			return
+			return "pkgcache", nil
 		}
 	}
 
-	// 3. Try to install from local dev back for hostDep/devDep.
-	if installed, err := p.InstallFromDevCache(options); err != nil {
+	// 3. Try to install from local dev cache for hostDep/devDep.
+	if installed, err := p.installFromDevCache(options); err != nil {
 		return "", err
 	} else if installed {
-		installedFrom = "devcache"
-		retErr = nil
-		return
+		return "devcache", nil
 	}
 
 	// 4. Fallback: install from source.
-	if err := p.InstallFromSource(options); err != nil {
+	if err := p.installFromSource(options); err != nil {
 		return "", err
 	}
 
-	installedFrom = "source"
-	retErr = nil
-	return
+	return "source", nil
 }
 
 // shouldSkipArtifactPkgCache reports whether the artifact pkgcache must be
@@ -237,12 +299,7 @@ func (p Port) Clone() error {
 		// Ports with a checksum are expected to be restored from the artifact
 		// pkgcache during install (no source build needed).
 		if port.Package.Checksum == "" {
-			if err := port.MatchedConfig.Clone(
-				port.Package.Url,
-				port.Package.Ref,
-				port.Package.Archive,
-				port.Package.Depth,
-			); err != nil {
+			if err := port.Clone(); err != nil {
 				return err
 			}
 		}
@@ -261,12 +318,7 @@ func (p Port) Clone() error {
 		// Ports with a checksum are expected to be restored from the artifact
 		// pkgcache during install (no source build needed).
 		if port.Package.Checksum == "" {
-			if err := port.MatchedConfig.Clone(
-				port.Package.Url,
-				port.Package.Ref,
-				port.Package.Archive,
-				port.Package.Depth,
-			); err != nil {
+			if err := port.Clone(); err != nil {
 				return err
 			}
 		}
@@ -289,7 +341,7 @@ func (p Port) doInstallFromPkgCache(options InstallOptions) (bool, error) {
 	// Try to install dependencies first.
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
 		// Skip Init() for already-processed ports.
-		key := expr.If(p.DevDep || p.HostDep, nameVersion+"[dev]", nameVersion)
+		key := visitedKeyOf(nameVersion, p.DevDep, p.HostDep)
 		if visitedPorts[key] {
 			continue
 		}
@@ -327,7 +379,7 @@ func (p Port) doInstallFromPkgCache(options InstallOptions) (bool, error) {
 	return false, nil
 }
 
-func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
+func (p *Port) installFromPackage(options InstallOptions) (bool, error) {
 	// No package no install.
 	if !fileio.PathExists(p.MatchedConfig.PortConfig.PackageDir) {
 		return false, nil
@@ -351,7 +403,7 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 		}
 	}
 	if metaFile == "" {
-		suffix := expr.If(p.DevDep, " [dev]", "")
+		suffix := expr.If(p.DevDep || p.HostDep, "[dev]", "")
 		return false, fmt.Errorf("invalid package %s, since meta file is not found for %s", p.PackageDir, p.NameVersion()+suffix)
 	}
 
@@ -408,7 +460,7 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 	return true, nil
 }
 
-func (p *Port) InstallFromPkgCache(options InstallOptions) (bool, error) {
+func (p *Port) installFromPkgCache(options InstallOptions) (bool, error) {
 	// Check if pkgCache has been configured.
 	pkgCache := p.ctx.PkgCache()
 	if pkgCache == nil || (pkgCache.GetFS() == nil && pkgCache.GetMinio() == nil) {
@@ -440,7 +492,7 @@ func (p *Port) InstallFromPkgCache(options InstallOptions) (bool, error) {
 	return false, nil
 }
 
-func (p *Port) InstallFromDevCache(options InstallOptions) (bool, error) {
+func (p *Port) installFromDevCache(options InstallOptions) (bool, error) {
 	// Install from local dev cache only work for hostDev or devDep.
 	if !p.HostDep && !p.DevDep {
 		return false, nil
@@ -483,42 +535,13 @@ func (p *Port) InstallFromDevCache(options InstallOptions) (bool, error) {
 		}
 
 		fromDir := devCache.GetDir()
-		return true, p.writeTraceFile(fmt.Sprintf("dev-cache: %q", fromDir))
+		return true, p.writeTraceFile(fmt.Sprintf("dev-cache (%s)", fromDir))
 	}
 
 	return false, nil
 }
 
-func (p *Port) InstallFromSource(options InstallOptions) error {
-	// Reset at top-level entry.
-	if p.Parent == "" {
-		visitedPorts = map[string]bool{}
-	}
-
-	// Clone or download source of all repos.
-	if err := p.cloneAllRepos(); err != nil {
-		return err
-	}
-
-	// Check tools for all ports.
-	if err := p.checkAllTools(); err != nil {
-		return err
-	}
-
-	// Check if cpython version conflicts with venv version defined in celer.toml.
-	// Skip this check when the top-level port is cpython itself.
-	if p.Parent == "" && p.Name != "cpython" {
-		if err := p.checkCPythonVersionConflict(); err != nil {
-			return err
-		}
-	}
-
-	// Pre-warm meta cache: compute GenPortTomlString for all transitive deps
-	// in parallel, so the serial buildMeta recursion hits cache on every port.
-	if err := p.preWarmMetaCache(); err != nil {
-		return err
-	}
-
+func (p *Port) installFromSource(options InstallOptions) error {
 	// Setup platform.
 	if err := p.ctx.Platform().Setup(); err != nil {
 		return err
@@ -613,7 +636,7 @@ func (p *Port) doInstallFromDevCache(options InstallOptions) (bool, error) {
 	// Try to install dependencies first.
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
 		// Skip Init() for already-processed ports.
-		key := expr.If(p.DevDep || p.HostDep, nameVersion+"[dev]", nameVersion)
+		key := visitedKeyOf(nameVersion, p.DevDep, p.HostDep)
 		if visitedPorts[key] {
 			continue
 		}
@@ -735,90 +758,62 @@ func (p *Port) doInstallFromSource() error {
 	return nil
 }
 
-func (p Port) cloneAllRepos() error {
-	buildConfig := p.MatchedConfig
-	clonedPorts = map[string]bool{}
-
-	for _, nameVersion := range buildConfig.DevDependencies {
-		// Skip Init() for already-cloned ports.
-		key := nameVersion + "[dev]"
-		if clonedPorts[key] {
-			continue
-		}
-
-		port := Port{
-			DevDep: true,
-			Parent: p.NameVersion(),
-		}
-		if err := port.Init(p.ctx, nameVersion); err != nil {
-			return err
-		}
-
-		// Ports with a checksum are restored from the artifact pkgcache, so
-		// their repo isn't cloned. Only checksum-less ports get cloned here.
-		if port.Package.Checksum == "" {
-			if err := port.Clone(); err != nil {
-				return err
-			}
-		}
-		clonedPorts[key] = true
-	}
-	for _, nameVersion := range buildConfig.Dependencies {
-		// Skip Init() for already-cloned ports.
-		key := nameVersion
-		if clonedPorts[key] {
-			continue
-		}
-
-		port := Port{
-			DevDep:  p.DevDep,
-			HostDep: p.DevDep || p.HostDep,
-			Parent:  p.NameVersion(),
-		}
-		if err := port.Init(p.ctx, nameVersion); err != nil {
-			return err
-		}
-
-		// Ports with a checksum are restored from the artifact pkgcache, so
-		// their repo isn't cloned. Only checksum-less ports get cloned here.
-		if port.Package.Checksum == "" {
-			if err := port.Clone(); err != nil {
-				return err
-			}
-		}
-		clonedPorts[key] = true
-	}
-	if err := p.Clone(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (p *Port) checkAllTools() error {
 	var allTools []string
-	buildConfig := p.MatchedConfig
-	for _, nameVersion := range buildConfig.DevDependencies {
-		port := Port{DevDep: true}
-		if err := port.Init(p.ctx, nameVersion); err != nil {
-			return err
+	seen := map[string]bool{}
+
+	// collect walks the whole dependency tree and gathers every port's build
+	// tools, so all build tools are prepared up front instead of one-by-one
+	// while dependencies are compiled.
+	var collect func(port Port) error
+	collect = func(port Port) error {
+		key := port.visitedKey()
+		if seen[key] {
+			return nil
+		}
+		seen[key] = true
+
+		for _, nameVersion := range port.MatchedConfig.DevDependencies {
+			var dep = Port{
+				DevDep: true,
+				Parent: port.NameVersion(),
+			}
+			if err := dep.Init(p.ctx, nameVersion); err != nil {
+				return err
+			}
+			allTools = append(allTools, dep.MatchedConfig.CheckTools()...)
+			if err := collect(dep); err != nil {
+				return err
+			}
 		}
 
-		allTools = append(allTools, port.MatchedConfig.CheckTools()...)
-	}
-	for _, nameVersion := range buildConfig.Dependencies {
-		port := Port{DevDep: p.DevDep, HostDep: p.DevDep || p.HostDep}
-		if err := port.Init(p.ctx, nameVersion); err != nil {
-			return err
+		for _, nameVersion := range port.MatchedConfig.Dependencies {
+			var dep = Port{
+				DevDep:  port.DevDep,
+				HostDep: port.DevDep || port.HostDep,
+				Parent:  port.NameVersion(),
+			}
+			if err := dep.Init(p.ctx, nameVersion); err != nil {
+				return err
+			}
+			allTools = append(allTools, dep.MatchedConfig.CheckTools()...)
+			if err := collect(dep); err != nil {
+				return err
+			}
 		}
-		allTools = append(allTools, port.MatchedConfig.CheckTools()...)
+
+		return nil
+	}
+
+	// The top-level port's own tools plus every transitive dependency's tools.
+	allTools = append(allTools, p.MatchedConfig.CheckTools()...)
+	if err := collect(*p); err != nil {
+		return err
 	}
 
 	if p.ctx.CCacheEnabled() {
 		allTools = append(allTools, "ccache")
 	}
-
-	allTools = append(allTools, p.MatchedConfig.CheckTools()...)
 
 	// Validate tools exist and ensure tool paths are in PATH.
 	if err := buildtools.CheckTools(p.ctx, allTools...); err != nil {
@@ -913,7 +908,7 @@ func (p *Port) preWarmMetaCache() error {
 	}
 
 	// Meta pre-warm is IO-bound (read port.toml + git log), not CPU-bound like compilation.
-	jobs := p.ctx.Jobs() * 4
+	jobs := p.ctx.Jobs() * 10
 	if jobs <= 0 {
 		jobs = 4
 	}
@@ -934,9 +929,9 @@ func (p *Port) preWarmMetaCache() error {
 				}
 			}
 
-			// Some port defined in port.toml can only be build cross-compile toolchian,
-			// for example: system_processor = "aarch64", and no host buildConfig can be matched when
-			// init it with devDep, so we there is no need to pre warn meta cache for it.
+			// Some ports can only be built for the cross-compile toolchain (e.g. system_processor = "aarch64"),
+			// so init them as devDep matches no host build config, then CheckHostSupported returns false for
+			// them and there is nothing to pre-warm on the dev/host side, just skip prewarm for them.
 			if p.CheckHostSupported(nameVersion) {
 				if _, err := p.GenPortTomlString(nameVersion, true); err != nil {
 					if !errors.Is(err, errors.ErrRepoNotExit) {
@@ -981,7 +976,7 @@ func (p Port) installDependencies(options InstallOptions) error {
 		}
 
 		// Compute key early to skip Init() for already-processed ports.
-		key := expr.If(p.DevDep, nameVersion+"[dev]", nameVersion)
+		key := visitedKeyOf(nameVersion, p.DevDep, false)
 		if _, alreadyProcessed := visitedPorts[key]; alreadyProcessed {
 			continue
 		}
@@ -1039,7 +1034,7 @@ func (p Port) installDevDependencies(options InstallOptions) error {
 		}
 
 		// Compute key early to skip Init() for already-processed ports.
-		key := nameVersion + "[dev]"
+		key := visitedKeyOf(nameVersion, true, true)
 		if _, alreadyProcessed := visitedPorts[key]; alreadyProcessed {
 			continue
 		}
@@ -1105,7 +1100,7 @@ func (p Port) collectInstalledDepsForReport() error {
 		}
 
 		// Skip Init() for already-visited ports.
-		key := nameVersion + "[dev]"
+		key := visitedKeyOf(nameVersion, true, true)
 		if p.installReport.visitedPorts[key] {
 			continue
 		}
@@ -1135,7 +1130,7 @@ func (p Port) collectInstalledDepsForReport() error {
 		}
 
 		// Skip Init() for already-visited ports.
-		key := nameVersion
+		key := visitedKeyOf(nameVersion, p.DevDep, false)
 		if p.installReport.visitedPorts[key] {
 			continue
 		}
@@ -1167,7 +1162,7 @@ func (p Port) prepareTmpDeps() error {
 		}
 
 		// Ignore duplicated.
-		if preparedTmpDeps[nameVersion+"[dev]"] {
+		if preparedTmpDeps[visitedKeyOf(nameVersion, true, true)] {
 			continue
 		}
 
@@ -1191,7 +1186,7 @@ func (p Port) prepareTmpDeps() error {
 		}
 
 		// Provider tmp deps recursively.
-		preparedTmpDeps[nameVersion+"[dev]"] = true
+		preparedTmpDeps[visitedKeyOf(nameVersion, true, true)] = true
 		if err := port.prepareTmpDeps(); err != nil {
 			return err
 		}
@@ -1206,8 +1201,7 @@ func (p Port) prepareTmpDeps() error {
 		}
 
 		// Ignore duplicated.
-		devSuffix := expr.If(p.DevDep || p.HostDep, "[dev]", "")
-		if preparedTmpDeps[nameVersion+devSuffix] {
+		if preparedTmpDeps[visitedKeyOf(nameVersion, p.DevDep, p.HostDep)] {
 			continue
 		}
 
@@ -1231,8 +1225,7 @@ func (p Port) prepareTmpDeps() error {
 		}
 
 		// Provider tmp deps recursively.
-		devSuffix = expr.If(p.DevDep || p.HostDep, "[dev]", "")
-		preparedTmpDeps[nameVersion+devSuffix] = true
+		preparedTmpDeps[visitedKeyOf(nameVersion, p.DevDep, p.HostDep)] = true
 		if err := port.prepareTmpDeps(); err != nil {
 			return err
 		}
@@ -1277,9 +1270,9 @@ func (p Port) writeTraceFile(installedFrom string) error {
 	// Print install trace.
 	color.PrintPass("%s is installed from %s", p.NameVersion(), installedFrom)
 	if p.MatchedConfig.BuildSystem == "python" {
-		color.PrintHint("Location: %s\n", buildtools.PythonTool.VenvDir())
+		color.PrintHint("Location: %s", buildtools.PythonTool.VenvDir())
 	} else {
-		color.PrintHint("Location: %s\n", p.InstalledDir)
+		color.PrintHint("Location: %s", p.InstalledDir)
 	}
 
 	return nil

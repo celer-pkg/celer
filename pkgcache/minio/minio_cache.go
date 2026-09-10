@@ -6,9 +6,11 @@ import (
 	"io"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
+	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/minio/minio-go/v7"
@@ -18,15 +20,13 @@ import (
 // Default bucket name for celer.
 const bucketName = "celer-cache"
 
-type Progress func(percent int)
-
 func InitPkgCache(ctx context.Context) (pkgcache.DownloadCache, pkgcache.RepoCache, pkgcache.AritifactCache, error) {
-	pkgCache := ctx.PkgCache()
-	if pkgCache == nil {
+	pkgCacheConfig := ctx.PkgCache()
+	if pkgCacheConfig == nil {
 		return nil, nil, nil, nil
 	}
 
-	minioConfig := pkgCache.GetMinio()
+	minioConfig := pkgCacheConfig.GetMinio()
 	if minioConfig == nil {
 		return nil, nil, nil, nil
 	}
@@ -54,7 +54,40 @@ func InitPkgCache(ctx context.Context) (pkgcache.DownloadCache, pkgcache.RepoCac
 		}
 	}
 
-	return NewDownloadConfig(ctx, client), NewRepoConfig(ctx, client), NewArtifactConfig(ctx, client), nil
+	writable := pkgCacheConfig.GetOptions().Writable
+
+	downloadConfig := DownloadConfig{
+		ctx: ctx,
+		minioCache: minioCache{
+			client:     client,
+			bucketName: bucketName,
+		},
+		cacheDir: minioConfig.GetDir(pkgcache.DirDownloads, ctx.Version()),
+		writable: writable,
+	}
+
+	artifactConfig := ArtifactConfig{
+		ctx: ctx,
+		minioCache: minioCache{
+			client:     client,
+			bucketName: bucketName,
+		},
+		cacheDir:   minioConfig.GetDir(pkgcache.DirArtifacts, ctx.Version()),
+		writable:   writable,
+		maxRetries: 3,
+	}
+
+	repoConfig := RepoConfig{
+		ctx: ctx,
+		minioCache: minioCache{
+			client:     client,
+			bucketName: bucketName,
+		},
+		cacheDir: minioConfig.GetDir(pkgcache.DirRepos, ctx.Version()),
+		writable: writable,
+	}
+
+	return &downloadConfig, &repoConfig, &artifactConfig, nil
 }
 
 type minioCache struct {
@@ -104,7 +137,7 @@ func (m minioCache) metaSha256(info *minio.ObjectInfo) string {
 	return ""
 }
 
-func (m minioCache) UploadFile(filePath, objectName string, progress Progress) (info *minio.UploadInfo, err error) {
+func (m minioCache) putObject(filePath, objectName string, hook io.Reader) (*minio.UploadInfo, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
@@ -114,11 +147,6 @@ func (m minioCache) UploadFile(filePath, objectName string, progress Progress) (
 	fileStat, err := file.Stat()
 	if err != nil {
 		return nil, err
-	}
-
-	progressReader := &ProgressWriter{
-		total:    fileStat.Size(),
-		progress: progress,
 	}
 
 	sha256Sum, err := fileio.SHA256Sum(filePath)
@@ -132,7 +160,7 @@ func (m minioCache) UploadFile(filePath, objectName string, progress Progress) (
 		UserMetadata: map[string]string{
 			"x-amz-meta-sha256": sha256Sum,
 		},
-		Progress: progressReader,
+		Progress: hook,
 	}
 	uploadInfo, err := m.client.PutObject(context.Background(), m.bucketName, objectName, file, fileStat.Size(), opts)
 	if err != nil {
@@ -142,25 +170,85 @@ func (m minioCache) UploadFile(filePath, objectName string, progress Progress) (
 	return &uploadInfo, nil
 }
 
-// DownloadFile download file from minio into tmp dir, you may need to rename
-// to your destination later after verifcation.
-func (m minioCache) DownloadFile(objectName string) (string, error) {
+// uploadFile uploads filePath to objectName with a progress bar, mirroring the
+// restore side's downloadFile presentation.
+func (m minioCache) uploadFile(kind pkgcache.Kind, filePath, objectName, displayName string) error {
+	fileStat, err := os.Stat(filePath)
+	if err != nil {
+		return err
+	}
+
+	title := fmt.Sprintf("uploading '%s'", displayName)
+	completed := func(formattedTimeCost, formattedSize string) {
+		color.PrintInline(color.Success, "[✔] %-18s %-22s (%s) (%s)\n",
+			fmt.Sprintf("[Store %s]", kind), displayName, formattedSize, formattedTimeCost)
+	}
+	progress := fileio.NewProgressBar(title, fileStat.Size(), completed)
+	if _, err := m.putObject(filePath, objectName, &progressHook{writer: progress}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// uploadSilent uploads filePath to objectName without any progress output.
+func (m minioCache) uploadSilent(filePath, objectName string) error {
+	_, err := m.putObject(filePath, objectName, nil)
+	return err
+}
+
+// downloadFile downloads objectName with a progress bar.
+func (m minioCache) downloadFile(kind pkgcache.Kind, objectName, displayName string) (string, error) {
 	opts := minio.GetObjectOptions{}
 	object, err := m.client.GetObject(context.Background(), m.bucketName, objectName, opts)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get minio object '%s' -> %w", objectName, err)
 	}
 	defer object.Close()
 
 	ext := fileio.Ext(objectName)
 	localFile, err := os.CreateTemp(dirs.TmpFilesDir, "celer-pkgcache-*"+ext)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to create tmp file in %s -> %w", dirs.TmpFilesDir, err)
 	}
 	defer localFile.Close()
 
-	if _, err = io.Copy(localFile, object); err != nil {
-		return "", err
+	objInfo, err := object.Stat()
+	if err != nil {
+		return "", fmt.Errorf("failed to get object info '%s' -> %w", objectName, err)
+	}
+
+	title := fmt.Sprintf("downloading '%s'", displayName)
+	completed := func(formattedTimeCost, formattedSize string) {
+		color.PrintInline(color.Success, "[✔] %-14s %-22s %s (%s)\n",
+			fmt.Sprintf("[Restore %s]", kind), displayName, formattedSize, formattedTimeCost)
+	}
+	progress := fileio.NewProgressBar(title, objInfo.Size, completed)
+	if _, err := io.Copy(io.MultiWriter(localFile, progress), object); err != nil {
+		return "", fmt.Errorf("failed to download '%s' -> %w", objectName, err)
+	}
+
+	return localFile.Name(), nil
+}
+
+// downloadSilent downloads objectName to a tmp file without any progress output.
+func (m minioCache) downloadSilent(objectName string) (string, error) {
+	opts := minio.GetObjectOptions{}
+	object, err := m.client.GetObject(context.Background(), m.bucketName, objectName, opts)
+	if err != nil {
+		return "", fmt.Errorf("failed to get minio object '%s' -> %w", objectName, err)
+	}
+	defer object.Close()
+
+	ext := fileio.Ext(objectName)
+	localFile, err := os.CreateTemp(dirs.TmpFilesDir, "celer-pkgcache-*"+ext)
+	if err != nil {
+		return "", fmt.Errorf("failed to create tmp file in %s -> %w", dirs.TmpFilesDir, err)
+	}
+	defer localFile.Close()
+
+	if _, err := io.Copy(localFile, object); err != nil {
+		return "", fmt.Errorf("failed to download '%s' -> %w", objectName, err)
 	}
 
 	return localFile.Name(), nil
@@ -178,26 +266,17 @@ func (m minioCache) RemoveFile(filePath string) error {
 	return nil
 }
 
-type ProgressWriter struct {
-	total        int64
-	readSize     int64
-	lastProgress int
-	progress     Progress
+type progressHook struct {
+	mutex  sync.Mutex
+	writer io.Writer
 }
 
-func (pw *ProgressWriter) Read(p []byte) (int, error) {
-	pw.readSize += int64(len(p))
+func (h *progressHook) Read(p []byte) (int, error) {
+	h.mutex.Lock()
+	defer h.mutex.Unlock()
 
-	var percent int
-	if pw.total > 0 {
-		percent = int(float64(pw.readSize) / float64(pw.total) * 100)
-	}
-	if percent > pw.lastProgress {
-		pw.lastProgress = percent
-
-		if pw.progress != nil {
-			pw.progress(pw.lastProgress)
-		}
+	if _, err := h.writer.Write(p); err != nil {
+		return 0, err
 	}
 	return len(p), nil
 }

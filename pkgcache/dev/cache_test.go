@@ -191,7 +191,7 @@ func TestDevRestore_CacheHit(t *testing.T) {
 		t.Fatalf("Restore failed: %v", err)
 	}
 	if !restored {
-		t.Fatal("Restore should report a cache hit")
+		t.Fatal("expected cache hit, got miss")
 	}
 
 	// Verify restored files exist.
@@ -212,7 +212,7 @@ func TestDevRestore_CacheMiss(t *testing.T) {
 		t.Fatalf("unexpected error on cache miss: %v", err)
 	}
 	if restored {
-		t.Fatal("Restore should report a cache miss for a nonexistent package")
+		t.Error("expected cache miss, got hit")
 	}
 }
 
@@ -238,7 +238,7 @@ func TestDevRestore_TamperedMetaFails(t *testing.T) {
 		t.Fatalf("Restore should not error on tampered meta, just miss: %v", err)
 	}
 	if restored {
-		t.Fatal("Restore should report a cache miss for tampered meta")
+		t.Error("expected cache miss when meta is tampered, got cache hit")
 	}
 }
 
@@ -257,7 +257,7 @@ func TestDevRestore_DifferentHashMisses(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if restored {
-		t.Fatal("Restore should report a cache miss for a wrong hash")
+		t.Error("expected miss for wrong hash")
 	}
 }
 
@@ -285,7 +285,7 @@ func TestDevRestore_OverwritesExistingPackageDir(t *testing.T) {
 		t.Fatalf("Restore failed: %v", err)
 	}
 	if !restored {
-		t.Fatal("Restore should report a cache hit")
+		t.Fatal("expected cache hit")
 	}
 
 	// old.txt should be gone (dest was removed and replaced).
@@ -311,12 +311,8 @@ func TestDevStoreRestore_RoundTrip(t *testing.T) {
 	hash := computeHash(meta)
 
 	destDir := filepath.Join(t.TempDir(), "roundtrip", "boost@1.82.0")
-	restored, err := cache.Restore(destDir, "boost@1.82.0", hash)
-	if err != nil {
+	if _, err := cache.Restore(destDir, "boost@1.82.0", hash); err != nil {
 		t.Fatal(err)
-	}
-	if !restored {
-		t.Fatal("Restore should report a cache hit")
 	}
 
 	// Compare original and restored file content.
