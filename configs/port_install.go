@@ -662,6 +662,8 @@ func (p *Port) doInstallFromDevCache(options InstallOptions) (bool, error) {
 	}
 
 	// Calculate buildhash.
+	// For dev deps the build meta contains the workspace
+	// dir (see GenPlatformTomlString), so the hash is workspace-specific.
 	buildhash, err := p.buildhash()
 	if err != nil {
 		return false, fmt.Errorf("failed to calculate build hash -> %w", err)
@@ -746,7 +748,8 @@ func (p *Port) doInstallFromSource() error {
 			}
 		}
 
-		// Store hostDep/devDep into local dir to speed up building them in new workspace.
+		// Store hostDep/devDep into local dir to speed up re-building them
+		// after the workspace's buildtrees is cleaned.
 		if p.HostDep || p.DevDep {
 			devArtifactCache := p.ctx.DevCache().GetDevArtifactCache()
 			if err := devArtifactCache.Store(p.PackageDir, metaData); err != nil {
