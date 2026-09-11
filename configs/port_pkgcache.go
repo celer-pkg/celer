@@ -10,6 +10,7 @@ import (
 
 	"github.com/celer-pkg/celer/buildsystems"
 	"github.com/celer-pkg/celer/pkgcache/meta"
+	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
@@ -111,12 +112,16 @@ func (c Port) GenPlatformTomlString() (string, error) {
 	if c.DevDep || c.HostDep {
 		// Host/dev packages should describe the native host side instead of the
 		// target cross toolchain/rootfs from the workspace platform config.
+		// The workspace dir is part of the description for dev tools so it
+		// makes their dev cache buildhash workspace-specific.
 		bytes, err := toml.Marshal(struct {
-			Name    string `toml:"name"`
-			HostDev bool   `toml:"host_dev,omitempty"`
+			Name         string `toml:"name"`
+			HostDev      bool   `toml:"host_dev,omitempty"`
+			WorkspaceDir string `toml:"workspace_dir,omitempty"`
 		}{
-			Name:    c.ctx.Platform().GetHostName(),
-			HostDev: true,
+			Name:         c.ctx.Platform().GetHostName(),
+			HostDev:      true,
+			WorkspaceDir: dirs.WorkspaceDir,
 		})
 		if err != nil {
 			return "", fmt.Errorf("failed to marshal host platform %s -> %w", c.ctx.Platform().GetHostName(), err)

@@ -354,7 +354,7 @@ func InitAsLocalRepo(repoDir, target string) error {
 		"GIT_COMMITTER_EMAIL=ci@celer.com",
 	)
 
-	color.Printf(color.Title, "\n[Init '%s' for tracking file change]\n", target)
+	color.Printf(color.Title, "\n[init '%s' for tracking file change]\n", target)
 
 	// git init
 	color.Printf(color.Hint, "[-] git -C %s init", repoDir)
@@ -375,7 +375,7 @@ func InitAsLocalRepo(repoDir, target string) error {
 	color.PrintInline(color.Hint, "[✔] git -C %s add -A\n", repoDir)
 
 	// git commit
-	message := `"Init for tracking file change"`
+	message := `"init for tracking file change"`
 	color.Printf(color.Hint, "[-] git -C %s commit -m %s", repoDir, message)
 	cmd = exec.Command("git", "-C", repoDir, "commit", "-m", message)
 	cmd.Env = gitEnv
