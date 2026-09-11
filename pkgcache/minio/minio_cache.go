@@ -54,40 +54,7 @@ func InitPkgCache(ctx context.Context) (pkgcache.DownloadCache, pkgcache.RepoCac
 		}
 	}
 
-	writable := pkgCacheConfig.GetOptions().Writable
-
-	downloadConfig := DownloadConfig{
-		ctx: ctx,
-		minioCache: minioCache{
-			client:     client,
-			bucketName: bucketName,
-		},
-		cacheDir: minioConfig.GetDir(pkgcache.DirDownloads, ctx.Version()),
-		writable: writable,
-	}
-
-	artifactConfig := ArtifactConfig{
-		ctx: ctx,
-		minioCache: minioCache{
-			client:     client,
-			bucketName: bucketName,
-		},
-		cacheDir:   minioConfig.GetDir(pkgcache.DirArtifacts, ctx.Version()),
-		writable:   writable,
-		maxRetries: 3,
-	}
-
-	repoConfig := RepoConfig{
-		ctx: ctx,
-		minioCache: minioCache{
-			client:     client,
-			bucketName: bucketName,
-		},
-		cacheDir: minioConfig.GetDir(pkgcache.DirRepos, ctx.Version()),
-		writable: writable,
-	}
-
-	return &downloadConfig, &repoConfig, &artifactConfig, nil
+	return NewDownloadConfig(ctx, client), NewRepoConfig(ctx, client), NewArtifactConfig(ctx, client), nil
 }
 
 type minioCache struct {
@@ -206,8 +173,11 @@ func (m minioCache) downloadFile(kind pkgcache.Kind, objectName, displayName str
 	}
 	defer object.Close()
 
-	ext := fileio.Ext(objectName)
-	localFile, err := os.CreateTemp(dirs.TmpFilesDir, "celer-pkgcache-*"+ext)
+	if err := os.MkdirAll(dirs.TmpFilesDir, os.ModePerm); err != nil {
+		return "", fmt.Errorf("failed to mkdir for '%s' -> %w", dirs.TmpFilesDir, err)
+	}
+
+	localFile, err := os.CreateTemp(dirs.TmpFilesDir, "celer-pkgcache-*"+fileio.Ext(objectName))
 	if err != nil {
 		return "", fmt.Errorf("failed to create tmp file in %s -> %w", dirs.TmpFilesDir, err)
 	}

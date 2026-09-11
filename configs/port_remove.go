@@ -177,7 +177,7 @@ func (p Port) doRemovePort() error {
 			}
 		}
 
-		metaDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "metas", libraryDir)
+		metaDir := filepath.Join(dirs.WorkspaceDir, "installed", "infos", "metas", libraryDir)
 		if err := fileio.RemoveFolderRecursively(metaDir); err != nil {
 			noError = false
 			return fmt.Errorf("cannot remove meta dir -> %w", err)
@@ -186,14 +186,14 @@ func (p Port) doRemovePort() error {
 
 	// Remove report file and remove report dir if possible.
 	reportFileName := strings.ReplaceAll(p.NameVersion(), "@", "_") + ".md"
-	statisticPath := filepath.Join(dirs.InstalledDir, "celer", "statistics", libraryDir, reportFileName)
+	statisticPath := filepath.Join(dirs.InstalledDir, "infos", "statistics", libraryDir, reportFileName)
 	if fileio.PathExists(statisticPath) {
 		if err := os.Remove(statisticPath); err != nil {
 			noError = false
 			return fmt.Errorf("cannot remove report file -> %w", err)
 		}
 	}
-	statisticDir := filepath.Join(dirs.InstalledDir, "celer", "statistics", libraryDir)
+	statisticDir := filepath.Join(dirs.InstalledDir, "infos", "statistics", libraryDir)
 	if err := fileio.RemoveFolderRecursively(statisticDir); err != nil {
 		noError = false
 		return fmt.Errorf("cannot remove report dir -> %w", err)

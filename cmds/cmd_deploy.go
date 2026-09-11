@@ -203,7 +203,7 @@ func (d *deployCmd) resolveAllRefs() error {
 
 	// Save to file in deployments.
 	timestamp := time.Now().Format(fmt.Sprintf("%s_20060102_150405", projectName))
-	filePath := filepath.Join(dirs.InstalledDir, "celer", "deployments", timestamp+".md")
+	filePath := filepath.Join(dirs.InstalledDir, "infos", "deployments", timestamp+".md")
 	if err := os.MkdirAll(filepath.Dir(filePath), os.ModePerm); err != nil {
 		return err
 	}

@@ -255,12 +255,12 @@ func (i *installReport) write(p *Port) (string, error) {
 	var statisticDir string
 	if p.DevDep || p.HostDep {
 		hostName := p.ctx.Platform().GetHostName()
-		statisticDir = filepath.Join(dirs.InstalledDir, "celer", "statistics", hostName+"-dev")
+		statisticDir = filepath.Join(dirs.InstalledDir, "infos", "statistics", hostName+"-dev")
 	} else {
 		projectName := p.ctx.Project().GetName()
 		platformName := p.ctx.Platform().GetName()
 		buildType := p.ctx.BuildType()
-		statisticDir = filepath.Join(dirs.InstalledDir, "celer", "statistics", platformName, projectName, buildType)
+		statisticDir = filepath.Join(dirs.InstalledDir, "infos", "statistics", platformName, projectName, buildType)
 	}
 	if err := fileio.MkdirAll(statisticDir, os.ModePerm); err != nil {
 		return "", err

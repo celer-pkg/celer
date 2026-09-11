@@ -24,7 +24,7 @@ func (g *GCC) Dir(abspath string) string {
 		return "/usr/bin"
 	}
 
-	return "${WORKSPACE_ROOT}/downloads/tools/" + filepath.ToSlash(g.Path)
+	return "${WORKSPACE_DIR}/downloads/tools/" + filepath.ToSlash(g.Path)
 }
 
 func (g *GCC) AssembleBuildTools(toolchain *strings.Builder) {

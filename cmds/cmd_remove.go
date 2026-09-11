@@ -178,7 +178,7 @@ func (r *removeCmd) getSuggestions(toComplete string) []string {
 		r.celer.BuildType(),
 	)
 
-	traceDir := filepath.Join(dirs.InstalledDir, "celer", "traces", libraryDir)
+	traceDir := filepath.Join(dirs.InstalledDir, "infos", "traces", libraryDir)
 	if !fileio.PathExists(traceDir) {
 		return []string{} // Ignore error.
 	}

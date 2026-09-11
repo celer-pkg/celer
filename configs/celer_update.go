@@ -291,24 +291,12 @@ func (c *Celer) SetPkgCacheMinio(host, accessKey, secretKey string) error {
 	if err := c.configData.PkgCache.Minio.Validate(); err != nil {
 		return err
 	}
-	if err := c.checkAccessible(c.configData.PkgCache.Minio.Host); err != nil {
-		return fmt.Errorf("cannot access '%s' of pkgcache.minio.host -> %w", c.configData.PkgCache.Minio.Host, err)
-	}
 
 	// Refresh pkgcache config.
 	if err := c.initPkgCacheCaches(); err != nil {
 		return err
 	}
 	return c.save()
-}
-
-// checkAccessible verifies the minio host is reachable.
-func (c *Celer) checkAccessible(host string) error {
-	checkUrl := host
-	if !strings.Contains(checkUrl, "://") {
-		checkUrl = "http://" + checkUrl
-	}
-	return fileio.CheckAccessible(checkUrl)
 }
 
 // updatePkgCacheOptions applies set to the options shared by all pkgcache
