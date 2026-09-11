@@ -173,8 +173,11 @@ func (m minioCache) downloadFile(kind pkgcache.Kind, objectName, displayName str
 	}
 	defer object.Close()
 
-	ext := fileio.Ext(objectName)
-	localFile, err := os.CreateTemp(dirs.TmpFilesDir, "celer-pkgcache-*"+ext)
+	if err := os.MkdirAll(dirs.TmpFilesDir, os.ModePerm); err != nil {
+		return "", fmt.Errorf("failed to mkdir for '%s' -> %w", dirs.TmpFilesDir, err)
+	}
+
+	localFile, err := os.CreateTemp(dirs.TmpFilesDir, "celer-pkgcache-*"+fileio.Ext(objectName))
 	if err != nil {
 		return "", fmt.Errorf("failed to create tmp file in %s -> %w", dirs.TmpFilesDir, err)
 	}
