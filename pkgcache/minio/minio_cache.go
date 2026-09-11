@@ -54,40 +54,7 @@ func InitPkgCache(ctx context.Context) (pkgcache.DownloadCache, pkgcache.RepoCac
 		}
 	}
 
-	writable := pkgCacheConfig.GetOptions().Writable
-
-	downloadConfig := DownloadConfig{
-		ctx: ctx,
-		minioCache: minioCache{
-			client:     client,
-			bucketName: bucketName,
-		},
-		cacheDir: minioConfig.GetDir(pkgcache.DirDownloads, ctx.Version()),
-		writable: writable,
-	}
-
-	artifactConfig := ArtifactConfig{
-		ctx: ctx,
-		minioCache: minioCache{
-			client:     client,
-			bucketName: bucketName,
-		},
-		cacheDir:   minioConfig.GetDir(pkgcache.DirArtifacts, ctx.Version()),
-		writable:   writable,
-		maxRetries: 3,
-	}
-
-	repoConfig := RepoConfig{
-		ctx: ctx,
-		minioCache: minioCache{
-			client:     client,
-			bucketName: bucketName,
-		},
-		cacheDir: minioConfig.GetDir(pkgcache.DirRepos, ctx.Version()),
-		writable: writable,
-	}
-
-	return &downloadConfig, &repoConfig, &artifactConfig, nil
+	return NewDownloadConfig(ctx, client), NewRepoConfig(ctx, client), NewArtifactConfig(ctx, client), nil
 }
 
 type minioCache struct {

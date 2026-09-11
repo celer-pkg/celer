@@ -18,7 +18,7 @@ func (c *Clang) Dir(abspath string) string {
 	if strings.Contains(abspath, "Microsoft Visual Studio") {
 		return filepath.ToSlash(abspath)
 	} else {
-		return "${WORKSPACE_ROOT}/downloads/tools/" + filepath.ToSlash(c.Path)
+		return "${WORKSPACE_DIR}/downloads/tools/" + filepath.ToSlash(c.Path)
 	}
 }
 

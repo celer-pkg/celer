@@ -23,7 +23,7 @@ func (q *QCC) Dir(abspath string) string {
 		return strings.TrimPrefix(filepath.ToSlash(q.Url), "file:///")
 	}
 
-	return "${WORKSPACE_ROOT}/downloads/tools/" + filepath.ToSlash(q.Path)
+	return "${WORKSPACE_DIR}/downloads/tools/" + filepath.ToSlash(q.Path)
 }
 
 func (q *QCC) AssembleBuildTools(toolchain *strings.Builder) {

@@ -107,7 +107,7 @@ func (r RootFS) Generate(toolchain *strings.Builder) error {
 	if strings.HasPrefix(r.Path, "${TOOLCHAIN}") {
 		fmt.Fprintf(&buffer, "set(CMAKE_SYSROOT %q)\n", fileio.ToRelPath(r.abspath))
 	} else {
-		fmt.Fprintf(&buffer, "set(CMAKE_SYSROOT %q)\n", "${WORKSPACE_ROOT}/downloads/tools/"+filepath.ToSlash(r.Path))
+		fmt.Fprintf(&buffer, "set(CMAKE_SYSROOT %q)\n", "${WORKSPACE_DIR}/downloads/tools/"+filepath.ToSlash(r.Path))
 	}
 
 	// Append --sysroot to compiler flags.

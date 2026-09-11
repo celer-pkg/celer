@@ -508,7 +508,7 @@ func TestInstall_Command_ReportContainsPkgCacheSource(t *testing.T) {
 	check(install.runInstall([]string{nameVersion}))
 
 	// Report should contain package cache source.
-	statisticPath := filepath.Join(dirs.InstalledDir, "celer", "statistics", platform, project, celer.BuildType(),
+	statisticPath := filepath.Join(dirs.InstalledDir, "infos", "statistics", platform, project, celer.BuildType(),
 		"eigen_3.4.0.md")
 	if !fileio.PathExists(statisticPath) {
 		t.Fatalf("install report not found: %s", statisticPath)
