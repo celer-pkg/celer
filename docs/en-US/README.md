@@ -43,7 +43,7 @@ cmake --build build
 
 📖 [Full quick start](./quick_start.md) · [Why Celer?](./why_celer.md)
 
-## VS Code extension
+## 🧩 VS Code extension
 
 Recommended: [celer-vscode](https://github.com/celer-pkg/celer-vscode)，then you can use celer graphically.
 

@@ -43,9 +43,9 @@ cmake --build build
 
 📖 [Full quick start](./docs/en-US/quick_start.md) · [Why Celer?](./docs/en-US/why_celer.md)
 
-## VS Code extension
+## 🧩 VS Code extension
 
-Recommended: [celer-vscode](https://github.com/celer-pkg/celer-vscode), then you can use celer graphically.
+Recommended: [celer-vscode](https://github.com/celer-pkg/celer-vscode)，then you can use celer graphically.
 
 ## 💡 Non-intrusive: the project does not change
 
