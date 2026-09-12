@@ -33,9 +33,9 @@ func main() {
 		"[🌍 中文](../zh-CN/README.md)",
 		"[🌍 中文](./docs/zh-CN/README.md)")
 
-	// Assets: lift one level up from docs/en-US/.
+	// Assets: docs/en-US/../assets -> repo docs/assets.
 	content = strings.ReplaceAll(content,
-		"](../../assets/",
+		"](../assets/",
 		"](./docs/assets/")
 
 	// Root-level files: lift out of docs/en-US/.
