@@ -37,6 +37,9 @@ func main() {
 	content = strings.ReplaceAll(content,
 		"](../assets/",
 		"](./docs/assets/")
+	content = strings.ReplaceAll(content,
+		`src="../assets/`,
+		`src="./docs/assets/`)
 
 	// Root-level files: lift out of docs/en-US/.
 	content = strings.ReplaceAll(content,

@@ -43,6 +43,10 @@ cmake --build build
 
 📖 [完整快速入门](./quick_start.md) · [为什么选择 Celer？](./why_celer.md)
 
+## VS Code 插件
+
+推荐安装：[celer-vscode](https://github.com/celer-pkg/celer-vscode)，以图形化操作celer。
+
 ## 💡 非侵入：工程本身不用改
 
 ![workflow](../assets/workflow.svg)
@@ -99,10 +103,11 @@ Windows 与 Linux 上的 MSVC / Clang / GCC 已可用；macOS 仍在完善。更
 
 ## 🤝 贡献
 
-欢迎参与核心和 ports 两个仓库：
+欢迎参与核心、ports 和插件仓库：
 
 - **[celer](https://github.com/celer-pkg/celer)** — 包管理器核心
 - **[ports](https://github.com/celer-pkg/ports)** — 端口定义与构建配置
+- **[celer-vscode](https://github.com/celer-pkg/celer-vscode)** — VS Code 插件
 
 ## 📄 许可证
 

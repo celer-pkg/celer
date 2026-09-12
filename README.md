@@ -43,6 +43,10 @@ cmake --build build
 
 📖 [Full quick start](./docs/en-US/quick_start.md) · [Why Celer?](./docs/en-US/why_celer.md)
 
+## VS Code extension
+
+Recommended: [celer-vscode](https://github.com/celer-pkg/celer-vscode), then you can use celer graphically.
+
 ## 💡 Non-intrusive: the project does not change
 
 ![workflow](./docs/assets/workflow.svg)
@@ -99,10 +103,11 @@ MSVC / Clang / GCC are ready on Windows and Linux; macOS is still in progress. A
 
 ## 🤝 Contributing
 
-Contributions are welcome in both the core and ports:
+Contributions are welcome in the core, ports, and extension:
 
 - **[celer](https://github.com/celer-pkg/celer)** — core package manager
 - **[ports](https://github.com/celer-pkg/ports)** — port definitions & build configs
+- **[celer-vscode](https://github.com/celer-pkg/celer-vscode)** — VS Code extension
 
 ## 📄 License
 
