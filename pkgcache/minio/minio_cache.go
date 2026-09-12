@@ -10,7 +10,6 @@ import (
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/minio/minio-go/v7"
@@ -139,7 +138,7 @@ func (m minioCache) putObject(filePath, objectName string, hook io.Reader) (*min
 
 // uploadFile uploads filePath to objectName with a progress bar, mirroring the
 // restore side's downloadFile presentation.
-func (m minioCache) uploadFile(kind pkgcache.Kind, filePath, objectName, displayName string) error {
+func (m minioCache) uploadFile(filePath, objectName, displayName string) error {
 	fileStat, err := os.Stat(filePath)
 	if err != nil {
 		return err
@@ -147,8 +146,8 @@ func (m minioCache) uploadFile(kind pkgcache.Kind, filePath, objectName, display
 
 	title := fmt.Sprintf("uploading '%s'", displayName)
 	completed := func(formattedTimeCost, formattedSize string) {
-		color.PrintInline(color.Success, "[✔] %-18s %-22s (%s) (%s)\n",
-			fmt.Sprintf("[Store %s]", kind), displayName, formattedSize, formattedTimeCost)
+		fileio.NewProgressTask(fileio.OpStore, displayName).
+			Complete("", formattedSize, formattedTimeCost)
 	}
 	progress := fileio.NewProgressBar(title, fileStat.Size(), completed)
 	if _, err := m.putObject(filePath, objectName, &progressHook{writer: progress}); err != nil {
@@ -165,7 +164,7 @@ func (m minioCache) uploadSilent(filePath, objectName string) error {
 }
 
 // downloadFile downloads objectName with a progress bar.
-func (m minioCache) downloadFile(kind pkgcache.Kind, objectName, displayName string) (string, error) {
+func (m minioCache) downloadFile(objectName, displayName string) (string, error) {
 	opts := minio.GetObjectOptions{}
 	object, err := m.client.GetObject(context.Background(), m.bucketName, objectName, opts)
 	if err != nil {
@@ -190,8 +189,8 @@ func (m minioCache) downloadFile(kind pkgcache.Kind, objectName, displayName str
 
 	title := fmt.Sprintf("downloading '%s'", displayName)
 	completed := func(formattedTimeCost, formattedSize string) {
-		color.PrintInline(color.Success, "[✔] %-14s %-22s %s (%s)\n",
-			fmt.Sprintf("[Restore %s]", kind), displayName, formattedSize, formattedTimeCost)
+		fileio.NewProgressTask(fileio.OpRestore, displayName).
+			Complete("", formattedSize, formattedTimeCost)
 	}
 	progress := fileio.NewProgressBar(title, objInfo.Size, completed)
 	if _, err := io.Copy(io.MultiWriter(localFile, progress), object); err != nil {

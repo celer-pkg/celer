@@ -38,7 +38,7 @@ func NewDownloadConfig(ctx context.Context) *DownloadConfig {
 }
 
 // Store saves a downloaded file to the cache directory using SHA256 in the filename.
-func (d DownloadConfig) Store(kind pkgcache.Kind, fileName, sha256, srcPath string) error {
+func (d DownloadConfig) Store(fileName, sha256, srcPath string) error {
 	// skip when offline.
 	if d.ctx.Offline() {
 		return nil
@@ -56,14 +56,14 @@ func (d DownloadConfig) Store(kind pkgcache.Kind, fileName, sha256, srcPath stri
 	remoteFileName := fmt.Sprintf("%s-%s%s", fileio.Base(fileName), sha256, fileio.Ext(fileName))
 	remoteFilePath := filepath.Join(d.cacheDir, remoteFileName)
 
-	if err := d.uploadFile(kind, srcPath, remoteFilePath, sha256, fileName); err != nil {
+	if err := d.uploadFile(srcPath, remoteFilePath, sha256, fileName); err != nil {
 		return fmt.Errorf("failed to upload file '%s' to pkgcache -> %w", fileName, err)
 	}
 
 	return nil
 }
 
-func (d DownloadConfig) Restore(kind pkgcache.Kind, fileName, sha256 string) (bool, error) {
+func (d DownloadConfig) Restore(fileName, sha256 string) (bool, error) {
 	// Skip for offline.
 	if d.ctx.Offline() {
 		return false, nil
@@ -81,7 +81,7 @@ func (d DownloadConfig) Restore(kind pkgcache.Kind, fileName, sha256 string) (bo
 	}
 
 	// Download the cached file to a tmp file with progress.
-	downloaded, err := d.downloadFile(kind, remoteFilePath, fileName)
+	downloaded, err := d.downloadFile(remoteFilePath, fileName)
 	if err != nil {
 		return false, err
 	}

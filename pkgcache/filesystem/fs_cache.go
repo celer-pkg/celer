@@ -8,7 +8,6 @@ import (
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
@@ -28,7 +27,7 @@ type fsCache struct {
 
 // uploadFile uploads filePath to remotePath with a progress bar, mirroring the
 // minio backend's uploadFile presentation.
-func (f fsCache) uploadFile(kind pkgcache.Kind, filePath, remotePath, sha256, displayName string) error {
+func (f fsCache) uploadFile(filePath, remotePath, sha256, displayName string) error {
 	srcInfo, err := os.Stat(filePath)
 	if err != nil {
 		return fmt.Errorf("failed to get file info for '%s' -> %w", filePath, err)
@@ -36,8 +35,8 @@ func (f fsCache) uploadFile(kind pkgcache.Kind, filePath, remotePath, sha256, di
 
 	title := fmt.Sprintf("uploading '%s'", displayName)
 	completed := func(formattedTimeCost, formattedSize string) {
-		color.PrintInline(color.Success, "[✔] %-18s %-22s (%s) (%s)\n",
-			fmt.Sprintf("[Store %s]", kind), displayName, formattedSize, formattedTimeCost)
+		fileio.NewProgressTask(fileio.OpStore, displayName).
+			Complete("", formattedSize, formattedTimeCost)
 	}
 	return f.doUploadFile(filePath, remotePath, sha256, fileio.NewProgressBar(title, srcInfo.Size(), completed))
 }
@@ -48,7 +47,7 @@ func (f fsCache) uploadSilent(filePath, remotePath, sha256 string) error {
 }
 
 // downloadFile downloads remotePath to a tmp file with a progress bar.
-func (f fsCache) downloadFile(kind pkgcache.Kind, remotePath, displayName string) (string, error) {
+func (f fsCache) downloadFile(remotePath, displayName string) (string, error) {
 	srcInfo, err := os.Stat(remotePath)
 	if err != nil {
 		return "", fmt.Errorf("remote file not exist for '%s' -> %w", remotePath, err)
@@ -72,8 +71,8 @@ func (f fsCache) downloadFile(kind pkgcache.Kind, remotePath, displayName string
 	defer remoteFile.Close()
 
 	completed := func(formattedTimeCost, formattedSize string) {
-		color.PrintInline(color.Success, "[✔] %-14s %-22s %s (%s)\n",
-			fmt.Sprintf("[Restore %s]", kind), displayName, formattedSize, formattedTimeCost)
+		fileio.NewProgressTask(fileio.OpRestore, displayName).
+			Complete("", formattedSize, formattedTimeCost)
 	}
 	progress := fileio.NewProgressBar(fmt.Sprintf("downloading '%s'", displayName), srcInfo.Size(), completed)
 	if _, err := io.Copy(io.MultiWriter(localFile, progress), remoteFile); err != nil {

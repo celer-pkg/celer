@@ -82,7 +82,7 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 	}
 
 	// Download the remote archive to a local tmp file with progress.
-	downloaded, err := a.downloadFile(pkgcache.KindArtifact, remoteFilePath, nameVersion)
+	downloaded, err := a.downloadFile(remoteFilePath, nameVersion)
 	if err != nil {
 		return false, fmt.Errorf("failed to restore %s from pkgcache -> %w", nameVersion, err)
 	}
@@ -192,7 +192,7 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 	if err != nil {
 		return err
 	}
-	if err := a.uploadFile(pkgcache.KindArtifact, tempArchivePath, archivePath, archiveSha256, nameVersion); err != nil {
+	if err := a.uploadFile(tempArchivePath, archivePath, archiveSha256, nameVersion); err != nil {
 		return fmt.Errorf("failed to upload file '%s' -> %w", nameVersion, err)
 	}
 

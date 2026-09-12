@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/pc"
@@ -65,7 +64,7 @@ func (r *RootFS) CheckAndRepair() error {
 	archiveName := expr.If(r.Archive != "", r.Archive, filepath.Base(r.Url))
 	toolsDir := filepath.Join(r.ctx.Downloads(), "tools")
 	repair := fileio.NewRepair(r.Url, r.ctx.Downloads(), archiveName, folderName, toolsDir, r.SHA256)
-	if err := repair.CheckAndRepair(r.ctx, pkgcache.KindBuildTool); err != nil {
+	if err := repair.CheckAndRepair(r.ctx); err != nil {
 		return err
 	}
 

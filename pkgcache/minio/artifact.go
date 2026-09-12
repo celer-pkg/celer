@@ -110,7 +110,7 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 	defer metaFile.Close()
 
 	// Upload archive file with progress.
-	if err := a.uploadFile(pkgcache.KindArtifact, tmpArchivePath, remoteArtifactPath, nameVersion); err != nil {
+	if err := a.uploadFile(tmpArchivePath, remoteArtifactPath, nameVersion); err != nil {
 		return fmt.Errorf("failed to upload artifact for '%s' -> %w", nameVersion, err)
 	}
 
@@ -170,7 +170,7 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 		return false, nil
 	}
 
-	downloaded, err := a.downloadFile(pkgcache.KindArtifact, remoteArtifactPath, nameVersion)
+	downloaded, err := a.downloadFile(remoteArtifactPath, nameVersion)
 	if err != nil {
 		return false, fmt.Errorf("failed to download artifact '%s' -> %w", remoteArtifactPath, err)
 	}

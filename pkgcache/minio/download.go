@@ -39,7 +39,7 @@ func NewDownloadConfig(ctx context.Context, client *minio.Client) *DownloadConfi
 }
 
 // Store saves a downloaded file to the cache directory using SHA256 in the filename.
-func (d DownloadConfig) Store(kind pkgcache.Kind, fileName, sha256, srcPath string) error {
+func (d DownloadConfig) Store(fileName, sha256, srcPath string) error {
 	// skip when offline.
 	if d.ctx.Offline() {
 		return nil
@@ -75,7 +75,7 @@ func (d DownloadConfig) Store(kind pkgcache.Kind, fileName, sha256, srcPath stri
 	}
 
 	// Upload file with progress.
-	if err := d.uploadFile(kind, fileToStore, cachedFilePath, fileName); err != nil {
+	if err := d.uploadFile(fileToStore, cachedFilePath, fileName); err != nil {
 		return err
 	}
 
@@ -84,7 +84,7 @@ func (d DownloadConfig) Store(kind pkgcache.Kind, fileName, sha256, srcPath stri
 
 // Restore finds a cached file matching the given SHA256 and restores it to
 // the downloads dir.
-func (d DownloadConfig) Restore(kind pkgcache.Kind, fileName, sha256 string) (bool, error) {
+func (d DownloadConfig) Restore(fileName, sha256 string) (bool, error) {
 	// skip when offline.
 	if d.ctx.Offline() {
 		return false, nil
@@ -114,7 +114,7 @@ func (d DownloadConfig) Restore(kind pkgcache.Kind, fileName, sha256 string) (bo
 		return false, nil
 	}
 
-	downloaded, err := d.downloadFile(kind, remoteFilePath, fileName)
+	downloaded, err := d.downloadFile(remoteFilePath, fileName)
 	if err != nil {
 		return false, err
 	}

@@ -426,8 +426,13 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archiveName string, depth int) (err
 
 		// Check and repair resource.
 		archiveName = expr.If(archiveName == "", filepath.Base(repoUrl), archiveName)
-		repair := fileio.NewRepair(repoUrl, b.Ctx.Downloads(), archiveName, ".", b.PortConfig.RepoDir, b.PortConfig.Checksum)
-		if err := repair.CheckAndRepair(b.Ctx, pkgcache.KindRepo); err != nil {
+		repair := fileio.NewRepair(
+			repoUrl,
+			b.Ctx.Downloads(),
+			archiveName, ".",
+			b.PortConfig.RepoDir,
+			b.PortConfig.Checksum)
+		if err := repair.CheckAndRepair(b.Ctx); err != nil {
 			return err
 		}
 
@@ -439,11 +444,9 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archiveName string, depth int) (err
 
 		// Move extracted files to repo dir if it's not "include".
 		if len(entities) == 1 && entities[0].IsDir() && entities[0].Name() != "include" {
-			color.Printf(color.Hint, "[-] %-18s %-22s %s", "[Extract Repo]", b.PortConfig.nameVersion(), b.PortConfig.RepoDir)
 			if err := fileio.FlattenNestedDir(b.PortConfig.RepoDir); err != nil {
 				return err
 			}
-			color.PrintInline(color.Success, "[✔] %-18s %-22s %s\n", "[Extract Repo]", b.PortConfig.nameVersion(), b.PortConfig.RepoDir)
 		}
 
 		// Some tests the b.buildSystem may not initialized by initBuildSystem()

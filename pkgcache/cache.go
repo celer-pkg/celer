@@ -18,15 +18,6 @@ const (
 	DirDownloads
 )
 
-// The kind of restore/store
-type Kind string
-
-const (
-	KindBuildTool Kind = "BuildTool"
-	KindRepo      Kind = "Repo"
-	KindArtifact  Kind = "Artifact"
-)
-
 // FS is the config for the fs backend of pkgcache.
 type FS struct {
 	Dir string `toml:"dir"`
@@ -135,8 +126,8 @@ type RepoCache interface {
 
 // DownloadCache stores/restores downloaded files (tools, archives), keyed by SHA256.
 type DownloadCache interface {
-	Restore(kind Kind, fileName, sha256 string) (bool, error)
-	Store(kind Kind, fileName, sha256, srcFile string) error
+	Restore(fileName, sha256 string) (bool, error)
+	Store(fileName, sha256, srcFile string) error
 }
 
 // ========================== dev cache ========================== //
