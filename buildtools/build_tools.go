@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/env"
@@ -281,7 +280,7 @@ func (b *BuildTool) checkAndFix() error {
 
 	// Check and repair resource.
 	repair := fileio.NewRepair(b.Url, b.ctx.Downloads(), archiveName, folderName, toolsDir, b.SHA256)
-	if err := repair.CheckAndRepair(b.ctx, pkgcache.KindBuildTool); err != nil {
+	if err := repair.CheckAndRepair(b.ctx); err != nil {
 		return err
 	}
 

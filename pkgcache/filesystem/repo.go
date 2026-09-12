@@ -93,7 +93,7 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 	}
 
 	// Download the cached archive to a local tmp file with progress.
-	downloaded, err := r.downloadFile(pkgcache.KindRepo, remoteFilePath, nameVersion)
+	downloaded, err := r.downloadFile(remoteFilePath, nameVersion)
 	if err != nil {
 		return false, fmt.Errorf("failed to download '%s' -> %w", remoteFilePath, err)
 	}
@@ -107,17 +107,21 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 		return false, err
 	}
 
-	// Extract archive to repo dir.
-	if err := fileio.Extract(downloaded, repoDir); err != nil {
-		return false, err
-	}
-
-	// Flatten nested directory, many source archives contain a single wrapping dir like ffmpeg-4.4/.
-	if !strings.HasSuffix(repoUrl, ".git") {
-		if err := fileio.FlattenNestedDir(repoDir); err != nil {
-			_ = os.RemoveAll(repoDir)
-			return false, err
+	// Extract archive to repo dir (status reported here, not at flatten).
+	if err := fileio.NewProgressTask(fileio.OpExtract, nameVersion).Start(repoDir, func() error {
+		if err := fileio.Extract(downloaded, repoDir); err != nil {
+			return err
 		}
+		// Flatten nested directory, many source archives contain a single wrapping dir like ffmpeg-4.4/.
+		if !strings.HasSuffix(repoUrl, ".git") {
+			if err := fileio.FlattenNestedDir(repoDir); err != nil {
+				return err
+			}
+		}
+		return nil
+	}); err != nil {
+		_ = os.RemoveAll(repoDir)
+		return false, err
 	}
 
 	// Verify cached archive integrity.
@@ -214,7 +218,7 @@ func (r RepoConfig) storeGitRepo(repoDir, repoRef, nameVersion string) error {
 	if err != nil {
 		return err
 	}
-	return r.uploadFile(pkgcache.KindRepo, localTmpFile, remoteFilePath, archiveSha256, nameVersion)
+	return r.uploadFile(localTmpFile, remoteFilePath, archiveSha256, nameVersion)
 }
 
 func (r RepoConfig) storeArchiveRepo(repoRef, nameVersion, archiveFile string) error {
@@ -243,7 +247,7 @@ func (r RepoConfig) storeArchiveRepo(repoRef, nameVersion, archiveFile string) e
 	if err != nil {
 		return err
 	}
-	return r.uploadFile(pkgcache.KindRepo, archiveFile, archivePath, checksum, nameVersion)
+	return r.uploadFile(archiveFile, archivePath, checksum, nameVersion)
 }
 
 // shouldCacheRepo default we cache all third-party library repos that defined in ports dir.

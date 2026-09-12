@@ -99,7 +99,7 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 		return false, nil
 	}
 
-	downloaded, err := r.downloadFile(pkgcache.KindRepo, objectName, nameVersion)
+	downloaded, err := r.downloadFile(objectName, nameVersion)
 	if err != nil {
 		return false, fmt.Errorf("failed to download '%s' -> %w", objectName, err)
 	}
@@ -113,17 +113,21 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 		return false, err
 	}
 
-	// Extract archive to repo dir.
-	if err := fileio.Extract(downloaded, repoDir); err != nil {
-		return false, err
-	}
-
-	// Flatten nested directory, many source archives contain a single wrapping dir like ffmpeg-4.4/.
-	if !strings.HasSuffix(repoUrl, ".git") {
-		if err := fileio.FlattenNestedDir(repoDir); err != nil {
-			_ = os.RemoveAll(repoDir)
-			return false, err
+	// Extract archive to repo dir (status reported here, not at flatten).
+	if err := fileio.NewProgressTask(fileio.OpExtract, nameVersion).Start(repoDir, func() error {
+		if err := fileio.Extract(downloaded, repoDir); err != nil {
+			return err
 		}
+		// Flatten nested directory, many source archives contain a single wrapping dir like ffmpeg-4.4/.
+		if !strings.HasSuffix(repoUrl, ".git") {
+			if err := fileio.FlattenNestedDir(repoDir); err != nil {
+				return err
+			}
+		}
+		return nil
+	}); err != nil {
+		_ = os.RemoveAll(repoDir)
+		return false, err
 	}
 
 	if strings.HasSuffix(repoUrl, ".git") {
@@ -215,7 +219,7 @@ func (r RepoConfig) storeGitRepo(repoDir, repoRef, nameVersion string) error {
 	defer os.Remove(localTmpFile)
 
 	// Upload repo archive with progress.
-	if err := r.uploadFile(pkgcache.KindRepo, localTmpFile, remotePath, nameVersion); err != nil {
+	if err := r.uploadFile(localTmpFile, remotePath, nameVersion); err != nil {
 		return fmt.Errorf("failed to upload repo for '%s' -> %w", nameVersion, err)
 	}
 
@@ -242,7 +246,7 @@ func (r RepoConfig) storeArchiveRepo(repoRef, nameVersion, archivePath string) e
 	}
 
 	// Upload repo archive with progress.
-	if err := r.uploadFile(pkgcache.KindRepo, archivePath, remotePath, nameVersion); err != nil {
+	if err := r.uploadFile(archivePath, remotePath, nameVersion); err != nil {
 		return fmt.Errorf("failed to upload repo for '%s' -> %w", nameVersion, err)
 	}
 

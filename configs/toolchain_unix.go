@@ -13,7 +13,6 @@ import (
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/configs/toolchains"
 	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/env"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
@@ -160,7 +159,7 @@ func (t *Toolchain) CheckAndRepair() error {
 	archiveName := expr.If(t.Archive != "", t.Archive, filepath.Base(t.Url))
 	toolsDir := filepath.Join(t.ctx.Downloads(), "tools")
 	repair := fileio.NewRepair(t.Url, t.ctx.Downloads(), archiveName, folderName, toolsDir, t.SHA256)
-	if err := repair.CheckAndRepair(t.ctx, pkgcache.KindBuildTool); err != nil {
+	if err := repair.CheckAndRepair(t.ctx); err != nil {
 		return err
 	}
 
