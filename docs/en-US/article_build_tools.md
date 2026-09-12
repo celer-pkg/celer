@@ -8,19 +8,19 @@ C/C++ projects often depend on a variety of build-time tools — CMake, Ninja, C
 
 Celer's **Build Tools** system solves this by:
 
-- 📦 **Built-in Tool Registry** — Celer bundles pre-configured tool definitions for common build tools, organized by platform (e.g., `x86_64-linux`, `x86_64-windows`).
-- 🔧 **User Overrides** — Customize or add tools via `conf/buildtools/<arch>-<os>.toml` without modifying Celer itself.
-- 🔄 **Automatic Download & Cache** — Tools are downloaded on first use and cached in the downloads directory.
-- 🎯 **Version Pinning** — Each tool can have multiple versions; mark one as `default` for zero-config usage.
-- 🛤️ **PATH Injection** — Tool binaries are automatically added to `PATH` during builds.
-- 🌍 **Cross-Platform** — Different tool sets for Linux, Windows, and macOS, all described in the same TOML format.
+- **Built-in Tool Registry** — Celer bundles pre-configured tool definitions for common build tools, organized by platform (e.g., `x86_64-linux`, `x86_64-windows`).
+- **User Overrides** — Customize or add tools via `conf/buildtools/<arch>-<os>.toml` without modifying Celer itself.
+- **Automatic Download & Cache** — Tools are downloaded on first use and cached in the downloads directory.
+- **Version Pinning** — Each tool can have multiple versions; mark one as `default` for zero-config usage.
+- **PATH Injection** — Tool binaries are automatically added to `PATH` during builds.
+- **Cross-Platform** — Different tool sets for Linux, Windows, and macOS, all described in the same TOML format.
 
 **Why Do You Need Build Tools Management?**
 
-- 🚫 **Version Drift** — Different team members may have different CMake/Ninja versions installed.
-- 🔧 **Missing Dependencies** — New contributors spend hours installing build prerequisites.
-- 🌍 **Platform Differences** — Linux and Windows need completely different tool sets (e.g., MSYS2 on Windows).
-- 📦 **CI Reproducibility** — Pinned tool versions ensure CI and developer environments match exactly.
+- **Version Drift** — Different team members may have different CMake/Ninja versions installed.
+- **Missing Dependencies** — New contributors spend hours installing build prerequisites.
+- **Platform Differences** — Linux and Windows need completely different tool sets (e.g., MSYS2 on Windows).
+- **CI Reproducibility** — Pinned tool versions ensure CI and developer environments match exactly.
 
 ---
 

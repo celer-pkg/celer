@@ -7,10 +7,10 @@
 Celer 提供自动 CUDA 工具包检测和配置，使使用 CMake 构建 GPU 加速的 C/C++ 项目变得轻松。当在项目配置中检测到 CUDA 依赖项时，Celer 会自动在 CMake 工具链文件中配置所有必要的 CUDA 设置。
 
 **主要特性：**
-- 🔍 **自动检测** - 从项目依赖项或已安装文件中检测 CUDA 工具包
-- 🛠️ **自动配置** - 自动配置 `CMAKE_CUDA_COMPILER`、`CUDA_TOOLKIT_ROOT_DIR` 和相关 CMake 变量
-- 🪟 **Visual Studio 集成** - 在 Windows 上完全支持 Visual Studio CUDA 项目
-- 🐧 **跨平台** - 在 Windows 和 Linux 上均可无缝工作
+- **自动检测** - 从项目依赖项或已安装文件中检测 CUDA 工具包
+- **自动配置** - 自动配置 `CMAKE_CUDA_COMPILER`、`CUDA_TOOLKIT_ROOT_DIR` 和相关 CMake 变量
+- **Visual Studio 集成** - 在 Windows 上完全支持 Visual Studio CUDA 项目
+- **跨平台** - 在 Windows 和 Linux 上均可无缝工作
 
 ## 工作原理
 

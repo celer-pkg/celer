@@ -7,10 +7,10 @@
 CCache (Compiler Cache) is a compiler cache that speeds up recompilation by caching previous compilations and detecting when the same compilation is being done again. Unlike [build artifact cache](article_pkgcache_artifacts.md), which caches entire built libraries, CCache works at the **object file level** during compilation.
 
 **Key Benefits:**
-- ⚡ **Faster incremental builds** - Reuse cached object files instead of recompiling
-- 🔄 **Smart invalidation** - Automatically detects source code and header changes
-- 🌐 **Remote storage** - Share compilation cache across teams via HTTP
-- 💾 **Space efficient** - Configurable cache size with automatic cleanup
+- **Faster incremental builds** - Reuse cached object files instead of recompiling
+- **Smart invalidation** - Automatically detects source code and header changes
+- **Remote storage** - Share compilation cache across teams via HTTP
+- **Space efficient** - Configurable cache size with automatic cleanup
 
 ## CCache vs Package Cache
 
@@ -45,9 +45,9 @@ Add the `[ccache]` section to your `celer.toml`:
 ```
 
 **What happens:**
-- ✅ CCache wraps your compiler calls (`gcc`, `g++`, `clang`, etc.)
-- ✅ Compiled object files are cached in the specified directory
-- ✅ Subsequent compilations of unchanged files use cached results
+- CCache wraps your compiler calls (`gcc`, `g++`, `clang`, etc.)
+- Compiled object files are cached in the specified directory
+- Subsequent compilations of unchanged files use cached results
 
 ### Step 2: Verify CCache is Working
 
@@ -155,10 +155,10 @@ remote_only = true
 ```
 
 **What happens:**
-- ✅ All compilation cache is stored on the remote HTTP server
-- ✅ Local directory only contains metadata files (`stats`, `inode-cache`)
-- ✅ Multiple developers share the same cache instantly
-- ⚠️ Requires stable network connection to the HTTP server
+- All compilation cache is stored on the remote HTTP server
+- Local directory only contains metadata files (`stats`, `inode-cache`)
+- Multiple developers share the same cache instantly
+- Requires stable network connection to the HTTP server
 
 **When to use remote-only:**
 - CI/CD pipelines with ephemeral build agents

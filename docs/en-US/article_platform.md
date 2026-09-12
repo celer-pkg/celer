@@ -6,16 +6,16 @@
 
 Platform configuration defines how Celer compiles C/C++ libraries for specific target systems. Each platform configuration contains two core components:
 
-- 🔧 **Toolchain** - Compilers, linkers, and other build tools
-- 📦 **Rootfs (Root Filesystem)** - Header files and libraries for the target system
+- **Toolchain** - Compilers, linkers, and other build tools
+- **Rootfs (Root Filesystem)** - Header files and libraries for the target system
 
 **Why Do You Need Platform Configuration?**
 
 Building C/C++ projects requires the correct compiler and system libraries. Platform configuration enables Celer to:
-- ✅ Build for different operating systems (Linux, Windows, macOS)
-- ✅ Support cross-compilation (e.g., build ARM binaries on x86)
-- ✅ Use specific compiler versions (GCC 9.5, Clang 14, MSVC 2022)
-- ✅ Manage multi-platform build environments
+- Build for different operating systems (Linux, Windows, macOS)
+- Support cross-compilation (e.g., build ARM binaries on x86)
+- Use specific compiler versions (GCC 9.5, Clang 14, MSVC 2022)
+- Manage multi-platform build environments
 
 **Platform File Location:** All platform configuration files are stored in the `conf/platforms` directory.
 
@@ -239,9 +239,9 @@ Embedded systems (like MCUs or bare-metal environments) require special configur
 #### MSVC 2022 Configuration
 
 Windows uses MSVC to compile C/C++ projects. MSVC configuration differs from Linux GCC:
-- ✅ Compiler filenames are fixed (`cl.exe`, `link.exe`)
-- ✅ Header files and libraries are scattered across multiple directories
-- ✅ Celer automatically handles all path configurations
+- Compiler filenames are fixed (`cl.exe`, `link.exe`)
+- Header files and libraries are scattered across multiple directories
+- Celer automatically handles all path configurations
 
 **Simplified MSVC configuration:**
 

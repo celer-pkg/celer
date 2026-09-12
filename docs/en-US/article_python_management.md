@@ -6,18 +6,18 @@
 
 Python is increasingly used as a build-time dependency for C/C++ projects. Many modern libraries (like Boost, CMake plugins, and various build tools) require Python during compilation. Celer provides intelligent Python version management to:
 
-- 📦 **Project-Specific Python** - Configure Python versions per-project
-- 🔄 **Automatic Fallback** - Use system Python when versions match, or conda when they don't
-- 🪟 **Platform-Aware** - Different strategies for Windows vs Linux/macOS
-- 🎯 **Virtual Environments** - Isolate Python packages per version
-- 🔗 **Seamless Integration** - Automatic setup when dependencies require Python
+- **Project-Specific Python** - Configure Python versions per-project
+- **Automatic Fallback** - Use system Python when versions match, or conda when they don't
+- **Platform-Aware** - Different strategies for Windows vs Linux/macOS
+- **Virtual Environments** - Isolate Python packages per version
+- **Seamless Integration** - Automatic setup when dependencies require Python
 
 **Why Do You Need Python Version Management?**
 
-- 🚫 **Dependency Conflicts** - Different projects may require different Python versions
-- 🔧 **Build Tool Compatibility** - Build tools need specific Python minor versions
-- 🌍 **Cross-Platform** - System Python availability and versions vary across platforms
-- 📦 **Package Isolation** - Prevent conflicts between project dependencies
+- **Dependency Conflicts** - Different projects may require different Python versions
+- **Build Tool Compatibility** - Build tools need specific Python minor versions
+- **Cross-Platform** - System Python availability and versions vary across platforms
+- **Package Isolation** - Prevent conflicts between project dependencies
 
 ---
 

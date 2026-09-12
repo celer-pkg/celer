@@ -1,73 +1,23 @@
-# PkgCache 共享缓存与 NFS 权限管理
+# PkgCache：共享缓存（fs / MinIO）
 
-> **通过 NFS 共享缓存 + chattr +a 实现团队级安全缓存**
+PkgCache 缓存构建产物、源码仓库和下载文件。后端只能选一个：
 
-## 概述
+- **fs**：本地目录，或 NFS / SMB 挂载
+- **minio**：S3 兼容对象存储
 
-Celer 的 PkgCache 系统提供三种缓存能力：**构建产物缓存**、**源码仓库缓存**、**下载文件缓存**。当团队通过 NFS 共享同一份缓存目录时，需要解决两个核心问题：
+同时配两个会报错：`pkgcache can not configure both 'minio' and 'fs'`。
 
-1. **多用户并发写入** — 不同开发者的构建结果都需要写入共享目录
-2. **防误删** — 任何人都不能删除其他人依赖的缓存文件
+- [缓存构建产物](article_pkgcache_artifacts.md)
+- [缓存源码仓库](article_pkgcache_repos.md)
+- [缓存下载文件](article_pkgcache_downloads.md)
 
-Celer 通过 Linux `chattr +a`（append-only）属性 + 系统用户组 + `celer setup --nfs-server` 命令来降低误删风险，并保证多用户可以共同写入共享缓存。
+## fs
 
-## 缓存目录结构
-
-配置 pkgcache 后端后，Celer 会在该目录下按功能划分子目录：
-
-```text
-/home/test/pkgcache/                      # pkgcache.fs.dir
-    ├── artifacts-v0.2.7/                  # 构建产物缓存（按版本隔离）
-    │   └── x86_64-linux-ubuntu-22.04-gcc-11.5.0/
-    │       └── project_01/
-    │           └── release/
-    │               └── ffmpeg@3.4.13/
-    │                   ├── d536728...09068.tar.gz
-    │                   └── metas/
-    │                       └── d536728...09068.meta
-    ├── repos/                             # 源码仓库缓存
-    │   ├── x264@stable/
-    │   │   └── 31e19f92...c3a0d.tar.gz
-    │   └── ffmpeg@6.1.1/
-    │       └── 1f2e3d4c....tar.gz
-    └── downloads/                         # 下载文件缓存
-        ├── cmake-3.30.5-linux-x86_64-f747d9b23...e9b51dc9d.tar.gz
-        └── gcc-ubuntu-11.5.0-x86_64-aarch64-linux-gnu-a99dee8e3ee2...56ebdad30c.tar.xz
-```
-
-三种缓存的详细说明请参阅：
-
-- [缓存构建产物](article_pkgcache_artifacts.md) — 避免重复编译
-- [缓存源码仓库](article_pkgcache_repos.md) — 避免重复 clone / 下载源码
-- [缓存下载文件](article_pkgcache_downloads.md) — 减少对外网的依赖
-
-## 配置方法
-
-PkgCache 有两个互斥的后端。在 `celer.toml` 中添加 `[pkgcache.fs]` 部分（本地目录或 NFS、SMB 等网络挂载目录）：
+`dir` 必须已存在。
 
 ```toml
-[main]
-  conf_repo = "http://10.0.8.47/gitlab/celer/conf.git"
-  platform = "x86_64-linux-ubuntu-22.04-gcc-11.5.0"
-  project = "project_01"
-
 [pkgcache.fs]
-  dir = "/home/test/pkgcache"   # 本地目录或网络挂载目录（NFS、SMB 等）
-
-[pkgcache.options]              # 所有后端共享的选项
-  writable = true               # 是否允许写入缓存
-  downloads = true              # 是否启用下载文件缓存
-  artifacts = true              # 是否启用构建产物缓存
-  repos = true                  # 是否启用源码仓库缓存
-```
-
-或者添加 `[pkgcache.minio]` 部分（S3 兼容的 MinIO 服务）：
-
-```toml
-[pkgcache.minio]
-  host = "http://minio.example.com:9000"
-  access_key = "xxx"
-  secret_key = "yyy"
+  dir = "/home/test/pkgcache"
 
 [pkgcache.options]
   writable = true
@@ -76,110 +26,57 @@ PkgCache 有两个互斥的后端。在 `celer.toml` 中添加 `[pkgcache.fs]` �
   repos = true
 ```
 
-**配置项说明：**
+```bash
+celer configure --pkgcache-fs-dir=/home/test/pkgcache
+```
 
-| 字段 | 说明 |
-|------|------|
-| `pkgcache.fs.dir` | fs 后端缓存根目录，必须是一个已存在的目录 |
-| `pkgcache.minio.host` / `access_key` / `secret_key` | minio 后端服务地址与访问凭证，host 必须可访问 |
-| `pkgcache.options.writable` | `true` 时允许写入缓存，`false` 时只读 |
-| `pkgcache.options.downloads` | 是否启用下载文件缓存 |
-| `pkgcache.options.artifacts` | 是否启用构建产物缓存 |
-| `pkgcache.options.repos` | 是否启用源码仓库缓存 |
+## minio
 
-首次配置任一后端（fs 或 minio）时，`[pkgcache.options]` 中的选项默认全部为 `true`。
+`host` 填 S3 API 端口（一般是 `:9000`），不要填控制台端口。bucket 固定为 `celer-cache`，没有就自动建。
 
-也可以通过命令行动态配置：
+```toml
+[pkgcache.minio]
+  host = "http://minio.example.com:9000"
+  access_key = "xxx"
+  secret_key = "yyy"
+```
 
 ```bash
-# fs 后端
-celer configure --pkgcache-fs-dir=/home/test/pkgcache
-
-# minio 后端（fs 与 minio 互斥）
 celer configure --pkgcache-minio-host=http://minio.example.com:9000 \
                 --pkgcache-minio-access-key=xxx \
                 --pkgcache-minio-secret-key=yyy
+```
 
-# 共享选项
+只改一项也可以，其余不动：
+
+```bash
+celer configure --pkgcache-minio-secret-key=new-key
+```
+
+## 选项
+
+第一次配后端时，`[pkgcache.options]` 默认全是 `true`。改选项前必须先配好 fs 或 minio。
+
+```bash
 celer configure --pkgcache-writable=true
+celer configure --pkgcache-cache-downloads=true
+celer configure --pkgcache-cache-artifacts=true
 celer configure --pkgcache-cache-repos=false
 ```
 
-### 解决方案：chattr +a（append-only）
+| 字段 | 说明 |
+|------|------|
+| `pkgcache.fs.dir` | 缓存根目录，必须已存在 |
+| `pkgcache.minio.host` / `access_key` / `secret_key` | S3 地址和凭证 |
+| `pkgcache.options.writable` | `true` 可写，`false` 只读 |
+| `pkgcache.options.downloads` / `artifacts` / `repos` | 三种缓存开关 |
 
-Linux 的 `chattr +a` 属性可以让目录变为"仅追加"模式。Celer 只对缓存目录设置该属性，不对缓存文件本身设置 `+a`：
+## 布局
 
-- **允许**：创建新文件、覆盖写入已有文件
-- **禁止**：删除文件、重命名文件
+fs 写在 `dir` 下；minio 写在 bucket `celer-cache` 里。前缀一样：
 
-这正是缓存目录需要的行为 — 开发者可以通过 Celer 往里写新的缓存，也可以原位覆盖已有缓存，但不能删除别人的缓存。
-
-### 权限模型
-
-Celer 的 NFS 缓存权限模型包含以下层次：
-
-> NFS `sec=sys` 使用数字 UID/GID 判断权限。组名只是每台机器上的本地标签，因此每个客户端上的 `celer` 组必须和服务端导出目录使用相同的数字 GID。
-
-| 层次 | 机制 | 作用 |
-|------|------|------|
-| 所有权 | `chown -R celer:celer` | 所有文件属于 celer 系统用户 |
-| 组权限 | `chmod 2775`（目录）、`chmod 664`（文件） | celer 组成员可以读写 |
-| Setgid | `chmod 2775` 中的 `2` | 新建文件/目录自动继承 celer 组 |
-| 追加保护 | `chattr +a` | 禁止删除目录中的文件 |
-| 定时加固 | cron 每分钟执行 `chattr +a` | 确保新建目录也受保护 |
-
-
-### 服务端配置
-
-在 NFS 服务器上执行：
-
-```bash
-sudo celer setup --nfs-server=/srv/celer-cache
-```
-
-> **注意**：必须使用 `sudo` 运行，且仅支持 Linux。
-
-命令按以下步骤执行：
-
-1. **检查依赖工具** — 确认已安装 `nfs-kernel-server`（apt）或 `nfs-utils`（yum）、`passwd`/`shadow-utils`
-2. **校验 NFS 目录** — `<nfs-dir>` 必须已存在且为目录
-3. **移除旧的 append-only 属性** — `find <dir> -type d -exec chattr -a {} ;`（因为之前可能已设置 `+a`，会阻止后续的 `chown`/`chmod`）
-4. **创建 celer 系统用户与组** — `groupadd` / `useradd --system --no-create-home --shell /usr/sbin/nologin celer`（幂等，已存在则跳过）
-5. **设置文件所有权** — `chown -R celer:celer <nfs-dir>`
-6. **设置目录权限** — `find <dir> -type d -exec chmod 2775 {} ;`（组可写 + setgid 位，新文件自动继承 celer 组）
-7. **设置文件权限** — `find <dir> -type f -exec chmod 664 {} ;`（组可覆盖写入）
-8. **将当前用户加入 celer 组** — 通过 sudo 运行时使用 `usermod -aG celer $SUDO_USER`，否则回退到 `$USER`
-9. **添加 NFS 导出** — 写入 `/etc/exports`，选项为 `*(rw,sync,no_subtree_check,no_root_squash)`，并执行 `exportfs -ra`
-   - `no_root_squash` 允许 NFS 客户端以 root 身份访问共享目录，便于必要时在客户端侧进行管理操作；目录保护本身由服务端的 `chattr +a` 和 cron 负责
-10. **对所有目录应用 chattr +a** — `find <dir> -type d -exec chattr +a {} ;`
-11. **安装定时任务** — 写入 `/etc/cron.d/celer-chattr`，每分钟对所有目录执行 `chattr +a`，确保 NFS 客户端创建的新目录也受保护
-
-### 客户端配置
-
-在 NFS 客户端机器上执行：
-
-```bash
-sudo celer setup --nfs-client=/home/phil/celer-cache@10.0.8.60:/mnt/data/celer-cache
-```
-
-参数格式：`<挂载点>@<服务器>:<导出路径>`
-
-命令按以下步骤执行：
-
-1. **解析参数** — 按 `@` 分割为挂载点和服务端导出路径
-2. **检查挂载点目录是否存在** — 挂载点必须事先存在，celer 不会帮你创建
-3. **安装 NFS 客户端包** — `nfs-common`（apt）或 `nfs-utils`（yum）
-4. **卸载已有挂载** — 幂等操作；若挂载点未挂载则跳过
-5. **探测 NFS 服务器可达性** — ping 服务端主机（避免 `mount.nfs` 默认长时间重试导致 setup 看似卡住）
-6. **挂载 NFS 共享** — 验证 export 可访问，并读取挂载点目录的数字 GID
-7. **创建/对齐 celer 组** — NFS `sec=sys` 按数字 GID 判断权限，而不是按组名。客户端本地 `celer` 组必须和挂载后的导出根目录使用相同的数字 GID；若本地组不存在且该 GID 未被占用，Celer 会用该 GID 创建；若已有 `celer` 组但 GID 不一致，setup 会停止并给出修复提示。客户端 setup 不创建 `celer` 系统用户，写入缓存只需 GID 对齐并将当前用户加入该组
-8. **将当前用户加入 celer 组** — 通过 sudo 运行 setup 时执行 `usermod -aG celer $SUDO_USER`，否则回退到 `$USER`；重新登录或执行 `newgrp celer` 后，非 sudo 用户即可写入缓存
-9. **写入 fstab** — 先删除旧条目，再追加新条目：`<server>:<export> <mount> nfs rw,_netdev,noatime,rsize=1048576,wsize=1048576 0 0`
-
-### 配置完成后
-
-组成员身份需要重新登录后生效，也可以立即执行：
-
-```bash
-newgrp celer
+```text
+artifacts-v0.2.7/   # 构建产物（按 Celer 版本隔离）
+repos/              # 源码仓库
+downloads/          # 下载文件
 ```
