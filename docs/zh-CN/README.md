@@ -2,7 +2,7 @@
 
 # Celer
 
-**轻量、非侵入、面向工程交付的 C/C++ 包管理工具，适用于以 CMake 为主的项目**
+轻量、非侵入、面向工程交付的 C/C++ 包管理工具，适用于以 CMake 为主的项目
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Report Card](https://goreportcard.com/badge/github.com/celer-pkg/celer)](https://goreportcard.com/report/github.com/celer-pkg/celer)
@@ -14,89 +14,66 @@
 
 ---
 
-> **Celer 专注于交付效率、交叉编译和团队协作，而非通用生态规模。**
+Celer 管理 C/C++ 第三方库：安装、编译、缓存，按「平台 × 项目 × 构建类型」隔离版本。  
+同一套库在 Windows MSVC、Linux aarch64、QNX 上各编一份，互不串。  
+你的 CMake 工程不用改 —— Celer 在外部生成 `toolchain_file.cmake`，把工具链、依赖和编译参数注进去。把这份文件交给同事或 CI，构建环境一起走。
 
-## 🚀 快速开始
+## 🚀 30 秒上手
+
+下载预编译包：[Releases](https://github.com/celer-pkg/celer/releases)，也可以 `git clone` 后 `go build`。
 
 ```bash
-# 1. 安装
-git clone https://github.com/celer-pkg/celer.git
-cd celer && go build
-
-# 2. 初始化配置仓库
+# 示例配置仓库，可换成团队自己的 conf
 celer init --url=https://github.com/celer-pkg/test-conf.git
 
-# 3. 选择平台和项目
+# 选定平台和项目（一个 platform.toml 就是一套工具链 + sysroot）
 celer configure --platform=x86_64-linux-ubuntu-22.04-gcc-11.5.0
 celer configure --project=project_test_01
 
-# 4. 安装一个库
+# 安装依赖，切到 aarch64 / Windows / QNX：只改 --platform
 celer install glog@0.6.0
 ```
 
-📖 [完整快速入门指南](./quick_start.md)
+然后在自己的工程里：
 
-## 🎯 谁适合使用
+```bash
+cmake -B build -DCMAKE_TOOLCHAIN_FILE=<celer 生成的 toolchain_file.cmake>
+cmake --build build
+```
 
-Celer 为面临 **真实 C/C++ 交付挑战** 的团队而设计：
+📖 [完整快速入门](./quick_start.md) · [为什么选择 Celer？](./why_celer.md)
 
-- 你要在 **多平台**（Windows、Linux、MacOS）上用 **不同编译器**（MSVC、GCC、Clang）维护项目。
-- 你需要 **可复现的构建环境** 交付给同事或 CI，而不是"在我机器上是好的"。
-- 你发布 **私有二进制库**，或维护内部制品仓库。
-- 你受够了依赖版本冲突在不同项目之间串扰。
-
-如果只是获取开源库，[Conan](https://conan.io) / [vcpkg](https://vcpkg.io) / [XMake](https://xmake.io) 已经是成熟方案。Celer 适合把 **交付一致性** 放在生态广度前面的工程团队。
-
-> 🧭 **为什么选择 Celer？** 想深入了解 Celer 的设计理念——TOML 声明式配置、交付导向、项目-平台-构建类型三维隔离、meta 驱动的缓存 Key、非侵入式集成与多级缓存体系？阅读 [《为什么选择 Celer？》](./why_celer.md)。
-
-## 💡 工作原理
+## 💡 非侵入：工程本身不用改
 
 ![workflow](../assets/workflow.svg)
 
-Celer 根据平台和项目配置生成 `toolchain_file.cmake`。你的 CMake 项目保持不变——依赖、工具链、环境变量和编译参数由外部注入。
+依赖、平台、编译参数活在 Celer 的 conf 里，不写进业务仓库。
 
-- ✅ 保留原有 CMake 结构
-- ✅ 依赖和平台配置独立于代码库
-- ✅ 生成的工具链文件可独立分发——用于 CI、交接或问题复现
+- 保留现有 CMake / 目录结构，不必为包管理器改 recipe
+- 切换目标：换一个 `platform.toml`，不用重写命令行和 profile
+- 生成的工具链文件可单独带走——CI、交接、复现问题都用同一份
 
-## 🖥️ 平台与编译器支持
+## 🎯 谁适合用
 
-Celer 致力于为各主流平台和编译器提供一流的交叉编译支持：
+- 同一产品要在 **Windows / Linux / 嵌入式** 上用 **MSVC、GCC、Clang** 交货
+- 要交给同事或流水线一份 **可复现的构建**，而不是「在我机器上是好的」
+- 要发 **私有二进制**，或维护内部制品库
+- 多个项目共用机器时，不想再被依赖版本互相污染
 
-|              | 💻 **Windows** | 🐧 **Linux** | 🍎 **MacOS** |
-| ------------ | :---: | :---: | :---: |
-| **MSVC**     | ✅   | —    | —    |
-| **Clang-CL** | ✅   | —    | —    |
-| **Clang**    | ✅   | ✅   | 🚧   |
-| **GCC**      | —    | ✅   | 🚧   |
+只是给个人电脑拉几个开源库，[Conan](https://conan.io) / [vcpkg](https://vcpkg.io) / [XMake](https://xmake.io) 更现成。Celer 面向把 **交叉编译、隔离和交付** 放在前面的团队。
 
-> ✅ = 已支持 &nbsp;&nbsp; 🚧 = 规划中 &nbsp;&nbsp; — = 不适用
+## 🌟 你能直接得到
 
-详见 [`conf/platforms/`](../../conf/platforms/) 所有平台配置（x86_64、aarch64、QNX 等）。
-
-## 🌟 能力一览
-
-| 当你需要… | Celer 的处理方式 |
+| 当你需要… | Celer 怎么做 |
 | --- | --- |
-| **交叉编译** | 统一 TOML 配置工具链、sysroot、环境变量，覆盖 ARM / x86 / QNX / Windows / Linux |
-| **项目隔离** | 每个项目独立的依赖版本、宏和 CMake 变量——无全局泄漏 |
-| **多构建系统** | 原生支持 CMake、Makefiles、Meson、B2、QMake、GYP |
-| **二进制分发** | 基于哈希的制品缓存，适用于私有库和预编译包 |
-| **离线/隔离环境** | Repo 缓存在无法访问 GitHub/GitLab 时复用源码树 |
-| **可复现 CI** | 导出工作区快照，配置可直接进入流水线 |
-| **嵌入式/MCU** | `embedded_system` 支持，不强依赖传统操作系统运行时 |
+| **切交叉编译目标** | 一个 `platform.toml` 收齐工具链、sysroot、环境变量；ARM / x86 / QNX / Windows / Linux |
+| **项目之间不串依赖** | 按「平台 × 项目 × 构建类型」隔离版本、宏和 CMake 变量 |
+| **多种上游构建系统** | CMake、Makefiles、Meson、B2、QMake、Bazel、GYP |
+| **私有库 / 预编译包** | 按构建哈希缓存制品，团队和 CI 共用 |
+| **外网不稳定** | 访问过的三方库的 Git 仓库和工具自动进缓存 |
+| **可复现 CI** | 导出工作区快照，配置原样进流水线 |
 
-## 🆚 Celer 的差异化
-
-| 维度 | Conan / vcpkg / XMake | ✅ Celer |
-| --- | --- | --- |
-| **侵入性** | 需适配 recipe 或生态约定 | 通过 `toolchain_file.cmake` 集成——项目保持不变 |
-| **交叉编译** | 工具链路径、sysroot、target triple 分散在命令行和多个配置文件中，切换目标平台需重写大量参数 | 一个 `platform.toml` 集中定义：编译器路径、系统根、依赖、环境变量，切换平台只需改一个文件 |
-| **项目隔离** | 共享配置易导致版本冲突 | 依赖作用域按项目隔离 |
-| **多工程协同** | 常需逐项目手工接线 | 一份配置协调多个子工程 |
-| **私有二进制** | 需额外封装和流程补丁 | 为内部制品库和定制交付链路而设计 |
-| **缓存** | 缺乏团队级复用关注 | 基于哈希的缓存，强调团队级构建稳定性 |
-| **复现** | 使用方需理解完整工具链体系 | 自包含的工具链文件和快照 |
+Windows 与 Linux 上的 MSVC / Clang / GCC 已可用；macOS 仍在完善。更多目标（含 QNX）见平台配置说明。
 
 ## 📚 文档
 
@@ -106,16 +83,19 @@ Celer 致力于为各主流平台和编译器提供一流的交叉编译支持�
 - [安装库](./cmd_install.md) · [部署](./cmd_deploy.md)
 
 **深入阅读：**
-- [为预编译库生成 CMake 配置](./article_generate_cmake_config.md)
+- [生成 CMake 配置文件](./article_generate_cmake_config.md)
 - [平台配置详解](./article_platform.md) · [端口（Port）配置详解](./article_port.md) · [项目配置详解](./article_project.md)
-- [PkgCache：共享缓存与 NFS](./article_pkgcache.md) · [制品缓存](./article_pkgcache_artifacts.md) · [Repo 缓存](./article_pkgcache_repos.md) · [下载缓存](./article_pkgcache_downloads.md)
-- [CCache 集成](./article_ccache.md) · [CUDA 检测](./article_cuda_support.md)
-- [动态变量](./article_expvars.md) · [依赖冲突检测](./article_detect_conflict_circular.md)
-- [Python 版本管理](./article_python_management.md) · [构建工具](./article_build_tools.md)
+- [PkgCache：共享缓存(基于fs/minio)](./article_pkgcache.md) · [制品缓存](./article_pkgcache_artifacts.md) · [Repo 缓存](./article_pkgcache_repos.md) · [下载缓存](./article_pkgcache_downloads.md)
+- [CCache 集成](./article_ccache.md)
+- [CUDA 自动识别](./article_cuda_support.md)
+- [动态变量](./article_expvars.md) 
+- [依赖冲突检测](./article_detect_conflict_circular.md)
+- [Python 版本管理](./article_python_management.md) 
+- [构建工具](./article_build_tools.md)
 - [导出快照](./cmd_deploy_snapshot.md)
 
 **命令参考：**
-- [全部命令](./cmd_configure.md) — `configure` · `install` · `remove` · `update` · `search` · `tree` · `clean` · `autoremove` · `reverse` · `integrate` · `version`
+- [configure](./cmd_configure.md) · [install](./cmd_install.md) · [remove](./cmd_remove.md) · [update](./cmd_update.md) · [search](./cmd_search.md) · [tree](./cmd_tree.md) · [clean](./cmd_clean.md) · [autoremove](./cmd_autoremove.md) · [reverse](./cmd_reverse.md) · [integrate](./cmd_integrate.md) · [version](./cmd_version.md)
 
 ## 🤝 贡献
 
@@ -132,7 +112,7 @@ MIT。详见 [LICENSE](../../LICENSE)。`ports/` 中的第三方库遵循各自�
 
 <div align="center">
 
-**为复杂 C/C++ 工程交付而设计**
+**C/C++ 包管理器：不改你的工程，把交叉编译做成可交付的工具链文件**
 
 [⭐ 在 GitHub 上点星](https://github.com/celer-pkg/celer) | [📖 文档](./quick_start.md) | [🐛 报告问题](https://github.com/celer-pkg/celer/issues)
 

@@ -7,10 +7,10 @@
 Celer provides automatic CUDA toolkit detection and configuration, making it easy to build GPU-accelerated C/C++ projects with CMake. When CUDA dependencies are detected in your project configuration, Celer automatically configures the CMake toolchain file with all necessary CUDA settings.
 
 **Key Features:**
-- 🔍 **Automatic Detection** - Detects CUDA toolkit from project dependencies or installed files
-- 🛠️ **Auto Configuration** - Automatically configures `CMAKE_CUDA_COMPILER`, `CUDA_TOOLKIT_ROOT_DIR`, and related CMake variables
-- 🪟 **Visual Studio Integration** - Full support for Visual Studio CUDA projects on Windows
-- 🐧 **Cross-Platform** - Works seamlessly on both Windows and Linux
+- **Automatic Detection** - Detects CUDA toolkit from project dependencies or installed files
+- **Auto Configuration** - Automatically configures `CMAKE_CUDA_COMPILER`, `CUDA_TOOLKIT_ROOT_DIR`, and related CMake variables
+- **Visual Studio Integration** - Full support for Visual Studio CUDA projects on Windows
+- **Cross-Platform** - Works seamlessly on both Windows and Linux
 
 ## How It Works
 
