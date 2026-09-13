@@ -87,7 +87,7 @@ Examples:
 	flags := command.Flags()
 	flags.StringVar(&d.snapshotPath, "snapshot", "", "Export workspace snapshot after successfully deployed.")
 	flags.BoolVarP(&d.force, "force", "", false, "Force deployment, ignoring any installed packages.")
-	flags.BoolVarP(&d.strip, "strip", "", false, "Strip installed binaries and libraries.")
+	flags.BoolVarP(&d.strip, "strip", "", false, "Build runtime stripped tree under workspace/stripped (same as celer strip).")
 
 	// Silence cobra's error and usage output to avoid duplicate messages.
 	command.SilenceErrors = true

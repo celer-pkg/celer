@@ -373,3 +373,51 @@ func TestCopyFile(t *testing.T) {
 		}
 	})
 }
+
+func TestIsELFFile(t *testing.T) {
+	dir := t.TempDir()
+	elf := filepath.Join(dir, "elf")
+	if err := os.WriteFile(elf, []byte{0x7f, 'E', 'L', 'F', 0, 0}, 0644); err != nil {
+		t.Fatal(err)
+	}
+	if !IsELFFile(elf) {
+		t.Fatal("expected ELF magic to match")
+	}
+
+	notELF := filepath.Join(dir, "text")
+	if err := os.WriteFile(notELF, []byte("hello"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if IsELFFile(notELF) {
+		t.Fatal("plain text should not be ELF")
+	}
+}
+
+func TestIsPEFile(t *testing.T) {
+	dir := t.TempDir()
+
+	// Minimal MZ header with e_lfanew pointing at a PE signature.
+	pe := make([]byte, 0x48)
+	pe[0], pe[1] = 'M', 'Z'
+	pe[0x3C], pe[0x3D], pe[0x3E], pe[0x3F] = 0x40, 0, 0, 0
+	pe[0x40], pe[0x41], pe[0x42], pe[0x43] = 'P', 'E', 0, 0
+
+	pePath := filepath.Join(dir, "app.exe")
+	if err := os.WriteFile(pePath, pe, 0644); err != nil {
+		t.Fatal(err)
+	}
+	if !IsPEFile(pePath) {
+		t.Fatal("expected PE magic to match")
+	}
+	if !IsStrippableBinary(pePath) {
+		t.Fatal("PE should be strippable")
+	}
+
+	mzOnly := filepath.Join(dir, "mz.bin")
+	if err := os.WriteFile(mzOnly, []byte{'M', 'Z', 0, 0}, 0644); err != nil {
+		t.Fatal(err)
+	}
+	if IsPEFile(mzOnly) {
+		t.Fatal("MZ without PE signature should not match")
+	}
+}

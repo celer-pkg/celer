@@ -99,7 +99,7 @@ MSVC / Clang / GCC are ready on Windows and Linux; macOS is still in progress. A
 - [Export Snapshots](./cmd_deploy_snapshot.md)
 
 **Reference:**
-- [configure](./cmd_configure.md) · [install](./cmd_install.md) · [remove](./cmd_remove.md) · [update](./cmd_update.md) · [search](./cmd_search.md) · [tree](./cmd_tree.md) · [clean](./cmd_clean.md) · [autoremove](./cmd_autoremove.md) · [reverse](./cmd_reverse.md) · [integrate](./cmd_integrate.md) · [version](./cmd_version.md)
+- [configure](./cmd_configure.md) · [install](./cmd_install.md) · [remove](./cmd_remove.md) · [update](./cmd_update.md) · [search](./cmd_search.md) · [tree](./cmd_tree.md) · [clean](./cmd_clean.md) · [autoremove](./cmd_autoremove.md) · [reverse](./cmd_reverse.md) · [integrate](./cmd_integrate.md) · [strip](./cmd_strip.md) · [version](./cmd_version.md)
 
 ## 🤝 Contributing
 

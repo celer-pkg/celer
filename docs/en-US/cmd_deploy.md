@@ -24,7 +24,7 @@ celer deploy [flags]
 |------------|-------|---------|---------------|---------------------------------------------------|
 | --force    | -     | boolean | false         | Force deployment, ignoring already installed libs |
 | --snapshot | -     | string  | empty string  | Export workspace snapshot after successful deploy |
-| --strip    | -     | string  | false         | Export and strip libraries and binaries           |
+| --strip    | -     | boolean | false         | After deploy, run the same runtime strip as [`celer strip`](./cmd_strip.md) |
 
 ## Common Examples
 
@@ -38,15 +38,16 @@ celer deploy --force
 # Deploy and export snapshot
 celer deploy --snapshot=snapshots/2026-02-21
 
-# Deploy and strip
+# Deploy and build runtime stripped tree (same as celer strip)
 celer deploy --strip
 
-# Force deploy and export snapshot and strip
+# Force deploy, export snapshot, and strip
 celer deploy --force --snapshot=snapshots/rebuild --strip
 ```
 
 ## Notes
 
+- `--strip` runs the same logic as [`celer strip`](./cmd_strip.md) after a successful deploy, writing `workspace/stripped/...` (does not modify `installed/`).
 - Make sure platform and project are configured before running deploy.
 - Export is skipped if deployment fails.
 - When deployment succeeds, you can use `toolchain_file.cmake` in CMake with `-DCMAKE_TOOLCHAIN_FILE=...`.

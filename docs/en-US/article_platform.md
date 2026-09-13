@@ -119,7 +119,7 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
 | `ar` | ❌ | Static library archiver | `x86_64-linux-gnu-ar` |
 | `nm` | ❌ | Symbol table viewer | `x86_64-linux-gnu-nm` |
 | `objdump` | ❌ | Object file analyzer | `x86_64-linux-gnu-objdump` |
-| `strip` | ❌ | Symbol stripping tool | `x86_64-linux-gnu-strip` |
+| `strip` | ❌ | Symbol stripping tool; **required** by `celer strip` / `deploy --strip`. On Windows use `llvm-strip.exe` for PE | `x86_64-linux-gnu-strip` / `llvm-strip.exe` |
 
 > ⚠️ **Note**: Optional tools (fc, ranlib, etc.) will be automatically located using `crosstool_prefix` if not specified.
 

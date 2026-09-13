@@ -99,7 +99,7 @@ Windows 与 Linux 上的 MSVC / Clang / GCC 已可用；macOS 仍在完善。更
 - [导出快照](./cmd_deploy_snapshot.md)
 
 **命令参考：**
-- [configure](./cmd_configure.md) · [install](./cmd_install.md) · [remove](./cmd_remove.md) · [update](./cmd_update.md) · [search](./cmd_search.md) · [tree](./cmd_tree.md) · [clean](./cmd_clean.md) · [autoremove](./cmd_autoremove.md) · [reverse](./cmd_reverse.md) · [integrate](./cmd_integrate.md) · [version](./cmd_version.md)
+- [configure](./cmd_configure.md) · [install](./cmd_install.md) · [remove](./cmd_remove.md) · [update](./cmd_update.md) · [search](./cmd_search.md) · [tree](./cmd_tree.md) · [clean](./cmd_clean.md) · [autoremove](./cmd_autoremove.md) · [reverse](./cmd_reverse.md) · [integrate](./cmd_integrate.md) · [strip](./cmd_strip.md) · [version](./cmd_version.md)
 
 ## 🤝 贡献
 

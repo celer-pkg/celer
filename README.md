@@ -99,7 +99,7 @@ MSVC / Clang / GCC are ready on Windows and Linux; macOS is still in progress. A
 - [Export Snapshots](./docs/en-US/cmd_deploy_snapshot.md)
 
 **Reference:**
-- [configure](./docs/en-US/cmd_configure.md) · [install](./docs/en-US/cmd_install.md) · [remove](./docs/en-US/cmd_remove.md) · [update](./docs/en-US/cmd_update.md) · [search](./docs/en-US/cmd_search.md) · [tree](./docs/en-US/cmd_tree.md) · [clean](./docs/en-US/cmd_clean.md) · [autoremove](./docs/en-US/cmd_autoremove.md) · [reverse](./docs/en-US/cmd_reverse.md) · [integrate](./docs/en-US/cmd_integrate.md) · [version](./docs/en-US/cmd_version.md)
+- [configure](./docs/en-US/cmd_configure.md) · [install](./docs/en-US/cmd_install.md) · [remove](./docs/en-US/cmd_remove.md) · [update](./docs/en-US/cmd_update.md) · [search](./docs/en-US/cmd_search.md) · [tree](./docs/en-US/cmd_tree.md) · [clean](./docs/en-US/cmd_clean.md) · [autoremove](./docs/en-US/cmd_autoremove.md) · [reverse](./docs/en-US/cmd_reverse.md) · [integrate](./docs/en-US/cmd_integrate.md) · [strip](./docs/en-US/cmd_strip.md) · [version](./docs/en-US/cmd_version.md)
 
 ## 🤝 Contributing
 
