@@ -24,7 +24,7 @@ celer deploy [flags]
 |------------|------|-------|----------|----------------------------|
 | --force    | -    | 布尔   | false   | 强制部署，忽略已安装状态      |
 | --snapshot | -    | 字符串 | 空字符串 | 部署成功后导出工作区快照      |
-| --strip    | -    | 布尔   | false   | 部署成功后Strip库文件和可执行文件  |
+| --strip    | -    | 布尔   | false   | 部署成功后执行与 `celer strip` 相同的运行时剥离（见 [strip](./cmd_strip.md)） |
 
 ## 常用示例
 
@@ -38,10 +38,10 @@ celer deploy --force
 # 部署并导出快照
 celer deploy --snapshot=snapshots/2026-02-21
 
-# 部署并strip
+# 部署并生成运行时 stripped 树（同 celer strip）
 celer deploy --strip
 
-# 强制部署并导出, 并strip
+# 强制部署并导出, 并 strip
 celer deploy --force --snapshot=snapshots/rebuild --strip
 ```
 
@@ -49,6 +49,7 @@ celer deploy --force --snapshot=snapshots/rebuild --strip
 
 - 运行前请先完成平台与项目配置。
 - 如果部署失败，不会执行导出。
+- `--strip` 与独立命令 [`celer strip`](./cmd_strip.md) 共用同一套逻辑，结果写到 `workspace/stripped/`，不修改 `installed/`。
 - 部署成功后可在 CMake 中通过 `-DCMAKE_TOOLCHAIN_FILE=...` 使用 `toolchain_file.cmake`。
 
 ## 预解析 Ref 机制

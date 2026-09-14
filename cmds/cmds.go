@@ -29,7 +29,7 @@ var rootCmd = &cobra.Command{
 		cmd.Println("Run `celer --help` to see available commands.")
 	},
 	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		var commands = []string{"version", "init", "create", "configure", "install", "remove", "integrate", "update"}
+		var commands = []string{"version", "init", "create", "configure", "install", "remove", "integrate", "update", "strip"}
 		var suggestions = []string{}
 
 		for _, c := range commands {
@@ -69,6 +69,7 @@ func Execute() error {
 		&autoremoveCmd{},
 		&reverseCmd{},
 		&searchCmd{},
+		&stripCmd{},
 	}
 
 	// Create celer but init it in command.

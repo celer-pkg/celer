@@ -17,6 +17,7 @@
 **/ccache
 **/snapshot-*
 **/pkg-cache
+**/stripped
 *.exe
 celer
 celer.toml

@@ -358,8 +358,14 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 }
 
 func (c *Celer) Deploy(force, strip bool) error {
-	if err := c.project.deploy(force, strip); err != nil {
+	if err := c.project.deploy(force); err != nil {
 		return fmt.Errorf("failed to deploy -> %w", err)
+	}
+
+	if strip {
+		if err := c.Strip(); err != nil {
+			return fmt.Errorf("failed to strip deployed binaries -> %w", err)
+		}
 	}
 
 	return nil

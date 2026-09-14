@@ -524,7 +524,7 @@ func RemoveContent(filePath string, shouldRemove func(string) bool) error {
 	return os.WriteFile(filePath, []byte(strings.Join(filtered, "\n")+"\n"), 0644)
 }
 
-// isELF tell whether path is a regular file whose first 4 bytes are the
+// IsELFFile reports whether path is a regular file whose first 4 bytes are the
 // ELF magic (\x7fELF). Cheaper and more accurate than checking extensions
 // or the executable mode bit (which would mis-classify shell scripts).
 func IsELFFile(path string) bool {
@@ -539,6 +539,44 @@ func IsELFFile(path string) bool {
 		return false
 	}
 	return magic[0] == 0x7f && magic[1] == 'E' && magic[2] == 'L' && magic[3] == 'F'
+}
+
+// IsPEFile reports whether path looks like a Windows PE/COFF image (MZ + PE\0\0).
+// Used for .exe / .dll runtime binaries that are not ELF.
+func IsPEFile(path string) bool {
+	f, err := os.Open(path)
+	if err != nil {
+		return false
+	}
+	defer f.Close()
+
+	var dos [64]byte
+	if _, err := io.ReadFull(f, dos[:]); err != nil {
+		return false
+	}
+	if dos[0] != 'M' || dos[1] != 'Z' {
+		return false
+	}
+
+	peOffset := int64(uint32(dos[0x3C]) | uint32(dos[0x3D])<<8 | uint32(dos[0x3E])<<16 | uint32(dos[0x3F])<<24)
+	if peOffset < 64 {
+		return false
+	}
+	if _, err := f.Seek(peOffset, io.SeekStart); err != nil {
+		return false
+	}
+
+	var pe [4]byte
+	if _, err := io.ReadFull(f, pe[:]); err != nil {
+		return false
+	}
+	return pe[0] == 'P' && pe[1] == 'E' && pe[2] == 0 && pe[3] == 0
+}
+
+// IsStrippableBinary reports whether path is an ELF or PE image that strip tools
+// can process (or that should be treated as a runtime binary in the strip tree).
+func IsStrippableBinary(path string) bool {
+	return IsELFFile(path) || IsPEFile(path)
 }
 
 // SHA256Sum computes the SHA256 hash of a file.

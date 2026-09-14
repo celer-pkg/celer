@@ -119,7 +119,7 @@
 | `ar` | ❌ | 静态库归档器 | `x86_64-linux-gnu-ar` |
 | `nm` | ❌ | 符号表查看器 | `x86_64-linux-gnu-nm` |
 | `objdump` | ❌ | 目标文件分析器 | `x86_64-linux-gnu-objdump` |
-| `strip` | ❌ | 符号剥离工具 | `x86_64-linux-gnu-strip` |
+| `strip` | ❌ | 符号剥离工具；`celer strip` / `deploy --strip` **必须**配置。Windows 可用 `llvm-strip.exe` 处理 PE | `x86_64-linux-gnu-strip` / `llvm-strip.exe` |
 
 > ⚠️ **注意**：可选工具（fc、ranlib 等）如果未指定，Celer 会使用 `crosstool_prefix` 自动查找。
 
