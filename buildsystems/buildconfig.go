@@ -49,8 +49,25 @@ type PortConfig struct {
 	DevDep          bool     // whether dev dependency
 	HostDev         bool     // whether native build
 	PortFile        string   // the file path of port.toml
+	// TmpDepsRoot is the per-job staging directory under tmp/deps (os.MkdirTemp).
+	// Empty means fall back to dirs.TmpDepsDir.
+	TmpDepsRoot string
 
 	Ctx context.Context `toml:"-"`
+}
+
+// DepsRoot returns the tmp/deps root for this build. Parallel jobs each get
+// their own directory so they do not share or wipe a workspace-global prefix.
+func (p PortConfig) DepsRoot() string {
+	if p.TmpDepsRoot != "" {
+		return p.TmpDepsRoot
+	}
+	return dirs.TmpDepsDir
+}
+
+// DepsPath joins elem onto DepsRoot.
+func (p PortConfig) DepsPath(elem ...string) string {
+	return filepath.Join(append([]string{p.DepsRoot()}, elem...)...)
 }
 
 func (p PortConfig) nameVersion() string {
@@ -622,7 +639,7 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 		// Keep the host-side tool runtime closure isolated under tmp/deps for every
 		// build. Host-side tools must be prepared explicitly into tmp/deps instead of
 		// silently falling back to the installed directory.
-		devTmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev")
+		devTmpDepsDir := b.PortConfig.DepsPath(b.PortConfig.HostName + "-dev")
 
 		// Create parent directory if not exists
 		if err := os.MkdirAll(filepath.Dir(devTmpDepsDir), os.ModePerm); err != nil {
@@ -938,7 +955,7 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	var cflags, cxxflags, ldflags []string
 
 	// Set CFLAGS/CXXFLAGS/LDFLAGS.
-	tmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryDir)
+	tmpDepsDir := b.PortConfig.DepsPath(b.PortConfig.LibraryDir)
 	var appendIncludeDir = func(includeDir string) {
 		includeDir = fileio.ToCygpath(includeDir)
 		includeFlag := "-I" + includeDir

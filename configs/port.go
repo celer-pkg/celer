@@ -18,9 +18,6 @@ import (
 )
 
 var (
-	// preparedTmpDeps tracks deps already prepared for tmp, to avoid redundant Init().
-	preparedTmpDeps = map[string]bool{}
-
 	// visitedPorts tracks ports visited during dependency-tree traversal so
 	// each port is processed at most once even when it appears under many parents.
 	visitedPorts = map[string]bool{}
@@ -72,6 +69,7 @@ type Port struct {
 	traceFile                  string
 	metaFile                   string
 	tmpDepsDir                 string
+	tmpDepsRoot                string
 	installReport              *installReport
 	exprVars                   context.ExprVars
 	sourceModified             bool
@@ -400,12 +398,30 @@ func (p *Port) putExprVars(config buildsystems.BuildConfig) {
 	p.exprVars.Put("PACKAGE_DIR", config.PortConfig.PackageDir)
 	p.exprVars.Put("CMAKE_TOOLCHAIN_FILE", filepath.Join(dirs.WorkspaceDir, "toolchain_file.cmake"))
 	p.exprVars.Put("PORT_DIR", filepath.Dir(p.portFile))
-	p.exprVars.Put("DEV_DEPS_DIR", filepath.Join(dirs.TmpDepsDir, config.PortConfig.HostName+"-dev"))
+	p.exprVars.Put("DEV_DEPS_DIR", config.PortConfig.DepsPath(config.PortConfig.HostName+"-dev"))
 
 	if config.DevDep {
-		p.exprVars.Put("DEPS_DIR", filepath.Join(dirs.TmpDepsDir, config.PortConfig.HostName+"-dev"))
+		p.exprVars.Put("DEPS_DIR", config.PortConfig.DepsPath(config.PortConfig.HostName+"-dev"))
 	} else {
-		p.exprVars.Put("DEPS_DIR", filepath.Join(dirs.TmpDepsDir, config.PortConfig.LibraryDir))
+		p.exprVars.Put("DEPS_DIR", config.PortConfig.DepsPath(config.PortConfig.LibraryDir))
+	}
+}
+
+// applyTmpDepsRoot points this port and its build configs at a per-job tmp/deps
+// directory so parallel installs do not share or wipe the workspace-global prefix.
+func (p *Port) applyTmpDepsRoot(root string) {
+	p.tmpDepsRoot = root
+	for i := range p.BuildConfigs {
+		p.BuildConfigs[i].PortConfig.TmpDepsRoot = root
+	}
+	if p.MatchedConfig == nil {
+		return
+	}
+	p.tmpDepsDir = filepath.Join(root, p.MatchedConfig.PortConfig.LibraryDir)
+	p.putExprVars(*p.MatchedConfig)
+	p.MatchedConfig.ExprVars = p.exprVars
+	for i := range p.BuildConfigs {
+		p.BuildConfigs[i].ExprVars = p.exprVars
 	}
 }
 

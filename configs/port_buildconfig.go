@@ -59,9 +59,14 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 	// target example: installed/celer/aarch64-linux-ubuntu-22.04-gcc-11.5.0/test_project_001/release/x264@stable
 	p.InstalledDir = filepath.Join(dirs.InstalledDir, libraryDir)
 
+	tmpDepsRoot := p.tmpDepsRoot
+	if tmpDepsRoot == "" {
+		tmpDepsRoot = dirs.TmpDepsDir
+	}
+
 	// host example: installed/celer/x86_64-linux-dev/deps/x264@stable
 	// target example: installed/celer/aarch64-linux-ubuntu-22.04-gcc-11.5.0/test_project_001/release/deps/x264@stable
-	p.tmpDepsDir = filepath.Join(dirs.TmpDepsDir, libraryDir)
+	p.tmpDepsDir = filepath.Join(tmpDepsRoot, libraryDir)
 
 	portConfig := buildsystems.PortConfig{
 		Ctx:             p.ctx,
@@ -82,6 +87,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 		Jobs:            p.ctx.Jobs(),
 		RepoDir:         filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src"),
 		PortFile:        p.portFile,
+		TmpDepsRoot:     tmpDepsRoot,
 	}
 
 	// Source folder may be a inner dir.
