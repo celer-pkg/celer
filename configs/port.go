@@ -18,9 +18,6 @@ import (
 )
 
 var (
-	// preparedTmpDeps tracks deps already prepared for tmp, to avoid redundant Init().
-	preparedTmpDeps = map[string]bool{}
-
 	// visitedPorts tracks ports visited during dependency-tree traversal so
 	// each port is processed at most once even when it appears under many parents.
 	visitedPorts = map[string]bool{}
@@ -400,12 +397,12 @@ func (p *Port) putExprVars(config buildsystems.BuildConfig) {
 	p.exprVars.Put("PACKAGE_DIR", config.PortConfig.PackageDir)
 	p.exprVars.Put("CMAKE_TOOLCHAIN_FILE", filepath.Join(dirs.WorkspaceDir, "toolchain_file.cmake"))
 	p.exprVars.Put("PORT_DIR", filepath.Dir(p.portFile))
-	p.exprVars.Put("DEV_DEPS_DIR", filepath.Join(dirs.TmpDepsDir, config.PortConfig.HostName+"-dev"))
+	p.exprVars.Put("DEV_DEPS_DIR", filepath.Join(p.tmpDepsDir, config.PortConfig.HostName+"-dev"))
 
 	if config.DevDep {
-		p.exprVars.Put("DEPS_DIR", filepath.Join(dirs.TmpDepsDir, config.PortConfig.HostName+"-dev"))
+		p.exprVars.Put("DEPS_DIR", filepath.Join(p.tmpDepsDir, config.PortConfig.HostName+"-dev"))
 	} else {
-		p.exprVars.Put("DEPS_DIR", filepath.Join(dirs.TmpDepsDir, config.PortConfig.LibraryDir))
+		p.exprVars.Put("DEPS_DIR", filepath.Join(p.tmpDepsDir, config.PortConfig.LibraryDir))
 	}
 }
 

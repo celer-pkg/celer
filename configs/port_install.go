@@ -547,13 +547,14 @@ func (p *Port) installFromSource(options InstallOptions) error {
 		return err
 	}
 
-	// Install all dependencies for current port.
-	if err := p.installAllDependencies(options); err != nil {
+	// Mkdir the staging dir named at Init.
+	if err := os.MkdirAll(p.tmpDepsDir, os.ModePerm); err != nil {
 		return err
 	}
+	defer os.RemoveAll(p.tmpDepsDir)
 
-	// Clean tmp/deps before prepareTmpDeps to prevent sibling dependency pollution.
-	if err := fileio.CleanDir(dirs.TmpDepsDir); err != nil {
+	// Install all dependencies for current port.
+	if err := p.installAllDependencies(options); err != nil {
 		return err
 	}
 
@@ -561,8 +562,7 @@ func (p *Port) installFromSource(options InstallOptions) error {
 	haveDependencies := len(p.MatchedConfig.Dependencies) > 0 || len(p.MatchedConfig.DevDependencies) > 0
 	if haveDependencies && (options.Force || !p.MatchedConfig.Configured()) {
 		color.Printf(color.Title, "\n[prepare dependencies: %s]\n", p.NameVersion())
-		preparedTmpDeps = map[string]bool{}
-		if err := p.prepareTmpDeps(); err != nil {
+		if err := p.prepareTmpDeps(map[string]bool{}); err != nil {
 			return err
 		}
 	}
@@ -1157,7 +1157,7 @@ func (p Port) collectInstalledDepsForReport() error {
 	return nil
 }
 
-func (p Port) prepareTmpDeps() error {
+func (p Port) prepareTmpDeps(preparedRecord map[string]bool) error {
 	for _, nameVersion := range p.MatchedConfig.DevDependencies {
 		// Same name, version as parent and they are booth build with native toolchain, so skip.
 		if (p.DevDep || p.HostDep) && p.NameVersion() == nameVersion {
@@ -1165,7 +1165,7 @@ func (p Port) prepareTmpDeps() error {
 		}
 
 		// Ignore duplicated.
-		if preparedTmpDeps[visitedKeyOf(nameVersion, true, true)] {
+		if preparedRecord[visitedKeyOf(nameVersion, true, true)] {
 			continue
 		}
 
@@ -1177,8 +1177,8 @@ func (p Port) prepareTmpDeps() error {
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
+		port.tmpDepsDir = p.tmpDepsDir
 
-		// Copy package files to tmp/deps.
 		if err := port.doInstallFromPackage(port.tmpDepsDir); err != nil {
 			return err
 		}
@@ -1189,8 +1189,8 @@ func (p Port) prepareTmpDeps() error {
 		}
 
 		// Provider tmp deps recursively.
-		preparedTmpDeps[visitedKeyOf(nameVersion, true, true)] = true
-		if err := port.prepareTmpDeps(); err != nil {
+		preparedRecord[visitedKeyOf(nameVersion, true, true)] = true
+		if err := port.prepareTmpDeps(preparedRecord); err != nil {
 			return err
 		}
 
@@ -1204,7 +1204,7 @@ func (p Port) prepareTmpDeps() error {
 		}
 
 		// Ignore duplicated.
-		if preparedTmpDeps[visitedKeyOf(nameVersion, p.DevDep, p.HostDep)] {
+		if preparedRecord[visitedKeyOf(nameVersion, p.DevDep, p.HostDep)] {
 			continue
 		}
 
@@ -1216,8 +1216,8 @@ func (p Port) prepareTmpDeps() error {
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
+		port.tmpDepsDir = p.tmpDepsDir
 
-		// Copy package files to tmp/deps.
 		if err := port.doInstallFromPackage(port.tmpDepsDir); err != nil {
 			return err
 		}
@@ -1228,8 +1228,8 @@ func (p Port) prepareTmpDeps() error {
 		}
 
 		// Provider tmp deps recursively.
-		preparedTmpDeps[visitedKeyOf(nameVersion, p.DevDep, p.HostDep)] = true
-		if err := port.prepareTmpDeps(); err != nil {
+		preparedRecord[visitedKeyOf(nameVersion, p.DevDep, p.HostDep)] = true
+		if err := port.prepareTmpDeps(preparedRecord); err != nil {
 			return err
 		}
 
