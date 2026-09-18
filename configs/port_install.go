@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/celer-pkg/celer/buildtools"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
+	"github.com/celer-pkg/celer/pkgs/logger"
 	"github.com/celer-pkg/celer/pkgs/pc"
 	"golang.org/x/sync/errgroup"
 )
@@ -54,12 +54,12 @@ func (p *Port) Install(options InstallOptions) (fromWhere string, retErr error) 
 		if p.Parent == "" {
 			reportPath, err := p.installReport.write(p)
 			if err != nil {
-				color.PrintWarning("failed to write install report for %s -> %s", p.NameVersion(), err)
+				logger.PrintWarning("failed to write install report for %s -> %s", p.NameVersion(), err)
 				return
 			}
 
-			color.PrintPass("%s's install report is generated", p.NameVersion())
-			color.PrintHint("Location: %s", reportPath)
+			logger.PrintPass("%s's install report is generated", p.NameVersion())
+			logger.PrintHint("Location: %s", reportPath)
 		}
 	}()
 
@@ -97,8 +97,8 @@ func (p *Port) Install(options InstallOptions) (fromWhere string, retErr error) 
 		)
 
 		if p.IsHostSupported() {
-			color.PrintPass("package: %s", p.NameVersion())
-			color.PrintHint("Location: %s", installedDir)
+			logger.PrintPass("package: %s", p.NameVersion())
+			logger.PrintHint("Location: %s", installedDir)
 		}
 		return "preinstalled", nil
 	}
@@ -424,7 +424,7 @@ func (p *Port) installFromPackage(options InstallOptions) (bool, error) {
 	// Remove outdated package.
 	localMeta := string(metaBytes)
 	if localMeta != newMeta {
-		color.Printf(color.Warning, "\n================ The outdated package of %s will be removed now. ================\n", p.NameVersion())
+		logger.Printf(logger.Warning, "\n================ The outdated package of %s will be removed now. ================\n", p.NameVersion())
 
 		// Backup current installed meta file if it exists.
 		if fileio.PathExists(p.metaFile) {
@@ -436,7 +436,7 @@ func (p *Port) installFromPackage(options InstallOptions) (bool, error) {
 				return false, fmt.Errorf("failed to backup meta file -> %w", err)
 			}
 		} else {
-			color.Printf(color.Warning, "installed meta file not found, skip backup: %s\n", p.metaFile)
+			logger.Printf(logger.Warning, "installed meta file not found, skip backup: %s\n", p.metaFile)
 		}
 
 		// Remove outdated package and install from source again.
@@ -569,7 +569,7 @@ func (p *Port) installFromSource(options InstallOptions) error {
 	// Prepare dependencies to tmp/deps before build it.
 	haveDependencies := len(p.MatchedConfig.Dependencies) > 0 || len(p.MatchedConfig.DevDependencies) > 0
 	if haveDependencies && (options.Force || !p.MatchedConfig.Configured()) {
-		color.Printf(color.Title, "\n[prepare dependencies: %s]\n", p.NameVersion())
+		logger.Printf(logger.Title, "\n[prepare dependencies: %s]\n", p.NameVersion())
 		if err := p.prepareTmpDeps(map[string]bool{}, options.StagingRootDir); err != nil {
 			return err
 		}
@@ -723,7 +723,7 @@ func (p *Port) doInstallFromSource() error {
 		// Skip meta file and cache for ports with url="_".
 		// port with url="_" means no source repo and just in development.
 		if p.Package.Url == "_" {
-			color.Printf(color.Warning, "\n======== virtual project, skipping meta file generation and cache storing. ========\n")
+			logger.Printf(logger.Warning, "\n======== virtual project, skipping meta file generation and cache storing. ========\n")
 			return nil
 		}
 
@@ -1204,7 +1204,7 @@ func (p Port) prepareTmpDeps(preparedRecord map[string]bool, stagingRoot string)
 			return err
 		}
 
-		color.Printf(color.Hint, "[✔] prepare deps %-15s -- [dev]\n", port.NameVersion())
+		logger.Printf(logger.Hint, "[✔] prepare deps %-15s -- [dev]\n", port.NameVersion())
 	}
 
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
@@ -1248,7 +1248,7 @@ func (p Port) prepareTmpDeps(preparedRecord map[string]bool, stagingRoot string)
 		}
 
 		content := expr.If(port.DevDep || port.HostDep, "[✔] prepare deps %-15s -- [dev]\n", "[✔] prepare deps %s\n")
-		color.Printf(color.Hint, content, port.NameVersion())
+		logger.Printf(logger.Hint, content, port.NameVersion())
 	}
 
 	return nil
@@ -1303,11 +1303,11 @@ func (p Port) writeTraceFile(installedFrom string) error {
 	}
 
 	// Print install trace.
-	color.PrintPass("%s is installed from %s", p.NameVersion(), installedFrom)
+	logger.PrintPass("%s is installed from %s", p.NameVersion(), installedFrom)
 	if p.MatchedConfig.BuildSystem == "python" {
-		color.PrintHint("Location: %s", buildtools.PythonTool.VenvDir())
+		logger.PrintHint("Location: %s", buildtools.PythonTool.VenvDir())
 	} else {
-		color.PrintHint("Location: %s", p.InstalledDir)
+		logger.PrintHint("Location: %s", p.InstalledDir)
 	}
 
 	return nil

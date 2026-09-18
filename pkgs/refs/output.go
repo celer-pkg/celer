@@ -3,7 +3,7 @@ package refs
 import (
 	"fmt"
 
-	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/logger"
 )
 
 // truncate limits a string to maxLen characters, appending "..." if truncated.
@@ -17,7 +17,7 @@ func truncate(s string, maxLen int) string {
 // PrintResolvedRefs prints a formatted list of resolved refs to the terminal.
 func PrintResolvedRefs(projectName string, results []ResolvedRef) {
 	title := fmt.Sprintf("\n================================ Resolved all dependency refs for %s ================================", projectName)
-	color.Println(color.Title, title)
+	logger.Println(logger.Title, title)
 
 	// Build rows first to calculate dynamic column widths.
 	type row struct {
@@ -78,9 +78,9 @@ func PrintResolvedRefs(projectName string, results []ResolvedRef) {
 		url := truncate(row.url, maxURL)
 		switch {
 		case row.isError:
-			color.Printf(color.Error, format, row.name, row.srcType, url, row.ref, "error: "+row.resolved)
+			logger.Printf(logger.Error, format, row.name, row.srcType, url, row.ref, "error: "+row.resolved)
 		case row.isVirtual:
-			color.Printf(color.Muted, format, row.name, row.srcType, url, row.ref, row.resolved)
+			logger.Printf(logger.Muted, format, row.name, row.srcType, url, row.ref, row.resolved)
 		default:
 			fmt.Printf(format, row.name, row.srcType, url, row.ref, row.resolved)
 		}

@@ -9,9 +9,9 @@ import (
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/logger"
 	"github.com/minio/minio-go/v7"
 )
 
@@ -146,7 +146,7 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 	// The meta is a tiny cache-metadata check downloaded silently; only the
 	// archive download below prints a done line.
 	if remoteMetaInfo == nil {
-		color.PrintWarning("======== cached artifact for %s has no metadata, it'll build from source ========", nameVersion)
+		logger.PrintWarning("======== cached artifact for %s has no metadata, it'll build from source ========", nameVersion)
 		return false, nil
 	}
 	tmpMetaFile, err := a.downloadSilent(localTmpDir, remoteMetaFilePath)
@@ -170,7 +170,7 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 		return false, fmt.Errorf("failed to get file info '%s' -> %w", remoteArtifactPath, err)
 	}
 	if remoteInfo == nil {
-		color.PrintWarning("======== no artifact found for %s and it'll build from source ========", nameVersion)
+		logger.PrintWarning("======== no artifact found for %s and it'll build from source ========", nameVersion)
 		return false, nil
 	}
 
@@ -184,7 +184,7 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 		if got, err := fileio.SHA256Sum(tmpDownloaded); err != nil {
 			return false, err
 		} else if got != expected {
-			color.PrintWarning("======== cached artifact for %s is corrupted, it'll build from source ========", nameVersion)
+			logger.PrintWarning("======== cached artifact for %s is corrupted, it'll build from source ========", nameVersion)
 			return false, nil
 		}
 	}

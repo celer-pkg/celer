@@ -10,11 +10,11 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/env"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/logger"
 
 	"github.com/BurntSushi/toml"
 )
@@ -287,8 +287,8 @@ func (b *BuildTool) checkAndFix() error {
 	// Only print if tool was just downloaded (didn't exist before).
 	if !fileio.PathExists(location) {
 		// Print download & extract info.
-		color.PrintPass("tool: %s", fileio.Base(b.Url))
-		color.PrintHint("Location: %s", location)
+		logger.PrintPass("tool: %s", fileio.Base(b.Url))
+		logger.PrintHint("Location: %s", location)
 	}
 
 	return nil

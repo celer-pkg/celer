@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/logger"
 )
 
 // executor manages command execution with logging, environment configuration, and output routing.
@@ -110,7 +110,7 @@ func (e *executor) executeWithRetry(output io.Writer) error {
 			return nil
 		}
 
-		color.Printf(color.Warning, "Attempted (%d/%d): %v\n", attempt, e.retryMaxAttempts, lastErr)
+		logger.Printf(logger.Warning, "Attempted (%d/%d): %v\n", attempt, e.retryMaxAttempts, lastErr)
 		if attempt < e.retryMaxAttempts {
 			time.Sleep(time.Duration(attempt) * time.Second)
 		}

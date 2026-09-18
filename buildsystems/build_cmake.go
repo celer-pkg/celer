@@ -11,9 +11,9 @@ import (
 
 	"github.com/celer-pkg/celer/configs/toolchains"
 	"github.com/celer-pkg/celer/pkgs/cmd"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/logger"
 )
 
 const (
@@ -220,7 +220,7 @@ func (c cmake) configureOptions() ([]string, error) {
 
 func (c cmake) configured() bool {
 	if err := c.detectGenerator(); err != nil {
-		color.Printf(color.Error, "failed to detect generator -> %s", err)
+		logger.Printf(logger.Error, "failed to detect generator -> %s", err)
 		return false
 	}
 

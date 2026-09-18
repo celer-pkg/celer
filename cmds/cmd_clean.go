@@ -9,11 +9,11 @@ import (
 
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/logger"
 
 	"github.com/spf13/cobra"
 )
@@ -84,7 +84,7 @@ func (c *cleanCmd) validateArgs(cmd *cobra.Command, args []string) error {
 
 func (c *cleanCmd) execute(args []string) error {
 	if err := c.celer.Init(); err != nil {
-		return color.PrintError(err, "failed to init celer.")
+		return logger.PrintError(err, "failed to init celer.")
 	}
 
 	// Must check tool after celer initialized, since "downloads" will be assign value after init.
@@ -94,15 +94,15 @@ func (c *cleanCmd) execute(args []string) error {
 
 	if c.all {
 		if err := c.cleanAll(); err != nil {
-			return color.PrintError(err, "failed to clean all packages.")
+			return logger.PrintError(err, "failed to clean all packages.")
 		}
 	} else {
 		if err := c.validateTargets(args); err != nil {
-			return color.PrintError(err, "invalid arguments.")
+			return logger.PrintError(err, "invalid arguments.")
 		}
 
 		if err := c.clean(args...); err != nil {
-			return color.PrintError(err, "failed to clean %s", strings.Join(args, ", "))
+			return logger.PrintError(err, "failed to clean %s", strings.Join(args, ", "))
 		}
 	}
 
@@ -179,7 +179,7 @@ func (c *cleanCmd) clean(targets ...string) error {
 		summaries = append(summaries, target)
 	}
 
-	color.PrintSuccess("clean %s successfully.", strings.Join(summaries, ", "))
+	logger.PrintSuccess("clean %s successfully.", strings.Join(summaries, ", "))
 	return nil
 }
 
@@ -234,11 +234,11 @@ func (c *cleanCmd) cleanAll() error {
 		cleaned = true
 
 		if cleaned {
-			color.Printf(color.Hint, "[✔] clean %s\n", entity.Name())
+			logger.Printf(logger.Hint, "[✔] clean %s\n", entity.Name())
 		}
 	}
 
-	color.PrintSuccess("all packages cleaned.")
+	logger.PrintSuccess("all packages cleaned.")
 	return nil
 }
 
@@ -301,7 +301,7 @@ func (c *cleanCmd) doClean(port configs.Port) error {
 	}
 
 	c.cleaned = append(c.cleaned, port.NameVersion()+expr.If(port.DevDep || port.HostDep, "[dev]", ""))
-	color.Printf(color.Hint, "[✔] clean %-25s%s\n", port.NameVersion(), expr.If(port.DevDep || port.HostDep, " -- [dev]", ""))
+	logger.Printf(logger.Hint, "[✔] clean %-25s%s\n", port.NameVersion(), expr.If(port.DevDep || port.HostDep, " -- [dev]", ""))
 
 	return nil
 }

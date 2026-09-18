@@ -8,7 +8,7 @@ import (
 
 	"github.com/celer-pkg/celer/completion"
 	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/logger"
 
 	"github.com/spf13/cobra"
 )
@@ -114,7 +114,7 @@ func (i *integrateCmd) handleRegister(shell completion.ShellType) error {
 		return fmt.Errorf("failed to register %s completion -> %w", i.getShellName(shell), err)
 	}
 
-	color.PrintSuccess("%s tab completion has been integrated successfully", i.getShellName(shell))
+	logger.PrintSuccess("%s tab completion has been integrated successfully", i.getShellName(shell))
 	return nil
 }
 
@@ -123,7 +123,7 @@ func (i *integrateCmd) handleUnregister(shell completion.ShellType) error {
 		return fmt.Errorf("failed to unregister %s completion -> %w", i.getShellName(shell), err)
 	}
 
-	color.PrintSuccess("%s tab completion has been removed successfully", i.getShellName(shell))
+	logger.PrintSuccess("%s tab completion has been removed successfully", i.getShellName(shell))
 	return nil
 }
 

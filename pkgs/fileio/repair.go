@@ -10,8 +10,8 @@ import (
 	"sync"
 
 	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/logger"
 )
 
 // checkedFiles tracks files that have already passed CheckAndRepair,
@@ -99,7 +99,7 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 	// Try restore from cache if local file is invalid.
 	if needToDownload && canUseCache {
 		if restored, err := r.tryRestoreFromCache(fileName); err != nil {
-			color.Printf(color.Warning, "[✘] failed to search pkgcache: %v\n", err)
+			logger.Printf(logger.Warning, "[✘] failed to search pkgcache: %v\n", err)
 		} else if restored {
 			needToDownload = false
 		}

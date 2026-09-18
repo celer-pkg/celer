@@ -13,11 +13,11 @@ import (
 	"github.com/celer-pkg/celer/envs"
 	"github.com/celer-pkg/celer/pkgcache/filesystem"
 	"github.com/celer-pkg/celer/pkgcache/minio"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
+	"github.com/celer-pkg/celer/pkgs/logger"
 
 	"github.com/BurntSushi/toml"
 )
@@ -337,7 +337,7 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 	}
 
 	if c.Main.Offline {
-		color.Printf(color.Warning, "\n================ WARNING: You're in offline mode currently! ================\n")
+		logger.Printf(logger.Warning, "\n================ WARNING: You're in offline mode currently! ================\n")
 	}
 
 	// Must init at the end of InitWithPlatform, because it depends on the celer fields.

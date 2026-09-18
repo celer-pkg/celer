@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/pkgs/cmd"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/logger"
 )
 
 // Development / build-only suffixes that are never needed at runtime.
@@ -56,7 +56,7 @@ func (c *Celer) Strip() error {
 	}
 
 	strippedDir := filepath.Join(dirs.WorkspaceDir, "stripped", c.LibraryFolder())
-	color.Printf(color.Title, "\n[strip: %s]\n\n", c.LibraryFolder())
+	logger.Printf(logger.Title, "\n[strip: %s]\n\n", c.LibraryFolder())
 
 	return filepath.WalkDir(installedDir, func(path string, d fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
@@ -152,7 +152,7 @@ func (c *Celer) resolveStripTool() (string, error) {
 
 func printStripLog(op, relPath string) {
 	// Align action tags: [copy ] / [strip]
-	color.Printf(color.Hint, "[✔] [%-5s] %s\n", op, relPath)
+	logger.Printf(logger.Hint, "[✔] [%-5s] %s\n", op, relPath)
 }
 
 func shouldSkipStripDir(relPath string) bool {

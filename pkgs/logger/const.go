@@ -1,4 +1,4 @@
-package color
+package logger
 
 // Font styles for ANSI escape codes
 const (

@@ -12,10 +12,10 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/logger"
 
 	"github.com/spf13/cobra"
 )
@@ -236,16 +236,16 @@ func (r *reverseCmd) displayResults(target string, libraries []string) {
 	} else {
 		title = fmt.Sprintf("reverse dependencies of %s", target)
 	}
-	color.Println(color.Title, title)
-	color.Println(color.Title, strings.Repeat("-", len(title)))
+	logger.Println(logger.Title, title)
+	logger.Println(logger.Title, strings.Repeat("-", len(title)))
 
 	if len(libraries) > 0 {
 		for _, lib := range libraries {
 			fmt.Println(lib)
 		}
-		color.Println(color.Line, strings.Repeat("-", len(title)))
-		color.Printf(color.Summary, "total: %d package(s)\n", len(libraries))
+		logger.Println(logger.Line, strings.Repeat("-", len(title)))
+		logger.Printf(logger.Summary, "total: %d package(s)\n", len(libraries))
 	} else {
-		color.Println(color.Error, "no reverse dependencies found.")
+		logger.Println(logger.Error, "no reverse dependencies found.")
 	}
 }

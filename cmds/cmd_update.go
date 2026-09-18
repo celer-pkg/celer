@@ -8,10 +8,10 @@ import (
 
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
+	"github.com/celer-pkg/celer/pkgs/logger"
 
 	"github.com/spf13/cobra"
 )
@@ -100,17 +100,17 @@ func (u *updateCmd) validateArgs(cmd *cobra.Command, args []string) error {
 func (u *updateCmd) doUpdate(args []string) error {
 	// Initialize celer configuration.
 	if err := u.celer.Init(); err != nil {
-		return color.PrintError(err, "failed to initialize celer.")
+		return logger.PrintError(err, "failed to initialize celer.")
 	}
 
 	// Make sure git is available.
 	if err := buildtools.CheckTools(u.celer, "git"); err != nil {
-		return color.PrintError(err, "failed to check if git is available")
+		return logger.PrintError(err, "failed to check if git is available")
 	}
 
 	// Repo update can not be done in offline mode.
 	if u.celer.Offline() {
-		return color.PrintError(
+		return logger.PrintError(
 			fmt.Errorf("celer update requires network access to fetch remote refs - disable offline mode (celer configure --offline=false) to update"),
 			"failed to execute update command",
 		)
@@ -119,22 +119,22 @@ func (u *updateCmd) doUpdate(args []string) error {
 	// Perform update based on flags.
 	if u.confRepo {
 		if err := u.updateConfRepo(); err != nil {
-			return color.PrintError(err, "failed to update conf repository.")
+			return logger.PrintError(err, "failed to update conf repository.")
 		}
-		color.PrintSuccess("successfully updated conf repository.")
+		logger.PrintSuccess("successfully updated conf repository.")
 	} else if u.portsRepo {
 		if err := u.updatePortsRepo(); err != nil {
-			return color.PrintError(err, "failed to update ports repository.")
+			return logger.PrintError(err, "failed to update ports repository.")
 		}
-		color.PrintSuccess("successfully updated ports repository.")
+		logger.PrintSuccess("successfully updated ports repository.")
 	} else {
 		if err := u.updateProjectRepos(args); err != nil {
-			return color.PrintError(err, "failed to update port repository.")
+			return logger.PrintError(err, "failed to update port repository.")
 		}
 		if len(args) == 1 {
-			color.PrintSuccess("successfully updated %s", args[0])
+			logger.PrintSuccess("successfully updated %s", args[0])
 		} else {
-			color.PrintSuccess("successfully updated %d ports", len(args))
+			logger.PrintSuccess("successfully updated %d ports", len(args))
 		}
 	}
 
@@ -194,13 +194,13 @@ func (u *updateCmd) updatePortRepo(nameVersion string, visited map[string]bool) 
 	// No need to update port if it's not git repo or its code doesn't exist.
 	srcDir := filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src")
 	if !fileio.PathExists(srcDir) {
-		color.PrintWarning("src dir not found for %s, updating source is skipped", nameVersion)
+		logger.PrintWarning("src dir not found for %s, updating source is skipped", nameVersion)
 		return nil
 	}
 
 	// Do not update local git repo for archive repo.
 	if !strings.HasSuffix(port.Package.Url, ".git") {
-		color.PrintWarning("%s is not a remote git repo, updating source is skipped", nameVersion)
+		logger.PrintWarning("%s is not a remote git repo, updating source is skipped", nameVersion)
 		return nil
 	}
 

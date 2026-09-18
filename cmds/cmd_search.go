@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/logger"
 
 	"github.com/spf13/cobra"
 )
@@ -55,27 +55,27 @@ Examples:
 func (s *searchCmd) doSearch(pattern string) error {
 	// Initialize celer configuration.
 	if err := s.celer.Init(); err != nil {
-		return color.PrintError(err, "Failed to initialize celer.")
+		return logger.PrintError(err, "Failed to initialize celer.")
 	}
 
 	// Perform search.
 	libraries, err := s.search(pattern)
 	if err != nil {
-		return color.PrintError(err, "Failed to search available ports.")
+		return logger.PrintError(err, "Failed to search available ports.")
 	}
 
 	// Display results.
 	title := fmt.Sprintf("search results that match pattern '%s':", pattern)
-	color.Println(color.Title, title)
-	color.Println(color.Line, strings.Repeat("-", len(title)))
+	logger.Println(logger.Title, title)
+	logger.Println(logger.Line, strings.Repeat("-", len(title)))
 	if len(libraries) > 0 {
 		for _, lib := range libraries {
-			color.Println(color.Hint, lib)
+			logger.Println(logger.Hint, lib)
 		}
-		color.Println(color.Line, strings.Repeat("-", len(title)))
-		color.Printf(color.Summary, "total: %d port(s)\n", len(libraries))
+		logger.Println(logger.Line, strings.Repeat("-", len(title)))
+		logger.Printf(logger.Summary, "total: %d port(s)\n", len(libraries))
 	} else {
-		color.Println(color.Error, "no matched port found.")
+		logger.Println(logger.Error, "no matched port found.")
 	}
 
 	return nil

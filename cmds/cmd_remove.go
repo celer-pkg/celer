@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/logger"
 
 	"github.com/spf13/cobra"
 )
@@ -78,7 +78,7 @@ func (r *removeCmd) execute(args []string) error {
 	}
 
 	// Print success message.
-	color.PrintSuccess("Successfully removed %s", strings.Join(nameVersions, ", "))
+	logger.PrintSuccess("Successfully removed %s", strings.Join(nameVersions, ", "))
 	return nil
 }
 

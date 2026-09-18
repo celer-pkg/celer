@@ -14,11 +14,11 @@ import (
 	"github.com/celer-pkg/celer/pkgcache"
 	pkgcmake "github.com/celer-pkg/celer/pkgs/cmake"
 	"github.com/celer-pkg/celer/pkgs/cmd"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
+	"github.com/celer-pkg/celer/pkgs/logger"
 	"github.com/celer-pkg/celer/pkgs/pc"
 	"github.com/celer-pkg/celer/pkgs/refs"
 )
@@ -423,7 +423,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archiveName string, depth int) (err
 			}
 		}
 	} else if repoUrl != "_" {
-		color.Printf(color.Title, "[fetch repo %s]", b.PortConfig.nameVersion())
+		logger.Printf(logger.Title, "[fetch repo %s]", b.PortConfig.nameVersion())
 
 		// Check and repair resource.
 		archiveName = expr.If(archiveName == "", filepath.Base(repoUrl), archiveName)

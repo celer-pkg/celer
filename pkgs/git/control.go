@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/pkgs/cmd"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/logger"
 )
 
 // CloneRepo clone git repo.
@@ -54,7 +54,7 @@ func CloneRepo(title, target, repoUrl, repoRef string, depth int, repoDir string
 			}
 
 			lastErr = err
-			color.Printf(color.Warning, "Git %s failed (attempt %d/%d) for %s: %v\n", action, attempt, retryMaxAttempts, target, err)
+			logger.Printf(logger.Warning, "Git %s failed (attempt %d/%d) for %s: %v\n", action, attempt, retryMaxAttempts, target, err)
 			if attempt < retryMaxAttempts {
 				retrySleep(attempt)
 			}
@@ -67,7 +67,7 @@ func CloneRepo(title, target, repoUrl, repoRef string, depth int, repoDir string
 		args := cloneArgsFunc(repoRef, repoUrl, repoDir, depth)
 		if err := cloneWithRetry(action, args); err != nil {
 			if depth > 0 {
-				color.Printf(color.Warning, "-- Git %s failed with shallow clone for %s, retrying without --depth\n", action, target)
+				logger.Printf(logger.Warning, "-- Git %s failed with shallow clone for %s, retrying without --depth\n", action, target)
 				if fallbackErr := cloneWithRetry(action+" without depth", cloneArgsFunc(repoRef, repoUrl, repoDir, 0)); fallbackErr == nil {
 					return nil
 				}

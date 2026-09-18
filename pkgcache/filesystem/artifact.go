@@ -10,9 +10,9 @@ import (
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/logger"
 )
 
 type ArtifactConfig struct {
@@ -56,7 +56,7 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 	remoteFileDir := filepath.Join(a.cacheDir, platformName, projectName, buildType, nameVersion)
 	remoteFilePath := filepath.Join(remoteFileDir, buildHash+".tar.gz")
 	if !fileio.PathExists(remoteFilePath) {
-		color.PrintWarning("======== no artifact found for %s and it'll build from source ========", nameVersion)
+		logger.PrintWarning("======== no artifact found for %s and it'll build from source ========", nameVersion)
 		return false, nil // not an error even not exist.
 	}
 
@@ -65,7 +65,7 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 	metaBytes, err := os.ReadFile(remoteMetaPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			color.PrintWarning("======== cached artifact for %s has no metadata, it'll build from source ========", nameVersion)
+			logger.PrintWarning("======== cached artifact for %s has no metadata, it'll build from source ========", nameVersion)
 			return false, nil
 		}
 		return false, err

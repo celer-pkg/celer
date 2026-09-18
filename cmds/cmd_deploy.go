@@ -9,9 +9,9 @@ import (
 
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/depcheck"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/logger"
 	"github.com/celer-pkg/celer/pkgs/refs"
 	"github.com/celer-pkg/celer/snapshot"
 
@@ -43,34 +43,34 @@ Examples:
 		Args: d.validateArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := d.celer.Init(); err != nil {
-				return color.PrintError(err, "failed to init celer.")
+				return logger.PrintError(err, "failed to init celer.")
 			}
 
 			platformName := expr.If(d.celer.Platform().GetName() != "", d.celer.Platform().GetName(), "native")
 			projectName := d.celer.Project().GetName()
 
 			// Display deployment header.
-			color.Println(color.Title, "=======================================================================")
-			color.Printf(color.Title, "🚀 start to deploy:\n")
-			color.Printf(color.Title, "📌 platform: %s\n", platformName)
-			color.Printf(color.Title, "📌 project: %s\n", projectName)
-			color.Println(color.Title, "=======================================================================")
+			logger.Println(logger.Title, "=======================================================================")
+			logger.Printf(logger.Title, "🚀 start to deploy:\n")
+			logger.Printf(logger.Title, "📌 platform: %s\n", platformName)
+			logger.Printf(logger.Title, "📌 project: %s\n", projectName)
+			logger.Println(logger.Title, "=======================================================================")
 
 			// Check circular dependency and version conflict.
 			if err := d.checkProject(); err != nil {
-				return color.PrintError(err, "failed to check circular dependency and version conflict.")
+				return logger.PrintError(err, "failed to check circular dependency and version conflict.")
 			}
 
 			// Resolve all dependency refs before any clone/download begins.
 			if err := d.resolveAllRefs(); err != nil {
-				return color.PrintError(err, "failed to resolve refs.")
+				return logger.PrintError(err, "failed to resolve refs.")
 			}
 
 			if err := d.celer.Deploy(d.force, d.strip); err != nil {
-				return color.PrintError(err, "failed to deploy celer.")
+				return logger.PrintError(err, "failed to deploy celer.")
 			}
 
-			color.PrintSuccess("%s has been successfully deployed.", projectName)
+			logger.PrintSuccess("%s has been successfully deployed.", projectName)
 
 			// Export snapshot if requested.
 			if d.snapshotPath != "" {
@@ -217,7 +217,7 @@ func (d *deployCmd) resolveAllRefs() error {
 	if err := snapshot.SaveSnapshotMarkdown(filePath, env, resolvedRefs); err != nil {
 		return fmt.Errorf("failed to save snapshot -> %w", err)
 	}
-	color.Printf(color.Success, "Snapshot saved to: %s\n", filePath)
+	logger.Printf(logger.Success, "Snapshot saved to: %s\n", filePath)
 
 	// Abort deploy if any ref resolution failed.
 	var failedPorts []string

@@ -9,9 +9,9 @@ import (
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/cmd"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/logger"
 )
 
 // GetRepoUrl get git repo origin URL.
@@ -354,35 +354,35 @@ func InitAsLocalRepo(repoDir, target string) error {
 		"GIT_COMMITTER_EMAIL=ci@celer.com",
 	)
 
-	color.Printf(color.Title, "\n[init '%s' for tracking file change]\n", target)
+	logger.Printf(logger.Title, "\n[init '%s' for tracking file change]\n", target)
 
 	// git init
-	color.Printf(color.Hint, "[-] git -C %s init", repoDir)
+	logger.Printf(logger.Hint, "[-] git -C %s init", repoDir)
 	cmd := exec.Command("git", "-C", repoDir, "init")
 	cmd.Env = gitEnv
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("failed to git init repo: %s -> %w", output, err)
 	}
-	color.PrintInline(color.Hint, "[✔] git -C %s init\n", repoDir)
+	logger.PrintInline(logger.Hint, "[✔] git -C %s init\n", repoDir)
 
 	// git add
-	color.Printf(color.Hint, "[-] git -C %s add -A", repoDir)
+	logger.Printf(logger.Hint, "[-] git -C %s add -A", repoDir)
 	cmd = exec.Command("git", "-C", repoDir, "add", "-A")
 	cmd.Env = gitEnv
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("failed to git add -A: %w (output: %s)", err, output)
 	}
-	color.PrintInline(color.Hint, "[✔] git -C %s add -A\n", repoDir)
+	logger.PrintInline(logger.Hint, "[✔] git -C %s add -A\n", repoDir)
 
 	// git commit
 	message := `"init for tracking file change"`
-	color.Printf(color.Hint, "[-] git -C %s commit -m %s", repoDir, message)
+	logger.Printf(logger.Hint, "[-] git -C %s commit -m %s", repoDir, message)
 	cmd = exec.Command("git", "-C", repoDir, "commit", "-m", message)
 	cmd.Env = gitEnv
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("failed to git commit: %w (output: %s)", err, output)
 	}
-	color.PrintInline(color.Hint, "[✔] git -C %s commit -m %s\n", repoDir, message)
+	logger.PrintInline(logger.Hint, "[✔] git -C %s commit -m %s\n", repoDir, message)
 
 	return nil
 }
