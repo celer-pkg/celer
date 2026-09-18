@@ -21,6 +21,14 @@ func (e ExprVars) Clone() ExprVars {
 	return cloned
 }
 
+// Merge copies all variables from src, overwriting existing keys.
+func (e *ExprVars) Merge(src ExprVars) {
+	if e.vars == nil {
+		e.vars = make(map[string]string, len(src.vars))
+	}
+	maps.Copy(e.vars, src.vars)
+}
+
 // Init initialize Variables with values from the context.
 func (e *ExprVars) Init(ctx Context) {
 	if e.vars == nil {

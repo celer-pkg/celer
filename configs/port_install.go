@@ -822,6 +822,7 @@ func (p *Port) checkAllTools() error {
 		return err
 	}
 
+	// Add 'ccache' if enabled.
 	if p.ctx.CCacheEnabled() {
 		allTools = append(allTools, "ccache")
 	}
@@ -839,11 +840,10 @@ func (p *Port) checkAllTools() error {
 		}
 	}
 
-	if p.MatchedConfig != nil {
-		p.putExprVars(*p.MatchedConfig)
-		p.MatchedConfig.ExprVars = p.exprVars
-	}
-
+	// Refresh the port's expr vars from the context, so that variables
+	// registered during tool detection above are visible to the
+	// top-level port's option expansion.
+	p.registerExprVars(p.MatchedConfig)
 	return nil
 }
 

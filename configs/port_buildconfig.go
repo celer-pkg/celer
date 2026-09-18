@@ -108,6 +108,9 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 			return err
 		}
 		p.MatchedConfig = matchedConfig
+
+		// Register common fixed variables.
+		p.registerExprVars(matchedConfig)
 	}
 
 	return nil

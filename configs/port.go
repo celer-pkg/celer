@@ -383,20 +383,23 @@ func (p *Port) findMatchedConfig(buildType string) (*buildsystems.BuildConfig, e
 		p.BuildConfigs[index].BuildType = buildType
 	}
 
-	// Placeholder variables.
-	p.putExprVars(p.BuildConfigs[index])
-	p.BuildConfigs[index].ExprVars = p.exprVars
 	return &p.BuildConfigs[index], nil
 }
 
-func (p *Port) putExprVars(config buildsystems.BuildConfig) {
-	p.exprVars = p.ctx.ExprVars().Clone()
+// registerExprVars registers the port's common fixed variables into p.exprVars
+// and syncs them into the given build config.
+func (p *Port) registerExprVars(config *buildsystems.BuildConfig) {
+	p.exprVars.Merge(*p.ctx.ExprVars())
+
 	p.exprVars.Put("REPO_DIR", config.PortConfig.RepoDir)
 	p.exprVars.Put("SRC_DIR", config.PortConfig.SrcDir)
 	p.exprVars.Put("BUILD_DIR", config.PortConfig.BuildDir)
 	p.exprVars.Put("PACKAGE_DIR", config.PortConfig.PackageDir)
 	p.exprVars.Put("CMAKE_TOOLCHAIN_FILE", filepath.Join(dirs.WorkspaceDir, "toolchain_file.cmake"))
 	p.exprVars.Put("PORT_DIR", filepath.Dir(p.portFile))
+
+	// Sync exprVars from port to its buildConfig.
+	config.ExprVars = p.exprVars
 }
 
 func (p Port) PackageFiles(packageDir, platformName, projectName string) ([]string, error) {
