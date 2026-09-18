@@ -28,9 +28,10 @@ var (
 )
 
 type InstallOptions struct {
-	Force     bool
-	Recursive bool
-	Prefer    InstallPrefer
+	Force          bool
+	Recursive      bool
+	Prefer         InstallPrefer
+	StagingRootDir string
 }
 
 type RemoveOptions struct {
@@ -68,7 +69,6 @@ type Port struct {
 	portFile                   string
 	traceFile                  string
 	metaFile                   string
-	tmpDepsDir                 string
 	installReport              *installReport
 	exprVars                   context.ExprVars
 	sourceModified             bool
@@ -397,13 +397,6 @@ func (p *Port) putExprVars(config buildsystems.BuildConfig) {
 	p.exprVars.Put("PACKAGE_DIR", config.PortConfig.PackageDir)
 	p.exprVars.Put("CMAKE_TOOLCHAIN_FILE", filepath.Join(dirs.WorkspaceDir, "toolchain_file.cmake"))
 	p.exprVars.Put("PORT_DIR", filepath.Dir(p.portFile))
-	p.exprVars.Put("DEV_DEPS_DIR", filepath.Join(p.tmpDepsDir, config.PortConfig.HostName+"-dev"))
-
-	if config.DevDep {
-		p.exprVars.Put("DEPS_DIR", filepath.Join(p.tmpDepsDir, config.PortConfig.HostName+"-dev"))
-	} else {
-		p.exprVars.Put("DEPS_DIR", filepath.Join(p.tmpDepsDir, config.PortConfig.LibraryDir))
-	}
 }
 
 func (p Port) PackageFiles(packageDir, platformName, projectName string) ([]string, error) {

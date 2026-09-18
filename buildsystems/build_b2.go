@@ -99,7 +99,7 @@ func (b b2) Configure(options []string) error {
 	// For cross-compilation, set --prefix to dependency directory.
 	rootfs := b.Ctx.RootFS()
 	if !b.DevDep && rootfs != nil {
-		depsDir := filepath.Join(b.PortConfig.TmpDepsDir, b.PortConfig.LibraryDir)
+		depsDir := filepath.Join(b.PortConfig.StagingRootDir, b.PortConfig.LibraryDir)
 		configure = fmt.Sprintf("%s --prefix=%s", configure, depsDir)
 	}
 

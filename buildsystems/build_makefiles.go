@@ -152,7 +152,7 @@ func (m makefiles) configureOptions() ([]string, error) {
 	// Make assembler (nasm) from dev deps accessible to configure scripts
 	// running in MSYS2, which may not resolve Windows PATH entries properly.
 	if runtime.GOOS == "windows" && toolchainName == "clang" {
-		nasmPath := filepath.Join(m.PortConfig.TmpDepsDir, "x86_64-windows-dev", "bin", "nasm.exe")
+		nasmPath := filepath.Join(m.PortConfig.StagingRootDir, "x86_64-windows-dev", "bin", "nasm.exe")
 		if fileio.PathExists(nasmPath) {
 			options = append(options, "--x86asmexe="+fileio.ToCygpath(nasmPath))
 		}
@@ -244,7 +244,7 @@ func (m makefiles) Configure(options []string) error {
 		if slices.ContainsFunc(m.DevDependencies, func(element string) bool {
 			return strings.HasPrefix(element, "nasm@")
 		}) {
-			tmpDevDir := filepath.Join(m.PortConfig.TmpDepsDir, m.PortConfig.HostName+"-dev")
+			tmpDevDir := filepath.Join(m.PortConfig.StagingRootDir, m.PortConfig.HostName+"-dev")
 			devNasmPath := filepath.Join(tmpDevDir, "bin", "nasm")
 			if fileio.PathExists(devNasmPath) {
 				nasmPath = devNasmPath

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/pkgs/color"
@@ -29,10 +30,13 @@ const (
 
 // Install install a port and tell me where it was installed from.
 func (p *Port) Install(options InstallOptions) (fromWhere string, retErr error) {
-	// At the top-level entry, reset the installReport.
+	// Top-level install owns one staging root for the whole dependency tree.
+	// Nested installs reuse options.StagingRootDir so deps aggregate in one place.
 	if p.Parent == "" {
 		p.installReport = newInstallReport(p.NameVersion())
+		options.StagingRootDir = filepath.Join(dirs.TmpDepsDir, fmt.Sprintf("%s-%d", p.NameVersion(), time.Now().UnixNano()))
 	}
+	p.bindStagingRootDir(options.StagingRootDir)
 
 	defer func() {
 		if retErr != nil || p.installReport == nil {
@@ -547,11 +551,15 @@ func (p *Port) installFromSource(options InstallOptions) error {
 		return err
 	}
 
-	// Mkdir the staging dir named at Init.
-	if err := os.MkdirAll(p.tmpDepsDir, os.ModePerm); err != nil {
+	// Mkdir the shared staging dir for this top-level install.
+	if err := os.MkdirAll(options.StagingRootDir, os.ModePerm); err != nil {
 		return err
 	}
-	defer os.RemoveAll(p.tmpDepsDir)
+	// Only the top-level owner removes the staging tree; nested source builds
+	// must keep preparing into the same directory.
+	if p.Parent == "" {
+		defer os.RemoveAll(options.StagingRootDir)
+	}
 
 	// Install all dependencies for current port.
 	if err := p.installAllDependencies(options); err != nil {
@@ -562,7 +570,7 @@ func (p *Port) installFromSource(options InstallOptions) error {
 	haveDependencies := len(p.MatchedConfig.Dependencies) > 0 || len(p.MatchedConfig.DevDependencies) > 0
 	if haveDependencies && (options.Force || !p.MatchedConfig.Configured()) {
 		color.Printf(color.Title, "\n[prepare dependencies: %s]\n", p.NameVersion())
-		if err := p.prepareTmpDeps(map[string]bool{}); err != nil {
+		if err := p.prepareTmpDeps(map[string]bool{}, options.StagingRootDir); err != nil {
 			return err
 		}
 	}
@@ -1157,7 +1165,7 @@ func (p Port) collectInstalledDepsForReport() error {
 	return nil
 }
 
-func (p Port) prepareTmpDeps(preparedRecord map[string]bool) error {
+func (p Port) prepareTmpDeps(preparedRecord map[string]bool, stagingRoot string) error {
 	for _, nameVersion := range p.MatchedConfig.DevDependencies {
 		// Same name, version as parent and they are booth build with native toolchain, so skip.
 		if (p.DevDep || p.HostDep) && p.NameVersion() == nameVersion {
@@ -1177,20 +1185,22 @@ func (p Port) prepareTmpDeps(preparedRecord map[string]bool) error {
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
-		port.tmpDepsDir = p.tmpDepsDir
 
-		if err := port.doInstallFromPackage(port.tmpDepsDir); err != nil {
+		// doInstallFromPackage strips the "<host>-dev/" prefix; dest must already
+		// be stagingRoot/<host>-dev so PATH (TmpDepsDir/<host>-dev/bin) finds tools.
+		destDir := filepath.Join(stagingRoot, p.ctx.Platform().GetHostName()+"-dev")
+		if err := port.doInstallFromPackage(destDir); err != nil {
 			return err
 		}
 
 		// Fixup pkg config files to use self-locating ${pcfiledir} prefix.
-		if err := pc.FixupPkgConfigFile(port.tmpDepsDir); err != nil {
+		if err := pc.FixupPkgConfigFile(destDir); err != nil {
 			return fmt.Errorf("failed to fixup pkg-config -> %w", err)
 		}
 
-		// Provider tmp deps recursively.
+		// Provider tmp deps recursively into the same staging root.
 		preparedRecord[visitedKeyOf(nameVersion, true, true)] = true
-		if err := port.prepareTmpDeps(preparedRecord); err != nil {
+		if err := port.prepareTmpDeps(preparedRecord, stagingRoot); err != nil {
 			return err
 		}
 
@@ -1216,20 +1226,24 @@ func (p Port) prepareTmpDeps(preparedRecord map[string]bool) error {
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
-		port.tmpDepsDir = p.tmpDepsDir
 
-		if err := port.doInstallFromPackage(port.tmpDepsDir); err != nil {
+		// Match doInstallFromPackage prefix stripping.
+		destDir := filepath.Join(stagingRoot, p.ctx.LibraryFolder())
+		if port.DevDep || port.HostDep {
+			destDir = filepath.Join(stagingRoot, p.ctx.Platform().GetHostName()+"-dev")
+		}
+		if err := port.doInstallFromPackage(destDir); err != nil {
 			return err
 		}
 
 		// Fixup pkg config files to use self-locating ${pcfiledir} prefix.
-		if err := pc.FixupPkgConfigFile(port.tmpDepsDir); err != nil {
+		if err := pc.FixupPkgConfigFile(destDir); err != nil {
 			return fmt.Errorf("failed to fixup pkg-config -> %w", err)
 		}
 
-		// Provider tmp deps recursively.
+		// Provider tmp deps recursively into the same staging root.
 		preparedRecord[visitedKeyOf(nameVersion, p.DevDep, p.HostDep)] = true
-		if err := port.prepareTmpDeps(preparedRecord); err != nil {
+		if err := port.prepareTmpDeps(preparedRecord, stagingRoot); err != nil {
 			return err
 		}
 
@@ -1238,6 +1252,24 @@ func (p Port) prepareTmpDeps(preparedRecord map[string]bool) error {
 	}
 
 	return nil
+}
+
+func (p *Port) bindStagingRootDir(stagingRootDir string) {
+	// Store dynamic vars that related with 'stagingRootDir'.
+	devTmpDepsDir := filepath.Join(stagingRootDir, p.MatchedConfig.PortConfig.HostName+"-dev")
+	tmpDepsDir := filepath.Join(stagingRootDir, p.MatchedConfig.PortConfig.LibraryDir)
+	p.exprVars.Put("DEV_DEPS_DIR", devTmpDepsDir)
+	if p.MatchedConfig.DevDep || p.MatchedConfig.HostDev {
+		p.exprVars.Put("DEPS_DIR", devTmpDepsDir)
+	} else {
+		p.exprVars.Put("DEPS_DIR", tmpDepsDir)
+	}
+
+	// Synchronize vars from port to its buildConfig.
+	for i := range p.BuildConfigs {
+		p.BuildConfigs[i].ExprVars = p.exprVars
+		p.BuildConfigs[i].PortConfig.StagingRootDir = stagingRootDir
+	}
 }
 
 func (p Port) writeTraceFile(installedFrom string) error {

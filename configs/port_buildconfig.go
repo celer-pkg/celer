@@ -8,7 +8,6 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
-	"time"
 
 	"github.com/celer-pkg/celer/buildsystems"
 	"github.com/celer-pkg/celer/pkgs/dirs"
@@ -60,9 +59,6 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 	// target example: installed/celer/aarch64-linux-ubuntu-22.04-gcc-11.5.0/test_project_001/release/x264@stable
 	p.InstalledDir = filepath.Join(dirs.InstalledDir, libraryDir)
 
-	// Staging root under tmp/deps, created later in installFromSource.
-	p.tmpDepsDir = filepath.Join(dirs.TmpDepsDir, fmt.Sprintf("%s-%d", nameVersion, time.Now().UnixNano()))
-
 	portConfig := buildsystems.PortConfig{
 		Ctx:             p.ctx,
 		LibName:         p.Name,
@@ -82,7 +78,6 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 		Jobs:            p.ctx.Jobs(),
 		RepoDir:         filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src"),
 		PortFile:        p.portFile,
-		TmpDepsDir:      p.tmpDepsDir,
 	}
 
 	// Source folder may be a inner dir.
