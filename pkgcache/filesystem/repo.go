@@ -92,12 +92,17 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 		return false, nil
 	}
 
-	// Download the cached archive to a local tmp file with progress.
-	downloaded, err := r.downloadFile(remoteFilePath, nameVersion)
+	// Download the cached archive into a task-owned tmp dir with progress.
+	localTmpDir, err := dirs.NewTmpFilesDir()
+	if err != nil {
+		return false, err
+	}
+	defer os.RemoveAll(localTmpDir)
+
+	downloaded, err := r.downloadFile(localTmpDir, remoteFilePath, nameVersion)
 	if err != nil {
 		return false, fmt.Errorf("failed to download '%s' -> %w", remoteFilePath, err)
 	}
-	defer os.Remove(downloaded)
 
 	// Create a clean repo dir.
 	if err := os.RemoveAll(repoDir); err != nil {

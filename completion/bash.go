@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/spf13/cobra"
@@ -91,12 +90,13 @@ func (b bash) installBinary() error {
 }
 
 func (b bash) installCompletion() error {
-	if err := dirs.CleanTmpFilesDir(); err != nil {
-		return fmt.Errorf("failed to clean tmp files dir -> %w", err)
+	tmpDir, err := os.MkdirTemp(os.TempDir(), "bash-*")
+	if err != nil {
+		return fmt.Errorf("failed to create tmp files dir -> %w", err)
 	}
+	defer os.RemoveAll(tmpDir)
 
-	// Generate completion file.
-	filePath := filepath.Join(dirs.TmpFilesDir, "celer")
+	filePath := filepath.Join(tmpDir, "celer")
 	file, err := os.Create(filePath)
 	if err != nil {
 		return fmt.Errorf("failed to create bash completion file -> %w", err)

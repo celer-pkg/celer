@@ -13,8 +13,9 @@ func TestExecutor_ExecuteOutput(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if output != "hello world\n" {
-		t.Errorf("output = %q, want %q", output, "hello world\n")
+	// ExecuteOutput trims surrounding whitespace of the combined output.
+	if output != "hello world" {
+		t.Errorf("output = %q, want %q", output, "hello world")
 	}
 }
 
@@ -46,8 +47,9 @@ func TestExecutor_ExecuteNoArgs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if output != "hello\n" {
-		t.Errorf("output = %q, want %q", output, "hello\n")
+	// ExecuteOutput trims surrounding whitespace of the combined output.
+	if output != "hello" {
+		t.Errorf("output = %q, want %q", output, "hello")
 	}
 }
 

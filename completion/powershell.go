@@ -10,7 +10,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/spf13/cobra"
@@ -78,12 +77,11 @@ func (p powershell) installBinary() error {
 }
 
 func (p powershell) installCompletion() error {
-	if err := dirs.CleanTmpFilesDir(); err != nil {
-		return fmt.Errorf("failed to clean tmp files dir -> %w", err)
+	tmpDir, err := os.MkdirTemp(os.TempDir(), "powershell-*")
+	if err != nil {
+		return fmt.Errorf("failed to create tmp files dir -> %w", err)
 	}
-
-	// Use temporary file mode to ensure file operation safety.
-	tmpDir := dirs.TmpFilesDir
+	defer os.RemoveAll(tmpDir)
 	tmpFile := filepath.Join(tmpDir, "celer_completion.ps1")
 
 	// Create and write temporary completion file.

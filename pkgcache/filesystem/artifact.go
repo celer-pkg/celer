@@ -75,28 +75,28 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 		return false, fmt.Errorf("cache metadata checksum mismatch for %s", nameVersion)
 	}
 
-	// Create tmp dir for extracting inside (cleaned before the download so the
-	// downloaded tmp file is not wiped).
-	if err := dirs.CleanTmpFilesDir(); err != nil {
-		return false, fmt.Errorf("failed to clean tmp files dir -> %w", err)
+	// Use a task-owned tmp dir for the downloaded archive and the extracted
+	// dir, so concurrent installs never clash and cleanup removes both.
+	localTmpDir, err := dirs.NewTmpFilesDir()
+	if err != nil {
+		return false, fmt.Errorf("failed to create tmp files dir -> %w", err)
 	}
+	defer os.RemoveAll(localTmpDir)
 
 	// Download the remote archive to a local tmp file with progress.
-	downloaded, err := a.downloadFile(remoteFilePath, nameVersion)
+	downloaded, err := a.downloadFile(localTmpDir, remoteFilePath, nameVersion)
 	if err != nil {
 		return false, fmt.Errorf("failed to restore %s from pkgcache -> %w", nameVersion, err)
 	}
-	defer os.Remove(downloaded)
 
-	tempDir, err := os.MkdirTemp(dirs.TmpFilesDir, "pkgcache-extract-*")
-	if err != nil {
+	tmpExtractDir := filepath.Join(localTmpDir, "extract")
+	if err := os.MkdirAll(tmpExtractDir, os.ModePerm); err != nil {
 		return false, err
 	}
-	defer os.RemoveAll(tempDir)
 
 	// Extract to a tmp dir.
-	if err := fileio.Extract(downloaded, tempDir); err != nil {
-		return false, fmt.Errorf("failed to extract '%s' to '%s' -> %w", downloaded, tempDir, err)
+	if err := fileio.Extract(downloaded, tmpExtractDir); err != nil {
+		return false, fmt.Errorf("failed to extract '%s' to '%s' -> %w", downloaded, tmpExtractDir, err)
 	}
 
 	// Clean package dir and rename to pacakge dir.
@@ -106,7 +106,7 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 	if err := os.MkdirAll(filepath.Dir(packageDir), os.ModePerm); err != nil {
 		return false, err
 	}
-	if err := os.Rename(tempDir, packageDir); err != nil {
+	if err := os.Rename(tmpExtractDir, packageDir); err != nil {
 		return false, err
 	}
 
@@ -156,18 +156,14 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 	archivePath := filepath.Join(destDir, hash+".tar.gz")
 	metaPath := filepath.Join(destDir, "metas", hash+".meta")
 
-	// Compress package dir to a temp archive.
+	// Compress package dir into a task-owned tmp dir.
 	archiveName := fmt.Sprintf("%s@%s.tar.gz", libName, libVersion)
-	if err := dirs.CleanTmpFilesDir(); err != nil {
-		return fmt.Errorf("failed to clean tmp files dir -> %w", err)
-	}
-	tempArchive, err := os.CreateTemp(dirs.TmpFilesDir, archiveName+".*")
+	localTmpDir, err := dirs.NewTmpFilesDir()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create tmp files dir -> %w", err)
 	}
-	tempArchivePath := tempArchive.Name()
-	tempArchive.Close()
-	defer os.Remove(tempArchivePath)
+	defer os.RemoveAll(localTmpDir)
+	tempArchivePath := filepath.Join(localTmpDir, archiveName)
 
 	if err := fileio.Targz(tempArchivePath, packageDir, false); err != nil {
 		return err
@@ -176,12 +172,11 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 	// Store the meta file before the archive. It is tiny so skip the progress
 	// bar. uploadFile stages it in the FS root tmp dir, then atomically renames
 	// it into the meta's dir.
-	metaTmpPath := filepath.Join(dirs.TmpFilesDir, hash+".meta")
-	if err := os.WriteFile(metaTmpPath, []byte(meta), os.ModePerm); err != nil {
+	tmpMetaPath := filepath.Join(localTmpDir, hash+".meta")
+	if err := os.WriteFile(tmpMetaPath, []byte(meta), os.ModePerm); err != nil {
 		return err
 	}
-	defer os.Remove(metaTmpPath)
-	if err := a.uploadSilent(metaTmpPath, metaPath, hash); err != nil {
+	if err := a.uploadSilent(tmpMetaPath, metaPath, hash); err != nil {
 		return err
 	}
 

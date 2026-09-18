@@ -10,7 +10,6 @@ import (
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
-	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -163,8 +162,9 @@ func (m minioCache) uploadSilent(filePath, objectName string) error {
 	return err
 }
 
-// downloadFile downloads objectName with a progress bar.
-func (m minioCache) downloadFile(objectName, displayName string) (string, error) {
+// downloadFile downloads objectName to a task-owned tmp file inside dstDir with a
+// progress bar.
+func (m minioCache) downloadFile(dstDir, objectName, displayName string) (string, error) {
 	opts := minio.GetObjectOptions{}
 	object, err := m.client.GetObject(context.Background(), m.bucketName, objectName, opts)
 	if err != nil {
@@ -172,13 +172,9 @@ func (m minioCache) downloadFile(objectName, displayName string) (string, error)
 	}
 	defer object.Close()
 
-	if err := os.MkdirAll(dirs.TmpFilesDir, os.ModePerm); err != nil {
-		return "", fmt.Errorf("failed to mkdir for '%s' -> %w", dirs.TmpFilesDir, err)
-	}
-
-	localFile, err := os.CreateTemp(dirs.TmpFilesDir, "celer-pkgcache-*"+fileio.Ext(objectName))
+	localFile, err := os.CreateTemp(dstDir, "celer-pkgcache-*"+fileio.Ext(objectName))
 	if err != nil {
-		return "", fmt.Errorf("failed to create tmp file in %s -> %w", dirs.TmpFilesDir, err)
+		return "", fmt.Errorf("failed to create tmp file in %s -> %w", dstDir, err)
 	}
 	defer localFile.Close()
 
@@ -200,8 +196,8 @@ func (m minioCache) downloadFile(objectName, displayName string) (string, error)
 	return localFile.Name(), nil
 }
 
-// downloadSilent downloads objectName to a tmp file without any progress output.
-func (m minioCache) downloadSilent(objectName string) (string, error) {
+// downloadSilent downloads objectName to a task-owned tmp dir.
+func (m minioCache) downloadSilent(dstDir, objectName string) (string, error) {
 	opts := minio.GetObjectOptions{}
 	object, err := m.client.GetObject(context.Background(), m.bucketName, objectName, opts)
 	if err != nil {
@@ -210,9 +206,9 @@ func (m minioCache) downloadSilent(objectName string) (string, error) {
 	defer object.Close()
 
 	ext := fileio.Ext(objectName)
-	localFile, err := os.CreateTemp(dirs.TmpFilesDir, "celer-pkgcache-*"+ext)
+	localFile, err := os.CreateTemp(dstDir, "celer-pkgcache-*"+ext)
 	if err != nil {
-		return "", fmt.Errorf("failed to create tmp file in %s -> %w", dirs.TmpFilesDir, err)
+		return "", fmt.Errorf("failed to create tmp file in %s -> %w", dstDir, err)
 	}
 	defer localFile.Close()
 

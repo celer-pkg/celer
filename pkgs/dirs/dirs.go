@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 var (
@@ -101,17 +102,20 @@ func ParentDir(path string, levels int) string {
 	return path
 }
 
-// CleanTmpFilesDir remove tmp dir and create new one.
-func CleanTmpFilesDir() error {
-	if err := os.RemoveAll(TmpFilesDir); err != nil {
-		return fmt.Errorf("cannot remove tmp dir -> %w", err)
-	}
-
+// NewTmpFilesDir creates a unique timestamped directory under tmp/files and
+// returns its path.
+func NewTmpFilesDir() (string, error) {
 	if err := os.MkdirAll(TmpFilesDir, os.ModePerm); err != nil {
-		return fmt.Errorf("cannot mkdir tmp dir -> %w", err)
+		return "", fmt.Errorf("cannot mkdir tmp files dir -> %w", err)
 	}
 
-	return nil
+	// Timestamp prefix keeps task dirs sortable, the random suffix guarantees
+	// uniqueness even when two tasks get the same nanosecond.
+	dir, err := os.MkdirTemp(TmpFilesDir, fmt.Sprintf("%d-*", time.Now().UnixNano()))
+	if err != nil {
+		return "", fmt.Errorf("cannot create tmp files dir -> %w", err)
+	}
+	return dir, nil
 }
 
 func RemoveAllForTest() {

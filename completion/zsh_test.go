@@ -7,8 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/celer-pkg/celer/pkgs/dirs"
-
 	"github.com/spf13/cobra"
 )
 
@@ -72,12 +70,6 @@ func TestZshInstallAndUninstallCompletion_ZSH(t *testing.T) {
 	}
 
 	home := t.TempDir()
-
-	// override tmp dir used by completion code
-	origTmp := dirs.TmpFilesDir
-	tmpRoot := filepath.Join(t.TempDir(), "tmpfiles")
-	dirs.TmpFilesDir = tmpRoot
-	defer func() { dirs.TmpFilesDir = origTmp }()
 
 	rootCmd := &cobra.Command{Use: "celer"}
 	z := NewZshCompletion(home, rootCmd)

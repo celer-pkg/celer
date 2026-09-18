@@ -7,8 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/celer-pkg/celer/pkgs/dirs"
-
 	"github.com/spf13/cobra"
 )
 
@@ -24,21 +22,10 @@ func TestInstallAndUninstall_Bash(t *testing.T) {
 
 	home := t.TempDir()
 
-	// Set dirs.TmpFilesDir to a temp location specific for the test
-	origTmp := dirs.TmpFilesDir
-	tmpRoot := filepath.Join(t.TempDir(), "tmpfiles")
-	dirs.TmpFilesDir = tmpRoot
-	defer func() { dirs.TmpFilesDir = origTmp }()
-
 	rootCmd := &cobra.Command{
 		Use: "celer",
 	}
 	b := NewBashCompletion(home, rootCmd)
-
-	// Ensure clean tmp dir exists
-	if err := dirs.CleanTmpFilesDir(); err != nil {
-		t.Fatalf("CleanTmpFilesDir failed: %v", err)
-	}
 
 	// Install completion (should generate file in tmp then move it to destination)
 	if err := b.installCompletion(); err != nil {
