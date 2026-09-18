@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
@@ -86,28 +85,27 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 	hashStr := fmt.Sprintf("%x", hashData)
 	remoteArtifactPath := filepath.Join(remoteDir, hashStr+".tar.gz")
 
-	// Compress package dir to a temp archive.
+	// Compress package dir into a task-owned tmp dir.
 	fileName := fmt.Sprintf("%s@%s.tar.gz", libName, libVersion)
-	tmpArchivePath := filepath.Join(os.TempDir(), fmt.Sprintf("celer-pkgcache-artifact-%s-%d", fileName, time.Now().UnixNano()))
+	localTmpDir, err := dirs.NewTmpFilesDir()
+	if err != nil {
+		return fmt.Errorf("failed to create tmp files dir -> %w", err)
+	}
+	defer os.RemoveAll(localTmpDir)
+	tmpArchivePath := filepath.Join(localTmpDir, fileName)
 	if err := fileio.Targz(tmpArchivePath, packageDir, false); err != nil {
 		return fmt.Errorf("failed to compress package as archive for '%s' -> %w", nameVersion, err)
 	}
-	defer os.Remove(tmpArchivePath)
 
 	// Upload the meta file before the archive.
 	metaFilePath := filepath.Join(remoteMetaDir, hashStr+".meta")
-	metaFile, err := os.CreateTemp(os.TempDir(), "celer-pkgcache-artifact-*.meta")
-	if err != nil {
-		return fmt.Errorf("failed to create tmp file to save meta for '%s' -> %w", nameVersion, err)
-	}
-	defer os.Remove(metaFile.Name())
-	if _, err := metaFile.WriteString(meta); err != nil {
+	tmpMetaPath := filepath.Join(localTmpDir, hashStr+".meta")
+	if err := os.WriteFile(tmpMetaPath, []byte(meta), os.ModePerm); err != nil {
 		return fmt.Errorf("failed to write meta into file for '%s' -> %w", nameVersion, err)
 	}
-	if err := a.uploadSilent(metaFile.Name(), metaFilePath); err != nil {
+	if err := a.uploadSilent(tmpMetaPath, metaFilePath); err != nil {
 		return fmt.Errorf("failed to upload meta for '%s' to minio -> %w", nameVersion, err)
 	}
-	defer metaFile.Close()
 
 	// Upload archive file with progress.
 	if err := a.uploadFile(tmpArchivePath, remoteArtifactPath, nameVersion); err != nil {
@@ -138,17 +136,23 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 		return false, fmt.Errorf("failed to get file object info '%s' -> %w", remoteMetaFilePath, err)
 	}
 
+	// Use a task-owned tmp dir for the downloaded meta.
+	localTmpDir, err := dirs.NewTmpFilesDir()
+	if err != nil {
+		return false, fmt.Errorf("failed to create tmp files dir -> %w", err)
+	}
+	defer os.RemoveAll(localTmpDir)
+
 	// The meta is a tiny cache-metadata check downloaded silently; only the
 	// archive download below prints a done line.
 	if remoteMetaInfo == nil {
 		color.PrintWarning("======== cached artifact for %s has no metadata, it'll build from source ========", nameVersion)
 		return false, nil
 	}
-	tmpMetaFile, err := a.downloadSilent(remoteMetaFilePath)
+	tmpMetaFile, err := a.downloadSilent(localTmpDir, remoteMetaFilePath)
 	if err != nil {
 		return false, fmt.Errorf("failed to download meta file '%s' -> %w", remoteMetaFilePath, err)
 	}
-	defer os.Remove(tmpMetaFile)
 
 	// Meta meta file and check if meta matches.
 	metaBytes, err := os.ReadFile(tmpMetaFile)
@@ -170,15 +174,14 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 		return false, nil
 	}
 
-	downloaded, err := a.downloadFile(remoteArtifactPath, nameVersion)
+	tmpDownloaded, err := a.downloadFile(localTmpDir, remoteArtifactPath, nameVersion)
 	if err != nil {
 		return false, fmt.Errorf("failed to download artifact '%s' -> %w", remoteArtifactPath, err)
 	}
-	defer os.Remove(downloaded)
 
 	// Verify the downloaded content with sha265.
 	if expected := a.metaSha256(remoteInfo); expected != "" {
-		if got, err := fileio.SHA256Sum(downloaded); err != nil {
+		if got, err := fileio.SHA256Sum(tmpDownloaded); err != nil {
 			return false, err
 		} else if got != expected {
 			color.PrintWarning("======== cached artifact for %s is corrupted, it'll build from source ========", nameVersion)
@@ -186,14 +189,13 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 		}
 	}
 
-	tempDir, err := os.MkdirTemp(dirs.TmpFilesDir, "celer-pkgcache-artifact-extract-*")
-	if err != nil {
+	tempExtractDir := filepath.Join(localTmpDir, "extract")
+	if err := os.MkdirAll(tempExtractDir, os.ModePerm); err != nil {
 		return false, err
 	}
-	defer os.RemoveAll(tempDir)
 
 	// Extract to a tmp dir.
-	if err := fileio.Extract(downloaded, tempDir); err != nil {
+	if err := fileio.Extract(tmpDownloaded, tempExtractDir); err != nil {
 		return false, fmt.Errorf("failed to extract artifact '%s' -> %w", nameVersion, err)
 	}
 
@@ -206,7 +208,7 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 	}
 
 	// Rename extracted dir as package dir.
-	if err := os.Rename(tempDir, packageDir); err != nil {
+	if err := os.Rename(tempExtractDir, packageDir); err != nil {
 		return false, err
 	}
 

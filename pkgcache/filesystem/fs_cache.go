@@ -8,7 +8,6 @@ import (
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
-	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
@@ -46,20 +45,17 @@ func (f fsCache) uploadSilent(filePath, remotePath, sha256 string) error {
 	return f.doUploadFile(filePath, remotePath, sha256, nil)
 }
 
-// downloadFile downloads remotePath to a tmp file with a progress bar.
-func (f fsCache) downloadFile(remotePath, displayName string) (string, error) {
+// downloadFile downloads remotePath to a tmp file inside dstDir with a
+// progress bar, dstDir is a task-owned dir.
+func (f fsCache) downloadFile(dstDir, remotePath, displayName string) (string, error) {
 	srcInfo, err := os.Stat(remotePath)
 	if err != nil {
 		return "", fmt.Errorf("remote file not exist for '%s' -> %w", remotePath, err)
 	}
 
-	// Make sure the tmp dir is available before creating a tmp file inside it.
-	if err := os.MkdirAll(dirs.TmpFilesDir, os.ModePerm); err != nil {
-		return "", fmt.Errorf("failed to mkdir '%s' -> %w", dirs.TmpFilesDir, err)
-	}
-	localFile, err := os.CreateTemp(dirs.TmpFilesDir, "celer-pkgcache-*"+fileio.Ext(remotePath))
+	localFile, err := os.CreateTemp(dstDir, "celer-pkgcache-*"+fileio.Ext(remotePath))
 	if err != nil {
-		return "", fmt.Errorf("failed to create tmp file in %s -> %w", dirs.TmpFilesDir, err)
+		return "", fmt.Errorf("failed to create tmp file in %s -> %w", dstDir, err)
 	}
 	defer localFile.Close()
 

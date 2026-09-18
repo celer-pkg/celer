@@ -96,11 +96,14 @@ func (d downloader) startOnce(httpClient *http.Client) (downloaded string, err e
 		return "", err
 	}
 
-	// Ensure tmp files dir exists always.
-	if err := os.MkdirAll(dirs.TmpFilesDir, os.ModePerm); err != nil {
+	// Download into a task-owned tmp dir so concurrent downloads never clash.
+	localTmpDir, err := dirs.NewTmpFilesDir()
+	if err != nil {
 		return "", fmt.Errorf("cannot create tmp files dir -> %w", err)
 	}
-	tmpFile := filepath.Join(dirs.TmpFilesDir, fmt.Sprintf("%d_%s", time.Now().UnixNano(), fileName))
+	defer os.RemoveAll(localTmpDir)
+
+	tmpFile := filepath.Join(localTmpDir, fileName)
 	file, err := os.Create(tmpFile)
 	if err != nil {
 		return "", err

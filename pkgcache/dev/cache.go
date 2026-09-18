@@ -42,18 +42,15 @@ func (d DevArtifactCache) Restore(packageDir, nameVersion, buildHash string) (bo
 		return false, nil
 	}
 
-	// Create tmp dir for extracting inside.
-	if err := dirs.CleanTmpFilesDir(); err != nil {
-		return false, fmt.Errorf("failed to clean tmp files dir -> %w", err)
-	}
-	tempDir, err := os.MkdirTemp(dirs.TmpFilesDir, "devcache-extract-*")
+	// Extract into a task-owned tmp dir.
+	localTmpDir, err := dirs.NewTmpFilesDir()
 	if err != nil {
 		return false, err
 	}
-	defer os.RemoveAll(tempDir)
+	defer os.RemoveAll(localTmpDir)
 
 	// Extract to a tmp dir and move back to dest dir.
-	if err := fileio.Extract(cachePath, tempDir); err != nil {
+	if err := fileio.Extract(cachePath, localTmpDir); err != nil {
 		return false, err
 	}
 	if err := os.RemoveAll(packageDir); err != nil {
@@ -62,7 +59,7 @@ func (d DevArtifactCache) Restore(packageDir, nameVersion, buildHash string) (bo
 	if err := os.MkdirAll(filepath.Dir(packageDir), os.ModePerm); err != nil {
 		return false, err
 	}
-	if err := os.Rename(tempDir, packageDir); err != nil {
+	if err := os.Rename(localTmpDir, packageDir); err != nil {
 		return false, err
 	}
 
@@ -92,18 +89,14 @@ func (d DevArtifactCache) Store(packageDir, meta string) error {
 		return fmt.Errorf("invalid package dir: %s", packageDir)
 	}
 
-	// Extract tar.gz to a tmp dir.
+	// Extract tar.gz into a task-owned tmp dir.
 	archiveName := fmt.Sprintf("%s.tar.gz", nameVersion)
-	if err := dirs.CleanTmpFilesDir(); err != nil {
-		return fmt.Errorf("failed to clean tmp files dir -> %w", err)
-	}
-	tempArchive, err := os.CreateTemp(dirs.TmpFilesDir, archiveName+".*")
+	localTmpDir, err := dirs.NewTmpFilesDir()
 	if err != nil {
 		return err
 	}
-	tempArchivePath := tempArchive.Name()
-	tempArchive.Close()
-	defer os.Remove(tempArchivePath)
+	defer os.RemoveAll(localTmpDir)
+	tempArchivePath := filepath.Join(localTmpDir, archiveName)
 
 	if err := fileio.Targz(tempArchivePath, packageDir, false); err != nil {
 		return err

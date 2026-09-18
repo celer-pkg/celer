@@ -6,8 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/celer-pkg/celer/pkgs/dirs"
-
 	"github.com/spf13/cobra"
 )
 
@@ -17,20 +15,10 @@ func TestPowerShellRegisterAndUnregisterRunCommand_PowerShell(t *testing.T) {
 		return err == nil
 	}
 
-	// Prepare isolated USERPROFILE and tmp dir.
+	// Prepare isolated USERPROFILE.
 	userProfile := t.TempDir()
 	if err := os.Setenv("USERPROFILE", userProfile); err != nil {
 		t.Fatalf("failed to set USERPROFILE: %v", err)
-	}
-
-	origTmp := dirs.TmpFilesDir
-	tmp := filepath.Join(t.TempDir(), "tmpfiles")
-	dirs.TmpFilesDir = tmp
-	defer func() { dirs.TmpFilesDir = origTmp }()
-
-	// Ensure tmp dir is clean/created.
-	if err := dirs.CleanTmpFilesDir(); err != nil {
-		t.Fatalf("CleanTmpFilesDir failed: %v", err)
 	}
 
 	rootCmd := &cobra.Command{Use: "celer"}
@@ -98,15 +86,6 @@ func TestPowerShellInstallAndUninstallCompletion_PowerShell(t *testing.T) {
 	userProfile := t.TempDir()
 	if err := os.Setenv("USERPROFILE", userProfile); err != nil {
 		t.Fatalf("failed to set USERPROFILE: %v", err)
-	}
-
-	origTmp := dirs.TmpFilesDir
-	tmp := filepath.Join(t.TempDir(), "tmpfiles2")
-	dirs.TmpFilesDir = tmp
-	defer func() { dirs.TmpFilesDir = origTmp }()
-
-	if err := dirs.CleanTmpFilesDir(); err != nil {
-		t.Fatalf("CleanTmpFilesDir failed: %v", err)
 	}
 
 	rootCmd := &cobra.Command{Use: "celer"}

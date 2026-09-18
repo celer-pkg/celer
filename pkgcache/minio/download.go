@@ -7,6 +7,7 @@ import (
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
+	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/minio/minio-go/v7"
 )
@@ -114,19 +115,20 @@ func (d DownloadConfig) Restore(fileName, sha256 string) (bool, error) {
 		return false, nil
 	}
 
-	downloaded, err := d.downloadFile(remoteFilePath, fileName)
+	// Download the cached file into a task-owned tmp dir with progress.
+	localTmpDir, err := dirs.NewTmpFilesDir()
 	if err != nil {
 		return false, err
 	}
-	defer func() {
-		// Remove it if verify failed.
-		if fileio.PathExists(downloaded) {
-			os.Remove(downloaded)
-		}
-	}()
+	defer os.RemoveAll(localTmpDir)
+
+	tmpDownloaded, err := d.downloadFile(localTmpDir, remoteFilePath, fileName)
+	if err != nil {
+		return false, err
+	}
 
 	// Verify the downloaded content with sha265.
-	if localSha256, err := fileio.SHA256Sum(downloaded); err != nil {
+	if localSha256, err := fileio.SHA256Sum(tmpDownloaded); err != nil {
 		return false, err
 	} else if localSha256 != sha256 {
 		return false, nil
@@ -137,7 +139,7 @@ func (d DownloadConfig) Restore(fileName, sha256 string) (bool, error) {
 	}
 
 	destPath := filepath.Join(d.ctx.Downloads(), fileName)
-	if err := os.Rename(downloaded, destPath); err != nil {
+	if err := os.Rename(tmpDownloaded, destPath); err != nil {
 		return false, err
 	}
 

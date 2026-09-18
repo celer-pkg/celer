@@ -99,11 +99,17 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 		return false, nil
 	}
 
-	downloaded, err := r.downloadFile(objectName, nameVersion)
+	// Download the cached archive into a task-owned tmp dir with progress.
+	localTmpDir, err := dirs.NewTmpFilesDir()
+	if err != nil {
+		return false, err
+	}
+	defer os.RemoveAll(localTmpDir)
+
+	tmpDownloaded, err := r.downloadFile(localTmpDir, objectName, nameVersion)
 	if err != nil {
 		return false, fmt.Errorf("failed to download '%s' -> %w", objectName, err)
 	}
-	defer os.Remove(downloaded)
 
 	// Create a clean repo dir.
 	if err := os.RemoveAll(repoDir); err != nil {
@@ -115,7 +121,7 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 
 	// Extract archive to repo dir (status reported here, not at flatten).
 	if err := fileio.NewProgressTask(fileio.OpExtract, nameVersion).Start(repoDir, func() error {
-		if err := fileio.Extract(downloaded, repoDir); err != nil {
+		if err := fileio.Extract(tmpDownloaded, repoDir); err != nil {
 			return err
 		}
 		// Flatten nested directory, many source archives contain a single wrapping dir like ffmpeg-4.4/.
@@ -159,7 +165,7 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 	} else {
 		// Check if stored repo was modified by comparing sha256.
 		if expected := r.metaSha256(remoteInfo); expected != "" {
-			if got, err := fileio.SHA256Sum(downloaded); err != nil {
+			if got, err := fileio.SHA256Sum(tmpDownloaded); err != nil {
 				return false, err
 			} else if got != expected {
 				return false, nil
@@ -168,7 +174,7 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 
 		// Verify checksum if not empty also.
 		if checksum != "" {
-			localChecksum, err := fileio.SHA256Sum(downloaded)
+			localChecksum, err := fileio.SHA256Sum(tmpDownloaded)
 			if err != nil {
 				_ = os.RemoveAll(repoDir)
 				return false, fmt.Errorf("invalid cached repo, verify checksum failed for %s -> %w", nameVersion, err)
@@ -192,7 +198,7 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 		if err := os.MkdirAll(downloadsDir, os.ModePerm); err != nil {
 			return false, fmt.Errorf("failed to mkdir downloads '%s' -> %w", downloadsDir, err)
 		}
-		if err := fileio.CopyFile(downloaded, destArchivePath); err != nil {
+		if err := fileio.CopyFile(tmpDownloaded, destArchivePath); err != nil {
 			return false, fmt.Errorf("failed to move archive to downloads -> %w", err)
 		}
 	}
