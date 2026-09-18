@@ -49,6 +49,7 @@ type PortConfig struct {
 	DevDep          bool     // whether dev dependency
 	HostDev         bool     // whether native build
 	PortFile        string   // the file path of port.toml
+	StagingRootDir  string   // per-port staging root under tmp/deps
 
 	Ctx context.Context `toml:"-"`
 }
@@ -622,7 +623,7 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 		// Keep the host-side tool runtime closure isolated under tmp/deps for every
 		// build. Host-side tools must be prepared explicitly into tmp/deps instead of
 		// silently falling back to the installed directory.
-		devTmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev")
+		devTmpDepsDir := filepath.Join(b.PortConfig.StagingRootDir, b.PortConfig.HostName+"-dev")
 
 		// Create parent directory if not exists
 		if err := os.MkdirAll(filepath.Dir(devTmpDepsDir), os.ModePerm); err != nil {
@@ -938,7 +939,7 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	var cflags, cxxflags, ldflags []string
 
 	// Set CFLAGS/CXXFLAGS/LDFLAGS.
-	tmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryDir)
+	tmpDepsDir := filepath.Join(b.PortConfig.StagingRootDir, b.PortConfig.LibraryDir)
 	var appendIncludeDir = func(includeDir string) {
 		includeDir = fileio.ToCygpath(includeDir)
 		includeFlag := "-I" + includeDir

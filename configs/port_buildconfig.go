@@ -59,10 +59,6 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 	// target example: installed/celer/aarch64-linux-ubuntu-22.04-gcc-11.5.0/test_project_001/release/x264@stable
 	p.InstalledDir = filepath.Join(dirs.InstalledDir, libraryDir)
 
-	// host example: installed/celer/x86_64-linux-dev/deps/x264@stable
-	// target example: installed/celer/aarch64-linux-ubuntu-22.04-gcc-11.5.0/test_project_001/release/deps/x264@stable
-	p.tmpDepsDir = filepath.Join(dirs.TmpDepsDir, libraryDir)
-
 	portConfig := buildsystems.PortConfig{
 		Ctx:             p.ctx,
 		LibName:         p.Name,
@@ -112,6 +108,9 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 			return err
 		}
 		p.MatchedConfig = matchedConfig
+
+		// Register common fixed variables.
+		p.registerExprVars(matchedConfig)
 	}
 
 	return nil

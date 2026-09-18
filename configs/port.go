@@ -18,9 +18,6 @@ import (
 )
 
 var (
-	// preparedTmpDeps tracks deps already prepared for tmp, to avoid redundant Init().
-	preparedTmpDeps = map[string]bool{}
-
 	// visitedPorts tracks ports visited during dependency-tree traversal so
 	// each port is processed at most once even when it appears under many parents.
 	visitedPorts = map[string]bool{}
@@ -31,9 +28,10 @@ var (
 )
 
 type InstallOptions struct {
-	Force     bool
-	Recursive bool
-	Prefer    InstallPrefer
+	Force          bool
+	Recursive      bool
+	Prefer         InstallPrefer
+	StagingRootDir string
 }
 
 type RemoveOptions struct {
@@ -71,7 +69,6 @@ type Port struct {
 	portFile                   string
 	traceFile                  string
 	metaFile                   string
-	tmpDepsDir                 string
 	installReport              *installReport
 	exprVars                   context.ExprVars
 	sourceModified             bool
@@ -386,27 +383,23 @@ func (p *Port) findMatchedConfig(buildType string) (*buildsystems.BuildConfig, e
 		p.BuildConfigs[index].BuildType = buildType
 	}
 
-	// Placeholder variables.
-	p.putExprVars(p.BuildConfigs[index])
-	p.BuildConfigs[index].ExprVars = p.exprVars
 	return &p.BuildConfigs[index], nil
 }
 
-func (p *Port) putExprVars(config buildsystems.BuildConfig) {
-	p.exprVars = p.ctx.ExprVars().Clone()
+// registerExprVars registers the port's common fixed variables into p.exprVars
+// and syncs them into the given build config.
+func (p *Port) registerExprVars(config *buildsystems.BuildConfig) {
+	p.exprVars.Merge(*p.ctx.ExprVars())
+
 	p.exprVars.Put("REPO_DIR", config.PortConfig.RepoDir)
 	p.exprVars.Put("SRC_DIR", config.PortConfig.SrcDir)
 	p.exprVars.Put("BUILD_DIR", config.PortConfig.BuildDir)
 	p.exprVars.Put("PACKAGE_DIR", config.PortConfig.PackageDir)
 	p.exprVars.Put("CMAKE_TOOLCHAIN_FILE", filepath.Join(dirs.WorkspaceDir, "toolchain_file.cmake"))
 	p.exprVars.Put("PORT_DIR", filepath.Dir(p.portFile))
-	p.exprVars.Put("DEV_DEPS_DIR", filepath.Join(dirs.TmpDepsDir, config.PortConfig.HostName+"-dev"))
 
-	if config.DevDep {
-		p.exprVars.Put("DEPS_DIR", filepath.Join(dirs.TmpDepsDir, config.PortConfig.HostName+"-dev"))
-	} else {
-		p.exprVars.Put("DEPS_DIR", filepath.Join(dirs.TmpDepsDir, config.PortConfig.LibraryDir))
-	}
+	// Sync exprVars from port to its buildConfig.
+	config.ExprVars = p.exprVars
 }
 
 func (p Port) PackageFiles(packageDir, platformName, projectName string) ([]string, error) {

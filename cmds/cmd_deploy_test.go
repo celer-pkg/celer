@@ -418,7 +418,7 @@ func TestDeployCmd_Success(t *testing.T) {
 
 	// `resolveAllRefs` always writes a deployment markdown under
 	// installed/celer/deployments regardless of --snapshot.
-	deploymentsDir := filepath.Join(dirs.InstalledDir, "celer", "deployments")
+	deploymentsDir := filepath.Join(dirs.InstalledDir, "infos", "deployments")
 	if !fileio.PathExists(deploymentsDir) {
 		t.Fatalf("deployments dir should exist after deploy: %s", deploymentsDir)
 	}

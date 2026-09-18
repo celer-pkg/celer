@@ -13,7 +13,6 @@ import (
 
 	"github.com/celer-pkg/celer/configs/toolchains"
 	"github.com/celer-pkg/celer/pkgs/cmd"
-	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
@@ -100,7 +99,7 @@ func (b b2) Configure(options []string) error {
 	// For cross-compilation, set --prefix to dependency directory.
 	rootfs := b.Ctx.RootFS()
 	if !b.DevDep && rootfs != nil {
-		depsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryDir)
+		depsDir := filepath.Join(b.PortConfig.StagingRootDir, b.PortConfig.LibraryDir)
 		configure = fmt.Sprintf("%s --prefix=%s", configure, depsDir)
 	}
 
