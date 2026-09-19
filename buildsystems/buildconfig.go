@@ -36,6 +36,7 @@ type PortConfig struct {
 	Url             string   // like: `https://ffmpeg.org/releases/ffmpeg-4.4.tar.xz`
 	Checksum        string   // Checksum(sha-256) of the archive, used for verification and caching.
 	IgnoreSubmodule bool     // whether ignore submodule during git clone.
+	IgnoreLFS       bool     // whether skip Git LFS download during git clone.
 	HostName        string   // like: `x86_64-linux`, `x86_64-windows`
 	ProjectName     string   // toml filename in conf/projects.
 	SrcDir          string   // for example: ${workspace}/buildtrees/icu@75.1/src/icu4c/source
@@ -413,7 +414,11 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archiveName string, depth int) (err
 		// Do clone or download repo.
 		nameVersion := b.PortConfig.nameVersion()
 		title := fmt.Sprintf("[clone %s]", nameVersion)
-		if err := git.CloneRepo(title, nameVersion, repoUrl, repoRef, depth, b.PortConfig.RepoDir); err != nil {
+		if err := git.NewClone(repoUrl, repoRef, b.PortConfig.RepoDir).
+			SetDepth(depth).
+			IgnoreSubmodule(b.PortConfig.IgnoreSubmodule).
+			IgnoreLFS(b.PortConfig.IgnoreLFS).
+			Clone(title, nameVersion); err != nil {
 			return err
 		}
 		// Pin to resolved commit if available (from pre-deploy ref resolution).
