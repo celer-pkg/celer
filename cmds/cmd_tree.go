@@ -10,9 +10,9 @@ import (
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/depcheck"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/logger"
 
 	"github.com/spf13/cobra"
 )
@@ -122,8 +122,8 @@ func (t *treeCmd) showPortTree(target string, depchecker any) error {
 		return fmt.Errorf("failed to collect port information -> %w", err)
 	}
 
-	color.Printf(color.Title, "display dependencies in tree view:\n")
-	color.Printf(color.Line, "--------------------------------------------\n")
+	logger.Printf(logger.Title, "display dependencies in tree view:\n")
+	logger.Printf(logger.Line, "--------------------------------------------\n")
 	t.printTree(&rootInfo)
 	return nil
 }
@@ -183,7 +183,7 @@ func (t *treeCmd) showProjectTree(target string, depchecker any) error {
 
 	title := "display dependencies in tree view"
 	separator := strings.Repeat("-", len(title))
-	color.Printf(color.Title, "%s\n%s\n", title, separator)
+	logger.Printf(logger.Title, "%s\n%s\n", title, separator)
 	t.printTree(&rootInfo)
 	return nil
 }
@@ -246,8 +246,8 @@ func (t *treeCmd) printTree(info *portInfo) {
 	depCount, devDepCount := t.countDependencies(info)
 
 	// Print statistics.
-	color.Printf(color.Line, "---------------------------------------------\n")
-	color.Printf(color.Summary, "dependencies: %d  dev_dependencies: %d\n", depCount, devDepCount)
+	logger.Printf(logger.Line, "---------------------------------------------\n")
+	logger.Printf(logger.Summary, "dependencies: %d  dev_dependencies: %d\n", depCount, devDepCount)
 }
 
 func (t *treeCmd) countDependencies(info *portInfo) (int, int) {
@@ -308,7 +308,7 @@ func (t *treeCmd) printTreeWithPrefix(info *portInfo, prefix string, isLast bool
 	if info.devDep {
 		line += " -- [dev]"
 	}
-	color.Println(color.Hint, prefix+line)
+	logger.Println(logger.Hint, prefix+line)
 
 	// Prepare the prefix for the next level.
 	var nextPrefix string

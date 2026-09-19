@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/logger"
 )
 
 type Completed func(formattedTimeCost, formattedSize string)
@@ -79,7 +79,7 @@ func (p *progressBar) Write(b []byte) (int, error) {
 		// Truncate the title so the whole line fits within the terminal width.
 		// otherwise the terminal wraps it and the \r overwrite breaks.
 		title := p.title
-		if maxWidth := color.TerminalWidth() - 60; maxWidth > 8 && len([]rune(title)) > maxWidth {
+		if maxWidth := logger.TerminalWidth() - 60; maxWidth > 8 && len([]rune(title)) > maxWidth {
 			title = truncateMiddle(title, maxWidth)
 		}
 
@@ -102,7 +102,7 @@ func (p *progressBar) Write(b []byte) (int, error) {
 			)
 		}
 
-		color.PrintInline(color.Hint, "%s", content)
+		logger.PrintInline(logger.Hint, "%s", content)
 		if progress == 100 {
 			totalSec := time.Since(p.startTime).Seconds()
 			if p.completed != nil {

@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/logger"
 
 	"github.com/spf13/cobra"
 )
@@ -412,7 +412,7 @@ func TestInstallCmd_RunInstall_MultiPackages_PreInitValidation(t *testing.T) {
 	// The second package is invalid, so validation should fail before Init() is called.
 	// This confirms pre-init validation works in multi-package mode.
 	err := installCmd.runInstall([]string{"opencv@4.8.0", "invalid"})
-	if !errors.Is(err, color.ErrSilent) {
+	if !errors.Is(err, logger.ErrSilent) {
 		t.Fatalf("expected ErrSilent for invalid package input, got: %v", err)
 	}
 }

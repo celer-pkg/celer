@@ -9,9 +9,9 @@ import (
 
 	"github.com/celer-pkg/celer/buildsystems"
 	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/logger"
 	"github.com/celer-pkg/celer/pkgs/refs"
 
 	"github.com/BurntSushi/toml"
@@ -51,50 +51,50 @@ func (e *Exporter) Export() error {
 	}
 
 	title := fmt.Sprintf("\nExporting snapshot: %s", e.exportDir)
-	color.Println(color.Title, title)
-	color.Println(color.Line, strings.Repeat("-", len(title)))
+	logger.Println(logger.Title, title)
+	logger.Println(logger.Line, strings.Repeat("-", len(title)))
 
 	// 1. Collect used ports.
-	color.Println(color.Hint, "[✔] Collecting dependencies...")
+	logger.Println(logger.Hint, "[✔] Collecting dependencies...")
 	usedPorts, err := e.collector.CollectUsedPorts(e.celer)
 	if err != nil {
 		return fmt.Errorf("failed to collect ports -> %w", err)
 	}
 	e.usedPorts = usedPorts
-	color.Printf(color.Hint, "  Found %d port(s)\n", len(e.usedPorts))
+	logger.Printf(logger.Hint, "  Found %d port(s)\n", len(e.usedPorts))
 
 	// 2. Export ports with fixed source checksums.
-	color.Println(color.Hint, "[✔] Exporting ports...")
+	logger.Println(logger.Hint, "[✔] Exporting ports...")
 	if err := e.exportPorts(); err != nil {
 		return fmt.Errorf("failed to export ports -> %w", err)
 	}
 
 	// 3. Export conf directory.
-	color.Println(color.Hint, "[✔] Exporting configuration...")
+	logger.Println(logger.Hint, "[✔] Exporting configuration...")
 	if err := e.exportConf(); err != nil {
 		return fmt.Errorf("failed to export conf -> %w", err)
 	}
 
 	// 4. Export celer.toml.
-	color.Println(color.Hint, "[✔] Exporting celer.toml...")
+	logger.Println(logger.Hint, "[✔] Exporting celer.toml...")
 	if err := e.exportCelerToml(); err != nil {
 		return fmt.Errorf("failed to export celer.toml -> %w", err)
 	}
 
 	// 5. Export toolchain_file.cmake (if exists).
-	color.Println(color.Hint, "[✔] Exporting toolchain file...")
+	logger.Println(logger.Hint, "[✔] Exporting toolchain file...")
 	if err := e.exportToolchainFile(); err != nil {
 		return fmt.Errorf("failed to export toolchain_file.cmake -> %w", err)
 	}
 
 	// 6. Export celer executable.
-	color.Println(color.Hint, "[✔] Exporting celer executable...")
+	logger.Println(logger.Hint, "[✔] Exporting celer executable...")
 	if err := e.exportCelerExecutable(); err != nil {
 		return fmt.Errorf("failed to export celer executable -> %w", err)
 	}
 
 	// 7. Generate snapshot.
-	color.Println(color.Hint, "[✔] Generating snapshot report...")
+	logger.Println(logger.Hint, "[✔] Generating snapshot report...")
 	buildEnv := BuildEnv{
 		ExportedAt:   time.Now(),
 		CelerVersion: e.celer.Version(),
@@ -107,7 +107,7 @@ func (e *Exporter) Export() error {
 		return fmt.Errorf("failed to save snapshot -> %w", err)
 	}
 
-	color.PrintSuccess("Snapshot is exported to: %s", e.exportDir)
+	logger.PrintSuccess("Snapshot is exported to: %s", e.exportDir)
 	return nil
 }
 

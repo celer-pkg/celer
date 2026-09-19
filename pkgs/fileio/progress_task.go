@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/logger"
 )
 
 // Op is a lifecycle step shown in status lines.
@@ -51,7 +51,7 @@ func (p *ProgressTask) Start(dest string, fn func() error) error {
 	p.start(detail)
 	if err := fn(); err != nil {
 		// End the in-progress line; callers print the real error separately.
-		color.PrintInline(color.Hint, "\n")
+		logger.PrintInline(logger.Hint, "\n")
 		return err
 	}
 	p.complete(detail)
@@ -60,12 +60,12 @@ func (p *ProgressTask) Start(dest string, fn func() error) error {
 
 // start prints an in-progress line (overwritten by complete).
 func (p *ProgressTask) start(detail string) {
-	color.PrintInline(color.Hint, "%s", p.format(false, detail))
+	logger.PrintInline(logger.Hint, "%s", p.format(false, detail))
 }
 
 // complete prints the success line and ends the current in-progress line.
 func (p *ProgressTask) complete(detail string) {
-	color.PrintInline(color.Success, "%s\n", p.format(true, detail))
+	logger.PrintInline(logger.Success, "%s\n", p.format(true, detail))
 }
 
 func (p *ProgressTask) format(done bool, detail string) string {

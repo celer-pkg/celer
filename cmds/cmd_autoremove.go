@@ -9,9 +9,9 @@ import (
 
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/depcheck"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
+	"github.com/celer-pkg/celer/pkgs/logger"
 
 	"github.com/spf13/cobra"
 )
@@ -114,7 +114,7 @@ func (a *autoremoveCmd) autoremove() error {
 		}
 	}
 
-	color.PrintSuccess("autoremove successfully for %s", a.celer.Project().GetName())
+	logger.PrintSuccess("autoremove successfully for %s", a.celer.Project().GetName())
 	return nil
 }
 

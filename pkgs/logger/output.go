@@ -1,4 +1,4 @@
-package color
+package logger
 
 import (
 	"os"

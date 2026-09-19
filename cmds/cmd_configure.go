@@ -7,11 +7,11 @@ import (
 
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgcache"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/logger"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -156,7 +156,7 @@ Examples:
 
 			// Init must be done before configure any.
 			if err := c.checkIfInitialized(); err != nil {
-				return color.PrintError(err, "please run `celer init` first.")
+				return logger.PrintError(err, "please run `celer init` first.")
 			}
 
 			// Init celer with options, allow skip platform or project
@@ -181,12 +181,12 @@ Examples:
 			}
 
 			if changedCount == 0 {
-				return color.PrintError(errors.ErrNoConfigFlagProvided,
+				return logger.PrintError(errors.ErrNoConfigFlagProvided,
 					"please specify exactly one configuration flag.",
 				)
 			}
 			if len(activeGroups) > 1 {
-				return color.PrintError(
+				return logger.PrintError(
 					fmt.Errorf("flags from different groups were provided"),
 					"please configure only one setting or one related group at a time.",
 				)
@@ -294,60 +294,60 @@ func (c configureCmd) checkIfInitialized() error {
 func (c *configureCmd) configureMain(flags *pflag.FlagSet) error {
 	if flags.Changed("platform") {
 		if err := c.celer.SetPlatform(c.platform); err != nil {
-			return color.PrintError(err, "failed to set platform.")
+			return logger.PrintError(err, "failed to set platform.")
 		}
-		color.PrintSuccess("current platform: %s", c.platform)
+		logger.PrintSuccess("current platform: %s", c.platform)
 	}
 
 	if flags.Changed("project") {
 		if err := c.celer.SetProject(c.project); err != nil {
-			return color.PrintError(err, "failed to set project: %s", c.project)
+			return logger.PrintError(err, "failed to set project: %s", c.project)
 		}
-		color.PrintSuccess("current project: %s", c.project)
+		logger.PrintSuccess("current project: %s", c.project)
 
 		// Auto configure platform.
 		targetPlatform := c.celer.Project().GetTargetPlatform()
 		if targetPlatform != "" && c.celer.Platform().GetName() == "" {
 			if err := c.celer.SetPlatform(targetPlatform); err != nil {
-				return color.PrintError(err, "failed to set platform: %s", targetPlatform)
+				return logger.PrintError(err, "failed to set platform: %s", targetPlatform)
 			}
-			color.PrintSuccess("current platform: %s => Default target platform defined in project", c.celer.Platform().GetName())
+			logger.PrintSuccess("current platform: %s => Default target platform defined in project", c.celer.Platform().GetName())
 		}
 	}
 
 	if flags.Changed("build-type") {
 		if err := c.celer.SetBuildType(c.buildType); err != nil {
-			return color.PrintError(err, "failed to set build type: %s", c.buildType)
+			return logger.PrintError(err, "failed to set build type: %s", c.buildType)
 		}
-		color.PrintSuccess("current build type: %s", c.buildType)
+		logger.PrintSuccess("current build type: %s", c.buildType)
 	}
 
 	if flags.Changed("downloads") {
 		if err := c.celer.SetDownloads(c.downloads); err != nil {
-			return color.PrintError(err, "failed to set downloads: %s", c.downloads)
+			return logger.PrintError(err, "failed to set downloads: %s", c.downloads)
 		}
-		color.PrintSuccess("current downloads: %s", c.downloads)
+		logger.PrintSuccess("current downloads: %s", c.downloads)
 	}
 
 	if flags.Changed("jobs") {
 		if err := c.celer.SetJobs(c.jobs); err != nil {
-			return color.PrintError(err, "failed to set job num: %d.", c.jobs)
+			return logger.PrintError(err, "failed to set job num: %d.", c.jobs)
 		}
-		color.PrintSuccess("current job num: %d.", c.jobs)
+		logger.PrintSuccess("current job num: %d.", c.jobs)
 	}
 
 	if flags.Changed("offline") {
 		if err := c.celer.SetOffline(c.offline); err != nil {
-			return color.PrintError(err, "failed to set offline mode: %s", expr.If(c.offline, "true", "false"))
+			return logger.PrintError(err, "failed to set offline mode: %s", expr.If(c.offline, "true", "false"))
 		}
-		color.PrintSuccess("current offline mode: %s", expr.If(c.offline, "true", "false"))
+		logger.PrintSuccess("current offline mode: %s", expr.If(c.offline, "true", "false"))
 	}
 
 	if flags.Changed("verbose") {
 		if err := c.celer.SetVerbose(c.verbose); err != nil {
-			return color.PrintError(err, "failed to set verbose mode: %s", expr.If(c.verbose, "true", "false"))
+			return logger.PrintError(err, "failed to set verbose mode: %s", expr.If(c.verbose, "true", "false"))
 		}
-		color.PrintSuccess("current verbose mode: %s", expr.If(c.verbose, "true", "false"))
+		logger.PrintSuccess("current verbose mode: %s", expr.If(c.verbose, "true", "false"))
 	}
 
 	return nil
@@ -356,37 +356,37 @@ func (c *configureCmd) configureMain(flags *pflag.FlagSet) error {
 func (c *configureCmd) configureCCache(flags *pflag.FlagSet) error {
 	if flags.Changed("ccache-enabled") {
 		if err := c.celer.SetCCacheEnabled(c.ccache.Enabled); err != nil {
-			return color.PrintError(err, "failed to update ccache enabled.")
+			return logger.PrintError(err, "failed to update ccache enabled.")
 		}
-		color.PrintSuccess("current ccache enabled: %s", expr.If(c.ccache.Enabled, "true", "false"))
+		logger.PrintSuccess("current ccache enabled: %s", expr.If(c.ccache.Enabled, "true", "false"))
 	}
 
 	if flags.Changed("ccache-dir") {
 		if err := c.celer.SetCCacheDir(c.ccache.Dir); err != nil {
-			return color.PrintError(err, "failed to update ccache dir.")
+			return logger.PrintError(err, "failed to update ccache dir.")
 		}
-		color.PrintSuccess("current ccache dir: %s", c.ccache.Dir)
+		logger.PrintSuccess("current ccache dir: %s", c.ccache.Dir)
 	}
 
 	if flags.Changed("ccache-maxsize") {
 		if err := c.celer.SetCCacheMaxSize(c.ccache.MaxSize); err != nil {
-			return color.PrintError(err, "failed to update ccache.maxsize.")
+			return logger.PrintError(err, "failed to update ccache.maxsize.")
 		}
-		color.PrintSuccess("current ccache maxsize: %s", c.ccache.MaxSize)
+		logger.PrintSuccess("current ccache maxsize: %s", c.ccache.MaxSize)
 	}
 
 	if flags.Changed("ccache-remote-storage") {
 		if err := c.celer.SetCCacheRemoteStorage(c.ccache.RemoteStorage); err != nil {
-			return color.PrintError(err, "failed to update ccache.remote_storage.")
+			return logger.PrintError(err, "failed to update ccache.remote_storage.")
 		}
-		color.PrintSuccess("current ccache remote storage: %s", c.ccache.RemoteStorage)
+		logger.PrintSuccess("current ccache remote storage: %s", c.ccache.RemoteStorage)
 	}
 
 	if flags.Changed("ccache-remote-only") {
 		if err := c.celer.SetCCacheRemoteOnly(c.ccache.RemoteOnly); err != nil {
-			return color.PrintError(err, "failed to update ccache.remote_only.")
+			return logger.PrintError(err, "failed to update ccache.remote_only.")
 		}
-		color.PrintSuccess("current ccache remote only: %s", expr.If(c.ccache.RemoteOnly, "true", "false"))
+		logger.PrintSuccess("current ccache remote only: %s", expr.If(c.ccache.RemoteOnly, "true", "false"))
 	}
 
 	return nil
@@ -397,20 +397,20 @@ func (c *configureCmd) configureProxy(flags *pflag.FlagSet) error {
 		if err := c.celer.RemoveProxy(); err != nil {
 			return err
 		}
-		color.PrintSuccess("http/https proxy is removed")
+		logger.PrintSuccess("http/https proxy is removed")
 	} else {
 		if flags.Changed("proxy-host") {
 			if err := c.celer.SetProxyHost(c.proxy.Host); err != nil {
-				return color.PrintError(err, "failed to configure proxy host: %s", c.proxy.Host)
+				return logger.PrintError(err, "failed to configure proxy host: %s", c.proxy.Host)
 			}
-			color.PrintSuccess("current proxy host: %s", c.proxy.Host)
+			logger.PrintSuccess("current proxy host: %s", c.proxy.Host)
 		}
 
 		if flags.Changed("proxy-port") {
 			if err := c.celer.SetProxyPort(c.proxy.Port); err != nil {
-				return color.PrintError(err, "failed to set proxy port: %d.", c.proxy.Port)
+				return logger.PrintError(err, "failed to set proxy port: %d.", c.proxy.Port)
 			}
-			color.PrintSuccess("current proxy port: %d.", c.proxy.Port)
+			logger.PrintSuccess("current proxy port: %d.", c.proxy.Port)
 		}
 	}
 
@@ -421,44 +421,44 @@ func (c *configureCmd) configurePkgCache(flags *pflag.FlagSet) error {
 	// fs backend.
 	if flags.Changed("pkgcache-fs-dir") {
 		if err := c.celer.SetPkgCacheFSDir(c.pkgCacheFS.Dir); err != nil {
-			return color.PrintError(err, "failed to set pkgcache.fs dir: %s", c.pkgCacheFS.Dir)
+			return logger.PrintError(err, "failed to set pkgcache.fs dir: %s", c.pkgCacheFS.Dir)
 		}
-		color.PrintSuccess("current pkgcache.fs dir: %s.", expr.If(c.pkgCacheFS.Dir != "", c.pkgCacheFS.Dir, "empty"))
+		logger.PrintSuccess("current pkgcache.fs dir: %s.", expr.If(c.pkgCacheFS.Dir != "", c.pkgCacheFS.Dir, "empty"))
 	}
 
 	// minio backend. Empty values keep the current host/keys, so a single
 	// flag can rotate them alone.
 	if flags.Changed("pkgcache-minio-host") || flags.Changed("pkgcache-minio-access-key") || flags.Changed("pkgcache-minio-secret-key") {
 		if err := c.celer.SetPkgCacheMinio(c.pkgCacheMinio.Host, c.pkgCacheMinio.AccessKey, c.pkgCacheMinio.SecretKey); err != nil {
-			return color.PrintError(err, "failed to set pkgcache.minio: %s", c.pkgCacheMinio.Host)
+			return logger.PrintError(err, "failed to set pkgcache.minio: %s", c.pkgCacheMinio.Host)
 		}
-		color.PrintSuccess("current pkgcache.minio host: %s.", expr.If(c.pkgCacheMinio.Host != "", c.pkgCacheMinio.Host, "unchanged"))
+		logger.PrintSuccess("current pkgcache.minio host: %s.", expr.If(c.pkgCacheMinio.Host != "", c.pkgCacheMinio.Host, "unchanged"))
 	}
 
 	// Options shared by all backends.
 	if flags.Changed("pkgcache-writable") {
 		if err := c.celer.SetPkgCacheWritable(c.pkgCacheOptions.Writable); err != nil {
-			return color.PrintError(err, "failed to set pkgcache writable: %s", expr.If(c.pkgCacheOptions.Writable, "true", "false"))
+			return logger.PrintError(err, "failed to set pkgcache writable: %s", expr.If(c.pkgCacheOptions.Writable, "true", "false"))
 		}
-		color.PrintSuccess("current pkgcache writable: %s.", expr.If(c.pkgCacheOptions.Writable, "true", "false"))
+		logger.PrintSuccess("current pkgcache writable: %s.", expr.If(c.pkgCacheOptions.Writable, "true", "false"))
 	}
 	if flags.Changed("pkgcache-cache-downloads") {
 		if err := c.celer.SetPkgCacheCacheDownloads(c.pkgCacheOptions.Downloads); err != nil {
-			return color.PrintError(err, "failed to set pkgcache cache-downloads: %s", expr.If(c.pkgCacheOptions.Downloads, "true", "false"))
+			return logger.PrintError(err, "failed to set pkgcache cache-downloads: %s", expr.If(c.pkgCacheOptions.Downloads, "true", "false"))
 		}
-		color.PrintSuccess("current pkgcache cache-downloads: %s.", expr.If(c.pkgCacheOptions.Downloads, "true", "false"))
+		logger.PrintSuccess("current pkgcache cache-downloads: %s.", expr.If(c.pkgCacheOptions.Downloads, "true", "false"))
 	}
 	if flags.Changed("pkgcache-cache-artifacts") {
 		if err := c.celer.SetPkgCacheCacheArtifacts(c.pkgCacheOptions.Artifacts); err != nil {
-			return color.PrintError(err, "failed to set pkgcache cache-artifacts: %s", expr.If(c.pkgCacheOptions.Artifacts, "true", "false"))
+			return logger.PrintError(err, "failed to set pkgcache cache-artifacts: %s", expr.If(c.pkgCacheOptions.Artifacts, "true", "false"))
 		}
-		color.PrintSuccess("current pkgcache cache-artifacts: %s.", expr.If(c.pkgCacheOptions.Artifacts, "true", "false"))
+		logger.PrintSuccess("current pkgcache cache-artifacts: %s.", expr.If(c.pkgCacheOptions.Artifacts, "true", "false"))
 	}
 	if flags.Changed("pkgcache-cache-repos") {
 		if err := c.celer.SetPkgCacheCacheRepos(c.pkgCacheOptions.Repos); err != nil {
-			return color.PrintError(err, "failed to set pkgcache cache-repos: %s", expr.If(c.pkgCacheOptions.Repos, "true", "false"))
+			return logger.PrintError(err, "failed to set pkgcache cache-repos: %s", expr.If(c.pkgCacheOptions.Repos, "true", "false"))
 		}
-		color.PrintSuccess("current pkgcache cache-repos: %s.", expr.If(c.pkgCacheOptions.Repos, "true", "false"))
+		logger.PrintSuccess("current pkgcache cache-repos: %s.", expr.If(c.pkgCacheOptions.Repos, "true", "false"))
 	}
 
 	return nil
@@ -499,7 +499,7 @@ func (c *configureCmd) configurePort(flags *pflag.FlagSet) error {
 			fmt.Fprintf(&builder, ` "ref = %s"`, c.portRef)
 		}
 	}
-	color.PrintSuccess("%s", builder.String())
+	logger.PrintSuccess("%s", builder.String())
 
 	return nil
 }

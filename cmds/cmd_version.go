@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/logger"
 
 	"github.com/spf13/cobra"
 )
@@ -28,7 +28,7 @@ func (v *versionCmd) Command(celer *configs.Celer) *cobra.Command {
 
 func (v *versionCmd) version() {
 	toolchainPath, _ := filepath.Abs("toolchain_file.cmake")
-	toolchainPath = color.Sprintf(color.Important, "%s", toolchainPath)
+	toolchainPath = logger.Sprintf(logger.Important, "%s", toolchainPath)
 
 	content := fmt.Sprintf("Welcome to Celer (%s)\n"+
 		"--------------------------------------------\n"+
@@ -37,8 +37,8 @@ func (v *versionCmd) version() {
 		"option1: %s\n"+
 		"option2: %s\n\n",
 		v.celer.Version(),
-		color.Sprintf(color.Title, "set(CMAKE_TOOLCHAIN_FILE \"%s\")", toolchainPath),
-		color.Sprintf(color.Title, "cmake .. -DCMAKE_TOOLCHAIN_FILE=\"%s\"", toolchainPath),
+		logger.Sprintf(logger.Title, "set(CMAKE_TOOLCHAIN_FILE \"%s\")", toolchainPath),
+		logger.Sprintf(logger.Title, "cmake .. -DCMAKE_TOOLCHAIN_FILE=\"%s\"", toolchainPath),
 	)
 	fmt.Print(content)
 }

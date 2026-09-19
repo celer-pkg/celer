@@ -11,8 +11,8 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/logger"
 )
 
 type downloader struct {
@@ -56,7 +56,7 @@ func (d downloader) Start(httpClient *http.Client) (downloaded string, err error
 		}
 
 		lastErr = err
-		color.Printf(color.Warning, "Download failed (attempt %d/%d): %v\n", attempt, d.maxRetries, err)
+		logger.Printf(logger.Warning, "Download failed (attempt %d/%d): %v\n", attempt, d.maxRetries, err)
 		if attempt < d.maxRetries {
 			time.Sleep(time.Duration(attempt) * time.Second) // Exponential backoff.
 		}

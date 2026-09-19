@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/logger"
 )
 
 // CheckAccessible checks if the given URL is accessible,
@@ -54,7 +54,7 @@ func FileSize(httpClient *http.Client, downloadUrl string) (int64, error) {
 		}
 
 		lastErr = err
-		color.Printf(color.Warning, "Get filesize failed (attempt %d/%d): %v\n", attempt, maxRetries, err)
+		logger.Printf(logger.Warning, "Get filesize failed (attempt %d/%d): %v\n", attempt, maxRetries, err)
 		if attempt < maxRetries {
 			time.Sleep(time.Duration(attempt) * time.Second) // Exponential backoff.
 		}
@@ -159,7 +159,7 @@ func FileName(ctx context.Context, httpUrl string) (string, error) {
 		}
 
 		lastErr = err
-		color.Printf(color.Warning, "Get file name failed (attempt %d/%d): %v\n", attempt, maxRetries, err)
+		logger.Printf(logger.Warning, "Get file name failed (attempt %d/%d): %v\n", attempt, maxRetries, err)
 		if attempt < maxRetries {
 			time.Sleep(time.Duration(attempt) * time.Second) // Exponential backoff.
 		}

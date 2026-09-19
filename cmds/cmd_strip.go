@@ -2,7 +2,7 @@ package cmds
 
 import (
 	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/logger"
 
 	"github.com/spf13/cobra"
 )
@@ -38,13 +38,13 @@ Requires toolchain.strip in the platform (e.g. GNU strip or llvm-strip on Window
 
 func (s *stripCmd) strip() error {
 	if err := s.celer.Init(); err != nil {
-		return color.PrintError(err, "failed to initialize celer.")
+		return logger.PrintError(err, "failed to initialize celer.")
 	}
 
 	if err := s.celer.Strip(); err != nil {
-		return color.PrintError(err, "failed to strip installed files.")
+		return logger.PrintError(err, "failed to strip installed files.")
 	}
 
-	color.PrintSuccess("stripped files written under workspace/stripped.")
+	logger.PrintSuccess("stripped files written under workspace/stripped.")
 	return nil
 }

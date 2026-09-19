@@ -10,11 +10,11 @@ import (
 
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/configs/toolchains"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/env"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/logger"
 )
 
 type envsBackup struct {
@@ -64,7 +64,7 @@ func (b *BuildConfig) setupEnvs() {
 
 		before, after, ok := strings.Cut(env, "=")
 		if !ok {
-			color.Printf(color.Warning, "invalid environment variable `%s` and is ignored.", env)
+			logger.Printf(logger.Warning, "invalid environment variable `%s` and is ignored.", env)
 			continue
 		}
 
@@ -91,7 +91,7 @@ func (b *BuildConfig) setupEnvs() {
 			if strings.HasPrefix(currentValue, "-I") ||
 				strings.HasPrefix(currentValue, "-isystem") ||
 				strings.HasPrefix(currentValue, "-L") {
-				color.PrintWarning("in %s set env %q with %q use `include_dirs` and `lib_dirs` is suggested.",
+				logger.PrintWarning("in %s set env %q with %q use `include_dirs` and `lib_dirs` is suggested.",
 					b.PortConfig.nameVersion(), "CFLAGS/CXXFLAGS/LDFLAGS",
 					"flags like -I, -isystem and -L' is deprecated")
 			}
@@ -297,7 +297,7 @@ func (b BuildConfig) setupQNXEnvs() {
 
 	qnxEnvs, err := toolchains.ReadQNXEnvs(toolchain)
 	if err != nil {
-		color.PrintWarning("failed to read QNX envs from qnxsdp-env.sh: %v", err)
+		logger.PrintWarning("failed to read QNX envs from qnxsdp-env.sh: %v", err)
 		return
 	}
 

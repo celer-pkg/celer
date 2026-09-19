@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/logger"
 )
 
 func (p Port) Remove(options RemoveOptions) error {
@@ -94,11 +94,11 @@ func (p Port) Remove(options RemoveOptions) error {
 func (p Port) doRemovePort() error {
 	var noError = true
 	if fileio.PathExists(p.traceFile) {
-		color.Printf(color.Title, "\n[remove installed %s]\n", p.NameVersion())
+		logger.Printf(logger.Title, "\n[remove installed %s]\n", p.NameVersion())
 
 		defer func() {
 			if noError {
-				color.Printf(color.Hint, "[✔] %s is removed from %s\n", p.NameVersion(), p.InstalledDir)
+				logger.Printf(logger.Hint, "[✔] %s is removed from %s\n", p.NameVersion(), p.InstalledDir)
 			}
 		}()
 	}

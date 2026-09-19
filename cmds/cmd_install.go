@@ -9,11 +9,11 @@ import (
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/depcheck"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/logger"
 
 	"github.com/spf13/cobra"
 )
@@ -91,23 +91,23 @@ func (i *installCmd) runInstall(nameVersions []string) error {
 	for _, nameVersion := range nameVersions {
 		cleanedNameVersion, err := i.validateAndCleanInput(nameVersion)
 		if err != nil {
-			return color.PrintError(err, "invalid package specification: %s", nameVersion)
+			return logger.PrintError(err, "invalid package specification: %s", nameVersion)
 		}
 		cleanedNameVersions = append(cleanedNameVersions, cleanedNameVersion)
 	}
 
 	if err := i.celer.Init(); err != nil {
-		return color.PrintError(err, "failed to initialize celer.")
+		return logger.PrintError(err, "failed to initialize celer.")
 	}
 
 	// Check git first as it's needed for cloning and reading commit hashes,
 	// and must check tool after celer initialized, since "downloads" will be assign value after init.
 	if err := buildtools.CheckTools(i.celer, "git"); err != nil {
-		return color.PrintError(err, "failed to check build tool: git")
+		return logger.PrintError(err, "failed to check build tool: git")
 	}
 
 	if err := i.overrideFlags(); err != nil {
-		return color.PrintError(err, "invalid install options.")
+		return logger.PrintError(err, "invalid install options.")
 	}
 
 	// Install port one by one.
@@ -154,11 +154,11 @@ func (i *installCmd) install(nameVersion string) error {
 	platformName := expr.If(i.celer.Platform().GetName() != "", i.celer.Platform().GetName(), "native")
 
 	// Display install header.
-	color.Println(color.Title, "=======================================================================")
-	color.Printf(color.Title, "🚀 start to install %s\n", nameVersion)
-	color.Printf(color.Title, "📌 platform: %s\n", platformName)
-	color.Printf(color.Title, "📌 product: %s\n", i.celer.Project().GetName())
-	color.Println(color.Title, "=======================================================================")
+	logger.Println(logger.Title, "=======================================================================")
+	logger.Printf(logger.Title, "🚀 start to install %s\n", nameVersion)
+	logger.Printf(logger.Title, "📌 platform: %s\n", platformName)
+	logger.Printf(logger.Title, "📌 product: %s\n", i.celer.Project().GetName())
+	logger.Println(logger.Title, "=======================================================================")
 
 	// Init the port.
 	var port = configs.Port{
@@ -167,18 +167,18 @@ func (i *installCmd) install(nameVersion string) error {
 	if err := port.Init(i.celer, nameVersion); err != nil {
 		if errors.Is(err, errors.ErrPortNotFound) {
 			format := "port %s is not yet available - consider adding it now ?"
-			return color.PrintError(fmt.Errorf(format, nameVersion), "failed to install %s", nameVersion)
+			return logger.PrintError(fmt.Errorf(format, nameVersion), "failed to install %s", nameVersion)
 		}
-		return color.PrintError(err, "failed to init %s", nameVersion)
+		return logger.PrintError(err, "failed to init %s", nameVersion)
 	}
 
 	// Check circular dependence and version conclict.
 	depcheck := depcheck.NewDepCheck()
 	if err := depcheck.CheckCircular(i.celer, port); err != nil {
-		return color.PrintError(err, "failed to check circular dependence.")
+		return logger.PrintError(err, "failed to check circular dependence.")
 	}
 	if err := depcheck.CheckConflict(i.celer, port); err != nil {
-		return color.PrintError(err, "failed to check version conflict.")
+		return logger.PrintError(err, "failed to check version conflict.")
 	}
 
 	// Do install.
@@ -188,19 +188,19 @@ func (i *installCmd) install(nameVersion string) error {
 	}
 	fromWhere, err := port.Install(options)
 	if err != nil {
-		return color.PrintError(err, "failed to install %s", nameVersion)
+		return logger.PrintError(err, "failed to install %s", nameVersion)
 	}
 	if fromWhere != "" {
 		if port.DevDep {
-			color.PrintSuccess("install %s from %s as dev successfully.", nameVersion, fromWhere)
+			logger.PrintSuccess("install %s from %s as dev successfully.", nameVersion, fromWhere)
 		} else {
-			color.PrintSuccess("install %s from %s successfully.", nameVersion, fromWhere)
+			logger.PrintSuccess("install %s from %s successfully.", nameVersion, fromWhere)
 		}
 	} else {
 		if port.DevDep {
-			color.PrintSuccess("install %s as dev successfully.", nameVersion)
+			logger.PrintSuccess("install %s as dev successfully.", nameVersion)
 		} else {
-			color.PrintSuccess("install %s successfully.", nameVersion)
+			logger.PrintSuccess("install %s successfully.", nameVersion)
 		}
 	}
 
@@ -243,7 +243,7 @@ func (i *installCmd) buildSuggestions(suggestions *[]string, portDir string, toC
 		return nil
 	})
 	if err != nil {
-		color.PrintError(err, "failed to read %s -> %s.\n", portDir, err)
+		logger.PrintError(err, "failed to read %s -> %s.\n", portDir, err)
 		return
 	}
 }
