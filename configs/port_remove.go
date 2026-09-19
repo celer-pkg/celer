@@ -37,7 +37,7 @@ func (p Port) Remove(options RemoveOptions) error {
 
 			// Skip deps that have already been visited in the current
 			// top-level command. Cascade-removing them here would force a
-			// rebuild later when prepareTmpDeps needs the package — every
+			// rebuild later when stagingDepsFiles needs the package — every
 			// shared dep would otherwise be rebuilt once per parent.
 			if _, alreadyVisited := visitedPorts[port.visitedKey()]; alreadyVisited {
 				return nil

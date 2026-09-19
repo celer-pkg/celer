@@ -189,16 +189,16 @@ The following are fields and their descriptions:
 [[build_configs]]
   build_system = "meson"
   include_dirs = [
-    "${DEPS_DIR}/include/valgrind",
+    "${STAGING_DIR}/include/valgrind",
   ]
   lib_dirs = [
-    "${DEPS_DIR}/lib",
+    "${STAGING_DIR}/lib",
   ]
 ```
 
 - `include_dirs`: additional header search directories.
 - `lib_dirs`: additional library search directories.
-- Both fields support [expression variables](./article_expvars.md), including `${DEPS_DIR}` and `${DEV_DEPS_DIR}`.
+- Both fields support [expression variables](./article_expvars.md), including `${STAGING_DIR}` and `${DEV_STAGING_DIR}`.
 - Platform-specific directories can be appended with `include_dirs_windows`, `include_dirs_linux`, `include_dirs_darwin`, and the corresponding `lib_dirs_*` fields.
 
 Currently supported build systems and mappings:

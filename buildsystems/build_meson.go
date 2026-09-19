@@ -251,7 +251,9 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 	fmt.Fprintf(&buffers, "\n[binaries]\n")
 
 	// For host machine and target compilation.
-	pkgconfPath := filepath.Join(m.PortConfig.StagingRootDir, m.PortConfig.HostName+"-dev", "bin", "pkgconf")
+	targetDir := filepath.Join(m.PortConfig.StagingDir, m.PortConfig.LibraryDir)
+	devTargetDir := filepath.Join(m.PortConfig.StagingDir, m.PortConfig.HostName+"-dev")
+	pkgconfPath := filepath.Join(devTargetDir, "bin", "pkgconf")
 	if fileio.PathExists(pkgconfPath) && m.PortConfig.LibName != "pkgconf" {
 		fmt.Fprintf(&buffers, "pkgconfig = '%s'\n", filepath.ToSlash(pkgconfPath))
 		fmt.Fprintf(&buffers, "pkg-config = '%s'\n", filepath.ToSlash(pkgconfPath))
@@ -312,9 +314,7 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 
 		// Set CMAKE_PREFIX_PATH for CMake-based dependency detection,
 		// This prevents CMake from finding host system libraries.
-		cmakePrefixPaths := []string{
-			filepath.ToSlash(filepath.Join(m.PortConfig.StagingRootDir, m.PortConfig.LibraryDir)),
-		}
+		cmakePrefixPaths := []string{filepath.ToSlash(targetDir)}
 		for _, libDir := range rootfs.GetLibDirs() {
 			cmakePrefixPaths = append(cmakePrefixPaths, filepath.ToSlash(filepath.Join(sysrootDir, libDir)))
 		}
@@ -350,9 +350,8 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 	}
 
 	// Allow meson to locate libraries of dependencies FIRST (before sysroot).
-	depDir := filepath.Join(m.PortConfig.StagingRootDir, m.PortConfig.LibraryDir)
-	m.appendIncludeArgs(&includeArgs, filepath.Join(depDir, "include"))
-	m.appendLinkArgs(&linkArgs, filepath.Join(depDir, "lib"))
+	m.appendIncludeArgs(&includeArgs, filepath.Join(targetDir, "include"))
+	m.appendLinkArgs(&linkArgs, filepath.Join(targetDir, "lib"))
 
 	if rootfs != nil {
 		for _, item := range rootfs.GetIncludeDirs() {
@@ -443,10 +442,10 @@ func (m meson) generateNativeFile() (string, error) {
 	var buffers bytes.Buffer
 
 	// dev_dependencies' .pc files use absolute paths (not sysroot-relative).
-	tmpDevDir := filepath.Join(m.PortConfig.StagingRootDir, m.PortConfig.HostName+"-dev")
+	devTargetDir := filepath.Join(m.PortConfig.StagingDir, m.PortConfig.HostName+"-dev")
 	devPkgConfigPaths := []string{
-		filepath.Join(tmpDevDir, "lib", "pkgconfig"),
-		filepath.Join(tmpDevDir, "share", "pkgconfig"),
+		filepath.Join(devTargetDir, "lib", "pkgconfig"),
+		filepath.Join(devTargetDir, "share", "pkgconfig"),
 	}
 
 	fmt.Fprintf(&buffers, "[binaries]\n")
@@ -470,7 +469,7 @@ func (m meson) generateNativeFile() (string, error) {
 	// pkg-config wrapper that includes dev dependencies' pkg-config paths.
 	// This wrapper is used by meson to find build-time dependencies.
 	// For native build, we need to search system paths for system libraries.
-	pkgconfPath := filepath.Join(m.PortConfig.StagingRootDir, m.PortConfig.HostName+"-dev", "bin", "pkgconf")
+	pkgconfPath := filepath.Join(devTargetDir, "bin", "pkgconf")
 	if fileio.PathExists(pkgconfPath) {
 		wrapperContent := fmt.Sprintf(`#!/bin/bash
 	export PKG_CONFIG_PATH="%s"
@@ -506,7 +505,7 @@ func (m meson) generateNativeFile() (string, error) {
 	// Add dev dependencies' include directory to native file's built-in options.
 	// This is needed for build-time tools (e.g., wayland-scanner) that need to find headers from dev dependencies.
 	// Meson should use pkg-config for dependencies, but we explicitly add the include path for build-time tools.
-	devIncludeDir := filepath.Join(tmpDevDir, "include")
+	devIncludeDir := filepath.Join(devTargetDir, "include")
 
 	if fileio.PathExists(devIncludeDir) {
 		m.appendIncludeArgs(&cArgs, devIncludeDir)
@@ -525,8 +524,8 @@ func (m meson) generateNativeFile() (string, error) {
 		m.appendLinkArgs(&linkArgs, libDir)
 	}
 
-	devLibDir := filepath.Join(tmpDevDir, "lib")
-	devLib64Dir := filepath.Join(tmpDevDir, "lib64")
+	devLibDir := filepath.Join(devTargetDir, "lib")
+	devLib64Dir := filepath.Join(devTargetDir, "lib64")
 	if fileio.PathExists(devLibDir) {
 		m.appendLinkArgs(&linkArgs, devLibDir)
 	}
@@ -608,7 +607,7 @@ func (m meson) appendLinkArgs(linkArgs *[]string, linkDir string) {
 }
 
 func (m meson) pythonPath() (string, error) {
-	tmpDevPython := filepath.Join(m.PortConfig.StagingRootDir, m.PortConfig.HostName+"-dev", "bin", "python3")
+	tmpDevPython := filepath.Join(m.PortConfig.StagingDir, m.PortConfig.HostName+"-dev", "bin", "python3")
 	if fileio.PathExists(tmpDevPython) {
 		return tmpDevPython, nil
 	}

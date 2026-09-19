@@ -122,11 +122,11 @@ func (b *BuildConfig) setupEnvs() {
 			))
 		}
 
-		tmpDevDir := filepath.Join(b.PortConfig.StagingRootDir, b.PortConfig.HostName+"-dev")
+		devTargetDir := filepath.Join(b.PortConfig.StagingDir, b.PortConfig.HostName+"-dev")
 
 		// Set ACLOCAL_PATH for aclocal to find third-party m4 files
 		// (e.g. libtool.m4 from libtool, xorg-macros.m4 from macros).
-		aclocalDir := filepath.Join(tmpDevDir, "share", "aclocal")
+		aclocalDir := filepath.Join(devTargetDir, "share", "aclocal")
 		if fileio.PathExists(aclocalDir) {
 			aclocalDirs := env.JoinPaths("ACLOCAL_PATH", aclocalDir)
 			b.envBackup.setenv("ACLOCAL_PATH", aclocalDirs)
@@ -137,15 +137,15 @@ func (b *BuildConfig) setupEnvs() {
 		// produces no output, causing "no proper invocation of AM_INIT_AUTOMAKE" errors.
 		// Only set when not explicitly configured (e.g. AUTOCONF=: in port.toml to skip
 		// regenerating shipped files).
-		autoconfBin := filepath.Join(tmpDevDir, "bin", "autoconf")
+		autoconfBin := filepath.Join(devTargetDir, "bin", "autoconf")
 		if os.Getenv("AUTOCONF") == "" && fileio.PathExists(autoconfBin) {
 			b.envBackup.setenv("AUTOCONF", autoconfBin)
 		}
 
 		// autom4te embeds an absolute M4 path at configure time (often under a
-		// per-build tmp/deps staging dir). Override with the staging m4 so
+		// per-build staging dir). Override with the staging m4 so
 		// prepared autoconf packages stay relocatable across unique tmp dirs.
-		m4Bin := filepath.Join(tmpDevDir, "bin", "m4")
+		m4Bin := filepath.Join(devTargetDir, "bin", "m4")
 		if runtime.GOOS == "windows" {
 			m4Bin += ".exe"
 		}
@@ -160,7 +160,7 @@ func (b *BuildConfig) setupEnvs() {
 		}
 
 		// Expose host-side dev tools to PATH.
-		b.envBackup.setenv("PATH", env.JoinPaths("PATH", filepath.Join(tmpDevDir, "bin")))
+		b.envBackup.setenv("PATH", env.JoinPaths("PATH", filepath.Join(devTargetDir, "bin")))
 
 		b.setLanguageStandard() // C/C++ standard.
 		b.setEnvFlags()         // Set CFLGAGS/CXXFLAGS/LDFLAGS.
@@ -184,7 +184,7 @@ func (b BuildConfig) setupPkgConfig() {
 	)
 
 	rootfs := b.Ctx.Platform().GetRootFS()
-	tmpDepsDir := filepath.Join(b.PortConfig.StagingRootDir, b.PortConfig.LibraryDir)
+	targetDir := filepath.Join(b.PortConfig.StagingDir, b.PortConfig.LibraryDir)
 	hostBuild := b.DevDep || b.HostDev
 
 	switch runtime.GOOS {
@@ -193,19 +193,19 @@ func (b BuildConfig) setupPkgConfig() {
 			// For meson in windows, we use windows version pkgconf,
 			// so we need to provider with windows format path.
 			configPaths = []string{
-				filepath.Join(tmpDepsDir, "lib", "pkgconfig"),
-				filepath.Join(tmpDepsDir, "share", "pkgconfig"),
+				filepath.Join(targetDir, "lib", "pkgconfig"),
+				filepath.Join(targetDir, "share", "pkgconfig"),
 			}
 
-			sysrootDir = tmpDepsDir
+			sysrootDir = targetDir
 			pathDivider = ";"
 		} else {
 			configPaths = []string{
-				fileio.ToCygpath(filepath.Join(tmpDepsDir, "lib", "pkgconfig")),
-				fileio.ToCygpath(filepath.Join(tmpDepsDir, "share", "pkgconfig")),
+				fileio.ToCygpath(filepath.Join(targetDir, "lib", "pkgconfig")),
+				fileio.ToCygpath(filepath.Join(targetDir, "share", "pkgconfig")),
 			}
 
-			sysrootDir = fileio.ToCygpath(tmpDepsDir)
+			sysrootDir = fileio.ToCygpath(targetDir)
 			pathDivider = ":"
 		}
 
@@ -221,18 +221,15 @@ func (b BuildConfig) setupPkgConfig() {
 
 			pathDivider = ":"
 
-			// Use actual tmpDepsDir path (not sysroot symlink) for pkgconfig to ensure correct library paths
-			tmpDepsDir := filepath.Join(b.PortConfig.StagingRootDir, b.PortConfig.LibraryDir)
-
-			// Prepend pkgconfig with actual tmp/deps directory (not sysroot symlink) to prioritize it.
+			// Prepend pkgconfig with the actual staging dir (not the sysroot symlink) to prioritize it.
 			configPaths = append([]string{
-				filepath.Join(tmpDepsDir, "lib", "pkgconfig"),
-				filepath.Join(tmpDepsDir, "share", "pkgconfig"),
+				filepath.Join(targetDir, "lib", "pkgconfig"),
+				filepath.Join(targetDir, "share", "pkgconfig"),
 			}, configPaths...)
 		} else {
 			configPaths = []string{
-				filepath.Join(tmpDepsDir, "lib", "pkgconfig"),
-				filepath.Join(tmpDepsDir, "share", "pkgconfig"),
+				filepath.Join(targetDir, "lib", "pkgconfig"),
+				filepath.Join(targetDir, "share", "pkgconfig"),
 			}
 
 			// In this case, there is no rootfs and the pc prefix would be `/`,
@@ -251,12 +248,12 @@ func (b BuildConfig) setupPkgConfig() {
 
 // setupLDLibraryPath Keep host-side dev tool runtimes resolvable before any helper process starts.
 // This is especially important for Python extensions and other host tools that
-// link against libraries from tmp/deps/<host>-dev/lib.
+// link against libraries from <staging>/<host>-dev/lib.
 func (b BuildConfig) setupRuntimePath() {
-	tmpDevDir := filepath.Join(b.PortConfig.StagingRootDir, b.PortConfig.HostName+"-dev")
+	devTargetDir := filepath.Join(b.PortConfig.StagingDir, b.PortConfig.HostName+"-dev")
 	for _, devLibDir := range []string{
-		filepath.Join(tmpDevDir, "lib"),
-		filepath.Join(tmpDevDir, "lib64"),
+		filepath.Join(devTargetDir, "lib"),
+		filepath.Join(devTargetDir, "lib64"),
 	} {
 		if !fileio.PathExists(devLibDir) {
 			continue
@@ -276,13 +273,13 @@ func (b BuildConfig) setupPythonEnvs() {
 	b.envBackup.setenv("PYTHONUSERBASE", dirs.PythonUserBase)
 
 	// Set PYTHONPATH so build-time Python scripts can
-	// find packages in INSTALLED_DIR (tmp/deps) and the venv.
+	// find packages in the staging dir and the venv.
 	if buildtools.PythonTool != nil {
 		sitePackage := buildtools.PythonTool.SitePackagesDir()
-		installedDir := filepath.Join(b.PortConfig.StagingRootDir, b.PortConfig.LibraryDir)
+		targetDir := filepath.Join(b.PortConfig.StagingDir, b.PortConfig.LibraryDir)
 		venvDir := buildtools.PythonTool.VenvDir()
 		paths := []string{
-			filepath.Join(installedDir, sitePackage),
+			filepath.Join(targetDir, sitePackage),
 			filepath.Join(venvDir, sitePackage),
 		}
 		b.envBackup.setenv("PYTHONPATH", env.JoinPaths("PYTHONPATH", paths...))
@@ -378,7 +375,7 @@ func (b *BuildConfig) setLanguageStandard() {
 
 func (b *BuildConfig) setEnvFlags() {
 	rootfs := b.Ctx.Platform().GetRootFS()
-	tmpDepsDir := filepath.Join(b.PortConfig.StagingRootDir, b.PortConfig.LibraryDir)
+	targetDir := filepath.Join(b.PortConfig.StagingDir, b.PortConfig.LibraryDir)
 	hostBuild := b.DevDep || b.HostDev
 
 	// sysroot and tmp dir.
@@ -388,7 +385,7 @@ func (b *BuildConfig) setEnvFlags() {
 		b.envBackup.setenv("SYSROOT", sysrootDir)
 
 		// Update CFLAGS/CXXFLAGS
-		b.appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
+		b.appendIncludeDir(filepath.Join(targetDir, "include"))
 		for _, item := range rootfs.GetIncludeDirs() {
 			includeDir := filepath.Join(sysrootDir, item)
 			b.appendIncludeDir(includeDir)
@@ -396,7 +393,7 @@ func (b *BuildConfig) setEnvFlags() {
 
 		// Update LDFLAGS
 		// Add dependency lib dir first (so it takes higher priority than sysroot lib dirs).
-		b.appendLibDir(filepath.Join(tmpDepsDir, "lib"))
+		b.appendLibDir(filepath.Join(targetDir, "lib"))
 
 		// Add sysroot lib dirs.
 		for _, item := range rootfs.GetLibDirs() {
@@ -407,8 +404,8 @@ func (b *BuildConfig) setEnvFlags() {
 		}
 	} else {
 		// Update CFLAGS/CXXFLAGS/LDFLAGS
-		b.appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
-		b.appendLibDir(filepath.Join(tmpDepsDir, "lib"))
+		b.appendIncludeDir(filepath.Join(targetDir, "include"))
+		b.appendLibDir(filepath.Join(targetDir, "lib"))
 	}
 
 	// Convert "include_dirs" and "lib_dirs" into CFLAGS/CXXFLAGS/LDFLAGS for makefiles.
@@ -442,9 +439,9 @@ func (b *BuildConfig) appendIncludeDir(includeDir string) {
 		cflags := strings.Fields(os.Getenv("CFLAGS"))
 		cxxflags := strings.Fields(os.Getenv("CXXFLAGS"))
 
-		// Check if this is a dependency include dir (tmpDeps/include) - if so, prepend it.
-		tmpDepsPrefix := filepath.Join(b.PortConfig.StagingRootDir, b.PortConfig.LibraryDir)
-		isDepsIncludeDir := strings.Contains(includeDir, tmpDepsPrefix)
+		// Check if this is a dependency include dir (tmp/staging-xxx/include) - if so, prepend it.
+		targetDir := filepath.Join(b.PortConfig.StagingDir, b.PortConfig.LibraryDir)
+		isDepsIncludeDir := strings.Contains(includeDir, targetDir)
 
 		// Append include dir if not exists.
 		// Prepend dependency include dir flags to prioritize them.
@@ -522,9 +519,9 @@ func (b *BuildConfig) appendLibDir(libDir string) {
 		// -Wl,-rpath-link, used to specify the directory that libraries looking for indirectly.
 		rpathlinkFlag := "-Wl,-rpath-link," + libDir
 
-		// Check if this is a dependency lib dir (tmpDeps/lib) - if so, prepend it.
-		tmpDepsPrefix := filepath.Join(b.PortConfig.StagingRootDir, b.PortConfig.LibraryDir)
-		isDepsLibDir := strings.Contains(libDir, tmpDepsPrefix)
+		// Check if this is a dependency lib dir (tmp/staging-xxx/lib) - if so, prepend it.
+		targetDir := filepath.Join(b.PortConfig.StagingDir, b.PortConfig.LibraryDir)
+		isDepsLibDir := strings.Contains(libDir, targetDir)
 
 		// Prepend dependency lib dir flags to prioritize them.
 		var newAppended = false
