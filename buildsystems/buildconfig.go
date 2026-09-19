@@ -462,8 +462,9 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archiveName string, depth int) (err
 			// Archive sources under buildtrees are tracked as local git repos for
 			// local-change detection in install flow. Delay init until after any
 			// generated files (e.g. prebuilt CMakeLists) are created.
-			// For prebuilt library, there's no need to init as local repo, since it'll be removed after installation.
-			trackArchiveAsLocalRepo = fileio.IsSubPath(dirs.BuildtreesDir, b.PortConfig.RepoDir) && b.buildSystem.Name() != "prebuilt"
+			// Prebuilt sources are tracked as well: restoring from the repo cache
+			// already creates a local repo for them, so keep the behaviour uniform.
+			trackArchiveAsLocalRepo = fileio.IsSubPath(dirs.BuildtreesDir, b.PortConfig.RepoDir)
 		}
 	}
 

@@ -23,6 +23,7 @@ type installCmd struct {
 	dev            bool
 	force          bool
 	recursive      bool
+	cleanSource    bool
 	jobs           int
 	verbose        bool
 	jobsChanged    bool
@@ -50,17 +51,20 @@ FEATURES:
   • Version conflict checking
 
 FLAGS:
-  -d, --dev         Install as development dependency
-  -f, --force       Force reinstallation (uninstall first if exists)
-  -r, --recursive   With --force, recursively reinstall dependencies
-  -j, --jobs        Number of parallel build jobs (default: system cores)
-  -v, --verbose     Enable verbose output for debugging
+  -d, --dev          Install as development dependency
+  -f, --force        Force reinstallation (uninstall first if exists)
+      --clean-source With --force, also reset the source repo (discards
+                     uncommitted changes).
+  -r, --recursive    With --force, recursively reinstall dependencies
+  -j, --jobs         Number of parallel build jobs (default: system cores)
+  -v, --verbose      Enable verbose output for debugging
 
 EXAMPLES:
   celer install opencv@4.8.0
   celer install opencv@4.8.0 eigen@3.4.0
   celer install --dev gtest@1.12.1
   celer install --force --recursive boost@1.82.0
+  celer install --force --clean-source opencv@4.8.0
   celer install --jobs=8 --verbose opencv@4.8.0`,
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -76,6 +80,7 @@ EXAMPLES:
 	flags.BoolVarP(&i.dev, "dev", "d", false, "install in dev mode.")
 	flags.BoolVarP(&i.force, "force", "f", false, "try to uninstall before installation.")
 	flags.BoolVarP(&i.recursive, "recursive", "r", false, "combine with --force, recursively reinstall dependencies.")
+	flags.BoolVarP(&i.cleanSource, "clean-source", "", false, "combine with --force, also reset the source repo (discards uncommitted changes).")
 	flags.IntVarP(&i.jobs, "jobs", "j", i.celer.Jobs(), "the number of jobs to run in parallel.")
 	flags.BoolVarP(&i.verbose, "verbose", "v", false, "verbose detail information.")
 
@@ -183,8 +188,9 @@ func (i *installCmd) install(nameVersion string) error {
 
 	// Do install.
 	options := configs.InstallOptions{
-		Force:     i.force,
-		Recursive: i.recursive,
+		Force:       i.force,
+		Recursive:   i.recursive,
+		CleanSource: i.cleanSource,
 	}
 	fromWhere, err := port.Install(options)
 	if err != nil {
@@ -208,6 +214,10 @@ func (i *installCmd) install(nameVersion string) error {
 }
 
 func (i *installCmd) overrideFlags() error {
+	if i.cleanSource && !i.force {
+		return fmt.Errorf("--clean-source must be used together with --force")
+	}
+
 	if i.jobsChanged {
 		if i.jobs <= 0 {
 			return fmt.Errorf("--jobs must be greater than 0")
@@ -267,6 +277,7 @@ func (i *installCmd) completion(cmd *cobra.Command, args []string, toComplete st
 	commands := []string{
 		"--dev", "-d",
 		"--force", "-f",
+		"--clean-source",
 		"--recursive", "-r",
 		"--jobs", "-j",
 		"--verbose", "-v",

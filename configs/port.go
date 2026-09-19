@@ -28,10 +28,11 @@ var (
 )
 
 type InstallOptions struct {
-	Force      bool
-	Recursive  bool
-	Prefer     InstallPrefer
-	StagingDir string
+	Force       bool
+	Recursive   bool
+	Prefer      InstallPrefer
+	StagingDir  string
+	CleanSource bool
 }
 
 type RemoveOptions struct {
