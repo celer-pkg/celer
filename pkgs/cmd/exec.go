@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"slices"
 	"strings"
 	"time"
 
@@ -71,24 +70,6 @@ func (e *executor) commandEnv() []string {
 		env = append(env, key+"="+value)
 	}
 	return env
-}
-
-// dedupEnv collapses duplicate keys to their last (effective) value, which is
-// the one os/exec passes to the process. Only used when logging, so the
-// recorded environment matches what the command actually sees.
-func (e *executor) dedupEnv(env []string) []string {
-	seen := make(map[string]bool, len(env))
-	deduped := make([]string, 0, len(env))
-	for _, e := range slices.Backward(env) {
-		key, _, _ := strings.Cut(e, "=")
-		if seen[key] {
-			continue
-		}
-		seen[key] = true
-		deduped = append(deduped, e)
-	}
-	slices.Reverse(deduped)
-	return deduped
 }
 
 // SetWorkDir sets the working directory for command execution.
@@ -175,10 +156,9 @@ func (e *executor) createLogFile(cmd *exec.Cmd) (*os.File, error) {
 		return nil, fmt.Errorf("failed to create log file -> %w", err)
 	}
 
-	// Write environment variables, collapsing duplicates to the value os/exec
-	// actually uses so the log matches what the command sees.
+	// Print environment variables.
 	var buffer bytes.Buffer
-	for _, envVar := range e.dedupEnv(cmd.Env) {
+	for _, envVar := range cmd.Environ() {
 		fmt.Fprintf(&buffer, "%s\n", envVar)
 	}
 
