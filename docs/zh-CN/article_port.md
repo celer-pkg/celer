@@ -197,16 +197,16 @@
 [[build_configs]]
   build_system = "meson"
   include_dirs = [
-    "${DEPS_DIR}/include/valgrind",
+    "${STAGING_DIR}/include/valgrind",
   ]
   lib_dirs = [
-    "${DEPS_DIR}/lib",
+    "${STAGING_DIR}/lib",
   ]
 ```
 
 - `include_dirs`：额外头文件搜索目录。
 - `lib_dirs`：额外库文件搜索目录。
-- 两个字段都支持 `${DEPS_DIR}`、`${DEV_DEPS_DIR}` 等[动态变量](./article_expvars.md)。
+- 两个字段都支持 `${STAGING_DIR}`、`${DEV_STAGING_DIR}` 等[动态变量](./article_expvars.md)。
 - 也可以使用 `include_dirs_windows`、`include_dirs_linux`、`include_dirs_darwin` 和对应的 `lib_dirs_*` 字段追加平台专用目录。
 
 当前明确支持的构建系统及映射方式：

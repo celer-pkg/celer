@@ -20,39 +20,8 @@ var (
 	DownloadsDir     string // "downloads"
 	PythonUserBase   string // "PYTHONUSERBASE"
 	TmpDir           string // "tmp"
-	TmpFilesDir      string // "tmp/files"
-	TmpDepsDir       string // "tmp/deps"
 	TestPkgCacheDir  string // "pkg-cache"
 )
-
-func init() {
-	currentDir, err := os.Getwd()
-	if err != nil {
-		panic(fmt.Errorf("cannot get current dir -> %w", err))
-	}
-
-	// Find workspace dir from current dir.
-	workspaceDir := findWorkspaceRoot(currentDir)
-	Init(workspaceDir)
-}
-
-// findWorkspaceRoot walks up from startDir until it finds a directory
-// containing celer.toml. If not found, returns startDir unchanged.
-func findWorkspaceRoot(currentDir string) string {
-	dir := currentDir
-	for {
-		if _, err := os.Stat(filepath.Join(dir, "celer.toml")); err == nil {
-			return dir
-		}
-
-		// If reached root, fall back to original dir.
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			return currentDir
-		}
-		dir = parent
-	}
-}
 
 // Init initialize with specified workspace dir.
 func Init(workspaceDir string) {
@@ -67,8 +36,6 @@ func Init(workspaceDir string) {
 	DownloadsDir = filepath.Join(WorkspaceDir, "downloads")
 	PythonUserBase = filepath.Join(WorkspaceDir, ".venv")
 	TmpDir = filepath.Join(WorkspaceDir, "tmp")
-	TmpFilesDir = filepath.Join(WorkspaceDir, "tmp", "files")
-	TmpDepsDir = filepath.Join(WorkspaceDir, "tmp", "deps")
 	TestPkgCacheDir = filepath.Join(WorkspaceDir, "pkg-cache")
 }
 
@@ -102,18 +69,34 @@ func ParentDir(path string, levels int) string {
 	return path
 }
 
-// NewTmpFilesDir creates a unique timestamped directory under tmp/files and
+// NewTmpFilesDir creates a unique timestamped directory under tmp and
 // returns its path.
 func NewTmpFilesDir() (string, error) {
-	if err := os.MkdirAll(TmpFilesDir, os.ModePerm); err != nil {
-		return "", fmt.Errorf("cannot mkdir tmp files dir -> %w", err)
+	tmpRoot := filepath.Join(WorkspaceDir, "tmp")
+	if err := os.MkdirAll(tmpRoot, os.ModePerm); err != nil {
+		return "", fmt.Errorf("cannot mkdir tmp dir '%s' -> %w", tmpRoot, err)
 	}
 
-	// Timestamp prefix keeps task dirs sortable, the random suffix guarantees
-	// uniqueness even when two tasks get the same nanosecond.
-	dir, err := os.MkdirTemp(TmpFilesDir, fmt.Sprintf("%d-*", time.Now().UnixNano()))
+	// Create unique tmp files dir with nano timestamp.
+	dir, err := os.MkdirTemp(tmpRoot, fmt.Sprintf("files-%d-*", time.Now().UnixNano()))
 	if err != nil {
 		return "", fmt.Errorf("cannot create tmp files dir -> %w", err)
+	}
+	return dir, nil
+}
+
+// NewTmpStagingDir creates a unique timestamped directory under tmp and
+// returns its path.
+func NewTmpStagingDir(nameVersion string) (string, error) {
+	tmpRoot := filepath.Join(WorkspaceDir, "tmp")
+	if err := os.MkdirAll(tmpRoot, os.ModePerm); err != nil {
+		return "", fmt.Errorf("cannot mkdir tmp dir '%s' -> %w", tmpRoot, err)
+	}
+
+	// Create unique tmp staging dir with nano timestamp.
+	dir, err := os.MkdirTemp(tmpRoot, fmt.Sprintf("staging-%s-%d-*", nameVersion, time.Now().UnixNano()))
+	if err != nil {
+		return "", fmt.Errorf("cannot create tmp staging dir -> %w", err)
 	}
 	return dir, nil
 }
@@ -125,4 +108,33 @@ func RemoveAllForTest() {
 	os.RemoveAll(PackagesDir)
 	os.RemoveAll(InstalledDir)
 	os.RemoveAll(BuildtreesDir)
+}
+
+func init() {
+	currentDir, err := os.Getwd()
+	if err != nil {
+		panic(fmt.Errorf("cannot get current dir -> %w", err))
+	}
+
+	// Find workspace dir from current dir.
+	workspaceDir := findWorkspaceRoot(currentDir)
+	Init(workspaceDir)
+}
+
+// findWorkspaceRoot walks up from startDir until it finds a directory
+// containing celer.toml. If not found, returns startDir unchanged.
+func findWorkspaceRoot(currentDir string) string {
+	dir := currentDir
+	for {
+		if _, err := os.Stat(filepath.Join(dir, "celer.toml")); err == nil {
+			return dir
+		}
+
+		// If reached root, fall back to original dir.
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return currentDir
+		}
+		dir = parent
+	}
 }

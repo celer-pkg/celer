@@ -114,7 +114,10 @@ func TestInstall_Generate_CMake_Config_Interface(t *testing.T) {
 	check(err)
 
 	// Build test project.
-	buildDir := filepath.Join(dirs.TmpFilesDir, "build_cmake_test")
+	tmpFilesDir, err := dirs.NewTmpFilesDir()
+	check(err)
+	t.Cleanup(func() { os.RemoveAll(tmpFilesDir) })
+	buildDir := filepath.Join(tmpFilesDir, "build_cmake_test")
 	check(os.RemoveAll(buildDir))
 	check(os.MkdirAll(buildDir, os.ModePerm))
 

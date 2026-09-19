@@ -28,10 +28,10 @@ var (
 )
 
 type InstallOptions struct {
-	Force          bool
-	Recursive      bool
-	Prefer         InstallPrefer
-	StagingRootDir string
+	Force      bool
+	Recursive  bool
+	Prefer     InstallPrefer
+	StagingDir string
 }
 
 type RemoveOptions struct {
@@ -230,7 +230,7 @@ func (p Port) Installed() (bool, error) {
 	// If a dependency was removed the parent's trace/meta still exist but the artifact is gone.
 	depsInstalled, err := p.checkDepsInstalled()
 	if err != nil {
-		return false, fmt.Errorf("failed to check depts installed for %s -> %w", p.NameVersion(), err)
+		return false, fmt.Errorf("failed to check deps installed for %s -> %w", p.NameVersion(), err)
 	}
 
 	return depsInstalled, nil

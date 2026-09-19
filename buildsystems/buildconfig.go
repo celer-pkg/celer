@@ -49,7 +49,7 @@ type PortConfig struct {
 	DevDep          bool     // whether dev dependency
 	HostDev         bool     // whether native build
 	PortFile        string   // the file path of port.toml
-	StagingRootDir  string   // per-port staging root under tmp/deps
+	StagingDir      string   // per-port staging dir under tmp
 
 	Ctx context.Context `toml:"-"`
 }
@@ -617,20 +617,6 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 	// Expand variables in options, like ${HOST}, ${SYSROOT} etc.
 	b.expandOptions()
 
-	// nobuild buildsystem do not have crosstool.
-	toolchain := b.Ctx.Platform().GetToolchain()
-	if toolchain != nil {
-		// Keep the host-side tool runtime closure isolated under tmp/deps for every
-		// build. Host-side tools must be prepared explicitly into tmp/deps instead of
-		// silently falling back to the installed directory.
-		devTmpDepsDir := filepath.Join(b.PortConfig.StagingRootDir, b.PortConfig.HostName+"-dev")
-
-		// Create parent directory if not exists
-		if err := os.MkdirAll(filepath.Dir(devTmpDepsDir), os.ModePerm); err != nil {
-			return fmt.Errorf("failed to create tmp deps parent dir -> %w", err)
-		}
-	}
-
 	// Apply patches.
 	if err := b.buildSystem.ApplyPatches(); err != nil {
 		return fmt.Errorf("patch %s -> %w", b.PortConfig.nameVersion(), err)
@@ -939,7 +925,7 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	var cflags, cxxflags, ldflags []string
 
 	// Set CFLAGS/CXXFLAGS/LDFLAGS.
-	tmpDepsDir := filepath.Join(b.PortConfig.StagingRootDir, b.PortConfig.LibraryDir)
+	targetDir := filepath.Join(b.PortConfig.StagingDir, b.PortConfig.LibraryDir)
 	var appendIncludeDir = func(includeDir string) {
 		includeDir = fileio.ToCygpath(includeDir)
 		includeFlag := "-I" + includeDir
@@ -968,18 +954,18 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	// sysroot and tmp dir.
 	if b.DevDep || b.HostDev {
 		// Append CFLAGS/CXXFLAGS/LDFLAGS
-		appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
-		appendLibDir(filepath.Join(tmpDepsDir, "lib"))
+		appendIncludeDir(filepath.Join(targetDir, "include"))
+		appendLibDir(filepath.Join(targetDir, "lib"))
 	} else if rootfs != nil {
 		// Update CFLAGS/CXXFLAGS
 		sysrootDir := rootfs.GetAbsDir()
-		appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
+		appendIncludeDir(filepath.Join(targetDir, "include"))
 		for _, dir := range rootfs.GetIncludeDirs() {
 			appendIncludeDir(filepath.Join(sysrootDir, dir))
 		}
 
 		// Append LDFLAGS
-		appendLibDir(filepath.Join(tmpDepsDir, "lib"))
+		appendLibDir(filepath.Join(targetDir, "lib"))
 		for _, dir := range rootfs.GetLibDirs() {
 			appendLibDir(filepath.Join(sysrootDir, dir))
 		}
@@ -995,8 +981,8 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 		pathDivider   string
 	)
 	configPaths = []string{
-		fileio.ToCygpath(filepath.Join(tmpDepsDir, "lib", "pkgconfig")),
-		fileio.ToCygpath(filepath.Join(tmpDepsDir, "share", "pkgconfig")),
+		fileio.ToCygpath(filepath.Join(targetDir, "lib", "pkgconfig")),
+		fileio.ToCygpath(filepath.Join(targetDir, "share", "pkgconfig")),
 	}
 	pathDivider = ":"
 

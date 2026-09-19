@@ -41,7 +41,7 @@ func TestCheckAbsPaths_WithViolation(t *testing.T) {
 	// does not derive paths from its own location → not relocatable.
 	content := `
 set_target_properties(mylib PROPERTIES
-  INTERFACE_LINK_LIBRARIES "/workspace/tmp/deps/lib/liblz4.so"
+  INTERFACE_LINK_LIBRARIES "/workspace/tmp/staging/lib/liblz4.so"
 )
 `
 	if err := os.WriteFile(filepath.Join(cmakeDir, "mylibTargets.cmake"), []byte(content), 0644); err != nil {
@@ -69,7 +69,7 @@ get_filename_component(_IMPORT_PREFIX "${_IMPORT_PREFIX}" PATH)
 
 set_target_properties(mylib PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
-  INTERFACE_LINK_LIBRARIES "/workspace/tmp/deps/aarch64/lib/liblz4.so"
+  INTERFACE_LINK_LIBRARIES "/workspace/tmp/staging/aarch64/lib/liblz4.so"
 )
 `
 	if err := os.WriteFile(filepath.Join(cmakeDir, "mylibTargets.cmake"), []byte(content), 0644); err != nil {
@@ -172,7 +172,7 @@ func TestCheckAbsPaths_ShareCmake(t *testing.T) {
 
 	content := `
 set_target_properties(mylib PROPERTIES
-  INTERFACE_LINK_LIBRARIES "/workspace/tmp/deps/lib/libfoo.so"
+  INTERFACE_LINK_LIBRARIES "/workspace/tmp/staging/lib/libfoo.so"
 )
 `
 	if err := os.WriteFile(filepath.Join(cmakeDir, "mylibConfig.cmake"), []byte(content), 0644); err != nil {

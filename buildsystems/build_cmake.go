@@ -173,15 +173,15 @@ func (c cmake) configureOptions() ([]string, error) {
 
 	// Override `CMAKE_FIND_ROOT_PATH` defined in toolchain file.
 	// For DevDep or HostDev (host tools), don't include rootfs to avoid finding target arch binaries.
-	tmpDepDir := filepath.Join(c.PortConfig.StagingRootDir, c.PortConfig.LibraryDir)
-	rootPaths := []string{filepath.ToSlash(tmpDepDir)}
+	targetDir := filepath.Join(c.PortConfig.StagingDir, c.PortConfig.LibraryDir)
+	rootPaths := []string{filepath.ToSlash(targetDir)}
 	if rootfs != nil && !c.BuildConfig.DevDep && !c.BuildConfig.HostDev {
 		rootPaths = append(rootPaths, rootfs.GetAbsDir())
 	}
-	tmpDepDevDir := filepath.Join(c.PortConfig.StagingRootDir, c.PortConfig.HostName+"-dev")
+	tmpTargetDir := filepath.Join(c.PortConfig.StagingDir, c.PortConfig.HostName+"-dev")
 	options = append(options, "-DCMAKE_FIND_ROOT_PATH="+strings.Join(rootPaths, ";"))
-	options = append(options, "-DTMP_DEP_DIR="+filepath.ToSlash(tmpDepDir))
-	options = append(options, "-DTMP_DEP_DEV_DIR="+filepath.ToSlash(tmpDepDevDir))
+	options = append(options, "-DTMP_DEP_DIR="+filepath.ToSlash(targetDir))
+	options = append(options, "-DTMP_DEP_DEV_DIR="+filepath.ToSlash(tmpTargetDir))
 
 	// Enable verbose makefile.
 	if c.Ctx.Verbose() {

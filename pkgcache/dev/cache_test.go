@@ -14,7 +14,7 @@ import (
 func newTestDevArtifactCache(t *testing.T) *DevArtifactCache {
 	t.Helper()
 
-	// Redirect workspace so TmpFilesDir is inside the sandbox.
+	// Redirect workspace so the tmp dirs are inside the sandbox.
 	oldWS := dirs.WorkspaceDir
 	tmpWS := t.TempDir()
 	dirs.Init(tmpWS)

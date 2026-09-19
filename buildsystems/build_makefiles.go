@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"slices"
@@ -152,7 +151,7 @@ func (m makefiles) configureOptions() ([]string, error) {
 	// Make assembler (nasm) from dev deps accessible to configure scripts
 	// running in MSYS2, which may not resolve Windows PATH entries properly.
 	if runtime.GOOS == "windows" && toolchainName == "clang" {
-		nasmPath := filepath.Join(m.PortConfig.StagingRootDir, "x86_64-windows-dev", "bin", "nasm.exe")
+		nasmPath := filepath.Join(m.PortConfig.StagingDir, m.PortConfig.HostName+"-dev", "bin", "nasm.exe")
 		if fileio.PathExists(nasmPath) {
 			options = append(options, "--x86asmexe="+fileio.ToCygpath(nasmPath))
 		}
@@ -234,30 +233,28 @@ func (m makefiles) Configure(options []string) error {
 		toolchain.SetEnvs(rootfs, m.Name(), m.Envs)
 	}
 
-	// If nasm is available in PATH (from dev_dependencies or system), use it instead of toolchain's AS.
-	// This is necessary because some projects (like x264) require nasm, not the toolchain's assembler (e.g., llvm-as)
-	// Note: nasm is always for x86_64 architecture, so we only set it for x86_64 builds.
-	processor := toolchain.GetSystemProcessor()
-	if strings.Contains(processor, "x86") || strings.Contains(processor, "amd64") {
-		var nasmPath string
-		// First, check if nasm is in dev dependencies (this ensures we use the correct architecture-specific nasm).
+	// Some projects (like x264) require nasm instead of the toolchain's assembler
+	// (e.g. llvm-as, which assembles LLVM IR and not x86 assembly). nasm is x86
+	// only, so this applies to x86 targets exclusively.
+	processor := strings.ToLower(strings.TrimSpace(toolchain.GetSystemProcessor()))
+	if strings.Contains(processor, "x86") || strings.Contains(processor, "amd64") || strings.HasPrefix(processor, "i686") {
+		// Only ports that declare nasm as a dev dependency need it; use the copy
+		// staged for the host so an unrelated system nasm is never picked up.
 		if slices.ContainsFunc(m.DevDependencies, func(element string) bool {
 			return strings.HasPrefix(element, "nasm@")
 		}) {
-			tmpDevDir := filepath.Join(m.PortConfig.StagingRootDir, m.PortConfig.HostName+"-dev")
-			devNasmPath := filepath.Join(tmpDevDir, "bin", "nasm")
-			if fileio.PathExists(devNasmPath) {
-				nasmPath = devNasmPath
+			devTargetDir := filepath.Join(m.PortConfig.StagingDir, m.PortConfig.HostName+"-dev")
+			nasmPath := filepath.Join(devTargetDir, "bin", expr.If(runtime.GOOS == "windows", "nasm.exe", "nasm"))
+			if !fileio.PathExists(nasmPath) {
+				return fmt.Errorf("nasm is declared in dev_dependencies of %s but not found at %s",
+					m.PortConfig.nameVersion(), nasmPath)
 			}
-		}
-		// If not found in dev dependencies, try to find nasm in PATH.
-		if nasmPath == "" {
-			if path, err := exec.LookPath("nasm"); err == nil {
-				nasmPath = path
+
+			// Set AS so configure/make use nasm instead of the toolchain assembler.
+			// MSYS2 cannot resolve native Windows paths, so convert it there.
+			if runtime.GOOS == "windows" {
+				nasmPath = fileio.ToCygpath(nasmPath)
 			}
-		}
-		// If nasm was found, set AS environment variable to use nasm instead of toolchain's AS.
-		if nasmPath != "" {
 			m.envBackup.setenv("AS", nasmPath)
 		}
 	}

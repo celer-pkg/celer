@@ -66,8 +66,8 @@
 | `${SRC_DIR}` | 当前端口 | 端口源码解压目录 |
 | `${BUILD_DIR}` | 当前端口 | 端口构建目录；Windows 上若启用 `shorten_build_folder`，此处可能为缩短后的哈希目录名 |
 | `${PACKAGE_DIR}` | 当前端口 | 端口打包输出目录 |
-| `${DEV_DEPS_DIR}` | workspace tmp deps | 主机构建工具依赖目录 |
-| `${DEPS_DIR}` | workspace tmp deps | 当前模式（dev/target）对应依赖目录 |
+| `${DEV_STAGING_DIR}` | 当前端口 | `<staging-root>/<host>-dev`；汇聚 `dev_dependencies`（主机构建工具） |
+| `${STAGING_DIR}` | 当前端口 | `<staging-root>/<platform>/<project>/<build_type>`，host / `dev_dependencies` 构建时为 `<staging-root>/<host>-dev`；汇聚 `dependencies`（运行时依赖库） |
 
 ## 变量替换生效位置
 

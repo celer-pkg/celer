@@ -453,8 +453,8 @@ func (b bazel) generateBazelrc(ccToolchainDir string) (string, error) {
 			}
 		}
 
-		// Dependency include/lib dirs (from tmp/deps, prepended to sysroot).
-		depDir := filepath.Join(b.PortConfig.StagingRootDir, b.PortConfig.LibraryDir)
+		// Dependency include/lib dirs (from the staging dir, prepended to sysroot).
+		depDir := filepath.Join(b.PortConfig.StagingDir, b.PortConfig.LibraryDir)
 		depInclude := filepath.ToSlash(filepath.Join(depDir, "include"))
 		depLib := filepath.ToSlash(filepath.Join(depDir, "lib"))
 
