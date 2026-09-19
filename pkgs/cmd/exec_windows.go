@@ -10,8 +10,8 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/logger"
 )
 
 // doExecute implements Windows specific command execution.
@@ -31,8 +31,8 @@ func (e *executor) doExecute(output io.Writer) error {
 
 	// Display execution info.
 	if e.title != "" {
-		color.Printf(color.Title, "\n%s\n", e.title)
-		color.Printf(color.Hint, "▶ %s\n", displayCmd)
+		logger.Printf(logger.Title, "\n%s\n", e.title)
+		logger.Printf(logger.Hint, "▶ %s\n", displayCmd)
 	}
 
 	// Verify and set working directory.

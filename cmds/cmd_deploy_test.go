@@ -397,7 +397,7 @@ func TestDeployCmd_Success(t *testing.T) {
 		"--snapshot="+snapshotPath,
 	)
 	if err != nil {
-		// stderr carries the real cause (color.PrintError pipes the message
+		// stderr carries the real cause (logger.PrintError pipes the message
 		// there, returns ErrSilent). Print it so transient git/network
 		// failures are debuggable without re-running.
 		t.Fatalf("deploy should succeed for project %s: %v\nstderr:\n%s", project, err, stderr)
