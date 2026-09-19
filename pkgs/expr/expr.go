@@ -62,7 +62,7 @@ func UpperFirst(text string) string {
 }
 
 // GetMinorVersion convert a version string to its major.minor part
-// (e.g. "5.11.13" -> "5.11", "1.11" -> "1.11"). 
+// (e.g. "5.11.13" -> "5.11", "1.11" -> "1.11").
 func GetMinorVersion(version string) string {
 	parts := strings.Split(version, ".")
 	if len(parts) >= 2 {

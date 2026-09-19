@@ -81,7 +81,7 @@ func (e *executor) buildMSYS2Command(displayCmd *string) *exec.Cmd {
 	cmd := exec.Command("bash", "-lc", strings.Join(args, " "))
 
 	// Configure MSYS2 environment variables.
-	cmd.Env = append(os.Environ(),
+	cmd.Env = append(e.commandEnv(),
 		"MSYSTEM=MINGW64",               // Use MinGW64 subsystem
 		"CHERE_INVOKING=1",              // Disable directory changing
 		"MSYS=winsymlinks:nativestrict", // Use native Windows symlinks
@@ -111,6 +111,6 @@ func (e *executor) buildNativeCommand(displayCmd *string) *exec.Cmd {
 		cmd = exec.Command(e.command, e.args...)
 	}
 
-	cmd.Env = os.Environ()
+	cmd.Env = e.commandEnv()
 	return cmd
 }

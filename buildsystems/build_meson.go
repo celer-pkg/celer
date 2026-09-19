@@ -464,7 +464,7 @@ func (m meson) generateNativeFile() (string, error) {
 
 	// Prepend dev dependencies paths before system paths so dev dependencies are found first
 	// This ensures that celer-installed tools (like wayland-scanner) take priority over system versions
-	allPaths := append(devPkgConfigPaths, systemPkgConfigPath)
+	mergedPaths := append(devPkgConfigPaths, systemPkgConfigPath)
 
 	// pkg-config wrapper that includes dev dependencies' pkg-config paths.
 	// This wrapper is used by meson to find build-time dependencies.
@@ -476,7 +476,7 @@ func (m meson) generateNativeFile() (string, error) {
 	unset PKG_CONFIG_SYSROOT_DIR
 	unset PKG_CONFIG_LIBDIR
 	exec %s "$@"
-	`, strings.Join(allPaths, ":"), pkgconfPath)
+	`, strings.Join(mergedPaths, ":"), pkgconfPath)
 
 		if err := os.WriteFile(wrapperPath, []byte(wrapperContent), 0755); err != nil {
 			return "", fmt.Errorf("failed to create pkg-config wrapper -> %w", err)

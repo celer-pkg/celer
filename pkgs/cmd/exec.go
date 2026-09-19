@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -16,14 +17,15 @@ import (
 
 // executor manages command execution with logging, environment configuration, and output routing.
 type executor struct {
-	msys2Env         bool     // Whether to execute in MSYS2 environment (Windows only)
-	title            string   // Execution title for display output
-	command          string   // Command to execute
-	args             []string // Command arguments
-	msvcEnvs         string   // MSVC environment setup string (Windows only)
-	workDir          string   // Working directory for command execution
-	logPath          string   // File path for execution logs
-	retryMaxAttempts int      // 0 = no retry (default)
+	msys2Env         bool              // Whether to execute in MSYS2 environment (Windows only)
+	title            string            // Execution title for display output
+	command          string            // Command to execute
+	args             []string          // Command arguments
+	msvcEnvs         string            // MSVC environment setup string (Windows only)
+	workDir          string            // Working directory for command execution
+	logPath          string            // File path for execution logs
+	retryMaxAttempts int               // 0 = no retry (default)
+	envs             map[string]string // Extra environment variables for this command only
 }
 
 // NewExecutor creates a new Executor with the given title, command, and arguments.
@@ -50,6 +52,43 @@ func (e *executor) MSYS2Env(msys2Env bool) *executor {
 func (e *executor) SetMSVCEnvs(msvcEnvs string) *executor {
 	e.msvcEnvs = msvcEnvs
 	return e
+}
+
+// SetEnv sets an extra environment variable for this command only. The value
+// replaces any value inherited from the parent process.
+func (e *executor) SetEnv(key, value string) *executor {
+	if e.envs == nil {
+		e.envs = make(map[string]string)
+	}
+	e.envs[key] = value
+	return e
+}
+
+// commandEnv returns the inherited process environment plus the per-command overrides.
+func (e *executor) commandEnv() []string {
+	env := os.Environ()
+	for key, value := range e.envs {
+		env = append(env, key+"="+value)
+	}
+	return env
+}
+
+// dedupEnv collapses duplicate keys to their last (effective) value, which is
+// the one os/exec passes to the process. Only used when logging, so the
+// recorded environment matches what the command actually sees.
+func (e *executor) dedupEnv(env []string) []string {
+	seen := make(map[string]bool, len(env))
+	deduped := make([]string, 0, len(env))
+	for _, e := range slices.Backward(env) {
+		key, _, _ := strings.Cut(e, "=")
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		deduped = append(deduped, e)
+	}
+	slices.Reverse(deduped)
+	return deduped
 }
 
 // SetWorkDir sets the working directory for command execution.
@@ -136,9 +175,10 @@ func (e *executor) createLogFile(cmd *exec.Cmd) (*os.File, error) {
 		return nil, fmt.Errorf("failed to create log file -> %w", err)
 	}
 
-	// Write environment variables.
+	// Write environment variables, collapsing duplicates to the value os/exec
+	// actually uses so the log matches what the command sees.
 	var buffer bytes.Buffer
-	for _, envVar := range cmd.Env {
+	for _, envVar := range e.dedupEnv(cmd.Env) {
 		fmt.Fprintf(&buffer, "%s\n", envVar)
 	}
 

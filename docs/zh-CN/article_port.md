@@ -86,6 +86,7 @@
 | build_tool | ❌ | 是否为"构建期工具"端口（如 m4、automake、libtool、autoconf）。设为 `true` 时始终本机编译、安装路径不含平台/项目/构建类型等层级目录，且仅在 Linux/Darwin 上构建 | `true` |
 | checksum | ❌ | 源码的 git commit hash 或者 压缩包的 sha-256 校验值。**配置了 checksum 的端口在 install 时优先从 pkgcache 拉取编译缓存，免去 clone 与编译**；若拉取失败则回退到 clone+编译 | `b6d328e9...` |
 | depth | ❌ | git 浅克隆深度，节省带宽。**仅当 ref 为分支或标签时生效**；ref 为 commit hash 时会被忽略（目标 commit 可能在任意分支上，必须拉取所有 ref 才能保证可达） | `1` |
+| ignore_lfs | ❌ | clone 时跳过 Git LFS 下载（设置 `GIT_LFS_SKIP_SMUDGE=1`），LFS 跟踪的文件保持为指针文件，不拉取实际内容 | `true` |
 | build_configs | ✅ | 构建配置数组，描述不同平台的构建方式 | 见下方示例 |
 | dev_dependencies | ❌ | 构建期所需工具（如 autoconf、nasm） | `autoconf@2.72` |
 
