@@ -18,6 +18,9 @@ celer install <name@version> [<name@version> ...] [flags]
 - 源码构建成功后会默认尝试写入 package-cache。
   仅当 `pkgcache.writable=true` 时会写入；若未配置缓存目录、缓存只读或源码在构建前已有人为改动，会跳过写入，不影响安装成功。
 - `--jobs` 与 `--verbose` 会覆盖本次命令的运行行为（对本次所有包生效）。
+- `--force` 只卸载包并清理构建缓存/日志，**不会动源码仓库**，因此本地未提交的改动会保留。
+  需要同时重置源码仓库时，配合 `--clean-source` 使用（会执行 `git reset --hard && git clean -ffdx`，
+  丢弃未提交的改动）。
 
 ## 命令选项
 
@@ -25,6 +28,7 @@ celer install <name@version> [<name@version> ...] [flags]
 |---------------|------|--------|--------------------------------------|
 | --dev         | -d   | 布尔   | 作为开发依赖安装                      |
 | --force       | -f   | 布尔   | 强制重装（如已安装则先移除）          |
+| --clean-source|      | 布尔   | 配合 `--force`，同时重置源码仓库（丢弃未提交改动） |
 | --recursive   | -r   | 布尔   | 结合重装语义，递归处理依赖            |
 | --jobs        | -j   | 整数   | 并行构建任务数                        |
 | --verbose     | -v   | 布尔   | 输出详细日志                          |
@@ -43,6 +47,9 @@ celer install pkgconf@2.4.3 --dev
 
 # 强制重装并递归处理依赖
 celer install ffmpeg@5.1.6 --force --recursive
+
+# 强制重装并重置源码仓库（会丢弃本地改动）
+celer install ffmpeg@5.1.6 --force --clean-source
 
 # 指定并行数
 celer install ffmpeg@5.1.6 --jobs=8

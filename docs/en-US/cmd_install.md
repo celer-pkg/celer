@@ -20,6 +20,10 @@ celer install <name@version> [<name@version> ...] [flags]
   cache is readonly, or source was already locally modified before build,
   cache storing is skipped without failing install.
 - `--jobs` and `--verbose` override install runtime behavior for this command run (all packages in it).
+- `--force` uninstalls the package and clears build cache/logs, but **never touches
+  the source repo**, so uncommitted local changes are preserved. Combine it with
+  `--clean-source` to also run `git reset --hard && git clean -ffdx` on the source
+  repo (this discards uncommitted changes).
 
 ## Command Options
 
@@ -27,6 +31,7 @@ celer install <name@version> [<name@version> ...] [flags]
 |---------------|-------|---------|------------------------------------------------------------|
 | --dev         | -d    | boolean | Install as dev dependency                                  |
 | --force       | -f    | boolean | Reinstall target (remove first if installed)              |
+| --clean-source|       | boolean | With `--force`, also reset the source repo (discards uncommitted changes) |
 | --recursive   | -r    | boolean | With force-style reinstall, include dependencies           |
 | --jobs        | -j    | integer | Parallel build jobs                                        |
 | --verbose     | -v    | boolean | Enable verbose output                                      |
@@ -45,6 +50,9 @@ celer install pkgconf@2.4.3 --dev
 
 # Force reinstall with dependencies
 celer install ffmpeg@5.1.6 --force --recursive
+
+# Force reinstall and reset the source repo (discards local changes)
+celer install ffmpeg@5.1.6 --force --clean-source
 
 # Install with custom parallelism
 celer install ffmpeg@5.1.6 --jobs=8

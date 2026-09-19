@@ -125,21 +125,26 @@ func (p *Port) Install(options InstallOptions) (fromWhere string, retErr error) 
 	// 2. children port with --force and -recursive
 	forceClear := options.Force && (p.Parent == "" || (p.Parent != "" && options.Recursive))
 
-	// Remove build cache and clean source repo when forcing install,
+	// Remove build cache and logs when forcing install. The source repo is only
+	// reset on explicit request (--clean-source), so uncommitted local changes
+	// are never discarded silently.
 	if forceClear {
 		// Remove installed port with its build cache, logs.
-		options := RemoveOptions{
+		if err := p.Remove(RemoveOptions{
 			Purge:      true,
-			Recursive:  options.Recursive,
 			BuildCache: true,
-		}
-		if err := p.Remove(options); err != nil {
+			Recursive:  options.Recursive,
+		}); err != nil {
 			return "", fmt.Errorf("failed to remove installed package -> %w", err)
 		}
 
-		// Clean source repo.
-		if err := p.MatchedConfig.Clean(); err != nil {
-			return "", fmt.Errorf("failed to clean repo before install -> %w", err)
+		if options.CleanSource {
+			if err := p.MatchedConfig.Clean(); err != nil {
+				return "", fmt.Errorf("failed to clean source repo -> %w", err)
+			}
+		} else if p.sourceRepoModified() {
+			logger.PrintWarning("%s's source repo has uncommitted changes, they are kept. "+
+				"Pass --clean-source to reset the repo.", p.NameVersion())
 		}
 	}
 
@@ -259,6 +264,23 @@ func (p Port) shouldSkipArtifactPkgCache() bool {
 	return p.DevDep || p.HostDep || p.sourceModified
 }
 
+// sourceRepoModified reports whether the port's source repo has uncommitted
+// changes. Only git-tracked sources can be inspected, so a repo without .git
+// (e.g. a prebuilt source not restored from the repo cache) reports false.
+func (p *Port) sourceRepoModified() bool {
+	repoDir := p.MatchedConfig.PortConfig.RepoDir
+	if !fileio.PathExists(filepath.Join(repoDir, ".git")) {
+		return false
+	}
+
+	modified, err := git.IsModified(repoDir)
+	if err != nil {
+		return false
+	}
+
+	return modified
+}
+
 // pkgCacheStoreSkipReason returns the reason the artifact pkgcache upload
 // should be skipped after a source build. Empty string means upload is OK.
 func (p *Port) pkgCacheStoreSkipReason() (string, error) {
@@ -266,9 +288,11 @@ func (p *Port) pkgCacheStoreSkipReason() (string, error) {
 		return "offline mode", nil
 	}
 
-	// Check if source modified, but for prebuilt library it's not managered by git.
-	if fileio.PathExists(p.MatchedConfig.PortConfig.RepoDir) && p.MatchedConfig.BuildSystem != "prebuilt" {
-		modified, err := git.IsModified(p.MatchedConfig.PortConfig.RepoDir)
+	// Check if source modified. Only git-tracked sources can be inspected: a
+	// prebuilt source that was never restored from the repo cache has no .git.
+	repoDir := p.MatchedConfig.PortConfig.RepoDir
+	if fileio.PathExists(filepath.Join(repoDir, ".git")) {
+		modified, err := git.IsModified(repoDir)
 		if err != nil {
 			return "", err
 		}
