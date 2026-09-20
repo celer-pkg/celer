@@ -448,7 +448,9 @@ func (c *Celer) CloneConf(url, branch string, force bool) error {
 		}
 	} else {
 		// Clone conf repo.
-		if err := git.CloneRepo("[clone conf repo]", "conf repo", url, branch, 0, confDir); err != nil {
+		if err := git.NewClone(url, branch, confDir).
+			IgnoreSubmodule(true).
+			Clone("[clone conf repo]", "conf repo"); err != nil {
 			return fmt.Errorf("clone conf repo -> %w", err)
 		}
 
@@ -551,7 +553,10 @@ func (c *Celer) clonePorts() error {
 			return err
 		}
 
-		if err := git.CloneRepo("[clone ports]", "ports repo", portsRepoUrl, defaultPortRepoBranch, 0, portsDir); err != nil {
+		// The ports repo is a plain config repository too, so never recurse into
+		// submodules (keeps the historic clone behaviour).
+		if err := git.NewClone(portsRepoUrl, defaultPortRepoBranch, portsDir).IgnoreSubmodule(true).
+			Clone("[clone ports]", "ports repo"); err != nil {
 			return err
 		}
 	}

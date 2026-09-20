@@ -78,6 +78,7 @@ The following are fields and their descriptions:
 | build_tool | Optional. Set to `true` for build-time tools (e.g. m4, automake, libtool, autoconf): always built natively, install path has no platform/project/buildType hierarchical directory segments, and only built on Linux/Darwin. |
 | checksum | Optional. Git commit hash of the source, or sha-256 of the archive. **A port with checksum is restored from the artifact pkgcache at install time, skipping clone and build**; falls back to clone+build if the cache miss. |
 | depth | Optional. Git shallow clone depth, saves bandwidth. **Only effective when ref is a branch or tag**; ignored when ref is a commit hash (the target commit may live on any branch, so all refs must be fetched to guarantee reachability). |
+| ignore_lfs | Optional. Skip Git LFS downloads during git clone by setting `GIT_LFS_SKIP_SMUDGE=1`; LFS-tracked files are left as pointer files instead of being fetched. |
 | build_configs | Array, describes how to build the library on different platforms. |
 | dev_dependencies | Array, tools required during build (e.g. autoconf, nasm). |
 

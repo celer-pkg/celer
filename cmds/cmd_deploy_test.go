@@ -196,7 +196,7 @@ func TestDeploy_Clone_ExistingRepo_ResetsToResolvedCommit(t *testing.T) {
 
 	// Clone the repo first so it already exists in RepoDir.
 	repoDir := filepath.Join(t.TempDir(), "src")
-	if err := git.CloneRepo("[test]", "test@1.0", repoUrl, "master", 0, repoDir); err != nil {
+	if err := git.NewClone(repoUrl, "master", repoDir).IgnoreSubmodule(true).Clone("[test]", "test@1.0"); err != nil {
 		t.Fatalf("initial clone failed: %v", err)
 	}
 
@@ -246,7 +246,7 @@ func TestDeploy_Clone_ExistingRepo_NoResolvedCommit_NoReset(t *testing.T) {
 
 	// Clone the repo first.
 	repoDir := filepath.Join(t.TempDir(), "src")
-	if err := git.CloneRepo("[test]", "test@1.0", repoUrl, "master", 0, repoDir); err != nil {
+	if err := git.NewClone(repoUrl, "master", repoDir).IgnoreSubmodule(true).Clone("[test]", "test@1.0"); err != nil {
 		t.Fatalf("initial clone failed: %v", err)
 	}
 
