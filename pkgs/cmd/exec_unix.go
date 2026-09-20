@@ -45,7 +45,7 @@ func (e *executor) doExecute(output io.Writer) error {
 	}
 
 	// Set up environment and stdin.
-	cmd.Env = os.Environ()
+	cmd.Env = e.commandEnv()
 	cmd.Stdin = os.Stdin
 
 	// Create and configure log file.
