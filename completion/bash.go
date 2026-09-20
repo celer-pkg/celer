@@ -192,7 +192,7 @@ func (b bash) unregisterRunCommand() error {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line != b.registerBinary {
-			buffer.WriteString(line + "\n")
+			fmt.Fprintf(&buffer, "%s\n", line)
 		}
 	}
 	if err := scanner.Err(); err != nil {

@@ -67,7 +67,7 @@ func TestInstall_x86_64_GCC_CUDA(t *testing.T) {
 		celer.BuildType())
 
 	executer := cmd.NewExecutor("configure test project", "cmake",
-		"-D", fmt.Sprintf("TMP_DEP_DIR=%s", installedDir),
+		"-D", fmt.Sprintf("STAGING_DIR=%s", installedDir),
 		"-D", fmt.Sprintf("CMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir),
 		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/cuda_test"),
 		"-B", buildDir,

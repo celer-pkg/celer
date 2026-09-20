@@ -180,8 +180,8 @@ func (c cmake) configureOptions() ([]string, error) {
 	}
 	tmpTargetDir := filepath.Join(c.PortConfig.StagingDir, c.PortConfig.HostName+"-dev")
 	options = append(options, "-DCMAKE_FIND_ROOT_PATH="+strings.Join(rootPaths, ";"))
-	options = append(options, "-DTMP_DEP_DIR="+filepath.ToSlash(targetDir))
-	options = append(options, "-DTMP_DEP_DEV_DIR="+filepath.ToSlash(tmpTargetDir))
+	options = append(options, "-DSTAGING_DIR="+filepath.ToSlash(targetDir))
+	options = append(options, "-DDEV_STAGING_DIR="+filepath.ToSlash(tmpTargetDir))
 
 	// Enable verbose makefile.
 	if c.Ctx.Verbose() {
