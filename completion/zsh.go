@@ -169,9 +169,9 @@ func (z zsh) registerRunCommand() error {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line == z.registerBinary {
-			buffer.WriteString(line + "\n" + z.registerFpath + "\n\n")
+			fmt.Fprintf(&buffer, "%s\n%s\n\n", line, z.registerFpath)
 		} else {
-			buffer.WriteString(line + "\n")
+			fmt.Fprintf(&buffer, "%s\n", line)
 		}
 	}
 	if err := scanner.Err(); err != nil {
@@ -206,7 +206,7 @@ func (z zsh) unregisterRunCommand() error {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line != z.registerFpath {
-			buffer.WriteString(line + "\n")
+			fmt.Fprintf(&buffer, "%s\n", line)
 		}
 	}
 	if err := scanner.Err(); err != nil {
