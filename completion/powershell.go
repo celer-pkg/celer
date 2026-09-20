@@ -223,7 +223,7 @@ func (p powershell) unregisterRunCommand() error {
 		for scanner.Scan() {
 			line := scanner.Text()
 			if !strings.HasPrefix(line, p.registerBinary) {
-				buffer.WriteString(line + "\n")
+				fmt.Fprintf(&buffer, "%s\n", line)
 			}
 		}
 		if err := scanner.Err(); err != nil {

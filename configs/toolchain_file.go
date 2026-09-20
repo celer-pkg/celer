@@ -118,15 +118,15 @@ func (c *Celer) GenerateToolchainFile() error {
 func (c *Celer) preExposeInstalledDir(builder *strings.Builder, installedDir string) {
 	installedDevDir := fileio.ToRelPath(c.InstalledDevDir())
 
-	fmt.Fprintf(builder, "\n# Define TMP_DEP_DIR and TMP_DEP_DEV_DIR.\n")
-	fmt.Fprintf(builder, "if(DEFINED TMP_DEP_DIR)\n")
-	fmt.Fprintf(builder, "  set(INSTALLED_DIR \"${TMP_DEP_DIR}\")\n")
+	fmt.Fprintf(builder, "\n# Define STAGING_DIR and DEV_STAGING_DIR.\n")
+	fmt.Fprintf(builder, "if(DEFINED STAGING_DIR)\n")
+	fmt.Fprintf(builder, "  set(INSTALLED_DIR \"${STAGING_DIR}\")\n")
 	fmt.Fprintf(builder, "else()\n")
 	fmt.Fprintf(builder, "  set(INSTALLED_DIR %q)\n", installedDir)
 	fmt.Fprintf(builder, "endif()\n")
 
-	fmt.Fprintf(builder, "\nif(DEFINED TMP_DEP_DEV_DIR)\n")
-	fmt.Fprintf(builder, "  set(INSTALLED_DEV_DIR \"${TMP_DEP_DEV_DIR}\")\n")
+	fmt.Fprintf(builder, "\nif(DEFINED DEV_STAGING_DIR)\n")
+	fmt.Fprintf(builder, "  set(INSTALLED_DEV_DIR \"${DEV_STAGING_DIR}\")\n")
 	fmt.Fprintf(builder, "else()\n")
 	fmt.Fprintf(builder, "  set(INSTALLED_DEV_DIR %q)\n", installedDevDir)
 	fmt.Fprintf(builder, "endif()\n")
@@ -181,7 +181,7 @@ func (c *Celer) writePkgConfig(toolchain *strings.Builder) {
 	var (
 		configPaths   []string
 		configLibDirs []string
-		tmpDepDir     string
+		stagingDir    string
 	)
 
 	installedDir := filepath.Join("${WORKSPACE_DIR}/installed", c.LibraryFolder())
@@ -205,10 +205,10 @@ func (c *Celer) writePkgConfig(toolchain *strings.Builder) {
 			filepath.ToSlash(filepath.Join(installedDir, "lib", "pkgconfig")),
 			filepath.ToSlash(filepath.Join(installedDir, "share", "pkgconfig")),
 		}
-		tmpDepDir = filepath.ToSlash("${TMP_DEP_DIR}")
+		stagingDir = filepath.ToSlash("${STAGING_DIR}")
 
 	case "linux":
-		tmpDepDir = filepath.ToSlash("${TMP_DEP_DIR}")
+		stagingDir = filepath.ToSlash("${STAGING_DIR}")
 
 		// Target directory.
 		if c.RootFS() != nil {
@@ -227,8 +227,8 @@ func (c *Celer) writePkgConfig(toolchain *strings.Builder) {
 	writePathList("", "PKG_CONFIG_LIBDIR", configLibDirs)
 
 	tmpDepConfigPaths := []string{
-		filepath.ToSlash(filepath.Join(tmpDepDir, "lib", "pkgconfig")),
-		filepath.ToSlash(filepath.Join(tmpDepDir, "share", "pkgconfig")),
+		filepath.ToSlash(filepath.Join(stagingDir, "lib", "pkgconfig")),
+		filepath.ToSlash(filepath.Join(stagingDir, "share", "pkgconfig")),
 	}
 
 	configPaths = []string{
@@ -238,7 +238,7 @@ func (c *Celer) writePkgConfig(toolchain *strings.Builder) {
 
 	// All celer-generated .pc files use prefix=${pcfiledir}/../.. for self-relocation,
 	// so PKG_CONFIG_SYSROOT_DIR is not needed and would double-prefix paths.
-	fmt.Fprintf(toolchain, "if(DEFINED TMP_DEP_DIR)\n")
+	fmt.Fprintf(toolchain, "if(DEFINED STAGING_DIR)\n")
 	writePathList("  ", "PKG_CONFIG_PATH", tmpDepConfigPaths)
 	fmt.Fprintf(toolchain, "else()\n")
 	writePathList("  ", "PKG_CONFIG_PATH", configPaths)
@@ -269,16 +269,16 @@ func (c *Celer) writeCUDAConfig(toolchain *strings.Builder) {
 	installedRelDir := fileio.ToRelPath(c.InstalledDir())
 	nvccCMakePath := filepath.ToSlash(filepath.Join(installedRelDir, "bin", nvccName))
 
-	fmt.Fprintf(toolchain, "\nif(DEFINED TMP_DEP_DIR)\n")
+	fmt.Fprintf(toolchain, "\nif(DEFINED STAGING_DIR)\n")
 	fmt.Fprintf(toolchain, "  # CUDA compiler configuration.\n")
-	fmt.Fprintf(toolchain, `  set(CUDA_TOOLKIT_ROOT_DIR "${TMP_DEP_DIR}" CACHE INTERNAL "CUDA Toolkit root directory.")`+"\n")
-	fmt.Fprintf(toolchain, `  set(CUDAToolkit_ROOT "${TMP_DEP_DIR}" CACHE INTERNAL "CUDA Toolkit root directory.")`+"\n")
-	fmt.Fprintf(toolchain, `  set(CMAKE_CUDA_COMPILER "${TMP_DEP_DIR}/bin/%s" CACHE INTERNAL "CUDA compiler" FORCE)`+"\n", nvccName)
+	fmt.Fprintf(toolchain, `  set(CUDA_TOOLKIT_ROOT_DIR "${STAGING_DIR}" CACHE INTERNAL "CUDA Toolkit root directory.")`+"\n")
+	fmt.Fprintf(toolchain, `  set(CUDAToolkit_ROOT "${STAGING_DIR}" CACHE INTERNAL "CUDA Toolkit root directory.")`+"\n")
+	fmt.Fprintf(toolchain, `  set(CMAKE_CUDA_COMPILER "${STAGING_DIR}/bin/%s" CACHE INTERNAL "CUDA compiler" FORCE)`+"\n", nvccName)
 
 	if runtime.GOOS == "windows" {
-		fmt.Fprintf(toolchain, "\n  # Set CUDA toolset for Visual Studio generator (VS integration is in TMP_DEP_DIR).\n")
-		fmt.Fprintf(toolchain, `  set(CMAKE_GENERATOR_TOOLSET "cuda=${TMP_DEP_DIR}" CACHE INTERNAL "CUDA toolset for Visual Studio generator.")`+"\n")
-		fmt.Fprintf(toolchain, `  set(CMAKE_VS_PLATFORM_TOOLSET_CUDA "${TMP_DEP_DIR}" CACHE INTERNAL "CUDA toolset path for Visual Studio.")`+"\n")
+		fmt.Fprintf(toolchain, "\n  # Set CUDA toolset for Visual Studio generator (VS integration is in STAGING_DIR).\n")
+		fmt.Fprintf(toolchain, `  set(CMAKE_GENERATOR_TOOLSET "cuda=${TMP_STAGING_DIRDEP_DIR}" CACHE INTERNAL "CUDA toolset for Visual Studio generator.")`+"\n")
+		fmt.Fprintf(toolchain, `  set(CMAKE_VS_PLATFORM_TOOLSET_CUDA "${STAGING_DIR}" CACHE INTERNAL "CUDA toolset path for Visual Studio.")`+"\n")
 	}
 	fmt.Fprintf(toolchain, "else()\n")
 	fmt.Fprintf(toolchain, "  # CUDA compiler configuration.\n")
