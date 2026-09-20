@@ -49,6 +49,7 @@ type Package struct {
 	Archive         string `toml:"archive,omitempty"`
 	SrcDir          string `toml:"src_dir,omitempty"`
 	IgnoreSubmodule bool   `toml:"ignore_submodule,omitempty"`
+	IgnoreLFS       bool   `toml:"ignore_lfs,omitempty"`
 	BuildTool       bool   `toml:"build_tool,omitempty"`
 }
 

@@ -67,6 +67,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 		Url:             p.Package.Url,
 		Checksum:        p.Package.Checksum,
 		IgnoreSubmodule: p.Package.IgnoreSubmodule,
+		IgnoreLFS:       p.Package.IgnoreLFS,
 		ProjectName:     projectName,
 		HostName:        hostName,
 		SrcDir:          filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src"),
