@@ -14,6 +14,9 @@ import (
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
+// nmakeFileName is the Windows/MSVC makefile driven by nmake.
+const nmakeFileName = "Makefile.msc"
+
 func NewMakefiles(config *BuildConfig) *makefiles {
 	return &makefiles{
 		BuildConfig: config,
@@ -27,6 +30,50 @@ type makefiles struct {
 
 func (makefiles) Name() string {
 	return "makefiles"
+}
+
+// useNMake reports whether the project must be built with nmake from the
+// project-provided `Makefile.msc` instead of autoconf `configure` + POSIX make.
+func (m makefiles) useNMake() bool {
+	if runtime.GOOS != "windows" {
+		return false
+	}
+
+	// Projects with their own `Configure` script are handled by the perl path.
+	if m.shouldConfigureWithPerl() {
+		return false
+	}
+
+	switch m.Ctx.Platform().GetToolchain().GetName() {
+	case "msvc", "clang-cl":
+	default:
+		return false
+	}
+
+	return fileio.PathExists(filepath.Join(m.PortConfig.SrcDir, nmakeFileName))
+}
+
+// nmakeCommand assembles an nmake command line for a `Makefile.msc` project.
+//
+// nmake is a native Windows tool: it needs the MSVC environment (PATH/INCLUDE/LIB)
+// provided by vcvarsall.bat and, unlike the POSIX make path, must not run inside
+// the MSYS2 shell, since those makefiles use Windows-style paths and cl.exe
+// options.
+func (m makefiles) nmakeCommand(args ...string) string {
+	toolchain := m.Ctx.Platform().GetToolchain()
+	vcVars := toolchain.GetMSVC().VCVars
+
+	// nmake arguments (macros and targets) are space separated on one line.
+	nmakeFilePath := filepath.Join(m.PortConfig.SrcDir, nmakeFileName)
+	nmakeCmd := fmt.Sprintf(`nmake /f "%s" TOP=%s`, nmakeFilePath, m.PortConfig.SrcDir)
+	nmakeArgs := append([]string{nmakeCmd}, args...)
+
+	parts := []string{
+		fmt.Sprintf(`call "%s" x64 > nul`, vcVars),
+		strings.Join(nmakeArgs, " "),
+	}
+
+	return strings.Join(parts, " && ")
 }
 
 func (m *makefiles) CheckTools() []string {
@@ -214,9 +261,22 @@ func (m makefiles) configured() bool {
 }
 
 func (m makefiles) Configure(options []string) error {
+	// Create build dir if not exists.
+	if !m.BuildInSource {
+		if err := os.MkdirAll(m.PortConfig.BuildDir, os.ModePerm); err != nil {
+			return err
+		}
+	}
+
 	// Some libraries may not need to configure.
 	configureRequired := m.configureRequired()
 	if !configureRequired {
+		return nil
+	}
+
+	// `Makefile.msc` projects are configured on the nmake command line, which
+	// also handles the MSVC environment, so there is nothing to configure here.
+	if m.useNMake() {
 		return nil
 	}
 
@@ -259,13 +319,6 @@ func (m makefiles) Configure(options []string) error {
 		}
 	}
 
-	// Create build dir if not exists.
-	if !m.BuildInSource {
-		if err := os.MkdirAll(m.PortConfig.BuildDir, os.ModePerm); err != nil {
-			return err
-		}
-	}
-
 	configureWithPerl := m.shouldConfigureWithPerl()
 
 	// Find `configure` or `Configure`.
@@ -296,17 +349,28 @@ func (m makefiles) Configure(options []string) error {
 }
 
 func (m makefiles) buildOptions() ([]string, error) {
+	// A `Makefile.msc` project is driven entirely by the nmake command line,
+	// where `options` are nmake macros and targets (e.g. `NO_TCL=1 sqlite3.dll`)
+	// instead of configure flags.
+	if m.useNMake() {
+		return slices.Clone(m.Options), nil
+	}
+
 	return nil, nil
 }
 
 func (m makefiles) Build(options []string) error {
+	useNMake := m.useNMake()
 	configureWithPerl := m.shouldConfigureWithPerl()
 
 	// Assemble command.
 	var command string
-	if runtime.GOOS == "windows" && configureWithPerl {
+	switch {
+	case useNMake:
+		command = m.nmakeCommand(options...)
+	case runtime.GOOS == "windows" && configureWithPerl:
 		command = "nmake"
-	} else {
+	default:
 		command = fmt.Sprintf("make -j %d", m.PortConfig.Jobs)
 	}
 
@@ -323,7 +387,7 @@ func (m makefiles) Build(options []string) error {
 	executor.SetLogPath(m.getLogPath("build"))
 
 	// Use msys2 and msvc envs for Windows builds (only for autoconf projects).
-	if runtime.GOOS == "windows" && !configureWithPerl {
+	if runtime.GOOS == "windows" && !configureWithPerl && !useNMake {
 		executor.MSYS2Env(true)
 		executor.SetMSVCEnvs(m.msvcEnvs)
 	}
@@ -345,6 +409,13 @@ func (m makefiles) Install(options []string) error {
 	// This works for library like alsa-lib.
 	if err := m.disableLibtoolRelinkForInstall(); err != nil {
 		return err
+	}
+
+	// `Makefile.msc` projects usually only build artifacts and provide no
+	// portable `install` target (sqlite3, for example, has none), so installing
+	// them is delegated to the pre_install/post_install hooks of port.toml.
+	if m.useNMake() {
+		return nil
 	}
 
 	configureWithPerl := m.shouldConfigureWithPerl()
