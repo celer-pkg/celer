@@ -221,7 +221,8 @@ func (p *Port) mergeFromProject(index int, overrideConfig *buildsystems.BuildCon
 		"PreConfigure", "CustomConfigure", "PostConfigure",
 		"PreBuild", "CustomBuild", "PostBuild",
 		"PreInstall", "CustomInstall", "PostInstall",
-		"AutogenOptions", "Options", "DisableDevCache", "ShortenBuildFolder",
+		"AutogenOptions", "Options", "Vars",
+		"DisableDevCache", "ShortenBuildFolder",
 	}
 
 	for _, field := range fields {

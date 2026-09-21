@@ -69,6 +69,12 @@
 | `${DEV_STAGING_DIR}` | 当前端口 | `<staging-root>/<host>-dev`；汇聚 `dev_dependencies`（主机构建工具） |
 | `${STAGING_DIR}` | 当前端口 | `<staging-root>/<platform>/<project>/<build_type>`，host / `dev_dependencies` 构建时为 `<staging-root>/<host>-dev`；汇聚 `dependencies`（运行时依赖库） |
 
+## 端口局部变量（`vars`）
+
+`[[build_configs]]` 块可通过 `vars` 字段声明自己的 `KEY=VALUE` 变量，仅作用于当前
+build_config（不泄漏到兄弟配置、其他 port 或全局），用 `${KEY}` 引用，key 不得与
+已有变量重名。详见 [端口配置 — vars](./article_port.md#vars)。
+
 ## 变量替换生效位置
 
 - 平台 TOML 中 `toolchain.envs`。
