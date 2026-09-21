@@ -43,6 +43,7 @@ Let's look at an example port.toml file: **ports/glog/0.6.0/port.toml**:
   pre_configure       = [...]                 # optional field
   post_configure      = [...]                 # optional field
   pre_build           = [...]                 # optional field
+  vars                = [...]                 # optional field, KEY=VALUE pairs local to this build_config
   options             = [...]                 # optional field
   fix_build           = [...]                 # optional field
   post_build          = [...]                 # optional field
@@ -232,6 +233,25 @@ Currently supported build systems and mappings:
 ### autogen_options
 
 &emsp;&emsp;Optional, a few third-party libraries (e.g., NASM, Boost) require running **./autogen.sh** before configure. This field is used to specify the options to be passed to **./autogen.sh**.
+
+### vars
+
+&emsp;&emsp;Optional, default empty. A list of `KEY=VALUE` pairs declaring expression variables local to this `build_config`, so you can separate an option's *name* from its *value* and reference it via `${KEY}` in `options`/`envs`/hooks.
+
+```toml
+[[build_configs]]
+  build_system = "cmake"
+  vars = ["BUILD_EXAMPLES=OFF", "BUILD_UNITTESTS=OFF"]
+  options = [
+    "-DARGS_BUILD_EXAMPLES=${BUILD_EXAMPLES}",
+    "-DARGS_BUILD_UNITTESTS=${BUILD_UNITTESTS}",
+  ]
+```
+
+- Scoped to the declaring `build_config` — never leaks to sibling configs, other ports, or global.
+- Values may reference any already-defined variable (`${SRC_DIR}`, an earlier `vars` entry, ...); surrounding double quotes are stripped.
+- A key must not shadow an existing variable (built-in/global/project), nor repeat within the same `vars` list — rejected with an error.
+- Platform variants `vars_windows`/`vars_linux`/`vars_darwin` merge like `options`.
 
 ### dependencies
 

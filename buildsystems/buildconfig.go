@@ -296,6 +296,12 @@ type BuildConfig struct {
 	Options_Linux   []string `toml:"options_linux,omitempty"`
 	Options_Darwin  []string `toml:"options_darwin,omitempty"`
 
+	// Vars are KEY=VALUE and can only work in current build_config.
+	Vars         []string `toml:"vars,omitempty"`
+	Vars_Windows []string `toml:"vars_windows,omitempty"`
+	Vars_Linux   []string `toml:"vars_linux,omitempty"`
+	Vars_Darwin  []string `toml:"vars_darwin,omitempty"`
+
 	// Internal fields
 	Ctx         context.Context  `toml:"-"`
 	ExprVars    context.ExprVars `toml:"-"`
@@ -620,6 +626,13 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 	b.setupEnvs()
 	defer b.rollbackEnvs()
 
+	// Load port-local vars (KEY=VALUE)
+	// so options/envs can reference them via ${VAR}.
+	// Fails if a port var shadows an existing global/project variable.
+	if err := b.loadVars(); err != nil {
+		return fmt.Errorf("load vars %s -> %w", b.PortConfig.nameVersion(), err)
+	}
+
 	// Expand variables in options, like ${HOST}, ${SYSROOT} etc.
 	b.expandOptions()
 
@@ -859,6 +872,41 @@ func (b BuildConfig) parseBuildSystem(value string) (name, version string, hasVe
 	}
 
 	return name, version, hasVersion, nil
+}
+
+// loadVars parses the build config's KEY=VALUE vars into a clone of ExprVars,
+// so options/envs/hooks can reference them via ${VAR}.
+func (b *BuildConfig) loadVars() error {
+	if len(b.Vars) == 0 {
+		return nil
+	}
+
+	// Work on a clone so partial population never mutates the shared
+	// port-level ExprVars. A conflict leaves the clone discarded.
+	cloned := b.ExprVars.Clone()
+	for _, item := range b.Vars {
+		parts := strings.SplitN(item, "=", 2)
+		if len(parts) != 2 {
+			continue
+		}
+
+		key := strings.TrimSpace(parts[0])
+		if key == "" {
+			continue
+		}
+
+		// A port-local var must not same as a variable that already exists.
+		if _, exists := cloned.Lookup(key); exists {
+			return fmt.Errorf("port var %q in %s conflicts with an existing variable; rename it", key, b.PortConfig.PortFile)
+		}
+
+		value := strings.TrimSpace(parts[1])
+		value = strings.Trim(value, `"`)
+		value = cloned.Expand(value)
+		cloned.Put(key, value)
+	}
+	b.ExprVars = cloned
+	return nil
 }
 
 // expandOptions Replace placeholders with real paths and values.

@@ -51,6 +51,7 @@
   pre_configure = []                      # 可选字段
   post_configure = []                     # 可选字段
   pre_build = []                          # 可选字段
+  vars = []                               # 可选字段，当前 build_config 局部的 KEY=VALUE 变量
   options = []                            # 可选字段
   fix_build = []                          # 可选字段
   post_build = []                         # 可选字段
@@ -240,6 +241,25 @@
 ### autogen_options
 
 &emsp;&emsp;可选配置，默认值为空，用于指定一些库需要在源代码目录中运行 **./autogen.sh** 脚本，例如：**NASM**、**Boost** 等库。注意：此 **autogen_options** 选项主要适用于 makefiles 项目。
+
+### vars
+
+&emsp;&emsp;可选配置，默认为空。一组 `KEY=VALUE` 键值对，声明当前 `build_config` 局部的动态变量，从而把 option 的*参数名*与*取值*分离，并在 `options`/`envs`/钩子中用 `${KEY}` 引用。
+
+```toml
+[[build_configs]]
+  build_system = "cmake"
+  vars = ["BUILD_EXAMPLES=OFF", "BUILD_UNITTESTS=OFF"]
+  options = [
+    "-DARGS_BUILD_EXAMPLES=${BUILD_EXAMPLES}",
+    "-DARGS_BUILD_UNITTESTS=${BUILD_UNITTESTS}",
+  ]
+```
+
+- 仅作用于当前 `build_config`，不泄漏到兄弟配置、其他 port 或全局。
+- value 可引用任意已定义变量（`${SRC_DIR}`、更早的 `vars` 条目等），两端英文双引号会被去除。
+- key 不得与已存在变量（内置/全局/项目）重名，同一 `vars` 列表内也不可重复，否则报错。
+- 支持平台变体 `vars_windows`/`vars_linux`/`vars_darwin`，合并方式同 `options`。
 
 ### dependencies
 
