@@ -489,18 +489,20 @@ func (c *Celer) initPkgCacheCaches() error {
 	}
 
 	if c.configData.PkgCache.Minio != nil {
-		downloadConfig, repoConfig, artifactConfig, err := minio.InitPkgCache(c)
+		cacheConfigs, err := minio.InitPkgCache(c)
 		if err != nil {
 			return err
 		}
-		c.configData.PkgCache.downloadCache = downloadConfig
-		c.configData.PkgCache.repoCache = repoConfig
-		c.configData.PkgCache.artifactCache = artifactConfig
+		c.configData.PkgCache.downloadCache = cacheConfigs.DownloadCache
+		c.configData.PkgCache.repoCache = cacheConfigs.RepoCache
+		c.configData.PkgCache.artifactCache = cacheConfigs.AritifactCache
+		c.configData.PkgCache.pythonWheelCache = cacheConfigs.PythonWheelCache
 	} else if c.configData.PkgCache.FS != nil {
-		downloadConfig, repoConfig, artifactConfig := filesystem.InitPkgCache(c)
-		c.configData.PkgCache.downloadCache = downloadConfig
-		c.configData.PkgCache.repoCache = repoConfig
-		c.configData.PkgCache.artifactCache = artifactConfig
+		cacheConfigs := filesystem.InitPkgCache(c)
+		c.configData.PkgCache.downloadCache = cacheConfigs.DownloadCache
+		c.configData.PkgCache.repoCache = cacheConfigs.RepoCache
+		c.configData.PkgCache.artifactCache = cacheConfigs.AritifactCache
+		c.configData.PkgCache.pythonWheelCache = cacheConfigs.PythonWheelCache
 	}
 
 	return nil

@@ -17,9 +17,10 @@ type PkgCache struct {
 	Options pkgcache.Options `toml:"options"`
 
 	// Internal field.
-	artifactCache pkgcache.AritifactCache
-	repoCache     pkgcache.RepoCache
-	downloadCache pkgcache.DownloadCache
+	artifactCache    pkgcache.AritifactCache
+	repoCache        pkgcache.RepoCache
+	downloadCache    pkgcache.DownloadCache
+	pythonWheelCache pkgcache.PythonWheelCache
 }
 
 func NewPkgCache() *PkgCache {
@@ -58,6 +59,13 @@ func (p PkgCache) GetDownloadCache() pkgcache.DownloadCache {
 		return nil
 	}
 	return p.downloadCache
+}
+
+func (p PkgCache) GetPythonWheelCache() pkgcache.PythonWheelCache {
+	if p.pythonWheelCache == nil {
+		return nil
+	}
+	return p.pythonWheelCache
 }
 
 // ================= DevCache ================= //

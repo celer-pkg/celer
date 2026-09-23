@@ -11,13 +11,18 @@ import (
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
-func InitPkgCache(ctx context.Context) (pkgcache.DownloadCache, pkgcache.RepoCache, pkgcache.AritifactCache) {
+func InitPkgCache(ctx context.Context) *pkgcache.CacheConfigs {
 	pkgCache := ctx.PkgCache()
 	if pkgCache == nil || pkgCache.GetFS() == nil || pkgCache.GetFS().GetDir(pkgcache.DirRoot, ctx.Version()) == "" {
-		return nil, nil, nil
+		return nil
 	}
 
-	return NewDownloadConfig(ctx), NewRepoConfig(ctx), NewArtifactConfig(ctx)
+	return &pkgcache.CacheConfigs{
+		DownloadCache:    NewDownloadConfig(ctx),
+		RepoCache:        NewRepoConfig(ctx),
+		AritifactCache:   NewArtifactConfig(ctx),
+		PythonWheelCache: NewPythonWheelConfig(ctx),
+	}
 }
 
 type fsCache struct {

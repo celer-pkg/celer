@@ -2,6 +2,7 @@ package buildtools
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"runtime"
 	"slices"
@@ -10,17 +11,19 @@ import (
 	"github.com/celer-pkg/celer/buildtools/python"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/envs"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/cmd"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/logger"
 
 	"github.com/BurntSushi/toml"
 )
 
-var PythonTool *pythonTool
+var PythonTool *python.PythonTool
 
-func pipInstall(ctx context.Context, pipConfig context.PythonConfig, libraries *[]string) error {
+func pipInstall(ctx context.Context, pipConfig context.PythonConfig, packages *[]string) error {
 	// Get python version from project config if available, otherwise use default version.
 	pythonVersion := GetDefaultPythonVersion()
 	pythonConfig := ctx.PythonConfig()
@@ -34,75 +37,132 @@ func pipInstall(ctx context.Context, pipConfig context.PythonConfig, libraries *
 		return fmt.Errorf("failed to setup python -> %w", err)
 	}
 
-	// Install extra tools. Check if package is already installed in PYTHONUSERBASE to avoid frequent PyPI requests.
-	// PYTHONUSERBASE is already set globally, so pip will install to workspace directory.
-	for _, library := range *libraries {
-		if !strings.HasPrefix(library, "python3:") && !strings.HasPrefix(library, "python:") {
+	// Collect python package specs that are not installed in the venv.
+	// python3:mako@1.2.0 -> mako==1.2.0
+	var specs []string
+	for _, pkg := range *packages {
+		if !strings.HasPrefix(pkg, "python3:") && !strings.HasPrefix(pkg, "python:") {
 			continue
 		}
 
 		// Format python3 library name version.
 		var nameVersion string
-		if after, ok := strings.CutPrefix(library, "python:"); ok {
+		if after, ok := strings.CutPrefix(pkg, "python:"); ok {
 			nameVersion = after
 		} else {
-			nameVersion = strings.TrimPrefix(library, "python3:")
+			nameVersion = strings.TrimPrefix(pkg, "python3:")
 		}
 		nameVersion = strings.ReplaceAll(nameVersion, "@", "==")
 
-		// Check if package is already installed in PYTHONUSERBASE to avoid frequent PyPI requests.
 		if isPackageInstalled(nameVersion, venvDir) {
 			continue
 		}
+		specs = append(specs, nameVersion)
+	}
 
-		// Build pip install command with PyPI source configuration.
-		var builder strings.Builder
+	// Nothing to do; still make sure the python bin dir is on PATH.
+	if len(specs) == 0 {
+		return finishPipInstall(packages, venvDir)
+	}
 
-		// If Python needs LD_LIBRARY_PATH, prepend it to the command.
-		if PythonTool.ldLibraryPath != "" {
-			fmt.Fprintf(&builder, "LD_LIBRARY_PATH=%s ", PythonTool.ldLibraryPath)
-		}
+	// Persistent wheelhouse per python minor version, shared across all specs as
+	// pip's --find-links target.
+	minorVersion := normalizeVersion(pythonVersion)
+	wheelhouseDir := filepath.Join(dirs.DownloadsDir, "wheelhouse-"+minorVersion)
+	if err := os.MkdirAll(wheelhouseDir, os.ModePerm); err != nil {
+		return fmt.Errorf("failed to mkdir wheelhouse '%s' -> %w", wheelhouseDir, err)
+	}
 
-		builder.WriteString(PythonTool.Path)
-		builder.WriteString(" -m pip install")
+	pkgCache := ctx.PkgCache()
+	var wheelCache pkgcache.PythonWheelCache
+	if pkgCache != nil {
+		wheelCache = pkgCache.GetPythonWheelCache()
+	}
+	canCache := pkgCache != nil && pkgCache.GetOptions().Writable && !ctx.Offline() && wheelCache != nil
+	wheelPlatformScope := fmt.Sprintf("py%s-%s-%s", minorVersion, runtime.GOOS, runtime.GOARCH)
 
-		// Add PyPI source configuration if available.
-		if pipConfig != nil {
-			if indexUrl := pipConfig.GetIndexUrl(); indexUrl != "" {
-				builder.WriteString(" -i ")
-				builder.WriteString(indexUrl)
-			}
-			for _, extraUrl := range pipConfig.GetExtraIndexUrls() {
-				builder.WriteString(" --extra-index-url ")
-				builder.WriteString(extraUrl)
-			}
-			for _, host := range pipConfig.GetTrustedHosts() {
-				builder.WriteString(" --trusted-host ")
-				builder.WriteString(host)
-			}
-		}
-
-		builder.WriteString(" ")
-		builder.WriteString(nameVersion)
-
-		// Install python3 library with path path.
-		title := fmt.Sprintf("[python3 install tool %s]", nameVersion)
-		command := builder.String()
-		executor := cmd.NewExecutor(title, command)
-		if err := executor.Execute(); err != nil {
-			return fmt.Errorf("failed to install %s -> %w", nameVersion, err)
+	// L1: Try to install every spec straight from the persistent wheelhouse.
+	if wheelhouseHasWheels(wheelhouseDir) {
+		if err := PythonTool.InstallFromWheelhouse(specs, wheelhouseDir); err == nil {
+			return finishPipInstall(packages, venvDir)
 		}
 	}
 
+	// Process each spec independently so its wheels are cached under
+	// python-wheels/<platform>/<name>/<version>/ and reused across machines.
+	for _, spec := range specs {
+		name, version := parseSpec(spec)
+		cacheKey := filepath.Join(wheelPlatformScope, name, version)
+
+		// L2: Restore this spec's cached wheels from pkgcache into the wheelhouse.
+		restored := false
+		if canCache {
+			if ok, err := wheelCache.Restore(cacheKey, wheelhouseDir); err != nil {
+				logger.Printf(logger.Warning, "[✘] failed to restore python wheel cache for '%s': %v\n", spec, err)
+			} else {
+				restored = ok
+			}
+		}
+
+		// L3: On cache miss, download the resolved wheel set (include its dependencies)
+		// into a fresh tmp dir, merge into the wheelhouse, and store into pkgcache finally.
+		if !restored {
+			tmpDir, err := dirs.NewTmpFilesDir()
+			if err != nil {
+				return fmt.Errorf("failed to create tmp dir for pip download -> %w", err)
+			}
+			if err := PythonTool.PipDownload([]string{spec}, tmpDir, pipConfig); err != nil {
+				os.RemoveAll(tmpDir)
+				return fmt.Errorf("failed to download python wheels %v -> %w", spec, err)
+			}
+
+			if err := fileio.MergeDir(tmpDir, wheelhouseDir); err != nil {
+				os.RemoveAll(tmpDir)
+				return fmt.Errorf("failed to merge wheels into wheelhouse -> %w", err)
+			}
+
+			if canCache {
+				if err := wheelCache.Store(cacheKey, tmpDir); err != nil {
+					logger.Printf(logger.Warning, "[✘] failed to cache python wheels for '%s': %v\n", spec, err)
+				}
+			}
+			os.RemoveAll(tmpDir)
+		}
+
+		// Install this spec from the wheelhouse finally.
+		if err := PythonTool.InstallFromWheelhouse([]string{spec}, wheelhouseDir); err != nil {
+			return fmt.Errorf("failed to install python package '%s' -> %w", spec, err)
+		}
+	}
+	return finishPipInstall(packages, venvDir)
+}
+
+// finishPipInstall removes python3: entries from the libraries list and ensures
+// the venv bin dir is on PATH.
+func finishPipInstall(packages *[]string, venvDir string) error {
 	// Remove python3:xxx from list.
-	*libraries = slices.DeleteFunc(*libraries, func(element string) bool {
+	*packages = slices.DeleteFunc(*packages, func(element string) bool {
 		return strings.HasPrefix(element, "python3")
 	})
 
 	// Always ensure Python bin directory is in PATH.
 	envs.AppendPythonBinDir(venvDir)
-
 	return nil
+}
+
+// wheelhouseHasWheels reports whether dir contains at least one .whl file.
+func wheelhouseHasWheels(dir string) bool {
+	matches, _ := filepath.Glob(filepath.Join(dir, "*.whl"))
+	return len(matches) > 0
+}
+
+// parseSpec splits a pip requirement specifier "name==version" into its name
+// and version. A spec without a version pins nothing and returns an empty version.
+func parseSpec(spec string) (name, version string) {
+	if name, version, ok := strings.Cut(spec, "=="); ok {
+		return name, version
+	}
+	return spec, ""
 }
 
 // setupPython sets up Python with a specific version.
@@ -110,7 +170,7 @@ func pipInstall(ctx context.Context, pipConfig context.PythonConfig, libraries *
 func setupPython(ctx context.Context, pythonVersion string) error {
 	// Quick return only if version hasn't changed AND venv still exists on disk.
 	envDir := getPythonVenvPath(pythonVersion, ctx.Project().GetName())
-	if PythonTool != nil && PythonTool.version == pythonVersion && fileio.PathExists(envDir) {
+	if PythonTool != nil && PythonTool.Version == pythonVersion && fileio.PathExists(envDir) {
 		return nil
 	}
 
@@ -233,13 +293,7 @@ func setupPython(ctx context.Context, pythonVersion string) error {
 	}
 
 	// Save python info as global variable.
-	PythonTool = &pythonTool{
-		Path:          venvPythonPath,
-		rootDir:       venvBinDir,
-		venvDir:       envDir,
-		version:       pythonVersion,
-		ldLibraryPath: condaLibDir,
-	}
+	PythonTool = python.NewPythonTool(venvPythonPath, venvBinDir, envDir, pythonVersion, condaLibDir)
 	return nil
 }
 
@@ -273,22 +327,30 @@ func isPackageInstalled(packageName string, venvDir string) bool {
 		return false
 	}
 
-	// Get package name without version.
-	packageName = strings.Split(packageName, "==")[0]
+	// Split into name and optional version:
+	// "MarkupSafe==2.1.0" -> ("MarkupSafe", "2.1.0").
+	name, version, _ := strings.Cut(packageName, "==")
+
+	// versionGlob is the version segment in dist-info/egg-info dir names:
+	// exact "2.1.0" when pinned, or "*" when any version is acceptable.
+	versionGlob := "*"
+	if version != "" {
+		versionGlob = version
+	}
 
 	var packageDirPattern, distInfoPattern, eggInfoPattern string
 	switch runtime.GOOS {
 	case "windows":
-		// Windows: Lib/site-packages/{packageName} and Lib/site-packages/{packageName}-*.dist-info.
-		packageDirPattern = filepath.Join(libDir, "site-packages", packageName)
-		distInfoPattern = filepath.Join(libDir, "site-packages", packageName+"-*.dist-info")
-		eggInfoPattern = filepath.Join(libDir, "site-packages", packageName+"-*.egg-info")
+		// Windows: Lib/site-packages/{name} and Lib/site-packages/{name}-{version}.dist-info.
+		packageDirPattern = filepath.Join(libDir, "site-packages", name)
+		distInfoPattern = filepath.Join(libDir, "site-packages", name+"-"+versionGlob+".dist-info")
+		eggInfoPattern = filepath.Join(libDir, "site-packages", name+"-"+versionGlob+".egg-info")
 
 	case "linux", "darwin":
-		// Linux/Darwin: lib/python*/site-packages/{packageName} and lib/python*/site-packages/{packageName}-*.dist-info.
-		packageDirPattern = filepath.Join(libDir, "python*", "site-packages", packageName)
-		distInfoPattern = filepath.Join(libDir, "python*", "site-packages", packageName+"-*.dist-info")
-		eggInfoPattern = filepath.Join(libDir, "python*", "site-packages", packageName+"-*.egg-info")
+		// Linux/Darwin: lib/python*/site-packages/{name} and lib/python*/site-packages/{name}-{version}.dist-info.
+		packageDirPattern = filepath.Join(libDir, "python*", "site-packages", name)
+		distInfoPattern = filepath.Join(libDir, "python*", "site-packages", name+"-"+versionGlob+".dist-info")
+		eggInfoPattern = filepath.Join(libDir, "python*", "site-packages", name+"-"+versionGlob+".egg-info")
 
 	default:
 		panic("unsupported os: " + runtime.GOOS)
@@ -361,45 +423,4 @@ func normalizeVersion(fullVersion string) string {
 		return parts[0] + "." + parts[1]
 	}
 	return fullVersion
-}
-
-type pythonTool struct {
-	Path          string
-	rootDir       string
-	venvDir       string
-	version       string
-	ldLibraryPath string
-}
-
-func (p pythonTool) LdLibraryPath() string {
-	return p.ldLibraryPath
-}
-
-func (p pythonTool) VenvDir() string {
-	return p.venvDir
-}
-
-// SitePackagesDir returns the relative path from prefix to site-packages.
-// e.g. "lib/python3.10/site-packages" on Linux, "Lib/site-packages" on Windows.
-func (p pythonTool) SitePackagesDir() string {
-	if runtime.GOOS == "windows" {
-		return filepath.Join("Lib", "site-packages")
-	}
-
-	minorVersion := p.version
-	if strings.Count(p.version, ".") > 1 {
-		parts := strings.Split(p.version, ".")
-		minorVersion = parts[0] + "." + parts[1]
-	}
-
-	return filepath.Join("lib", "python"+minorVersion, "site-packages")
-}
-
-// RegisterExprVars registers all Python-related expression variables.
-func (p pythonTool) RegisterExprVars(exprVars *context.ExprVars) {
-	if p.Path == "" {
-		return
-	}
-	exprVars.Put("PYTHON_PATH", fileio.ToRelPath(p.Path))
-	exprVars.Put("PYTHON_VENV_DIR", fileio.ToRelPath(p.venvDir))
 }
