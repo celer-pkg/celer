@@ -107,10 +107,11 @@ func (m Minio) GetDir(dirType DirType, version string) string {
 // minio are mutually exclusive, so these options live here instead of being
 // duplicated per backend.
 type Options struct {
-	Writable  bool `toml:"writable"`
-	Downloads bool `toml:"downloads"`
-	Artifacts bool `toml:"artifacts"`
-	Repos     bool `toml:"repos"`
+	Writable     bool `toml:"writable"`
+	Downloads    bool `toml:"downloads"`
+	Artifacts    bool `toml:"artifacts"`
+	Repos        bool `toml:"repos"`
+	PythonWheels bool `toml:"python_wheels"`
 }
 
 // PkgCache is the shared package cache: stores/restores

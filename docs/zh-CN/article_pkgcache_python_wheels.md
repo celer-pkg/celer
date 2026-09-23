@@ -45,6 +45,7 @@ pkgcache/python-wheels/py310-linux-amd64/
 
 [pkgcache.options]
 	writable = true              # 写入 wheel 必须
+	python_wheels = true         # wheel 缓存开关（默认 true）
 ```
 
 ```toml
@@ -63,7 +64,7 @@ celer install mesa@24.0.0
 
 ## 行为
 
-- **写入**：已配 pkgcache、`writable = true`、在线、且该 spec 走了 L3。
+- **写入**：已配 pkgcache、`writable = true`、`python_wheels = true`、在线、且该 spec 走了 L3。
 - **恢复**：fs 离线可用（本地目录）；minio 离线返回未命中（连不上 bucket）。
 - **已安装的包跳过缓存**（按精确 name 和 version 匹配）。
-- **无独立开关**：跟随 `pkgcache.options.writable`。
+- **开关**：`pkgcache.options.python_wheels`（首次配后端时默认 `true`）。关闭：`celer configure --pkgcache-cache-python-wheels=false`。

@@ -69,7 +69,7 @@ celer configure --pkgcache-minio-host=http://minio.example.com:9000 \
 celer configure --pkgcache-minio-secret-key=new-key   # rotate key alone, others unchanged
 celer configure --pkgcache-cache-artifacts=true
 celer configure --pkgcache-cache-downloads=true
-celer configure --pkgcache-cache-repos=false
+celer configure --pkgcache-cache-repos=true
 
 # Proxy group (can combine in one command)
 celer configure --proxy-host=127.0.0.1 --proxy-port=7890

@@ -62,7 +62,8 @@ celer configure --pkgcache-minio-secret-key=new-key
 celer configure --pkgcache-writable=true
 celer configure --pkgcache-cache-downloads=true
 celer configure --pkgcache-cache-artifacts=true
-celer configure --pkgcache-cache-repos=false
+celer configure --pkgcache-cache-repos=true
+celer configure --pkgcache-cache-python-wheels=true
 ```
 
 | Field | Description |
@@ -70,7 +71,7 @@ celer configure --pkgcache-cache-repos=false
 | `pkgcache.fs.dir` | Cache root. Must already exist. |
 | `pkgcache.minio.host` / `access_key` / `secret_key` | S3 endpoint and credentials |
 | `pkgcache.options.writable` | `true` writable, `false` read-only |
-| `pkgcache.options.downloads` / `artifacts` / `repos` | The three cache toggles |
+| `pkgcache.options.downloads` / `artifacts` / `repos` / `python_wheels` | The four cache toggles |
 
 ## Layout
 

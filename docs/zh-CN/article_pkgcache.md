@@ -62,7 +62,8 @@ celer configure --pkgcache-minio-secret-key=new-key
 celer configure --pkgcache-writable=true
 celer configure --pkgcache-cache-downloads=true
 celer configure --pkgcache-cache-artifacts=true
-celer configure --pkgcache-cache-repos=false
+celer configure --pkgcache-cache-repos=true
+celer configure --pkgcache-cache-python-wheels=true
 ```
 
 | 字段 | 说明 |
@@ -70,7 +71,7 @@ celer configure --pkgcache-cache-repos=false
 | `pkgcache.fs.dir` | 缓存根目录，必须已存在 |
 | `pkgcache.minio.host` / `access_key` / `secret_key` | S3 地址和凭证 |
 | `pkgcache.options.writable` | `true` 可写，`false` 只读 |
-| `pkgcache.options.downloads` / `artifacts` / `repos` | 三种缓存开关 |
+| `pkgcache.options.downloads` / `artifacts` / `repos` / `python_wheels` | 四种缓存开关 |
 
 ## 布局
 

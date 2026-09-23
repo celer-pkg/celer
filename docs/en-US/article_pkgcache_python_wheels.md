@@ -45,6 +45,7 @@ Multiple versions coexist as sibling directories. Each wheel is verified by SHA-
 
 [pkgcache.options]
 	writable = true              # required to store wheels
+	python_wheels = true         # toggle the wheel cache (default true)
 ```
 
 ```toml
@@ -63,7 +64,7 @@ celer install mesa@24.0.0
 
 ## Behavior
 
-- **Store** when: pkgcache configured, `writable = true`, online, and the spec went through L3.
+- **Store** when: pkgcache configured, `writable = true`, `python_wheels = true`, online, and the spec went through L3.
 - **Restore**: fs works offline (local dir); minio returns a miss offline (cannot reach the bucket).
 - **Already-installed packages skip the cache** (matched by exact name and version).
-- **No separate toggle**: follows `pkgcache.options.writable`.
+- **Toggle**: `pkgcache.options.python_wheels` (default `true` on first backend config). Disable with `celer configure --pkgcache-cache-python-wheels=false`.
