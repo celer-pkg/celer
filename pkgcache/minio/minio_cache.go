@@ -18,15 +18,15 @@ import (
 // Default bucket name for celer.
 const bucketName = "celer-cache"
 
-func InitPkgCache(ctx context.Context) (pkgcache.DownloadCache, pkgcache.RepoCache, pkgcache.AritifactCache, error) {
+func InitPkgCache(ctx context.Context) (*pkgcache.CacheConfigs, error) {
 	pkgCacheConfig := ctx.PkgCache()
 	if pkgCacheConfig == nil {
-		return nil, nil, nil, nil
+		return nil, nil
 	}
 
 	minioConfig := pkgCacheConfig.GetMinio()
 	if minioConfig == nil {
-		return nil, nil, nil, nil
+		return nil, nil
 	}
 
 	// Initialize minio client object.
@@ -36,7 +36,7 @@ func InitPkgCache(ctx context.Context) (pkgcache.DownloadCache, pkgcache.RepoCac
 		Secure:          false,
 	})
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 
 	// Probe the endpoint so config errors surface at startup: minio.New only
@@ -48,11 +48,16 @@ func InitPkgCache(ctx context.Context) (pkgcache.DownloadCache, pkgcache.RepoCac
 			if strings.Contains(resp.Message, "API port") {
 				hint = fmt.Sprintf("'%s' points to the minio console port, use the S3 API port instead (e.g. :9000 instead of :9001)", minioConfig.Host)
 			}
-			return nil, nil, nil, fmt.Errorf("failed to reach pkgcache.minio at '%s' -> %w (%s)", minioConfig.Host, err, hint)
+			return nil, fmt.Errorf("failed to reach pkgcache.minio at '%s' -> %w (%s)", minioConfig.Host, err, hint)
 		}
 	}
 
-	return NewDownloadConfig(ctx, client), NewRepoConfig(ctx, client), NewArtifactConfig(ctx, client), nil
+	return &pkgcache.CacheConfigs{
+		DownloadCache:    NewDownloadConfig(ctx, client),
+		RepoCache:        NewRepoConfig(ctx, client),
+		AritifactCache:   NewArtifactConfig(ctx, client),
+		PythonWheelCache: NewPythonWheelConfig(ctx, client),
+	}, nil
 }
 
 type minioCache struct {

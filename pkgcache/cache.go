@@ -6,6 +6,13 @@ import (
 	"strings"
 )
 
+type CacheConfigs struct {
+	DownloadCache    DownloadCache
+	RepoCache        RepoCache
+	AritifactCache   AritifactCache
+	PythonWheelCache PythonWheelCache
+}
+
 // ========================== pkg-cache types ========================== //
 
 // DirType identifies a cache subdirectory.
@@ -16,6 +23,7 @@ const (
 	DirRepos
 	DirArtifacts
 	DirDownloads
+	DirPythonWheels
 )
 
 // FS is the config for the fs backend of pkgcache.
@@ -42,6 +50,9 @@ func (f FS) GetDir(dirType DirType, version string) string {
 
 	case DirDownloads:
 		return filepath.Join(f.Dir, "downloads")
+
+	case DirPythonWheels:
+		return filepath.Join(f.Dir, "python-wheels")
 
 	default:
 		return f.Dir
@@ -84,6 +95,9 @@ func (m Minio) GetDir(dirType DirType, version string) string {
 	case DirDownloads:
 		return "downloads"
 
+	case DirPythonWheels:
+		return "python-wheels"
+
 	default:
 		return ""
 	}
@@ -110,6 +124,7 @@ type PkgCache interface {
 	GetDownloadCache() DownloadCache
 	GetArtifactCache() AritifactCache
 	GetRepoCache() RepoCache
+	GetPythonWheelCache() PythonWheelCache
 }
 
 // AritifactCache stores/restores a port's built package, keyed by name@version + build hash.
@@ -128,6 +143,13 @@ type RepoCache interface {
 type DownloadCache interface {
 	Restore(fileName, sha256 string) (bool, error)
 	Store(fileName, sha256, srcFile string) error
+}
+
+// ========================== python wheel cache ========================== //
+
+type PythonWheelCache interface {
+	Restore(cacheKey, destDir string) (ok bool, err error)
+	Store(cacheKey, wheelhouseDir string) error
 }
 
 // ========================== dev cache ========================== //
