@@ -10,6 +10,7 @@ Configuring both fails: `pkgcache can not configure both 'minio' and 'fs'`.
 - [Cache Build Artifacts](article_pkgcache_artifacts.md)
 - [Cache Source Repositories](article_pkgcache_repos.md)
 - [Cache Downloaded Files](article_pkgcache_downloads.md)
+- [Cache Python Wheels](article_pkgcache_python_wheels.md)
 
 ## fs
 
@@ -79,4 +80,5 @@ fs writes under `dir`. minio writes into bucket `celer-cache`. Same prefixes:
 artifacts-v0.2.7/   # artifacts, isolated by Celer version
 repos/              # source repos
 downloads/          # downloaded files
+python-wheels/      # pip wheels for build_tools python libraries
 ```

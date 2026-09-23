@@ -10,6 +10,7 @@ PkgCache 缓存构建产物、源码仓库和下载文件。后端只能选一�
 - [缓存构建产物](article_pkgcache_artifacts.md)
 - [缓存源码仓库](article_pkgcache_repos.md)
 - [缓存下载文件](article_pkgcache_downloads.md)
+- [缓存 Python Wheel](article_pkgcache_python_wheels.md)
 
 ## fs
 
@@ -79,4 +80,5 @@ fs 写在 `dir` 下；minio 写在 bucket `celer-cache` 里。前缀一样：
 artifacts-v0.2.7/   # 构建产物（按 Celer 版本隔离）
 repos/              # 源码仓库
 downloads/          # 下载文件
+python-wheels/      # build_tools python 库的 pip wheel
 ```
