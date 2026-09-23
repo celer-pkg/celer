@@ -68,7 +68,7 @@ celer configure --pkgcache-minio-host=http://minio.example.com:9000 \
 celer configure --pkgcache-minio-secret-key=new-key   # 单独轮换密钥，其余保持不变
 celer configure --pkgcache-cache-artifacts=true
 celer configure --pkgcache-cache-downloads=true
-celer configure --pkgcache-cache-repos=false
+celer configure --pkgcache-cache-repos=true
 
 # proxy 组（可同命令组合）
 celer configure --proxy-host=127.0.0.1 --proxy-port=7890

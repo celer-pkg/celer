@@ -10,6 +10,7 @@ Configuring both fails: `pkgcache can not configure both 'minio' and 'fs'`.
 - [Cache Build Artifacts](article_pkgcache_artifacts.md)
 - [Cache Source Repositories](article_pkgcache_repos.md)
 - [Cache Downloaded Files](article_pkgcache_downloads.md)
+- [Cache Python Wheels](article_pkgcache_python_wheels.md)
 
 ## fs
 
@@ -61,7 +62,8 @@ celer configure --pkgcache-minio-secret-key=new-key
 celer configure --pkgcache-writable=true
 celer configure --pkgcache-cache-downloads=true
 celer configure --pkgcache-cache-artifacts=true
-celer configure --pkgcache-cache-repos=false
+celer configure --pkgcache-cache-repos=true
+celer configure --pkgcache-cache-python-wheels=true
 ```
 
 | Field | Description |
@@ -69,7 +71,7 @@ celer configure --pkgcache-cache-repos=false
 | `pkgcache.fs.dir` | Cache root. Must already exist. |
 | `pkgcache.minio.host` / `access_key` / `secret_key` | S3 endpoint and credentials |
 | `pkgcache.options.writable` | `true` writable, `false` read-only |
-| `pkgcache.options.downloads` / `artifacts` / `repos` | The three cache toggles |
+| `pkgcache.options.downloads` / `artifacts` / `repos` / `python_wheels` | The four cache toggles |
 
 ## Layout
 
@@ -79,4 +81,5 @@ fs writes under `dir`. minio writes into bucket `celer-cache`. Same prefixes:
 artifacts-v0.2.7/   # artifacts, isolated by Celer version
 repos/              # source repos
 downloads/          # downloaded files
+python-wheels/      # pip wheels for build_tools python libraries
 ```

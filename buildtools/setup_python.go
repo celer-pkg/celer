@@ -78,7 +78,11 @@ func pipInstall(ctx context.Context, pipConfig context.PythonConfig, packages *[
 	if pkgCache != nil {
 		wheelCache = pkgCache.GetPythonWheelCache()
 	}
-	canCache := pkgCache != nil && pkgCache.GetOptions().Writable && !ctx.Offline() && wheelCache != nil
+	canCache := pkgCache != nil &&
+		pkgCache.GetOptions().Writable &&
+		pkgCache.GetOptions().PythonWheels &&
+		!ctx.Offline() &&
+		wheelCache != nil
 	wheelPlatformScope := fmt.Sprintf("py%s-%s-%s", minorVersion, runtime.GOOS, runtime.GOARCH)
 
 	// L1: Try to install every spec straight from the persistent wheelhouse.

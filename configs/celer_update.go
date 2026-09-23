@@ -223,10 +223,11 @@ func (c *Celer) SetPkgCacheFSDir(dir string) error {
 	// Enable all shared options when the first backend gets configured.
 	if c.configData.PkgCache.FS == nil {
 		c.configData.PkgCache.Options = pkgcache.Options{
-			Writable:  true,
-			Downloads: true,
-			Artifacts: true,
-			Repos:     true,
+			Writable:     true,
+			Downloads:    true,
+			Artifacts:    true,
+			Repos:        true,
+			PythonWheels: true,
 		}
 	}
 
@@ -265,10 +266,11 @@ func (c *Celer) SetPkgCacheMinio(host, accessKey, secretKey string) error {
 	// Enable all shared options when the first backend gets configured.
 	if c.configData.PkgCache.Minio == nil {
 		c.configData.PkgCache.Options = pkgcache.Options{
-			Writable:  true,
-			Downloads: true,
-			Artifacts: true,
-			Repos:     true,
+			Writable:     true,
+			Downloads:    true,
+			Artifacts:    true,
+			Repos:        true,
+			PythonWheels: true,
 		}
 	}
 
@@ -340,6 +342,12 @@ func (c *Celer) SetPkgCacheCacheArtifacts(cacheArtifacts bool) error {
 func (c *Celer) SetPkgCacheCacheRepos(cacheRepos bool) error {
 	return c.updatePkgCacheOptions(func(options *pkgcache.Options) {
 		options.Repos = cacheRepos
+	})
+}
+
+func (c *Celer) SetPkgCacheCachePythonWheels(cachePythonWheels bool) error {
+	return c.updatePkgCacheOptions(func(options *pkgcache.Options) {
+		options.PythonWheels = cachePythonWheels
 	})
 }
 

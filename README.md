@@ -89,7 +89,7 @@ MSVC / Clang / GCC are ready on Windows and Linux; macOS is still in progress. A
 **Deep dives:**
 - [Generate CMake Config Files](./docs/en-US/article_generate_cmake_config.md)
 - [Platform Config Deep Dive](./docs/en-US/article_platform.md) · [Port Config Deep Dive](./docs/en-US/article_port.md) · [Project Config Deep Dive](./docs/en-US/article_project.md)
-- [PkgCache: Shared Cache (fs / MinIO)](./docs/en-US/article_pkgcache.md) · [Artifact Cache](./docs/en-US/article_pkgcache_artifacts.md) · [Repo Cache](./docs/en-US/article_pkgcache_repos.md) · [Download Cache](./docs/en-US/article_pkgcache_downloads.md)
+- [PkgCache: Shared Cache (fs / MinIO)](./docs/en-US/article_pkgcache.md) · [Artifact Cache](./docs/en-US/article_pkgcache_artifacts.md) · [Repo Cache](./docs/en-US/article_pkgcache_repos.md) · [Download Cache](./docs/en-US/article_pkgcache_downloads.md) · [Python Wheel Cache](./docs/en-US/article_pkgcache_python_wheels.md)
 - [CCache Integration](./docs/en-US/article_ccache.md)
 - [CUDA Auto-detection](./docs/en-US/article_cuda_support.md)
 - [Expression Variables](./docs/en-US/article_expvars.md)

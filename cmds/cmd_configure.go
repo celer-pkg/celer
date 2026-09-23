@@ -236,6 +236,7 @@ Examples:
 	flags.BoolVar(&c.pkgCacheOptions.Downloads, "pkgcache-cache-downloads", true, "configure pkgcache to cache downloads.")
 	flags.BoolVar(&c.pkgCacheOptions.Artifacts, "pkgcache-cache-artifacts", true, "configure pkgcache to cache artifacts.")
 	flags.BoolVar(&c.pkgCacheOptions.Repos, "pkgcache-cache-repos", true, "configure pkgcache to cache repos.")
+	flags.BoolVar(&c.pkgCacheOptions.PythonWheels, "pkgcache-cache-python-wheels", true, "configure pkgcache to cache python wheels.")
 
 	// Proxy flags.
 	flags.StringVar(&c.proxy.Host, "proxy-host", "", "configure proxy host.")
@@ -459,6 +460,12 @@ func (c *configureCmd) configurePkgCache(flags *pflag.FlagSet) error {
 			return logger.PrintError(err, "failed to set pkgcache cache-repos: %s", expr.If(c.pkgCacheOptions.Repos, "true", "false"))
 		}
 		logger.PrintSuccess("current pkgcache cache-repos: %s.", expr.If(c.pkgCacheOptions.Repos, "true", "false"))
+	}
+	if flags.Changed("pkgcache-cache-python-wheels") {
+		if err := c.celer.SetPkgCacheCachePythonWheels(c.pkgCacheOptions.PythonWheels); err != nil {
+			return logger.PrintError(err, "failed to set pkgcache cache-python-wheels: %s", expr.If(c.pkgCacheOptions.PythonWheels, "true", "false"))
+		}
+		logger.PrintSuccess("current pkgcache cache-python-wheels: %s.", expr.If(c.pkgCacheOptions.PythonWheels, "true", "false"))
 	}
 
 	return nil
