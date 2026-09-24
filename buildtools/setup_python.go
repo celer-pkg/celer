@@ -85,7 +85,7 @@ func pipInstall(ctx context.Context, pipConfig context.PythonConfig, packages *[
 		wheelCache != nil
 	wheelPlatformScope := fmt.Sprintf("py%s-%s-%s", minorVersion, runtime.GOOS, runtime.GOARCH)
 
-	// L1: Try to install every spec straight from the persistent wheelhouse.
+	// —— Try to install every spec straight from the persistent wheelhouse ————————————————————————————————————
 	if wheelhouseHasWheels(wheelhouseDir) {
 		if err := PythonTool.InstallFromWheelhouse(specs, wheelhouseDir); err == nil {
 			return finishPipInstall(packages, venvDir)
@@ -98,7 +98,7 @@ func pipInstall(ctx context.Context, pipConfig context.PythonConfig, packages *[
 		name, version := parseSpec(spec)
 		cacheKey := filepath.Join(wheelPlatformScope, name, version)
 
-		// L2: Restore this spec's cached wheels from pkgcache into the wheelhouse.
+		// —— Restore this spec's cached wheels from pkgcache into the wheelhouse ——————————————————————————————
 		restored := false
 		if canCache {
 			if ok, err := wheelCache.Restore(cacheKey, wheelhouseDir); err != nil {
@@ -108,7 +108,7 @@ func pipInstall(ctx context.Context, pipConfig context.PythonConfig, packages *[
 			}
 		}
 
-		// L3: On cache miss, download the resolved wheel set (include its dependencies)
+		// —— On cache miss, download the resolved wheel set (include its dependencies) —————————————————————————
 		// into a fresh tmp dir, merge into the wheelhouse, and store into pkgcache finally.
 		if !restored {
 			tmpDir, err := dirs.NewTmpFilesDir()

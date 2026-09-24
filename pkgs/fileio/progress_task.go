@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/logger"
 )
 
@@ -27,7 +28,7 @@ const (
 // The second column is the archive (or display) name:
 //
 //	[✔] [Download]  m4-1.4.19.tar.xz       1.58 MB  3s
-//	[✔] [Extract ]  m4-1.4.19.tar.xz       buildtrees/m4@1.4.19/src
+//	[✔] [Extract ]  m4-1.4.19.tar.xz  ->   buildtrees/m4@1.4.19/src
 type ProgressTask struct {
 	op   Op
 	name string
@@ -77,7 +78,8 @@ func (p *ProgressTask) format(done bool, detail string) string {
 	if detail == "" {
 		return fmt.Sprintf("%s %s  %-*s", icon, tag, nameColWidth, p.name)
 	}
-	return fmt.Sprintf("%s %s  %-*s %s", icon, tag, nameColWidth, p.name, detail)
+	sep := expr.If(p.op == OpExtract, " -> ", " ")
+	return fmt.Sprintf("%s %s  %-*s%s%s", icon, tag, nameColWidth, p.name, sep, detail)
 }
 
 func transferDetail(name, archive, size, elapsed string) string {

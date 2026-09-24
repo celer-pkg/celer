@@ -8,6 +8,7 @@ import (
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
@@ -38,7 +39,7 @@ func NewDownloadConfig(ctx context.Context) *DownloadConfig {
 	}
 }
 
-// Store saves a downloaded file to the cache directory using SHA256 in the filename.
+// Store saves a downloaded file to the cache dir: downloads/{fileName}.
 func (d DownloadConfig) Store(fileName, sha256, srcPath string) error {
 	// skip when offline.
 	if d.ctx.Offline() {
@@ -53,9 +54,20 @@ func (d DownloadConfig) Store(fileName, sha256, srcPath string) error {
 		return fmt.Errorf("failed to create cache dir -> %w", err)
 	}
 
-	// Filename format: {name}-{sha256}.{ext}
-	remoteFileName := fmt.Sprintf("%s-%s%s", fileio.Base(fileName), sha256, fileio.Ext(fileName))
-	remoteFilePath := filepath.Join(d.cacheDir, remoteFileName)
+	remoteFilePath := filepath.Join(d.cacheDir, fileName)
+
+	// The cache is authoritative: never auto-overwrite an existing entry.
+	if fileio.PathExists(remoteFilePath) {
+		remoteSha256, err := fileio.SHA256Sum(remoteFilePath)
+		if err != nil {
+			return fmt.Errorf("failed to calculate sha256 of '%s' -> %w", fileName, err)
+		}
+		if remoteSha256 == sha256 {
+			return nil // already cached with the same content
+		}
+		return fmt.Errorf("%w: '%s' is cached with sha256=%s, but storing sha256=%s; please remove the cached file manually if you want to replace it",
+			errors.ErrSha256Mismatch, fileName, remoteSha256, sha256)
+	}
 
 	if err := d.uploadFile(srcPath, remoteFilePath, sha256, fileName); err != nil {
 		return fmt.Errorf("failed to upload file '%s' to pkgcache -> %w", fileName, err)
@@ -64,6 +76,7 @@ func (d DownloadConfig) Store(fileName, sha256, srcPath string) error {
 	return nil
 }
 
+// Restore restores the cached file for fileName to the downloads dir.
 func (d DownloadConfig) Restore(fileName, sha256 string) (bool, error) {
 	// Skip for offline.
 	if d.ctx.Offline() {
@@ -71,12 +84,10 @@ func (d DownloadConfig) Restore(fileName, sha256 string) (bool, error) {
 	}
 
 	if sha256 == "" {
-		return false, fmt.Errorf("no sha256 hash provided for %s/%s", d.cacheDir, fileName)
+		return false, fmt.Errorf("no sha-256 hash provided for '%s'", fileName)
 	}
 
-	// Filename format: {name}-{sha256}.{ext}
-	remoteFileName := fmt.Sprintf("%s-%s%s", fileio.Base(fileName), sha256, fileio.Ext(fileName))
-	remoteFilePath := filepath.Join(d.cacheDir, remoteFileName)
+	remoteFilePath := filepath.Join(d.cacheDir, fileName)
 	if !fileio.PathExists(remoteFilePath) {
 		return false, nil
 	}
@@ -91,13 +102,6 @@ func (d DownloadConfig) Restore(fileName, sha256 string) (bool, error) {
 	tmpDownloaded, err := d.downloadFile(localTmpDir, remoteFilePath, fileName)
 	if err != nil {
 		return false, err
-	}
-
-	// Verify the downloaded content with sha256.
-	if localSha256, err := fileio.SHA256Sum(tmpDownloaded); err != nil {
-		return false, err
-	} else if localSha256 != sha256 {
-		return false, nil
 	}
 
 	// Copy the cached file into the downloads dir; callers deploy from there.

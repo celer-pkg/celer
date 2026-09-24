@@ -8,11 +8,9 @@ import (
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
+	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
-
-// sha256Ext is the suffix of the sidecar file that records a wheel's sha256.
-const sha256Ext = ".sha256"
 
 // PythonWheelConfig implements pkgcache.PythonWheelCache on the shared FS cache.
 type PythonWheelConfig struct {
@@ -50,29 +48,24 @@ func (p PythonWheelConfig) Restore(cacheKey, destDir string) (bool, error) {
 	}
 
 	if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
-		return false, fmt.Errorf("failed to mkdir wheelhouse %s -> %w", destDir, err)
+		return false, fmt.Errorf("failed to mkdir wheelhouse '%s' -> %w", destDir, err)
 	}
 
 	for _, entity := range entries {
 		if entity.IsDir() || !strings.HasSuffix(entity.Name(), ".whl") {
 			continue
 		}
-		cachedWheel := filepath.Join(keyDir, entity.Name())
-		sha256Hex, _ := os.ReadFile(cachedWheel + sha256Ext)
 
+		remoteWheel := filepath.Join(keyDir, entity.Name())
 		destWheel := filepath.Join(destDir, entity.Name())
-		if fileio.PathExists(destWheel) && fileio.VerifyFileSHA256(destWheel, string(sha256Hex)) {
-			continue
-		}
-		if err := fileio.CopyFile(cachedWheel, destWheel); err != nil {
+		if err := fileio.CopyFile(remoteWheel, destWheel); err != nil {
 			return false, fmt.Errorf("failed to restore wheel %s -> %w", entity.Name(), err)
 		}
 	}
 	return true, nil
 }
 
-// Store copies every *.whl under wheelhouseDir into the cache entry for
-// cacheKey, along with a <name>.whl.sha256 sidecar per wheel.
+// Store copies every *.whl under wheelhouseDir into the cache entry for cacheKey.
 func (p PythonWheelConfig) Store(cacheKey, wheelhouseDir string) error {
 	if p.ctx.Offline() {
 		return nil
@@ -96,33 +89,37 @@ func (p PythonWheelConfig) Store(cacheKey, wheelhouseDir string) error {
 			continue
 		}
 
-		srcWheel := filepath.Join(wheelhouseDir, entity.Name())
-		sha256, err := fileio.SHA256Sum(srcWheel)
+		localWheel := filepath.Join(wheelhouseDir, entity.Name())
+		localSha256, err := fileio.SHA256Sum(localWheel)
 		if err != nil {
 			return fmt.Errorf("failed to compute sha256 for '%s' -> %w", entity.Name(), err)
 		}
 
-		// uploadFile stages through the cache root tmp dir and atomically
-		// renames; it no-ops when the remote already matches sha256.
-		destWheel := filepath.Join(keyDir, entity.Name())
-		if err := p.uploadFile(srcWheel, destWheel, sha256, entity.Name()); err != nil {
-			return fmt.Errorf("failed to cache wheel '%s' -> %w", entity.Name(), err)
+		// The cache is authoritative: never auto-overwrite an existing entry.
+		remoteWheel := filepath.Join(keyDir, entity.Name())
+		if fileio.PathExists(remoteWheel) {
+			cachedSha256, err := fileio.SHA256Sum(remoteWheel)
+			if err != nil {
+				return fmt.Errorf("failed to calculate sha256 of '%s' -> %w", entity.Name(), err)
+			}
+			if cachedSha256 == localSha256 {
+				continue // already cached with the same content.
+			}
+			return fmt.Errorf("%w -> '%s' is cached with sha256=%s, but storing sha256=%s; please remove the cached file manually if you want to replace it",
+				errors.ErrSha256Mismatch, entity.Name(), cachedSha256, localSha256)
 		}
 
-		// Write the sha256 sidecar (tiny, no progress bar needed).
-		destPath := filepath.Join(keyDir, entity.Name()+sha256Ext)
-		if fileio.PathExists(destPath) {
-			return nil
+		if err := p.uploadFile(localWheel, remoteWheel, localSha256, entity.Name()); err != nil {
+			return fmt.Errorf("failed to cache wheel '%s' -> %w", entity.Name(), err)
 		}
-		return os.WriteFile(destPath, []byte(sha256), os.ModePerm)
 	}
 	return nil
 }
 
 // hasWheels reports whether any entry is a .whl file.
 func hasWheels(entries []os.DirEntry) bool {
-	for _, e := range entries {
-		if !e.IsDir() && strings.HasSuffix(e.Name(), ".whl") {
+	for _, entity := range entries {
+		if !entity.IsDir() && strings.HasSuffix(entity.Name(), ".whl") {
 			return true
 		}
 	}

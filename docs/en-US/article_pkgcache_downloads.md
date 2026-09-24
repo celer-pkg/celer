@@ -70,24 +70,22 @@ For each build tool or dependency source, provide a SHA-256 checksum in your bui
 ```
 
 **What SHA-256 does:**
-- Provides data integrity verification
-- Enables cache lookups by file identity (format: `{filename}-{sha256}.{ext}`)
-- Detects if a cached file has been corrupted or modified
+- Verifies data integrity
+- Identifies the hosted content — each fileName maps to exactly one content
 
 ## Cache Directory Structure
 
-Celer organizes cached downloads in a simple, flat structure:
+Files are stored under their original filename — `downloads/<filename>`, one object per name:
 
 ```
 /home/test/pkgcache/
     └── downloads/
-        ├── cmake-3.30.5-linux-x86_64-f747d9b23...e9b51dc9d.tar.gz
-        ├── gcc-ubuntu-11.5.0-x86_64-aarch64-linux-gnu-a99dee8e3ee2...56ebdad30c.tar.xz
-        ├── ubuntu-base-22.04.5-base-arm64-47e7f499113.....297000486c6e76406232a.tar.xz
-        └── ...
+        ├── cmake-3.30.5-linux-x86_64.tar.gz
+        ├── gcc-ubuntu-11.5.0-x86_64-aarch64-linux-gnu.tar.xz
+        └── ubuntu-base-22.04.5-base-arm64.tar.xz
 ```
 
-**Cached filename format**: `{basename}-{sha256}.{ext}`
+The cache is authoritative and single-copy. On **Store**, uploading a fileName whose cached SHA-256 differs returns an error instead of overwriting — remove the cached entry first to update it. On **Restore**, the cached copy wins over the local file regardless of the port-declared SHA-256.
 
 ## Verification How It Works
 

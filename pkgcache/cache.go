@@ -140,7 +140,8 @@ type RepoCache interface {
 	Store(repoDir, repoUrl, repoRef, nameVersion, archiveFile string) error
 }
 
-// DownloadCache stores/restores downloaded files (tools, archives), keyed by SHA256.
+// DownloadCache stores/restores downloaded files (tools, archives), keyed by
+// fileName and verified by sha-256.
 type DownloadCache interface {
 	Restore(fileName, sha256 string) (bool, error)
 	Store(fileName, sha256, srcFile string) error
