@@ -224,18 +224,6 @@ func (m minioCache) downloadSilent(dstDir, objectName string) (string, error) {
 	return localFile.Name(), nil
 }
 
-func (m minioCache) RemoveFile(filePath string) error {
-	opts := minio.RemoveObjectOptions{
-		GovernanceBypass: true,
-		ForceDelete:      true,
-	}
-	if err := m.client.RemoveObject(context.Background(), m.bucketName, filePath, opts); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 type progressHook struct {
 	mutex  sync.Mutex
 	writer io.Writer
