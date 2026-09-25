@@ -54,6 +54,11 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		return fmt.Errorf("package dir does not exist: %s", packageDir)
 	}
 
+	// Create default bucket if not exist.
+	if err := a.CreateBucketIfNotExist(); err != nil {
+		return err
+	}
+
 	// Validate packageDir format and extract metadata.
 	// Path format: packages/platform/project/buildType/nameVersion
 	parts := strings.Split(filepath.ToSlash(packageDir), "/")
@@ -104,7 +109,7 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		return fmt.Errorf("failed to write meta into file for '%s' -> %w", nameVersion, err)
 	}
 	if err := a.uploadSilent(tmpMetaPath, metaFilePath); err != nil {
-		return fmt.Errorf("failed to upload meta for '%s' to minio -> %w", nameVersion, err)
+		return fmt.Errorf("failed to upload meta for '%s' -> %w", nameVersion, err)
 	}
 
 	// Upload archive file with progress.

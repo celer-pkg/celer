@@ -70,24 +70,22 @@ Celer 使用**基于 SHA-256 的验证**来缓存下载文件并确保数据完�
 ```
 
 **SHA-256 的作用**：
-- 提供数据完整性验证
-- 通过文件标识启用缓存查询（格式：`{filename}-{sha256}.{ext}`）
-- 检测缓存文件是否被破坏或修改
+- 校验数据完整性
+- 标识托管内容——每个 fileName 只对应一份内容
 
 ## 缓存目录结构
 
-Celer 使用简单、扁平的结构组织缓存的下载文件：
+按原始文件名存储 —— `downloads/<filename>`，每个名字一个对象：
 
 ```
 /home/test/pkgcache/
     └── downloads/
-        ├── cmake-3.30.5-linux-x86_64-f747d9b23...e9b51dc9d.tar.gz
-        ├── gcc-ubuntu-11.5.0-x86_64-aarch64-linux-gnu-a99dee8e3ee2...56ebdad30c.tar.xz
-        ├── ubuntu-base-22.04.5-base-arm64-47e7f499113.....297000486c6e76406232a.tar.xz
-        └── ...
+        ├── cmake-3.30.5-linux-x86_64.tar.gz
+        ├── gcc-ubuntu-11.5.0-x86_64-aarch64-linux-gnu.tar.xz
+        └── ubuntu-base-22.04.5-base-arm64.tar.xz
 ```
 
-**缓存后的文件名格式**：`{basename}-{sha256}.{ext}`
+缓存是权威的、单副本的。**Store** 时，同名但 SHA-256 与缓存不同会报错而非覆盖——要更新就先删缓存条目再传。**Restore** 时，缓存副本优先于本地文件，无视 port 配置的 SHA-256。
 
 ## 验证工作原理
 

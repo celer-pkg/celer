@@ -53,21 +53,22 @@ func (p PythonWheelConfig) Restore(cacheKey, destDir string) (bool, error) {
 
 	prefix := p.keyPrefix(cacheKey) + "/"
 
-	// List every object under the prefix and collect the wheel ones.
-	type wheel struct{ name, sha256 string }
-	var wheels []wheel
+	// List every object under the prefix and collect the wheel names.
+	var wheels []string
 	for info := range p.client.ListObjects(context.Background(), p.bucketName, minio.ListObjectsOptions{
 		Prefix:    prefix,
 		Recursive: true,
 	}) {
 		if info.Err != nil {
-			return false, fmt.Errorf("failed to list python wheels for %s -> %w", cacheKey, info.Err)
+			return false, fmt.Errorf("failed to list python wheels for '%s' -> %w", cacheKey, info.Err)
 		}
-		name := filepath.Base(info.Key)
-		if !strings.HasSuffix(name, ".whl") {
+
+		wheel := filepath.Base(info.Key)
+		if !strings.HasSuffix(wheel, ".whl") {
 			continue
 		}
-		wheels = append(wheels, wheel{name: name, sha256: p.metaSha256(&info)})
+
+		wheels = append(wheels, wheel)
 	}
 	if len(wheels) == 0 {
 		return false, nil
@@ -83,18 +84,16 @@ func (p PythonWheelConfig) Restore(cacheKey, destDir string) (bool, error) {
 	}
 	defer os.RemoveAll(localTmpDir)
 
-	for _, w := range wheels {
-		destWheel := filepath.Join(destDir, w.name)
-		if fileio.PathExists(destWheel) && fileio.VerifyFileSHA256(destWheel, w.sha256) {
-			continue
-		}
-		wheelObject := filepath.Join(p.cacheDir, cacheKey, w.name)
-		tmpWheel, err := p.downloadFile(localTmpDir, wheelObject, w.name)
+	for _, wheel := range wheels {
+		objectName := filepath.Join(p.cacheDir, cacheKey, wheel)
+		tmpWheel, err := p.downloadFile(localTmpDir, objectName, wheel)
 		if err != nil {
-			return false, fmt.Errorf("failed to download wheel %s -> %w", w.name, err)
+			return false, fmt.Errorf("failed to download wheel %s -> %w", wheel, err)
 		}
+
+		destWheel := filepath.Join(destDir, wheel)
 		if err := fileio.CopyFile(tmpWheel, destWheel); err != nil {
-			return false, fmt.Errorf("failed to place wheel %s -> %w", w.name, err)
+			return false, fmt.Errorf("failed to place wheel '%s' -> %w", wheel, err)
 		}
 	}
 	return true, nil
@@ -124,21 +123,28 @@ func (p PythonWheelConfig) Store(cacheKey, wheelhouseDir string) error {
 		if entity.IsDir() || !strings.HasSuffix(entity.Name(), ".whl") {
 			continue
 		}
-		srcWheel := filepath.Join(wheelhouseDir, entity.Name())
-		sha, err := fileio.SHA256Sum(srcWheel)
+		localWheel := filepath.Join(wheelhouseDir, entity.Name())
+		localSha256, err := fileio.SHA256Sum(localWheel)
 		if err != nil {
 			return fmt.Errorf("failed to compute sha256 for '%s' -> %w", entity.Name(), err)
 		}
 		wheelObject := filepath.Join(prefix, entity.Name())
 
-		// Skip if already cached with matching sha256.
+		// The cache is authoritative: never auto-overwrite an existing entry.
 		if info, err := p.GetFileInfo(wheelObject); err != nil {
 			return fmt.Errorf("failed to stat wheel '%s' -> %w", entity.Name(), err)
-		} else if info != nil && p.metaSha256(info) == sha {
-			continue
+		} else if info != nil {
+			remoteSha256 := p.metaSha256(info)
+			if remoteSha256 == "" {
+				return fmt.Errorf("'%s' is cached but has no sha256 metadata; please manually remove it before re-storing", entity.Name())
+			}
+			if remoteSha256 == localSha256 {
+				continue // already cached with the same content.
+			}
+			return fmt.Errorf("'%s' is cached with sha256=%s, but storing sha256=%s; remove the cached object manually if you want to replace it", entity.Name(), remoteSha256, localSha256)
 		}
 
-		if err := p.uploadFile(srcWheel, wheelObject, entity.Name()); err != nil {
+		if err := p.uploadFile(localWheel, wheelObject, entity.Name()); err != nil {
 			return fmt.Errorf("failed to cache wheel '%s' -> %w", entity.Name(), err)
 		}
 	}

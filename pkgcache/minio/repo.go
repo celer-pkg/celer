@@ -60,6 +60,11 @@ func (r RepoConfig) Store(repoDir, repoUrl, repoRef, nameVersion, archiveFile st
 		return nil
 	}
 
+	// Create default bucket if not exist.
+	if err := r.CreateBucketIfNotExist(); err != nil {
+		return err
+	}
+
 	if strings.HasSuffix(repoUrl, ".git") {
 		return r.storeGitRepo(repoDir, repoRef, nameVersion)
 	} else {
