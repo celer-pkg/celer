@@ -61,6 +61,10 @@ func TestConfigureCmd_CommandStructure(t *testing.T) {
 		{"ccache-maxsize", ""},
 		{"ccache-remote-storage", ""},
 		{"ccache-remote-only", ""},
+		{"python-version", ""},
+		{"python-index-url", ""},
+		{"python-extra-index-urls", ""},
+		{"python-trusted-hosts", ""},
 		{"port", ""},
 		{"port-url", ""},
 		{"port-ref", ""},
@@ -196,6 +200,26 @@ func TestConfigureCmd_Completion(t *testing.T) {
 			name:       "complete_ccache_remote_only_flag",
 			toComplete: "--ccache-remote-o",
 			expected:   []string{"--ccache-remote-only"},
+		},
+		{
+			name:       "complete_python_version_flag",
+			toComplete: "--python-v",
+			expected:   []string{"--python-version"},
+		},
+		{
+			name:       "complete_python_index_url_flag",
+			toComplete: "--python-i",
+			expected:   []string{"--python-index-url"},
+		},
+		{
+			name:       "complete_python_extra_index_urls_flag",
+			toComplete: "--python-e",
+			expected:   []string{"--python-extra-index-urls"},
+		},
+		{
+			name:       "complete_python_trusted_hosts_flag",
+			toComplete: "--python-t",
+			expected:   []string{"--python-trusted-hosts"},
 		},
 		{
 			name:       "complete_port_flag",
@@ -1161,5 +1185,182 @@ func TestConfigureCmd_Port_UnknownPortShouldFail(t *testing.T) {
 	)
 	if err == nil {
 		t.Fatal("expected error when --port refers to a non-existent port")
+	}
+}
+
+func TestConfigure_PythonVersion(t *testing.T) {
+	celer := newInitializedCeler(t)
+	cmd := &configureCmd{}
+
+	const version = "3.10.12"
+	if _, err := runCommand(t, cmd.Command(celer), "--python-version="+version); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if got := celer2.PythonConfig().GetVersion(); got != version {
+		t.Fatalf("python version should be `%s`, got `%s`", version, got)
+	}
+}
+
+func TestConfigure_PythonVersion_Clear(t *testing.T) {
+	celer := newInitializedCeler(t)
+	cmd := &configureCmd{}
+
+	if _, err := runCommand(t, cmd.Command(celer), "--python-version=3.10.12"); err != nil {
+		t.Fatal(err)
+	}
+	// Empty value clears the setting.
+	if _, err := runCommand(t, cmd.Command(celer), "--python-version="); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if got := celer2.PythonConfig().GetVersion(); got != "" {
+		t.Fatalf("python version should be cleared, got `%s`", got)
+	}
+}
+
+func TestConfigure_PythonIndexUrl(t *testing.T) {
+	celer := newInitializedCeler(t)
+	cmd := &configureCmd{}
+
+	const indexURL = "https://pypi.example.com/simple"
+	if _, err := runCommand(t, cmd.Command(celer), "--python-index-url="+indexURL); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if got := celer2.PythonConfig().GetIndexUrl(); got != indexURL {
+		t.Fatalf("python index url should be `%s`, got `%s`", indexURL, got)
+	}
+}
+
+func TestConfigure_PythonIndexUrl_InvalidURL(t *testing.T) {
+	celer := newInitializedCeler(t)
+	cmd := &configureCmd{}
+
+	stderr, err := runCommand(t, cmd.Command(celer), "--python-index-url=localhost:8080/simple")
+	if err == nil {
+		t.Fatal("expected error for index URL without scheme")
+	}
+	if !strings.Contains(stderr, "scheme and host") {
+		t.Fatalf("stderr should report invalid index URL, got:\n%s", stderr)
+	}
+}
+
+func TestConfigure_PythonExtraIndexUrls(t *testing.T) {
+	celer := newInitializedCeler(t)
+	cmd := &configureCmd{}
+
+	urls := "https://pypi.example.com/simple,https://pypi.internal/simple"
+	if _, err := runCommand(t, cmd.Command(celer), "--python-extra-index-urls="+urls); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	got := celer2.PythonConfig().GetExtraIndexUrls()
+	if len(got) != 2 {
+		t.Fatalf("expected 2 extra index urls, got %d: %v", len(got), got)
+	}
+	if got[0] != "https://pypi.example.com/simple" || got[1] != "https://pypi.internal/simple" {
+		t.Fatalf("extra index urls mismatch, got %v", got)
+	}
+}
+
+func TestConfigure_PythonExtraIndexUrls_InvalidURL(t *testing.T) {
+	celer := newInitializedCeler(t)
+	cmd := &configureCmd{}
+
+	stderr, err := runCommand(t, cmd.Command(celer), "--python-extra-index-urls=https://pypi.example.com/simple,localhost:8080")
+	if err == nil {
+		t.Fatal("expected error when an extra index URL lacks a scheme")
+	}
+	if !strings.Contains(stderr, "scheme and host") {
+		t.Fatalf("stderr should report invalid extra index URL, got:\n%s", stderr)
+	}
+}
+
+func TestConfigure_PythonTrustedHosts(t *testing.T) {
+	celer := newInitializedCeler(t)
+	cmd := &configureCmd{}
+
+	hosts := "pypi.internal,pypi.example.com:8080"
+	if _, err := runCommand(t, cmd.Command(celer), "--python-trusted-hosts="+hosts); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	got := celer2.PythonConfig().GetTrustedHosts()
+	if len(got) != 2 {
+		t.Fatalf("expected 2 trusted hosts, got %d: %v", len(got), got)
+	}
+	if got[0] != "pypi.internal" || got[1] != "pypi.example.com:8080" {
+		t.Fatalf("trusted hosts mismatch, got %v", got)
+	}
+}
+
+// All python flags share one group; mixing with another group must fail.
+func TestConfigure_PythonCrossGroupFails(t *testing.T) {
+	celer := newInitializedCeler(t)
+	cmd := &configureCmd{}
+
+	stderr, err := runCommand(t, cmd.Command(celer),
+		"--python-version=3.10.12",
+		"--ccache-enabled=true",
+	)
+	if err == nil {
+		t.Fatal("expected error when flags from different groups are provided")
+	}
+	if !strings.Contains(stderr, "different groups") {
+		t.Fatalf("stderr should report cross-group violation, got:\n%s", stderr)
+	}
+}
+
+// All python flags in one command (same group) must succeed together.
+func TestConfigure_PythonGroupAllFlags(t *testing.T) {
+	celer := newInitializedCeler(t)
+	cmd := &configureCmd{}
+
+	if _, err := runCommand(t, cmd.Command(celer),
+		"--python-version=3.10.12",
+		"--python-index-url=https://pypi.example.com/simple",
+		"--python-extra-index-urls=https://pypi.internal/simple",
+		"--python-trusted-hosts=pypi.internal",
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	cfg := celer2.PythonConfig()
+	if cfg.GetVersion() != "3.10.12" {
+		t.Fatalf("version mismatch: %s", cfg.GetVersion())
+	}
+	if cfg.GetIndexUrl() != "https://pypi.example.com/simple" {
+		t.Fatalf("index url mismatch: %s", cfg.GetIndexUrl())
+	}
+	if len(cfg.GetExtraIndexUrls()) != 1 || cfg.GetExtraIndexUrls()[0] != "https://pypi.internal/simple" {
+		t.Fatalf("extra index urls mismatch: %v", cfg.GetExtraIndexUrls())
+	}
+	if len(cfg.GetTrustedHosts()) != 1 || cfg.GetTrustedHosts()[0] != "pypi.internal" {
+		t.Fatalf("trusted hosts mismatch: %v", cfg.GetTrustedHosts())
 	}
 }
