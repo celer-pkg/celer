@@ -112,6 +112,14 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		return fmt.Errorf("failed to upload meta for '%s' -> %w", nameVersion, err)
 	}
 
+	// Store never deletes: an entry that already exists under this key is
+	// replaced in place.
+	if info, err := a.GetFileInfo(remoteArtifactPath); err != nil {
+		return fmt.Errorf("failed to check cached artifact '%s' -> %w", remoteArtifactPath, err)
+	} else if info != nil {
+		logger.PrintWarning("======== cached artifact for %s exists, it will be overwritten by this build ========", nameVersion)
+	}
+
 	// Upload archive file with progress.
 	if err := a.uploadFile(tmpArchivePath, remoteArtifactPath, nameVersion); err != nil {
 		return fmt.Errorf("failed to upload artifact for '%s' -> %w", nameVersion, err)

@@ -52,7 +52,8 @@ FEATURES:
 
 FLAGS:
   -d, --dev          Install as development dependency
-  -f, --force        Force reinstallation (uninstall first if exists)
+  -f, --force        Force reinstallation (uninstall first if exists). The
+                     rebuilt artifact overwrites the pkgcache entry.
       --clean-source With --force, also reset the source repo (discards
                      uncommitted changes).
   -r, --recursive    With --force, recursively reinstall dependencies
