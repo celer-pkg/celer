@@ -522,3 +522,114 @@ func (c *Celer) SetCCacheRemoteOnly(remoteOnly bool) error {
 
 	return nil
 }
+
+// validateIndexURL checks that a pip index URL carries a scheme and host,
+// the same shape requirement applied to --ccache-remote-storage. An empty
+// value is allowed (used to clear the setting).
+func validateIndexURL(raw string) error {
+	if raw == "" {
+		return nil
+	}
+	parsedURL, err := url.Parse(raw)
+	if err != nil {
+		return fmt.Errorf("invalid python index URL -> %w", err)
+	}
+	if parsedURL.Scheme == "" || parsedURL.Host == "" {
+		return fmt.Errorf("python index URL must contain scheme and host (e.g., https://pypi.example.com/simple)")
+	}
+	return nil
+}
+
+func (c *Celer) SetPythonVersion(version string) error {
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	if c.configData.Python == nil {
+		c.configData.Python = &Python{}
+	}
+	c.configData.Python.Version = strings.TrimSpace(version)
+
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Celer) SetPythonIndexUrl(indexUrl string) error {
+	indexUrl = strings.TrimSpace(indexUrl)
+	if err := validateIndexURL(indexUrl); err != nil {
+		return err
+	}
+
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	if c.configData.Python == nil {
+		c.configData.Python = &Python{}
+	}
+	c.configData.Python.IndexUrl = indexUrl
+
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Celer) SetPythonExtraIndexUrls(urls []string) error {
+	var cleaned []string
+	for _, raw := range urls {
+		raw = strings.TrimSpace(raw)
+		if raw == "" {
+			continue
+		}
+		if err := validateIndexURL(raw); err != nil {
+			return err
+		}
+		cleaned = append(cleaned, raw)
+	}
+
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	if c.configData.Python == nil {
+		c.configData.Python = &Python{}
+	}
+	c.configData.Python.ExtraIndexUrls = cleaned
+
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Celer) SetPythonTrustedHosts(hosts []string) error {
+	var cleaned []string
+	for _, raw := range hosts {
+		raw = strings.TrimSpace(raw)
+		if raw == "" {
+			continue
+		}
+		cleaned = append(cleaned, raw)
+	}
+
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	if c.configData.Python == nil {
+		c.configData.Python = &Python{}
+	}
+	c.configData.Python.TrustedHosts = cleaned
+
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}

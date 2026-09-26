@@ -38,6 +38,7 @@ type configureCmd struct {
 	pkgCacheOptions pkgcache.Options
 	proxy           configs.Proxy
 	ccache          configs.CCache
+	python          configs.Python
 }
 
 var flagGroup = map[string]string{
@@ -64,6 +65,10 @@ var flagGroup = map[string]string{
 	"ccache-maxsize":            "ccache",
 	"ccache-remote-storage":     "ccache",
 	"ccache-remote-only":        "ccache",
+	"python-version":            "python",
+	"python-index-url":          "python",
+	"python-extra-index-urls":   "python",
+	"python-trusted-hosts":      "python",
 	"port":                      "port",
 	"port-url":                  "port",
 	"port-ref":                  "port",
@@ -121,6 +126,12 @@ Available Configuration Options:
     --ccache-remote-storage     Set remote storage address for ccache (e.g., http://host:port/path)
     --ccache-remote-only        Use remote ccache only, skip local cache (true/false)
 
+  Python Configuration:
+    --python-version            Set the Python version for venv/conda setup (e.g., 3.10.12)
+    --python-index-url          Set the pip index URL (e.g., https://pypi.example.com/simple)
+    --python-extra-index-urls   Set pip extra index URLs (comma-separated)
+    --python-trusted-hosts      Set pip trusted hosts (comma-separated)
+
   Port Configuration:
     --port                      Target port to update, in name@version form (e.g., eigen@3.4.0)
     --port-url                  New source URL for the port (requires --port)
@@ -147,6 +158,10 @@ Examples:
   celer configure --ccache-maxsize=5G                              # Set ccache max size to 5GB
   celer configure --ccache-remote-storage=http://srv:8080/ccache   # Set ccache remote storage
   celer configure --ccache-remote-only=true                        # Use remote ccache only
+  celer configure --python-version=3.10.12                         # Set Python version
+  celer configure --python-index-url=https://pypi.example.com/simple \
+                  --python-extra-index-urls=https://pypi.internal/simple \
+                  --python-trusted-hosts=pypi.internal             # Configure pip indexes and trusted hosts
   celer configure --port=eigen@3.4.0 --port-ref=3.4.1              # Pin a port to a new ref
   celer configure --port=eigen@3.4.0 --port-url=https://example.com/eigen.git --port-ref=main
                                                                    # Override both url and ref`,
@@ -207,6 +222,9 @@ Examples:
 			if err := c.configurePort(flags); err != nil {
 				return err
 			}
+			if err := c.configurePython(flags); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -249,6 +267,12 @@ Examples:
 	flags.StringVar(&c.ccache.MaxSize, "ccache-maxsize", "", "configure ccache maxsize.")
 	flags.StringVar(&c.ccache.RemoteStorage, "ccache-remote-storage", "", "configure ccache remote storage.")
 	flags.BoolVar(&c.ccache.RemoteOnly, "ccache-remote-only", false, "configure ccache remote only.")
+
+	// Python flags.
+	flags.StringVar(&c.python.Version, "python-version", "", "configure python version (e.g., 3.10.12).")
+	flags.StringVar(&c.python.IndexUrl, "python-index-url", "", "configure python pip index URL (e.g., https://pypi.example.com/simple).")
+	flags.StringSliceVar(&c.python.ExtraIndexUrls, "python-extra-index-urls", nil, "configure python pip extra index URLs (comma-separated).")
+	flags.StringSliceVar(&c.python.TrustedHosts, "python-trusted-hosts", nil, "configure python pip trusted hosts (comma-separated).")
 
 	// Port flags.
 	flags.StringVar(&c.port, "port", "", "port name@version to configure (e.g. rmw_zenoh_cpp@humble)")
@@ -511,6 +535,38 @@ func (c *configureCmd) configurePort(flags *pflag.FlagSet) error {
 	return nil
 }
 
+func (c *configureCmd) configurePython(flags *pflag.FlagSet) error {
+	if flags.Changed("python-version") {
+		if err := c.celer.SetPythonVersion(c.python.Version); err != nil {
+			return logger.PrintError(err, "failed to set python version: %s", c.python.Version)
+		}
+		logger.PrintSuccess("current python version: %s", expr.If(c.python.Version != "", c.python.Version, "cleared"))
+	}
+
+	if flags.Changed("python-index-url") {
+		if err := c.celer.SetPythonIndexUrl(c.python.IndexUrl); err != nil {
+			return logger.PrintError(err, "failed to set python index url: %s", c.python.IndexUrl)
+		}
+		logger.PrintSuccess("current python index url: %s", expr.If(c.python.IndexUrl != "", c.python.IndexUrl, "cleared"))
+	}
+
+	if flags.Changed("python-extra-index-urls") {
+		if err := c.celer.SetPythonExtraIndexUrls(c.python.ExtraIndexUrls); err != nil {
+			return logger.PrintError(err, "failed to set python extra index urls: %v", c.python.ExtraIndexUrls)
+		}
+		logger.PrintSuccess("current python extra index urls: %v", c.python.ExtraIndexUrls)
+	}
+
+	if flags.Changed("python-trusted-hosts") {
+		if err := c.celer.SetPythonTrustedHosts(c.python.TrustedHosts); err != nil {
+			return logger.PrintError(err, "failed to set python trusted hosts: %v", c.python.TrustedHosts)
+		}
+		logger.PrintSuccess("current python trusted hosts: %v", c.python.TrustedHosts)
+	}
+
+	return nil
+}
+
 func (c *configureCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	commands := []string{
 		"--platform",
@@ -536,6 +592,10 @@ func (c *configureCmd) completion(cmd *cobra.Command, args []string, toComplete 
 		"--ccache-maxsize",
 		"--ccache-remote-storage",
 		"--ccache-remote-only",
+		"--python-version",
+		"--python-index-url",
+		"--python-extra-index-urls",
+		"--python-trusted-hosts",
 		"--port",
 		"--port-url",
 		"--port-ref",
