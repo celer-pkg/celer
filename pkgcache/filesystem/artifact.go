@@ -36,7 +36,7 @@ func NewArtifactConfig(ctx context.Context) *ArtifactConfig {
 		},
 		ctx:        ctx,
 		cacheDir:   pkgCache.GetFS().GetDir(pkgcache.DirArtifacts, ctx.Version()),
-		writable:   pkgCache.GetOptions().Writable,
+		writable:   pkgCache.IsWritable(),
 		maxRetries: 3,
 	}
 }
@@ -118,6 +118,11 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 func (a ArtifactConfig) Store(packageDir, meta string) error {
 	// skip when offline.
 	if a.ctx.Offline() {
+		return nil
+	}
+
+	// skip for not writable.
+	if !a.writable {
 		return nil
 	}
 

@@ -37,7 +37,7 @@ func NewRepoConfig(ctx context.Context, client *minio.Client) *RepoConfig {
 			bucketName: bucketName,
 		},
 		cacheDir: minioConfig.GetDir(pkgcache.DirRepos, ctx.Version()),
-		writable: pkgCache.GetOptions().Writable,
+		writable: pkgCache.IsWritable(),
 	}
 }
 

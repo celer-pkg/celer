@@ -32,13 +32,14 @@ type configureCmd struct {
 	portUrl string
 	portRef string
 
-	// Pkg-cache flags, bound to the backend configs and shared options directly.
-	pkgCacheFS      pkgcache.FS
-	pkgCacheMinio   pkgcache.Minio
-	pkgCacheOptions pkgcache.Options
-	proxy           configs.Proxy
-	ccache          configs.CCache
-	python          configs.Python
+	// Pkg-cache flags.
+	pkgCacheFS       pkgcache.FS
+	pkgCacheMinio    pkgcache.Minio
+	pkgCacheWritable bool
+
+	proxy  configs.Proxy
+	ccache configs.CCache
+	python configs.Python
 }
 
 var flagGroup = map[string]string{
@@ -54,9 +55,6 @@ var flagGroup = map[string]string{
 	"pkgcache-minio-access-key": "pkgcache",
 	"pkgcache-minio-secret-key": "pkgcache",
 	"pkgcache-writable":         "pkgcache",
-	"pkgcache-cache-downloads":  "pkgcache",
-	"pkgcache-cache-artifacts":  "pkgcache",
-	"pkgcache-cache-repos":      "pkgcache",
 	"proxy-host":                "proxy",
 	"proxy-port":                "proxy",
 	"proxy-remove":              "proxy",
@@ -107,17 +105,12 @@ Available Configuration Options:
     --pkgcache-minio-host         Set the minio backend host (e.g. http://minio.example.com:9000)
     --pkgcache-minio-access-key   Set the minio access key
     --pkgcache-minio-secret-key   Set the minio secret key
-
-  PkgCache Options (shared by all backends, all enabled on first backend configuration):
-    --pkgcache-writable           Set whether the package cache is writable (true/false)
-    --pkgcache-cache-downloads    Cache downloaded sources into the package cache (true/false)
-    --pkgcache-cache-artifacts    Cache built artifacts into the package cache (true/false)
-    --pkgcache-cache-repos        Cache source repos into the package cache (true/false)
+    --pkgcache-writable           Set pkgcache.writable: false makes the cache read-only, restoring stays allowed (true/false)
 
   Proxy Configuration:
     --proxy-host                Set the proxy server hostname
     --proxy-port                Set the proxy server port number
-    --proxy-remove				Remove http/https proxy
+    --proxy-remove              Remove http/https proxy
 
   CCache Configuration:
     --ccache-enabled            Enable/disable ccache (true/false)
@@ -145,12 +138,11 @@ Examples:
   celer configure --jobs=8                                         # Use 8 parallel build jobs
   celer configure --offline=true                                   # Enable offline mode
   celer configure --verbose=false                                  # Disable verbose output
-  celer configure --pkgcache-fs-dir=/tmp/cache                  # Set pkgcache.fs directory
+  celer configure --pkgcache-fs-dir=/tmp/cache                     # Set pkgcache.fs directory
   celer configure --pkgcache-minio-host=http://srv:9000 \
                   --pkgcache-minio-access-key=xxx \
-                  --pkgcache-minio-secret-key=yyy               # Configure pkgcache.minio
-  celer configure --pkgcache-writable=false                     # Disable pkgcache write
-  celer configure --pkgcache-cache-artifacts=true               # Cache built artifacts
+                  --pkgcache-minio-secret-key=yyy                  # Configure pkgcache.minio
+  celer configure --pkgcache-writable=false                        # Make the cache read-only
   celer configure --proxy-host=proxy.example.com                   # Set proxy host
   celer configure --proxy-port=8080                                # Set proxy port
   celer configure --proxy-remove                                   # Remove http/https proxy
@@ -248,13 +240,7 @@ Examples:
 	flags.StringVar(&c.pkgCacheMinio.AccessKey, "pkgcache-minio-access-key", "", "configure pkgcache.minio access key.")
 	flags.StringVar(&c.pkgCacheMinio.SecretKey, "pkgcache-minio-secret-key", "", "configure pkgcache.minio secret key.")
 
-	// Options shared by all pkgcache backends, all enabled by default on
-	// the first backend configuration.
-	flags.BoolVar(&c.pkgCacheOptions.Writable, "pkgcache-writable", true, "configure pkgcache writable.")
-	flags.BoolVar(&c.pkgCacheOptions.Downloads, "pkgcache-cache-downloads", true, "configure pkgcache to cache downloads.")
-	flags.BoolVar(&c.pkgCacheOptions.Artifacts, "pkgcache-cache-artifacts", true, "configure pkgcache to cache artifacts.")
-	flags.BoolVar(&c.pkgCacheOptions.Repos, "pkgcache-cache-repos", true, "configure pkgcache to cache repos.")
-	flags.BoolVar(&c.pkgCacheOptions.PythonWheels, "pkgcache-cache-python-wheels", true, "configure pkgcache to cache python wheels.")
+	flags.BoolVar(&c.pkgCacheWritable, "pkgcache-writable", true, "configure pkgcache writable.")
 
 	// Proxy flags.
 	flags.StringVar(&c.proxy.Host, "proxy-host", "", "configure proxy host.")
@@ -288,9 +274,6 @@ Examples:
 
 	// PkgCache flag completions.
 	command.RegisterFlagCompletionFunc("pkgcache-writable", boolCompletion)
-	command.RegisterFlagCompletionFunc("pkgcache-cache-downloads", boolCompletion)
-	command.RegisterFlagCompletionFunc("pkgcache-cache-artifacts", boolCompletion)
-	command.RegisterFlagCompletionFunc("pkgcache-cache-repos", boolCompletion)
 
 	// CCache flag completions.
 	command.RegisterFlagCompletionFunc("ccache-enabled", boolCompletion)
@@ -460,36 +443,12 @@ func (c *configureCmd) configurePkgCache(flags *pflag.FlagSet) error {
 		logger.PrintSuccess("current pkgcache.minio host: %s.", expr.If(c.pkgCacheMinio.Host != "", c.pkgCacheMinio.Host, "unchanged"))
 	}
 
-	// Options shared by all backends.
+	// The write switch lives on [pkgcache] itself, not on a backend.
 	if flags.Changed("pkgcache-writable") {
-		if err := c.celer.SetPkgCacheWritable(c.pkgCacheOptions.Writable); err != nil {
-			return logger.PrintError(err, "failed to set pkgcache writable: %s", expr.If(c.pkgCacheOptions.Writable, "true", "false"))
+		if err := c.celer.SetPkgCacheWritable(c.pkgCacheWritable); err != nil {
+			return logger.PrintError(err, "failed to set pkgcache writable: %s", expr.If(c.pkgCacheWritable, "true", "false"))
 		}
-		logger.PrintSuccess("current pkgcache writable: %s.", expr.If(c.pkgCacheOptions.Writable, "true", "false"))
-	}
-	if flags.Changed("pkgcache-cache-downloads") {
-		if err := c.celer.SetPkgCacheCacheDownloads(c.pkgCacheOptions.Downloads); err != nil {
-			return logger.PrintError(err, "failed to set pkgcache cache-downloads: %s", expr.If(c.pkgCacheOptions.Downloads, "true", "false"))
-		}
-		logger.PrintSuccess("current pkgcache cache-downloads: %s.", expr.If(c.pkgCacheOptions.Downloads, "true", "false"))
-	}
-	if flags.Changed("pkgcache-cache-artifacts") {
-		if err := c.celer.SetPkgCacheCacheArtifacts(c.pkgCacheOptions.Artifacts); err != nil {
-			return logger.PrintError(err, "failed to set pkgcache cache-artifacts: %s", expr.If(c.pkgCacheOptions.Artifacts, "true", "false"))
-		}
-		logger.PrintSuccess("current pkgcache cache-artifacts: %s.", expr.If(c.pkgCacheOptions.Artifacts, "true", "false"))
-	}
-	if flags.Changed("pkgcache-cache-repos") {
-		if err := c.celer.SetPkgCacheCacheRepos(c.pkgCacheOptions.Repos); err != nil {
-			return logger.PrintError(err, "failed to set pkgcache cache-repos: %s", expr.If(c.pkgCacheOptions.Repos, "true", "false"))
-		}
-		logger.PrintSuccess("current pkgcache cache-repos: %s.", expr.If(c.pkgCacheOptions.Repos, "true", "false"))
-	}
-	if flags.Changed("pkgcache-cache-python-wheels") {
-		if err := c.celer.SetPkgCacheCachePythonWheels(c.pkgCacheOptions.PythonWheels); err != nil {
-			return logger.PrintError(err, "failed to set pkgcache cache-python-wheels: %s", expr.If(c.pkgCacheOptions.PythonWheels, "true", "false"))
-		}
-		logger.PrintSuccess("current pkgcache cache-python-wheels: %s.", expr.If(c.pkgCacheOptions.PythonWheels, "true", "false"))
+		logger.PrintSuccess("current pkgcache writable: %s.", expr.If(c.pkgCacheWritable, "true", "false"))
 	}
 
 	return nil
@@ -581,9 +540,6 @@ func (c *configureCmd) completion(cmd *cobra.Command, args []string, toComplete 
 		"--pkgcache-minio-access-key",
 		"--pkgcache-minio-secret-key",
 		"--pkgcache-writable",
-		"--pkgcache-cache-downloads",
-		"--pkgcache-cache-artifacts",
-		"--pkgcache-cache-repos",
 		"--proxy-host",
 		"--proxy-port",
 		"--proxy-remove",

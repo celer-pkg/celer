@@ -34,11 +34,11 @@ Celer 使用**基于哈希的缓存**来存储和检索构建制品：
 	project = "project_01"
 	jobs = 32
 
+[pkgcache]
+	writable = false             # 只读节点：不写，但仍能恢复
+
 [pkgcache.fs]
 	dir = "/home/test/pkgcache"  # 本地或网络挂载目录
-
-[pkgcache.options]
-	writable = false             # 只读缓存（默认），只有为true时候才会在编译过程中写入缓存
 ```
 
 **现在会发生什么：**
@@ -76,7 +76,7 @@ celer install eigen@3.4.0
 **自动跳过写缓存的常见情况：**
 - `pkgcache` 没有配置
 - 没有配置任何 pkgcache 后端（`pkgcache.fs` 或 `pkgcache.minio`）
-- `pkgcache.options.writable=false` 配置了只读
+- `pkgcache.writable=false` 配置了只读
 - 源码仓库在构建前已有人为本地修改
 
 **自动寻找匹配的存储制品的过程**

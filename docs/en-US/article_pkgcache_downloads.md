@@ -34,14 +34,14 @@ Add a `[pkgcache.fs]` section to `celer.toml` to enable download caching:
 	project = "project_01"
 	jobs = 32
 
+[pkgcache]
+	writable = true              # Must be true to write into the cache
+
 [pkgcache.fs]
 	dir = "/home/test/pkgcache"  # Local or network-mounted directory, can be FTP, SMB, NFS, etc.
-
-[pkgcache.options]
-	writable = true              # Must be true to write cached downloads
 ```
 
-**Important**: `writable = true` is required for downloads to be cached automatically.
+**Important**: `writable = true` is required for downloads to be cached automatically. It only gates the write: already-cached files are still restored.
 
 ### Step 2: Add SHA-256 Checksums to Build Tools
 

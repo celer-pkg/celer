@@ -88,7 +88,8 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 
 	// Check if local file is valid. If not, try to restore from cache or download again.
 	pkgCache := ctx.PkgCache()
-	canUseCache := r.sha256 != "" && !r.ctx.Offline() && pkgCache != nil && pkgCache.GetOptions().Writable
+	canUseCache := r.sha256 != "" && !r.ctx.Offline() && pkgCache != nil
+	canStoreInCache := canUseCache && pkgCache.IsWritable()
 
 	// Determine if download is needed.
 	needToDownload, err := r.needToDownload(fileName, r.sha256)
@@ -113,12 +114,14 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 		}
 		downloaded = actualDownloaded
 
-		// Verify and cache after download.
-		if canUseCache {
-			if !VerifyFileSHA256(downloaded, r.sha256) {
-				return fmt.Errorf("sha-256 mismatch for %s: expected %s", fileName, r.sha256)
-			}
+		// Verify the download whenever a checksum is known, independently of
+		// whether it is going to be cached.
+		if r.sha256 != "" && !VerifyFileSHA256(downloaded, r.sha256) {
+			return fmt.Errorf("sha-256 mismatch for %s: expected %s", fileName, r.sha256)
+		}
 
+		// Store into the shared download cache when that category is enabled.
+		if canStoreInCache {
 			downloadCache := pkgCache.GetDownloadCache()
 			if downloadCache != nil {
 				if err := downloadCache.Store(fileName, r.sha256, downloaded); err != nil {

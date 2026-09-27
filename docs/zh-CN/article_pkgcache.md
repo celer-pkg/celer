@@ -17,14 +17,11 @@ PkgCache 缓存构建产物、源码仓库和下载文件。后端只能选一�
 `dir` 必须已存在。
 
 ```toml
+[pkgcache]
+  writable = true
+
 [pkgcache.fs]
   dir = "/home/test/pkgcache"
-
-[pkgcache.options]
-  writable = true
-  downloads = true
-  artifacts = true
-  repos = true
 ```
 
 ```bash
@@ -100,22 +97,21 @@ celer configure --pkgcache-minio-host=http://minio.example.com:9000 \
 
 ## 选项
 
-第一次配后端时，`[pkgcache.options]` 默认全是 `true`。改选项前必须先配好 fs 或 minio。
+默认就是可写；改之前必须先配好 fs 或 minio。`writable = false` 会把节点变成纯读取方。
 
 ```bash
-celer configure --pkgcache-writable=true
-celer configure --pkgcache-cache-downloads=true
-celer configure --pkgcache-cache-artifacts=true
-celer configure --pkgcache-cache-repos=true
-celer configure --pkgcache-cache-python-wheels=true
+celer configure --pkgcache-writable=false
 ```
 
 | 字段 | 说明 |
 |------|------|
+| `pkgcache.writable` | **只管写入**：`false` 时为只读缓存 |
 | `pkgcache.fs.dir` | 缓存根目录，必须已存在 |
 | `pkgcache.minio.host` / `access_key` / `secret_key` | S3 地址和凭证 |
-| `pkgcache.options.writable` | `true` 可写，`false` 只读 |
-| `pkgcache.options.downloads` / `artifacts` / `repos` / `python_wheels` | 四种缓存开关 |
+
+`writable` 只控制写入，读取（恢复）永远不受影响：别的机器放进缓存的条目照样会被复用——只读节点依然能快速构建，只是不再往缓存里加东西。开发机共用不属于自己的缓存时设 `writable = false`。
+
+> **注意**：`writable` 属于 `[pkgcache]` 本身，必须写在 `[pkgcache.fs]` / `[pkgcache.minio]` **之前**（TOML 表不能重复打开）。`celer configure` 会按正确顺序写入。
 
 ## 布局
 

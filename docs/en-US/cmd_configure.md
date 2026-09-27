@@ -30,10 +30,7 @@ celer configure [flags]
 | --pkgcache-minio-host         | string  | Set pkgcache minio backend host (fs and minio are mutually exclusive) |
 | --pkgcache-minio-access-key   | string  | Set pkgcache minio access key                          |
 | --pkgcache-minio-secret-key   | string  | Set pkgcache minio secret key                          |
-| --pkgcache-writable           | boolean | Set whether the package cache is writable              |
-| --pkgcache-cache-downloads    | boolean | Cache downloaded sources into the package cache        |
-| --pkgcache-cache-artifacts    | boolean | Cache built artifacts into the package cache           |
-| --pkgcache-cache-repos        | boolean | Cache source repos into the package cache              |
+| --pkgcache-writable           | boolean | `false` keeps the package cache read-only; restoring stays allowed |
 | --ccache-enabled           | boolean | Enable/disable ccache                                |
 | --ccache-dir               | string  | Set ccache working directory                         |
 | --ccache-maxsize           | string  | Set ccache max size                                  |
@@ -60,16 +57,13 @@ celer configure --offline=true
 celer configure --verbose=false
 
 # PkgCache group (can combine in one command)
-# fs and minio are mutually exclusive backends; the first backend
-# configuration enables all shared options by default.
+# fs and minio are mutually exclusive backends; writing is on by default,
+# writable=false makes this node read-only.
 celer configure --pkgcache-fs-dir=/home/xxx/cache --pkgcache-writable=true
 celer configure --pkgcache-minio-host=http://minio.example.com:9000 \
                 --pkgcache-minio-access-key=xxx \
                 --pkgcache-minio-secret-key=yyy
 celer configure --pkgcache-minio-secret-key=new-key   # rotate key alone, others unchanged
-celer configure --pkgcache-cache-artifacts=true
-celer configure --pkgcache-cache-downloads=true
-celer configure --pkgcache-cache-repos=true
 
 # Proxy group (can combine in one command)
 celer configure --proxy-host=127.0.0.1 --proxy-port=7890
@@ -93,7 +87,7 @@ celer configure --port=eigen@3.4.0 --port-url=https://example.com/eigen.git --po
 - `--pkgcache-fs-dir`: cannot be empty, and directory must already exist.
 - `--pkgcache-minio-host` / `--pkgcache-minio-access-key` / `--pkgcache-minio-secret-key`: host must be reachable; empty values keep the current setting, so a key can be rotated alone.
 - fs and minio backends are mutually exclusive; configuring one while the other is set fails.
-- `--pkgcache-writable` / `--pkgcache-cache-downloads` / `--pkgcache-cache-artifacts` / `--pkgcache-cache-repos`: boolean options shared by all backends; a backend (fs or minio) must be configured first (or in the same command). All options default to `true` on first backend configuration.
+- `--pkgcache-writable`: `false` keeps the package cache read-only. Writing is on by default; a backend (fs or minio) must be configured first (or in the same command). It only gates **writing**: cached entries are still restored.
 - `--proxy-host`: cannot be empty.
 - `--proxy-port`: must be greater than `0`.
 - `--ccache-dir`: directory must already exist.

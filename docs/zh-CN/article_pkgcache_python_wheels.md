@@ -4,18 +4,6 @@
 
 端口会把 Python 库声明为构建工具，如 `build_tools = ["python3:mako", "python3:MarkupSafe@2.1.0"]`，每个通过 `pip` 装进构建 venv。**Python Wheel 缓存**把解析出的 wheel 集（含传递依赖）存进 `pkgcache/python-wheels`，后续安装直接 restore 出 wheelhouse，跑完全离线的 `pip install --no-index --find-links`——命中时不打 PyPI。
 
-## 工作原理
-
-每个 spec 走三层：
-
-1. **L1** — 持久 wheelhouse（`downloads/wheelhouse-<pyminor>/`）：先用 `pip install --no-index --find-links` 离线装所有 spec，全部解析即完成。
-2. **L2** — pkgcache 恢复：未满足的 spec 调 `Restore(cacheKey, wheelhouse)` 把缓存 wheel 拷进 wheelhouse。
-3. **L3** — 在线 `pip download <spec>` 到 tmp 目录，合并进 wheelhouse，存入 pkgcache。
-
-最终安装恒为 `pip install --no-index --find-links=<wheelhouse> <spec>`——无论 wheel 来自哪层都离线。
-
-> 只有 `build_tools` 的 Python 库走此路径。Conda-forge env 创建和 Python 解释器本身不在范围。
-
 ## 目录结构
 
 ```text
@@ -40,12 +28,11 @@ pkgcache/python-wheels/py310-linux-amd64/
 ## 快速开始
 
 ```toml
+[pkgcache]
+	writable = true              # 写入 wheel 必须
+
 [pkgcache.fs]
 	dir = "/home/test/pkgcache"
-
-[pkgcache.options]
-	writable = true              # 写入 wheel 必须
-	python_wheels = true         # wheel 缓存开关（默认 true）
 ```
 
 ```toml
@@ -61,10 +48,3 @@ celer install mesa@24.0.0
 - **首次**：`pip download` 打 PyPI，wheel 存进 `python-wheels/...`。
 - **删 venv 重装**：无 PyPI 请求，离线 restore 后安装。
 - **换工作区共享同一 `pkgcache`**：同样不打 PyPI，跨机器复用。
-
-## 行为
-
-- **写入**：已配 pkgcache、`writable = true`、`python_wheels = true`、在线、且该 spec 走了 L3。
-- **恢复**：fs 离线可用（本地目录）；minio 离线返回未命中（连不上 bucket）。
-- **已安装的包跳过缓存**（按精确 name 和 version 匹配）。
-- **开关**：`pkgcache.options.python_wheels`（首次配后端时默认 `true`）。关闭：`celer configure --pkgcache-cache-python-wheels=false`。

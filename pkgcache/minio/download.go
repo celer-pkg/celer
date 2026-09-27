@@ -36,7 +36,7 @@ func NewDownloadConfig(ctx context.Context, client *minio.Client) *DownloadConfi
 			bucketName: bucketName,
 		},
 		cacheDir: minioConfig.GetDir(pkgcache.DirDownloads, ctx.Version()),
-		writable: pkgCache.GetOptions().Writable,
+		writable: pkgCache.IsWritable(),
 	}
 }
 
@@ -44,6 +44,11 @@ func NewDownloadConfig(ctx context.Context, client *minio.Client) *DownloadConfi
 func (d DownloadConfig) Store(fileName, sha256, srcPath string) error {
 	// skip when offline.
 	if d.ctx.Offline() {
+		return nil
+	}
+
+	// skip for not writable.
+	if !d.writable {
 		return nil
 	}
 

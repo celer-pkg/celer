@@ -186,7 +186,7 @@ celer configure --project=project_test_02
   offline = false
   verbose = false
 
-[pkgcache]
+[pkgcache.fs]
   dir = "/home/phil/celer_cache"
 ```
 
