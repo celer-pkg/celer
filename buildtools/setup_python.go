@@ -78,11 +78,8 @@ func pipInstall(ctx context.Context, pipConfig context.PythonConfig, packages *[
 	if pkgCache != nil {
 		wheelCache = pkgCache.GetPythonWheelCache()
 	}
-	canCache := pkgCache != nil &&
-		pkgCache.GetOptions().Writable &&
-		pkgCache.GetOptions().PythonWheels &&
-		!ctx.Offline() &&
-		wheelCache != nil
+	canRestore := pkgCache != nil && !ctx.Offline() && wheelCache != nil
+	canStore := canRestore && pkgCache.IsWritable()
 	wheelPlatformScope := fmt.Sprintf("py%s-%s-%s", minorVersion, runtime.GOOS, runtime.GOARCH)
 
 	// —— Try to install every spec straight from the persistent wheelhouse ————————————————————————————————————
@@ -100,7 +97,7 @@ func pipInstall(ctx context.Context, pipConfig context.PythonConfig, packages *[
 
 		// —— Restore this spec's cached wheels from pkgcache into the wheelhouse ——————————————————————————————
 		restored := false
-		if canCache {
+		if canRestore {
 			if ok, err := wheelCache.Restore(cacheKey, wheelhouseDir); err != nil {
 				logger.Printf(logger.Warning, "[✘] failed to restore python wheel cache for '%s': %v\n", spec, err)
 			} else {
@@ -125,7 +122,7 @@ func pipInstall(ctx context.Context, pipConfig context.PythonConfig, packages *[
 				return fmt.Errorf("failed to merge wheels into wheelhouse -> %w", err)
 			}
 
-			if canCache {
+			if canStore {
 				if err := wheelCache.Store(cacheKey, tmpDir); err != nil {
 					logger.Printf(logger.Warning, "[✘] failed to cache python wheels for '%s': %v\n", spec, err)
 				}

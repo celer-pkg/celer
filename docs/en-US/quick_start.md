@@ -186,7 +186,7 @@ After configuration, the `celer.toml` file will be updated as follows:
   offline = false
   verbose = false
 
-[pkgcache]
+[pkgcache.fs]
   dir = "/home/phil/celer_cache"
 ```
 

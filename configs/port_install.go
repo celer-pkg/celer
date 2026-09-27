@@ -766,9 +766,11 @@ func (p *Port) doInstallFromSource() error {
 			return err
 		}
 
-		// Store package cache with meta file inside.
+		// Store package cache with meta file inside. `writable` only applies to
+		// storing: restoring an artifact stays allowed either way.
 		pkgCache := p.ctx.PkgCache()
-		if pkgCache != nil && pkgCache.GetOptions().Writable && (pkgCache.GetFS() != nil || pkgCache.GetMinio() != nil) {
+		if pkgCache != nil && pkgCache.IsWritable() &&
+			(pkgCache.GetFS() != nil || pkgCache.GetMinio() != nil) {
 			if p.pkgCacheStoreSkippedReason == "" && !p.shouldSkipArtifactPkgCache() {
 				artifactCache := pkgCache.GetArtifactCache()
 				if artifactCache != nil {

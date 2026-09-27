@@ -35,7 +35,7 @@ func NewDownloadConfig(ctx context.Context) *DownloadConfig {
 		},
 		ctx:      ctx,
 		cacheDir: filesystem.GetDir(pkgcache.DirDownloads, ctx.Version()),
-		writable: pkgCache.GetOptions().Writable,
+		writable: pkgCache.IsWritable(),
 	}
 }
 
@@ -43,6 +43,11 @@ func NewDownloadConfig(ctx context.Context) *DownloadConfig {
 func (d DownloadConfig) Store(fileName, sha256, srcPath string) error {
 	// skip when offline.
 	if d.ctx.Offline() {
+		return nil
+	}
+
+	// skip for not writable.
+	if !d.writable {
 		return nil
 	}
 

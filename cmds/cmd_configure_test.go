@@ -51,9 +51,6 @@ func TestConfigureCmd_CommandStructure(t *testing.T) {
 		{"pkgcache-minio-access-key", ""},
 		{"pkgcache-minio-secret-key", ""},
 		{"pkgcache-writable", ""},
-		{"pkgcache-cache-downloads", ""},
-		{"pkgcache-cache-artifacts", ""},
-		{"pkgcache-cache-repos", ""},
 		{"proxy-host", ""},
 		{"proxy-port", ""},
 		{"ccache-enabled", ""},
@@ -135,21 +132,6 @@ func TestConfigureCmd_Completion(t *testing.T) {
 			name:       "complete_pkgcache_writable_flag",
 			toComplete: "--pkgcache-w",
 			expected:   []string{"--pkgcache-writable"},
-		},
-		{
-			name:       "complete_pkgcache_cache_artifacts_flag",
-			toComplete: "--pkgcache-cache-a",
-			expected:   []string{"--pkgcache-cache-artifacts"},
-		},
-		{
-			name:       "complete_pkgcache_cache_downloads_flag",
-			toComplete: "--pkgcache-cache-d",
-			expected:   []string{"--pkgcache-cache-downloads"},
-		},
-		{
-			name:       "complete_pkgcache_cache_repos_flag",
-			toComplete: "--pkgcache-cache-r",
-			expected:   []string{"--pkgcache-cache-repos"},
 		},
 		{
 			name:       "complete_pkgcache_minio_host_flag",
@@ -302,7 +284,7 @@ func TestConfigureCmd_PkgCacheGroupShouldSucceed(t *testing.T) {
 	if celer2.PkgCache().GetFS().Dir != filepath.ToSlash(dirs.TestPkgCacheDir) {
 		t.Fatalf("cache dir should be `%s`", dirs.TestPkgCacheDir)
 	}
-	if !celer2.PkgCache().GetOptions().Writable {
+	if !celer2.PkgCache().IsWritable() {
 		t.Fatal("cache writable should be `true`")
 	}
 }
@@ -585,10 +567,9 @@ func TestConfigure_PkgCacheDir(t *testing.T) {
 		t.Fatalf("cache dir should be `%s`", dirs.TestPkgCacheDir)
 	}
 
-	// All shared options should default to true on first backend configuration.
-	options := celer2.PkgCache().GetOptions()
-	if !options.Writable || !options.Downloads || !options.Artifacts || !options.Repos {
-		t.Fatalf("all pkgcache options should default to true on first backend configuration, got: %+v", options)
+	// The cache must be writable by default on the first backend configuration.
+	if !celer2.PkgCache().IsWritable() {
+		t.Fatal("pkgcache should default to writable on first backend configuration")
 	}
 }
 
@@ -614,7 +595,7 @@ func TestConfigure_PkgCacheWritable(t *testing.T) {
 	if err := celer2.Init(); err != nil {
 		t.Fatal(err)
 	}
-	if !celer2.PkgCache().GetOptions().Writable {
+	if !celer2.PkgCache().IsWritable() {
 		t.Fatal("cache writable should be `true`")
 	}
 }
@@ -943,55 +924,6 @@ func TestConfigure_CCacheRemoteOnly_OFF(t *testing.T) {
 	}
 }
 
-func TestConfigure_PkgCacheCacheArtifacts(t *testing.T) {
-	celer := newInitializedCeler(t)
-
-	// Must create cache dir before setting cache dir; --pkgcache-cache-artifacts
-	// requires that the pkgcache dir is already configured (same group, runs in
-	// one command).
-	if err := os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm); err != nil {
-		t.Fatal(err)
-	}
-	cmd := &configureCmd{}
-	if _, err := runCommand(t, cmd.Command(celer),
-		"--pkgcache-fs-dir="+dirs.TestPkgCacheDir,
-		"--pkgcache-cache-artifacts=true",
-	); err != nil {
-		t.Fatal(err)
-	}
-
-	celer2 := configs.NewCeler()
-	if err := celer2.Init(); err != nil {
-		t.Fatal(err)
-	}
-	if !celer2.PkgCache().GetOptions().Artifacts {
-		t.Fatal("pkgcache cache-artifacts should be `true`")
-	}
-}
-
-func TestConfigure_PkgCacheCacheDownloads(t *testing.T) {
-	celer := newInitializedCeler(t)
-
-	if err := os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm); err != nil {
-		t.Fatal(err)
-	}
-	cmd := &configureCmd{}
-	if _, err := runCommand(t, cmd.Command(celer),
-		"--pkgcache-fs-dir="+dirs.TestPkgCacheDir,
-		"--pkgcache-cache-downloads=true",
-	); err != nil {
-		t.Fatal(err)
-	}
-
-	celer2 := configs.NewCeler()
-	if err := celer2.Init(); err != nil {
-		t.Fatal(err)
-	}
-	if !celer2.PkgCache().GetOptions().Downloads {
-		t.Fatal("pkgcache cache-downloads should be `true`")
-	}
-}
-
 func TestConfigure_PkgCacheMinio(t *testing.T) {
 	celer := newInitializedCeler(t)
 	cmd := &configureCmd{}
@@ -1027,7 +959,7 @@ func TestConfigure_PkgCacheMinio(t *testing.T) {
 	if minioCfg.SecretKey != "test-secret-key" {
 		t.Fatalf("minio secret key should be `test-secret-key`, got `%s`", minioCfg.SecretKey)
 	}
-	if !celer2.PkgCache().GetOptions().Writable {
+	if !celer2.PkgCache().IsWritable() {
 		t.Fatal("minio writable should be `true`")
 	}
 }
@@ -1096,27 +1028,12 @@ func TestConfigure_PkgCacheMinio_ConflictWithFSShouldFail(t *testing.T) {
 
 // Regression: option flags before any backend is configured must fail with
 // a clear error, not panic or pass silently.
-func TestConfigure_PkgCacheCacheArtifacts_BeforeBackendFails(t *testing.T) {
+func TestConfigure_PkgCacheWritable_BeforeBackendFails(t *testing.T) {
 	celer := newInitializedCeler(t)
 
 	cmd := &configureCmd{}
 	stderr, err := runCommand(t, cmd.Command(celer),
-		"--pkgcache-cache-artifacts=true",
-	)
-	if err == nil {
-		t.Fatal("expected error when no pkgcache backend has been configured")
-	}
-	if !strings.Contains(stderr, "none of them was configured") {
-		t.Fatalf("stderr should report no pkgcache backend configured, got:\n%s", stderr)
-	}
-}
-
-func TestConfigure_PkgCacheCacheDownloads_BeforeBackendFails(t *testing.T) {
-	celer := newInitializedCeler(t)
-
-	cmd := &configureCmd{}
-	stderr, err := runCommand(t, cmd.Command(celer),
-		"--pkgcache-cache-downloads=true",
+		"--pkgcache-writable=true",
 	)
 	if err == nil {
 		t.Fatal("expected error when no pkgcache backend has been configured")

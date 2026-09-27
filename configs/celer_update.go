@@ -220,17 +220,6 @@ func (c *Celer) SetPkgCacheFSDir(dir string) error {
 		return errors.ErrPkgCacheDuplicated
 	}
 
-	// Enable all shared options when the first backend gets configured.
-	if c.configData.PkgCache.FS == nil {
-		c.configData.PkgCache.Options = pkgcache.Options{
-			Writable:     true,
-			Downloads:    true,
-			Artifacts:    true,
-			Repos:        true,
-			PythonWheels: true,
-		}
-	}
-
 	// Update fs dir.
 	if c.configData.PkgCache.FS == nil {
 		c.configData.PkgCache.FS = &pkgcache.FS{
@@ -263,17 +252,6 @@ func (c *Celer) SetPkgCacheMinio(host, accessKey, secretKey string) error {
 		return errors.ErrPkgCacheDuplicated
 	}
 
-	// Enable all shared options when the first backend gets configured.
-	if c.configData.PkgCache.Minio == nil {
-		c.configData.PkgCache.Options = pkgcache.Options{
-			Writable:     true,
-			Downloads:    true,
-			Artifacts:    true,
-			Repos:        true,
-			PythonWheels: true,
-		}
-	}
-
 	// Update minio config, empty value means unchanged.
 	if c.configData.PkgCache.Minio == nil {
 		c.configData.PkgCache.Minio = &pkgcache.Minio{}
@@ -301,9 +279,8 @@ func (c *Celer) SetPkgCacheMinio(host, accessKey, secretKey string) error {
 	return c.save()
 }
 
-// updatePkgCacheOptions applies set to the options shared by all pkgcache
-// backends; a backend (fs or minio) must be configured first.
-func (c *Celer) updatePkgCacheOptions(set func(options *pkgcache.Options)) error {
+// SetPkgCacheWritable turns writing into the shared cache on or off.
+func (c *Celer) SetPkgCacheWritable(writable bool) error {
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
@@ -312,43 +289,13 @@ func (c *Celer) updatePkgCacheOptions(set func(options *pkgcache.Options)) error
 		return errors.ErrPkgCacheNotConfigured
 	}
 
-	set(&c.configData.PkgCache.Options)
+	c.configData.PkgCache.Writable = &writable
 
 	// Refresh pkgcache config.
 	if err := c.initPkgCacheCaches(); err != nil {
 		return err
 	}
 	return c.save()
-}
-
-func (c *Celer) SetPkgCacheWritable(writable bool) error {
-	return c.updatePkgCacheOptions(func(options *pkgcache.Options) {
-		options.Writable = writable
-	})
-}
-
-func (c *Celer) SetPkgCacheCacheDownloads(cacheDownloads bool) error {
-	return c.updatePkgCacheOptions(func(options *pkgcache.Options) {
-		options.Downloads = cacheDownloads
-	})
-}
-
-func (c *Celer) SetPkgCacheCacheArtifacts(cacheArtifacts bool) error {
-	return c.updatePkgCacheOptions(func(options *pkgcache.Options) {
-		options.Artifacts = cacheArtifacts
-	})
-}
-
-func (c *Celer) SetPkgCacheCacheRepos(cacheRepos bool) error {
-	return c.updatePkgCacheOptions(func(options *pkgcache.Options) {
-		options.Repos = cacheRepos
-	})
-}
-
-func (c *Celer) SetPkgCacheCachePythonWheels(cachePythonWheels bool) error {
-	return c.updatePkgCacheOptions(func(options *pkgcache.Options) {
-		options.PythonWheels = cachePythonWheels
-	})
 }
 
 func (c *Celer) SetProxyHost(host string) error {

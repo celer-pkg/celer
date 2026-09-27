@@ -37,7 +37,7 @@ func NewRepoConfig(ctx context.Context) *RepoConfig {
 		},
 		ctx:      ctx,
 		cacheDir: repoCacheDir,
-		writable: pkgCache.GetOptions().Writable,
+		writable: pkgCache.IsWritable(),
 	}
 }
 

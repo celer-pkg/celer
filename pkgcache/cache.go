@@ -103,17 +103,6 @@ func (m Minio) GetDir(dirType DirType, version string) string {
 	}
 }
 
-// Options holds the pkgcache options shared by all backends: fs and
-// minio are mutually exclusive, so these options live here instead of being
-// duplicated per backend.
-type Options struct {
-	Writable     bool `toml:"writable"`
-	Downloads    bool `toml:"downloads"`
-	Artifacts    bool `toml:"artifacts"`
-	Repos        bool `toml:"repos"`
-	PythonWheels bool `toml:"python_wheels"`
-}
-
 // PkgCache is the shared package cache: stores/restores
 // source repos and built artifacts so repeat builds skip clone and compile.
 // The NFS/FTP backend is configured via FS, the minio backend via Minio; the
@@ -121,7 +110,7 @@ type Options struct {
 type PkgCache interface {
 	GetMinio() *Minio
 	GetFS() *FS
-	GetOptions() Options
+	IsWritable() bool
 	GetDownloadCache() DownloadCache
 	GetArtifactCache() AritifactCache
 	GetRepoCache() RepoCache

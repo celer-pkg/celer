@@ -34,7 +34,7 @@ func NewPythonWheelConfig(ctx context.Context, client *minio.Client) *PythonWhee
 			bucketName: bucketName,
 		},
 		cacheDir: minioConfig.GetDir(pkgcache.DirPythonWheels, ctx.Version()),
-		writable: pkgCache.GetOptions().Writable,
+		writable: pkgCache.IsWritable(),
 	}
 }
 

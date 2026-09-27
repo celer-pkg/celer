@@ -34,11 +34,11 @@ Add a `[pkgcache.fs]` section to `celer.toml` to enable cache lookup:
 	project = "project_01"
 	jobs = 32
 
+[pkgcache]
+	writable = false             # Read-only node: never writes, still restores
+
 [pkgcache.fs]
 	dir = "/home/test/pkgcache"  # Local or network-mounted directory
-
-[pkgcache.options]
-	writable = false             # Read-only cache by default; artifacts are written only when true
 ```
 
 **What happens now:**
@@ -76,7 +76,7 @@ celer install eigen@3.4.0
 **Common cases where writing to cache is skipped automatically:**
 - `pkgcache` is not configured
 - No pkgcache backend (`pkgcache.fs` or `pkgcache.minio`) is configured
-- `pkgcache.options.writable=false` makes the cache read-only
+- `pkgcache.writable=false` makes the cache read-only
 - The source repository has local manual modifications before the build starts
 
 **How Celer looks up a matching stored artifact:**

@@ -12,9 +12,9 @@ import (
 // ================= PkgCache ================= //
 
 type PkgCache struct {
-	Minio   *pkgcache.Minio  `toml:"minio"`
-	FS      *pkgcache.FS     `toml:"fs"`
-	Options pkgcache.Options `toml:"options"`
+	Writable *bool           `toml:"writable,omitempty"`
+	Minio    *pkgcache.Minio `toml:"minio,omitempty"`
+	FS       *pkgcache.FS    `toml:"fs,omitempty"`
 
 	// Internal field.
 	artifactCache    pkgcache.AritifactCache
@@ -35,9 +35,8 @@ func (p PkgCache) GetFS() *pkgcache.FS {
 	return p.FS
 }
 
-// GetOptions returns the options shared by all pkgcache backends.
-func (p PkgCache) GetOptions() pkgcache.Options {
-	return p.Options
+func (p PkgCache) IsWritable() bool {
+	return p.Writable == nil || *p.Writable
 }
 
 func (p PkgCache) GetArtifactCache() pkgcache.AritifactCache {

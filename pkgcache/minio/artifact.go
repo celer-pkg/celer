@@ -37,7 +37,7 @@ func NewArtifactConfig(ctx context.Context, client *minio.Client) *ArtifactConfi
 			bucketName: bucketName,
 		},
 		cacheDir:   minioConfig.GetDir(pkgcache.DirArtifacts, ctx.Version()),
-		writable:   pkgCache.GetOptions().Writable,
+		writable:   pkgCache.IsWritable(),
 		maxRetries: 3,
 	}
 }
@@ -47,6 +47,11 @@ func NewArtifactConfig(ctx context.Context, client *minio.Client) *ArtifactConfi
 func (a ArtifactConfig) Store(packageDir, meta string) error {
 	// skip when offline.
 	if a.ctx.Offline() {
+		return nil
+	}
+
+	// skip for not writable.
+	if !a.writable {
 		return nil
 	}
 

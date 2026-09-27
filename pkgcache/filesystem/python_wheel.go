@@ -34,7 +34,7 @@ func NewPythonWheelConfig(ctx context.Context) *PythonWheelConfig {
 		},
 		ctx:      ctx,
 		cacheDir: filesystem.GetDir(pkgcache.DirPythonWheels, ctx.Version()),
-		writable: pkgCache.GetOptions().Writable,
+		writable: pkgCache.IsWritable(),
 	}
 }
 
