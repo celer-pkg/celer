@@ -59,10 +59,18 @@ func (e ExprVars) Expand(content string) string {
 		e.vars = make(map[string]string)
 	}
 
-	for key, value := range e.vars {
-		content = strings.ReplaceAll(content, fmt.Sprintf("${%s}", key), value)
-		content = strings.ReplaceAll(content, fmt.Sprintf("$%s", key), value)
+	// A value may contain another var, loop until the text stops changing,
+	// so map order does not matter.
+	for i := 0; i < len(e.vars)+1; i++ {
+		prev := content
+		for key, value := range e.vars {
+			content = strings.ReplaceAll(content, fmt.Sprintf("${%s}", key), value)
+			content = strings.ReplaceAll(content, fmt.Sprintf("$%s", key), value)
+		}
 		content = e.replaceEnvVars(content)
+		if content == prev {
+			break
+		}
 	}
 
 	return content
