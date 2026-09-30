@@ -183,3 +183,84 @@ set_target_properties(mylib PROPERTIES
 		t.Fatal("CheckAbsPaths() should find violation in share/cmake/")
 	}
 }
+
+func TestCheckAbsPaths_CatchesSysrootSystemLib(t *testing.T) {
+	// OGRE-style: a vendored target under opt/ bakes sysroot system library
+	// paths (X11/GL) into INTERFACE_LINK_LIBRARIES. The sysroot lives under
+	// workspace/downloads/tools, so these are still workspace absolute paths
+	// and must be flagged.
+	dir := t.TempDir()
+	cmakeDir := filepath.Join(dir, "opt", "rviz_ogre_vendor", "lib", "cmake", "OGRE")
+	if err := os.MkdirAll(cmakeDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	content := `
+set_target_properties(OgreMain PROPERTIES
+  INTERFACE_LINK_LIBRARIES "/workspace/downloads/tools/sysroot/usr/lib/aarch64-linux-gnu/libX11.so;/workspace/downloads/tools/sysroot/usr/lib/libGL.so"
+)
+`
+	if err := os.WriteFile(filepath.Join(cmakeDir, "OgreTargets.cmake"), []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := CheckCMakeAbsPaths(dir, "/workspace"); err == nil {
+		t.Fatal("CheckAbsPaths() should flag sysroot system library absolute paths")
+	}
+}
+
+func TestCheckAbsPaths_CatchesSourceIncludeDir(t *testing.T) {
+	// rviz-style: a source include directory (gtest_vendor) baked into
+	// INTERFACE_INCLUDE_DIRECTORIES makes the install non-relocatable.
+	dir := t.TempDir()
+	cmakeDir := filepath.Join(dir, "share", "rviz_visual_testing_framework", "cmake")
+	if err := os.MkdirAll(cmakeDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	content := `
+set_target_properties(rviz_visual_testing_framework PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES "/workspace/src/ros2/rviz/rviz_visual_testing_framework/../gtest_vendor/include"
+)
+`
+	if err := os.WriteFile(filepath.Join(cmakeDir, "rviz_visual_testing_frameworkTargets.cmake"), []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := CheckCMakeAbsPaths(dir, "/workspace"); err == nil {
+		t.Fatal("CheckAbsPaths() should flag source include dir baked into INTERFACE_INCLUDE_DIRECTORIES")
+	}
+}
+
+func TestCheckAbsPaths_OptVendorRelocatablePasses(t *testing.T) {
+	// A well-formed vendored config under opt/ that only derives paths from
+	// _IMPORT_PREFIX must pass, confirming the opt/**/cmake scan does not
+	// produce false positives.
+	dir := t.TempDir()
+	cmakeDir := filepath.Join(dir, "opt", "rviz_ogre_vendor", "lib", "cmake", "OGRE")
+	if err := os.MkdirAll(cmakeDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	content := `
+get_filename_component(_IMPORT_PREFIX "${CMAKE_CURRENT_LIST_FILE}" PATH)
+set_target_properties(OgreMain PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include/OGRE"
+  INTERFACE_LINK_LIBRARIES "OGRE::OgreMain"
+)
+`
+	if err := os.WriteFile(filepath.Join(cmakeDir, "OgreTargets.cmake"), []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := CheckCMakeAbsPaths(dir, "/workspace"); err != nil {
+		t.Fatalf("CheckAbsPaths() should pass for a relocatable opt/ config, got: %v", err)
+	}
+}
+
+func TestCheckAbsPaths_NonexistentDir(t *testing.T) {
+	// A nobuild port has no installed tree; checking must be a no-op, not an error.
+	if err := CheckCMakeAbsPaths(filepath.Join(t.TempDir(), "does-not-exist"), "/workspace"); err != nil {
+		t.Fatalf("CheckAbsPaths() should skip a nonexistent dir, got: %v", err)
+	}
+}
