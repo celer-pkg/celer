@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/dag"
 	"github.com/celer-pkg/celer/depcheck"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
@@ -23,6 +24,7 @@ type deployCmd struct {
 	force        bool
 	snapshotPath string
 	strip        bool
+	dag          string
 }
 
 func (d *deployCmd) Command(celer *configs.Celer) *cobra.Command {
@@ -39,7 +41,8 @@ strip installed binaries and libraies with --strip.
 Examples:
   celer deploy --force                  # Force deploy and ignore installed
   celer deploy --snapshot=${filepath}   # Initialize with conf repo
-  celer deploy --strip                  # Strip installed binaries and libraries`,
+  celer deploy --strip                  # Strip installed binaries and libraries
+  celer deploy --dag=dag.json           # Export the build DAG instead of deploying`,
 		Args: d.validateArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := d.celer.Init(); err != nil {
@@ -51,7 +54,7 @@ Examples:
 
 			// Display deployment header.
 			logger.Println(logger.Title, "=======================================================================")
-			logger.Printf(logger.Title, "🚀 start to deploy:\n")
+			logger.Printf(logger.Title, "🚀 start to %s:\n", expr.If(d.dag != "", "export dag", "deploy"))
 			logger.Printf(logger.Title, "📌 platform: %s\n", platformName)
 			logger.Printf(logger.Title, "📌 project: %s\n", projectName)
 			logger.Println(logger.Title, "=======================================================================")
@@ -66,20 +69,26 @@ Examples:
 				return logger.PrintError(err, "failed to resolve refs.")
 			}
 
-			if err := d.celer.Deploy(d.force, d.strip); err != nil {
-				return logger.PrintError(err, "failed to deploy celer.")
-			}
-
-			logger.PrintSuccess("%s has been successfully deployed.", projectName)
-
-			// Export snapshot if requested.
-			if d.snapshotPath != "" {
-				if err := snapshot.Export(d.celer, d.snapshotPath); err != nil {
-					return fmt.Errorf("failed to export snapshot -> %w", err)
+			// Export the build DAG of the project instead of deploying it: the
+			// orchestrator of a distributed build schedules one job per node
+			// from this file.
+			if d.dag != "" {
+				return dag.Export(d.celer, d.dag)
+			} else {
+				if err := d.celer.Deploy(d.force, d.strip); err != nil {
+					return logger.PrintError(err, "failed to deploy celer.")
 				}
-			}
 
-			return nil
+				// Export snapshot if requested.
+				if d.snapshotPath != "" {
+					if err := snapshot.Export(d.celer, d.snapshotPath); err != nil {
+						return fmt.Errorf("failed to export snapshot -> %w", err)
+					}
+				}
+
+				logger.PrintSuccess("%s has been successfully deployed.", projectName)
+				return nil
+			}
 		},
 		ValidArgsFunction: d.completion,
 	}
@@ -88,6 +97,7 @@ Examples:
 	flags.StringVar(&d.snapshotPath, "snapshot", "", "Export workspace snapshot after successfully deployed.")
 	flags.BoolVarP(&d.force, "force", "", false, "Force deployment, ignoring any installed packages.")
 	flags.BoolVarP(&d.strip, "strip", "", false, "Build runtime stripped tree under workspace/stripped (same as celer strip).")
+	flags.StringVar(&d.dag, "dag", "", "Export the build DAG of the project as JSON to <file> instead of deploying.")
 
 	// Silence cobra's error and usage output to avoid duplicate messages.
 	command.SilenceErrors = true
@@ -100,21 +110,34 @@ func (d *deployCmd) validateArgs(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if !cmd.Flags().Changed("snapshot") {
-		return nil
+	if cmd.Flags().Changed("snapshot") {
+		snapshotPath, err := cmd.Flags().GetString("snapshot")
+		if err != nil {
+			return err
+		}
+
+		snapshotPath = strings.TrimSpace(snapshotPath)
+		if snapshotPath == "" {
+			return fmt.Errorf("--snapshot requires a non-empty path")
+		}
+
+		d.snapshotPath = filepath.Clean(snapshotPath)
 	}
 
-	snapshotPath, err := cmd.Flags().GetString("snapshot")
-	if err != nil {
-		return err
+	if cmd.Flags().Changed("dag") {
+		dagPath, err := cmd.Flags().GetString("dag")
+		if err != nil {
+			return err
+		}
+
+		dagPath = strings.TrimSpace(dagPath)
+		if dagPath == "" {
+			return fmt.Errorf("--dag requires a non-empty path")
+		}
+
+		d.dag = filepath.Clean(dagPath)
 	}
 
-	snapshotPath = strings.TrimSpace(snapshotPath)
-	if snapshotPath == "" {
-		return fmt.Errorf("--snapshot requires a non-empty path")
-	}
-
-	d.snapshotPath = filepath.Clean(snapshotPath)
 	return nil
 }
 
@@ -235,7 +258,7 @@ func (d *deployCmd) resolveAllRefs() error {
 
 func (d *deployCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
-	for _, flag := range []string{"--snapshot", "--force", "--strip"} {
+	for _, flag := range []string{"--snapshot", "--force", "--strip", "--dag"} {
 		if strings.HasPrefix(flag, toComplete) {
 			suggestions = append(suggestions, flag)
 		}

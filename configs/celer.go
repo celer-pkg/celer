@@ -42,7 +42,7 @@ func NewCeler() *Celer {
 	// Clear metadata caches from previous invocations.
 	ResetMetaCache()
 
-	return &Celer{
+	celer := &Celer{
 		configData: configData{
 			Main: Main{
 				Jobs:      runtime.NumCPU() - 1,
@@ -50,6 +50,10 @@ func NewCeler() *Celer {
 			},
 		},
 	}
+	celer.platform.ctx = celer
+	celer.project.ctx = celer
+
+	return celer
 }
 
 type Celer struct {
@@ -131,8 +135,6 @@ func (c *Celer) InitWithOptions(opts InitOption) error {
 
 // InitWithPlatform initializes celer with platform.
 func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
-	c.platform.ctx = c
-
 	configPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
 	if !fileio.PathExists(configPath) {
 		// Create conf dir if not exists.

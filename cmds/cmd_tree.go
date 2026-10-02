@@ -55,7 +55,7 @@ Examples:
 	}
 
 	// Register flags.
-	command.Flags().BoolVar(&t.hideDevDep, "hide-dev", false, "hide dev dep in dependencies tree.")
+	command.Flags().BoolVar(&t.hideDevDep, "hide-dev", false, "hide dev dependencies in the tree view.")
 
 	// Silence cobra's error and usage output to avoid duplicate messages.
 	command.SilenceErrors = true
