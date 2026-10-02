@@ -8,6 +8,7 @@ import (
 
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/dag"
 	"github.com/celer-pkg/celer/depcheck"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
@@ -24,10 +25,22 @@ type installCmd struct {
 	force          bool
 	recursive      bool
 	cleanSource    bool
+	prefer         string
+	dag            string
 	jobs           int
 	verbose        bool
 	jobsChanged    bool
 	verboseChanged bool
+
+	// The plan given by --dag: the workspace it was exported for, the sources to
+	// pin and the build hashes to expect.
+	dagReport *dag.Report
+
+	// Build hashes expected by --dag, keyed by name@version.
+	dagHashes map[string]string
+
+	// Nodes an exported DAG reports as already cached (not scheduled).
+	dagCached map[string]bool
 }
 
 func (i *installCmd) Command(celer *configs.Celer) *cobra.Command {
@@ -56,6 +69,9 @@ FLAGS:
                      rebuilt artifact overwrites the pkgcache entry.
       --clean-source With --force, also reset the source repo (discards
                      uncommitted changes).
+      --prefer       Install from one path only: source, package, pkgcache or
+                     devcache.
+      --dag          Install a node of the plan from 'celer deploy --dag'.
   -r, --recursive    With --force, recursively reinstall dependencies
   -j, --jobs         Number of parallel build jobs (default: system cores)
   -v, --verbose      Enable verbose output for debugging
@@ -66,7 +82,10 @@ EXAMPLES:
   celer install --dev gtest@1.12.1
   celer install --force --recursive boost@1.82.0
   celer install --force --clean-source opencv@4.8.0
-  celer install --jobs=8 --verbose opencv@4.8.0`,
+  celer install --jobs=8 --verbose opencv@4.8.0
+  celer install --prefer=pkgcache opencv@4.8.0  # restore only, fail on a miss
+  celer install --prefer=source opencv@4.8.0    # build only, then store
+  celer install --dag=out/dag.json opencv@4.8.0 # follow an exported DAG`,
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			i.jobsChanged = cmd.Flags().Changed("jobs")
@@ -82,6 +101,8 @@ EXAMPLES:
 	flags.BoolVarP(&i.force, "force", "f", false, "try to uninstall before installation.")
 	flags.BoolVarP(&i.recursive, "recursive", "r", false, "combine with --force, recursively reinstall dependencies.")
 	flags.BoolVarP(&i.cleanSource, "clean-source", "", false, "combine with --force, also reset the source repo (discards uncommitted changes).")
+	flags.StringVar(&i.prefer, "prefer", "", "install from one path only: source, package, pkgcache or devcache.")
+	flags.StringVar(&i.dag, "dag", "", "install a node of the plan from 'celer deploy --dag'.")
 	flags.IntVarP(&i.jobs, "jobs", "j", i.celer.Jobs(), "the number of jobs to run in parallel.")
 	flags.BoolVarP(&i.verbose, "verbose", "v", false, "verbose detail information.")
 
@@ -102,6 +123,31 @@ func (i *installCmd) runInstall(nameVersions []string) error {
 		cleanedNameVersions = append(cleanedNameVersions, cleanedNameVersion)
 	}
 
+	// A plan carries the workspace it was exported for: adopt it before celer is
+	// initialized, so the toolchain, the devcache, the expression variables and
+	// every cache key below are derived from the plan instead of celer.toml.
+	if i.dag != "" {
+		report, err := dag.Parse(i.dag, i.celer.Version())
+		if err != nil {
+			return logger.PrintError(err, "failed to read the build plan %s.", i.dag)
+		}
+
+		// Adopt the identity of the plan, one setter per property. Each setter saves
+		// celer.toml, so a failure halfway leaves the identity partly adopted.
+		if err := i.celer.SetPlatform(report.Platform); err != nil {
+			return logger.PrintError(err, "failed to adopt the platform of %s.", i.dag)
+		}
+		if err := i.celer.SetProject(report.Project); err != nil {
+			return logger.PrintError(err, "failed to adopt the project of %s.", i.dag)
+		}
+		if err := i.celer.SetBuildType(report.BuildType); err != nil {
+			return logger.PrintError(err, "failed to adopt the build type of %s.", i.dag)
+		}
+		logger.PrintInfo("build identity taken from %s: platform %s, project %s, build type %s",
+			i.dag, report.Platform, report.Project, report.BuildType)
+		i.dagReport = report
+	}
+
 	if err := i.celer.Init(); err != nil {
 		return logger.PrintError(err, "failed to initialize celer.")
 	}
@@ -114,6 +160,14 @@ func (i *installCmd) runInstall(nameVersions []string) error {
 
 	if err := i.overrideFlags(); err != nil {
 		return logger.PrintError(err, "invalid install options.")
+	}
+
+	// Pin the sources of the plan, now that celer is initialized and before
+	// anything is installed.
+	if i.dag != "" {
+		if err := i.applyDAG(); err != nil {
+			return logger.PrintError(err, "failed to apply the build DAG.")
+		}
 	}
 
 	// Install port one by one.
@@ -187,16 +241,55 @@ func (i *installCmd) install(nameVersion string) error {
 		return logger.PrintError(err, "failed to check version conflict.")
 	}
 
+	// With a DAG the expected build hash of this node is known up front: a
+	// mismatch means the plan no longer describes this workspace, so report it
+	// instead of silently building a different revision.
+	if i.dag != "" {
+		expected, ok := i.dagHashes[nameVersion]
+		if !ok {
+			if i.dagCached[nameVersion] {
+				return logger.PrintError(fmt.Errorf("%s is already in the pkgcache, it is not scheduled in %s", nameVersion, i.dag),
+					"failed to install %s", nameVersion)
+			}
+			return logger.PrintError(fmt.Errorf("%s is not part of %s", nameVersion, i.dag),
+				"failed to install %s", nameVersion)
+		}
+		buildhash, err := port.BuildHash()
+		if err != nil {
+			return logger.PrintError(err, "failed to calculate the build hash of %s", nameVersion)
+		}
+		if buildhash != expected {
+			return logger.PrintError(
+				fmt.Errorf("build hash mismatch: %s expects %s but this workspace computes %s", i.dag, expected, buildhash),
+				"failed to install %s", nameVersion)
+		}
+	}
+
+	// Parse the strict install path; empty means the default fallback chain.
+	prefer, err := configs.ParseInstallPrefer(i.prefer)
+	if err != nil {
+		return logger.PrintError(err, "invalid --prefer value: %s", i.prefer)
+	}
+
 	// Do install.
 	options := configs.InstallOptions{
 		Force:       i.force,
 		Recursive:   i.recursive,
 		CleanSource: i.cleanSource,
+		Prefer:      prefer,
 	}
 	fromWhere, err := port.Install(options)
 	if err != nil {
 		return logger.PrintError(err, "failed to install %s", nameVersion)
 	}
+
+	// An explicitly requested path that could not serve this port is a failure:
+	// the default chain is the only mode that may fall back to another path.
+	if prefer != configs.PreferNone && fromWhere == "" {
+		return logger.PrintError(fmt.Errorf("%s is not available from %s", nameVersion, i.prefer),
+			"failed to install %s", nameVersion)
+	}
+
 	if fromWhere != "" {
 		if port.DevDep {
 			logger.PrintSuccess("install %s from %s as dev successfully.", nameVersion, fromWhere)
@@ -211,6 +304,22 @@ func (i *installCmd) install(nameVersion string) error {
 		}
 	}
 
+	return nil
+}
+
+// applyDAG pins the source revisions recorded in a DAG exported by
+// `celer deploy --dag`, so every agent builds the exact revisions that were
+// resolved at export time instead of whatever it happens to find locally.
+func (i *installCmd) applyDAG() error {
+	// The plan is all a build follows: the source revision to pin per port, the
+	// build hash expected per scheduled node, and which nodes pkgcache supplies
+	// instead of building them.
+	pins := i.dagReport.PinSources()
+	configs.PinSources(pins)
+	i.dagHashes = i.dagReport.DagHashs()
+	i.dagCached = i.dagReport.DagCached()
+
+	logger.PrintInfo("pinned %d source revisions from %s", len(pins), i.dag)
 	return nil
 }
 

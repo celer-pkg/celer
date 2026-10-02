@@ -18,9 +18,9 @@ celer tree <target> [flags]
 
 ## Command Options
 
-| Option     | Type    | Description                            |
-|------------|---------|----------------------------------------|
-| --hide-dev | boolean | Hide dev dependencies in tree output   |
+| Option        | Type    | Description                            |
+|---------------|---------|----------------------------------------|
+| --hide-dev    | boolean | Hide dev dependencies in the tree view |
 
 ## Common Examples
 
@@ -39,3 +39,5 @@ celer tree project_test_02
 
 - Output includes dependency counts (`dependencies`, `dev_dependencies`).
 - Large targets can produce long tree output.
+- To export the build DAG of the current project for an external build
+  orchestrator, use [`celer deploy --dag`](./cmd_deploy.md).
