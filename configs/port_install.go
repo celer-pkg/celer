@@ -27,6 +27,23 @@ const (
 	PreferDevCache
 )
 
+func ParseInstallPrefer(name string) (InstallPrefer, error) {
+	switch strings.ToLower(strings.TrimSpace(name)) {
+	case "", "none":
+		return PreferNone, nil
+	case "source":
+		return PreferSource, nil
+	case "package":
+		return PreferPackage, nil
+	case "pkgcache":
+		return PreferPkgCache, nil
+	case "devcache":
+		return PreferDevCache, nil
+	default:
+		return PreferNone, fmt.Errorf("unsupported prefer path %q, expected source, package, pkgcache or devcache", name)
+	}
+}
+
 // Install install a port and tell me where it was installed from.
 func (p *Port) Install(options InstallOptions) (fromWhere string, retErr error) {
 	// Top-level install owns one staging dir for the whole dependency tree.
@@ -391,14 +408,18 @@ func (p Port) doInstallFromPkgCache(options InstallOptions) (bool, error) {
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return false, err
 		}
-		if _, err := port.Install(options); err != nil {
+		if fromWhere, err := port.Install(options); err != nil {
 			return false, err
+		} else if options.Prefer == PreferPkgCache && fromWhere == "" {
+			// A dependency that is not in the cache is a hard failure in strict
+			// mode: the restored package would be incomplete otherwise.
+			return false, fmt.Errorf("dependency %s is not available in pkgcache", nameVersion)
 		}
 		visitedPorts[key] = true
 	}
 
 	// Calculate buildhash.
-	buildhash, err := p.buildhash()
+	buildhash, err := p.BuildHash()
 	if err != nil {
 		return false, fmt.Errorf("failed to calculate buildhash -> %w", err)
 	}
@@ -695,7 +716,7 @@ func (p *Port) doInstallFromDevCache(options InstallOptions) (bool, error) {
 	// Calculate buildhash.
 	// For dev deps the build meta contains the workspace
 	// dir (see GenPlatformTomlString), so the hash is workspace-specific.
-	buildhash, err := p.buildhash()
+	buildhash, err := p.BuildHash()
 	if err != nil {
 		return false, fmt.Errorf("failed to calculate build hash -> %w", err)
 	}

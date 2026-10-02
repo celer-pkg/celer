@@ -176,6 +176,12 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 		return fmt.Errorf("failed to validate %s -> %w", p.portFile, err)
 	}
 
+	// A pin from `celer install --dag` fixes the source revision of this port for
+	// the whole run: it is the revision that was resolved when the DAG was exported.
+	if pin, ok := pinnedSourceOf(nameVersion); ok {
+		p.Package.Checksum = pin
+	}
+
 	return nil
 }
 

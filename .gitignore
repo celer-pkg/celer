@@ -21,4 +21,5 @@
 *.exe
 celer
 celer.toml
+dag.json
 .codex
