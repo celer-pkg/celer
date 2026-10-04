@@ -350,12 +350,11 @@ func (p Port) Clone() error {
 			return err
 		}
 
-		// Ports with a checksum are expected to be restored from the artifact
-		// pkgcache during install (no source build needed).
-		if port.Package.Checksum == "" {
-			if err := port.Clone(); err != nil {
-				return err
-			}
+		// A dev/host dependency is built by every agent for itself: its artifact
+		// goes to the local devcache, never to the shared artifact pkgcache, so a
+		// pinned checksum cannot spare it the source.
+		if err := port.Clone(); err != nil {
+			return err
 		}
 	}
 
@@ -369,9 +368,10 @@ func (p Port) Clone() error {
 			return err
 		}
 
-		// Ports with a checksum are expected to be restored from the artifact
-		// pkgcache during install (no source build needed).
-		if port.Package.Checksum == "" {
+		// A port with a checksum outside the dev/host subtree is expected to be
+		// restored from the artifact pkgcache during install (no source build
+		// needed).
+		if port.Package.Checksum == "" || p.DevDep || p.HostDep {
 			if err := port.Clone(); err != nil {
 				return err
 			}
