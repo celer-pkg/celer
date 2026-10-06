@@ -21,6 +21,7 @@ import (
 	"github.com/celer-pkg/celer/pkgs/logger"
 	"github.com/celer-pkg/celer/pkgs/pc"
 	"github.com/celer-pkg/celer/pkgs/refs"
+	"github.com/celer-pkg/celer/pkgs/ros"
 )
 
 var (
@@ -699,6 +700,12 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 	// Fixup pkg config files to use self-locating ${pcfiledir} prefix.
 	if err := pc.FixupPkgConfigFile(b.PortConfig.PackageDir); err != nil {
 		return fmt.Errorf("fixup pkg-config\n %w", err)
+	}
+
+	// Fixup ROS/ament/colcon artifacts that bake the transient staging path
+	// (parent_prefix_path markers and prefix_chain setup scripts).
+	if err := ros.FixupInstalledROS(b.PortConfig.PackageDir, dirs.WorkspaceDir); err != nil {
+		return fmt.Errorf("fixup ros artifacts -> %w", err)
 	}
 
 	// Generate cmake config files for build systems that don't produce them
