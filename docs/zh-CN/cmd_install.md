@@ -30,7 +30,7 @@ celer install <name@version> [<name@version> ...] [flags]
 | --force       | -f   | 布尔   | 强制重装（如已安装则先移除）          |
 | --clean-source|      | 布尔   | 配合 `--force`，同时重置源码仓库（丢弃未提交改动） |
 | --prefer      |      | 字符串 | 只走一条安装路径（`source`/`package`/`pkgcache`/`devcache`），不回退；未命中即失败 |
-| --dag         |      | 字符串 | 按 `celer deploy --dag` 导出的 DAG 构建：采用其中的 platform/project/build type，钉住所有源码 revision，并校验 build hash |
+| --dag         |      | 字符串 | 按 `celer deploy --export-dag` 导出的 DAG 构建：采用其中的 platform/project/build type，钉住所有源码 revision，并校验 build hash |
 | --recursive   | -r   | 布尔   | 结合重装语义，递归处理依赖            |
 | --jobs        | -j   | 整数   | 并行构建任务数                        |
 | --verbose     | -v   | 布尔   | 输出详细日志                          |

@@ -1,4 +1,4 @@
-// Master job: export the build plan, then run one job per scheduled node, each as
+// Master job: export the build schedule, then run one job per scheduled node, each as
 // soon as its own dependencies are done.
 //
 // There is no wave barrier: a node starts the moment its dependencies finished, so
@@ -18,7 +18,7 @@ pipeline {
     }
 
     stages {
-        stage('export the plan') {
+        stage('export the schedule dag') {
             steps {
                 sh """
                 #!/bin/bash
@@ -37,7 +37,7 @@ pipeline {
                 celer init --url=https://github.com/celer-pkg/test-conf.git
                 celer configure --platform=${params.CELER_PLATFORM}
                 celer configure --project=${params.CELER_PROJECT}
-                celer deploy --dag=dag.json
+                celer deploy --export-dag=dag.json
                 """
 
                 // Every node job runs on its own agent and needs the dag json file.
@@ -45,7 +45,7 @@ pipeline {
             }
         }
 
-        stage('destribute the plan') {
+        stage('distribute the schedule') {
             steps {
                 script {
                     // The key is omitted when pkgcache already has every node, and an empty
@@ -54,8 +54,8 @@ pipeline {
                     def nodes = dag.scheduled_nodes ?: []
                     def byNameVersion = nodes.collectEntries { n -> [(n.name_version): n] }
 
-                    // Every node installs on the platform of the plan, and reads the plan
-                    // file of this build: a newer plan must never reach it.
+                    // Every node installs on the platform of the schedule, and reads the
+                    // schedule file of this build: a newer schedule must never reach it.
                     def platform = dag.platform
                     def project = dag.project
                     def masterBuild = env.BUILD_NUMBER
@@ -100,6 +100,13 @@ pipeline {
                     branches.failFast = true
                     parallel branches
                 }
+            }
+        }
+
+        stage('deploy with dag') {
+            steps {
+                // Deploy with dag collects the artifacts of every node of the schedule.
+                sh 'celer deploy --apply-dag=dag.json'
             }
         }
     }
