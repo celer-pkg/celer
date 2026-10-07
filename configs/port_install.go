@@ -17,30 +17,22 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type InstallPrefer int
+type InstallPrefer string
 
 const (
-	PreferNone InstallPrefer = iota
-	PreferSource
-	PreferPackage
-	PreferPkgCache
-	PreferDevCache
+	PreferSource   InstallPrefer = "source"
+	PreferPackage  InstallPrefer = "package"
+	PreferPkgCache InstallPrefer = "pkgcache"
+	PreferDevCache InstallPrefer = "devcache"
 )
 
 func ParseInstallPrefer(name string) (InstallPrefer, error) {
-	switch strings.ToLower(strings.TrimSpace(name)) {
-	case "", "none":
-		return PreferNone, nil
-	case "source":
-		return PreferSource, nil
-	case "package":
-		return PreferPackage, nil
-	case "pkgcache":
-		return PreferPkgCache, nil
-	case "devcache":
-		return PreferDevCache, nil
+	prefer := InstallPrefer(strings.ToLower(strings.TrimSpace(name)))
+	switch prefer {
+	case "", PreferSource, PreferPackage, PreferPkgCache, PreferDevCache:
+		return prefer, nil
 	default:
-		return PreferNone, fmt.Errorf("unsupported prefer path %q, expected source, package, pkgcache or devcache", name)
+		return "", fmt.Errorf("unsupported prefer '%q', expected 'source', 'package', 'pkgcache' or 'devcache'", name)
 	}
 }
 
@@ -187,10 +179,8 @@ func (p *Port) Install(options InstallOptions) (fromWhere string, retErr error) 
 		}
 	}
 
-	// No config or explicit prebuilt-with-url -> treat as nobuild or prebuilt.
-	// Only for the default (PreferNone) path; explicit Prefer requests are
-	// handled by the switch below.
-	if options.Prefer == PreferNone && (len(p.BuildConfigs) == 0 ||
+	// Install from source for non-buildconfig case and prebuild case.
+	if options.Prefer == "" && (len(p.BuildConfigs) == 0 ||
 		(p.MatchedConfig.BuildSystem == "prebuilt" && p.MatchedConfig.Url != "")) {
 		if err := p.installFromSource(options); err != nil {
 			return "", err
@@ -202,7 +192,7 @@ func (p *Port) Install(options InstallOptions) (fromWhere string, retErr error) 
 		return "prebuilt", nil
 	}
 
-	// Strict single-path installs: for every Prefer value except PreferNone,
+	// Strict single-path installs: for every Prefer value except empty,
 	// only the requested path is attempted. If that path is unavailable the
 	// port is left uninstalled and fromWhere stays empty.
 	switch options.Prefer {
@@ -238,9 +228,15 @@ func (p *Port) Install(options InstallOptions) (fromWhere string, retErr error) 
 			return "devcache", nil
 		}
 		return "", nil
+
+	case "":
+		// The default chain below.
+
+	default:
+		return "", fmt.Errorf("unsupported prefer path %q, expected source, package, pkgcache or devcache", options.Prefer)
 	}
 
-	// PreferNone: default ordered fallback (package -> pkgcache -> devcache -> source).
+	// Default ordered fallback (package -> pkgcache -> devcache -> source).
 	// 1. Try to install from package.
 	if installed, err := p.installFromPackage(options); err != nil {
 		return "", err

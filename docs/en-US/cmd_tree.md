@@ -34,10 +34,3 @@ celer tree ffmpeg@5.1.6 --hide-dev
 # Project dependency tree
 celer tree project_test_02
 ```
-
-## Notes
-
-- Output includes dependency counts (`dependencies`, `dev_dependencies`).
-- Large targets can produce long tree output.
-- To export the build DAG of the current project for an external build
-  orchestrator, use [`celer deploy --dag`](./cmd_deploy.md).

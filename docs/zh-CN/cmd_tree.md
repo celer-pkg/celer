@@ -34,9 +34,3 @@ celer tree ffmpeg@5.1.6 --hide-dev
 # 查看项目依赖树
 celer tree project_test_02
 ```
-
-## 说明
-
-- 输出末尾会给出依赖统计（`dependencies`、`dev_dependencies`）。
-- 目标依赖较多时，树输出会较长。
-- 要给外部编排器导出当前项目的构建 DAG，请用 [`celer deploy --dag`](./cmd_deploy.md)。

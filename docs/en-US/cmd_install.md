@@ -33,7 +33,7 @@ celer install <name@version> [<name@version> ...] [flags]
 | --force       | -f    | boolean | Reinstall target (remove first if installed)              |
 | --clean-source|       | boolean | With `--force`, also reset the source repo (discards uncommitted changes) |
 | --prefer      |       | string  | Install from one path only (`source`/`package`/`pkgcache`/`devcache`), no fallback; a miss fails the install |
-| --dag         |       | string  | Follow a DAG exported by `celer deploy --dag`: adopt its platform, project and build type, pin every source revision and verify the build hash |
+| --dag         |       | string  | Follow a DAG exported by `celer deploy --export-dag`: adopt its platform, project and build type, pin every source revision and verify the build hash |
 | --recursive   | -r    | boolean | With force-style reinstall, include dependencies           |
 | --jobs        | -j    | integer | Parallel build jobs                                        |
 | --verbose     | -v    | boolean | Enable verbose output                                      |

@@ -5,11 +5,13 @@ import (
 	"path/filepath"
 	"reflect"
 	"testing"
+
+	"github.com/celer-pkg/celer/pkgs/dirs"
 )
 
 // TestParseDAG locks down the checks done before a build follows an exported
 // DAG: the file must parse, and it must have been exported by this celer
-// version, since the plan's own workspace identity is adopted by the caller.
+// version, since the schedule's own workspace identity is adopted by the caller.
 func TestParseDAG(t *testing.T) {
 	dir := t.TempDir()
 
@@ -68,7 +70,7 @@ func TestParseDAG(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			report, err := Parse(tt.path, tt.celerVersion)
+			report, err := parseDag(tt.path, tt.celerVersion)
 			if tt.wantErr {
 				if err == nil {
 					t.Fatal("Parse() should fail")
@@ -86,11 +88,11 @@ func TestParseDAG(t *testing.T) {
 	}
 }
 
-// TestReportPlan locks down what a build takes from a plan: the source revision
+// TestReportPlan locks down what a build takes from a schedule: the source revision
 // pinned per port, the build hash expected per scheduled node, and the nodes
 // pkgcache supplies instead of building them.
 func TestReportPlan(t *testing.T) {
-	report := Report{
+	dag := Dag{
 		ScheduledNodes: []node{
 			{NameVersion: "fontconfig@2.16.0", BuildHash: "aa", Checksum: "bb", Dependencies: []string{"zlib@1.3.1"}},
 			{NameVersion: "zlib@1.3.1", BuildHash: "cc"},
@@ -101,20 +103,40 @@ func TestReportPlan(t *testing.T) {
 
 	// Only ports with a checksum are pinned: an empty revision would undo a pin
 	// set by another source, and a port without one is never cloned anyway.
-	pins := report.PinSources()
+	pins := dag.PinSources()
 	wantPins := map[string]string{"fontconfig@2.16.0": "bb", "nasm@2.16.03": "dd"}
 	if !reflect.DeepEqual(pins, wantPins) {
 		t.Fatalf("Pins() = %v, want %v", pins, wantPins)
 	}
 
-	hashes := report.DagHashs()
+	hashes := dag.DagHashs()
 	wantHashes := map[string]string{"fontconfig@2.16.0": "aa", "zlib@1.3.1": "cc"}
 	if !reflect.DeepEqual(hashes, wantHashes) {
 		t.Fatalf("BuildHashes() = %v, want %v", hashes, wantHashes)
 	}
-	cached := report.DagCached()
+	cached := dag.DagCached()
 	wantCached := map[string]bool{"libpng@1.6.49": true}
 	if !reflect.DeepEqual(cached, wantCached) {
 		t.Fatalf("CachedSet() = %v, want %v", cached, wantCached)
+	}
+}
+
+// TestDagRequiresConfRepo locks down that both ends of a schedule refuse a workspace
+// without a conf repo: exporting cannot record a revision, and applying cannot move the
+// repo to one.
+func TestDagRequiresConfRepo(t *testing.T) {
+	dirs.Init(t.TempDir())
+	t.Cleanup(dirs.RemoveAllForTest)
+
+	if err := (Dag{ConfRef: "abc"}).PinConf(); err == nil {
+		t.Fatal("PinConf() without a conf repo should fail")
+	}
+	if _, err := confRevision(); err == nil {
+		t.Fatal("confRevision() without a conf repo should fail")
+	}
+
+	// The schedule side is checked first: a missing revision is reported as such.
+	if err := (Dag{}).PinConf(); err == nil {
+		t.Fatal("PinConf() without a conf ref should fail")
 	}
 }
