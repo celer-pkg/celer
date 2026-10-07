@@ -215,60 +215,14 @@ func setupPython(ctx context.Context, pythonVersion string) error {
 		condaLibDir = filepath.Join(filepath.Dir(pythonDir), "lib")
 	}
 
-	// Ensure virtual environment exists.
-	if !fileio.PathExists(envDir) {
-		// Detect Python major version to choose appropriate venv creation method
-		majorVersion := "3"
-		if strings.HasPrefix(pythonVersion, "2") {
-			majorVersion = "2"
-		}
-
-		var command string
-		if majorVersion == "2" {
-			// Python2 doesn't have built-in venv module, need to use virtualenv package.
-			// First, ensure virtualenv is installed.
-			var installBuilder strings.Builder
-			if condaLibDir != "" {
-				fmt.Fprintf(&installBuilder, "LD_LIBRARY_PATH=%s ", condaLibDir)
-			}
-			fmt.Fprintf(&installBuilder, "%s -m pip install --quiet virtualenv", pythonExec)
-			installCmd := installBuilder.String()
-
-			executor := cmd.NewExecutor("[install virtualenv for python2]", installCmd)
-			if err := executor.Execute(); err != nil {
-				return fmt.Errorf("failed to install virtualenv for Python2 -> %w", err)
-			}
-
-			// Create venv using virtualenv.
-			var cmdBuilder strings.Builder
-			if condaLibDir != "" {
-				fmt.Fprintf(&cmdBuilder, "LD_LIBRARY_PATH=%s ", condaLibDir)
-			}
-			fmt.Fprintf(&cmdBuilder, "%s -m virtualenv %s", pythonExec, envDir)
-			command = cmdBuilder.String()
-		} else {
-			// Python3 has built-in venv module.
-			var installBuilder strings.Builder
-			if condaLibDir != "" {
-				fmt.Fprintf(&installBuilder, "LD_LIBRARY_PATH=%s ", condaLibDir)
-			}
-			fmt.Fprintf(&installBuilder, "%s -m venv %s", pythonExec, envDir)
-			command = installBuilder.String()
-		}
-
-		executor := cmd.NewExecutor("[create python venv]", command)
-		if err := executor.Execute(); err != nil {
-			return fmt.Errorf("failed to create python venv -> %w", err)
-		}
-	}
-
-	// Use virtual environment python with platform-specific paths.
-	// Detect Python major version for correct executable name
+	// Detect Python major version to choose the venv creation method and the
+	// correct executable name on disk.
 	majorVersion := "3"
 	if strings.HasPrefix(pythonVersion, "2") {
 		majorVersion = "2"
 	}
 
+	// Use virtual environment python with platform-specific paths.
 	var venvPythonPath, venvPipPath, venvBinDir string
 	if runtime.GOOS == "windows" {
 		venvPythonPath = filepath.Join(envDir, "Scripts", "python.exe")
@@ -281,20 +235,73 @@ func setupPython(ctx context.Context, pythonVersion string) error {
 		venvBinDir = filepath.Join(envDir, "bin")
 	}
 
-	// Make sure the virtual environment was created successfully and contains the expected executables.
-	if !fileio.PathExists(venvPythonPath) || !fileio.PathExists(venvPipPath) {
-		var deleteCmd string
-		if runtime.GOOS == "windows" {
-			deleteCmd = fmt.Sprintf("rmdir /s /q %s", envDir)
-		} else {
-			deleteCmd = fmt.Sprintf("rm -rf %s", envDir)
+	// Ensure a complete venv exists.
+	const maxAttempts = 2
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		if fileio.PathExists(venvPythonPath) && fileio.PathExists(venvPipPath) {
+			break
 		}
-		return fmt.Errorf("python virtual environment is incomplete at %s\n "+
-			"Please delete the directory and try again: %s\n", envDir, deleteCmd)
+
+		// Remove incomplete env dir and create new venv.
+		if fileio.PathExists(envDir) {
+			logger.PrintWarning("python venv at %s is incomplete, removing and recreating (attempt %d/%d)", envDir, attempt, maxAttempts)
+			if err := os.RemoveAll(envDir); err != nil {
+				return fmt.Errorf("failed to remove incomplete python venv %s -> %w", envDir, err)
+			}
+		}
+		if err := createPythonVenv(majorVersion, pythonExec, envDir, condaLibDir); err != nil {
+			return err
+		}
+	}
+	if !fileio.PathExists(venvPythonPath) || !fileio.PathExists(venvPipPath) {
+		return fmt.Errorf("python virtual environment is incomplete at %s after %d attempts (missing python or pip)", envDir, maxAttempts)
 	}
 
 	// Save python info as global variable.
 	PythonTool = python.NewPythonTool(venvPythonPath, venvBinDir, envDir, pythonVersion, condaLibDir)
+	return nil
+}
+
+// createPythonVenv creates the virtual environment at envDir for the given
+// Python executable.
+func createPythonVenv(majorVersion, pythonExec, envDir, condaLibDir string) error {
+	var command string
+	if majorVersion == "2" {
+		// Python2 doesn't have built-in venv module, need to use virtualenv package.
+		// First, ensure virtualenv is installed.
+		var installBuilder strings.Builder
+		if condaLibDir != "" {
+			fmt.Fprintf(&installBuilder, "LD_LIBRARY_PATH=%s ", condaLibDir)
+		}
+		fmt.Fprintf(&installBuilder, "%s -m pip install --quiet virtualenv", pythonExec)
+		installCmd := installBuilder.String()
+
+		executor := cmd.NewExecutor("[install virtualenv for python2]", installCmd)
+		if err := executor.Execute(); err != nil {
+			return fmt.Errorf("failed to install virtualenv for Python2 -> %w", err)
+		}
+
+		// Create venv using virtualenv.
+		var cmdBuilder strings.Builder
+		if condaLibDir != "" {
+			fmt.Fprintf(&cmdBuilder, "LD_LIBRARY_PATH=%s ", condaLibDir)
+		}
+		fmt.Fprintf(&cmdBuilder, "%s -m virtualenv %s", pythonExec, envDir)
+		command = cmdBuilder.String()
+	} else {
+		// Python3 has built-in venv module.
+		var installBuilder strings.Builder
+		if condaLibDir != "" {
+			fmt.Fprintf(&installBuilder, "LD_LIBRARY_PATH=%s ", condaLibDir)
+		}
+		fmt.Fprintf(&installBuilder, "%s -m venv %s", pythonExec, envDir)
+		command = installBuilder.String()
+	}
+
+	executor := cmd.NewExecutor("[create python venv]", command)
+	if err := executor.Execute(); err != nil {
+		return fmt.Errorf("failed to create python venv -> %w", err)
+	}
 	return nil
 }
 

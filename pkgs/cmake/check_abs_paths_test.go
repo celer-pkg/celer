@@ -258,6 +258,32 @@ set_target_properties(OgreMain PROPERTIES
 	}
 }
 
+func TestCheckAbsPaths_TargetsFileOutsideCmakeDir(t *testing.T) {
+	// libccd-style: install(EXPORT) results in import-target files installed
+	// directly under lib/<pkg>/ (not lib/cmake/<pkg>/), e.g.
+	// lib/ccd/ccd-targets-release.cmake. A sysroot system library baked into a
+	// per-config imported link-interface property must still be caught.
+	dir := t.TempDir()
+	ccdDir := filepath.Join(dir, "lib", "ccd")
+	if err := os.MkdirAll(ccdDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	content := `
+set_target_properties(ccd PROPERTIES
+  IMPORTED_LINK_INTERFACE_LIBRARIES_RELEASE "/workspace/downloads/tools/sysroot/usr/lib/aarch64-linux-gnu/libm.so"
+  IMPORTED_LOCATION_RELEASE "${_IMPORT_PREFIX}/lib/libccd.so.2.0"
+)
+`
+	if err := os.WriteFile(filepath.Join(ccdDir, "ccd-targets-release.cmake"), []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := CheckCMakeAbsPaths(dir, "/workspace"); err == nil {
+		t.Fatal("CheckAbsPaths() should catch absolute path in lib/<pkg>/*-targets*.cmake")
+	}
+}
+
 func TestCheckAbsPaths_NonexistentDir(t *testing.T) {
 	// A nobuild port has no installed tree; checking must be a no-op, not an error.
 	if err := CheckCMakeAbsPaths(filepath.Join(t.TempDir(), "does-not-exist"), "/workspace"); err != nil {

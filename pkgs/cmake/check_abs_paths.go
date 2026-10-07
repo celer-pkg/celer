@@ -11,8 +11,7 @@ import (
 
 // CheckCMakeAbsPaths scans cmake config files under packageDir for absolute
 // workspace paths baked into target properties that make the installed package
-// non-relocatable. It covers regular lib/cmake and share/cmake as well as
-// vendored opt/<vendor>/**/cmake.
+// non-relocatable.
 func CheckCMakeAbsPaths(packageDir, workspaceDir string) error {
 	// No installed tree (e.g. a nobuild port) means nothing to check.
 	if !fileio.PathExists(packageDir) {
@@ -31,11 +30,8 @@ func CheckCMakeAbsPaths(packageDir, workspaceDir string) error {
 		if filepath.Ext(path) != ".cmake" {
 			return nil
 		}
-		// Only .cmake config files living under a cmake/ directory.
-		if !strings.Contains(filepath.ToSlash(path), "/cmake/") {
-			return nil
-		}
 
+		// Scan every .cmake file, not just those under a cmake/ directory.
 		data, err := os.ReadFile(path)
 		if err != nil {
 			return err
