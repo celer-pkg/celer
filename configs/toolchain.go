@@ -365,6 +365,13 @@ func (t Toolchain) cmakeSystemName() string {
 }
 
 func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string, portEnvs []string) {
+	for _, kv := range t.buildEnvVars(rootfs, buildsystem, portEnvs) {
+		key, value, _ := strings.Cut(kv, "=")
+		os.Setenv(key, value)
+	}
+}
+
+func (t Toolchain) buildEnvVars(rootfs context.RootFS, buildsystem string, portEnvs []string) []string {
 	crosstoolPrefix := t.GetCrosstoolPrefix()
 	cc := t.GetCC()
 	cxx := t.GetCXX()
@@ -381,15 +388,17 @@ func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string, portEnvs [
 		}
 	}
 
+	var envs []string
+
 	// cross tool prefix maybe empty for msvc in windows.
 	if crosstoolPrefix != "" {
-		os.Setenv("CROSSTOOL_PREFIX", crosstoolPrefix)
+		envs = append(envs, "CROSSTOOL_PREFIX="+crosstoolPrefix)
 	}
-	os.Setenv("HOST", t.GetHost())
+	envs = append(envs, "HOST="+t.GetHost())
 
 	// For CMake, compiler tools are defined in toolchain_file.cmake, skip environment variable setup.
 	if buildsystem == "cmake" {
-		return
+		return envs
 	}
 
 	var ccFlags, cxxFlags []string
@@ -397,8 +406,7 @@ func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string, portEnvs [
 		// For Windows + MSVC with Makefiles, don't set ccache in CC/CXX environment variables,
 		// because MSYS2 shell cannot handle "ccache cl.exe" as a command.
 		if runtime.GOOS == "windows" && (t.GetName() == "msvc" || t.GetName() == "clang-cl") && buildsystem == "makefiles" {
-			os.Setenv("CC", cc)
-			os.Setenv("CXX", cxx)
+			envs = append(envs, "CC="+cc, "CXX="+cxx)
 		} else {
 			ccFlags = append(ccFlags, "ccache", cc)
 			cxxFlags = append(cxxFlags, "ccache", cxx)
@@ -412,8 +420,7 @@ func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string, portEnvs [
 				ccFlags = append(ccFlags, rtFlags...)
 				cxxFlags = append(cxxFlags, rtFlags...)
 			}
-			os.Setenv("CC", strings.Join(ccFlags, " "))
-			os.Setenv("CXX", strings.Join(cxxFlags, " "))
+			envs = append(envs, "CC="+strings.Join(ccFlags, " "), "CXX="+strings.Join(cxxFlags, " "))
 		}
 	} else {
 		ccFlags = append(ccFlags, cc)
@@ -428,49 +435,50 @@ func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string, portEnvs [
 			ccFlags = append(ccFlags, rtFlags...)
 			cxxFlags = append(cxxFlags, rtFlags...)
 		}
-		os.Setenv("CC", strings.Join(ccFlags, " "))
-		os.Setenv("CXX", strings.Join(cxxFlags, " "))
+		envs = append(envs, "CC="+strings.Join(ccFlags, " "), "CXX="+strings.Join(cxxFlags, " "))
 	}
 
 	if t.GetAS() != "" {
-		os.Setenv("AS", t.GetAS())
+		envs = append(envs, "AS="+t.GetAS())
 	}
 
 	if t.GetFC() != "" {
-		os.Setenv("FC", t.GetFC())
+		envs = append(envs, "FC="+t.GetFC())
 	}
 
 	if t.GetRANLIB() != "" {
-		os.Setenv("RANLIB", t.GetRANLIB())
+		envs = append(envs, "RANLIB="+t.GetRANLIB())
 	}
 
 	if t.GetAR() != "" {
-		os.Setenv("AR", t.GetAR())
+		envs = append(envs, "AR="+t.GetAR())
 	}
 
 	if t.GetLD() != "" {
-		os.Setenv("LD", t.GetLD())
+		envs = append(envs, "LD="+t.GetLD())
 	}
 
 	if t.GetNM() != "" {
-		os.Setenv("NM", t.GetNM())
+		envs = append(envs, "NM="+t.GetNM())
 	}
 
 	if t.GetOBJCOPY() != "" {
-		os.Setenv("OBJCOPY", t.GetOBJCOPY())
+		envs = append(envs, "OBJCOPY="+t.GetOBJCOPY())
 	}
 
 	if t.GetOBJDUMP() != "" {
-		os.Setenv("OBJDUMP", t.GetOBJDUMP())
+		envs = append(envs, "OBJDUMP="+t.GetOBJDUMP())
 	}
 
 	if t.GetSTRIP() != "" {
-		os.Setenv("STRIP", t.GetSTRIP())
+		envs = append(envs, "STRIP="+t.GetSTRIP())
 	}
 
 	if t.GetREADELF() != "" {
-		os.Setenv("READELF", t.GetREADELF())
+		envs = append(envs, "READELF="+t.GetREADELF())
 	}
+
+	return envs
 }
 
 func (t Toolchain) ClearEnvs() {
