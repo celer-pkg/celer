@@ -23,3 +23,5 @@
 celer
 celer.toml
 environment.sh
+dag.json
+.codex

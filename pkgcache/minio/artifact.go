@@ -133,6 +133,30 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 	return nil
 }
 
+// Exists reports whether the package of nameVersion under buildHash can be
+// restored from the cache. Both the archive and its metadata are required.
+func (a ArtifactConfig) Exists(nameVersion, buildHash string) (bool, error) {
+	// skip when offline.
+	if a.ctx.Offline() {
+		return false, nil
+	}
+
+	remoteMetaPath, remoteArtifactPath := a.artifactPaths(nameVersion, buildHash)
+	remoteMetaInfo, err := a.GetFileInfo(remoteMetaPath)
+	if err != nil {
+		return false, fmt.Errorf("failed to get file object info '%s' -> %w", remoteMetaPath, err)
+	}
+	if remoteMetaInfo == nil {
+		return false, nil
+	}
+
+	remoteInfo, err := a.GetFileInfo(remoteArtifactPath)
+	if err != nil {
+		return false, fmt.Errorf("failed to get file info '%s' -> %w", remoteArtifactPath, err)
+	}
+	return remoteInfo != nil, nil
+}
+
 // Restore restores the cached package to package directory if cache hit.
 func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool, error) {
 	// skip when offline.
@@ -140,13 +164,7 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 		return false, nil
 	}
 
-	platformName := a.ctx.Platform().GetName()
-	projectName := a.ctx.Project().GetName()
-	buildType := a.ctx.BuildType()
-
-	remoteDir := filepath.Join(a.cacheDir, platformName, projectName, buildType, nameVersion)
-	remoteMetaFilePath := filepath.Join(remoteDir, "metas", buildHash+".meta")
-	remoteArtifactPath := filepath.Join(remoteDir, buildHash+".tar.gz")
+	remoteMetaFilePath, remoteArtifactPath := a.artifactPaths(nameVersion, buildHash)
 
 	// Get file meta info and check if checksum matches.
 	remoteMetaInfo, err := a.GetFileInfo(remoteMetaFilePath)
@@ -188,7 +206,7 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 		return false, fmt.Errorf("failed to get file info '%s' -> %w", remoteArtifactPath, err)
 	}
 	if remoteInfo == nil {
-		logger.PrintWarning("======== no artifact found for %s and it'll build from source ========", nameVersion)
+		logger.PrintWarning("======== no cached artifact for %s ========", nameVersion)
 		return false, nil
 	}
 
@@ -231,4 +249,9 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 	}
 
 	return true, nil
+}
+
+func (a ArtifactConfig) artifactPaths(nameVersion, buildHash string) (metaPath, archivePath string) {
+	remoteDir := filepath.Join(a.cacheDir, a.ctx.Platform().GetName(), a.ctx.Project().GetName(), a.ctx.BuildType(), nameVersion)
+	return filepath.Join(remoteDir, "metas", buildHash+".meta"), filepath.Join(remoteDir, buildHash+".tar.gz")
 }

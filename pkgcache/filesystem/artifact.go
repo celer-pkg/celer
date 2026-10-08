@@ -41,6 +41,22 @@ func NewArtifactConfig(ctx context.Context) *ArtifactConfig {
 	}
 }
 
+// Exists reports whether the package of nameVersion under buildHash can be
+// restored from the cache.
+func (a ArtifactConfig) Exists(nameVersion, buildHash string) (bool, error) {
+	// skip when offline.
+	if a.ctx.Offline() {
+		return false, nil
+	}
+
+	metaPath, archivePath := a.artifactPaths(nameVersion, buildHash)
+	if !fileio.PathExists(archivePath) || !fileio.PathExists(metaPath) {
+		return false, nil
+	}
+
+	return true, nil
+}
+
 // Restore restores the cached package to package directory if cache hit.
 // Returns true when the package was restored from cache, false on cache miss.
 func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool, error) {
@@ -49,19 +65,13 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 		return false, nil
 	}
 
-	platformName := a.ctx.Platform().GetName()
-	projectName := a.ctx.Project().GetName()
-	buildType := a.ctx.BuildType()
-
-	remoteFileDir := filepath.Join(a.cacheDir, platformName, projectName, buildType, nameVersion)
-	remoteFilePath := filepath.Join(remoteFileDir, buildHash+".tar.gz")
+	remoteMetaPath, remoteFilePath := a.artifactPaths(nameVersion, buildHash)
 	if !fileio.PathExists(remoteFilePath) {
-		logger.PrintWarning("======== no artifact found for %s and it'll build from source ========", nameVersion)
+		logger.PrintWarning("======== no cached artifact for %s ========", nameVersion)
 		return false, nil // not an error even not exist.
 	}
 
 	// The meta file hash should be the same as hash that calcuated dynamically.
-	remoteMetaPath := filepath.Join(remoteFileDir, "metas", buildHash+".meta")
 	metaBytes, err := os.ReadFile(remoteMetaPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -174,9 +184,7 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		return err
 	}
 
-	// Store the meta file before the archive. It is tiny so skip the progress
-	// bar. uploadFile stages it in the FS root tmp dir, then atomically renames
-	// it into the meta's dir.
+	// Store the meta file before the archive. It is tiny so skip the progress bar.
 	tmpMetaPath := filepath.Join(localTmpDir, hash+".meta")
 	if err := os.WriteFile(tmpMetaPath, []byte(meta), os.ModePerm); err != nil {
 		return err
@@ -185,16 +193,19 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		return err
 	}
 
-	// Store the archive with retry for transient IO failures. uploadFile skips
-	// the upload when the remote archive already matches sha256 (e.g. another
-	// user won the race), so retries are always safe.
-	archiveSha256, err := fileio.SHA256Sum(tempArchivePath)
+	// Store artifact with progress bar.
+	sha256, err := fileio.SHA256Sum(tempArchivePath)
 	if err != nil {
 		return err
 	}
-	if err := a.uploadFile(tempArchivePath, archivePath, archiveSha256, nameVersion); err != nil {
+	if err := a.uploadFile(tempArchivePath, archivePath, sha256, nameVersion); err != nil {
 		return fmt.Errorf("failed to upload file '%s' -> %w", nameVersion, err)
 	}
 
 	return nil
+}
+
+func (a ArtifactConfig) artifactPaths(nameVersion, buildHash string) (metaPath, archivePath string) {
+	remoteFileDir := filepath.Join(a.cacheDir, a.ctx.Platform().GetName(), a.ctx.Project().GetName(), a.ctx.BuildType(), nameVersion)
+	return filepath.Join(remoteFileDir, "metas", buildHash+".meta"), filepath.Join(remoteFileDir, buildHash+".tar.gz")
 }

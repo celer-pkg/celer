@@ -119,6 +119,7 @@ type PkgCache interface {
 
 // AritifactCache stores/restores a port's built package, keyed by name@version + build hash.
 type AritifactCache interface {
+	Exists(nameVersion, buildhash string) (bool, error)
 	Restore(packageDir, nameVersion, buildhash string) (bool, error)
 	Store(packageDir, metadata string) error
 }

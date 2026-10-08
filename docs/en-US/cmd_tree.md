@@ -18,9 +18,9 @@ celer tree <target> [flags]
 
 ## Command Options
 
-| Option     | Type    | Description                            |
-|------------|---------|----------------------------------------|
-| --hide-dev | boolean | Hide dev dependencies in tree output   |
+| Option        | Type    | Description                            |
+|---------------|---------|----------------------------------------|
+| --hide-dev    | boolean | Hide dev dependencies in the tree view |
 
 ## Common Examples
 
@@ -34,8 +34,3 @@ celer tree ffmpeg@5.1.6 --hide-dev
 # Project dependency tree
 celer tree project_test_02
 ```
-
-## Notes
-
-- Output includes dependency counts (`dependencies`, `dev_dependencies`).
-- Large targets can produce long tree output.

@@ -8,10 +8,8 @@ import (
 
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/depcheck"
+	"github.com/celer-pkg/celer/dag"
 	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/errors"
-	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/logger"
 
@@ -24,10 +22,13 @@ type installCmd struct {
 	force          bool
 	recursive      bool
 	cleanSource    bool
+	prefer         string
+	dag            string
 	jobs           int
 	verbose        bool
 	jobsChanged    bool
 	verboseChanged bool
+	dagInfo        *dag.DagInfo
 }
 
 func (i *installCmd) Command(celer *configs.Celer) *cobra.Command {
@@ -56,6 +57,9 @@ FLAGS:
                      rebuilt artifact overwrites the pkgcache entry.
       --clean-source With --force, also reset the source repo (discards
                      uncommitted changes).
+      --prefer       Install from one path only: source, package, pkgcache or
+                     devcache.
+      --dag          Install a node of the schedule from 'celer deploy --export-dag'.
   -r, --recursive    With --force, recursively reinstall dependencies
   -j, --jobs         Number of parallel build jobs (default: system cores)
   -v, --verbose      Enable verbose output for debugging
@@ -66,7 +70,10 @@ EXAMPLES:
   celer install --dev gtest@1.12.1
   celer install --force --recursive boost@1.82.0
   celer install --force --clean-source opencv@4.8.0
-  celer install --jobs=8 --verbose opencv@4.8.0`,
+  celer install --jobs=8 --verbose opencv@4.8.0
+  celer install --prefer=pkgcache opencv@4.8.0  # restore only, fail on a miss
+  celer install --prefer=source opencv@4.8.0    # build only, then store
+  celer install --dag=out/dag.json opencv@4.8.0 # follow an exported DAG`,
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			i.jobsChanged = cmd.Flags().Changed("jobs")
@@ -82,6 +89,8 @@ EXAMPLES:
 	flags.BoolVarP(&i.force, "force", "f", false, "try to uninstall before installation.")
 	flags.BoolVarP(&i.recursive, "recursive", "r", false, "combine with --force, recursively reinstall dependencies.")
 	flags.BoolVarP(&i.cleanSource, "clean-source", "", false, "combine with --force, also reset the source repo (discards uncommitted changes).")
+	flags.StringVar(&i.prefer, "prefer", "", "install from one path only: source, package, pkgcache or devcache.")
+	flags.StringVar(&i.dag, "dag", "", "install a node of the schedule from 'celer deploy --export-dag'.")
 	flags.IntVarP(&i.jobs, "jobs", "j", i.celer.Jobs(), "the number of jobs to run in parallel.")
 	flags.BoolVarP(&i.verbose, "verbose", "v", false, "verbose detail information.")
 
@@ -100,6 +109,17 @@ func (i *installCmd) runInstall(nameVersions []string) error {
 			return logger.PrintError(err, "invalid package specification: %s", nameVersion)
 		}
 		cleanedNameVersions = append(cleanedNameVersions, cleanedNameVersion)
+	}
+
+	// A schedule carries the workspace it was exported for: adopt it before celer is
+	// initialized, so the toolchain, the devcache, the expression variables and
+	// every cache key below are derived from the schedule instead of celer.toml.
+	if i.dag != "" {
+		schedule, err := dag.Import(i.celer, i.dag)
+		if err != nil {
+			return logger.PrintError(err, "failed to read the build schedule %s.", i.dag)
+		}
+		i.dagInfo = schedule
 	}
 
 	if err := i.celer.Init(); err != nil {
@@ -157,61 +177,38 @@ func (i *installCmd) validateAndCleanInput(nameVersion string) (string, error) {
 }
 
 func (i *installCmd) install(nameVersion string) error {
-	platformName := expr.If(i.celer.Platform().GetName() != "", i.celer.Platform().GetName(), "native")
-
-	// Display install header.
-	logger.Println(logger.Title, "=======================================================================")
-	logger.Printf(logger.Title, "🚀 start to install %s\n", nameVersion)
-	logger.Printf(logger.Title, "📌 platform: %s\n", platformName)
-	logger.Printf(logger.Title, "📌 product: %s\n", i.celer.Project().GetName())
-	logger.Println(logger.Title, "=======================================================================")
-
-	// Init the port.
-	var port = configs.Port{
-		DevDep: i.dev,
-	}
-	if err := port.Init(i.celer, nameVersion); err != nil {
-		if errors.Is(err, errors.ErrPortNotFound) {
-			format := "port %s is not yet available - consider adding it now ?"
-			return logger.PrintError(fmt.Errorf(format, nameVersion), "failed to install %s", nameVersion)
-		}
-		return logger.PrintError(err, "failed to init %s", nameVersion)
+	prefer, err := configs.ParseInstallPrefer(i.prefer)
+	if err != nil {
+		return logger.PrintError(err, "invalid --prefer value: %s", i.prefer)
 	}
 
-	// Check circular dependence and version conclict.
-	depcheck := depcheck.NewDepCheck()
-	if err := depcheck.CheckCircular(i.celer, port); err != nil {
-		return logger.PrintError(err, "failed to check circular dependence.")
-	}
-	if err := depcheck.CheckConflict(i.celer, port); err != nil {
-		return logger.PrintError(err, "failed to check version conflict.")
-	}
-
-	// Do install.
 	options := configs.InstallOptions{
 		Force:       i.force,
 		Recursive:   i.recursive,
 		CleanSource: i.cleanSource,
-	}
-	fromWhere, err := port.Install(options)
-	if err != nil {
-		return logger.PrintError(err, "failed to install %s", nameVersion)
-	}
-	if fromWhere != "" {
-		if port.DevDep {
-			logger.PrintSuccess("install %s from %s as dev successfully.", nameVersion, fromWhere)
-		} else {
-			logger.PrintSuccess("install %s from %s successfully.", nameVersion, fromWhere)
-		}
-	} else {
-		if port.DevDep {
-			logger.PrintSuccess("install %s as dev successfully.", nameVersion)
-		} else {
-			logger.PrintSuccess("install %s successfully.", nameVersion)
-		}
+		Prefer:      prefer,
 	}
 
-	return nil
+	expect := dag.Expectation{Banner: true}
+	if i.dagInfo != nil {
+		// A node of the schedule is either one of its scheduled nodes, with the build
+		// hash it expects, or a node pkgcache already had, which is not scheduled
+		// and cannot be installed here.
+		expected, ok := i.dagInfo.DagHashes[nameVersion]
+		if !ok {
+			if i.dagInfo.DagCached[nameVersion] {
+				return logger.PrintError(fmt.Errorf("%s is already in the pkgcache, it is not scheduled in %s", nameVersion, i.dag),
+					"failed to install %s", nameVersion)
+			}
+			return logger.PrintError(fmt.Errorf("%s is not part of %s", nameVersion, i.dag),
+				"failed to install %s", nameVersion)
+		}
+		expect.DagPath = i.dag
+		expect.BuildHash = expected
+	}
+
+	_, err = dag.Install(i.celer, nameVersion, i.dev, options, expect)
+	return err
 }
 
 func (i *installCmd) overrideFlags() error {

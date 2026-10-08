@@ -17,15 +17,24 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type InstallPrefer int
+type InstallPrefer string
 
 const (
-	PreferNone InstallPrefer = iota
-	PreferSource
-	PreferPackage
-	PreferPkgCache
-	PreferDevCache
+	PreferSource   InstallPrefer = "source"
+	PreferPackage  InstallPrefer = "package"
+	PreferPkgCache InstallPrefer = "pkgcache"
+	PreferDevCache InstallPrefer = "devcache"
 )
+
+func ParseInstallPrefer(name string) (InstallPrefer, error) {
+	prefer := InstallPrefer(strings.ToLower(strings.TrimSpace(name)))
+	switch prefer {
+	case "", PreferSource, PreferPackage, PreferPkgCache, PreferDevCache:
+		return prefer, nil
+	default:
+		return "", fmt.Errorf("unsupported prefer '%q', expected 'source', 'package', 'pkgcache' or 'devcache'", name)
+	}
+}
 
 // Install install a port and tell me where it was installed from.
 func (p *Port) Install(options InstallOptions) (fromWhere string, retErr error) {
@@ -170,10 +179,8 @@ func (p *Port) Install(options InstallOptions) (fromWhere string, retErr error) 
 		}
 	}
 
-	// No config or explicit prebuilt-with-url -> treat as nobuild or prebuilt.
-	// Only for the default (PreferNone) path; explicit Prefer requests are
-	// handled by the switch below.
-	if options.Prefer == PreferNone && (len(p.BuildConfigs) == 0 ||
+	// Install from source for non-buildconfig case and prebuild case.
+	if options.Prefer == "" && (len(p.BuildConfigs) == 0 ||
 		(p.MatchedConfig.BuildSystem == "prebuilt" && p.MatchedConfig.Url != "")) {
 		if err := p.installFromSource(options); err != nil {
 			return "", err
@@ -185,7 +192,7 @@ func (p *Port) Install(options InstallOptions) (fromWhere string, retErr error) 
 		return "prebuilt", nil
 	}
 
-	// Strict single-path installs: for every Prefer value except PreferNone,
+	// Strict single-path installs: for every Prefer value except empty,
 	// only the requested path is attempted. If that path is unavailable the
 	// port is left uninstalled and fromWhere stays empty.
 	switch options.Prefer {
@@ -221,9 +228,15 @@ func (p *Port) Install(options InstallOptions) (fromWhere string, retErr error) 
 			return "devcache", nil
 		}
 		return "", nil
+
+	case "":
+		// The default chain below.
+
+	default:
+		return "", fmt.Errorf("unsupported prefer path %q, expected source, package, pkgcache or devcache", options.Prefer)
 	}
 
-	// PreferNone: default ordered fallback (package -> pkgcache -> devcache -> source).
+	// Default ordered fallback (package -> pkgcache -> devcache -> source).
 	// 1. Try to install from package.
 	if installed, err := p.installFromPackage(options); err != nil {
 		return "", err
@@ -333,12 +346,11 @@ func (p Port) Clone() error {
 			return err
 		}
 
-		// Ports with a checksum are expected to be restored from the artifact
-		// pkgcache during install (no source build needed).
-		if port.Package.Checksum == "" {
-			if err := port.Clone(); err != nil {
-				return err
-			}
+		// A dev/host dependency is built by every agent for itself: its artifact
+		// goes to the local devcache, never to the shared artifact pkgcache, so a
+		// pinned checksum cannot spare it the source.
+		if err := port.Clone(); err != nil {
+			return err
 		}
 	}
 
@@ -352,9 +364,10 @@ func (p Port) Clone() error {
 			return err
 		}
 
-		// Ports with a checksum are expected to be restored from the artifact
-		// pkgcache during install (no source build needed).
-		if port.Package.Checksum == "" {
+		// A port with a checksum outside the dev/host subtree is expected to be
+		// restored from the artifact pkgcache during install (no source build
+		// needed).
+		if port.Package.Checksum == "" || p.DevDep || p.HostDep {
 			if err := port.Clone(); err != nil {
 				return err
 			}
@@ -391,14 +404,18 @@ func (p Port) doInstallFromPkgCache(options InstallOptions) (bool, error) {
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return false, err
 		}
-		if _, err := port.Install(options); err != nil {
+		if fromWhere, err := port.Install(options); err != nil {
 			return false, err
+		} else if options.Prefer == PreferPkgCache && fromWhere == "" {
+			// A dependency that is not in the cache is a hard failure in strict
+			// mode: the restored package would be incomplete otherwise.
+			return false, fmt.Errorf("dependency %s is not available in pkgcache", nameVersion)
 		}
 		visitedPorts[key] = true
 	}
 
 	// Calculate buildhash.
-	buildhash, err := p.buildhash()
+	buildhash, err := p.BuildHash()
 	if err != nil {
 		return false, fmt.Errorf("failed to calculate buildhash -> %w", err)
 	}
@@ -695,7 +712,7 @@ func (p *Port) doInstallFromDevCache(options InstallOptions) (bool, error) {
 	// Calculate buildhash.
 	// For dev deps the build meta contains the workspace
 	// dir (see GenPlatformTomlString), so the hash is workspace-specific.
-	buildhash, err := p.buildhash()
+	buildhash, err := p.BuildHash()
 	if err != nil {
 		return false, fmt.Errorf("failed to calculate build hash -> %w", err)
 	}
