@@ -402,7 +402,14 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archiveName string, depth int) (err
 	// - current port is one of third-party ports.
 	// - checksum is not empty.
 	if repoUrl != "_" && pkgCache != nil && repoCache != nil {
-		if restored, err := repoCache.Restore(b.PortConfig.RepoDir, repoUrl, repoRef, nameVersion, b.PortConfig.Checksum, archiveName); err != nil {
+		if restored, err := repoCache.Restore(
+			b.PortConfig.RepoDir,
+			repoUrl,
+			repoRef,
+			b.repoCacheKey(nameVersion),
+			nameVersion,
+			b.PortConfig.Checksum,
+			archiveName); err != nil {
 			return fmt.Errorf("failed to restore %s from repo cache -> %w", nameVersion, err)
 		} else if restored {
 			return nil
@@ -499,7 +506,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archiveName string, depth int) (err
 	// Store repo even checksum is empty, then can fill checksum in port.toml, if you want restore it from pkgcache/repos.
 	if repoUrl != "_" && repoCache != nil && pkgCache.IsWritable() {
 		archiveFile := filepath.Join(b.Ctx.Downloads(), archiveName)
-		if err := repoCache.Store(b.PortConfig.RepoDir, repoUrl, repoRef, nameVersion, archiveFile); err != nil {
+		if err := repoCache.Store(b.PortConfig.RepoDir, repoUrl, b.repoCacheKey(nameVersion), nameVersion, archiveFile); err != nil {
 			return fmt.Errorf("failed to store repo cache for '%s' -> %w", nameVersion, err)
 		}
 	}
@@ -513,6 +520,24 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archiveName string, depth int) (err
 	}
 
 	return nil
+}
+
+// repoCacheKey returns the key used to store/restore this port's source in the
+// repo cache.
+func (b BuildConfig) repoCacheKey(nameVersion string) string {
+	if b.buildSystem != nil && b.buildSystem.Name() == "prebuilt" {
+		toolchain := b.Ctx.Platform().GetToolchain()
+		return strings.Join([]string{
+			toolchain.GetSystemProcessor(),
+			strings.ToLower(toolchain.GetSystemName()),
+			toolchain.GetName(),
+			toolchain.GetVersion(),
+			strings.ToLower(b.Ctx.BuildType()),
+			nameVersion,
+		}, "-")
+	}
+
+	return nameVersion
 }
 
 func (b BuildConfig) Clean() error {

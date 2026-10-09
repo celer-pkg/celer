@@ -768,17 +768,8 @@ func (p *Port) doInstallFromSource() error {
 
 		// Store package cache with meta file inside. `writable` only applies to
 		// storing: restoring an artifact stays allowed either way.
-		pkgCache := p.ctx.PkgCache()
-		if pkgCache != nil && pkgCache.IsWritable() &&
-			(pkgCache.GetFS() != nil || pkgCache.GetMinio() != nil) {
-			if p.pkgCacheStoreSkippedReason == "" && !p.shouldSkipArtifactPkgCache() {
-				artifactCache := pkgCache.GetArtifactCache()
-				if artifactCache != nil {
-					if err := artifactCache.Store(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
-						return err
-					}
-				}
-			}
+		if err := p.tryStoreArtifact(metaData); err != nil {
+			return err
 		}
 
 		// Store hostDep/devDep into local dir to speed up re-building them
@@ -789,6 +780,47 @@ func (p *Port) doInstallFromSource() error {
 				return err
 			}
 		}
+	}
+
+	return nil
+}
+
+func (p *Port) tryStoreArtifact(metaData string) error {
+	// For prebuilt, its artifact is binary files,
+	// artifacts for different arch can not co-exist in artifact cache,
+	// so we ignore storing artifact for 'prebuilt'.
+	if p.MatchedConfig.BuildSystem == "prebuilt" {
+		return nil
+	}
+
+	// Check if pkgcache was configured and writable.
+	pkgCache := p.ctx.PkgCache()
+	if pkgCache == nil || !pkgCache.IsWritable() {
+		return nil
+	}
+
+	// One of FS and minio should be configured.
+	if pkgCache.GetFS() == nil && pkgCache.GetMinio() == nil {
+		return nil
+	}
+
+	// The reason to skip store may be "source is modified" and others.
+	if p.pkgCacheStoreSkippedReason != "" {
+		return nil
+	}
+
+	// Dev/host port should be skipped.
+	if p.shouldSkipArtifactPkgCache() {
+		return nil
+	}
+
+	// Check if artifact cache configured.
+	artifactCache := pkgCache.GetArtifactCache()
+	if artifactCache == nil {
+		return nil
+	}
+	if err := artifactCache.Store(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
+		return err
 	}
 
 	return nil

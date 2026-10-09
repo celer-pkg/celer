@@ -44,7 +44,7 @@ func NewRepoConfig(ctx context.Context) *RepoConfig {
 // Store packs a source tree into repo cache.
 // - for archive sources, repoDir is the source dir in buildtrees.
 // - for archive source, the archiveFile is the path to the original archive file.
-func (r RepoConfig) Store(repoDir, repoUrl, repoRef, nameVersion, archiveFile string) error {
+func (r RepoConfig) Store(repoDir, repoUrl, cacheKey, nameVersion, archiveFile string) error {
 	// skip when offline.
 	if r.ctx.Offline() {
 		return nil
@@ -61,14 +61,14 @@ func (r RepoConfig) Store(repoDir, repoUrl, repoRef, nameVersion, archiveFile st
 	}
 
 	if strings.HasSuffix(repoUrl, ".git") {
-		return r.storeGitRepo(repoDir, repoRef, nameVersion)
+		return r.storeGitRepo(repoDir, cacheKey, nameVersion)
 	} else {
-		return r.storeArchiveRepo(repoRef, nameVersion, archiveFile)
+		return r.storeArchiveRepo(cacheKey, nameVersion, archiveFile)
 	}
 }
 
 // Restore extracts the cached repo archive to repoDir.
-func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, archiveName string) (bool, error) {
+func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, cacheKey, nameVersion, checksum, archiveName string) (bool, error) {
 	// skip when offline.
 	if r.ctx.Offline() {
 		return false, nil
@@ -86,8 +86,8 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 		archiveExt = fileio.Ext(filepath.Base(repoUrl))
 	}
 
-	// Locate cached archive by repoRef.
-	remoteFilePath := filepath.Join(r.cacheDir, nameVersion, repoRef+archiveExt)
+	// Locate cached archive by nameVersion + cacheKey.
+	remoteFilePath := filepath.Join(r.cacheDir, nameVersion, cacheKey+archiveExt)
 	if !fileio.PathExists(remoteFilePath) {
 		return false, nil
 	}

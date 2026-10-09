@@ -29,7 +29,7 @@ type Repair struct {
 
 func NewRepair(url, downloads, archive, folder, destDir, sha256 string) *Repair {
 	downloader := NewDownloader(url, downloads)
-	downloader.WithArchive(archive)
+	downloader.SetArchive(archive)
 
 	return &Repair{
 		downloader: downloader,

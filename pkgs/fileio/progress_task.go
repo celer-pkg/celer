@@ -27,8 +27,8 @@ const (
 // ProgressTask prints aligned status lines for Download/Extract/Restore/Store.
 // The second column is the archive (or display) name:
 //
-//	[✔] [Download]  m4-1.4.19.tar.xz       1.58 MB  3s
-//	[✔] [Extract ]  m4-1.4.19.tar.xz  ->   buildtrees/m4@1.4.19/src
+//	[✔] [ Download ]  m4-1.4.19.tar.xz    1.58 MB  3s
+//	[✔] [  Extract ]  m4-1.4.19.tar.xz    buildtrees/m4@1.4.19/src
 type ProgressTask struct {
 	op   Op
 	name string
@@ -70,16 +70,20 @@ func (p *ProgressTask) complete(detail string) {
 }
 
 func (p *ProgressTask) format(done bool, detail string) string {
-	icon := "[-]"
-	if done {
-		icon = "[✔]"
-	}
-	tag := fmt.Sprintf("[%-*s]", opLabelWidth, p.op)
+	icon := expr.If(done, "[✔]", "[-]")
+	tag := fmt.Sprintf("[%s]", center(string(p.op), opLabelWidth+2))
 	if detail == "" {
 		return fmt.Sprintf("%s %s  %-*s", icon, tag, nameColWidth, p.name)
 	}
-	sep := expr.If(p.op == OpExtract, " -> ", " ")
-	return fmt.Sprintf("%s %s  %-*s%s%s", icon, tag, nameColWidth, p.name, sep, detail)
+	return fmt.Sprintf("%s %s  %-*s%s%s", icon, tag, nameColWidth, p.name, " ", detail)
+}
+
+// center pads s to width, centering it with any extra space on the right.
+func center(s string, width int) string {
+	if n := width - len(s); n > 0 {
+		return strings.Repeat(" ", n/2) + s + strings.Repeat(" ", n-n/2)
+	}
+	return s
 }
 
 func transferDetail(name, archive, size, elapsed string) string {
