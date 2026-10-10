@@ -121,7 +121,7 @@ func (p PythonTool) InstallFromWheelhouse(specs []string, wheelhouseDir string) 
 	return executor.Execute()
 }
 
-// pipDownload runs `pip download` to materialize the full resolved wheel set
+// PipDownload runs `pip download` to materialize the full resolved wheel set
 // (including transitive deps) into destDir.
 func (p PythonTool) PipDownload(specs []string, destDir string, pipConfig context.PythonConfig) error {
 	var builder strings.Builder

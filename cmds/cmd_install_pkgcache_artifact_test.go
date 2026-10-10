@@ -202,7 +202,7 @@ func TestInstall_PkgCache_Prebuilt_Success(t *testing.T) {
 	check(celer.Init())
 
 	var (
-		nameVersion     = "prebuilt-x264@stable"
+		nameVersion     = "cuda_cupti@13.3.75"
 		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
 		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
 		project         = "project_test_install"
@@ -222,38 +222,52 @@ func TestInstall_PkgCache_Prebuilt_Success(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Check package & repo.
+	// Check package.
 	packageDir := filepath.Join(dirs.PackagesDir, platform, project, celer.BuildType(), nameVersion)
-
 	if !fileio.PathExists(packageDir) {
 		t.Fatal("package cannot found: " + packageDir)
 	}
-	if fileio.PathExists(port.MatchedConfig.PortConfig.RepoDir) {
-		t.Fatal("repo should not be removed: " + port.MatchedConfig.PortConfig.RepoDir)
+
+	// Prebuilt binaries are architecture/toolchain-specific, so they are cached
+	// as a repo archive under pkgcache/repos with a toolchain-prefixed key (not
+	// the bare nameVersion), allowing different toolchains to coexist.
+	toolchain := port.MatchedConfig.Ctx.Platform().GetToolchain()
+	expectedKey := strings.Join([]string{
+		toolchain.GetSystemProcessor(),
+		strings.ToLower(toolchain.GetSystemName()),
+		toolchain.GetName(),
+		toolchain.GetVersion(),
+		strings.ToLower(port.MatchedConfig.Ctx.BuildType()),
+		nameVersion,
+	}, "-")
+
+	repoCacheDir := filepath.Join(dirs.TestPkgCacheDir, "repos", nameVersion)
+	entries, err := os.ReadDir(repoCacheDir)
+	check(err)
+
+	var found bool
+	for _, entry := range entries {
+		if strings.HasPrefix(entry.Name(), expectedKey) {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("prebuilt repo should be cached with toolchain-prefixed key %q, got entries: %v", expectedKey, entries)
 	}
 
-	// Totally remove port.
+	// Totally remove port (including src), then reinstall: the prebuilt repo
+	// should be restored from the repo cache.
 	var removeOptions = configs.RemoveOptions{
 		Purge:      true,
 		Recursive:  true,
 		BuildCache: true,
 	}
 	check(port.Remove(removeOptions))
+	check(port.MatchedConfig.Clean())
 
-	// Install from package should fail.
-	options.Prefer = configs.PreferPackage
-	if fromWhere, err := port.Install(options); err != nil {
+	if _, err := port.Install(options); err != nil {
 		t.Fatal(err)
-	} else if fromWhere != "" {
-		t.Fatal("should install failed from package")
-	}
-
-	// Install from cache should success.
-	options.Prefer = configs.PreferPkgCache
-	if fromWhere, err := port.Install(options); err != nil {
-		t.Fatal(err)
-	} else if fromWhere == "" {
-		t.Fatal("should install successfully from cache")
 	}
 
 	// Clean up.

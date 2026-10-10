@@ -123,10 +123,9 @@ type AritifactCache interface {
 	Store(packageDir, metadata string) error
 }
 
-// RepoCache stores/restores a port's source tree, keyed by name@version + checksum.
 type RepoCache interface {
-	Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, archiveName string) (bool, error)
-	Store(repoDir, repoUrl, repoRef, nameVersion, archiveFile string) error
+	Restore(repoDir, repoUrl, repoRef, cacheKey, nameVersion, checksum, archiveName string) (bool, error)
+	Store(repoDir, repoUrl, cacheKey, nameVersion, archiveFile string) error
 }
 
 // DownloadCache stores/restores downloaded files (tools, archives), keyed by

@@ -59,8 +59,7 @@ func (e ExprVars) Expand(content string) string {
 		e.vars = make(map[string]string)
 	}
 
-	// A value may contain another var, loop until the text stops changing,
-	// so map order does not matter.
+	// A value may contain another var, loop until the text stops changing.
 	for i := 0; i < len(e.vars)+1; i++ {
 		prev := content
 		for key, value := range e.vars {
