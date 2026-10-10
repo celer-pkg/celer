@@ -202,7 +202,7 @@ func TestInstall_PkgCache_Prebuilt_Success(t *testing.T) {
 	check(celer.Init())
 
 	var (
-		nameVersion     = "prebuilt-x264@stable"
+		nameVersion     = "cuda_cupti@13.3.75"
 		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
 		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
 		project         = "project_test_install"

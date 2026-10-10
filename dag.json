@@ -1,0 +1,40 @@
+{
+  "celer_version": "v0.0.0",
+  "platform": "aarch64-linux-ubuntu-22.04-gcc-11.5.0",
+  "project": "project_test_install",
+  "build_type": "release",
+  "scheduled_nodes": [
+    {
+      "name_version": "ffmpeg@5.1.6",
+      "build_hash": "4d748c8f0d4bae3c7fafe67690f240d1eea64b2eebd1fd20c9e0b02c2003ecfc",
+      "checksum": "f4fa066278f7a47feab316fef905f4db0d5e9b589451949740f83972b30901bd",
+      "dependencies": []
+    }
+  ],
+  "local_nodes": [
+    {
+      "name_version": "autoconf@2.72",
+      "checksum": "ba885c1319578d6c94d46e9b0dceb4014caafe2490e437a0dbca3f270a223f5a"
+    },
+    {
+      "name_version": "automake@1.18",
+      "checksum": "5bdccca96b007a7e344c24204b9b9ac12ecd17f5971931a9063bdee4887f4aaf"
+    },
+    {
+      "name_version": "help2man@1.49.3",
+      "checksum": "4d7e4fdef2eca6afe07a2682151cea78781e0a4e8f9622142d9f70c083a2fd4f"
+    },
+    {
+      "name_version": "libtool@2.5.4",
+      "checksum": "f81f5860666b0bc7d84baddefa60d1cb9fa6fceb2398cc3baca6afaa60266675"
+    },
+    {
+      "name_version": "m4@1.4.19",
+      "checksum": "63aede5c6d33b6d9b13511cd0be2cac046f2e70fd0a07aa9573a04a82783af96"
+    },
+    {
+      "name_version": "nasm@2.16.03",
+      "checksum": "cd37b81b320ead83ca5a6bbce5da0a6456663bc6"
+    }
+  ]
+}
