@@ -2,9 +2,7 @@ package configs
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/celer-pkg/celer/buildtools"
@@ -26,6 +24,7 @@ type environmentScript struct {
 
 	toolchainBinRel string
 	toolchainName   string
+	vcvars          string   // vcvarsall.bat path (MSVC only), used to set up INCLUDE/LIB
 	toolchainEnvs   []string // ordered "KEY=VALUE" (CC/CXX, binutils, host info)
 	host            string   // target triplet (e.g. aarch64-linux-gnu)
 	sysrootRel      string   // rootfs path relative to the workspace ("" when no rootfs)
@@ -62,15 +61,7 @@ func (c *Celer) GenerateEnvironmentScript() error {
 		if fileio.PathExists(venvAbs) {
 			env.haveVenv = true
 			env.venvRel = filepath.ToSlash(filepath.Join("installed", venvFolder))
-
-			if runtime.GOOS == "windows" {
-				env.siteRel = filepath.ToSlash(filepath.Join("Lib", "site-packages"))
-				env.venvBinRel = "Scripts"
-			} else {
-				env.siteRel = filepath.ToSlash(fmt.Sprintf("lib/python%s/site-packages", minor))
-				env.venvBinRel = "bin"
-			}
-
+			env.siteRel, env.venvBinRel = venvLayout(minor)
 			env.condaLibDir = buildtools.PythonTool.LdLibraryPath()
 		}
 	}
@@ -79,6 +70,9 @@ func (c *Celer) GenerateEnvironmentScript() error {
 	if toolchain := c.platform.Toolchain; toolchain != nil {
 		env.toolchainBinRel = workspaceRel(toolchain.GetAbsDir())
 		env.toolchainName = toolchain.GetName()
+		if msvc := toolchain.GetMSVC(); msvc != nil && msvc.VCVars != "" {
+			env.vcvars = msvc.VCVars
+		}
 		env.toolchainEnvs = toolchain.buildEnvVars(c.RootFS(), "makefiles", nil)
 		env.host = toolchain.GetHost()
 
@@ -99,11 +93,7 @@ func (c *Celer) GenerateEnvironmentScript() error {
 		env.ldflags = strings.Join(ldflags, " ")
 	}
 
-	if runtime.GOOS == "windows" {
-		return env.writeEnvironmentBatch()
-	}
-
-	return env.writeEnvironmentShell()
+	return env.writeScript()
 }
 
 // standardFlag returns the -std=<x> (/std:<x> for MSVC) flag matching
@@ -128,166 +118,6 @@ func installedIncludeLibFlags(toolchainName string) (incPrefix, libPrefix string
 	default: // gcc, clang, qcc
 		return "-I", "-L"
 	}
-}
-
-// writeEnvironmentShell emits a POSIX shell script.
-func (env environmentScript) writeEnvironmentShell() error {
-	sep := ":"
-	incPrefix, libPrefix := installedIncludeLibFlags(env.toolchainName)
-
-	var b strings.Builder
-	b.WriteString("# Build environment — source this to activate the workspace cross-compile environment.\n")
-	b.WriteString("# This is a mirror of the env setup in toolchain_file.cmake.\n\n")
-
-	// Relocatable workspace root: derive it from this script's own location.
-	b.WriteString("if [ -n \"${BASH_SOURCE:-}\" ]; then\n")
-	b.WriteString("  _SRC=\"${BASH_SOURCE[0]}\"\n")
-	b.WriteString("else\n")
-	b.WriteString("  _SRC=\"$0\"\n")
-	b.WriteString("fi\n")
-	b.WriteString("WORKSPACE_DIR=\"$(cd \"$(dirname \"$_SRC\")\" && pwd -P)\"\n")
-	b.WriteString("unset _SRC\n")
-	b.WriteString("export WORKSPACE_DIR\n\n")
-
-	// PATH: cross toolchain, host dev tools, then the project venv.
-	var pathParts []string
-	if env.toolchainBinRel != "" {
-		pathParts = append(pathParts, fmt.Sprintf("${WORKSPACE_DIR}/%s", env.toolchainBinRel))
-	}
-	pathParts = append(pathParts, fmt.Sprintf("${WORKSPACE_DIR}/%s/bin", env.devRel))
-	if env.haveVenv {
-		pathParts = append(pathParts, fmt.Sprintf("${WORKSPACE_DIR}/%s/%s", env.venvRel, env.venvBinRel))
-	}
-	b.WriteString("# Compiler and host development tools.\n")
-	fmt.Fprintf(&b, "export PATH=\"%s%s${PATH}\"\n\n", strings.Join(pathParts, sep), sep)
-
-	// Cross-compile sysroot, relocatable via WORKSPACE_DIR.
-	if env.sysrootRel != "" {
-		b.WriteString("# Cross-compile sysroot.\n")
-		fmt.Fprintf(&b, "export SYSROOT=\"${WORKSPACE_DIR}/%s\"\n\n", env.sysrootRel)
-	}
-
-	// Compiler, binutils, and host info.
-	if len(env.toolchainEnvs) > 0 {
-		b.WriteString("# Cross-compile toolchain.\n")
-		for _, kv := range env.toolchainEnvs {
-			key, value, _ := strings.Cut(kv, "=")
-			value = relocateSysroot(value, env.sysrootAbs, "${SYSROOT}")
-			fmt.Fprintf(&b, "export %s=\"%s\"\n", key, value)
-		}
-
-		// Lowercase `host` lets autotools configure scripts (e.g. x264) detect
-		// the cross-compile target without an explicit --host flag.
-		if env.host != "" {
-			fmt.Fprintf(&b, "export host=\"%s\"\n", env.host)
-		}
-		b.WriteString("\n")
-	}
-
-	// Compiler flags: expose the installed include/lib dirs.
-	fmt.Fprintf(&b, "export CFLAGS=\"%s${WORKSPACE_DIR}/%s/include %s%s${CFLAGS}\"\n",
-		incPrefix, env.installedRel, env.cflags, sepSeparatorFlag(env.cflags))
-	fmt.Fprintf(&b, "export CXXFLAGS=\"%s${WORKSPACE_DIR}/%s/include %s%s${CXXFLAGS}\"\n",
-		incPrefix, env.installedRel, env.cxxflags, sepSeparatorFlag(env.cxxflags))
-	fmt.Fprintf(&b, "export LDFLAGS=\"%s${WORKSPACE_DIR}/%s/lib %s%s${LDFLAGS}\"\n\n",
-		libPrefix, env.installedRel, env.ldflags, sepSeparatorFlag(env.ldflags))
-
-	if env.haveVenv {
-		b.WriteString("# Python virtual environment.\n")
-		fmt.Fprintf(&b, "export VIRTUAL_ENV=\"${WORKSPACE_DIR}/%s\"\n", env.venvRel)
-		fmt.Fprintf(&b, "export PYTHONUSERBASE=\"${WORKSPACE_DIR}/.venv\"\n")
-		fmt.Fprintf(&b, "export PYTHONPATH=\"${WORKSPACE_DIR}/%s/%s%s${VIRTUAL_ENV}/%s%s${PYTHONPATH}\"\n\n",
-			env.installedRel, env.siteRel, sep, env.siteRel, sep)
-	}
-
-	// Native library search paths for host-side tools.
-	var libPaths []string
-	libPaths = append(libPaths, fmt.Sprintf("${WORKSPACE_DIR}/%s/lib", env.devRel))
-	if env.condaLibDir != "" {
-		libPaths = append(libPaths, env.condaLibDir)
-	}
-	libVar := "LD_LIBRARY_PATH"
-	if runtime.GOOS == "darwin" {
-		libVar = "DYLD_LIBRARY_PATH"
-	}
-	b.WriteString("# Native library search path (host-side tools).\n")
-	fmt.Fprintf(&b, "export %s=\"%s%s${%s}\"\n\n",
-		libVar, strings.Join(libPaths, sep), sep, libVar)
-
-	// pkg-config search paths, mirroring the non-staging branch of writePkgConfig.
-	b.WriteString("# pkg-config search paths.\n")
-	fmt.Fprintf(&b, "export PKG_CONFIG_PATH=\"${WORKSPACE_DIR}/%s/lib/pkgconfig%s${WORKSPACE_DIR}/%s/share/pkgconfig%s${PKG_CONFIG_PATH}\"\n",
-		env.installedRel, sep, env.installedRel, sep)
-
-	return os.WriteFile(filepath.Join(dirs.WorkspaceDir, "environment.sh"), []byte(b.String()), os.ModePerm)
-}
-
-// writeEnvironmentBatch emits a Windows command script.
-func (env environmentScript) writeEnvironmentBatch() error {
-	sep := ";"
-	incPrefix, libPrefix := installedIncludeLibFlags(env.toolchainName)
-	win := func(rel string) string { return strings.ReplaceAll(rel, "/", "\\") }
-
-	var b strings.Builder
-	b.WriteString("@echo off\r\n")
-	b.WriteString("rem celer environment — run this to activate the workspace cross-compile environment.\r\n")
-	b.WriteString("rem Generated by `celer configure`; mirrors the env setup in toolchain_file.cmake.\r\n")
-	b.WriteString("\r\n")
-	b.WriteString("rem Resolve the workspace root (this script's directory) without the trailing backslash.\r\n")
-	b.WriteString("set \"WORKSPACE_DIR=%~dp0\"\r\n")
-	b.WriteString("if \"%WORKSPACE_DIR:~-1%\"==\"\\\" set \"WORKSPACE_DIR=%WORKSPACE_DIR:~0,-1%\"\r\n")
-	b.WriteString("\r\n")
-
-	// PATH: cross toolchain, host dev tools, then the project venv.
-	var pathParts []string
-	if env.toolchainBinRel != "" {
-		pathParts = append(pathParts, fmt.Sprintf("%%WORKSPACE_DIR%%\\%s", win(env.toolchainBinRel)))
-	}
-	pathParts = append(pathParts, fmt.Sprintf("%%WORKSPACE_DIR%%\\%s\\bin", win(env.devRel)))
-	if env.haveVenv {
-		pathParts = append(pathParts, fmt.Sprintf("%%WORKSPACE_DIR%%\\%s\\%s", win(env.venvRel), env.venvBinRel))
-	}
-	b.WriteString("rem Compiler and host development tools.\r\n")
-	fmt.Fprintf(&b, "set \"PATH=%s%s%%PATH%%\"\r\n\r\n", strings.Join(pathParts, sep), sep)
-
-	if env.sysrootRel != "" {
-		b.WriteString("rem Cross-compile sysroot.\r\n")
-		fmt.Fprintf(&b, "set \"SYSROOT=%%WORKSPACE_DIR%%\\%s\"\r\n\r\n", win(env.sysrootRel))
-	}
-
-	if len(env.toolchainEnvs) > 0 {
-		b.WriteString("rem Cross-compile toolchain.\r\n")
-		for _, kv := range env.toolchainEnvs {
-			key, value, _ := strings.Cut(kv, "=")
-			value = relocateSysroot(value, env.sysrootAbs, "%SYSROOT%")
-			fmt.Fprintf(&b, "set \"%s=%s\"\r\n", key, value)
-		}
-		if env.host != "" {
-			fmt.Fprintf(&b, "set \"host=%s\"\r\n", env.host)
-		}
-		b.WriteString("\r\n")
-	}
-
-	fmt.Fprintf(&b, "set \"CFLAGS=%s%%WORKSPACE_DIR%%\\%s\\include %s%s%%CFLAGS%%\"\r\n",
-		incPrefix, win(env.installedRel), env.cflags, sepSeparatorFlag(env.cflags))
-	fmt.Fprintf(&b, "set \"CXXFLAGS=%s%%WORKSPACE_DIR%%\\%s\\include %s%s%%CXXFLAGS%%\"\r\n",
-		incPrefix, win(env.installedRel), env.cxxflags, sepSeparatorFlag(env.cxxflags))
-	fmt.Fprintf(&b, "set \"LDFLAGS=%s%%WORKSPACE_DIR%%\\%s\\lib %s%s%%LDFLAGS%%\"\r\n\r\n",
-		libPrefix, win(env.installedRel), env.ldflags, sepSeparatorFlag(env.ldflags))
-
-	if env.haveVenv {
-		b.WriteString("rem Python virtual environment.\r\n")
-		fmt.Fprintf(&b, "set \"VIRTUAL_ENV=%%WORKSPACE_DIR%%\\%s\"\r\n", win(env.venvRel))
-		fmt.Fprintf(&b, "set \"PYTHONUSERBASE=%%WORKSPACE_DIR%%\\.venv\"\r\n")
-		fmt.Fprintf(&b, "set \"PYTHONPATH=%%WORKSPACE_DIR%%\\%s\\%s%s%%VIRTUAL_ENV%%\\%s%s%%PYTHONPATH%%\"\r\n\r\n",
-			win(env.installedRel), win(env.siteRel), sep, win(env.siteRel), sep)
-	}
-
-	b.WriteString("rem pkg-config search paths.\r\n")
-	fmt.Fprintf(&b, "set \"PKG_CONFIG_PATH=%%WORKSPACE_DIR%%\\%s\\lib\\pkgconfig%s%%WORKSPACE_DIR%%\\%s\\share\\pkgconfig%s%%PKG_CONFIG_PATH%%\"\r\n",
-		win(env.installedRel), sep, win(env.installedRel), sep)
-
-	return os.WriteFile(filepath.Join(dirs.WorkspaceDir, "environment.bat"), []byte(b.String()), os.ModePerm)
 }
 
 // sepSeparatorFlag returns a trailing space so an empty flag set doesn't leave a

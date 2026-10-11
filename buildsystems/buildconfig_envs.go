@@ -53,6 +53,20 @@ func (b *BuildConfig) setupEnvs() {
 	toolchain := b.Ctx.Platform().GetToolchain()
 	if toolchain != nil {
 		toolchain.SetupEnvs()
+
+		// On Windows with MSVC/clang-cl, the system TEMP
+		// (%USERPROFILE%\AppData\Local\Temp) may be restricted in sandboxed
+		// environments, which breaks MSVC tools (link.exe, MSBuild) that need to
+		// create response files and temp directories there. Override TMP/TEMP to
+		// a workspace-local writable directory for this port only.
+		if runtime.GOOS == "windows" {
+			if name := toolchain.GetName(); name == "msvc" || name == "clang-cl" {
+				if err := os.MkdirAll(dirs.TmpDir, os.ModePerm); err == nil {
+					b.envBackup.setenv("TMP", dirs.TmpDir)
+					b.envBackup.setenv("TEMP", dirs.TmpDir)
+				}
+			}
+		}
 	}
 
 	// Project-level envs are applied before port-level envs so project-wide
