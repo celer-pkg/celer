@@ -26,6 +26,7 @@ func (env environmentScript) writeScript() error {
 	var buffer strings.Builder
 	buffer.WriteString("@echo off\r\n")
 	buffer.WriteString("rem build environment — run this to activate the workspace cross-compile environment.\r\n")
+	buffer.WriteString("rem This is a mirror of the env setup in toolchain_file.cmake.\r\n")
 	buffer.WriteString("\r\n")
 	buffer.WriteString("rem Resolve the workspace root (this script's directory) without the trailing backslash.\r\n")
 	buffer.WriteString("set \"WORKSPACE_DIR=%~dp0\"\r\n")
