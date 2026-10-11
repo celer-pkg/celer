@@ -27,6 +27,9 @@ type environmentScript struct {
 	toolchainBinRel string
 	toolchainName   string
 	toolchainEnvs   []string // ordered "KEY=VALUE" (CC/CXX, binutils, host info)
+	host            string   // target triplet (e.g. aarch64-linux-gnu)
+	sysrootRel      string   // rootfs path relative to the workspace ("" when no rootfs)
+	sysrootAbs      string   // rootfs absolute path, used to relocate --sysroot in CC/CXX
 	cflags          string
 	cxxflags        string
 	ldflags         string
@@ -77,6 +80,12 @@ func (c *Celer) GenerateEnvironmentScript() error {
 		env.toolchainBinRel = workspaceRel(toolchain.GetAbsDir())
 		env.toolchainName = toolchain.GetName()
 		env.toolchainEnvs = toolchain.buildEnvVars(c.RootFS(), "makefiles", nil)
+		env.host = toolchain.GetHost()
+
+		if rootfs := c.RootFS(); rootfs != nil {
+			env.sysrootRel = workspaceRel(rootfs.GetAbsDir())
+			env.sysrootAbs = rootfs.GetAbsDir()
+		}
 
 		cflags, cxxflags, ldflags := toolchain.effectiveFlags("release")
 		if std := toolchain.GetCStandard(); std != "" {
@@ -152,17 +161,30 @@ func (env environmentScript) writeEnvironmentShell() error {
 	b.WriteString("# Compiler and host development tools.\n")
 	fmt.Fprintf(&b, "export PATH=\"%s%s${PATH}\"\n\n", strings.Join(pathParts, sep), sep)
 
+	// Cross-compile sysroot, relocatable via WORKSPACE_DIR.
+	if env.sysrootRel != "" {
+		b.WriteString("# Cross-compile sysroot.\n")
+		fmt.Fprintf(&b, "export SYSROOT=\"${WORKSPACE_DIR}/%s\"\n\n", env.sysrootRel)
+	}
+
 	// Compiler, binutils, and host info.
 	if len(env.toolchainEnvs) > 0 {
 		b.WriteString("# Cross-compile toolchain.\n")
 		for _, kv := range env.toolchainEnvs {
 			key, value, _ := strings.Cut(kv, "=")
+			value = relocateSysroot(value, env.sysrootAbs, "${SYSROOT}")
 			fmt.Fprintf(&b, "export %s=\"%s\"\n", key, value)
+		}
+
+		// Lowercase `host` lets autotools configure scripts (e.g. x264) detect
+		// the cross-compile target without an explicit --host flag.
+		if env.host != "" {
+			fmt.Fprintf(&b, "export host=\"%s\"\n", env.host)
 		}
 		b.WriteString("\n")
 	}
 
-	// Compiler flags: expose the installed include/lib dirs first.
+	// Compiler flags: expose the installed include/lib dirs.
 	fmt.Fprintf(&b, "export CFLAGS=\"%s${WORKSPACE_DIR}/%s/include %s%s${CFLAGS}\"\n",
 		incPrefix, env.installedRel, env.cflags, sepSeparatorFlag(env.cflags))
 	fmt.Fprintf(&b, "export CXXFLAGS=\"%s${WORKSPACE_DIR}/%s/include %s%s${CXXFLAGS}\"\n",
@@ -228,11 +250,20 @@ func (env environmentScript) writeEnvironmentBatch() error {
 	b.WriteString("rem Compiler and host development tools.\r\n")
 	fmt.Fprintf(&b, "set \"PATH=%s%s%%PATH%%\"\r\n\r\n", strings.Join(pathParts, sep), sep)
 
+	if env.sysrootRel != "" {
+		b.WriteString("rem Cross-compile sysroot.\r\n")
+		fmt.Fprintf(&b, "set \"SYSROOT=%%WORKSPACE_DIR%%\\%s\"\r\n\r\n", win(env.sysrootRel))
+	}
+
 	if len(env.toolchainEnvs) > 0 {
 		b.WriteString("rem Cross-compile toolchain.\r\n")
 		for _, kv := range env.toolchainEnvs {
 			key, value, _ := strings.Cut(kv, "=")
+			value = relocateSysroot(value, env.sysrootAbs, "%SYSROOT%")
 			fmt.Fprintf(&b, "set \"%s=%s\"\r\n", key, value)
+		}
+		if env.host != "" {
+			fmt.Fprintf(&b, "set \"host=%s\"\r\n", env.host)
 		}
 		b.WriteString("\r\n")
 	}
@@ -266,6 +297,16 @@ func sepSeparatorFlag(flags string) string {
 		return ""
 	}
 	return " "
+}
+
+// relocateSysroot rewrites the absolute "--sysroot=<abs>" token in a CC/CXX
+// value to reference the relocatable SYSROOT variable for the current shell
+// dialect (${SYSROOT} on POSIX, %SYSROOT% on Windows).
+func relocateSysroot(value, sysrootAbs, varRef string) string {
+	if sysrootAbs == "" {
+		return value
+	}
+	return strings.ReplaceAll(value, "--sysroot="+sysrootAbs, "--sysroot="+varRef)
 }
 
 // workspaceRel returns path rel to the workspace root.
