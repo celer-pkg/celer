@@ -507,39 +507,33 @@ func (p Port) matchBuildConfig(config buildsystems.BuildConfig) bool {
 		}
 	}
 
-	// Filter by toolchain version if specified (compare major.minor part).
-	if config.ToolchainVersion != "" {
-		currentToolchainVersion := strings.TrimSpace(p.ctx.Platform().GetToolchain().GetVersion())
-		targetToolchainVersion := strings.TrimSpace(config.ToolchainVersion)
-		if expr.GetMinorVersion(currentToolchainVersion) != expr.GetMinorVersion(targetToolchainVersion) {
-			return false
-		}
-	}
-
 	// system_name_except takes priority: match all systems except this one.
 	if config.SystemNameExcept != "" {
 		exceptName := strings.ToLower(strings.TrimSpace(config.SystemNameExcept))
 		if exceptName == currentSystemName {
 			return false
 		}
-		return true
-	}
-
-	// No target system name specified indicates that
-	// system name is not a factor for matching, so consider it a match.
-	if len(targetSystemNames) == 0 {
-		return true
-	}
-
-	// Compare system names if specified.
-	for _, targetSystemName := range targetSystemNames {
-		targetSystemName = strings.ToLower(strings.TrimSpace(targetSystemName))
-		if targetSystemName != "" && targetSystemName == currentSystemName {
-			return true
+	} else if len(targetSystemNames) > 0 {
+		// Make sure one system name can match current system name.
+		systemNameMatches := false
+		for _, targetSystemName := range targetSystemNames {
+			targetSystemName = strings.ToLower(strings.TrimSpace(targetSystemName))
+			if targetSystemName != "" && targetSystemName == currentSystemName {
+				systemNameMatches = true
+			}
+		}
+		if !systemNameMatches {
+			return false
 		}
 	}
 
-	return false
+	// In prebuilt Windows packages, release and debug libraries generally cannot be mixed,
+	// if build_type is specified, we must compare it with current build_type from celer.toml.
+	if config.BuildType != "" && !strings.EqualFold(config.BuildType, p.ctx.BuildType()) {
+		return false
+	}
+
+	return true
 }
 
 func (p Port) currentSystemName() string {
