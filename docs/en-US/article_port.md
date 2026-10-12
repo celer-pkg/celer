@@ -23,6 +23,7 @@ Let's look at an example port.toml file: **ports/glog/0.6.0/port.toml**:
   system_processor    = "x86_64"              # optional selector
   toolchain_name      = "gcc"                 # optional selector
   toolchain_version   = "9.5"                 # optional selector
+  build_type          = "release"             # optional selector, must match the build_type in celer.toml
   build_system        = "cmake"               # mandatory field, should be **cmake**, **makefiles**, **b2**, **meson**, etc.
   cmake_generator     = []                    # optional field, should be "Ninja", "Unix Makefiles", "Visual Studio xxx"
   build_tools         = [...]                 # optional field
@@ -32,7 +33,6 @@ Let's look at an example port.toml file: **ports/glog/0.6.0/port.toml**:
   build_static_option = "--with-static"       # optional field (makefiles only), default is --enable-static
   c_standard          = "c99"                 # optional field
   cxx_standard        = "cxx17"               # optional field
-  build_type          = "release"             # optional field, default is build_type in celer.toml
   envs                = [...]                 # optional field
   include_dirs        = [...]                 # optional field, additional header search directories
   lib_dirs            = [...]                 # optional field, additional library search directories
@@ -85,7 +85,7 @@ The following are fields and their descriptions:
 
 ## build_configs
 
-&emsp;&emsp;**build_configs** is an array to meet different compilation requirements on different platforms. Celer will automatically find the matching **build_config** according to **system_name/system_processor/toolchain_name** to assemble the compilation command. Build configuration often varies across systems, involving platform-specific flags or distinct build steps. Some libraries require special pre-processing or post-processing to compile correctly on Windows.
+&emsp;&emsp;**build_configs** is an array to meet different compilation requirements on different platforms. Celer will automatically find the matching **build_config** according to **system_name/system_processor/toolchain_name/toolchain_version/build_type** to assemble the compilation command. Build configuration often varies across systems, involving platform-specific flags or distinct build steps. Some libraries require special pre-processing or post-processing to compile correctly on Windows.
 
 ### system_name, system_names, system_processor
 
@@ -170,9 +170,11 @@ The following are fields and their descriptions:
 
 ### build_type
 
-&emsp;&emsp;Optional, default is empty, used to specify the build type. When build_type is specified in port.toml, it will override the global build_type setting defined in celer.toml. This is useful for libraries that require a specific build type.
+&emsp;&emsp;Optional selector matching the current build type (the `build_type` defined in celer.toml). When `build_type` is set on a `build_config`, the config is selected **only when** it equals the current build type; this lets a port ship distinct configs per build type — for example prebuilt Windows packages, whose release and debug libraries must not be mixed. Unset to match any build type.
 - build_type's candidate values：**release**, **debug**, **relwithdebinfo**, **minsizerel**；
-- If not specified, the build_type defined in celer.toml will be used (defaults to **release**)
+- If the matched config leaves build_type empty, the build_type defined in celer.toml will be used (defaults to **release**)
+
+>**Note:** `build_type` is **AND**-ed with `toolchain_name` / `toolchain_version` / `system_name` / `system_processor` — all set selectors must be satisfied for the `build_config` to match.
 
 >**Note:** build_type also affects package cache key calculation. Different build_type values will generate different cache entries.
 
