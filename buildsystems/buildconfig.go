@@ -402,14 +402,16 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archiveName string, depth int) (err
 	// - current port is one of third-party ports.
 	// - checksum is not empty.
 	if repoUrl != "_" && pkgCache != nil && repoCache != nil {
-		if restored, err := repoCache.Restore(
-			b.PortConfig.RepoDir,
-			repoUrl,
-			repoRef,
-			b.repoCacheKey(nameVersion),
-			nameVersion,
-			b.PortConfig.Checksum,
-			archiveName); err != nil {
+		isPrebuilt := b.buildSystem != nil && b.buildSystem.Name() == "prebuilt"
+		cacheKey := b.repoCacheKey(nameVersion)
+		repoInfo := pkgcache.RepoInfo{
+			RepoDir:     b.PortConfig.RepoDir,
+			RepoUrl:     repoUrl,
+			RepoRef:     repoRef,
+			NameVersion: nameVersion,
+			Checksum:    b.PortConfig.Checksum,
+		}
+		if restored, err := repoCache.Restore(cacheKey, repoInfo, archiveName, isPrebuilt); err != nil {
 			return fmt.Errorf("failed to restore %s from repo cache -> %w", nameVersion, err)
 		} else if restored {
 			return nil
@@ -481,9 +483,10 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archiveName string, depth int) (err
 			// Archive sources under buildtrees are tracked as local git repos for
 			// local-change detection in install flow. Delay init until after any
 			// generated files (e.g. prebuilt CMakeLists) are created.
-			// Prebuilt sources are tracked as well: restoring from the repo cache
-			// already creates a local repo for them, so keep the behaviour uniform.
-			trackArchiveAsLocalRepo = fileio.IsSubPath(dirs.BuildtreesDir, b.PortConfig.RepoDir)
+			// Skip prebuilt: its files are deleted from buildtrees right after being
+			// copied to the package dir, so git init/add is a wast of time.
+			trackArchiveAsLocalRepo = b.buildSystem.Name() != "prebuilt" &&
+				fileio.IsSubPath(dirs.BuildtreesDir, b.PortConfig.RepoDir)
 		}
 	}
 
@@ -506,7 +509,13 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archiveName string, depth int) (err
 	// Store repo even checksum is empty, then can fill checksum in port.toml, if you want restore it from pkgcache/repos.
 	if repoUrl != "_" && repoCache != nil && pkgCache.IsWritable() {
 		archiveFile := filepath.Join(b.Ctx.Downloads(), archiveName)
-		if err := repoCache.Store(b.PortConfig.RepoDir, repoUrl, b.repoCacheKey(nameVersion), nameVersion, archiveFile); err != nil {
+		cacheKey := b.repoCacheKey(nameVersion)
+		repoInfo := pkgcache.RepoInfo{
+			RepoDir:     b.PortConfig.RepoDir,
+			RepoUrl:     repoUrl,
+			NameVersion: nameVersion,
+		}
+		if err := repoCache.Store(cacheKey, repoInfo, archiveFile); err != nil {
 			return fmt.Errorf("failed to store repo cache for '%s' -> %w", nameVersion, err)
 		}
 	}

@@ -123,9 +123,18 @@ type AritifactCache interface {
 	Store(packageDir, metadata string) error
 }
 
+// RepoInfo holds the repo identity fields shared by Restore and Store.
+type RepoInfo struct {
+	RepoDir     string
+	RepoUrl     string
+	RepoRef     string
+	NameVersion string
+	Checksum    string
+}
+
 type RepoCache interface {
-	Restore(repoDir, repoUrl, repoRef, cacheKey, nameVersion, checksum, archiveName string) (bool, error)
-	Store(repoDir, repoUrl, cacheKey, nameVersion, archiveFile string) error
+	Restore(cacheKey string, repoInfo RepoInfo, archiveName string, prebuilt bool) (bool, error)
+	Store(cacheKey string, repoInfo RepoInfo, archiveFile string) error
 }
 
 // DownloadCache stores/restores downloaded files (tools, archives), keyed by
