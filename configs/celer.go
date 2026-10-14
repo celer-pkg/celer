@@ -31,6 +31,7 @@ const (
 type InitOption struct {
 	SkipPlatform bool
 	SkipProject  bool
+	SkipPkgCache bool
 }
 
 var Version = "v0.0.0" // It would be set by build script.
@@ -42,7 +43,7 @@ func NewCeler() *Celer {
 	// Clear metadata caches from previous invocations.
 	ResetMetaCache()
 
-	return &Celer{
+	celer := &Celer{
 		configData: configData{
 			Main: Main{
 				Jobs:      runtime.NumCPU() - 1,
@@ -50,6 +51,10 @@ func NewCeler() *Celer {
 			},
 		},
 	}
+	celer.platform.ctx = celer
+	celer.project.ctx = celer
+
+	return celer
 }
 
 type Celer struct {
@@ -131,8 +136,6 @@ func (c *Celer) InitWithOptions(opts InitOption) error {
 
 // InitWithPlatform initializes celer with platform.
 func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
-	c.platform.ctx = c
-
 	configPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
 	if !fileio.PathExists(configPath) {
 		// Create conf dir if not exists.
@@ -248,8 +251,10 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 				}
 			}
 
-			if err := c.initPkgCacheCaches(); err != nil {
-				return fmt.Errorf("failed to init pkgcache -> %w", err)
+			if !opts.SkipPkgCache {
+				if err := c.initPkgCacheCaches(); err != nil {
+					return fmt.Errorf("failed to init pkgcache -> %w", err)
+				}
 			}
 		}
 
@@ -258,12 +263,6 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 			if err := c.configData.CCache.Setup(); err != nil {
 				return err
 			}
-		}
-
-		// Assign default project and python version after saving celer.toml.
-		if c.Main.Project == "" {
-			c.Main.Project = "default"
-			c.project.Name = "default"
 		}
 	}
 
@@ -489,18 +488,20 @@ func (c *Celer) initPkgCacheCaches() error {
 	}
 
 	if c.configData.PkgCache.Minio != nil {
-		downloadConfig, repoConfig, artifactConfig, err := minio.InitPkgCache(c)
+		cacheConfigs, err := minio.InitPkgCache(c)
 		if err != nil {
 			return err
 		}
-		c.configData.PkgCache.downloadCache = downloadConfig
-		c.configData.PkgCache.repoCache = repoConfig
-		c.configData.PkgCache.artifactCache = artifactConfig
+		c.configData.PkgCache.downloadCache = cacheConfigs.DownloadCache
+		c.configData.PkgCache.repoCache = cacheConfigs.RepoCache
+		c.configData.PkgCache.artifactCache = cacheConfigs.AritifactCache
+		c.configData.PkgCache.pythonWheelCache = cacheConfigs.PythonWheelCache
 	} else if c.configData.PkgCache.FS != nil {
-		downloadConfig, repoConfig, artifactConfig := filesystem.InitPkgCache(c)
-		c.configData.PkgCache.downloadCache = downloadConfig
-		c.configData.PkgCache.repoCache = repoConfig
-		c.configData.PkgCache.artifactCache = artifactConfig
+		cacheConfigs := filesystem.InitPkgCache(c)
+		c.configData.PkgCache.downloadCache = cacheConfigs.DownloadCache
+		c.configData.PkgCache.repoCache = cacheConfigs.RepoCache
+		c.configData.PkgCache.artifactCache = cacheConfigs.AritifactCache
+		c.configData.PkgCache.pythonWheelCache = cacheConfigs.PythonWheelCache
 	}
 
 	return nil

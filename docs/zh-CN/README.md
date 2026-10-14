@@ -89,7 +89,7 @@ Windows 与 Linux 上的 MSVC / Clang / GCC 已可用；macOS 仍在完善。更
 **深入阅读：**
 - [生成 CMake 配置文件](./article_generate_cmake_config.md)
 - [平台配置详解](./article_platform.md) · [端口（Port）配置详解](./article_port.md) · [项目配置详解](./article_project.md)
-- [PkgCache：共享缓存(基于fs/minio)](./article_pkgcache.md) · [制品缓存](./article_pkgcache_artifacts.md) · [Repo 缓存](./article_pkgcache_repos.md) · [下载缓存](./article_pkgcache_downloads.md)
+- [PkgCache：共享缓存(基于fs/minio)](./article_pkgcache.md) · [制品缓存](./article_pkgcache_artifacts.md) · [Repo 缓存](./article_pkgcache_repos.md) · [下载缓存](./article_pkgcache_downloads.md) · [Python Wheel 缓存](./article_pkgcache_python_wheels.md)
 - [CCache 集成](./article_ccache.md)
 - [CUDA 自动识别](./article_cuda_support.md)
 - [动态变量](./article_expvars.md) 

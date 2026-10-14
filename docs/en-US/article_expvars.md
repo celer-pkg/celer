@@ -69,6 +69,14 @@ These are injected per matched `build_config` before build execution.
 | `${DEV_STAGING_DIR}` | current port | `<staging-root>/<host>-dev`; where `dev_dependencies` (host build tools) are gathered |
 | `${STAGING_DIR}` | current port | `<staging-root>/<platform>/<project>/<build_type>`, or `<staging-root>/<host>-dev` for host / `dev_dependencies` builds; where `dependencies` are gathered |
 
+## Port-Local Variables (`vars`)
+
+A `[[build_configs]]` block may declare its own `KEY=VALUE` variables via the
+`vars` field. They are scoped to that one build_config (no leakage to sibling
+configs, other ports, or global) and referenced via `${KEY}` like any built-in.
+A key must not shadow an existing variable. See
+[Port Configuration — vars](./article_port.md#vars) for details.
+
 ## Where Replacement Happens
 
 - `toolchain.envs` in platform TOML.

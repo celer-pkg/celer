@@ -37,14 +37,14 @@ func NewRepoConfig(ctx context.Context, client *minio.Client) *RepoConfig {
 			bucketName: bucketName,
 		},
 		cacheDir: minioConfig.GetDir(pkgcache.DirRepos, ctx.Version()),
-		writable: pkgCache.GetOptions().Writable,
+		writable: pkgCache.IsWritable(),
 	}
 }
 
 // Store packs a source tree into repo cache.
 // - for archive sources, repoDir is the source dir in buildtrees.
 // - for archive source, the archiveFile is the path to the original archive file.
-func (r RepoConfig) Store(repoDir, repoUrl, repoRef, nameVersion, archiveFile string) error {
+func (r RepoConfig) Store(cacheKey string, repoInfo pkgcache.RepoInfo, archiveFile string) error {
 	// skip when offline.
 	if r.ctx.Offline() {
 		return nil
@@ -56,39 +56,44 @@ func (r RepoConfig) Store(repoDir, repoUrl, repoRef, nameVersion, archiveFile st
 	}
 
 	// Only third-party libraries can be cached.
-	if !r.shouldCacheRepo(nameVersion) {
+	if !r.shouldCacheRepo(repoInfo.NameVersion) {
 		return nil
 	}
 
-	if strings.HasSuffix(repoUrl, ".git") {
-		return r.storeGitRepo(repoDir, repoRef, nameVersion)
+	// Create default bucket if not exist.
+	if err := r.CreateBucketIfNotExist(); err != nil {
+		return err
+	}
+
+	if strings.HasSuffix(repoInfo.RepoUrl, ".git") {
+		return r.storeGitRepo(repoInfo.RepoDir, cacheKey, repoInfo.NameVersion)
 	} else {
-		return r.storeArchiveRepo(repoRef, nameVersion, archiveFile)
+		return r.storeArchiveRepo(cacheKey, repoInfo.NameVersion, archiveFile)
 	}
 }
 
 // Restore extracts the cached repo archive to repoDir.
 // The checksum maybe sha256 of a file or git commit hash.
-func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, archiveName string) (bool, error) {
+func (r RepoConfig) Restore(cacheKey string, repoInfo pkgcache.RepoInfo, archiveName string, prebuilt bool) (bool, error) {
 	// skip when offline.
 	if r.ctx.Offline() {
 		return false, nil
 	}
 
 	// Only third-party libraries can be cached.
-	if !r.shouldCacheRepo(nameVersion) {
+	if !r.shouldCacheRepo(repoInfo.NameVersion) {
 		return false, nil
 	}
 
 	// For git source repo, the storage archive ext is ".tar.gz",
 	// For archive source repo, the storage archive ext is same as original archive.
 	ext := ".tar.gz"
-	if !strings.HasSuffix(repoUrl, ".git") {
-		ext = fileio.Ext(filepath.Base(repoUrl))
+	if !strings.HasSuffix(repoInfo.RepoUrl, ".git") {
+		ext = fileio.Ext(filepath.Base(repoInfo.RepoUrl))
 	}
 
 	// Locate cached archive by repoRef.
-	objectName := filepath.Join(r.cacheDir, nameVersion, repoRef+ext)
+	objectName := filepath.Join(r.cacheDir, repoInfo.NameVersion, cacheKey+ext)
 
 	// Check if the cached archive exists before downloading.
 	remoteInfo, err := r.GetFileInfo(objectName)
@@ -106,59 +111,60 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 	}
 	defer os.RemoveAll(localTmpDir)
 
-	tmpDownloaded, err := r.downloadFile(localTmpDir, objectName, nameVersion)
+	tmpDownloaded, err := r.downloadFile(localTmpDir, objectName, repoInfo.NameVersion)
 	if err != nil {
 		return false, fmt.Errorf("failed to download '%s' -> %w", objectName, err)
 	}
 
 	// Create a clean repo dir.
-	if err := os.RemoveAll(repoDir); err != nil {
+	if err := os.RemoveAll(repoInfo.RepoDir); err != nil {
 		return false, err
 	}
-	if err := os.MkdirAll(repoDir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(repoInfo.RepoDir, os.ModePerm); err != nil {
 		return false, err
 	}
 
 	// Extract archive to repo dir (status reported here, not at flatten).
-	if err := fileio.NewProgressTask(fileio.OpExtract, nameVersion).Start(repoDir, func() error {
-		if err := fileio.Extract(tmpDownloaded, repoDir); err != nil {
+	if err := fileio.NewProgressTask(fileio.OpExtract, repoInfo.NameVersion).Start(repoInfo.RepoDir, func() error {
+		if err := fileio.Extract(tmpDownloaded, repoInfo.RepoDir); err != nil {
 			return err
 		}
 		// Flatten nested directory, many source archives contain a single wrapping dir like ffmpeg-4.4/.
-		if !strings.HasSuffix(repoUrl, ".git") {
-			if err := fileio.FlattenNestedDir(repoDir); err != nil {
+		if !strings.HasSuffix(repoInfo.RepoUrl, ".git") {
+			if err := fileio.FlattenNestedDir(repoInfo.RepoDir); err != nil {
 				return err
 			}
 		}
 		return nil
 	}); err != nil {
-		_ = os.RemoveAll(repoDir)
+		_ = os.RemoveAll(repoInfo.RepoDir)
 		return false, err
 	}
 
-	if strings.HasSuffix(repoUrl, ".git") {
+	if strings.HasSuffix(repoInfo.RepoUrl, ".git") {
 		// Verify the checkout matches the expected commit. Prefer the known
 		// checksum; otherwise resolve repoRef to its commit locally. Comparing
 		// commits instead of tag names is robust when several tags point at the
 		// same commit (e.g. spirv-tools tags both 'vulkan-sdk-1.4.335.0' and
 		// 'v2025.5' at the same commit).
-		expectedCommit := strings.TrimSpace(checksum)
+		expectedCommit := strings.TrimSpace(repoInfo.Checksum)
 		if expectedCommit == "" {
-			commit, err := git.ResolveRefCommit(repoDir, repoRef)
+			commit, err := git.ResolveRefCommit(repoInfo.RepoDir, repoInfo.RepoRef)
 			if err != nil {
-				_ = os.RemoveAll(repoDir)
-				return false, fmt.Errorf("invalid cached repo, resolve ref '%s' failed for '%s' -> %w", repoRef, nameVersion, err)
+				_ = os.RemoveAll(repoInfo.RepoDir)
+				return false, fmt.Errorf("invalid cached repo, resolve ref '%s' failed for '%s' -> %w",
+					repoInfo.RepoRef, repoInfo.NameVersion, err)
 			}
 			expectedCommit = commit
 		}
 
 		if expectedCommit != "" {
-			localCommit, err := git.GetCommitHash(repoDir)
+			localCommit, err := git.GetCommitHash(repoInfo.RepoDir)
 			if err != nil {
-				_ = os.RemoveAll(repoDir)
-				return false, fmt.Errorf("git repo is broken for '%s' -> %w", repoDir, err)
+				_ = os.RemoveAll(repoInfo.RepoDir)
+				return false, fmt.Errorf("git repo is broken for '%s' -> %w", repoInfo.RepoDir, err)
 			} else if localCommit != expectedCommit {
-				_ = os.RemoveAll(repoDir)
+				_ = os.RemoveAll(repoInfo.RepoDir)
 				return false, fmt.Errorf("repo commit don't match, expect '%s', got '%s'", expectedCommit, localCommit)
 			}
 		}
@@ -173,27 +179,31 @@ func (r RepoConfig) Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, ar
 		}
 
 		// Verify checksum if not empty also.
-		if checksum != "" {
+		if repoInfo.Checksum != "" {
 			localChecksum, err := fileio.SHA256Sum(tmpDownloaded)
 			if err != nil {
-				_ = os.RemoveAll(repoDir)
-				return false, fmt.Errorf("invalid cached repo, verify checksum failed for %s -> %w", nameVersion, err)
-			} else if localChecksum != checksum {
-				_ = os.RemoveAll(repoDir)
-				return false, fmt.Errorf("invalid cached repo, verify checksum failed for %s -> %w", nameVersion, err)
+				_ = os.RemoveAll(repoInfo.RepoDir)
+				return false, fmt.Errorf("invalid cached repo, verify checksum failed for %s -> %w", repoInfo.NameVersion, err)
+			} else if localChecksum != repoInfo.Checksum {
+				_ = os.RemoveAll(repoInfo.RepoDir)
+				return false, fmt.Errorf("invalid cached repo, verify checksum failed for %s -> %w", repoInfo.NameVersion, err)
 			}
 		}
 
 		// Initialize archive source as local git repo, so they won't be treated as user local modifications.
 		// Clone returns early after successful Restore, so the git init that normally happens
 		// in the Clone archive branch is skipped. Restore must init the git repo itself.
-		if err := git.InitAsLocalRepo(repoDir, nameVersion); err != nil {
-			return false, fmt.Errorf("failed to init %s for tracing file change -> %w", nameVersion, err)
+		// Skip prebuilt: its files are deleted from buildtrees right after being copied to
+		// the package dir, so git init/add is wasted work.
+		if !prebuilt {
+			if err := git.InitAsLocalRepo(repoInfo.RepoDir, repoInfo.NameVersion); err != nil {
+				return false, fmt.Errorf("failed to init %s for tracing file change -> %w", repoInfo.NameVersion, err)
+			}
 		}
 
 		// Restore to downloads also, it's required to compute meta when build.
 		downloadsDir := r.ctx.Downloads()
-		archiveName = expr.If(archiveName == "", filepath.Base(repoUrl), archiveName)
+		archiveName = expr.If(archiveName == "", filepath.Base(repoInfo.RepoUrl), archiveName)
 		destArchivePath := filepath.Join(downloadsDir, archiveName)
 		if err := os.MkdirAll(downloadsDir, os.ModePerm); err != nil {
 			return false, fmt.Errorf("failed to mkdir downloads '%s' -> %w", downloadsDir, err)

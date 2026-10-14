@@ -32,50 +32,6 @@ func (makefiles) Name() string {
 	return "makefiles"
 }
 
-// useNMake reports whether the project must be built with nmake from the
-// project-provided `Makefile.msc` instead of autoconf `configure` + POSIX make.
-func (m makefiles) useNMake() bool {
-	if runtime.GOOS != "windows" {
-		return false
-	}
-
-	// Projects with their own `Configure` script are handled by the perl path.
-	if m.shouldConfigureWithPerl() {
-		return false
-	}
-
-	switch m.Ctx.Platform().GetToolchain().GetName() {
-	case "msvc", "clang-cl":
-	default:
-		return false
-	}
-
-	return fileio.PathExists(filepath.Join(m.PortConfig.SrcDir, nmakeFileName))
-}
-
-// nmakeCommand assembles an nmake command line for a `Makefile.msc` project.
-//
-// nmake is a native Windows tool: it needs the MSVC environment (PATH/INCLUDE/LIB)
-// provided by vcvarsall.bat and, unlike the POSIX make path, must not run inside
-// the MSYS2 shell, since those makefiles use Windows-style paths and cl.exe
-// options.
-func (m makefiles) nmakeCommand(args ...string) string {
-	toolchain := m.Ctx.Platform().GetToolchain()
-	vcVars := toolchain.GetMSVC().VCVars
-
-	// nmake arguments (macros and targets) are space separated on one line.
-	nmakeFilePath := filepath.Join(m.PortConfig.SrcDir, nmakeFileName)
-	nmakeCmd := fmt.Sprintf(`nmake /f "%s" TOP=%s`, nmakeFilePath, m.PortConfig.SrcDir)
-	nmakeArgs := append([]string{nmakeCmd}, args...)
-
-	parts := []string{
-		fmt.Sprintf(`call "%s" x64 > nul`, vcVars),
-		strings.Join(nmakeArgs, " "),
-	}
-
-	return strings.Join(parts, " && ")
-}
-
 func (m *makefiles) CheckTools() []string {
 	// Start with build_tools from port.toml
 	tools := slices.Clone(m.BuildConfig.BuildTools)
@@ -541,4 +497,48 @@ func (m makefiles) shouldConfigureWithPerl() bool {
 	}
 
 	return false
+}
+
+// useNMake reports whether the project must be built with nmake from the
+// project-provided `Makefile.msc` instead of autoconf `configure` + POSIX make.
+func (m makefiles) useNMake() bool {
+	if runtime.GOOS != "windows" {
+		return false
+	}
+
+	// Projects with their own `Configure` script are handled by the perl path.
+	if m.shouldConfigureWithPerl() {
+		return false
+	}
+
+	switch m.Ctx.Platform().GetToolchain().GetName() {
+	case "msvc", "clang-cl":
+	default:
+		return false
+	}
+
+	return fileio.PathExists(filepath.Join(m.PortConfig.SrcDir, nmakeFileName))
+}
+
+// nmakeCommand assembles an nmake command line for a `Makefile.msc` project.
+//
+// nmake is a native Windows tool: it needs the MSVC environment (PATH/INCLUDE/LIB)
+// provided by vcvarsall.bat and, unlike the POSIX make path, must not run inside
+// the MSYS2 shell, since those makefiles use Windows-style paths and cl.exe
+// options.
+func (m makefiles) nmakeCommand(args ...string) string {
+	toolchain := m.Ctx.Platform().GetToolchain()
+	vcVars := toolchain.GetMSVC().VCVars
+
+	// nmake arguments (macros and targets) are space separated on one line.
+	nmakeFilePath := filepath.Join(m.PortConfig.SrcDir, nmakeFileName)
+	nmakeCmd := fmt.Sprintf(`nmake /f "%s" TOP=%s`, nmakeFilePath, m.PortConfig.SrcDir)
+	nmakeArgs := append([]string{nmakeCmd}, args...)
+
+	parts := []string{
+		fmt.Sprintf(`call "%s" x64 > nul`, vcVars),
+		strings.Join(nmakeArgs, " "),
+	}
+
+	return strings.Join(parts, " && ")
 }

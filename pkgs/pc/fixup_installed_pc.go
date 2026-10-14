@@ -1,7 +1,6 @@
 package pc
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"os"
@@ -11,56 +10,72 @@ import (
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
-// FixupPkgConfigFile fix pkgconfig file to use self-locating ${pcfiledir} prefix
+// FixupPkgConfigFile rewrites .pc files under packageDir to use a
+// self-locating ${pcfiledir} prefix, so the installed tree stays relocatable.
 func FixupPkgConfigFile(packageDir string) error {
-	pkgConfigs := []string{
-		filepath.Join(packageDir, "share", "pkgconfig"),
-		filepath.Join(packageDir, "lib", "pkgconfig"),
-		filepath.Join(packageDir, "lib64", "pkgconfig"),
+	// No installed tree (e.g. a nobuild port) means nothing to fix up.
+	if !fileio.PathExists(packageDir) {
+		return nil
 	}
 
-	for _, pkgConfig := range pkgConfigs {
-		if fileio.PathExists(pkgConfig) {
-			entities, err := os.ReadDir(pkgConfig)
-			if err != nil {
-				return err
-			}
-
-			for _, entity := range entities {
-				if strings.HasSuffix(entity.Name(), ".pc") {
-					pkgPath := filepath.Join(pkgConfig, entity.Name())
-					if err := doFixupPkgConfigFile(pkgPath, packageDir); err != nil {
-						return err
-					}
-				}
-			}
+	return filepath.WalkDir(packageDir, func(path string, d os.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
 		}
-	}
+		if d.IsDir() {
+			return nil
+		}
+		if !strings.HasSuffix(d.Name(), ".pc") {
+			return nil
+		}
 
-	return nil
+		// Only handle configs inside a pkgconfig/ dir.
+		if filepath.Base(filepath.Dir(path)) != "pkgconfig" {
+			return nil
+		}
+		return doFixupPkgConfigFile(path)
+	})
 }
 
-func doFixupPkgConfigFile(pkgPath string, packageDir string) error {
-	// Normalize packageDir to forward slashes for matching against .pc content.
-	packageDir = filepath.ToSlash(packageDir)
-	packageDir = strings.TrimSuffix(packageDir, "/")
-
+func doFixupPkgConfigFile(pkgPath string) error {
 	// Ensure the file is writable before opening it for RDWR.
 	if err := os.Chmod(pkgPath, os.ModePerm); err != nil {
 		return err
 	}
 
-	pkgFile, err := os.OpenFile(pkgPath, os.O_RDWR, os.ModePerm)
+	data, err := os.ReadFile(pkgPath)
 	if err != nil {
 		return err
 	}
-	defer pkgFile.Close()
+	lines := strings.Split(string(data), "\n")
+
+	// Drop the trailing empty element a final newline produces, so the output
+	// keeps the same line count as the original (bufio.Scanner semantics).
+	if n := len(lines); n > 0 && lines[n-1] == "" {
+		lines = lines[:n-1]
+	}
+
+	// Find the original prefix value. For vendored packages built via
+	// ExternalProject, CMAKE_INSTALL_PREFIX points at the build
+	// directory, so the .pc bakes that build-dir absolute path — not the
+	// relocated lib path or share path. Using this original value as the rewrite
+	// anchor makes both regular ports (old prefix = package dir) and vendored
+	// ones relocatable.
+	oldPrefix := ""
+	for _, line := range lines {
+		line = strings.ReplaceAll(line, "prefix =", "prefix=")
+		if after, ok := strings.CutPrefix(line, "prefix="); ok {
+			oldPrefix = strings.TrimSpace(after)
+			break
+		}
+	}
+	if oldPrefix != "" {
+		oldPrefix = filepath.ToSlash(oldPrefix)
+		oldPrefix = strings.TrimSuffix(oldPrefix, "/")
+	}
 
 	var buffer bytes.Buffer
-	scanner := bufio.NewScanner(pkgFile)
-	for scanner.Scan() {
-		line := scanner.Text()
-
+	for _, line := range lines {
 		// Remove space before `=`.
 		line = strings.ReplaceAll(line, "prefix =", "prefix=")
 
@@ -74,15 +89,13 @@ func doFixupPkgConfigFile(pkgPath string, packageDir string) error {
 		line = strings.ReplaceAll(line, "${pc_sysrootdir}", "")
 		line = strings.ReplaceAll(line, "${pc_sys_root_dir}", "")
 
-		// Replace any absolute packageDir path with ${prefix}.
-		line = strings.ReplaceAll(line, packageDir+"/", "${prefix}/")
-		line = strings.ReplaceAll(line, packageDir, "${prefix}")
+		// Replace any absolute old-prefix path with ${prefix}.
+		if oldPrefix != "" {
+			line = strings.ReplaceAll(line, oldPrefix+"/", "${prefix}/")
+			line = strings.ReplaceAll(line, oldPrefix, "${prefix}")
+		}
 
 		fmt.Fprintf(&buffer, "%s\n", line)
-	}
-
-	if err := scanner.Err(); err != nil {
-		return err
 	}
 
 	if buffer.Len() > 0 {

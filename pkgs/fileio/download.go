@@ -19,6 +19,7 @@ type downloader struct {
 	url        string
 	downloads  string
 	archive    string
+	tmpDir     string
 	maxRetries int
 	headers    map[string]string
 }
@@ -31,16 +32,23 @@ func NewDownloader(url, downloads string) *downloader {
 	}
 }
 
-func (d *downloader) WithArchive(archive string) {
+func (d *downloader) SetArchive(archive string) *downloader {
 	d.archive = archive
+	return d
 }
 
-func (d *downloader) WithMaxRetries(maxRetries int) {
+func (d *downloader) SetMaxRetries(maxRetries int) *downloader {
 	d.maxRetries = maxRetries
+	return d
 }
 
-// WithHeader adds a custom header to the download request.
-func (d *downloader) WithHeader(key, value string) {
+func (d *downloader) SetTmpDir(tmpDir string) *downloader {
+	d.tmpDir = tmpDir
+	return d
+}
+
+// AppendHeader adds a custom header to the download request.
+func (d *downloader) AppendHeader(key, value string) {
 	if d.headers == nil {
 		d.headers = make(map[string]string)
 	}
@@ -97,13 +105,18 @@ func (d downloader) startOnce(httpClient *http.Client) (downloaded string, err e
 	}
 
 	// Download into a task-owned tmp dir so concurrent downloads never clash.
-	localTmpDir, err := dirs.NewTmpFilesDir()
-	if err != nil {
-		return "", fmt.Errorf("cannot create tmp files dir -> %w", err)
+	var downloadTmpDir string
+	if d.tmpDir != "" {
+		downloadTmpDir, err = os.MkdirTemp(d.tmpDir, "")
+	} else {
+		downloadTmpDir, err = dirs.NewTmpFilesDir()
 	}
-	defer os.RemoveAll(localTmpDir)
+	if err != nil {
+		return "", fmt.Errorf("cannot create download tmp dir -> %w", err)
+	}
+	defer os.RemoveAll(downloadTmpDir)
 
-	tmpFile := filepath.Join(localTmpDir, fileName)
+	tmpFile := filepath.Join(downloadTmpDir, fileName)
 	file, err := os.Create(tmpFile)
 	if err != nil {
 		return "", err

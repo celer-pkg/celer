@@ -102,6 +102,30 @@ func CopyDir(srcDir, dstDir string) error {
 	})
 }
 
+// MergeDir copies files from srcDir into dstDir, skipping any file that already
+// exists at the destination.
+func MergeDir(srcDir, dstDir string) error {
+	return filepath.Walk(srcDir, func(srcPath string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		relPath, err := filepath.Rel(srcDir, srcPath)
+		if err != nil {
+			return err
+		}
+		dstPath := filepath.Join(dstDir, relPath)
+
+		if info.IsDir() {
+			return os.MkdirAll(dstPath, info.Mode())
+		}
+		if PathExists(dstPath) {
+			return nil
+		}
+		return CopyFile(srcPath, dstPath)
+	})
+}
+
 // FlattenNestedDir flattens a single wrapping directory into its parent.
 // Many source archives extract into a single subdirectory like ffmpeg-4.4/;
 // this moves the contents up into dir, removing the extra nesting level.

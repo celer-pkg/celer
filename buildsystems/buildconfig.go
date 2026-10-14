@@ -21,6 +21,7 @@ import (
 	"github.com/celer-pkg/celer/pkgs/logger"
 	"github.com/celer-pkg/celer/pkgs/pc"
 	"github.com/celer-pkg/celer/pkgs/refs"
+	"github.com/celer-pkg/celer/pkgs/ros"
 )
 
 var (
@@ -296,6 +297,12 @@ type BuildConfig struct {
 	Options_Linux   []string `toml:"options_linux,omitempty"`
 	Options_Darwin  []string `toml:"options_darwin,omitempty"`
 
+	// Vars are KEY=VALUE and can only work in current build_config.
+	Vars         []string `toml:"vars,omitempty"`
+	Vars_Windows []string `toml:"vars_windows,omitempty"`
+	Vars_Linux   []string `toml:"vars_linux,omitempty"`
+	Vars_Darwin  []string `toml:"vars_darwin,omitempty"`
+
 	// Internal fields
 	Ctx         context.Context  `toml:"-"`
 	ExprVars    context.ExprVars `toml:"-"`
@@ -395,7 +402,16 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archiveName string, depth int) (err
 	// - current port is one of third-party ports.
 	// - checksum is not empty.
 	if repoUrl != "_" && pkgCache != nil && repoCache != nil {
-		if restored, err := repoCache.Restore(b.PortConfig.RepoDir, repoUrl, repoRef, nameVersion, b.PortConfig.Checksum, archiveName); err != nil {
+		isPrebuilt := b.buildSystem != nil && b.buildSystem.Name() == "prebuilt"
+		cacheKey := b.repoCacheKey(nameVersion)
+		repoInfo := pkgcache.RepoInfo{
+			RepoDir:     b.PortConfig.RepoDir,
+			RepoUrl:     repoUrl,
+			RepoRef:     repoRef,
+			NameVersion: nameVersion,
+			Checksum:    b.PortConfig.Checksum,
+		}
+		if restored, err := repoCache.Restore(cacheKey, repoInfo, archiveName, isPrebuilt); err != nil {
 			return fmt.Errorf("failed to restore %s from repo cache -> %w", nameVersion, err)
 		} else if restored {
 			return nil
@@ -467,9 +483,10 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archiveName string, depth int) (err
 			// Archive sources under buildtrees are tracked as local git repos for
 			// local-change detection in install flow. Delay init until after any
 			// generated files (e.g. prebuilt CMakeLists) are created.
-			// Prebuilt sources are tracked as well: restoring from the repo cache
-			// already creates a local repo for them, so keep the behaviour uniform.
-			trackArchiveAsLocalRepo = fileio.IsSubPath(dirs.BuildtreesDir, b.PortConfig.RepoDir)
+			// Skip prebuilt: its files are deleted from buildtrees right after being
+			// copied to the package dir, so git init/add is a wast of time.
+			trackArchiveAsLocalRepo = b.buildSystem.Name() != "prebuilt" &&
+				fileio.IsSubPath(dirs.BuildtreesDir, b.PortConfig.RepoDir)
 		}
 	}
 
@@ -490,9 +507,15 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archiveName string, depth int) (err
 	// For archive sources, cache before initializing local git tracking so the cache
 	// stays keyed by the original archive checksum without the generated .git directory.
 	// Store repo even checksum is empty, then can fill checksum in port.toml, if you want restore it from pkgcache/repos.
-	if repoUrl != "_" && repoCache != nil {
+	if repoUrl != "_" && repoCache != nil && pkgCache.IsWritable() {
 		archiveFile := filepath.Join(b.Ctx.Downloads(), archiveName)
-		if err := repoCache.Store(b.PortConfig.RepoDir, repoUrl, repoRef, nameVersion, archiveFile); err != nil {
+		cacheKey := b.repoCacheKey(nameVersion)
+		repoInfo := pkgcache.RepoInfo{
+			RepoDir:     b.PortConfig.RepoDir,
+			RepoUrl:     repoUrl,
+			NameVersion: nameVersion,
+		}
+		if err := repoCache.Store(cacheKey, repoInfo, archiveFile); err != nil {
 			return fmt.Errorf("failed to store repo cache for '%s' -> %w", nameVersion, err)
 		}
 	}
@@ -506,6 +529,24 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archiveName string, depth int) (err
 	}
 
 	return nil
+}
+
+// repoCacheKey returns the key used to store/restore this port's source in the
+// repo cache.
+func (b BuildConfig) repoCacheKey(nameVersion string) string {
+	if b.buildSystem != nil && b.buildSystem.Name() == "prebuilt" {
+		toolchain := b.Ctx.Platform().GetToolchain()
+		return strings.Join([]string{
+			toolchain.GetSystemProcessor(),
+			strings.ToLower(toolchain.GetSystemName()),
+			toolchain.GetName(),
+			toolchain.GetVersion(),
+			strings.ToLower(b.Ctx.BuildType()),
+			nameVersion,
+		}, "-")
+	}
+
+	return nameVersion
 }
 
 func (b BuildConfig) Clean() error {
@@ -620,6 +661,13 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 	b.setupEnvs()
 	defer b.rollbackEnvs()
 
+	// Load port-local vars (KEY=VALUE)
+	// so options/envs can reference them via ${VAR}.
+	// Fails if a port var shadows an existing global/project variable.
+	if err := b.loadVars(); err != nil {
+		return fmt.Errorf("load vars %s -> %w", b.PortConfig.nameVersion(), err)
+	}
+
 	// Expand variables in options, like ${HOST}, ${SYSROOT} etc.
 	b.expandOptions()
 
@@ -686,6 +734,12 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 	// Fixup pkg config files to use self-locating ${pcfiledir} prefix.
 	if err := pc.FixupPkgConfigFile(b.PortConfig.PackageDir); err != nil {
 		return fmt.Errorf("fixup pkg-config\n %w", err)
+	}
+
+	// Fixup ROS/ament/colcon artifacts that bake the transient staging path
+	// (parent_prefix_path markers and prefix_chain setup scripts).
+	if err := ros.FixupInstalledROS(b.PortConfig.PackageDir, dirs.WorkspaceDir); err != nil {
+		return fmt.Errorf("fixup ros artifacts -> %w", err)
 	}
 
 	// Generate cmake config files for build systems that don't produce them
@@ -859,6 +913,41 @@ func (b BuildConfig) parseBuildSystem(value string) (name, version string, hasVe
 	}
 
 	return name, version, hasVersion, nil
+}
+
+// loadVars parses the build config's KEY=VALUE vars into a clone of ExprVars,
+// so options/envs/hooks can reference them via ${VAR}.
+func (b *BuildConfig) loadVars() error {
+	if len(b.Vars) == 0 {
+		return nil
+	}
+
+	// Work on a clone so partial population never mutates the shared
+	// port-level ExprVars. A conflict leaves the clone discarded.
+	cloned := b.ExprVars.Clone()
+	for _, item := range b.Vars {
+		parts := strings.SplitN(item, "=", 2)
+		if len(parts) != 2 {
+			continue
+		}
+
+		key := strings.TrimSpace(parts[0])
+		if key == "" {
+			continue
+		}
+
+		// A port-local var must not same as a variable that already exists.
+		if _, exists := cloned.Lookup(key); exists {
+			return fmt.Errorf("port var %q in %s conflicts with an existing variable; rename it", key, b.PortConfig.PortFile)
+		}
+
+		value := strings.TrimSpace(parts[1])
+		value = strings.Trim(value, `"`)
+		value = cloned.Expand(value)
+		cloned.Put(key, value)
+	}
+	b.ExprVars = cloned
+	return nil
 }
 
 // expandOptions Replace placeholders with real paths and values.

@@ -32,12 +32,14 @@ type configureCmd struct {
 	portUrl string
 	portRef string
 
-	// Pkg-cache flags, bound to the backend configs and shared options directly.
-	pkgCacheFS      pkgcache.FS
-	pkgCacheMinio   pkgcache.Minio
-	pkgCacheOptions pkgcache.Options
-	proxy           configs.Proxy
-	ccache          configs.CCache
+	// Pkg-cache flags.
+	pkgCacheFS       pkgcache.FS
+	pkgCacheMinio    pkgcache.Minio
+	pkgCacheWritable bool
+
+	proxy  configs.Proxy
+	ccache configs.CCache
+	python configs.Python
 }
 
 var flagGroup = map[string]string{
@@ -53,9 +55,6 @@ var flagGroup = map[string]string{
 	"pkgcache-minio-access-key": "pkgcache",
 	"pkgcache-minio-secret-key": "pkgcache",
 	"pkgcache-writable":         "pkgcache",
-	"pkgcache-cache-downloads":  "pkgcache",
-	"pkgcache-cache-artifacts":  "pkgcache",
-	"pkgcache-cache-repos":      "pkgcache",
 	"proxy-host":                "proxy",
 	"proxy-port":                "proxy",
 	"proxy-remove":              "proxy",
@@ -64,6 +63,10 @@ var flagGroup = map[string]string{
 	"ccache-maxsize":            "ccache",
 	"ccache-remote-storage":     "ccache",
 	"ccache-remote-only":        "ccache",
+	"python-version":            "python",
+	"python-index-url":          "python",
+	"python-extra-index-urls":   "python",
+	"python-trusted-hosts":      "python",
 	"port":                      "port",
 	"port-url":                  "port",
 	"port-ref":                  "port",
@@ -102,17 +105,12 @@ Available Configuration Options:
     --pkgcache-minio-host         Set the minio backend host (e.g. http://minio.example.com:9000)
     --pkgcache-minio-access-key   Set the minio access key
     --pkgcache-minio-secret-key   Set the minio secret key
-
-  PkgCache Options (shared by all backends, all enabled on first backend configuration):
-    --pkgcache-writable           Set whether the package cache is writable (true/false)
-    --pkgcache-cache-downloads    Cache downloaded sources into the package cache (true/false)
-    --pkgcache-cache-artifacts    Cache built artifacts into the package cache (true/false)
-    --pkgcache-cache-repos        Cache source repos into the package cache (true/false)
+    --pkgcache-writable           Set pkgcache.writable: false makes the cache read-only, restoring stays allowed (true/false)
 
   Proxy Configuration:
     --proxy-host                Set the proxy server hostname
     --proxy-port                Set the proxy server port number
-    --proxy-remove				Remove http/https proxy
+    --proxy-remove              Remove http/https proxy
 
   CCache Configuration:
     --ccache-enabled            Enable/disable ccache (true/false)
@@ -120,6 +118,12 @@ Available Configuration Options:
     --ccache-maxsize            Set the maximum cache size (e.g., "5G", "1024M")
     --ccache-remote-storage     Set remote storage address for ccache (e.g., http://host:port/path)
     --ccache-remote-only        Use remote ccache only, skip local cache (true/false)
+
+  Python Configuration:
+    --python-version            Set the Python version for venv/conda setup (e.g., 3.10.12)
+    --python-index-url          Set the pip index URL (e.g., https://pypi.example.com/simple)
+    --python-extra-index-urls   Set pip extra index URLs (comma-separated)
+    --python-trusted-hosts      Set pip trusted hosts (comma-separated)
 
   Port Configuration:
     --port                      Target port to update, in name@version form (e.g., eigen@3.4.0)
@@ -134,12 +138,11 @@ Examples:
   celer configure --jobs=8                                         # Use 8 parallel build jobs
   celer configure --offline=true                                   # Enable offline mode
   celer configure --verbose=false                                  # Disable verbose output
-  celer configure --pkgcache-fs-dir=/tmp/cache                  # Set pkgcache.fs directory
+  celer configure --pkgcache-fs-dir=/tmp/cache                     # Set pkgcache.fs directory
   celer configure --pkgcache-minio-host=http://srv:9000 \
                   --pkgcache-minio-access-key=xxx \
-                  --pkgcache-minio-secret-key=yyy               # Configure pkgcache.minio
-  celer configure --pkgcache-writable=false                     # Disable pkgcache write
-  celer configure --pkgcache-cache-artifacts=true               # Cache built artifacts
+                  --pkgcache-minio-secret-key=yyy                  # Configure pkgcache.minio
+  celer configure --pkgcache-writable=false                        # Make the cache read-only
   celer configure --proxy-host=proxy.example.com                   # Set proxy host
   celer configure --proxy-port=8080                                # Set proxy port
   celer configure --proxy-remove                                   # Remove http/https proxy
@@ -147,6 +150,10 @@ Examples:
   celer configure --ccache-maxsize=5G                              # Set ccache max size to 5GB
   celer configure --ccache-remote-storage=http://srv:8080/ccache   # Set ccache remote storage
   celer configure --ccache-remote-only=true                        # Use remote ccache only
+  celer configure --python-version=3.10.12                         # Set Python version
+  celer configure --python-index-url=https://pypi.example.com/simple \
+                  --python-extra-index-urls=https://pypi.internal/simple \
+                  --python-trusted-hosts=pypi.internal             # Configure pip indexes and trusted hosts
   celer configure --port=eigen@3.4.0 --port-ref=3.4.1              # Pin a port to a new ref
   celer configure --port=eigen@3.4.0 --port-url=https://example.com/eigen.git --port-ref=main
                                                                    # Override both url and ref`,
@@ -159,14 +166,21 @@ Examples:
 				return logger.PrintError(err, "please run `celer init` first.")
 			}
 
-			// Init celer with options, allow skip platform or project
-			// not found when configure platform or project.
 			var initOpt configs.InitOption
+
+			// Allow skip platform or project not found when configure it.
 			if flags.Changed("platform") || flags.Changed("project") {
 				initOpt.SkipPlatform = true
 				initOpt.SkipProject = true
 			}
 
+			if flags.Changed("pkgcache-fs-dir") ||
+				flags.Changed("pkgcache-minio-host") ||
+				flags.Changed("pkgcache-minio-access-key") ||
+				flags.Changed("pkgcache-minio-secret-key") ||
+				flags.Changed("pkgcache-writable") {
+				initOpt.SkipPkgCache = true
+			}
 			if err := c.celer.InitWithOptions(initOpt); err != nil {
 				return fmt.Errorf("failed to init celer -> %w", err)
 			}
@@ -207,6 +221,9 @@ Examples:
 			if err := c.configurePort(flags); err != nil {
 				return err
 			}
+			if err := c.configurePython(flags); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -230,12 +247,7 @@ Examples:
 	flags.StringVar(&c.pkgCacheMinio.AccessKey, "pkgcache-minio-access-key", "", "configure pkgcache.minio access key.")
 	flags.StringVar(&c.pkgCacheMinio.SecretKey, "pkgcache-minio-secret-key", "", "configure pkgcache.minio secret key.")
 
-	// Options shared by all pkgcache backends, all enabled by default on
-	// the first backend configuration.
-	flags.BoolVar(&c.pkgCacheOptions.Writable, "pkgcache-writable", true, "configure pkgcache writable.")
-	flags.BoolVar(&c.pkgCacheOptions.Downloads, "pkgcache-cache-downloads", true, "configure pkgcache to cache downloads.")
-	flags.BoolVar(&c.pkgCacheOptions.Artifacts, "pkgcache-cache-artifacts", true, "configure pkgcache to cache artifacts.")
-	flags.BoolVar(&c.pkgCacheOptions.Repos, "pkgcache-cache-repos", true, "configure pkgcache to cache repos.")
+	flags.BoolVar(&c.pkgCacheWritable, "pkgcache-writable", true, "configure pkgcache writable.")
 
 	// Proxy flags.
 	flags.StringVar(&c.proxy.Host, "proxy-host", "", "configure proxy host.")
@@ -248,6 +260,12 @@ Examples:
 	flags.StringVar(&c.ccache.MaxSize, "ccache-maxsize", "", "configure ccache maxsize.")
 	flags.StringVar(&c.ccache.RemoteStorage, "ccache-remote-storage", "", "configure ccache remote storage.")
 	flags.BoolVar(&c.ccache.RemoteOnly, "ccache-remote-only", false, "configure ccache remote only.")
+
+	// Python flags.
+	flags.StringVar(&c.python.Version, "python-version", "", "configure python version (e.g., 3.10.12).")
+	flags.StringVar(&c.python.IndexUrl, "python-index-url", "", "configure python pip index URL (e.g., https://pypi.example.com/simple).")
+	flags.StringSliceVar(&c.python.ExtraIndexUrls, "python-extra-index-urls", nil, "configure python pip extra index URLs (comma-separated).")
+	flags.StringSliceVar(&c.python.TrustedHosts, "python-trusted-hosts", nil, "configure python pip trusted hosts (comma-separated).")
 
 	// Port flags.
 	flags.StringVar(&c.port, "port", "", "port name@version to configure (e.g. rmw_zenoh_cpp@humble)")
@@ -263,9 +281,6 @@ Examples:
 
 	// PkgCache flag completions.
 	command.RegisterFlagCompletionFunc("pkgcache-writable", boolCompletion)
-	command.RegisterFlagCompletionFunc("pkgcache-cache-downloads", boolCompletion)
-	command.RegisterFlagCompletionFunc("pkgcache-cache-artifacts", boolCompletion)
-	command.RegisterFlagCompletionFunc("pkgcache-cache-repos", boolCompletion)
 
 	// CCache flag completions.
 	command.RegisterFlagCompletionFunc("ccache-enabled", boolCompletion)
@@ -435,30 +450,12 @@ func (c *configureCmd) configurePkgCache(flags *pflag.FlagSet) error {
 		logger.PrintSuccess("current pkgcache.minio host: %s.", expr.If(c.pkgCacheMinio.Host != "", c.pkgCacheMinio.Host, "unchanged"))
 	}
 
-	// Options shared by all backends.
+	// The write switch lives on [pkgcache] itself, not on a backend.
 	if flags.Changed("pkgcache-writable") {
-		if err := c.celer.SetPkgCacheWritable(c.pkgCacheOptions.Writable); err != nil {
-			return logger.PrintError(err, "failed to set pkgcache writable: %s", expr.If(c.pkgCacheOptions.Writable, "true", "false"))
+		if err := c.celer.SetPkgCacheWritable(c.pkgCacheWritable); err != nil {
+			return logger.PrintError(err, "failed to set pkgcache writable: %s", expr.If(c.pkgCacheWritable, "true", "false"))
 		}
-		logger.PrintSuccess("current pkgcache writable: %s.", expr.If(c.pkgCacheOptions.Writable, "true", "false"))
-	}
-	if flags.Changed("pkgcache-cache-downloads") {
-		if err := c.celer.SetPkgCacheCacheDownloads(c.pkgCacheOptions.Downloads); err != nil {
-			return logger.PrintError(err, "failed to set pkgcache cache-downloads: %s", expr.If(c.pkgCacheOptions.Downloads, "true", "false"))
-		}
-		logger.PrintSuccess("current pkgcache cache-downloads: %s.", expr.If(c.pkgCacheOptions.Downloads, "true", "false"))
-	}
-	if flags.Changed("pkgcache-cache-artifacts") {
-		if err := c.celer.SetPkgCacheCacheArtifacts(c.pkgCacheOptions.Artifacts); err != nil {
-			return logger.PrintError(err, "failed to set pkgcache cache-artifacts: %s", expr.If(c.pkgCacheOptions.Artifacts, "true", "false"))
-		}
-		logger.PrintSuccess("current pkgcache cache-artifacts: %s.", expr.If(c.pkgCacheOptions.Artifacts, "true", "false"))
-	}
-	if flags.Changed("pkgcache-cache-repos") {
-		if err := c.celer.SetPkgCacheCacheRepos(c.pkgCacheOptions.Repos); err != nil {
-			return logger.PrintError(err, "failed to set pkgcache cache-repos: %s", expr.If(c.pkgCacheOptions.Repos, "true", "false"))
-		}
-		logger.PrintSuccess("current pkgcache cache-repos: %s.", expr.If(c.pkgCacheOptions.Repos, "true", "false"))
+		logger.PrintSuccess("current pkgcache writable: %s.", expr.If(c.pkgCacheWritable, "true", "false"))
 	}
 
 	return nil
@@ -504,6 +501,38 @@ func (c *configureCmd) configurePort(flags *pflag.FlagSet) error {
 	return nil
 }
 
+func (c *configureCmd) configurePython(flags *pflag.FlagSet) error {
+	if flags.Changed("python-version") {
+		if err := c.celer.SetPythonVersion(c.python.Version); err != nil {
+			return logger.PrintError(err, "failed to set python version: %s", c.python.Version)
+		}
+		logger.PrintSuccess("current python version: %s", expr.If(c.python.Version != "", c.python.Version, "cleared"))
+	}
+
+	if flags.Changed("python-index-url") {
+		if err := c.celer.SetPythonIndexUrl(c.python.IndexUrl); err != nil {
+			return logger.PrintError(err, "failed to set python index url: %s", c.python.IndexUrl)
+		}
+		logger.PrintSuccess("current python index url: %s", expr.If(c.python.IndexUrl != "", c.python.IndexUrl, "cleared"))
+	}
+
+	if flags.Changed("python-extra-index-urls") {
+		if err := c.celer.SetPythonExtraIndexUrls(c.python.ExtraIndexUrls); err != nil {
+			return logger.PrintError(err, "failed to set python extra index urls: %v", c.python.ExtraIndexUrls)
+		}
+		logger.PrintSuccess("current python extra index urls: %v", c.python.ExtraIndexUrls)
+	}
+
+	if flags.Changed("python-trusted-hosts") {
+		if err := c.celer.SetPythonTrustedHosts(c.python.TrustedHosts); err != nil {
+			return logger.PrintError(err, "failed to set python trusted hosts: %v", c.python.TrustedHosts)
+		}
+		logger.PrintSuccess("current python trusted hosts: %v", c.python.TrustedHosts)
+	}
+
+	return nil
+}
+
 func (c *configureCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	commands := []string{
 		"--platform",
@@ -518,9 +547,6 @@ func (c *configureCmd) completion(cmd *cobra.Command, args []string, toComplete 
 		"--pkgcache-minio-access-key",
 		"--pkgcache-minio-secret-key",
 		"--pkgcache-writable",
-		"--pkgcache-cache-downloads",
-		"--pkgcache-cache-artifacts",
-		"--pkgcache-cache-repos",
 		"--proxy-host",
 		"--proxy-port",
 		"--proxy-remove",
@@ -529,6 +555,10 @@ func (c *configureCmd) completion(cmd *cobra.Command, args []string, toComplete 
 		"--ccache-maxsize",
 		"--ccache-remote-storage",
 		"--ccache-remote-only",
+		"--python-version",
+		"--python-index-url",
+		"--python-extra-index-urls",
+		"--python-trusted-hosts",
 		"--port",
 		"--port-url",
 		"--port-ref",

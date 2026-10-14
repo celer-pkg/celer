@@ -32,6 +32,7 @@
   system_processor = "x86_64"             # 可选选择器
   toolchain_name = "gcc"                  # 可选选择器
   toolchain_version = "9.5"               # 可选选择器
+  build_type = "release"                  # 可选选择器，需与 celer.toml 中的 build_type 一致
   build_system = "cmake"                  # 必填字段，可选值：cmake、makefiles、b2、meson 等
   cmake_generator = []                    # 可选字段
   build_tools = []                        # 可选字段
@@ -51,6 +52,7 @@
   pre_configure = []                      # 可选字段
   post_configure = []                     # 可选字段
   pre_build = []                          # 可选字段
+  vars = []                               # 可选字段，当前 build_config 局部的 KEY=VALUE 变量
   options = []                            # 可选字段
   fix_build = []                          # 可选字段
   post_build = []                         # 可选字段
@@ -92,7 +94,7 @@
 
 ## 🛠️ 构建配置详解
 
-&emsp;&emsp;**build_configs** 被设计为一个数组，以满足不同系统平台上库的不同编译需求。Celer 会根据 **system_name/system_processor/toolchain_name** 自动找到匹配的 **build_config** 来组装编译命令。  
+&emsp;&emsp;**build_configs** 被设计为一个数组，以满足不同系统平台上库的不同编译需求。Celer 会根据 **system_name/system_processor/toolchain_name/toolchain_version/build_type** 自动找到匹配的 **build_config** 来组装编译命令。  
 &emsp;&emsp;第三方库的编译配置通常在不同系统上会有差异。这些差异通常涉及平台特定的编译标志或甚至 entirely distinct build steps。一些库甚至需要特殊的预处理或后处理才能在 Windows 上正确编译。
 
 ### system_name, system_names, system_processor
@@ -178,9 +180,11 @@
 
 ### build_type
 
-&emsp;&emsp;可选配置，默认值为空，用于指定构建类型。当在 port.toml 中指定 build_type 时，它会覆盖 celer.toml 中定义的全局 build_type 设置。这对于某些需要特定构建类型的库非常有用。
+&emsp;&emsp;可选选择器，按当前构建类型匹配（即 celer.toml 中定义的 `build_type`）。当某个 `build_config` 设置了 `build_type` 时，**只有它与当前构建类型相同时**该配置才会被选中——这使得同一端口可以为不同的构建类型提供不同的配置，例如 Windows 的预编译包，其 release 与 debug 库不能混用。不设置则匹配任意构建类型。
 - build_type 的候选值：**release**, **debug**, **relwithdebinfo**, **minsizerel**；
-- 如果未指定，则使用 celer.toml 中定义的 build_type（默认为 **release**）
+- 若命中的 `build_config` 未设置 build_type，则使用 celer.toml 中定义的 build_type（默认为 **release**）
+
+>**注意：** `build_type` 与 `toolchain_name` / `toolchain_version` / `system_name` / `system_processor` 是 **AND** 关系——必须同时满足所有已设置的选择器才会命中该 `build_config`。
 
 >**注意：** build_type 也会影响 package cache 的键值计算，不同的 build_type 会生成不同的缓存。
 
@@ -240,6 +244,25 @@
 ### autogen_options
 
 &emsp;&emsp;可选配置，默认值为空，用于指定一些库需要在源代码目录中运行 **./autogen.sh** 脚本，例如：**NASM**、**Boost** 等库。注意：此 **autogen_options** 选项主要适用于 makefiles 项目。
+
+### vars
+
+&emsp;&emsp;可选配置，默认为空。一组 `KEY=VALUE` 键值对，声明当前 `build_config` 局部的动态变量，从而把 option 的*参数名*与*取值*分离，并在 `options`/`envs`/钩子中用 `${KEY}` 引用。
+
+```toml
+[[build_configs]]
+  build_system = "cmake"
+  vars = ["BUILD_EXAMPLES=OFF", "BUILD_UNITTESTS=OFF"]
+  options = [
+    "-DARGS_BUILD_EXAMPLES=${BUILD_EXAMPLES}",
+    "-DARGS_BUILD_UNITTESTS=${BUILD_UNITTESTS}",
+  ]
+```
+
+- 仅作用于当前 `build_config`，不泄漏到兄弟配置、其他 port 或全局。
+- value 可引用任意已定义变量（`${SRC_DIR}`、更早的 `vars` 条目等），两端英文双引号会被去除。
+- key 不得与已存在变量（内置/全局/项目）重名，同一 `vars` 列表内也不可重复，否则报错。
+- 支持平台变体 `vars_windows`/`vars_linux`/`vars_darwin`，合并方式同 `options`。
 
 ### dependencies
 

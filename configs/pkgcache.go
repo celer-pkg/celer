@@ -12,14 +12,15 @@ import (
 // ================= PkgCache ================= //
 
 type PkgCache struct {
-	Minio   *pkgcache.Minio  `toml:"minio"`
-	FS      *pkgcache.FS     `toml:"fs"`
-	Options pkgcache.Options `toml:"options"`
+	Writable *bool           `toml:"writable,omitempty" json:"writable,omitempty"`
+	Minio    *pkgcache.Minio `toml:"minio,omitempty" json:"minio,omitempty"`
+	FS       *pkgcache.FS    `toml:"fs,omitempty" json:"fs,omitempty"`
 
 	// Internal field.
-	artifactCache pkgcache.AritifactCache
-	repoCache     pkgcache.RepoCache
-	downloadCache pkgcache.DownloadCache
+	artifactCache    pkgcache.AritifactCache
+	repoCache        pkgcache.RepoCache
+	downloadCache    pkgcache.DownloadCache
+	pythonWheelCache pkgcache.PythonWheelCache
 }
 
 func NewPkgCache() *PkgCache {
@@ -34,9 +35,8 @@ func (p PkgCache) GetFS() *pkgcache.FS {
 	return p.FS
 }
 
-// GetOptions returns the options shared by all pkgcache backends.
-func (p PkgCache) GetOptions() pkgcache.Options {
-	return p.Options
+func (p PkgCache) IsWritable() bool {
+	return p.Writable == nil || *p.Writable
 }
 
 func (p PkgCache) GetArtifactCache() pkgcache.AritifactCache {
@@ -58,6 +58,13 @@ func (p PkgCache) GetDownloadCache() pkgcache.DownloadCache {
 		return nil
 	}
 	return p.downloadCache
+}
+
+func (p PkgCache) GetPythonWheelCache() pkgcache.PythonWheelCache {
+	if p.pythonWheelCache == nil {
+		return nil
+	}
+	return p.pythonWheelCache
 }
 
 // ================= DevCache ================= //

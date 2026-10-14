@@ -6,6 +6,13 @@ import (
 	"strings"
 )
 
+type CacheConfigs struct {
+	DownloadCache    DownloadCache
+	RepoCache        RepoCache
+	AritifactCache   AritifactCache
+	PythonWheelCache PythonWheelCache
+}
+
 // ========================== pkg-cache types ========================== //
 
 // DirType identifies a cache subdirectory.
@@ -16,11 +23,12 @@ const (
 	DirRepos
 	DirArtifacts
 	DirDownloads
+	DirPythonWheels
 )
 
 // FS is the config for the fs backend of pkgcache.
 type FS struct {
-	Dir string `toml:"dir"`
+	Dir string `toml:"dir" json:"dir"`
 }
 
 func (f FS) Validate() error {
@@ -43,6 +51,9 @@ func (f FS) GetDir(dirType DirType, version string) string {
 	case DirDownloads:
 		return filepath.Join(f.Dir, "downloads")
 
+	case DirPythonWheels:
+		return filepath.Join(f.Dir, "python-wheels")
+
 	default:
 		return f.Dir
 	}
@@ -50,9 +61,9 @@ func (f FS) GetDir(dirType DirType, version string) string {
 
 // Minio is the config for the minio backend of pkgcache.
 type Minio struct {
-	Host      string `toml:"host"`
-	AccessKey string `toml:"access_key"`
-	SecretKey string `toml:"secret_key"`
+	Host      string `toml:"host" json:"host"`
+	AccessKey string `toml:"access_key" json:"access_key"`
+	SecretKey string `toml:"secret_key" json:"secret_key"`
 }
 
 func (m Minio) Validate() error {
@@ -84,19 +95,12 @@ func (m Minio) GetDir(dirType DirType, version string) string {
 	case DirDownloads:
 		return "downloads"
 
+	case DirPythonWheels:
+		return "python-wheels"
+
 	default:
 		return ""
 	}
-}
-
-// Options holds the pkgcache options shared by all backends: fs and
-// minio are mutually exclusive, so these options live here instead of being
-// duplicated per backend.
-type Options struct {
-	Writable  bool `toml:"writable"`
-	Downloads bool `toml:"downloads"`
-	Artifacts bool `toml:"artifacts"`
-	Repos     bool `toml:"repos"`
 }
 
 // PkgCache is the shared package cache: stores/restores
@@ -106,28 +110,46 @@ type Options struct {
 type PkgCache interface {
 	GetMinio() *Minio
 	GetFS() *FS
-	GetOptions() Options
+	IsWritable() bool
 	GetDownloadCache() DownloadCache
 	GetArtifactCache() AritifactCache
 	GetRepoCache() RepoCache
+	GetPythonWheelCache() PythonWheelCache
 }
 
 // AritifactCache stores/restores a port's built package, keyed by name@version + build hash.
 type AritifactCache interface {
-	Restore(packageDir, nameVersion, buildhash string) (bool, error)
+	Exists(nameVersion, buildhash string) (bool, error)
+	Restore(packageDir, nameVersion, buildsystem, buildhash string) (bool, error)
 	Store(packageDir, metadata string) error
 }
 
-// RepoCache stores/restores a port's source tree, keyed by name@version + checksum.
-type RepoCache interface {
-	Restore(repoDir, repoUrl, repoRef, nameVersion, checksum, archiveName string) (bool, error)
-	Store(repoDir, repoUrl, repoRef, nameVersion, archiveFile string) error
+// RepoInfo holds the repo identity fields shared by Restore and Store.
+type RepoInfo struct {
+	RepoDir     string
+	RepoUrl     string
+	RepoRef     string
+	NameVersion string
+	Checksum    string
 }
 
-// DownloadCache stores/restores downloaded files (tools, archives), keyed by SHA256.
+type RepoCache interface {
+	Restore(cacheKey string, repoInfo RepoInfo, archiveName string, prebuilt bool) (bool, error)
+	Store(cacheKey string, repoInfo RepoInfo, archiveFile string) error
+}
+
+// DownloadCache stores/restores downloaded files (tools, archives), keyed by
+// fileName and verified by sha-256.
 type DownloadCache interface {
 	Restore(fileName, sha256 string) (bool, error)
 	Store(fileName, sha256, srcFile string) error
+}
+
+// ========================== python wheel cache ========================== //
+
+type PythonWheelCache interface {
+	Restore(cacheKey, destDir string) (ok bool, err error)
+	Store(cacheKey, wheelhouseDir string) error
 }
 
 // ========================== dev cache ========================== //

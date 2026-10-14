@@ -51,9 +51,6 @@ func TestConfigureCmd_CommandStructure(t *testing.T) {
 		{"pkgcache-minio-access-key", ""},
 		{"pkgcache-minio-secret-key", ""},
 		{"pkgcache-writable", ""},
-		{"pkgcache-cache-downloads", ""},
-		{"pkgcache-cache-artifacts", ""},
-		{"pkgcache-cache-repos", ""},
 		{"proxy-host", ""},
 		{"proxy-port", ""},
 		{"ccache-enabled", ""},
@@ -61,6 +58,10 @@ func TestConfigureCmd_CommandStructure(t *testing.T) {
 		{"ccache-maxsize", ""},
 		{"ccache-remote-storage", ""},
 		{"ccache-remote-only", ""},
+		{"python-version", ""},
+		{"python-index-url", ""},
+		{"python-extra-index-urls", ""},
+		{"python-trusted-hosts", ""},
 		{"port", ""},
 		{"port-url", ""},
 		{"port-ref", ""},
@@ -133,21 +134,6 @@ func TestConfigureCmd_Completion(t *testing.T) {
 			expected:   []string{"--pkgcache-writable"},
 		},
 		{
-			name:       "complete_pkgcache_cache_artifacts_flag",
-			toComplete: "--pkgcache-cache-a",
-			expected:   []string{"--pkgcache-cache-artifacts"},
-		},
-		{
-			name:       "complete_pkgcache_cache_downloads_flag",
-			toComplete: "--pkgcache-cache-d",
-			expected:   []string{"--pkgcache-cache-downloads"},
-		},
-		{
-			name:       "complete_pkgcache_cache_repos_flag",
-			toComplete: "--pkgcache-cache-r",
-			expected:   []string{"--pkgcache-cache-repos"},
-		},
-		{
 			name:       "complete_pkgcache_minio_host_flag",
 			toComplete: "--pkgcache-minio-h",
 			expected:   []string{"--pkgcache-minio-host"},
@@ -196,6 +182,26 @@ func TestConfigureCmd_Completion(t *testing.T) {
 			name:       "complete_ccache_remote_only_flag",
 			toComplete: "--ccache-remote-o",
 			expected:   []string{"--ccache-remote-only"},
+		},
+		{
+			name:       "complete_python_version_flag",
+			toComplete: "--python-v",
+			expected:   []string{"--python-version"},
+		},
+		{
+			name:       "complete_python_index_url_flag",
+			toComplete: "--python-i",
+			expected:   []string{"--python-index-url"},
+		},
+		{
+			name:       "complete_python_extra_index_urls_flag",
+			toComplete: "--python-e",
+			expected:   []string{"--python-extra-index-urls"},
+		},
+		{
+			name:       "complete_python_trusted_hosts_flag",
+			toComplete: "--python-t",
+			expected:   []string{"--python-trusted-hosts"},
 		},
 		{
 			name:       "complete_port_flag",
@@ -278,7 +284,7 @@ func TestConfigureCmd_PkgCacheGroupShouldSucceed(t *testing.T) {
 	if celer2.PkgCache().GetFS().Dir != filepath.ToSlash(dirs.TestPkgCacheDir) {
 		t.Fatalf("cache dir should be `%s`", dirs.TestPkgCacheDir)
 	}
-	if !celer2.PkgCache().GetOptions().Writable {
+	if !celer2.PkgCache().IsWritable() {
 		t.Fatal("cache writable should be `true`")
 	}
 }
@@ -561,10 +567,9 @@ func TestConfigure_PkgCacheDir(t *testing.T) {
 		t.Fatalf("cache dir should be `%s`", dirs.TestPkgCacheDir)
 	}
 
-	// All shared options should default to true on first backend configuration.
-	options := celer2.PkgCache().GetOptions()
-	if !options.Writable || !options.Downloads || !options.Artifacts || !options.Repos {
-		t.Fatalf("all pkgcache options should default to true on first backend configuration, got: %+v", options)
+	// The cache must be writable by default on the first backend configuration.
+	if !celer2.PkgCache().IsWritable() {
+		t.Fatal("pkgcache should default to writable on first backend configuration")
 	}
 }
 
@@ -590,7 +595,7 @@ func TestConfigure_PkgCacheWritable(t *testing.T) {
 	if err := celer2.Init(); err != nil {
 		t.Fatal(err)
 	}
-	if !celer2.PkgCache().GetOptions().Writable {
+	if !celer2.PkgCache().IsWritable() {
 		t.Fatal("cache writable should be `true`")
 	}
 }
@@ -919,55 +924,6 @@ func TestConfigure_CCacheRemoteOnly_OFF(t *testing.T) {
 	}
 }
 
-func TestConfigure_PkgCacheCacheArtifacts(t *testing.T) {
-	celer := newInitializedCeler(t)
-
-	// Must create cache dir before setting cache dir; --pkgcache-cache-artifacts
-	// requires that the pkgcache dir is already configured (same group, runs in
-	// one command).
-	if err := os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm); err != nil {
-		t.Fatal(err)
-	}
-	cmd := &configureCmd{}
-	if _, err := runCommand(t, cmd.Command(celer),
-		"--pkgcache-fs-dir="+dirs.TestPkgCacheDir,
-		"--pkgcache-cache-artifacts=true",
-	); err != nil {
-		t.Fatal(err)
-	}
-
-	celer2 := configs.NewCeler()
-	if err := celer2.Init(); err != nil {
-		t.Fatal(err)
-	}
-	if !celer2.PkgCache().GetOptions().Artifacts {
-		t.Fatal("pkgcache cache-artifacts should be `true`")
-	}
-}
-
-func TestConfigure_PkgCacheCacheDownloads(t *testing.T) {
-	celer := newInitializedCeler(t)
-
-	if err := os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm); err != nil {
-		t.Fatal(err)
-	}
-	cmd := &configureCmd{}
-	if _, err := runCommand(t, cmd.Command(celer),
-		"--pkgcache-fs-dir="+dirs.TestPkgCacheDir,
-		"--pkgcache-cache-downloads=true",
-	); err != nil {
-		t.Fatal(err)
-	}
-
-	celer2 := configs.NewCeler()
-	if err := celer2.Init(); err != nil {
-		t.Fatal(err)
-	}
-	if !celer2.PkgCache().GetOptions().Downloads {
-		t.Fatal("pkgcache cache-downloads should be `true`")
-	}
-}
-
 func TestConfigure_PkgCacheMinio(t *testing.T) {
 	celer := newInitializedCeler(t)
 	cmd := &configureCmd{}
@@ -1003,7 +959,7 @@ func TestConfigure_PkgCacheMinio(t *testing.T) {
 	if minioCfg.SecretKey != "test-secret-key" {
 		t.Fatalf("minio secret key should be `test-secret-key`, got `%s`", minioCfg.SecretKey)
 	}
-	if !celer2.PkgCache().GetOptions().Writable {
+	if !celer2.PkgCache().IsWritable() {
 		t.Fatal("minio writable should be `true`")
 	}
 }
@@ -1072,27 +1028,12 @@ func TestConfigure_PkgCacheMinio_ConflictWithFSShouldFail(t *testing.T) {
 
 // Regression: option flags before any backend is configured must fail with
 // a clear error, not panic or pass silently.
-func TestConfigure_PkgCacheCacheArtifacts_BeforeBackendFails(t *testing.T) {
+func TestConfigure_PkgCacheWritable_BeforeBackendFails(t *testing.T) {
 	celer := newInitializedCeler(t)
 
 	cmd := &configureCmd{}
 	stderr, err := runCommand(t, cmd.Command(celer),
-		"--pkgcache-cache-artifacts=true",
-	)
-	if err == nil {
-		t.Fatal("expected error when no pkgcache backend has been configured")
-	}
-	if !strings.Contains(stderr, "none of them was configured") {
-		t.Fatalf("stderr should report no pkgcache backend configured, got:\n%s", stderr)
-	}
-}
-
-func TestConfigure_PkgCacheCacheDownloads_BeforeBackendFails(t *testing.T) {
-	celer := newInitializedCeler(t)
-
-	cmd := &configureCmd{}
-	stderr, err := runCommand(t, cmd.Command(celer),
-		"--pkgcache-cache-downloads=true",
+		"--pkgcache-writable=true",
 	)
 	if err == nil {
 		t.Fatal("expected error when no pkgcache backend has been configured")
@@ -1161,5 +1102,182 @@ func TestConfigureCmd_Port_UnknownPortShouldFail(t *testing.T) {
 	)
 	if err == nil {
 		t.Fatal("expected error when --port refers to a non-existent port")
+	}
+}
+
+func TestConfigure_PythonVersion(t *testing.T) {
+	celer := newInitializedCeler(t)
+	cmd := &configureCmd{}
+
+	const version = "3.10.12"
+	if _, err := runCommand(t, cmd.Command(celer), "--python-version="+version); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if got := celer2.PythonConfig().GetVersion(); got != version {
+		t.Fatalf("python version should be `%s`, got `%s`", version, got)
+	}
+}
+
+func TestConfigure_PythonVersion_Clear(t *testing.T) {
+	celer := newInitializedCeler(t)
+	cmd := &configureCmd{}
+
+	if _, err := runCommand(t, cmd.Command(celer), "--python-version=3.10.12"); err != nil {
+		t.Fatal(err)
+	}
+	// Empty value clears the setting.
+	if _, err := runCommand(t, cmd.Command(celer), "--python-version="); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if got := celer2.PythonConfig().GetVersion(); got != "" {
+		t.Fatalf("python version should be cleared, got `%s`", got)
+	}
+}
+
+func TestConfigure_PythonIndexUrl(t *testing.T) {
+	celer := newInitializedCeler(t)
+	cmd := &configureCmd{}
+
+	const indexURL = "https://pypi.example.com/simple"
+	if _, err := runCommand(t, cmd.Command(celer), "--python-index-url="+indexURL); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if got := celer2.PythonConfig().GetIndexUrl(); got != indexURL {
+		t.Fatalf("python index url should be `%s`, got `%s`", indexURL, got)
+	}
+}
+
+func TestConfigure_PythonIndexUrl_InvalidURL(t *testing.T) {
+	celer := newInitializedCeler(t)
+	cmd := &configureCmd{}
+
+	stderr, err := runCommand(t, cmd.Command(celer), "--python-index-url=localhost:8080/simple")
+	if err == nil {
+		t.Fatal("expected error for index URL without scheme")
+	}
+	if !strings.Contains(stderr, "scheme and host") {
+		t.Fatalf("stderr should report invalid index URL, got:\n%s", stderr)
+	}
+}
+
+func TestConfigure_PythonExtraIndexUrls(t *testing.T) {
+	celer := newInitializedCeler(t)
+	cmd := &configureCmd{}
+
+	urls := "https://pypi.example.com/simple,https://pypi.internal/simple"
+	if _, err := runCommand(t, cmd.Command(celer), "--python-extra-index-urls="+urls); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	got := celer2.PythonConfig().GetExtraIndexUrls()
+	if len(got) != 2 {
+		t.Fatalf("expected 2 extra index urls, got %d: %v", len(got), got)
+	}
+	if got[0] != "https://pypi.example.com/simple" || got[1] != "https://pypi.internal/simple" {
+		t.Fatalf("extra index urls mismatch, got %v", got)
+	}
+}
+
+func TestConfigure_PythonExtraIndexUrls_InvalidURL(t *testing.T) {
+	celer := newInitializedCeler(t)
+	cmd := &configureCmd{}
+
+	stderr, err := runCommand(t, cmd.Command(celer), "--python-extra-index-urls=https://pypi.example.com/simple,localhost:8080")
+	if err == nil {
+		t.Fatal("expected error when an extra index URL lacks a scheme")
+	}
+	if !strings.Contains(stderr, "scheme and host") {
+		t.Fatalf("stderr should report invalid extra index URL, got:\n%s", stderr)
+	}
+}
+
+func TestConfigure_PythonTrustedHosts(t *testing.T) {
+	celer := newInitializedCeler(t)
+	cmd := &configureCmd{}
+
+	hosts := "pypi.internal,pypi.example.com:8080"
+	if _, err := runCommand(t, cmd.Command(celer), "--python-trusted-hosts="+hosts); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	got := celer2.PythonConfig().GetTrustedHosts()
+	if len(got) != 2 {
+		t.Fatalf("expected 2 trusted hosts, got %d: %v", len(got), got)
+	}
+	if got[0] != "pypi.internal" || got[1] != "pypi.example.com:8080" {
+		t.Fatalf("trusted hosts mismatch, got %v", got)
+	}
+}
+
+// All python flags share one group; mixing with another group must fail.
+func TestConfigure_PythonCrossGroupFails(t *testing.T) {
+	celer := newInitializedCeler(t)
+	cmd := &configureCmd{}
+
+	stderr, err := runCommand(t, cmd.Command(celer),
+		"--python-version=3.10.12",
+		"--ccache-enabled=true",
+	)
+	if err == nil {
+		t.Fatal("expected error when flags from different groups are provided")
+	}
+	if !strings.Contains(stderr, "different groups") {
+		t.Fatalf("stderr should report cross-group violation, got:\n%s", stderr)
+	}
+}
+
+// All python flags in one command (same group) must succeed together.
+func TestConfigure_PythonGroupAllFlags(t *testing.T) {
+	celer := newInitializedCeler(t)
+	cmd := &configureCmd{}
+
+	if _, err := runCommand(t, cmd.Command(celer),
+		"--python-version=3.10.12",
+		"--python-index-url=https://pypi.example.com/simple",
+		"--python-extra-index-urls=https://pypi.internal/simple",
+		"--python-trusted-hosts=pypi.internal",
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	cfg := celer2.PythonConfig()
+	if cfg.GetVersion() != "3.10.12" {
+		t.Fatalf("version mismatch: %s", cfg.GetVersion())
+	}
+	if cfg.GetIndexUrl() != "https://pypi.example.com/simple" {
+		t.Fatalf("index url mismatch: %s", cfg.GetIndexUrl())
+	}
+	if len(cfg.GetExtraIndexUrls()) != 1 || cfg.GetExtraIndexUrls()[0] != "https://pypi.internal/simple" {
+		t.Fatalf("extra index urls mismatch: %v", cfg.GetExtraIndexUrls())
+	}
+	if len(cfg.GetTrustedHosts()) != 1 || cfg.GetTrustedHosts()[0] != "pypi.internal" {
+		t.Fatalf("trusted hosts mismatch: %v", cfg.GetTrustedHosts())
 	}
 }

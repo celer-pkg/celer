@@ -220,16 +220,6 @@ func (c *Celer) SetPkgCacheFSDir(dir string) error {
 		return errors.ErrPkgCacheDuplicated
 	}
 
-	// Enable all shared options when the first backend gets configured.
-	if c.configData.PkgCache.FS == nil {
-		c.configData.PkgCache.Options = pkgcache.Options{
-			Writable:  true,
-			Downloads: true,
-			Artifacts: true,
-			Repos:     true,
-		}
-	}
-
 	// Update fs dir.
 	if c.configData.PkgCache.FS == nil {
 		c.configData.PkgCache.FS = &pkgcache.FS{
@@ -262,16 +252,6 @@ func (c *Celer) SetPkgCacheMinio(host, accessKey, secretKey string) error {
 		return errors.ErrPkgCacheDuplicated
 	}
 
-	// Enable all shared options when the first backend gets configured.
-	if c.configData.PkgCache.Minio == nil {
-		c.configData.PkgCache.Options = pkgcache.Options{
-			Writable:  true,
-			Downloads: true,
-			Artifacts: true,
-			Repos:     true,
-		}
-	}
-
 	// Update minio config, empty value means unchanged.
 	if c.configData.PkgCache.Minio == nil {
 		c.configData.PkgCache.Minio = &pkgcache.Minio{}
@@ -299,9 +279,8 @@ func (c *Celer) SetPkgCacheMinio(host, accessKey, secretKey string) error {
 	return c.save()
 }
 
-// updatePkgCacheOptions applies set to the options shared by all pkgcache
-// backends; a backend (fs or minio) must be configured first.
-func (c *Celer) updatePkgCacheOptions(set func(options *pkgcache.Options)) error {
+// SetPkgCacheWritable turns writing into the shared cache on or off.
+func (c *Celer) SetPkgCacheWritable(writable bool) error {
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
@@ -310,37 +289,13 @@ func (c *Celer) updatePkgCacheOptions(set func(options *pkgcache.Options)) error
 		return errors.ErrPkgCacheNotConfigured
 	}
 
-	set(&c.configData.PkgCache.Options)
+	c.configData.PkgCache.Writable = &writable
 
 	// Refresh pkgcache config.
 	if err := c.initPkgCacheCaches(); err != nil {
 		return err
 	}
 	return c.save()
-}
-
-func (c *Celer) SetPkgCacheWritable(writable bool) error {
-	return c.updatePkgCacheOptions(func(options *pkgcache.Options) {
-		options.Writable = writable
-	})
-}
-
-func (c *Celer) SetPkgCacheCacheDownloads(cacheDownloads bool) error {
-	return c.updatePkgCacheOptions(func(options *pkgcache.Options) {
-		options.Downloads = cacheDownloads
-	})
-}
-
-func (c *Celer) SetPkgCacheCacheArtifacts(cacheArtifacts bool) error {
-	return c.updatePkgCacheOptions(func(options *pkgcache.Options) {
-		options.Artifacts = cacheArtifacts
-	})
-}
-
-func (c *Celer) SetPkgCacheCacheRepos(cacheRepos bool) error {
-	return c.updatePkgCacheOptions(func(options *pkgcache.Options) {
-		options.Repos = cacheRepos
-	})
 }
 
 func (c *Celer) SetProxyHost(host string) error {
@@ -507,6 +462,117 @@ func (c *Celer) SetCCacheRemoteOnly(remoteOnly bool) error {
 		c.configData.CCache.init()
 	}
 	c.configData.CCache.RemoteOnly = remoteOnly
+
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// validateIndexURL checks that a pip index URL carries a scheme and host,
+// the same shape requirement applied to --ccache-remote-storage. An empty
+// value is allowed (used to clear the setting).
+func validateIndexURL(raw string) error {
+	if raw == "" {
+		return nil
+	}
+	parsedURL, err := url.Parse(raw)
+	if err != nil {
+		return fmt.Errorf("invalid python index URL -> %w", err)
+	}
+	if parsedURL.Scheme == "" || parsedURL.Host == "" {
+		return fmt.Errorf("python index URL must contain scheme and host (e.g., https://pypi.example.com/simple)")
+	}
+	return nil
+}
+
+func (c *Celer) SetPythonVersion(version string) error {
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	if c.configData.Python == nil {
+		c.configData.Python = &Python{}
+	}
+	c.configData.Python.Version = strings.TrimSpace(version)
+
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Celer) SetPythonIndexUrl(indexUrl string) error {
+	indexUrl = strings.TrimSpace(indexUrl)
+	if err := validateIndexURL(indexUrl); err != nil {
+		return err
+	}
+
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	if c.configData.Python == nil {
+		c.configData.Python = &Python{}
+	}
+	c.configData.Python.IndexUrl = indexUrl
+
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Celer) SetPythonExtraIndexUrls(urls []string) error {
+	var cleaned []string
+	for _, raw := range urls {
+		raw = strings.TrimSpace(raw)
+		if raw == "" {
+			continue
+		}
+		if err := validateIndexURL(raw); err != nil {
+			return err
+		}
+		cleaned = append(cleaned, raw)
+	}
+
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	if c.configData.Python == nil {
+		c.configData.Python = &Python{}
+	}
+	c.configData.Python.ExtraIndexUrls = cleaned
+
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Celer) SetPythonTrustedHosts(hosts []string) error {
+	var cleaned []string
+	for _, raw := range hosts {
+		raw = strings.TrimSpace(raw)
+		if raw == "" {
+			continue
+		}
+		cleaned = append(cleaned, raw)
+	}
+
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	if c.configData.Python == nil {
+		c.configData.Python = &Python{}
+	}
+	c.configData.Python.TrustedHosts = cleaned
 
 	if err := c.save(); err != nil {
 		return err

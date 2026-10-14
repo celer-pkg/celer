@@ -35,16 +35,8 @@ type PortInfo struct {
 	Checksum    string
 }
 
-// ResolvePorts resolves each port's reference to a full commit hash or URL.
-func ResolvePorts(ports []PortInfo) []ResolvedRef {
-	results := make([]ResolvedRef, 0, len(ports))
-	for _, info := range ports {
-		results = append(results, resolvePort(info))
-	}
-	return results
-}
-
-func resolvePort(info PortInfo) ResolvedRef {
+// ResolvePort resolves one port's reference to a full commit hash or URL.
+func ResolvePort(info PortInfo) ResolvedRef {
 	result := ResolvedRef{
 		NameVersion: info.NameVersion,
 		Url:         info.Url,
@@ -75,6 +67,15 @@ func resolvePort(info PortInfo) ResolvedRef {
 	// Archive source: everything else.
 	result.SourceType = SourceArchive
 	return result
+}
+
+// ResolvePorts resolves each port's reference to a full commit hash or URL.
+func ResolvePorts(ports []PortInfo) []ResolvedRef {
+	results := make([]ResolvedRef, 0, len(ports))
+	for _, info := range ports {
+		results = append(results, ResolvePort(info))
+	}
+	return results
 }
 
 func resolveGitRef(info PortInfo) (string, error) {

@@ -37,7 +37,7 @@ func NewArtifactConfig(ctx context.Context, client *minio.Client) *ArtifactConfi
 			bucketName: bucketName,
 		},
 		cacheDir:   minioConfig.GetDir(pkgcache.DirArtifacts, ctx.Version()),
-		writable:   pkgCache.GetOptions().Writable,
+		writable:   pkgCache.IsWritable(),
 		maxRetries: 3,
 	}
 }
@@ -50,8 +50,18 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		return nil
 	}
 
+	// skip for not writable.
+	if !a.writable {
+		return nil
+	}
+
 	if !fileio.PathExists(packageDir) {
 		return fmt.Errorf("package dir does not exist: %s", packageDir)
+	}
+
+	// Create default bucket if not exist.
+	if err := a.CreateBucketIfNotExist(); err != nil {
+		return err
 	}
 
 	// Validate packageDir format and extract metadata.
@@ -104,7 +114,15 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		return fmt.Errorf("failed to write meta into file for '%s' -> %w", nameVersion, err)
 	}
 	if err := a.uploadSilent(tmpMetaPath, metaFilePath); err != nil {
-		return fmt.Errorf("failed to upload meta for '%s' to minio -> %w", nameVersion, err)
+		return fmt.Errorf("failed to upload meta for '%s' -> %w", nameVersion, err)
+	}
+
+	// Store never deletes: an entry that already exists under this key is
+	// replaced in place.
+	if info, err := a.GetFileInfo(remoteArtifactPath); err != nil {
+		return fmt.Errorf("failed to check cached artifact '%s' -> %w", remoteArtifactPath, err)
+	} else if info != nil {
+		logger.PrintWarning("======== cached artifact for %s exists, it will be overwritten by this build ========", nameVersion)
 	}
 
 	// Upload archive file with progress.
@@ -115,20 +133,38 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 	return nil
 }
 
-// Restore restores the cached package to package directory if cache hit.
-func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool, error) {
+// Exists reports whether the package of nameVersion under buildHash can be
+// restored from the cache. Both the archive and its metadata are required.
+func (a ArtifactConfig) Exists(nameVersion, buildHash string) (bool, error) {
 	// skip when offline.
 	if a.ctx.Offline() {
 		return false, nil
 	}
 
-	platformName := a.ctx.Platform().GetName()
-	projectName := a.ctx.Project().GetName()
-	buildType := a.ctx.BuildType()
+	remoteMetaPath, remoteArtifactPath := a.artifactPaths(nameVersion, buildHash)
+	remoteMetaInfo, err := a.GetFileInfo(remoteMetaPath)
+	if err != nil {
+		return false, fmt.Errorf("failed to get file object info '%s' -> %w", remoteMetaPath, err)
+	}
+	if remoteMetaInfo == nil {
+		return false, nil
+	}
 
-	remoteDir := filepath.Join(a.cacheDir, platformName, projectName, buildType, nameVersion)
-	remoteMetaFilePath := filepath.Join(remoteDir, "metas", buildHash+".meta")
-	remoteArtifactPath := filepath.Join(remoteDir, buildHash+".tar.gz")
+	remoteInfo, err := a.GetFileInfo(remoteArtifactPath)
+	if err != nil {
+		return false, fmt.Errorf("failed to get file info '%s' -> %w", remoteArtifactPath, err)
+	}
+	return remoteInfo != nil, nil
+}
+
+// Restore restores the cached package to package directory if cache hit.
+func (a ArtifactConfig) Restore(packageDir, nameVersion, buildsystem, buildHash string) (bool, error) {
+	// skip when offline.
+	if a.ctx.Offline() {
+		return false, nil
+	}
+
+	remoteMetaFilePath, remoteArtifactPath := a.artifactPaths(nameVersion, buildHash)
 
 	// Get file meta info and check if checksum matches.
 	remoteMetaInfo, err := a.GetFileInfo(remoteMetaFilePath)
@@ -146,7 +182,9 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 	// The meta is a tiny cache-metadata check downloaded silently; only the
 	// archive download below prints a done line.
 	if remoteMetaInfo == nil {
-		logger.PrintWarning("======== cached artifact for %s has no metadata, it'll build from source ========", nameVersion)
+		if buildsystem != "nobuild" {
+			logger.PrintWarning("======== cached artifact for %s has no metadata, it'll build from source ========", nameVersion)
+		}
 		return false, nil
 	}
 	tmpMetaFile, err := a.downloadSilent(localTmpDir, remoteMetaFilePath)
@@ -170,7 +208,7 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 		return false, fmt.Errorf("failed to get file info '%s' -> %w", remoteArtifactPath, err)
 	}
 	if remoteInfo == nil {
-		logger.PrintWarning("======== no artifact found for %s and it'll build from source ========", nameVersion)
+		logger.PrintWarning("======== no cached artifact for %s ========", nameVersion)
 		return false, nil
 	}
 
@@ -213,4 +251,9 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildHash string) (bool
 	}
 
 	return true, nil
+}
+
+func (a ArtifactConfig) artifactPaths(nameVersion, buildHash string) (metaPath, archivePath string) {
+	remoteDir := filepath.Join(a.cacheDir, a.ctx.Platform().GetName(), a.ctx.Project().GetName(), a.ctx.BuildType(), nameVersion)
+	return filepath.Join(remoteDir, "metas", buildHash+".meta"), filepath.Join(remoteDir, buildHash+".tar.gz")
 }

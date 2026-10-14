@@ -20,7 +20,7 @@ func TestDownloadRetrySuccess(t *testing.T) {
 
 	// Create downloader.
 	downloader := NewDownloader(server.URL+"/test.txt", "downloads")
-	downloader.WithArchive("text.txt")
+	downloader.SetArchive("text.txt")
 
 	client := &http.Client{}
 	downloaded, err := downloader.Start(client)
@@ -52,8 +52,8 @@ func TestDownloadRetryFailureCount(t *testing.T) {
 	// Create downloader.
 	maxRetries := 3
 	downloader := NewDownloader(server.URL+"/test.txt", "downloads")
-	downloader.WithArchive("text.txt")
-	downloader.WithMaxRetries(maxRetries)
+	downloader.SetArchive("text.txt")
+	downloader.SetMaxRetries(maxRetries)
 
 	client := &http.Client{}
 	_, err := downloader.Start(client)
@@ -90,7 +90,7 @@ func TestDownloadRetrySuccessAfterFailures(t *testing.T) {
 
 	// Create downloader.
 	downloader := NewDownloader(server.URL+"/test.txt", "downloads")
-	downloader.WithArchive("text.txt")
+	downloader.SetArchive("text.txt")
 
 	client := &http.Client{}
 	downloaded, err := downloader.Start(client)
@@ -126,8 +126,8 @@ func TestDownloadRetry404NotFound(t *testing.T) {
 	// Create downloader.
 	maxRetries := 3
 	downloader := NewDownloader(server.URL+"/missing.txt", "downloads")
-	downloader.WithArchive("missing.txt")
-	downloader.WithMaxRetries(maxRetries)
+	downloader.SetArchive("missing.txt")
+	downloader.SetMaxRetries(maxRetries)
 
 	client := &http.Client{}
 	_, err := downloader.Start(client)

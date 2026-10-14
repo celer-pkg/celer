@@ -72,7 +72,12 @@ func (c *Collector) collectRecursive(nameVersion string) error {
 // For git sources this is the checked-out commit hash. For archive sources this
 // is the archive sha-256.
 func (c *Collector) GetPortChecksum(port *configs.Port) (string, error) {
-	// For archive downloads (zip/tar), use the sha256 as checksum.
+	// For private repositories with fixed checksum, just use the specified value.
+	if port.Package.Checksum != "" {
+		return port.Package.Checksum, nil
+	}
+
+	// For archive downloads (zip/tar), use the sha256 of the downloaded archive.
 	if !strings.HasSuffix(port.Package.Url, ".git") {
 		archive := expr.If(port.Package.Archive != "", port.Package.Archive, filepath.Base(port.Package.Url))
 		filePath := filepath.Join(c.ctx.Downloads(), archive)
@@ -81,11 +86,6 @@ func (c *Collector) GetPortChecksum(port *configs.Port) (string, error) {
 			return "", fmt.Errorf("failed to get checksum of port's archive %s -> %w", port.NameVersion(), err)
 		}
 		return sha256, nil
-	}
-
-	// For private repositories with fixed checksum, just use the specified value.
-	if port.Package.Checksum != "" {
-		return port.Package.Checksum, nil
 	}
 
 	// For git repositories, read the actual commit from the cloned repo.

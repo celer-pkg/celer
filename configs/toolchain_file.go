@@ -111,6 +111,11 @@ func (c *Celer) GenerateToolchainFile() error {
 		return err
 	}
 
+	// Write the companion environment script (environment.sh / environment.bat).
+	if err := c.GenerateEnvironmentScript(); err != nil {
+		return fmt.Errorf("failed to generate environment script -> %w", err)
+	}
+
 	return nil
 }
 

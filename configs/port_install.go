@@ -17,15 +17,24 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type InstallPrefer int
+type InstallPrefer string
 
 const (
-	PreferNone InstallPrefer = iota
-	PreferSource
-	PreferPackage
-	PreferPkgCache
-	PreferDevCache
+	PreferSource   InstallPrefer = "source"
+	PreferPackage  InstallPrefer = "package"
+	PreferPkgCache InstallPrefer = "pkgcache"
+	PreferDevCache InstallPrefer = "devcache"
 )
+
+func ParseInstallPrefer(name string) (InstallPrefer, error) {
+	prefer := InstallPrefer(strings.ToLower(strings.TrimSpace(name)))
+	switch prefer {
+	case "", PreferSource, PreferPackage, PreferPkgCache, PreferDevCache:
+		return prefer, nil
+	default:
+		return "", fmt.Errorf("unsupported prefer '%q', expected 'source', 'package', 'pkgcache' or 'devcache'", name)
+	}
+}
 
 // Install install a port and tell me where it was installed from.
 func (p *Port) Install(options InstallOptions) (fromWhere string, retErr error) {
@@ -170,10 +179,8 @@ func (p *Port) Install(options InstallOptions) (fromWhere string, retErr error) 
 		}
 	}
 
-	// No config or explicit prebuilt-with-url -> treat as nobuild or prebuilt.
-	// Only for the default (PreferNone) path; explicit Prefer requests are
-	// handled by the switch below.
-	if options.Prefer == PreferNone && (len(p.BuildConfigs) == 0 ||
+	// Install from source for non-buildconfig case and prebuild case.
+	if options.Prefer == "" && (len(p.BuildConfigs) == 0 ||
 		(p.MatchedConfig.BuildSystem == "prebuilt" && p.MatchedConfig.Url != "")) {
 		if err := p.installFromSource(options); err != nil {
 			return "", err
@@ -185,7 +192,7 @@ func (p *Port) Install(options InstallOptions) (fromWhere string, retErr error) 
 		return "prebuilt", nil
 	}
 
-	// Strict single-path installs: for every Prefer value except PreferNone,
+	// Strict single-path installs: for every Prefer value except empty,
 	// only the requested path is attempted. If that path is unavailable the
 	// port is left uninstalled and fromWhere stays empty.
 	switch options.Prefer {
@@ -221,9 +228,15 @@ func (p *Port) Install(options InstallOptions) (fromWhere string, retErr error) 
 			return "devcache", nil
 		}
 		return "", nil
+
+	case "":
+		// The default chain below.
+
+	default:
+		return "", fmt.Errorf("unsupported prefer path %q, expected source, package, pkgcache or devcache", options.Prefer)
 	}
 
-	// PreferNone: default ordered fallback (package -> pkgcache -> devcache -> source).
+	// Default ordered fallback (package -> pkgcache -> devcache -> source).
 	// 1. Try to install from package.
 	if installed, err := p.installFromPackage(options); err != nil {
 		return "", err
@@ -333,12 +346,11 @@ func (p Port) Clone() error {
 			return err
 		}
 
-		// Ports with a checksum are expected to be restored from the artifact
-		// pkgcache during install (no source build needed).
-		if port.Package.Checksum == "" {
-			if err := port.Clone(); err != nil {
-				return err
-			}
+		// A dev/host dependency is built by every agent for itself: its artifact
+		// goes to the local devcache, never to the shared artifact pkgcache, so a
+		// pinned checksum cannot spare it the source.
+		if err := port.Clone(); err != nil {
+			return err
 		}
 	}
 
@@ -352,9 +364,12 @@ func (p Port) Clone() error {
 			return err
 		}
 
-		// Ports with a checksum are expected to be restored from the artifact
-		// pkgcache during install (no source build needed).
-		if port.Package.Checksum == "" {
+		// A port with a checksum outside the dev/host subtree is expected to be
+		// restored from the artifact pkgcache during install (no source build needed).
+		// A nobuild dependency produces no artifact to restore, so its source
+		// must always be cloned for the dependent to consume.
+		noBuild := port.MatchedConfig.BuildSystem == "nobuild"
+		if port.Package.Checksum == "" || p.DevDep || p.HostDep || noBuild {
 			if err := port.Clone(); err != nil {
 				return err
 			}
@@ -388,17 +403,26 @@ func (p Port) doInstallFromPkgCache(options InstallOptions) (bool, error) {
 		port.HostDep = p.HostDep
 		port.Parent = p.NameVersion()
 		port.installReport = p.installReport
+
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return false, err
 		}
-		if _, err := port.Install(options); err != nil {
+
+		// A nobuild dependency always has no artifact.
+		noBuild := port.MatchedConfig.BuildSystem == "nobuild"
+		if fromWhere, err := port.Install(options); err != nil {
 			return false, err
+		} else if options.Prefer == PreferPkgCache && fromWhere == "" && !noBuild {
+			// A dependency that is not in the cache is a hard failure in strict
+			// mode: the restored package would be incomplete otherwise.
+			// nobuild ports are source-only and legitimately have no artifact.
+			return false, fmt.Errorf("dependency %s is not available in pkgcache", nameVersion)
 		}
 		visitedPorts[key] = true
 	}
 
 	// Calculate buildhash.
-	buildhash, err := p.buildhash()
+	buildhash, err := p.BuildHash()
 	if err != nil {
 		return false, fmt.Errorf("failed to calculate buildhash -> %w", err)
 	}
@@ -406,7 +430,7 @@ func (p Port) doInstallFromPkgCache(options InstallOptions) (bool, error) {
 	// Read cache file and extract them to package dir.
 	artifactCache := p.ctx.PkgCache().GetArtifactCache()
 	if artifactCache != nil {
-		restored, err := artifactCache.Restore(p.PackageDir, p.NameVersion(), buildhash)
+		restored, err := artifactCache.Restore(p.PackageDir, p.NameVersion(), p.MatchedConfig.BuildSystem, buildhash)
 		if err != nil {
 			return false, fmt.Errorf("read cache with build hash: %s", err)
 		}
@@ -695,7 +719,7 @@ func (p *Port) doInstallFromDevCache(options InstallOptions) (bool, error) {
 	// Calculate buildhash.
 	// For dev deps the build meta contains the workspace
 	// dir (see GenPlatformTomlString), so the hash is workspace-specific.
-	buildhash, err := p.buildhash()
+	buildhash, err := p.BuildHash()
 	if err != nil {
 		return false, fmt.Errorf("failed to calculate build hash -> %w", err)
 	}
@@ -766,17 +790,10 @@ func (p *Port) doInstallFromSource() error {
 			return err
 		}
 
-		// Store package cache with meta file inside.
-		pkgCache := p.ctx.PkgCache()
-		if pkgCache != nil && pkgCache.GetOptions().Writable && (pkgCache.GetFS() != nil || pkgCache.GetMinio() != nil) {
-			if p.pkgCacheStoreSkippedReason == "" && !p.shouldSkipArtifactPkgCache() {
-				artifactCache := pkgCache.GetArtifactCache()
-				if artifactCache != nil {
-					if err := artifactCache.Store(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
-						return err
-					}
-				}
-			}
+		// Store package cache with meta file inside. `writable` only applies to
+		// storing: restoring an artifact stays allowed either way.
+		if err := p.tryStoreArtifact(metaData); err != nil {
+			return err
 		}
 
 		// Store hostDep/devDep into local dir to speed up re-building them
@@ -787,6 +804,47 @@ func (p *Port) doInstallFromSource() error {
 				return err
 			}
 		}
+	}
+
+	return nil
+}
+
+func (p *Port) tryStoreArtifact(metaData string) error {
+	// For prebuilt, its artifact is binary files,
+	// artifacts for different arch can not co-exist in artifact cache,
+	// so we ignore storing artifact for 'prebuilt'.
+	if p.MatchedConfig.BuildSystem == "prebuilt" {
+		return nil
+	}
+
+	// Check if pkgcache was configured and writable.
+	pkgCache := p.ctx.PkgCache()
+	if pkgCache == nil || !pkgCache.IsWritable() {
+		return nil
+	}
+
+	// One of FS and minio should be configured.
+	if pkgCache.GetFS() == nil && pkgCache.GetMinio() == nil {
+		return nil
+	}
+
+	// The reason to skip store may be "source is modified" and others.
+	if p.pkgCacheStoreSkippedReason != "" {
+		return nil
+	}
+
+	// Dev/host port should be skipped.
+	if p.shouldSkipArtifactPkgCache() {
+		return nil
+	}
+
+	// Check if artifact cache configured.
+	artifactCache := pkgCache.GetArtifactCache()
+	if artifactCache == nil {
+		return nil
+	}
+	if err := artifactCache.Store(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
+		return err
 	}
 
 	return nil
