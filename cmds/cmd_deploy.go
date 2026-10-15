@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -102,7 +103,17 @@ Examples:
 				// orchestrator of a distributed build schedules one job per node
 				// from this file.
 				if d.exportDag != "" {
-					return dag.Export(d.celer, d.force, d.exportDag)
+					if d.celer.Project().GetName() == "" {
+						err := errors.New("cannot read ports of current project")
+						return logger.PrintError(err, "no project has been configured in celer.toml")
+					}
+
+					roots := d.celer.Project().GetPorts()
+					if len(roots) == 0 {
+						err := errors.New("cannot read ports of current project")
+						return logger.PrintError(err, "no ports has been configured in %s.toml", d.celer.GetProjectName())
+					}
+					return dag.Export(d.celer, roots, d.force, d.exportDag)
 				}
 
 				if err := d.celer.Deploy(d.force, d.strip); err != nil {

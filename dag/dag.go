@@ -31,7 +31,10 @@ type localNode struct {
 // orchestrator (see deploy/jenkins/README.md).
 type Dag struct {
 	CelerVersion string            `json:"celer_version"`
+	ConfUrl      string            `json:"conf_url"`
 	ConfRef      string            `json:"conf_ref"`
+	PortsUrl     string            `json:"ports_url"`
+	PortsRef     string            `json:"ports_ref"`
 	Platform     string            `json:"platform"`
 	Project      string            `json:"project"`
 	BuildType    string            `json:"build_type"`
@@ -131,15 +134,36 @@ func requireConf() error {
 	return nil
 }
 
-// confRevision reads the revision of the workspace's conf repo, or refuses the workspace when it has none.
-func confRevision() (string, error) {
+// requirePorts refuses a workspace that has no ports repo.
+func requirePorts() error {
+	if !fileio.PathExists(filepath.Join(dirs.PortsDir, ".git")) {
+		return fmt.Errorf("no ports repo in the workspace: initialize it with 'celer init --url=<conf repo>' first")
+	}
+	return nil
+}
+
+// confRef report the commit hash of current conf repo.
+func confRef() (string, error) {
 	if err := requireConf(); err != nil {
 		return "", err
 	}
 
 	commit, err := git.GetCommitHash(dirs.ConfDir)
 	if err != nil {
-		return "", fmt.Errorf("failed to read the conf repo revision -> %w", err)
+		return "", fmt.Errorf("failed to read the conf repo commit hash -> %w", err)
+	}
+	return commit, nil
+}
+
+// portsRef report the commit hash of current ports repo.
+func portsRef() (string, error) {
+	if err := requirePorts(); err != nil {
+		return "", err
+	}
+
+	commit, err := git.GetCommitHash(dirs.PortsDir)
+	if err != nil {
+		return "", fmt.Errorf("failed to read the ports repo commit hash -> %w", err)
 	}
 	return commit, nil
 }

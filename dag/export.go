@@ -14,29 +14,23 @@ import (
 	"github.com/celer-pkg/celer/pkgs/logger"
 )
 
-// Export writes the build schedule of the current project to outPath as JSON, then Jenkins can read it to create build tasks.
-func Export(ctx context.Context, ignoreCache bool, outPath string) error {
-	dag, err := buildDag(ctx, ignoreCache)
+// Export writes the build schedule of the specified roots to outPath as JSON,
+// then orchestrator can read it to create build tasks.
+func Export(ctx context.Context, roots []string, ignoreCache bool, outPath string) error {
+	dag, err := buildDag(ctx, roots, ignoreCache)
 	if err != nil {
 		return fmt.Errorf("failed to build dag -> %w", err)
 	}
 	return writeDag(dag, outPath)
 }
 
-// buildDag schedule the build of the current project: it pins the whole closure, hashes every node of it.
-func buildDag(ctx context.Context, ignoreCache bool) (*Dag, error) {
-	if ctx.Project().GetName() == "" {
-		return nil, fmt.Errorf("no project has been configured in celer.toml")
+// buildDag schedule the build of specified roots: it pins the whole closure, hashes every node of it.
+func buildDag(ctx context.Context, roots []string, ignoreCache bool) (*Dag, error) {
+	confRef, err := confRef()
+	if err != nil {
+		return nil, err
 	}
-
-	roots := ctx.Project().GetPorts()
-	if len(roots) == 0 {
-		return nil, fmt.Errorf("project '%s' has no ports", ctx.Project().GetName())
-	}
-
-	// A schedule records the conf revision its port configs come from, so a workspace
-	// without a conf repo is refused here, before any ref is resolved.
-	confRef, err := confRevision()
+	portsRef, err := portsRef()
 	if err != nil {
 		return nil, err
 	}
@@ -56,12 +50,20 @@ func buildDag(ctx context.Context, ignoreCache bool) (*Dag, error) {
 		return nil, err
 	}
 
+	confUrl, err := ctx.ConfUrl()
+	if err != nil {
+		return nil, err
+	}
+
 	dag := Dag{
 		CelerVersion:   ctx.Version(),
+		ConfUrl:        confUrl,
+		ConfRef:        confRef,
+		PortsUrl:       "",
+		PortsRef:       portsRef,
 		Platform:       ctx.Platform().GetName(),
 		Project:        ctx.Project().GetName(),
 		BuildType:      ctx.BuildType(),
-		ConfRef:        confRef,
 		ScheduledNodes: scheduledNodes,
 		Cached:         cached,
 		LocalNodes:     localPins,

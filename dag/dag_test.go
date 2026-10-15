@@ -131,7 +131,7 @@ func TestDagRequiresConfRepo(t *testing.T) {
 	if err := (Dag{ConfRef: "abc"}).PinConf(); err == nil {
 		t.Fatal("PinConf() without a conf repo should fail")
 	}
-	if _, err := confRevision(); err == nil {
+	if _, err := confRef(); err == nil {
 		t.Fatal("confRevision() without a conf repo should fail")
 	}
 

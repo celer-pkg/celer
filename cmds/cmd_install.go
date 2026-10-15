@@ -23,12 +23,14 @@ type installCmd struct {
 	recursive      bool
 	cleanSource    bool
 	prefer         string
-	dag            string
 	jobs           int
 	verbose        bool
 	jobsChanged    bool
 	verboseChanged bool
-	dagInfo        *dag.DagInfo
+
+	exportDag string
+	applyDag  string
+	dagInfo   *dag.DagInfo
 }
 
 func (i *installCmd) Command(celer *configs.Celer) *cobra.Command {
@@ -59,7 +61,8 @@ FLAGS:
                      uncommitted changes).
       --prefer       Install from one path only: source, package, pkgcache or
                      devcache.
-      --dag          Install a node of the schedule from 'celer deploy --export-dag'.
+      --export-dag   Export the build DAG of a port.
+      --apply-dag    Install a node of the schedule from 'celer deploy --export-dag'.
   -r, --recursive    With --force, recursively reinstall dependencies
   -j, --jobs         Number of parallel build jobs (default: system cores)
   -v, --verbose      Enable verbose output for debugging
@@ -73,7 +76,9 @@ EXAMPLES:
   celer install --jobs=8 --verbose opencv@4.8.0
   celer install --prefer=pkgcache opencv@4.8.0  # restore only, fail on a miss
   celer install --prefer=source opencv@4.8.0    # build only, then store
-  celer install --dag=out/dag.json opencv@4.8.0 # follow an exported DAG`,
+  celer install --export-dag=out/dag.json opencv@4.8.0 # export DAG for a port
+  celer install --apply-dag=out/dag.json opencv@4.8.0 # follow an exported DAG
+  `,
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			i.jobsChanged = cmd.Flags().Changed("jobs")
@@ -90,9 +95,10 @@ EXAMPLES:
 	flags.BoolVarP(&i.recursive, "recursive", "r", false, "combine with --force, recursively reinstall dependencies.")
 	flags.BoolVarP(&i.cleanSource, "clean-source", "", false, "combine with --force, also reset the source repo (discards uncommitted changes).")
 	flags.StringVar(&i.prefer, "prefer", "", "install from one path only: source, package, pkgcache or devcache.")
-	flags.StringVar(&i.dag, "dag", "", "install a node of the schedule from 'celer deploy --export-dag'.")
 	flags.IntVarP(&i.jobs, "jobs", "j", i.celer.Jobs(), "the number of jobs to run in parallel.")
 	flags.BoolVarP(&i.verbose, "verbose", "v", false, "verbose detail information.")
+	flags.StringVar(&i.exportDag, "export-dag", "", "export a build DAG of a port.")
+	flags.StringVar(&i.applyDag, "apply-dag", "", "install a port with a DAG.")
 
 	// Silence cobra's error and usage output to avoid duplicate messages.
 	command.SilenceErrors = true
@@ -102,35 +108,37 @@ EXAMPLES:
 
 func (i *installCmd) runInstall(nameVersions []string) error {
 	// Validate and clean input before initialization so input errors are reported first.
-	cleanedNameVersions := make([]string, 0, len(nameVersions))
+	roots := make([]string, 0, len(nameVersions))
 	for _, nameVersion := range nameVersions {
-		cleanedNameVersion, err := i.validateAndCleanInput(nameVersion)
+		port, err := i.validateAndClean(nameVersion)
 		if err != nil {
 			return logger.PrintError(err, "invalid package specification: %s", nameVersion)
 		}
-		cleanedNameVersions = append(cleanedNameVersions, cleanedNameVersion)
-	}
-
-	// A schedule carries the workspace it was exported for: adopt it before celer is
-	// initialized, so the toolchain, the devcache, the expression variables and
-	// every cache key below are derived from the schedule instead of celer.toml.
-	if i.dag != "" {
-		schedule, err := dag.Import(i.celer, i.dag)
-		if err != nil {
-			return logger.PrintError(err, "failed to read the build schedule %s.", i.dag)
-		}
-		i.dagInfo = schedule
-		i.prefer = string(configs.PreferSource)
-		i.cleanSource = true
-		i.force = true
+		roots = append(roots, port)
 	}
 
 	if err := i.celer.Init(); err != nil {
 		return logger.PrintError(err, "failed to initialize celer.")
 	}
 
+	// Export Dag: Instead of installation, celer export a DAG of ports that you want to install.
+	// Apply Dag: Set build params that defined in DAG.
+	if i.exportDag != "" {
+		return dag.Export(i.celer, roots, i.force, i.exportDag)
+	} else if i.applyDag != "" {
+		dagInfo, err := dag.Import(i.celer, i.applyDag)
+		if err != nil {
+			return logger.PrintError(err, "failed to read the build DAG %s.", i.applyDag)
+		}
+		i.dagInfo = dagInfo
+		i.prefer = string(configs.PreferSource)
+		i.cleanSource = true
+		i.force = true
+	}
+
 	// Check git first as it's needed for cloning and reading commit hashes,
-	// and must check tool after celer initialized, since "downloads" will be assign value after init.
+	// and must check tool after celer initialized, since "downloads" will
+	// be assign value after init.
 	if err := buildtools.CheckTools(i.celer, "git"); err != nil {
 		return logger.PrintError(err, "failed to check build tool: git")
 	}
@@ -140,17 +148,16 @@ func (i *installCmd) runInstall(nameVersions []string) error {
 	}
 
 	// Install port one by one.
-	for _, nameVersion := range cleanedNameVersions {
+	for _, nameVersion := range roots {
 		if err := i.install(nameVersion); err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 
-// validateAndCleanInput validates and cleans the package name@version input.
-func (i *installCmd) validateAndCleanInput(nameVersion string) (string, error) {
+// validateAndClean validates and cleans the package name@version input.
+func (i *installCmd) validateAndClean(nameVersion string) (string, error) {
 	if strings.TrimSpace(nameVersion) == "" {
 		return "", fmt.Errorf("package name cannot be empty")
 	}
@@ -200,13 +207,13 @@ func (i *installCmd) install(nameVersion string) error {
 		expected, ok := i.dagInfo.DagHashes[nameVersion]
 		if !ok {
 			if i.dagInfo.DagCached[nameVersion] {
-				return logger.PrintError(fmt.Errorf("%s is already in the pkgcache, it is not scheduled in %s", nameVersion, i.dag),
+				return logger.PrintError(fmt.Errorf("%s is already in the pkgcache, it is not scheduled in %s", nameVersion, i.applyDag),
 					"failed to install %s", nameVersion)
 			}
-			return logger.PrintError(fmt.Errorf("%s is not part of %s", nameVersion, i.dag),
+			return logger.PrintError(fmt.Errorf("%s is not part of %s", nameVersion, i.applyDag),
 				"failed to install %s", nameVersion)
 		}
-		expect.DagPath = i.dag
+		expect.DagPath = i.applyDag
 		expect.BuildHash = expected
 	}
 
@@ -282,6 +289,8 @@ func (i *installCmd) completion(cmd *cobra.Command, args []string, toComplete st
 		"--recursive", "-r",
 		"--jobs", "-j",
 		"--verbose", "-v",
+		"--export-dag",
+		"--apply-dag",
 	}
 
 	for _, flag := range commands {

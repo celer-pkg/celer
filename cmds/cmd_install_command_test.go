@@ -165,7 +165,7 @@ func TestInstallCmd_ValidateAndCleanInput(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := installCmd.validateAndCleanInput(test.input)
+			result, err := installCmd.validateAndClean(test.input)
 
 			if test.expectError {
 				if err == nil {
@@ -387,7 +387,7 @@ func TestInstallCmd_ErrorHandling(t *testing.T) {
 	installCmd := &installCmd{}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			_, err := installCmd.validateAndCleanInput(test.input)
+			_, err := installCmd.validateAndClean(test.input)
 			if err == nil {
 				t.Errorf("Expected error for input '%s' but got none", test.input)
 				return

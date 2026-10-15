@@ -68,7 +68,7 @@ type Celer struct {
 }
 
 type Main struct {
-	ConfRepo  string `toml:"conf_repo"`
+	ConfUrl   string `toml:"conf_url"`
 	Platform  string `toml:"platform"`
 	Project   string `toml:"project"`
 	BuildType string `toml:"build_type"`
@@ -457,7 +457,7 @@ func (c *Celer) CloneConf(url, branch string, force bool) error {
 			return err
 		}
 
-		c.Main.ConfRepo = url
+		c.Main.ConfUrl = url
 		if err := c.save(); err != nil {
 			return err
 		}
