@@ -56,14 +56,14 @@ func (i *initCmd) doInit() error {
 	i.url = strings.TrimSpace(i.url)
 	i.branch = strings.TrimSpace(i.branch)
 
-	// Initialize celer configuration.
+	// Initialize celer conf.
 	if err := i.celer.Init(); err != nil {
 		return logger.PrintError(err, "Failed to initialize celer.")
 	}
 
-	// Setup configuration repository.
+	// Setup conf repository.
 	if err := i.celer.CloneConf(i.url, i.branch, i.force); err != nil {
-		return logger.PrintError(err, "Failed to setup configuration repository.")
+		return logger.PrintError(err, "Failed to setup conf repository.")
 	}
 
 	if i.branch != "" {

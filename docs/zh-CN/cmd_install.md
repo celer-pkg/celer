@@ -29,6 +29,8 @@ celer install <name@version> [<name@version> ...] [flags]
 | --dev         | -d   | 布尔   | 作为开发依赖安装                      |
 | --force       | -f   | 布尔   | 强制重装（如已安装则先移除）          |
 | --clean-source|      | 布尔   | 配合 `--force`，同时重置源码仓库（丢弃未提交改动） |
+| --prefer      |      | 字符串 | 只走一条安装路径（`source`/`package`/`pkgcache`/`devcache`），不回退；未命中即失败 |
+| --dag         |      | 字符串 | 按 `celer deploy --export-dag` 导出的 DAG 构建：采用其中的 platform/project/build type，钉住所有源码 revision，并校验 build hash |
 | --recursive   | -r   | 布尔   | 结合重装语义，递归处理依赖            |
 | --jobs        | -j   | 整数   | 并行构建任务数                        |
 | --verbose     | -v   | 布尔   | 输出详细日志                          |
@@ -50,6 +52,15 @@ celer install ffmpeg@5.1.6 --force --recursive
 
 # 强制重装并重置源码仓库（会丢弃本地改动）
 celer install ffmpeg@5.1.6 --force --clean-source
+
+# 只从共享缓存恢复（CI 消费者节点）
+celer install ffmpeg@5.1.6 --prefer=pkgcache
+
+# 只从源码编译，然后上传制品（CI 构建节点）
+celer install ffmpeg@5.1.6 --prefer=source
+
+# 按导出的构建 DAG 构建（钉住所有源码 revision）
+celer install ffmpeg@5.1.6 --dag=out/dag.json
 
 # 指定并行数
 celer install ffmpeg@5.1.6 --jobs=8

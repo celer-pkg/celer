@@ -166,14 +166,21 @@ Examples:
 				return logger.PrintError(err, "please run `celer init` first.")
 			}
 
-			// Init celer with options, allow skip platform or project
-			// not found when configure platform or project.
 			var initOpt configs.InitOption
+
+			// Allow skip platform or project not found when configure it.
 			if flags.Changed("platform") || flags.Changed("project") {
 				initOpt.SkipPlatform = true
 				initOpt.SkipProject = true
 			}
 
+			if flags.Changed("pkgcache-fs-dir") ||
+				flags.Changed("pkgcache-minio-host") ||
+				flags.Changed("pkgcache-minio-access-key") ||
+				flags.Changed("pkgcache-minio-secret-key") ||
+				flags.Changed("pkgcache-writable") {
+				initOpt.SkipPkgCache = true
+			}
 			if err := c.celer.InitWithOptions(initOpt); err != nil {
 				return fmt.Errorf("failed to init celer -> %w", err)
 			}

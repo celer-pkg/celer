@@ -15,6 +15,7 @@ import (
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
+	"github.com/celer-pkg/celer/pkgs/refs"
 
 	"github.com/BurntSushi/toml"
 )
@@ -40,39 +41,44 @@ var (
 // ResetMetaCache clears all metadata caches. Called at the start of each celer
 // command to avoid stale data across invocations.
 func ResetMetaCache() {
-	buildMetaCache.Range(func(k, v any) bool {
-		buildMetaCache.Delete(k)
-		return true
-	})
-	portTomlCache.Range(func(k, v any) bool {
-		portTomlCache.Delete(k)
-		return true
-	})
-	commitHashCache.Range(func(k, v any) bool {
-		commitHashCache.Delete(k)
-		return true
-	})
-	buildConfigCache.Range(func(k, v any) bool {
-		buildConfigCache.Delete(k)
-		return true
-	})
-	hostSupportedCache.Range(func(k, v any) bool {
-		hostSupportedCache.Delete(k)
-		return true
-	})
-
-	// Also clear the pkgcache-level buildMeta cache (the recursive one inside
-	// metadata.go that caches per nameVersion|native).
+	buildMetaCache.Clear()
+	portTomlCache.Clear()
+	commitHashCache.Clear()
+	buildConfigCache.Clear()
+	hostSupportedCache.Clear()
 	meta.ResetMetaCache()
 }
 
-func (p Port) buildhash() (string, error) {
+// BuildHash returns the pkgcache build hash of this port: the sha-256 of its
+// recursive meta.
+func (p Port) BuildHash() (string, error) {
 	metaData, err := p.buildMeta()
 	if err != nil {
 		return "", err
 	}
 
 	return p.meta2hash(metaData), nil
+}
+
+// ResolveSource returns the immutable source identity that the build hash binds this
+// port to: its own configured checksum when present, otherwise the commit of its
+// ref as advertised by the remote (annotated tags are peeled), which needs no clone.
+func (p Port) ResolveSource() (string, error) {
+	if p.Package.Checksum != "" {
+		return p.Package.Checksum, nil
+	}
+
+	// Resolve against the remote: no clone, and no stale local HEAD.
+	resolved := refs.ResolvePort(refs.PortInfo{
+		NameVersion: p.NameVersion(),
+		Url:         p.Package.Url,
+		Ref:         p.Package.Ref,
+	})
+	if resolved.ResolvedCommit != "" {
+		return resolved.ResolvedCommit, nil
+	}
+
+	return p.GetCommitHash(p.NameVersion(), p.DevDep || p.HostDep)
 }
 
 func (p Port) meta2hash(metaData string) string {
@@ -160,9 +166,7 @@ func (p Port) GenPortTomlString(nameVersion string, devDep bool) (string, error)
 	port.BuildConfigs = []buildsystems.BuildConfig{*matchedConfig}
 
 	// Resolve the source to an immutable value for metadata.
-	// Prefer the port's own configured checksum; otherwise resolve the commit
-	// (which may lazily clone/download the source). Using the port's own
-	// checksum avoids a lazy Clone for cached deps during pre-warm.
+	// Prefer the port's own configured checksum; otherwise resolve the commit.
 	if port.Package.Checksum != "" {
 		port.Package.Ref = port.Package.Checksum
 	} else {

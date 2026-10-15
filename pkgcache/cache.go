@@ -28,7 +28,7 @@ const (
 
 // FS is the config for the fs backend of pkgcache.
 type FS struct {
-	Dir string `toml:"dir"`
+	Dir string `toml:"dir" json:"dir"`
 }
 
 func (f FS) Validate() error {
@@ -61,9 +61,9 @@ func (f FS) GetDir(dirType DirType, version string) string {
 
 // Minio is the config for the minio backend of pkgcache.
 type Minio struct {
-	Host      string `toml:"host"`
-	AccessKey string `toml:"access_key"`
-	SecretKey string `toml:"secret_key"`
+	Host      string `toml:"host" json:"host"`
+	AccessKey string `toml:"access_key" json:"access_key"`
+	SecretKey string `toml:"secret_key" json:"secret_key"`
 }
 
 func (m Minio) Validate() error {
@@ -119,7 +119,8 @@ type PkgCache interface {
 
 // AritifactCache stores/restores a port's built package, keyed by name@version + build hash.
 type AritifactCache interface {
-	Restore(packageDir, nameVersion, buildhash string) (bool, error)
+	Exists(nameVersion, buildhash string) (bool, error)
+	Restore(packageDir, nameVersion, buildsystem, buildhash string) (bool, error)
 	Store(packageDir, metadata string) error
 }
 

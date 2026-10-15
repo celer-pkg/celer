@@ -12,9 +12,9 @@ import (
 // ================= PkgCache ================= //
 
 type PkgCache struct {
-	Writable *bool           `toml:"writable,omitempty"`
-	Minio    *pkgcache.Minio `toml:"minio,omitempty"`
-	FS       *pkgcache.FS    `toml:"fs,omitempty"`
+	Writable *bool           `toml:"writable,omitempty" json:"writable,omitempty"`
+	Minio    *pkgcache.Minio `toml:"minio,omitempty" json:"minio,omitempty"`
+	FS       *pkgcache.FS    `toml:"fs,omitempty" json:"fs,omitempty"`
 
 	// Internal field.
 	artifactCache    pkgcache.AritifactCache

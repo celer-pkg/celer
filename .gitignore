@@ -24,3 +24,4 @@ celer
 celer.toml
 environment.sh
 environment.bat
+dag.json

@@ -443,7 +443,7 @@ func TestInstall_PkgCache_With_Commit_Missing_FallsBackToSource(t *testing.T) {
 		t.Fatal("should not be installed from missing artifact cache")
 	}
 
-	options.Prefer = configs.PreferNone
+	options.Prefer = "" // Reset 'prefer', so that it can try install from default prefer chain.
 	installedFrom, err := port.Install(options)
 	check(err)
 	if installedFrom != "source" {

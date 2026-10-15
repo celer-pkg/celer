@@ -20,13 +20,9 @@ type metaResult struct {
 	err  error
 }
 
-// ResetMetaCache clears the pkgcache-level buildMeta cache. Called alongside
-// configs.ResetMetaCache at the start of each celer command.
+// ResetMetaCache clears the pkgcache-level buildMeta cache.
 func ResetMetaCache() {
-	metaCache.Range(func(k, v any) bool {
-		metaCache.Delete(k)
-		return true
-	})
+	metaCache.Clear()
 }
 
 type portType int
