@@ -18,6 +18,8 @@ import (
 type fakeContext struct{}
 
 func (f fakeContext) Version() string                        { return "test" }
+func (f fakeContext) ConfUrlRef() (string, string, error)    { return "", "", nil }
+func (f fakeContext) PortsUrlRef() (string, string, error)   { return "", "", nil }
 func (f fakeContext) Platform() context.Platform             { return nil }
 func (f fakeContext) RootFS() context.RootFS                 { return nil }
 func (f fakeContext) Project() context.Project               { return nil }

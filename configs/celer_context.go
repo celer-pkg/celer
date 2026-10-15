@@ -24,44 +24,56 @@ func (c *Celer) Version() string {
 	return Version
 }
 
-func (c *Celer) ConfUrl() (string, error) {
-	url, err := git.GetRepoUrl(dirs.ConfDir)
-	if err != nil {
-		return "", fmt.Errorf("cannot get ports repo url -> %w", err)
-	}
-	return url, nil
-}
-
-func (c *Celer) ConfRef() (string, error) {
+func (c *Celer) ConfUrlRef() (string, string, error) {
 	if !fileio.PathExists(filepath.Join(dirs.ConfDir, ".git")) {
-		return "", fmt.Errorf("no conf repo in the workspace: initialize it with 'celer init --url=<conf repo>' first")
+		return "", "", fmt.Errorf("no conf repo in the workspace: initialize it with 'celer init --url=<conf repo>' first")
 	}
 
-	commit, err := git.GetCommitHash(dirs.ConfDir)
+	// Read conf repo repoUrl.
+	repoUrl, err := git.GetRepoUrl(dirs.ConfDir)
 	if err != nil {
-		return "", fmt.Errorf("failed to read the conf repo commit hash -> %w", err)
+		return "", "", fmt.Errorf("cannot get ports repo url -> %w", err)
 	}
-	return commit, nil
+
+	// Get current branch of conf repo.
+	currentBranch, err := git.GetCurrentBranch(dirs.ConfDir)
+	if err != nil {
+		return "", "", fmt.Errorf("cannot get current branch of %s", dirs.ConfDir)
+	}
+
+	// Read current commit hash of conf repo.
+	commit, err := git.GetRemoteRefCommit("conf", repoUrl, currentBranch)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to read the conf repo commit hash -> %w", err)
+	}
+
+	return repoUrl, commit, nil
 }
 
-func (c *Celer) PortsUrl() (string, error) {
-	url, err := git.GetRepoUrl(dirs.PortsDir)
-	if err != nil {
-		return "", fmt.Errorf("cannot get ports repo url -> %w", err)
-	}
-	return url, nil
-}
-
-func (c *Celer) PortsRef() (string, error) {
+func (c *Celer) PortsUrlRef() (string, string, error) {
 	if !fileio.PathExists(filepath.Join(dirs.PortsDir, ".git")) {
-		return "", fmt.Errorf("no ports repo in the workspace: initialize it with 'celer init --url=<conf repo>' first")
+		return "", "", fmt.Errorf("no ports repo in the workspace: initialize it with 'celer init --url=<conf repo>' first")
 	}
 
-	commit, err := git.GetCommitHash(dirs.PortsDir)
+	// Read ports repo repoUrl.
+	repoUrl, err := git.GetRepoUrl(dirs.PortsDir)
 	if err != nil {
-		return "", fmt.Errorf("failed to read the ports repo commit hash -> %w", err)
+		return "", "", fmt.Errorf("cannot get ports repo url -> %w", err)
 	}
-	return commit, nil
+
+	// Get current branch of ports repo.
+	currentBranch, err := git.GetCurrentBranch(dirs.PortsDir)
+	if err != nil {
+		return "", "", fmt.Errorf("cannot get current branch of %s", dirs.PortsDir)
+	}
+
+	// Read current commit hash of ports repo.
+	commit, err := git.GetRemoteRefCommit("ports", repoUrl, currentBranch)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to read the ports repo commit hash -> %w", err)
+	}
+
+	return repoUrl, commit, nil
 }
 
 func (c *Celer) Platform() context.Platform {

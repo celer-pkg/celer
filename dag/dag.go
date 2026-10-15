@@ -62,9 +62,10 @@ func (d Dag) PinConf() error {
 	if d.ConfRef == "" {
 		return fmt.Errorf("conf ref is empty")
 	}
-	if err := requireConf(); err != nil {
-		return err
+	if !fileio.PathExists(filepath.Join(dirs.ConfDir, ".git")) {
+		return fmt.Errorf("no conf repo in the workspace: initialize it with 'celer init --url=<conf repo>' first")
 	}
+
 	modified, err := git.IsModified(dirs.ConfDir)
 	if err != nil {
 		return fmt.Errorf("failed to inspect the conf repo -> %w", err)
@@ -124,46 +125,4 @@ func (d Dag) DagCached() map[string]bool {
 		cached[nameVersion] = true
 	}
 	return cached
-}
-
-// requireConf refuses a workspace that has no conf repo.
-func requireConf() error {
-	if !fileio.PathExists(filepath.Join(dirs.ConfDir, ".git")) {
-		return fmt.Errorf("no conf repo in the workspace: initialize it with 'celer init --url=<conf repo>' first")
-	}
-	return nil
-}
-
-// requirePorts refuses a workspace that has no ports repo.
-func requirePorts() error {
-	if !fileio.PathExists(filepath.Join(dirs.PortsDir, ".git")) {
-		return fmt.Errorf("no ports repo in the workspace: initialize it with 'celer init --url=<conf repo>' first")
-	}
-	return nil
-}
-
-// confRef report the commit hash of current conf repo.
-func confRef() (string, error) {
-	if err := requireConf(); err != nil {
-		return "", err
-	}
-
-	commit, err := git.GetCommitHash(dirs.ConfDir)
-	if err != nil {
-		return "", fmt.Errorf("failed to read the conf repo commit hash -> %w", err)
-	}
-	return commit, nil
-}
-
-// portsRef report the commit hash of current ports repo.
-func portsRef() (string, error) {
-	if err := requirePorts(); err != nil {
-		return "", err
-	}
-
-	commit, err := git.GetCommitHash(dirs.PortsDir)
-	if err != nil {
-		return "", fmt.Errorf("failed to read the ports repo commit hash -> %w", err)
-	}
-	return commit, nil
 }

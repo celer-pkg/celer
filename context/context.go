@@ -11,10 +11,8 @@ import (
 // settings, caches, toolchain) to build components, decoupling them from Celer.
 type Context interface {
 	Version() string
-	ConfUrl() (string, error)
-	ConfRef() (string, error)
-	PortsUrl() (string, error)
-	PortsRef() (string, error)
+	ConfUrlRef() (string, string, error)
+	PortsUrlRef() (string, string, error)
 	Platform() Platform
 	RootFS() RootFS
 	Project() Project

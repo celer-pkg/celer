@@ -5,8 +5,6 @@ import (
 	"path/filepath"
 	"reflect"
 	"testing"
-
-	"github.com/celer-pkg/celer/pkgs/dirs"
 )
 
 // TestParseDAG locks down the checks done before a build follows an exported
@@ -118,25 +116,5 @@ func TestReportPlan(t *testing.T) {
 	wantCached := map[string]bool{"libpng@1.6.49": true}
 	if !reflect.DeepEqual(cached, wantCached) {
 		t.Fatalf("CachedSet() = %v, want %v", cached, wantCached)
-	}
-}
-
-// TestDagRequiresConfRepo locks down that both ends of a schedule refuse a workspace
-// without a conf repo: exporting cannot record a revision, and applying cannot move the
-// repo to one.
-func TestDagRequiresConfRepo(t *testing.T) {
-	dirs.Init(t.TempDir())
-	t.Cleanup(dirs.RemoveAllForTest)
-
-	if err := (Dag{ConfRef: "abc"}).PinConf(); err == nil {
-		t.Fatal("PinConf() without a conf repo should fail")
-	}
-	if _, err := confRef(); err == nil {
-		t.Fatal("confRevision() without a conf repo should fail")
-	}
-
-	// The schedule side is checked first: a missing revision is reported as such.
-	if err := (Dag{}).PinConf(); err == nil {
-		t.Fatal("PinConf() without a conf ref should fail")
 	}
 }

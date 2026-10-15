@@ -26,11 +26,11 @@ func Export(ctx context.Context, roots []string, ignoreCache bool, outPath strin
 
 // buildDag schedule the build of specified roots: it pins the whole closure, hashes every node of it.
 func buildDag(ctx context.Context, roots []string, ignoreCache bool) (*Dag, error) {
-	confRef, err := confRef()
+	confUrl, confRef, err := ctx.ConfUrlRef()
 	if err != nil {
 		return nil, err
 	}
-	portsRef, err := portsRef()
+	portsUrl, portsRef, err := ctx.PortsUrlRef()
 	if err != nil {
 		return nil, err
 	}
@@ -50,16 +50,11 @@ func buildDag(ctx context.Context, roots []string, ignoreCache bool) (*Dag, erro
 		return nil, err
 	}
 
-	confUrl, err := ctx.ConfUrl()
-	if err != nil {
-		return nil, err
-	}
-
 	dag := Dag{
 		CelerVersion:   ctx.Version(),
 		ConfUrl:        confUrl,
 		ConfRef:        confRef,
-		PortsUrl:       "",
+		PortsUrl:       portsUrl,
 		PortsRef:       portsRef,
 		Platform:       ctx.Platform().GetName(),
 		Project:        ctx.Project().GetName(),
