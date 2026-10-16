@@ -5,7 +5,7 @@ def execute(String cmd) {
     if (isUnix()) {
         sh "${cmd}"
     } else {
-        bat "${args}"
+        bat "${cmd}"
     }
 }
 

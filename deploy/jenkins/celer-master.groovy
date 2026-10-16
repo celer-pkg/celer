@@ -1,13 +1,24 @@
-// Master job: export the build schedule, then run one job per scheduled node, each as
-// soon as its own dependencies are done.
+// Master job: export the build schedule (for the whole project with `deploy`, or a
+// single port with `install`), then run one job per scheduled node, each as soon as
+// its own dependencies are done.
 
 // Run command on either a POSIX or a Windows agent (sh vs bat).
-def execute(String cmd) {
+def run(String cmd) {
     if (isUnix()) {
         sh "${cmd}"
     } else {
-        bat "${args}"
+        bat "${cmd}"
     }
+}
+
+// Build `celer <deploy|install> --<dagFlag>=dag.json [port]` for the configured mode:
+// an empty CELER_PORT deploys the whole project, a port installs that single port.
+def dagCommand(String dagFlag) {
+    def cmd = "celer ${params.CELER_PORT ? 'install' : 'deploy'} ${dagFlag}=dag.json"
+    if (params.CELER_PORT) {
+        cmd += " '${params.CELER_PORT}'"
+    }
+    return cmd
 }
 
 // Clean tmp files except buildtrees to reuse repo sources.
@@ -43,11 +54,12 @@ pipeline {
     }
 
     parameters {
-        booleanParam(name: 'CELER_IGNORE_PKGCACHE', defaultValue: false, description: 'Ignore pkgcache cache - [optional]')
         string(name: 'CELER_CONF_URL', defaultValue: 'https://github.com/celer-pkg/test-conf.git', description: 'The git repo url of celer workspace- [mandatory]', trim: true)
         string(name: 'CELER_CONF_BRANCH', defaultValue: 'master', description: 'The git branch of conf repo - [optional]', trim: true)
         string(name: 'CELER_PLATFORM', defaultValue: 'aarch64-linux-ubuntu-22.04-gcc-11.5.0', description: 'The platform of celer workspace - [mandatory]', trim: true)
         string(name: 'CELER_PROJECT', defaultValue: 'project_test_01', description: 'The project of celer workspace - [mandatory]', trim: true)
+        string(name: 'CELER_PORT', defaultValue: '', description: 'A port (name@version) to install; leave empty to deploy the whole project - [optional]', trim: true)
+        booleanParam(name: 'CELER_FORCE', defaultValue: false, description: 'Ignore pkgcache cache - [optional]')
 
         // ======== fs and minio backends are mutually exclusive ======== // 
 
@@ -79,24 +91,24 @@ pipeline {
 
                     // The conf branch defaults to master.
                     def confBranch = params.CELER_CONF_BRANCH ?: 'master'
-                    execute "celer init --url=${params.CELER_CONF_URL} --branch=${confBranch}"
-                    execute "celer configure --platform=${params.CELER_PLATFORM}"
-                    execute "celer configure --project=${params.CELER_PROJECT}"
+                    run "celer init --url=${params.CELER_CONF_URL} --branch=${confBranch}"
+                    run "celer configure --platform=${params.CELER_PLATFORM}"
+                    run "celer configure --project=${params.CELER_PROJECT}"
 
                     if (params.CELER_PKGCACHE_MINIO_HOST && params.CELER_PKGCACHE_ACCESS_KEY && params.CELER_PKGCACHE_SECRET_KEY) {
-                        execute "celer configure " +
+                        run "celer configure " +
                             "--pkgcache-minio-host=${params.CELER_PKGCACHE_MINIO_HOST} " +
                             "--pkgcache-minio-access-key=${params.CELER_PKGCACHE_ACCESS_KEY} " +
                             "--pkgcache-minio-secret-key=${params.CELER_PKGCACHE_SECRET_KEY}"
                     } else if (params.CELER_PKGCACHE_FS_DIR) {
-                        execute "celer configure --pkgcache-fs-dir=${params.CELER_PKGCACHE_FS_DIR}"
+                        run "celer configure --pkgcache-fs-dir=${params.CELER_PKGCACHE_FS_DIR}"
                     }
 
-                    if (params.CELER_IGNORE_PKGCACHE) {
-                        execute 'celer deploy --export-dag=dag.json --force'
-                    } else {
-                        execute 'celer deploy --export-dag=dag.json'
+                    def exportCmd = dagCommand('--export-dag')
+                    if (params.CELER_FORCE) {
+                        exportCmd += ' --force'
                     }
+                    run exportCmd
                 }
 
                 // Every node job runs on its own agent and needs the dag json file.
@@ -163,11 +175,12 @@ pipeline {
             }
         }
 
-        stage('deploy with dag') {
+        stage('apply the schedule dag') {
             steps {
                 script {
-                    // Collects the artifacts of all nodes.
-                    execute 'celer deploy --apply-dag=dag.json'
+                    // Collects the artifacts of all nodes (deploy), or installs the
+                    // requested port from them (install).
+                    run dagCommand('--apply-dag')
                 }
             }
         }

@@ -5,6 +5,12 @@ project; this directory holds the Jenkins side that turns that schedule into one
 per node, wired by the schedule's own dependency edges, and then collects the artifacts
 back with `celer deploy --apply-dag=dag.json`.
 
+The master job also drives a single port: set `CELER_PORT` to a `name@version` to export
+and apply with `celer install --export-dag=dag.json <port>` /
+`celer install --apply-dag=dag.json <port>`; leave it empty to deploy the whole project.
+Everything else (the node jobs, the dependency edges, the pkgcache collection) is
+identical.
+
 | File | Jenkins job | Purpose |
 |------|-------------|---------|
 | `celer-master.groovy` | `celer-master` | Master: exports the schedule, starts each scheduled node once its own dependencies are done, then collects the artifacts. |
@@ -24,32 +30,22 @@ back with `celer deploy --apply-dag=dag.json`.
 
 ## The master job
 
-- One branch per scheduled node, each waiting only for its own dependencies: a node
-  starts the moment they are done, so a slow branch never holds back a node that does
-  not depend on it. No two agents ever build the same node either: a node runs only
-  after its whole dependency closure put its artifacts in pkgcache.
-- The parallel step runs with `failFast`, so the first node that fails or times out
-  stops every other node: branches still waiting for a dependency are terminated
-  (they never start their job), and each branch already inside its `build` step aborts
-  the `celer-agent` build it started. That abort needs the account running
-  `celer-master` to hold Job/Cancel on `celer-agent`; without it Jenkins logs a message
-  and leaves the node running.
-- A cycle would leave the nodes of the cycle waiting forever. `celer deploy
-  --export-dag` rejects cycles before exporting, and the master bounds the whole build
-  with a 4-hour `timeout`, so a schedule it cannot make progress on fails instead of
-  hanging. The timeout goes through the same failFast path and stops the running nodes
-  too.
-- Every node job is handed the master build number and copies exactly that build's
-  `dag.json`, so a newer schedule cannot leak into a running build.
-- The `deploy with dag` stage runs `celer deploy --apply-dag=dag.json`: it collects
-  `target_nodes[]` **plus** `cached[]` on the master, each one from pkgcache and
-  nothing else. A node that never reached pkgcache therefore fails the stage instead of
-  being rebuilt here. Add `--snapshot=<dir>` to write the reproducibility bundle as
-  well (the matched conf, the ports with their checksums fixed, `celer.toml`, the
-  toolchain file and the celer binary - not the collected artifacts), and `--strip` to
-  strip the collected tree. `local_nodes[]` are built locally on the master, as on every
-  other machine: their cache key embeds the workspace path, so nothing about them is
-  shared.
+Export the schedule, fan it out as one node job per target, then apply it back.
+
+```mermaid
+flowchart LR
+    E["export the schedule dag"] --> D["distribute the schedule<br/>one celer-agent per target node, in parallel"]
+    D --> A["apply the schedule dag<br/>collect scheduled + cached nodes from pkgcache"]
+```
+
+| Concern | Behavior |
+|---------|----------|
+| **Scheduling** | One branch per target node, waiting only for its own dependencies: a slow branch never blocks unrelated nodes. |
+| **One builder per node** | A node runs only after its whole dependency closure is in pkgcache, so no two agents build the same node. |
+| **Failure** | `parallel` runs with `failFast`: the first node that fails or times out stops the rest. Waiting branches never start; running ones abort their `celer-agent` build (needs Job/Cancel on `celer-agent`, otherwise Jenkins only logs it). |
+| **No hang** | `--export-dag` rejects cycles, and a 4-hour `timeout` fails a stuck build through the same `failFast` path. |
+| **Reproducibility** | Each node copies exactly the master build's `dag.json`, so a newer schedule cannot leak into a running build. |
+| **Apply** | Runs `celer deploy --apply-dag=dag.json` (or `celer install --apply-dag=dag.json <port>`): collects `target_nodes[]` **plus** `cached[]` from pkgcache only, so a node that never reached pkgcache fails the stage instead of being rebuilt there. `local_nodes[]` are built locally. Add `--snapshot=<dir>` for the reproducibility bundle, `--strip` to strip the tree. |
 
 ## The node job
 
@@ -59,16 +55,16 @@ back with `celer deploy --apply-dag=dag.json`.
 | `CELER_PLATFORM` / `CELER_PROJECT` | The schedule's identity. celer adopts them from `dag.json` itself; they are passed along to describe the build in the job. |
 | `MASTER_BUILD` | The `celer-master` build that exported `dag.json`: the node copies exactly that build's file, never a newer one. |
 
-Every node job runs exactly one command:
+Runs exactly one command:
 
 ```shell
 celer install --dag=dag.json <name_version>
 ```
 
-Agents carry the label `celer-agent`, which is what the node job asks for; the
-schedule's `platform` decides what celer builds there, not which machine runs the job.
-To split pools per platform instead, put `params.CELER_PLATFORM` back into the node
-job's `agent { label ... }` and label the agents `celer-agent-<platform>`.
+| Concern | Behavior |
+|---------|----------|
+| **Which agent** | The job asks for the `celer-agent` label; the schedule's `platform` decides what celer builds, not which machine runs the job. |
+| **Per-platform pools** | Pass `params.CELER_PLATFORM` into `agent { label ... }` and label agents `celer-agent-<platform>` to split pools per platform. |
 
 ## Plugins
 
