@@ -42,8 +42,8 @@ pipeline {
     }
 
     parameters {
-        string(name: 'MASTER_BUILD', defaultValue: '', description: 'celer-master build that exported dag.json')
-        string(name: 'CELER_PORT', description: 'name@version from target_nodes')
+        string(name: 'MASTER_BUILD', description: 'celer-master build that exported dag.json')
+        string(name: 'CELER_PORT', description: 'name@version to build and pass from celer-master.groovy')
         string(name: 'CELER_PLATFORM', description: 'platform from target_nodes')
         string(name: 'CELER_PROJECT', description: 'project from target_nodes')
     }
