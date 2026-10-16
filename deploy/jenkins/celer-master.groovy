@@ -110,8 +110,8 @@ pipeline {
                     // The key is omitted when pkgcache already has every node, and an empty
                     // dag simply leaves nothing to schedule.
                     def dag = readJSON(file: 'dag.json')
-                    def nodes = dag.scheduled_nodes ?: []
-                    def byNameVersion = nodes.collectEntries { n -> [(n.name_version): n] }
+                    def targetNodes = dag.target_nodes ?: []
+                    def byNameVersion = targetNodes.collectEntries { n -> [(n.name_version): n] }
 
                     // Every node installs on the platform of the schedule, and reads the
                     // schedule file of this build: a newer schedule must never reach it.
@@ -123,12 +123,12 @@ pipeline {
                     // done. A cached dependency is not in the dag, so it never blocks.
                     def done = [:]
 
-                    if (nodes.isEmpty()) {
+                    if (targetNodes.isEmpty()) {
                         echo 'nothing to build: pkgcache has already cached every port'
                         return
                     }
 
-                    def branches = nodes.collectEntries { n ->
+                    def branches = targetNodes.collectEntries { n ->
                         def nameVersion = n.name_version
                         def deps = n.dependencies.findAll { byNameVersion.containsKey(it) }
                         [

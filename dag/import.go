@@ -8,6 +8,7 @@ import (
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/depcheck"
+	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/logger"
@@ -20,8 +21,11 @@ func Import(celer *configs.Celer, dagPath string) (*DagInfo, error) {
 		return nil, err
 	}
 
-	// Make sure that all scheduled jobs use the same revision of the conf repo.
-	if err := dag.PinConf(); err != nil {
+	// Make sure that all scheduled jobs use the same revision of the conf repo and ports repo.
+	if err := dag.PinRepo("conf", dirs.ConfDir, dag.ConfRef); err != nil {
+		return nil, err
+	}
+	if err := dag.PinRepo("ports", dirs.PortsDir, dag.PortsRef); err != nil {
 		return nil, err
 	}
 

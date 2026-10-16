@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 
 	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
 	"github.com/celer-pkg/celer/pkgs/logger"
@@ -40,8 +39,8 @@ type Dag struct {
 	BuildType    string            `json:"build_type"`
 	PkgCache     *configs.PkgCache `json:"pkgcache"`
 
-	// ScheduledNodes are the packages an agent has to build.
-	ScheduledNodes []node `json:"scheduled_nodes,omitempty"`
+	// TargetNodes are the packages an agent has to build.
+	TargetNodes []node `json:"target_nodes,omitempty"`
 
 	// LocalNodes are the dev/host dependencies each agent builds for itself.
 	LocalNodes []localNode `json:"local_nodes,omitempty"`
@@ -51,43 +50,44 @@ type Dag struct {
 }
 
 func (d Dag) ApplyNodes() []string {
-	nodes := make([]string, 0, len(d.ScheduledNodes)+len(d.Cached))
-	for _, node := range d.ScheduledNodes {
+	nodes := make([]string, 0, len(d.TargetNodes)+len(d.Cached))
+	for _, node := range d.TargetNodes {
 		nodes = append(nodes, node.NameVersion)
 	}
 	return append(nodes, d.Cached...)
 }
 
-func (d Dag) PinConf() error {
-	if d.ConfRef == "" {
-		return fmt.Errorf("conf ref is empty")
+func (d Dag) PinRepo(repoName, repoDir, repoRef string) error {
+	if repoRef == "" {
+		return fmt.Errorf("'%s' ref is empty", repoName)
 	}
-	if !fileio.PathExists(filepath.Join(dirs.ConfDir, ".git")) {
-		return fmt.Errorf("no conf repo in the workspace: initialize it with 'celer init --url=<conf repo>' first")
+	if !fileio.PathExists(filepath.Join(repoDir, ".git")) {
+		return fmt.Errorf("no '%s' repo in the workspace, please init celer first", repoName)
 	}
 
-	modified, err := git.IsModified(dirs.ConfDir)
+	modified, err := git.IsModified(repoDir)
 	if err != nil {
-		return fmt.Errorf("failed to inspect the conf repo -> %w", err)
+		return fmt.Errorf("failed to inspect the '%s' repo -> %w", repoName, err)
 	}
 	if modified {
-		return fmt.Errorf("the conf repo has local modifications and the schedule calls for conf %s: commit or discard them first", d.ConfRef)
+		return fmt.Errorf("the '%s' repo has local modifications and the schedule calls for '%s' -> '%s': commit or discard them first",
+			repoName, repoName, repoRef)
 	}
 
-	current, err := git.GetCommitHash(dirs.ConfDir)
+	current, err := git.GetCommitHash(repoDir)
 	if err != nil {
-		return fmt.Errorf("failed to read the conf revision -> %w", err)
+		return fmt.Errorf("failed to read the '%s' revision -> %w", repoName, err)
 	}
 	if current == d.ConfRef {
-		logger.PrintInfo("conf repo is at the schedule's revision %s", current)
+		logger.PrintInfo("'%s' repo is at the schedule's revision '%s'", repoName, current)
 		return nil
 	}
 
-	logger.PrintInfo("git reset --hard the conf repo from '%s' to the schedule's revision '%s'", current, d.ConfRef)
+	logger.PrintInfo("git reset --hard the '%s' repo from '%s' to the schedule's revision '%s'", repoName, current, d.ConfRef)
 
 	// HardReset resets, and fetches from origin when the revision is not local yet.
-	if err := git.HardReset(dirs.ConfDir, d.ConfRef); err != nil {
-		return fmt.Errorf("failed to git reset --hard the conf repo to '%s' -> %w", d.ConfRef, err)
+	if err := git.HardReset(repoDir, repoRef); err != nil {
+		return fmt.Errorf("failed to git reset --hard the '%s' repo to '%s' -> %w", repoName, repoRef, err)
 	}
 	return nil
 }
@@ -95,8 +95,8 @@ func (d Dag) PinConf() error {
 // PinSources returns the source revision every port of the schedule is pinned to: the
 // scheduled nodes, plus the dev/host dependencies each agent builds locally.
 func (d Dag) PinSources() map[string]string {
-	pins := make(map[string]string, len(d.ScheduledNodes)+len(d.LocalNodes))
-	for _, node := range d.ScheduledNodes {
+	pins := make(map[string]string, len(d.TargetNodes)+len(d.LocalNodes))
+	for _, node := range d.TargetNodes {
 		if node.Checksum != "" {
 			pins[node.NameVersion] = node.Checksum
 		}
@@ -111,8 +111,8 @@ func (d Dag) PinSources() map[string]string {
 
 // DagHashs returns the build hash expected for every scheduled node.
 func (d Dag) DagHashs() map[string]string {
-	hashes := make(map[string]string, len(d.ScheduledNodes))
-	for _, node := range d.ScheduledNodes {
+	hashes := make(map[string]string, len(d.TargetNodes))
+	for _, node := range d.TargetNodes {
 		hashes[node.NameVersion] = node.BuildHash
 	}
 	return hashes

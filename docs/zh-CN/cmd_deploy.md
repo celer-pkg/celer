@@ -83,16 +83,16 @@ celer deploy --apply-dag=dag.json --snapshot=snapshots/2026-02-21
 |------|------|
 | `celer_version` / `platform` / `project` / `build_type` | 工作区身份；`platform` 同时也是构建 agent 的选择依据 |
 | `conf_ref` | 导出所用 conf 仓库的精确 revision（commit，不是分支）。apply 与 `install --dag` 会先把工作区的 conf 移到它，让每台机器读到同一份 port 配置（配置本身也是 build hash 的一部分） |
-| `scheduled_nodes[]` | 需要 agent 去构建的节点（没有需要构建的节点时该键不输出） |
-| `scheduled_nodes[].name_version` | `name@version` |
-| `scheduled_nodes[].build_hash` | pkgcache 键：`artifacts-<celer_version>/.../<build_hash>.tar.gz` |
-| `scheduled_nodes[].checksum` | 导出时解析好的源码 revision（git commit 或压缩包 sha256） |
-| `scheduled_nodes[].dependencies` | 必须先装好的依赖：要么前面已构建，要么直接从 pkgcache 恢复 |
+| `target_nodes[]` | 需要 agent 去构建的节点（没有需要构建的节点时该键不输出） |
+| `target_nodes[].name_version` | `name@version` |
+| `target_nodes[].build_hash` | pkgcache 键：`artifacts-<celer_version>/.../<build_hash>.tar.gz` |
+| `target_nodes[].checksum` | 导出时解析好的源码 revision（git commit 或压缩包 sha256） |
+| `target_nodes[].dependencies` | 必须先装好的依赖：要么前面已构建，要么直接从 pkgcache 恢复 |
 | `local_nodes[]` | 每个 agent 自己编的 dev/host 依赖：不参与调度，只用来钉源码 revision |
 | `local_nodes[].name_version` / `local_nodes[].checksum` | 包名与它被钉住的源码 revision |
 | `cached` | 构件已在 pkgcache 里的节点（`name@version` 列表）：不参与调度，由用到它的 job 恢复 |
 
-导出会逐节点查 pkgcache，把闭包拆成 `scheduled_nodes` 与 `cached`；`scheduled_nodes` 为空时该键不输出，也就完全不需要构建。每个节点查两次（它的 metadata 和归档），所以只读的 pkgcache 就够了；cache 不可达时导出直接失败，不做推测。未配置 pkgcache 或处于 offline 模式时，所有节点一律进 `scheduled_nodes`。
+导出会逐节点查 pkgcache，把闭包拆成 `target_nodes` 与 `cached`；`target_nodes` 为空时该键不输出，也就完全不需要构建。每个节点查两次（它的 metadata 和归档），所以只读的 pkgcache 就够了；cache 不可达时导出直接失败，不做推测。未配置 pkgcache 或处于 offline 模式时，所有节点一律进 `target_nodes`。
 
 dev/host 依赖**不参与调度**，也**不做 cache 判定**：它们的缓存键里含 workspace 路径，无法跨 agent 复用。每个 agent 本地编一次，之后靠自己的 `devcache` 复用。
 

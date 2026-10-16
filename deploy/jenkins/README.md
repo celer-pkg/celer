@@ -16,11 +16,11 @@ back with `celer deploy --apply-dag=dag.json`.
 |-------|-----|
 | `platform` / `project` / `build_type` | Adopted by `celer install --dag` and `celer deploy --apply-dag`: written to the workspace's `celer.toml` before celer is initialized, so the machine builds the schedule's workspace instead of its own. |
 | `conf_ref` | The exact conf repo revision (a commit) the schedule was exported from. Both ends need the conf repo, which is why both jobs run `celer init` first: the export records the revision, and `install --dag` / `--apply-dag` reset the workspace's conf to it before reading any port config, so every agent builds on the same configs as the master. A run without the conf repo is refused. |
-| `scheduled_nodes[]` | One job per entry, parameter `CELER_PORT`. |
-| `scheduled_nodes[].dependencies` | Job edges, but only those that are themselves scheduled: a dependency listed in `cached` is already in pkgcache and needs no edge. |
+| `target_nodes[]` | One job per entry, parameter `CELER_PORT`. |
+| `target_nodes[].dependencies` | Job edges, but only those that are themselves scheduled: a dependency listed in `cached` is already in pkgcache and needs no edge. |
 | `local_nodes[]` | Never a job: every machine builds them locally, the pins in the file keep them reproducible. |
 | `cached[]` | Not scheduled: the jobs that need them restore them from pkgcache, and `--apply-dag` collects them too. |
-| *(no `scheduled_nodes`)* | Nothing to build: the distribute stage has nothing to start, but the deploy stage still collects `cached[]`. |
+| *(no `target_nodes`)* | Nothing to build: the distribute stage has nothing to start, but the deploy stage still collects `cached[]`. |
 
 ## The master job
 
@@ -42,7 +42,7 @@ back with `celer deploy --apply-dag=dag.json`.
 - Every node job is handed the master build number and copies exactly that build's
   `dag.json`, so a newer schedule cannot leak into a running build.
 - The `deploy with dag` stage runs `celer deploy --apply-dag=dag.json`: it collects
-  `scheduled_nodes[]` **plus** `cached[]` on the master, each one from pkgcache and
+  `target_nodes[]` **plus** `cached[]` on the master, each one from pkgcache and
   nothing else. A node that never reached pkgcache therefore fails the stage instead of
   being rebuilt here. Add `--snapshot=<dir>` to write the reproducibility bundle as
   well (the matched conf, the ports with their checksums fixed, `celer.toml`, the
@@ -55,7 +55,7 @@ back with `celer deploy --apply-dag=dag.json`.
 
 | Parameter | Use |
 |-----------|-----|
-| `CELER_PORT` | `name@version` to install, one entry of `scheduled_nodes`. |
+| `CELER_PORT` | `name@version` to install, one entry of `target_nodes`. |
 | `CELER_PLATFORM` / `CELER_PROJECT` | The schedule's identity. celer adopts them from `dag.json` itself; they are passed along to describe the build in the job. |
 | `MASTER_BUILD` | The `celer-master` build that exported `dag.json`: the node copies exactly that build's file, never a newer one. |
 

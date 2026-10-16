@@ -19,7 +19,7 @@ func TestParseDAG(t *testing.T) {
   "platform": "x86_64-linux-ubuntu-22.04-gcc-11.5.0",
   "project": "project_01",
   "build_type": "release",
-  "scheduled_nodes": [
+  "target_nodes": [
     {"name_version": "zlib@1.3.1", "build_hash": "aa", "checksum": "bb", "dependencies": []},
     {"name_version": "fontconfig@2.16.0", "build_hash": "cc", "checksum": "dd", "dependencies": ["zlib@1.3.1"]}
   ]
@@ -79,8 +79,8 @@ func TestParseDAG(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Parse() error = %v", err)
 			}
-			if len(report.ScheduledNodes) != tt.nodes {
-				t.Fatalf("Parse() returned %d nodes, want %d", len(report.ScheduledNodes), tt.nodes)
+			if len(report.TargetNodes) != tt.nodes {
+				t.Fatalf("Parse() returned %d nodes, want %d", len(report.TargetNodes), tt.nodes)
 			}
 		})
 	}
@@ -91,7 +91,7 @@ func TestParseDAG(t *testing.T) {
 // pkgcache supplies instead of building them.
 func TestReportPlan(t *testing.T) {
 	dag := Dag{
-		ScheduledNodes: []node{
+		TargetNodes: []node{
 			{NameVersion: "fontconfig@2.16.0", BuildHash: "aa", Checksum: "bb", Dependencies: []string{"zlib@1.3.1"}},
 			{NameVersion: "zlib@1.3.1", BuildHash: "cc"},
 		},

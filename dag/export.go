@@ -35,6 +35,11 @@ func buildDag(ctx context.Context, roots []string, ignoreCache bool) (*Dag, erro
 		return nil, err
 	}
 
+	projectName := ctx.Project().GetName()
+	if projectName == "" {
+		return nil, fmt.Errorf("no project has been configured in celer.toml")
+	}
+
 	scheduledPins, localPins, err := pinClosure(ctx, roots)
 	if err != nil {
 		return nil, err
@@ -45,23 +50,23 @@ func buildDag(ctx context.Context, roots []string, ignoreCache bool) (*Dag, erro
 		return nil, err
 	}
 
-	scheduledNodes, cached, err := classifyNodes(ctx, mergedNodes, ignoreCache)
+	targetNodes, cached, err := classifyNodes(ctx, mergedNodes, ignoreCache)
 	if err != nil {
 		return nil, err
 	}
 
 	dag := Dag{
-		CelerVersion:   ctx.Version(),
-		ConfUrl:        confUrl,
-		ConfRef:        confRef,
-		PortsUrl:       portsUrl,
-		PortsRef:       portsRef,
-		Platform:       ctx.Platform().GetName(),
-		Project:        ctx.Project().GetName(),
-		BuildType:      ctx.BuildType(),
-		ScheduledNodes: scheduledNodes,
-		Cached:         cached,
-		LocalNodes:     localPins,
+		CelerVersion: ctx.Version(),
+		ConfUrl:      confUrl,
+		ConfRef:      confRef,
+		PortsUrl:     portsUrl,
+		PortsRef:     portsRef,
+		Platform:     ctx.Platform().GetName(),
+		Project:      projectName,
+		BuildType:    ctx.BuildType(),
+		TargetNodes:  targetNodes,
+		Cached:       cached,
+		LocalNodes:   localPins,
 	}
 
 	// Set pkgcache solution if configured: minio and fs are mutually exclusive.
@@ -114,11 +119,11 @@ func writeDag(report *Dag, outPath string) error {
 	if len(report.Cached) > 0 {
 		cached = fmt.Sprintf(", %d restored from pkgcache", len(report.Cached))
 	}
-	if len(report.ScheduledNodes) == 0 {
+	if len(report.TargetNodes) == 0 {
 		logger.PrintSuccess("%s written: nothing to build for project %s%s.", dagPath, report.Project, cached)
 		return nil
 	}
-	logger.PrintSuccess("%s written: %d nodes to build for project %s%s.", dagPath, len(report.ScheduledNodes), report.Project, cached)
+	logger.PrintSuccess("%s written: %d nodes to build for project %s%s.", dagPath, len(report.TargetNodes), report.Project, cached)
 	return nil
 }
 
@@ -269,7 +274,7 @@ func classifyNodes(ctx context.Context, nodes []node, ignoreCache bool) ([]node,
 	}
 
 	// Collect nodes whose artifact is not stored in pkgcache.
-	scheduled := make([]node, 0, len(nodes))
+	targets := make([]node, 0, len(nodes))
 	var cached []string
 	for _, item := range nodes {
 		exist, err := artifactCache.Exists(item.NameVersion, item.BuildHash)
@@ -281,7 +286,7 @@ func classifyNodes(ctx context.Context, nodes []node, ignoreCache bool) ([]node,
 			continue
 		}
 	}
-	return scheduled, cached, nil
+	return targets, cached, nil
 }
 
 // resolveSource resolves the source revision of a port against the remote and pins

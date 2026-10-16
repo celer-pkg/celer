@@ -92,17 +92,17 @@ declares, and the file is written instead of running the deployment:
 |-------|-------------|
 | `celer_version` / `platform` / `project` / `build_type` | Workspace identity; `platform` also selects the build agent |
 | `conf_ref` | The exact conf repo revision the schedule was exported from a commit or a branch. Applying a schedule, or building a node from one, moves the workspace's conf to it first, so every machine reads the same port configs |
-| `scheduled_nodes[]` | The nodes an agent has to build (the key is omitted when there is nothing to build) |
-| `scheduled_nodes[].name_version` | `name@version` |
-| `scheduled_nodes[].build_hash` | pkgcache key: `artifacts-<celer_version>/.../<build_hash>.tar.gz` |
-| `scheduled_nodes[].checksum` | Source revision resolved at export time (git commit or archive sha-256) |
-| `scheduled_nodes[].dependencies` | Dependencies that must be installed before this node: built earlier, or restored from pkgcache |
+| `target_nodes[]` | The nodes an agent has to build (the key is omitted when there is nothing to build) |
+| `target_nodes[].name_version` | `name@version` |
+| `target_nodes[].build_hash` | pkgcache key: `artifacts-<celer_version>/.../<build_hash>.tar.gz` |
+| `target_nodes[].checksum` | Source revision resolved at export time (git commit or archive sha-256) |
+| `target_nodes[].dependencies` | Dependencies that must be installed before this node: built earlier, or restored from pkgcache |
 | `cached` | `name@version` of the nodes whose artifact is already in pkgcache: not scheduled, restored by the jobs that need them |
 | `local_nodes[]` | Dev/host dependencies each agent builds for itself: never scheduled, only pinned |
 | `local_nodes[].name_version` / `local_nodes[].checksum` | The package and the source revision it is pinned to |
 
 The export checks every scheduled node against pkgcache and splits the closure
-into `scheduled_nodes` and `cached`; when `scheduled_nodes` is empty the key is
+into `target_nodes` and `cached`; when `target_nodes` is empty the key is
 omitted and there is nothing to build at all. The check is two lookups per node
 (its metadata and its archive), so a read-only pkgcache is enough, and an
 unreachable cache fails the export instead of guessing. Without a pkgcache, or in
