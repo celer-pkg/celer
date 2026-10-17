@@ -11,6 +11,8 @@ import (
 
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/git"
 	"github.com/celer-pkg/celer/pkgs/logger"
 )
 
@@ -33,6 +35,20 @@ func buildDag(ctx context.Context, roots []string, ignoreCache bool) (*Dag, erro
 	portsUrl, portsRef, err := ctx.PortsUrlRef()
 	if err != nil {
 		return nil, err
+	}
+
+	// Make sure no modification in conf and ports.
+	for _, repo := range []struct{ name, dir, ref string }{
+		{"conf", dirs.ConfDir, confRef},
+		{"ports", dirs.PortsDir, portsRef},
+	} {
+		modified, err := git.IsModified(repo.dir)
+		if err != nil {
+			return nil, fmt.Errorf("failed to inspect the '%s' repo -> %w", repo.name, err)
+		}
+		if modified {
+			logger.PrintWarning("the '%s' repo has uncommitted changes: the schedule pins '%s' but the hashes come from the working tree", repo.name, repo.ref)
+		}
 	}
 
 	projectName := ctx.Project().GetName()
@@ -119,6 +135,9 @@ func writeDag(report *Dag, outPath string) error {
 	if len(report.Cached) > 0 {
 		cached = fmt.Sprintf(", %d restored from pkgcache", len(report.Cached))
 	}
+
+	logger.PrintInfo("the schedule pins conf '%s' and ports '%s'", report.ConfRef, report.PortsRef)
+
 	if len(report.TargetNodes) == 0 {
 		logger.PrintSuccess("%s written: nothing to build for project %s%s.", dagPath, report.Project, cached)
 		return nil

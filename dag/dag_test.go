@@ -2,9 +2,12 @@ package dag
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"reflect"
 	"testing"
+
+	"github.com/celer-pkg/celer/pkgs/git"
 )
 
 // TestParseDAG locks down the checks done before a build follows an exported
@@ -83,6 +86,53 @@ func TestParseDAG(t *testing.T) {
 				t.Fatalf("Parse() returned %d nodes, want %d", len(report.TargetNodes), tt.nodes)
 			}
 		})
+	}
+}
+
+// TestPinRepo locks down that each config repo of a schedule moves to its own
+// revision: conf and ports are pinned with different commits, so checking a repo
+// against the other one's revision would leave it behind, and the port configs it
+// reads would not be the ones the schedule hashed.
+func TestPinRepo(t *testing.T) {
+	repo := filepath.Join(t.TempDir(), "ports")
+	if output, err := exec.Command("git", "init", repo).CombinedOutput(); err != nil {
+		t.Fatalf("git init -> %s -> %v", output, err)
+	}
+
+	commit := func(message string) string {
+		t.Helper()
+
+		command := exec.Command("git", "-C", repo, "commit", "--allow-empty", "-m", message)
+		command.Env = append(os.Environ(),
+			"GIT_AUTHOR_NAME=celer", "GIT_AUTHOR_EMAIL=celer@example.com",
+			"GIT_COMMITTER_NAME=celer", "GIT_COMMITTER_EMAIL=celer@example.com")
+		if output, err := command.CombinedOutput(); err != nil {
+			t.Fatalf("git commit -> %s -> %v", output, err)
+		}
+
+		hash, err := git.GetCommitHash(repo)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return hash
+	}
+
+	older := commit("older")
+	newer := commit("newer")
+
+	// The repo sits on 'newer' while the schedule pins 'older', and conf is pinned to
+	// 'newer': exactly the case that used to be read as "already at the revision".
+	schedule := Dag{ConfRef: newer, PortsRef: older}
+	if err := schedule.PinRepo("ports", repo, schedule.PortsRef); err != nil {
+		t.Fatalf("PinRepo() error = %v", err)
+	}
+
+	current, err := git.GetCommitHash(repo)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if current != older {
+		t.Fatalf("PinRepo() left the repo at %s, want %s", current, older)
 	}
 }
 

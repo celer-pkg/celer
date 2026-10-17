@@ -78,12 +78,12 @@ func (d Dag) PinRepo(repoName, repoDir, repoRef string) error {
 	if err != nil {
 		return fmt.Errorf("failed to read the '%s' revision -> %w", repoName, err)
 	}
-	if current == d.ConfRef {
+	if current == repoRef {
 		logger.PrintInfo("'%s' repo is at the schedule's revision '%s'", repoName, current)
 		return nil
 	}
 
-	logger.PrintInfo("git reset --hard the '%s' repo from '%s' to the schedule's revision '%s'", repoName, current, d.ConfRef)
+	logger.PrintInfo("git reset --hard the '%s' repo from '%s' to the schedule's revision '%s'", repoName, current, repoRef)
 
 	// HardReset resets, and fetches from origin when the revision is not local yet.
 	if err := git.HardReset(repoDir, repoRef); err != nil {

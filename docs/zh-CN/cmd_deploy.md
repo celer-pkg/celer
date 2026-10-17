@@ -82,7 +82,7 @@ celer deploy --apply-dag=dag.json --snapshot=snapshots/2026-02-21
 | 字段 | 说明 |
 |------|------|
 | `celer_version` / `platform` / `project` / `build_type` | 工作区身份；`platform` 同时也是构建 agent 的选择依据 |
-| `conf_ref` | 导出所用 conf 仓库的精确 revision（commit，不是分支）。apply 与 `install --dag` 会先把工作区的 conf 移到它，让每台机器读到同一份 port 配置（配置本身也是 build hash 的一部分） |
+| `conf_ref` / `ports_ref` | 导出时 conf 与 ports 仓库的本地 `HEAD` commit（真正参与 hash 的那份配置）。apply 与 `install --apply-dag` 会先把两个仓库移到它们，再读取 port 配置，让每台机器读到同一份。`celer init` 会把两个仓库都同步到分支最新（offline 模式除外），避免把没 pull 的旧 checkout 当成最新 |
 | `target_nodes[]` | 需要 agent 去构建的节点（没有需要构建的节点时该键不输出） |
 | `target_nodes[].name_version` | `name@version` |
 | `target_nodes[].build_hash` | pkgcache 键：`artifacts-<celer_version>/.../<build_hash>.tar.gz` |

@@ -1,88 +1,85 @@
 # Distributed build on Jenkins
 
-`celer deploy --export-dag=dag.json` exports the build schedule of the current
-project; this directory holds the Jenkins side that turns that schedule into one job
-per node, wired by the schedule's own dependency edges, and then collects the artifacts
-back with `celer deploy --apply-dag=dag.json`.
+`celer <mode> --export-dag=dag.json` exports the build schedule; this directory holds the
+Jenkins side that turns it into one job per node — wired by the schedule's own dependency
+edges — and collects the artifacts back with `--apply-dag=dag.json`.
 
-The master job also drives a single port: set `CELER_PORT` to a `name@version` to export
-and apply with `celer install --export-dag=dag.json <port>` /
-`celer install --apply-dag=dag.json <port>`; leave it empty to deploy the whole project.
-Everything else (the node jobs, the dependency edges, the pkgcache collection) is
-identical.
+`CELER_MODE=install` builds just the ports in `CELER_PORTS` (one or more `name@version`, space
+or comma separated) instead of the whole project; nothing else changes. `deploy` is the default.
 
-| File | Jenkins job | Purpose |
-|------|-------------|---------|
-| `celer-master.groovy` | `celer-master` | Master: exports the schedule, starts each scheduled node once its own dependencies are done, then collects the artifacts. |
-| `celer-agent.groovy` | `celer-agent` | Parameterized node job: installs one node of the schedule on its platform's pool. |
+| File | Job | Purpose |
+|------|-----|---------|
+| `celer-master.groovy` | `celer-master` | Three `celer configure` calls (`--platform`, `--project`, `--build-type`, one flag group per call), export the schedule, wait for each node's dependencies, then apply it. |
+| `celer-agent.groovy` | `celer-agent` | Installs one node: `celer install --apply-dag=dag.json <name_version>`. |
 
 ## The schedule file
 
 | Field | Use |
 |-------|-----|
-| `platform` / `project` / `build_type` | Adopted by `celer install --dag` and `celer deploy --apply-dag`: written to the workspace's `celer.toml` before celer is initialized, so the machine builds the schedule's workspace instead of its own. |
-| `conf_ref` | The exact conf repo revision (a commit) the schedule was exported from. Both ends need the conf repo, which is why both jobs run `celer init` first: the export records the revision, and `install --dag` / `--apply-dag` reset the workspace's conf to it before reading any port config, so every agent builds on the same configs as the master. A run without the conf repo is refused. |
+| `platform` / `project` / `build_type` | Adopted by `--apply-dag` and written to `celer.toml` before init: every machine builds the schedule's workspace, not its own. |
+| `conf_ref` / `ports_ref` | The local `HEAD` commits the master hashed. `--apply-dag` resets both repos to them, because the configs are part of the build hash. |
 | `target_nodes[]` | One job per entry, parameter `CELER_PORT`. |
-| `target_nodes[].dependencies` | Job edges, but only those that are themselves scheduled: a dependency listed in `cached` is already in pkgcache and needs no edge. |
-| `local_nodes[]` | Never a job: every machine builds them locally, the pins in the file keep them reproducible. |
-| `cached[]` | Not scheduled: the jobs that need them restore them from pkgcache, and `--apply-dag` collects them too. |
-| *(no `target_nodes`)* | Nothing to build: the distribute stage has nothing to start, but the deploy stage still collects `cached[]`. |
+| `target_nodes[].dependencies` | Job edges; a dependency listed in `cached` is already in pkgcache and needs no edge. |
+| `local_nodes[]` | Never a job: built locally, pinned for reproducibility. |
+| `cached[]` | Not scheduled: restored by the jobs that need them, collected by `--apply-dag`. |
+| *(no `target_nodes`)* | Nothing to build; `--apply-dag` still collects `cached[]`. |
 
 ## The master job
 
-Export the schedule, fan it out as one node job per target, then apply it back.
-
 ```mermaid
 flowchart LR
-    E["export the schedule dag"] --> D["distribute the schedule<br/>one celer-agent per target node, in parallel"]
-    D --> A["apply the schedule dag<br/>collect scheduled + cached nodes from pkgcache"]
+    E["export the schedule"] --> D["distribute<br/>one celer-agent per node"]
+    D --> A["apply<br/>collect from pkgcache"]
 ```
 
-| Concern | Behavior |
-|---------|----------|
-| **Scheduling** | One branch per target node, waiting only for its own dependencies: a slow branch never blocks unrelated nodes. |
-| **One builder per node** | A node runs only after its whole dependency closure is in pkgcache, so no two agents build the same node. |
-| **Failure** | `parallel` runs with `failFast`: the first node that fails or times out stops the rest. Waiting branches never start; running ones abort their `celer-agent` build (needs Job/Cancel on `celer-agent`, otherwise Jenkins only logs it). |
-| **No hang** | `--export-dag` rejects cycles, and a 4-hour `timeout` fails a stuck build through the same `failFast` path. |
-| **Reproducibility** | Each node copies exactly the master build's `dag.json`, so a newer schedule cannot leak into a running build. |
-| **Apply** | Runs `celer deploy --apply-dag=dag.json` (or `celer install --apply-dag=dag.json <port>`): collects `target_nodes[]` **plus** `cached[]` from pkgcache only, so a node that never reached pkgcache fails the stage instead of being rebuilt there. `local_nodes[]` are built locally. Add `--snapshot=<dir>` for the reproducibility bundle, `--strip` to strip the tree. |
+- One branch per node, waiting only for its own dependencies: a slow node never blocks
+  unrelated ones, and a node starts only once its closure is in pkgcache, so no two agents
+  build the same node.
+- `failFast`: the first failure or the 4-hour `timeout` stops the rest; running nodes are
+  aborted when `celer-agent` grants Job/Cancel.
+- Each node copies exactly its master build's `dag.json`, so a newer schedule cannot leak in.
+- `--apply-dag` collects `target_nodes[]` and `cached[]` from pkgcache only — a node that never
+  got there fails the stage instead of being rebuilt. `local_nodes[]` are built locally; add
+  `--snapshot=<dir>` or `--strip` as needed.
 
 ## The node job
 
-| Parameter | Use |
-|-----------|-----|
-| `CELER_PORT` | `name@version` to install, one entry of `target_nodes`. |
-| `CELER_PLATFORM` / `CELER_PROJECT` | The schedule's identity. celer adopts them from `dag.json` itself; they are passed along to describe the build in the job. |
-| `MASTER_BUILD` | The `celer-master` build that exported `dag.json`: the node copies exactly that build's file, never a newer one. |
-
-Runs exactly one command:
+Parameters: `CELER_PORT` (`name@version`), `MASTER_BUILD` (which master build to copy) and
+`CELER_PLATFORM`/`CELER_PROJECT` (description only — celer adopts them from the dag). It runs
+one command on an agent labeled `celer-agent`:
 
 ```shell
-celer install --dag=dag.json <name_version>
+celer install --apply-dag=dag.json <name_version>
 ```
 
-| Concern | Behavior |
-|---------|----------|
-| **Which agent** | The job asks for the `celer-agent` label; the schedule's `platform` decides what celer builds, not which machine runs the job. |
-| **Per-platform pools** | Pass `params.CELER_PLATFORM` into `agent { label ... }` and label agents `celer-agent-<platform>` to split pools per platform. |
+The schedule's `platform` decides what celer builds, not which machine runs it; to split pools,
+pass `params.CELER_PLATFORM` into `agent { label ... }` and label agents `celer-agent-<platform>`.
+
+## pkgcache backend
+
+`configurePkgCache()` reads the backend from the master's environment:
+
+| Variable | Use |
+|----------|-----|
+| `CELER_PKGCACHE_MINIO_HOST` / `_ACCESS_KEY` / `_SECRET_KEY` | minio backend; all three required. |
+| `CELER_PKGCACHE_FS_DIR` | fs directory instead (minio wins when both are set). |
+| `CELER_PKGCACHE_WRITABLE` | Optional `false` for a read-only cache. |
+
+One is mandatory: the master collects the node artifacts from that cache. Set them on the
+`celer-master` node (Nodes → Configure → Node Properties → Environment variables) or globally,
+then reconnect the agent. The minio secret ends up on the `celer configure` command line, hence
+in the build log.
 
 ## Plugins
 
 - Pipeline (built in).
+- Active Choices (`uno-choice`): the searchable dropdowns and the reactive `CELER_PORTS`
+  multi-select. `CELER_CONF_BRANCH` shells out to `git ls-remote` on every render, so approve
+  `confBranchScript()` once in *Manage Jenkins → In-process Script Approval*; the other lists
+  are baked in from the previous build (one build behind). `CELER_PORTS_VISIBILITY` hides the
+  ports row while deploying with plain CSS. Without the plugin, use `string`/`choice`.
 - Pipeline Utility Steps (`readJSON` in the master job).
 - Copy Artifact (`copyArtifacts` in the node job).
-- Pipeline: Build Step recent enough that stopping a `build` step aborts the build it
-  started (current releases do; the cancel needs Job/Cancel on the downstream job, per
-  [SECURITY-3870](https://www.jenkins.io/security/advisory/2026-09-02/)).
-- Pipeline: Basic Steps 2.20 or newer: the master waits with `waitUntil(quiet: true)`,
-  and the `quiet` option only exists from that release
-  ([JENKINS-59776](https://issues.jenkins.io/browse/JENKINS-59776)); without it every
-  waiting node would log each check.
-
-Both scripts are plain Declarative Pipeline: create `celer-master` with the content of
-`celer-master.groovy` and `celer-agent` with the content of `celer-agent.groovy`. Let
-`celer-master` make the first call: it passes `CELER_PORT`, `CELER_PLATFORM`,
-`CELER_PROJECT` and `MASTER_BUILD` as build parameters, and `params` reads those
-whether or not the node job has registered its own `parameters` block yet. So a
-hand-triggered `celer-agent` needs those values typed in, or the parameters defined on
-the job first.
+- Pipeline: Build Step and Pipeline: Basic Steps ≥ 2.20: aborting a running node job, and
+  `waitUntil(quiet: true)` ([SECURITY-3870](https://www.jenkins.io/security/advisory/2026-09-02/),
+  [JENKINS-59776](https://issues.jenkins.io/browse/JENKINS-59776)).

@@ -57,18 +57,17 @@ pipeline {
                         "project: ${params.CELER_PROJECT} | " +
                         "port: ${params.CELER_PORT}"
 
+                    // Clean first: it also drops a stale dag.json, so the copy must come after.
+                    cleanWorkspace() // Keep buildtrees for reuse repo sources.
+
                     copyArtifacts (
                         projectName: 'celer-master',
                         selector: specific(params.MASTER_BUILD),
                         filter: 'dag.json',
                     )
-                }
 
-                script {
-                    cleanWorkspace() // Keep buildtrees for reuse repo sources.
-                    
                     execute 'celer init --url=https://github.com/celer-pkg/test-conf.git'
-                    execute "celer install --dag=dag.json ${params.CELER_PORT}"
+                    execute "celer install --apply-dag=dag.json ${params.CELER_PORT}"
                 }
             }
         }

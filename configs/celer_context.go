@@ -32,17 +32,11 @@ func (c *Celer) ConfUrlRef() (string, string, error) {
 	// Read conf repo repoUrl.
 	repoUrl, err := git.GetRepoUrl(dirs.ConfDir)
 	if err != nil {
-		return "", "", fmt.Errorf("cannot get ports repo url -> %w", err)
+		return "", "", fmt.Errorf("cannot get conf repo url -> %w", err)
 	}
 
-	// Get current branch of conf repo.
-	currentBranch, err := git.GetCurrentBranch(dirs.ConfDir)
-	if err != nil {
-		return "", "", fmt.Errorf("cannot get current branch of %s", dirs.ConfDir)
-	}
-
-	// Read current commit hash of conf repo.
-	commit, err := git.GetRemoteRefCommit("conf", repoUrl, currentBranch)
+	// Read the checked out commit, not the remote branch latest commit hash.
+	commit, err := git.GetCommitHash(dirs.ConfDir)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to read the conf repo commit hash -> %w", err)
 	}
@@ -61,14 +55,8 @@ func (c *Celer) PortsUrlRef() (string, string, error) {
 		return "", "", fmt.Errorf("cannot get ports repo url -> %w", err)
 	}
 
-	// Get current branch of ports repo.
-	currentBranch, err := git.GetCurrentBranch(dirs.PortsDir)
-	if err != nil {
-		return "", "", fmt.Errorf("cannot get current branch of %s", dirs.PortsDir)
-	}
-
-	// Read current commit hash of ports repo.
-	commit, err := git.GetRemoteRefCommit("ports", repoUrl, currentBranch)
+	// Read the checked out commit, not the remote branch latest commit hash.
+	commit, err := git.GetCommitHash(dirs.PortsDir)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to read the ports repo commit hash -> %w", err)
 	}

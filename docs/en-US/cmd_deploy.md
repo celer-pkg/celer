@@ -91,7 +91,7 @@ declares, and the file is written instead of running the deployment:
 | Field | Description |
 |-------|-------------|
 | `celer_version` / `platform` / `project` / `build_type` | Workspace identity; `platform` also selects the build agent |
-| `conf_ref` | The exact conf repo revision the schedule was exported from a commit or a branch. Applying a schedule, or building a node from one, moves the workspace's conf to it first, so every machine reads the same port configs |
+| `conf_ref` / `ports_ref` | The exact conf and ports repo revisions (the local `HEAD` commits) the schedule was hashed with. Applying a schedule, or building a node from one, moves the workspace's conf and ports to them before reading any port config, so every machine reads the same configs. `celer init` syncs both repos to their branch tips, except in offline mode, so a checkout that was never pulled is not mistaken for the latest one |
 | `target_nodes[]` | The nodes an agent has to build (the key is omitted when there is nothing to build) |
 | `target_nodes[].name_version` | `name@version` |
 | `target_nodes[].build_hash` | pkgcache key: `artifacts-<celer_version>/.../<build_hash>.tar.gz` |
