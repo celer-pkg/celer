@@ -9,7 +9,7 @@ or comma separated) instead of the whole project; nothing else changes. `deploy`
 
 | File | Job | Purpose |
 |------|-----|---------|
-| `celer-master.groovy` | `celer-master` | Three `celer configure` calls (`--platform`, `--project`, `--build-type`, one flag group per call), export the schedule, wait for each node's dependencies, then apply it. |
+| `celer-master.groovy` | `celer-master` | Three `celer configure` calls (`--platform`, `--project`, `--build-type`, one flag group per call), export the schedule, wait for each node's dependencies, apply it, then pack `installed/` into one tarball. |
 | `celer-agent.groovy` | `celer-agent` | Installs one node: `celer install --apply-dag=dag.json <name_version>`. |
 
 ## The schedule file
@@ -30,6 +30,7 @@ or comma separated) instead of the whole project; nothing else changes. `deploy`
 flowchart LR
     E["export the schedule"] --> D["distribute<br/>one celer-agent per node"]
     D --> A["apply<br/>collect from pkgcache"]
+    A --> P["package<br/>one tarball"]
 ```
 
 - One branch per node, waiting only for its own dependencies: a slow node never blocks
