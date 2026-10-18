@@ -59,8 +59,9 @@ celer install ffmpeg@5.1.6 --prefer=pkgcache
 # 只从源码编译，然后上传制品（CI 构建节点）
 celer install ffmpeg@5.1.6 --prefer=source
 
-# 按导出的构建 DAG 构建（钉住所有源码 revision）
-celer install ffmpeg@5.1.6 --dag=out/dag.json
+# 按 `celer deploy --export-dag` 导出的调度单构建（钉住所有源码 revision）；
+# 默认链路在节点未命中缓存时从源码编译，依赖则从缓存恢复
+celer install glib@2.84.1 --apply-dag=out/dag.json
 
 # 指定并行数
 celer install ffmpeg@5.1.6 --jobs=8

@@ -76,6 +76,7 @@ cmake --build build
 | **私有库 / 预编译包** | 按构建哈希缓存制品，团队和 CI 共用 |
 | **外网不稳定** | 访问过的三方库的 Git 仓库和工具自动进缓存 |
 | **可复现 CI** | 导出工作区快照，配置原样进流水线 |
+| **一个项目分给多台机器编** | `--export-dag` 拆成「每个 port 一个 job」，用依赖关系串起来，编译产物经pkgcache 传递 |
 
 Windows 与 Linux 上的 MSVC / Clang / GCC 已可用；macOS 仍在完善。更多目标（含 QNX）见平台配置说明。
 
@@ -96,6 +97,7 @@ Windows 与 Linux 上的 MSVC / Clang / GCC 已可用；macOS 仍在完善。更
 - [依赖冲突检测](./article_detect_conflict_circular.md)
 - [Python 版本管理](./article_python_management.md) 
 - [构建工具](./article_build_tools.md)
+- [分布式编译（Jenkins）](../../deploy/jenkins/README.md)
 - [导出快照](./cmd_deploy_snapshot.md)
 
 **命令参考：**

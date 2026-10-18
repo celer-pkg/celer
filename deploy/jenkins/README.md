@@ -38,15 +38,19 @@ flowchart LR
 - `failFast`: the first failure or the 4-hour `timeout` stops the rest; running nodes are
   aborted when `celer-agent` grants Job/Cancel.
 - Each node copies exactly its master build's `dag.json`, so a newer schedule cannot leak in.
-- `--apply-dag` collects `target_nodes[]` and `cached[]` from pkgcache only — a node that never
-  got there fails the stage instead of being rebuilt. `local_nodes[]` are built locally; add
+- `--apply-dag` collects `target_nodes[]` and `cached[]` from pkgcache only: in `install` mode
+  the apply stage passes `--prefer=pkgcache`, so a node that never reached the cache fails the
+  stage instead of being rebuilt on the master. `local_nodes[]` are built locally; add
   `--snapshot=<dir>` or `--strip` as needed.
 
 ## The node job
 
 Parameters: `CELER_PORT` (`name@version`), `MASTER_BUILD` (which master build to copy) and
-`CELER_PLATFORM`/`CELER_PROJECT` (description only — celer adopts them from the dag). It runs
-one command on an agent labeled `celer-agent`:
+`CELER_PLATFORM`/`CELER_PROJECT` (description only — celer adopts them from the dag).
+
+The node job is the builder: its node is not in pkgcache yet (that is why the schedule
+assigned it), so the default chain builds it from source while restoring its dependencies from
+the cache. `--prefer=source` would force a rebuild of the node *and* its dependencies.
 
 ```shell
 celer install --apply-dag=dag.json <name_version>

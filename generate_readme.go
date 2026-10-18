@@ -45,6 +45,9 @@ func main() {
 	content = strings.ReplaceAll(content,
 		"](../../LICENSE)",
 		"](./LICENSE)")
+	content = strings.ReplaceAll(content,
+		"](../../deploy/",
+		"](./deploy/")
 
 	// Doc links: ./xxx.md -> ./docs/en-US/xxx.md
 	// Only rewrite relative links that are NOT already under docs/en-US/.
