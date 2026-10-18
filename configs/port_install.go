@@ -320,7 +320,7 @@ func (p *Port) pkgCacheStoreSkipReason() (string, error) {
 		repoRef := expr.If(p.Package.Checksum != "", p.Package.Checksum, p.Package.Ref)
 		mismatchDetails, err := git.CheckIfRefMatches(p.ctx, p.NameVersion(), p.MatchedConfig.PortConfig.RepoDir, repoRef)
 		if err != nil {
-			return "", fmt.Errorf("failed to check if ref matches for %s -> %w", p.NameVersion(), err)
+			return fmt.Sprintf("cannot verify the source ref '%s' of %s (%v)", repoRef, p.NameVersion(), err), nil
 		}
 		if mismatchDetails != "" {
 			return mismatchDetails, nil

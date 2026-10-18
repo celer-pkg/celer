@@ -5,7 +5,7 @@ def execute(String cmd) {
     if (isUnix()) {
         sh "${cmd}"
     } else {
-        bat "${args}"
+        bat "${cmd}"
     }
 }
 
@@ -42,10 +42,10 @@ pipeline {
     }
 
     parameters {
-        string(name: 'MASTER_BUILD', defaultValue: '', description: 'celer-master build that exported dag.json')
-        string(name: 'CELER_PORT', description: 'name@version from scheduled_nodes')
-        string(name: 'CELER_PLATFORM', description: 'platform from scheduled_nodes')
-        string(name: 'CELER_PROJECT', description: 'project from scheduled_nodes')
+        string(name: 'MASTER_BUILD', description: 'celer-master build that exported dag.json')
+        string(name: 'CELER_PORT', description: 'name@version to build and pass from celer-master.groovy')
+        string(name: 'CELER_PLATFORM', description: 'platform from target_nodes')
+        string(name: 'CELER_PROJECT', description: 'project from target_nodes')
     }
 
     stages {
@@ -57,18 +57,17 @@ pipeline {
                         "project: ${params.CELER_PROJECT} | " +
                         "port: ${params.CELER_PORT}"
 
+                    // Clean first: it also drops a stale dag.json, so the copy must come after.
+                    cleanWorkspace() // Keep buildtrees for reuse repo sources.
+
                     copyArtifacts (
                         projectName: 'celer-master',
                         selector: specific(params.MASTER_BUILD),
                         filter: 'dag.json',
                     )
-                }
 
-                script {
-                    cleanWorkspace() // Keep buildtrees for reuse repo sources.
-                    
                     execute 'celer init --url=https://github.com/celer-pkg/test-conf.git'
-                    execute "celer install --dag=dag.json ${params.CELER_PORT}"
+                    execute "celer install --apply-dag=dag.json ${params.CELER_PORT}"
                 }
             }
         }

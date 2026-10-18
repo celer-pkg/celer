@@ -1,12 +1,15 @@
 package configs
 
 import (
+	"fmt"
 	"path/filepath"
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/git"
 )
 
 func (c *Celer) ProxyHostPort() (host string, port int) {
@@ -19,6 +22,46 @@ func (c *Celer) ProxyHostPort() (host string, port int) {
 
 func (c *Celer) Version() string {
 	return Version
+}
+
+func (c *Celer) ConfUrlRef() (string, string, error) {
+	if !fileio.PathExists(filepath.Join(dirs.ConfDir, ".git")) {
+		return "", "", fmt.Errorf("no conf repo in the workspace: initialize it with 'celer init --url=<conf repo>' first")
+	}
+
+	// Read conf repo repoUrl.
+	repoUrl, err := git.GetRepoUrl(dirs.ConfDir)
+	if err != nil {
+		return "", "", fmt.Errorf("cannot get conf repo url -> %w", err)
+	}
+
+	// Read the checked out commit, not the remote branch latest commit hash.
+	commit, err := git.GetCommitHash(dirs.ConfDir)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to read the conf repo commit hash -> %w", err)
+	}
+
+	return repoUrl, commit, nil
+}
+
+func (c *Celer) PortsUrlRef() (string, string, error) {
+	if !fileio.PathExists(filepath.Join(dirs.PortsDir, ".git")) {
+		return "", "", fmt.Errorf("no ports repo in the workspace: initialize it with 'celer init --url=<conf repo>' first")
+	}
+
+	// Read ports repo repoUrl.
+	repoUrl, err := git.GetRepoUrl(dirs.PortsDir)
+	if err != nil {
+		return "", "", fmt.Errorf("cannot get ports repo url -> %w", err)
+	}
+
+	// Read the checked out commit, not the remote branch latest commit hash.
+	commit, err := git.GetCommitHash(dirs.PortsDir)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to read the ports repo commit hash -> %w", err)
+	}
+
+	return repoUrl, commit, nil
 }
 
 func (c *Celer) Platform() context.Platform {

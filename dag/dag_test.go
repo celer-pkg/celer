@@ -2,11 +2,12 @@ package dag
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"reflect"
 	"testing"
 
-	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/git"
 )
 
 // TestParseDAG locks down the checks done before a build follows an exported
@@ -21,7 +22,7 @@ func TestParseDAG(t *testing.T) {
   "platform": "x86_64-linux-ubuntu-22.04-gcc-11.5.0",
   "project": "project_01",
   "build_type": "release",
-  "scheduled_nodes": [
+  "target_nodes": [
     {"name_version": "zlib@1.3.1", "build_hash": "aa", "checksum": "bb", "dependencies": []},
     {"name_version": "fontconfig@2.16.0", "build_hash": "cc", "checksum": "dd", "dependencies": ["zlib@1.3.1"]}
   ]
@@ -81,10 +82,57 @@ func TestParseDAG(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Parse() error = %v", err)
 			}
-			if len(report.ScheduledNodes) != tt.nodes {
-				t.Fatalf("Parse() returned %d nodes, want %d", len(report.ScheduledNodes), tt.nodes)
+			if len(report.TargetNodes) != tt.nodes {
+				t.Fatalf("Parse() returned %d nodes, want %d", len(report.TargetNodes), tt.nodes)
 			}
 		})
+	}
+}
+
+// TestPinRepo locks down that each config repo of a schedule moves to its own
+// revision: conf and ports are pinned with different commits, so checking a repo
+// against the other one's revision would leave it behind, and the port configs it
+// reads would not be the ones the schedule hashed.
+func TestPinRepo(t *testing.T) {
+	repo := filepath.Join(t.TempDir(), "ports")
+	if output, err := exec.Command("git", "init", repo).CombinedOutput(); err != nil {
+		t.Fatalf("git init -> %s -> %v", output, err)
+	}
+
+	commit := func(message string) string {
+		t.Helper()
+
+		command := exec.Command("git", "-C", repo, "commit", "--allow-empty", "-m", message)
+		command.Env = append(os.Environ(),
+			"GIT_AUTHOR_NAME=celer", "GIT_AUTHOR_EMAIL=celer@example.com",
+			"GIT_COMMITTER_NAME=celer", "GIT_COMMITTER_EMAIL=celer@example.com")
+		if output, err := command.CombinedOutput(); err != nil {
+			t.Fatalf("git commit -> %s -> %v", output, err)
+		}
+
+		hash, err := git.GetCommitHash(repo)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return hash
+	}
+
+	older := commit("older")
+	newer := commit("newer")
+
+	// The repo sits on 'newer' while the schedule pins 'older', and conf is pinned to
+	// 'newer': exactly the case that used to be read as "already at the revision".
+	schedule := Dag{ConfRef: newer, PortsRef: older}
+	if err := schedule.PinRepo("ports", repo, schedule.PortsRef); err != nil {
+		t.Fatalf("PinRepo() error = %v", err)
+	}
+
+	current, err := git.GetCommitHash(repo)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if current != older {
+		t.Fatalf("PinRepo() left the repo at %s, want %s", current, older)
 	}
 }
 
@@ -93,7 +141,7 @@ func TestParseDAG(t *testing.T) {
 // pkgcache supplies instead of building them.
 func TestReportPlan(t *testing.T) {
 	dag := Dag{
-		ScheduledNodes: []node{
+		TargetNodes: []node{
 			{NameVersion: "fontconfig@2.16.0", BuildHash: "aa", Checksum: "bb", Dependencies: []string{"zlib@1.3.1"}},
 			{NameVersion: "zlib@1.3.1", BuildHash: "cc"},
 		},
@@ -118,25 +166,5 @@ func TestReportPlan(t *testing.T) {
 	wantCached := map[string]bool{"libpng@1.6.49": true}
 	if !reflect.DeepEqual(cached, wantCached) {
 		t.Fatalf("CachedSet() = %v, want %v", cached, wantCached)
-	}
-}
-
-// TestDagRequiresConfRepo locks down that both ends of a schedule refuse a workspace
-// without a conf repo: exporting cannot record a revision, and applying cannot move the
-// repo to one.
-func TestDagRequiresConfRepo(t *testing.T) {
-	dirs.Init(t.TempDir())
-	t.Cleanup(dirs.RemoveAllForTest)
-
-	if err := (Dag{ConfRef: "abc"}).PinConf(); err == nil {
-		t.Fatal("PinConf() without a conf repo should fail")
-	}
-	if _, err := confRevision(); err == nil {
-		t.Fatal("confRevision() without a conf repo should fail")
-	}
-
-	// The schedule side is checked first: a missing revision is reported as such.
-	if err := (Dag{}).PinConf(); err == nil {
-		t.Fatal("PinConf() without a conf ref should fail")
 	}
 }
