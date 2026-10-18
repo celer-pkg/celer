@@ -112,7 +112,7 @@ Dev/host dependencies are **not** scheduled and never take part in the cache
 check: their cache key embeds the workspace path, so it is not portable between
 agents. Every agent builds them locally once and reuses its `devcache`.
 
-Hand the file to `celer install --dag=<file> <node>` to build a scheduled node
+Hand the file to `celer install --apply-dag=<file> <node>` to build a scheduled node
 from the schedule: the agent adopts the `platform`, `project` and `build_type` of the
 schedule instead of its own `celer.toml`, which is what makes it read the right
 pkgcache prefix, then pins every source revision to the exported `checksum` and

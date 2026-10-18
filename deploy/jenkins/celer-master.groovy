@@ -190,6 +190,20 @@ try {
 
 pipeline {
     agent { label 'celer-master' }
+    // agent {
+    //     docker {
+    //         label 'celer-master'
+    //         image 'ubuntu:22.04'
+    //         args '-u 1000:1000 ' +
+    //             '-v /mnt/data/celer_buildtrees:/workspace/buildtrees ' +
+    //             '-e HOME=/mnt/data/celer_home ' +
+    //             '-e CELER_PKGCACHE_MINIO_HOST ' +
+    //             '-e CELER_PKGCACHE_MINIO_ACCESS_KEY ' +
+    //             '-e CELER_PKGCACHE_MINIO_SECRET_KEY ' +
+    //             '-e CELER_PKGCACHE_FS_DIR ' +
+    //             '-e CELER_PKGCACHE_WRITABLE'
+    //     }
+    // }
     
     options {
         timeout(time: 4, unit: 'HOURS')
@@ -366,9 +380,13 @@ pipeline {
         stage('apply the schedule dag') {
             steps {
                 script {
-                    // Collects the artifacts of all nodes (deploy), or installs the
-                    // requested port from them (install).
-                    run dagCommand('--apply-dag')
+                    // Collects the artifacts of all nodes (deploy), or installs the requested ports from them (install). 
+                    // This side never builds: a node missing from pkgcache fails the stage instead of being rebuilt here.
+                    def applyCmd = dagCommand('--apply-dag')
+                    if (params.CELER_MODE == 'install') {
+                        applyCmd += ' --prefer=pkgcache'
+                    }
+                    run applyCmd
                 }
             }
         }

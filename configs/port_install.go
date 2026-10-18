@@ -157,26 +157,12 @@ func (p *Port) Install(options InstallOptions) (fromWhere string, retErr error) 
 		}
 	}
 
-	// Pre-warm repos and the meta cache for the whole dependency tree up front, so
-	// every install path (package/pkgcache/devcache/source) hits warm caches instead
-	// of restoring/cloning repos serially per dependency during buildhash.
+	// Fresh bookkeeping for this install; the repos are cloned by installFromSource() only
+	// when there is something to build, so a restore from package, pkgcache or devcache
+	// never pays for the sources.
 	if p.Parent == "" {
-		// Clone all repos.
 		visitedPorts = map[string]bool{}
 		clonedPorts = map[string]bool{}
-		if err := p.Clone(); err != nil {
-			return "", err
-		}
-
-		// Some build tools are detected from source, so we need to check all tools
-		// after all source are cloned.
-		if err := p.checkAllTools(); err != nil {
-			return "", err
-		}
-
-		if err := p.preWarmMetaCache(); err != nil {
-			return "", err
-		}
 	}
 
 	// Install from source for non-buildconfig case and prebuild case.
@@ -505,6 +491,11 @@ func (p *Port) installFromPackage(options InstallOptions) (bool, error) {
 		if err := p.Remove(remoteOptions); err != nil {
 			return false, fmt.Errorf("failed to remove outdated package -> %w", err)
 		}
+
+		// It builds next, so the sources must exist by now.
+		if err := p.prepareSources(); err != nil {
+			return false, err
+		}
 		if err := p.doInstallFromSource(); err != nil {
 			return false, fmt.Errorf("failed to install from source -> %w", err)
 		}
@@ -602,7 +593,31 @@ func (p *Port) installFromDevCache(options InstallOptions) (bool, error) {
 	return false, nil
 }
 
+// prepareSources clones the sources of this port and its dependencies, then checks the
+// tools and warms the meta cache for the whole tree.
+func (p *Port) prepareSources() error {
+	if err := p.Clone(); err != nil {
+		return err
+	}
+
+	// Tools and the meta warm-up are whole-tree work: they belong to the port the user asked
+	// for, not to a dependency that happens to be built on the way.
+	if p.Parent != "" {
+		return nil
+	}
+	if err := p.checkAllTools(); err != nil {
+		return err
+	}
+	return p.preWarmMetaCache()
+}
+
 func (p *Port) installFromSource(options InstallOptions) error {
+	// Only a source build needs the repos, so they are cloned here: the restore paths above
+	// never touch the sources.
+	if err := p.prepareSources(); err != nil {
+		return err
+	}
+
 	// Setup platform.
 	if err := p.ctx.Platform().Setup(); err != nil {
 		return err

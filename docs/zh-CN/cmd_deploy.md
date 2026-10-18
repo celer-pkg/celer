@@ -96,7 +96,7 @@ celer deploy --apply-dag=dag.json --snapshot=snapshots/2026-02-21
 
 dev/host 依赖**不参与调度**，也**不做 cache 判定**：它们的缓存键里含 workspace 路径，无法跨 agent 复用。每个 agent 本地编一次，之后靠自己的 `devcache` 复用。
 
-把这个文件交给 `celer install --dag=<file> <node>` 即可按调度构建某个被调度的节点：agent 会改用调度里的 `platform`、`project` 和 `build_type`，而不是自己的 `celer.toml`（这样才会命中正确的 pkgcache 前缀），然后把每个源码 revision 钉在导出的 `checksum` 上，节点 build hash 与 DAG 不一致时直接报错。列在 `cached` 里的节点不参与调度，这样装会被拒绝。
+把这个文件交给 `celer install --apply-dag=<file> <node>` 即可按调度构建某个被调度的节点：agent 会改用调度里的 `platform`、`project` 和 `build_type`，而不是自己的 `celer.toml`（这样才会命中正确的 pkgcache 前缀），然后把每个源码 revision 钉在导出的 `checksum` 上，节点 build hash 与 DAG 不一致时直接报错。列在 `cached` 里的节点不参与调度，这样装会被拒绝。
 
 ## 应用调度（把产物收回来）
 

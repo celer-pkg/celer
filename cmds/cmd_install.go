@@ -131,9 +131,6 @@ func (i *installCmd) runInstall(nameVersions []string) error {
 			return logger.PrintError(err, "failed to read the build DAG %s.", i.applyDag)
 		}
 		i.dagInfo = dagInfo
-		i.prefer = string(configs.PreferSource)
-		i.cleanSource = true
-		i.force = true
 	}
 
 	// Check git first as it's needed for cloning and reading commit hashes,

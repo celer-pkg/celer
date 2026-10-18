@@ -62,8 +62,9 @@ celer install ffmpeg@5.1.6 --prefer=pkgcache
 # Build from source only, then store the artifact (CI builder node)
 celer install ffmpeg@5.1.6 --prefer=source
 
-# Follow an exported build DAG (pins every source revision)
-celer install ffmpeg@5.1.6 --dag=out/dag.json
+# Follow a schedule exported by `celer deploy --export-dag` (pins every source revision);
+# the default chain builds the node when it is not cached and restores its dependencies
+celer install glib@2.84.1 --apply-dag=out/dag.json
 
 # Install with custom parallelism
 celer install ffmpeg@5.1.6 --jobs=8
