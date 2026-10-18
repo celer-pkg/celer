@@ -29,10 +29,10 @@ def dagCommand(String dagFlag) {
 // Clean tmp files except buildtrees to reuse repo sources.
 def cleanWorkspace() {
     if (isUnix()) {
-        sh 'rm -rf celer.toml installed packages stripped toolchain_file.cmake environment.sh dag.json'
+        sh 'rm -rf celer.toml installed packages stripped toolchain_file.cmake environment.sh dag.json *.tar.gz'
     } else {
         bat '''
-        del /F /Q "celer.toml" "toolchain_file.cmake" "environment.bat" "dag.json" 2>nul
+        del /F /Q "celer.toml" "toolchain_file.cmake" "environment.bat" "dag.json" "celer-*.tar.gz" 2>nul
         rmdir /S /Q "installed" 2>nul
         rmdir /S /Q "packages" 2>nul
         rmdir /S /Q "stripped" 2>nul
@@ -196,6 +196,7 @@ pipeline {
     //         image 'ubuntu:22.04'
     //         args '-u 1000:1000 ' +
     //             '-v /mnt/data/celer_buildtrees:/workspace/buildtrees ' +
+    //             '-v /etc/localtime:/etc/localtime:ro ' +
     //             '-e HOME=/mnt/data/celer_home ' +
     //             '-e CELER_PKGCACHE_MINIO_HOST ' +
     //             '-e CELER_PKGCACHE_MINIO_ACCESS_KEY ' +
@@ -207,6 +208,7 @@ pipeline {
     
     options {
         timeout(time: 4, unit: 'HOURS')
+        buildDiscarder(logRotator(numToKeepStr: '100', daysToKeepStr: '90', artifactNumToKeepStr: '30'))
     }
 
     stages {
@@ -263,7 +265,8 @@ pipeline {
                                 omitValueField: true,
                                 script: [$class: 'GroovyScript', script: [classpath: [], sandbox: false, script: confPortsVisibilityScript()]]
                             ],
-                            booleanParam(name: 'CELER_FORCE', defaultValue: false, description: 'Ignore pkgcache cache - [optional]')
+                            booleanParam(name: 'CELER_FORCE', defaultValue: false, description: 'Ignore pkgcache cache - [optional]'),
+                            booleanParam(name: 'CELER_PACK', defaultValue: true, description: 'Archive the artifact as a tarball for download - [optional]')
                         ])
                     ])
                 }
@@ -388,6 +391,25 @@ pipeline {
                     }
                     run applyCmd
                 }
+            }
+        }
+
+        stage('pack the artifact') {
+            when { expression { params.CELER_PACK } }
+            steps {
+                script {
+                    def dag = readJSON(file: 'dag.json')
+                    def installedDir = "installed/${dag.platform}/${dag.project}/${dag.build_type}"
+                    if (!fileExists(installedDir)) {
+                        error "nothing to pack: ${installedDir} is missing"
+                    }
+
+                    def timestamp = new Date(currentBuild.startTimeInMillis).format('yyyyMMdd-HHmmss')
+                    def tarball = "${dag.platform}-${dag.project}-${dag.build_type}-${env.BUILD_NUMBER}-${timestamp}.tar.gz"
+                    run "tar -czf ${tarball} -C ${installedDir} ."
+                }
+
+                archiveArtifacts artifacts: '*.tar.gz', fingerprint: false
             }
         }
     }

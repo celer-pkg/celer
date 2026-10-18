@@ -53,6 +53,7 @@ pipeline {
 
     options {
         timeout(time: 4, unit: 'HOURS')
+        buildDiscarder(logRotator(numToKeepStr: '500'))
     }
 
     parameters {
