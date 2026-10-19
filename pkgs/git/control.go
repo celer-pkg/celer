@@ -55,6 +55,14 @@ func UpdateRepo(target, repoRef, repoDir string, force bool) error {
 		}
 	}
 
+	// Fetch and prune before resolving the ref, so a branch deleted upstream is gone
+	// locally instead of being checked out from a stale origin/<branch>.
+	executor := cmd.NewExecutor("[fetch "+target+"]", "git", "fetch", "--prune", "origin")
+	executor.SetWorkDir(repoDir)
+	if output, err := executor.ExecuteOutputLive(); err != nil {
+		return fmt.Errorf("failed to fetch '%s' -> %s -> %w", target, output, err)
+	}
+
 	// Get default branch if repoRef is empty.
 	if repoRef == "" {
 		branch, err := GetDefaultBranch(target, repoDir)
