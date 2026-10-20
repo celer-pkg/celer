@@ -57,32 +57,15 @@ func NewCeler() *Celer {
 	return celer
 }
 
-type Celer struct {
-	configData
-
-	// Internal fields.
-	platform Platform
-	project  Project
-	exprVars context.ExprVars
-	devCache *DevCache
-}
-
-type Main struct {
-	ConfUrl   string `toml:"conf_url"`
-	Platform  string `toml:"platform"`
-	Project   string `toml:"project"`
-	BuildType string `toml:"build_type"`
-	Downloads string `toml:"downloads,omitempty"`
-	Jobs      int    `toml:"jobs"`
-	Verbose   bool   `toml:"verbose"`
-	Offline   bool   `toml:"offline"`
-}
+// ================================ Proxy ================================ //
 
 type Proxy struct {
 	Host   string `toml:"host"`
 	Port   int    `toml:"port"`
 	Remove bool   `toml:"-"`
 }
+
+// ================================ features ============================= //
 
 type features struct {
 	IgnoreCheckCMakeAbsPath bool `toml:"ignore_check_cmake_abs_path"`
@@ -91,6 +74,8 @@ type features struct {
 func (i features) ShouldIgnoreCheckCMakeAbsPath() bool {
 	return i.IgnoreCheckCMakeAbsPath
 }
+
+// ================================ Python ================================ //
 
 type Python struct {
 	Version        string   `toml:"version,omitempty"`
@@ -115,6 +100,8 @@ func (p *Python) GetTrustedHosts() []string {
 	return p.TrustedHosts
 }
 
+// ================================ configData ============================ //
+
 type configData struct {
 	Main     Main      `toml:"main"`
 	Proxy    *Proxy    `toml:"proxy,omitempty"`
@@ -122,6 +109,31 @@ type configData struct {
 	CCache   *CCache   `toml:"ccache,omitempty"`
 	Python   *Python   `toml:"python,omitempty"`
 	Features *features `toml:"features,omitempty"`
+}
+
+// ================================ Main ================================ //
+
+type Main struct {
+	ConfUrl   string `toml:"conf_url"`
+	Platform  string `toml:"platform"`
+	Project   string `toml:"project"`
+	BuildType string `toml:"build_type"`
+	Downloads string `toml:"downloads,omitempty"`
+	Jobs      int    `toml:"jobs"`
+	Verbose   bool   `toml:"verbose"`
+	Offline   bool   `toml:"offline"`
+}
+
+// ================================ Celer ================================ //
+
+type Celer struct {
+	configData
+
+	// Internal fields.
+	platform Platform
+	project  Project
+	exprVars context.ExprVars
+	devCache *DevCache
 }
 
 // Init initializes celer with default options.

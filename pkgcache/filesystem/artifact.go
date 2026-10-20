@@ -186,7 +186,9 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		return err
 	}
 
-	// Store the meta file before the archive. It is tiny so skip the progress bar.
+	// Store the meta file before the archive. It is tiny so skip the progress
+	// bar. uploadFile stages it in the FS root tmp dir, then atomically renames
+	// it into the meta's dir.
 	tmpMetaPath := filepath.Join(localTmpDir, hash+".meta")
 	if err := os.WriteFile(tmpMetaPath, []byte(meta), os.ModePerm); err != nil {
 		return err
@@ -195,12 +197,14 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		return err
 	}
 
-	// Store artifact with progress bar.
-	sha256, err := fileio.SHA256Sum(tempArchivePath)
+	// Store the archive with retry for transient IO failures. uploadFile skips
+	// the upload when the remote archive already matches sha256 (e.g. another
+	// user won the race), so retries are always safe.
+	archiveSha256, err := fileio.SHA256Sum(tempArchivePath)
 	if err != nil {
 		return err
 	}
-	if err := a.uploadFile(tempArchivePath, archivePath, sha256, nameVersion); err != nil {
+	if err := a.uploadFile(tempArchivePath, archivePath, archiveSha256, nameVersion); err != nil {
 		return fmt.Errorf("failed to upload file '%s' -> %w", nameVersion, err)
 	}
 

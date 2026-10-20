@@ -80,8 +80,8 @@ func (env environmentScript) writeScript() error {
 		buffer.WriteString("rem Python virtual environment.\r\n")
 		fmt.Fprintf(&buffer, "set \"VIRTUAL_ENV=%%WORKSPACE_DIR%%\\%s\"\r\n", win(env.venvRel))
 		fmt.Fprintf(&buffer, "set \"PYTHONUSERBASE=%%WORKSPACE_DIR%%\\.venv\"\r\n")
-		fmt.Fprintf(&buffer, "set \"PYTHONPATH=%%WORKSPACE_DIR%%\\%s\\%s%s%%VIRTUAL_ENV%%\\%s%s%%PYTHONPATH%%\"\r\n\r\n",
-			win(env.installedRel), win(env.siteRel), sep, win(env.siteRel), sep)
+		fmt.Fprintf(&buffer, "set \"PYTHONPATH=%%VIRTUAL_ENV%%\\%s%s%%WORKSPACE_DIR%%\\%s\\%s%s%%PYTHONPATH%%\"\r\n\r\n",
+			win(env.siteRel), sep, win(env.installedRel), win(env.siteRel), sep)
 	}
 
 	buffer.WriteString("rem pkg-config search paths.\r\n")

@@ -293,8 +293,8 @@ func (b BuildConfig) setupPythonEnvs() {
 		targetDir := filepath.Join(b.PortConfig.StagingDir, b.PortConfig.LibraryDir)
 		venvDir := buildtools.PythonTool.VenvDir()
 		paths := []string{
-			filepath.Join(targetDir, sitePackage),
 			filepath.Join(venvDir, sitePackage),
+			filepath.Join(targetDir, sitePackage),
 		}
 		b.envBackup.setenv("PYTHONPATH", env.JoinPaths("PYTHONPATH", paths...))
 	}
@@ -481,6 +481,7 @@ func (b *BuildConfig) appendIncludeDir(includeDir string) {
 		// Update environment variable with modified flags.
 		if newAppended {
 			b.envBackup.setenv("CFLAGS", strings.Join(cflags, " "))
+			b.envBackup.setenv("CPPFLAGS", strings.Join(cflags, " "))
 			b.envBackup.setenv("CXXFLAGS", strings.Join(cxxflags, " "))
 		}
 

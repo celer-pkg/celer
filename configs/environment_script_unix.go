@@ -84,8 +84,8 @@ func (env environmentScript) writeScript() error {
 		buffer.WriteString("# Python virtual environment.\n")
 		fmt.Fprintf(&buffer, "export VIRTUAL_ENV=\"${WORKSPACE_DIR}/%s\"\n", env.venvRel)
 		fmt.Fprintf(&buffer, "export PYTHONUSERBASE=\"${WORKSPACE_DIR}/.venv\"\n")
-		fmt.Fprintf(&buffer, "export PYTHONPATH=\"${WORKSPACE_DIR}/%s/%s%s${VIRTUAL_ENV}/%s%s${PYTHONPATH}\"\n\n",
-			env.installedRel, env.siteRel, sep, env.siteRel, sep)
+		fmt.Fprintf(&buffer, "export PYTHONPATH=\"${VIRTUAL_ENV}/%s%s${WORKSPACE_DIR}/%s/%s%s${PYTHONPATH}\"\n\n",
+			env.siteRel, sep, env.installedRel, env.siteRel, sep)
 	}
 
 	// Native library search paths for host-side tools.

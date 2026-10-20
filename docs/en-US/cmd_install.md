@@ -33,7 +33,8 @@ celer install <name@version> [<name@version> ...] [flags]
 | --force       | -f    | boolean | Reinstall target (remove first if installed)              |
 | --clean-source|       | boolean | With `--force`, also reset the source repo (discards uncommitted changes) |
 | --prefer      |       | string  | Install from one path only (`source`/`package`/`pkgcache`/`devcache`), no fallback; a miss fails the install |
-| --dag         |       | string  | Follow a DAG exported by `celer deploy --export-dag`: adopt its platform, project and build type, pin every source revision and verify the build hash |
+| --export-dag  |       | string  | Export the complete DAG of the current project, used to create distributed build tasks |
+| --apply-dag   |       | string  | Apply a DAG exported by `celer deploy --export-dag` to install the current target |
 | --recursive   | -r    | boolean | With force-style reinstall, include dependencies           |
 | --jobs        | -j    | integer | Parallel build jobs                                        |
 | --verbose     | -v    | boolean | Enable verbose output                                      |
@@ -59,7 +60,7 @@ celer install ffmpeg@5.1.6 --force --clean-source
 # Restore from the shared package cache only (CI consumer node)
 celer install ffmpeg@5.1.6 --prefer=pkgcache
 
-# Build from source only, then store the artifact (CI builder node)
+# Build from source only, then upload the artifact (CI builder node)
 celer install ffmpeg@5.1.6 --prefer=source
 
 # Follow a schedule exported by `celer deploy --export-dag` (pins every source revision);

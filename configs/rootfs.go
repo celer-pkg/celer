@@ -3,6 +3,7 @@ package configs
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -74,6 +75,11 @@ func (r *RootFS) CheckAndRepair() error {
 		return fmt.Errorf("fixup rootfs pkgconfig -> %w", err)
 	}
 
+	// Reconcile a non-usr-merged sysroot into the usr-merge layout.
+	if err := fixUsrMerge(r.abspath); err != nil {
+		return fmt.Errorf("fixup rootfs usr-merge -> %w", err)
+	}
+
 	return nil
 }
 
@@ -137,5 +143,30 @@ func (r RootFS) Generate(toolchain *strings.Builder) error {
 
 	// Write all at once.
 	toolchain.WriteString(buffer.String())
+	return nil
+}
+
+// fixUsrMerge creates the top-level lib/bin/sbin -> usr/... symlinks that
+// Debian's usrmerge migration normally provides. Cross SDK rootfs archives are
+// often assembled without them, which breaks qemu-user (`-L <sysroot>`): the
+// guest binary's PT_INTERP is /lib/ld-linux*.so.*, and resolving it under
+// <sysroot> requires <sysroot>/lib.
+func fixUsrMerge(sysRoot string) error {
+	for _, name := range []string{"lib", "bin", "sbin"} {
+		link := filepath.Join(sysRoot, name)
+		if _, err := os.Lstat(link); err == nil {
+			continue // already a symlink or directory — leave it alone
+		} else if !os.IsNotExist(err) {
+			return err
+		}
+
+		// Only merge when the usr/ counterpart actually exists.
+		if !fileio.PathExists(filepath.Join(sysRoot, "usr", name)) {
+			continue
+		}
+		if err := os.Symlink(filepath.Join("usr", name), link); err != nil {
+			return err
+		}
+	}
 	return nil
 }
