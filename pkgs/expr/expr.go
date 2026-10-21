@@ -70,3 +70,19 @@ func GetMinorVersion(version string) string {
 	}
 	return version
 }
+
+// FormatProcessor unify processor name.
+func FormatProcessor(processor string) string {
+	switch strings.ToLower(strings.TrimSpace(processor)) {
+	case "amd64", "x86_64":
+		return "x86_64"
+	case "arm64", "aarch64":
+		return "aarch64"
+	case "386", "i386", "i486", "i586", "i686":
+		return "i386"
+	case "arm", "armv7", "armv7l", "armhf":
+		return "arm"
+	default:
+		return strings.ToLower(strings.TrimSpace(processor))
+	}
+}

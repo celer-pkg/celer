@@ -166,3 +166,20 @@ type DevAritifactCache interface {
 	Restore(packageDir, nameVersion, buildhash string) (bool, error)
 	Store(packageDir, metadata string) error
 }
+
+// IsPythonDistribution reports whether name is a Python distribution artifact
+// that can be used as a pip find-links candidate: a wheel or a source archive.
+func IsPythonDistribution(name string) bool {
+	name = strings.ToLower(name)
+	switch {
+	case strings.HasSuffix(name, ".whl"),
+		strings.HasSuffix(name, ".tar.gz"),
+		strings.HasSuffix(name, ".tgz"),
+		strings.HasSuffix(name, ".zip"),
+		strings.HasSuffix(name, ".tar.bz2"),
+		strings.HasSuffix(name, ".tar.xz"):
+		return true
+	default:
+		return false
+	}
+}
