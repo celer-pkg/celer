@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
@@ -38,12 +37,12 @@ func NewPythonWheelConfig(ctx context.Context) *PythonWheelConfig {
 	}
 }
 
-// Restore copies every cached wheel under cacheKey into destDir (the pip
+// Restore copies every cached distribution under cacheKey into destDir (the pip
 // --find-links target). ok=false when the cache entry does not exist.
 func (p PythonWheelConfig) Restore(cacheKey, destDir string) (bool, error) {
 	keyDir := filepath.Join(p.cacheDir, cacheKey)
 	entries, err := os.ReadDir(keyDir)
-	if err != nil || !hasWheels(entries) {
+	if err != nil || !hasDistributions(entries) {
 		return false, nil
 	}
 
@@ -52,20 +51,20 @@ func (p PythonWheelConfig) Restore(cacheKey, destDir string) (bool, error) {
 	}
 
 	for _, entity := range entries {
-		if entity.IsDir() || !strings.HasSuffix(entity.Name(), ".whl") {
+		if entity.IsDir() || !pkgcache.IsPythonDistribution(entity.Name()) {
 			continue
 		}
 
-		remoteWheel := filepath.Join(keyDir, entity.Name())
-		destWheel := filepath.Join(destDir, entity.Name())
-		if err := fileio.CopyFile(remoteWheel, destWheel); err != nil {
-			return false, fmt.Errorf("failed to restore wheel %s -> %w", entity.Name(), err)
+		remoteFile := filepath.Join(keyDir, entity.Name())
+		destFile := filepath.Join(destDir, entity.Name())
+		if err := fileio.CopyFile(remoteFile, destFile); err != nil {
+			return false, fmt.Errorf("failed to restore python distribution %s -> %w", entity.Name(), err)
 		}
 	}
 	return true, nil
 }
 
-// Store copies every *.whl under wheelhouseDir into the cache entry for cacheKey.
+// Store copies every python distribution under wheelhouseDir into the cache entry for cacheKey.
 func (p PythonWheelConfig) Store(cacheKey, wheelhouseDir string) error {
 	if p.ctx.Offline() {
 		return nil
@@ -85,20 +84,20 @@ func (p PythonWheelConfig) Store(cacheKey, wheelhouseDir string) error {
 	}
 
 	for _, entity := range entries {
-		if entity.IsDir() || !strings.HasSuffix(entity.Name(), ".whl") {
+		if entity.IsDir() || !pkgcache.IsPythonDistribution(entity.Name()) {
 			continue
 		}
 
-		localWheel := filepath.Join(wheelhouseDir, entity.Name())
-		localSha256, err := fileio.SHA256Sum(localWheel)
+		localFile := filepath.Join(wheelhouseDir, entity.Name())
+		localSha256, err := fileio.SHA256Sum(localFile)
 		if err != nil {
 			return fmt.Errorf("failed to compute sha256 for '%s' -> %w", entity.Name(), err)
 		}
 
 		// The cache is authoritative: never auto-overwrite an existing entry.
-		remoteWheel := filepath.Join(keyDir, entity.Name())
-		if fileio.PathExists(remoteWheel) {
-			cachedSha256, err := fileio.SHA256Sum(remoteWheel)
+		remoteFile := filepath.Join(keyDir, entity.Name())
+		if fileio.PathExists(remoteFile) {
+			cachedSha256, err := fileio.SHA256Sum(remoteFile)
 			if err != nil {
 				return fmt.Errorf("failed to calculate sha256 of '%s' -> %w", entity.Name(), err)
 			}
@@ -109,17 +108,17 @@ func (p PythonWheelConfig) Store(cacheKey, wheelhouseDir string) error {
 				errors.ErrSha256Mismatch, entity.Name(), cachedSha256, localSha256)
 		}
 
-		if err := p.uploadFile(localWheel, remoteWheel, localSha256, entity.Name()); err != nil {
-			return fmt.Errorf("failed to cache wheel '%s' -> %w", entity.Name(), err)
+		if err := p.uploadFile(localFile, remoteFile, localSha256, entity.Name()); err != nil {
+			return fmt.Errorf("failed to cache python distribution '%s' -> %w", entity.Name(), err)
 		}
 	}
 	return nil
 }
 
-// hasWheels reports whether any entry is a .whl file.
-func hasWheels(entries []os.DirEntry) bool {
+// hasDistributions reports whether any entry is a python distribution file.
+func hasDistributions(entries []os.DirEntry) bool {
 	for _, entity := range entries {
-		if !entity.IsDir() && strings.HasSuffix(entity.Name(), ".whl") {
+		if !entity.IsDir() && pkgcache.IsPythonDistribution(entity.Name()) {
 			return true
 		}
 	}

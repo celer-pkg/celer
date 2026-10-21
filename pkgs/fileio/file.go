@@ -637,3 +637,15 @@ func VerifyFileSHA256(filePath, expectedHash string) bool {
 
 	return computedHash == expectedHash
 }
+
+// IsNotEmpty check if dir exist and not empty.
+func IsNotEmpty(dir string) bool {
+	if !PathExists(dir) {
+		return false
+	}
+	entities, err := os.ReadDir(dir)
+	if err != nil {
+		return false
+	}
+	return len(entities) > 0
+}

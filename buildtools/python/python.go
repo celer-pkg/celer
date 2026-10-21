@@ -107,6 +107,21 @@ func (p PythonTool) RegisterExprVars(exprVars *context.ExprVars) {
 // InstallFromWheelhouse installs the specs using only the wheels in
 // wheelhouseDir (--no-index --find-links), i.e. fully offline.
 func (p PythonTool) InstallFromWheelhouse(specs []string, wheelhouseDir string) error {
+	executor := cmd.NewExecutor("[python3 install from wheelhouse]",
+		p.wheelhouseInstallCommand(specs, wheelhouseDir))
+	return executor.Execute()
+}
+
+// TryInstallFromWheelhouse is a quiet variant used to probe an incomplete
+// wheelhouse. The expected "not found" errors are not printed; callers fall
+// back to downloading the missing packages.
+func (p PythonTool) TryInstallFromWheelhouse(specs []string, wheelhouseDir string) error {
+	executor := cmd.NewExecutor("[python3 install from wheelhouse]",
+		p.wheelhouseInstallCommand(specs, wheelhouseDir))
+	return executor.Execute()
+}
+
+func (p PythonTool) wheelhouseInstallCommand(specs []string, wheelhouseDir string) string {
 	var builder strings.Builder
 	if p.LdLibraryPath() != "" {
 		fmt.Fprintf(&builder, "LD_LIBRARY_PATH=%s ", p.LdLibraryPath())
@@ -116,9 +131,7 @@ func (p PythonTool) InstallFromWheelhouse(specs []string, wheelhouseDir string) 
 	builder.WriteString(wheelhouseDir)
 	builder.WriteString(" ")
 	builder.WriteString(strings.Join(specs, " "))
-
-	executor := cmd.NewExecutor("[python3 install from wheelhouse]", builder.String())
-	return executor.Execute()
+	return builder.String()
 }
 
 // PipDownload runs `pip download` to materialize the full resolved wheel set

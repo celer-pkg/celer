@@ -2,12 +2,12 @@
 
 > **避免 `build_tools` 中 Python 库的重复 PyPI 下载**
 
-端口会把 Python 库声明为构建工具，如 `build_tools = ["python3:mako", "python3:MarkupSafe@2.1.0"]`，每个通过 `pip` 装进构建 venv。**Python Wheel 缓存**把解析出的 wheel 集（含传递依赖）存进 `pkgcache/python-wheels`，后续安装直接 restore 出 wheelhouse，跑完全离线的 `pip install --no-index --find-links`——命中时不打 PyPI。
+端口会把 Python 库声明为构建工具，如 `build_tools = ["python3:mako", "python3:MarkupSafe@2.1.0"]`，每个通过 `pip` 装进构建 venv。**Python Wheel 缓存**把解析出的分发包（wheel 以及 `.tar.gz`/`.zip` 等源码包，含传递依赖）存进 `pkgcache/python-wheels`，后续安装直接 restore 出 wheelhouse，跑完全离线的 `pip install --no-index --find-links`——命中时不打 PyPI。
 
 ## 目录结构
 
 ```text
-python-wheels/<平台范围>/<Name>/<Version>/<wheel 文件>
+python-wheels/<平台范围>/<Name>/<Version>/<wheel 或源码包文件>
 ```
 
 - `<平台范围>` = `py<minor>-<GOOS>-<GOARCH>`，如 `py310-linux-amd64`。按 Python 小版本和 OS/架构隔离，不跨平台串台。

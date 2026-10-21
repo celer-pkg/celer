@@ -27,7 +27,7 @@ import (
 var (
 	CStandards   = []string{"c90", "c99", "c11", "c17", "c23"}
 	CXXStandards = []string{"c++98", "c++11", "c++14", "c++17", "c++20", "c++23"}
-	buildSystems = []string{"cmake", "makefiles", "meson", "qmake", "b2", "gyp", "bazel", "nobuild", "prebuilt", "python", "custom"}
+	buildSystems = []string{"cmake", "makefiles", "meson", "qmake", "b2", "gyp", "bazel", "nobuild", "prebuilt", "python", "pip", "custom"}
 )
 
 type PortConfig struct {
@@ -129,6 +129,9 @@ type BuildConfig struct {
 	BuildTools_Windows []string `toml:"build_tools_windows,omitempty"`
 	BuildTools_Linux   []string `toml:"build_tools_linux,omitempty"`
 	BuildTools_Darwin  []string `toml:"build_tools_darwin,omitempty"`
+
+	// Python packages installed by build_system = "pip".
+	PythonPackages []string `toml:"python_packages,omitempty"`
 
 	// Library type configure field is not mandatory.
 	BuildShared         *bool `toml:"build_shared,omitempty"`
@@ -333,6 +336,10 @@ func (b BuildConfig) Validate() error {
 	// Validate versioned build system.
 	if hasVersion && name != "cmake" && name != "meson" && name != "gyp" {
 		return fmt.Errorf("build_system %q does not support version suffix, only cmake, meson and gyp support versions", b.BuildSystem)
+	}
+
+	if name == "pip" && len(b.PythonPackages) == 0 {
+		return fmt.Errorf("build_system %q requires python_packages for %s", "pip", b.PortConfig.PortFile)
 	}
 
 	// Validate c_standard.
@@ -877,6 +884,8 @@ func (b *BuildConfig) InitBuildSystem() error {
 		b.buildSystem = NewPrebuilt(b)
 	case "nobuild":
 		b.buildSystem = NewNoBuild(b)
+	case "pip":
+		b.buildSystem = NewPip(b)
 	case "python", "custom":
 		b.buildSystem = NewCustom(b)
 	default:
@@ -890,6 +899,21 @@ func (b *BuildConfig) InitBuildSystem() error {
 
 func (b *BuildConfig) CheckTools() []string {
 	return b.buildSystem.CheckTools()
+}
+
+// pythonEnvChecker is implemented by build systems that need the host venv.
+type pythonEnvChecker interface {
+	pythonEnvRequired() bool
+}
+
+func (b *BuildConfig) PythonEnvRequired() bool {
+	if b.buildSystem == nil {
+		return false
+	}
+	if required, ok := b.buildSystem.(pythonEnvChecker); ok {
+		return required.pythonEnvRequired()
+	}
+	return false
 }
 
 func (b *BuildConfig) Configured() bool {

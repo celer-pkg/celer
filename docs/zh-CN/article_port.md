@@ -33,9 +33,10 @@
   toolchain_name = "gcc"                  # 可选选择器
   toolchain_version = "9.5"               # 可选选择器
   build_type = "release"                  # 可选选择器，需与 celer.toml 中的 build_type 一致
-  build_system = "cmake"                  # 必填字段，可选值：cmake、makefiles、b2、meson 等
+  build_system = "cmake"                  # 必填字段，可选值：cmake、makefiles、b2、meson、pip、custom 等
   cmake_generator = []                    # 可选字段
   build_tools = []                        # 可选字段
+  python_packages = []                    # 可选字段，仅 build_system = "pip" 有效
   build_shared = true                     # 可选字段，是否构建动态库，默认 shared-only
   build_static = false                    # 可选字段，是否构建静态库，默认 false
   build_shared_option = "--with-shared"   # 可选字段（仅 makefiles），默认 --enable-shared
@@ -138,6 +139,7 @@
 - **qmake**: Qt 构建系统
 - **prebuilt**: 预编译库
 - **nobuild**: 无需构建的纯头文件库
+- **pip**: 声明式安装 Python 包（通常用于目标平台运行时依赖）
 - **custom**: 自定义构建逻辑
 
 ### cmake_generator
@@ -150,6 +152,29 @@
 
 >**Tip:**  
 &emsp;&emsp;实际上，Celer 已内置支持多种构建工具，包括：Windows 版的 CMake、MinGit、strawberry-perl、msys2、vswhere 等。虽然这些工具大多不支持用户配置，但当切换不同的构建系统时，Celer 会自动将它们加入构建工具列表。例如在 Windows 上使用 makefiles 编译时，msys2 就会被自动添加到构建工具中。
+
+### pip
+
+&emsp;&emsp;`build_system = "pip"` 用于声明式安装 Python 包，适合目标平台（运行时）依赖，包括 numpy 这类带 C 扩展的包。它和 `build_tools = ["python3:xxx"]` 的区别是：**build_tools 安装到宿主机 venv，用于构建期工具；python_packages 安装到目标平台的 site-packages。**
+
+```toml
+[[build_configs]]
+  system_names = ["linux"]
+  system_processor = "aarch64"
+  build_system = "pip"
+  build_tools = ["qemu-aarch64"]
+  dependencies = ["cpython@3.10.20"]
+  python_packages = [
+    "lark@1.3.1",
+    "numpy@1.26.4",
+    "PyYAML@6.0.3",
+  ]
+```
+
+| 字段 | 必选 | 说明 |
+|------|------|------|
+| `python_packages` | ✅ | pip 包列表，统一使用 `name@version`|
+| `dependencies` | target 必填 | 目标 Python 依赖，通常为 `cpython@<version>`；host/dev 不需要 |
 
 ### build_shared，build_static
 

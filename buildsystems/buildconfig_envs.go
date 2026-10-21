@@ -185,6 +185,16 @@ func (b *BuildConfig) setupEnvs() {
 		b.setupPythonEnvs() // Expost PYTHONUSERBASE and PYTHONPATH for Python.
 	}
 
+	// Native target builds can run the target-dependency binaries on the host.
+	// Put their bin directory on PATH so tools such as qmake are discoverable.
+	sameProcessor := expr.FormatProcessor(toolchain.GetSystemProcessor()) == expr.FormatProcessor(runtime.GOARCH)
+	if !b.DevDep && !b.HostDev && toolchain != nil && sameProcessor {
+		targetBin := filepath.Join(b.PortConfig.StagingDir, b.PortConfig.LibraryDir, "bin")
+		if fileio.PathExists(targetBin) {
+			b.envBackup.setenv("PATH", env.JoinPaths("PATH", targetBin))
+		}
+	}
+
 	// Set QNX environments only when toolchain is qcc.
 	b.setupQNXEnvs()
 }
@@ -293,8 +303,8 @@ func (b BuildConfig) setupPythonEnvs() {
 		targetDir := filepath.Join(b.PortConfig.StagingDir, b.PortConfig.LibraryDir)
 		venvDir := buildtools.PythonTool.VenvDir()
 		paths := []string{
-			filepath.Join(targetDir, sitePackage),
 			filepath.Join(venvDir, sitePackage),
+			filepath.Join(targetDir, sitePackage),
 		}
 		b.envBackup.setenv("PYTHONPATH", env.JoinPaths("PYTHONPATH", paths...))
 	}
@@ -481,6 +491,7 @@ func (b *BuildConfig) appendIncludeDir(includeDir string) {
 		// Update environment variable with modified flags.
 		if newAppended {
 			b.envBackup.setenv("CFLAGS", strings.Join(cflags, " "))
+			b.envBackup.setenv("CPPFLAGS", strings.Join(cflags, " "))
 			b.envBackup.setenv("CXXFLAGS", strings.Join(cxxflags, " "))
 		}
 

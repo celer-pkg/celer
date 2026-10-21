@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
@@ -43,9 +42,9 @@ func (p PythonWheelConfig) keyPrefix(cacheKey string) string {
 	return filepath.Join(p.cacheDir, cacheKey)
 }
 
-// Restore lists every wheel object under cacheKey's prefix and downloads them
-// into destDir (the pip --find-links target).
-// return false when the prefix has no wheels.
+// Restore lists every distribution object under cacheKey's prefix and downloads
+// them into destDir (the pip --find-links target).
+// return false when the prefix has no distributions.
 func (p PythonWheelConfig) Restore(cacheKey, destDir string) (bool, error) {
 	if p.ctx.Offline() {
 		return false, nil
@@ -53,8 +52,8 @@ func (p PythonWheelConfig) Restore(cacheKey, destDir string) (bool, error) {
 
 	prefix := p.keyPrefix(cacheKey) + "/"
 
-	// List every object under the prefix and collect the wheel names.
-	var wheels []string
+	// List every object under the prefix and collect the distribution names.
+	var files []string
 	for info := range p.client.ListObjects(context.Background(), p.bucketName, minio.ListObjectsOptions{
 		Prefix:    prefix,
 		Recursive: true,
@@ -63,14 +62,14 @@ func (p PythonWheelConfig) Restore(cacheKey, destDir string) (bool, error) {
 			return false, fmt.Errorf("failed to list python wheels for '%s' -> %w", cacheKey, info.Err)
 		}
 
-		wheel := filepath.Base(info.Key)
-		if !strings.HasSuffix(wheel, ".whl") {
+		file := filepath.Base(info.Key)
+		if !pkgcache.IsPythonDistribution(file) {
 			continue
 		}
 
-		wheels = append(wheels, wheel)
+		files = append(files, file)
 	}
-	if len(wheels) == 0 {
+	if len(files) == 0 {
 		return false, nil
 	}
 
@@ -84,22 +83,22 @@ func (p PythonWheelConfig) Restore(cacheKey, destDir string) (bool, error) {
 	}
 	defer os.RemoveAll(localTmpDir)
 
-	for _, wheel := range wheels {
-		objectName := filepath.Join(p.cacheDir, cacheKey, wheel)
-		tmpWheel, err := p.downloadFile(localTmpDir, objectName, wheel)
+	for _, file := range files {
+		objectName := filepath.Join(p.cacheDir, cacheKey, file)
+		tmpFile, err := p.downloadFile(localTmpDir, objectName, file)
 		if err != nil {
-			return false, fmt.Errorf("failed to download wheel %s -> %w", wheel, err)
+			return false, fmt.Errorf("failed to download python distribution %s -> %w", file, err)
 		}
 
-		destWheel := filepath.Join(destDir, wheel)
-		if err := fileio.CopyFile(tmpWheel, destWheel); err != nil {
-			return false, fmt.Errorf("failed to place wheel '%s' -> %w", wheel, err)
+		destFile := filepath.Join(destDir, file)
+		if err := fileio.CopyFile(tmpFile, destFile); err != nil {
+			return false, fmt.Errorf("failed to place python distribution '%s' -> %w", file, err)
 		}
 	}
 	return true, nil
 }
 
-// Store uploads every *.whl under wheelhouseDir into the cache entry for cacheKey.
+// Store uploads every python distribution under wheelhouseDir into the cache entry for cacheKey.
 func (p PythonWheelConfig) Store(cacheKey, wheelhouseDir string) error {
 	if p.ctx.Offline() {
 		return nil
@@ -120,19 +119,19 @@ func (p PythonWheelConfig) Store(cacheKey, wheelhouseDir string) error {
 
 	prefix := p.keyPrefix(cacheKey)
 	for _, entity := range entries {
-		if entity.IsDir() || !strings.HasSuffix(entity.Name(), ".whl") {
+		if entity.IsDir() || !pkgcache.IsPythonDistribution(entity.Name()) {
 			continue
 		}
-		localWheel := filepath.Join(wheelhouseDir, entity.Name())
-		localSha256, err := fileio.SHA256Sum(localWheel)
+		localFile := filepath.Join(wheelhouseDir, entity.Name())
+		localSha256, err := fileio.SHA256Sum(localFile)
 		if err != nil {
 			return fmt.Errorf("failed to compute sha256 for '%s' -> %w", entity.Name(), err)
 		}
-		wheelObject := filepath.Join(prefix, entity.Name())
+		fileObject := filepath.Join(prefix, entity.Name())
 
 		// The cache is authoritative: never auto-overwrite an existing entry.
-		if info, err := p.GetFileInfo(wheelObject); err != nil {
-			return fmt.Errorf("failed to stat wheel '%s' -> %w", entity.Name(), err)
+		if info, err := p.GetFileInfo(fileObject); err != nil {
+			return fmt.Errorf("failed to stat python distribution '%s' -> %w", entity.Name(), err)
 		} else if info != nil {
 			remoteSha256 := p.metaSha256(info)
 			if remoteSha256 == "" {
@@ -144,8 +143,8 @@ func (p PythonWheelConfig) Store(cacheKey, wheelhouseDir string) error {
 			return fmt.Errorf("'%s' is cached with sha256=%s, but storing sha256=%s; remove the cached object manually if you want to replace it", entity.Name(), remoteSha256, localSha256)
 		}
 
-		if err := p.uploadFile(localWheel, wheelObject, entity.Name()); err != nil {
-			return fmt.Errorf("failed to cache wheel '%s' -> %w", entity.Name(), err)
+		if err := p.uploadFile(localFile, fileObject, entity.Name()); err != nil {
+			return fmt.Errorf("failed to cache python distribution '%s' -> %w", entity.Name(), err)
 		}
 	}
 	return nil

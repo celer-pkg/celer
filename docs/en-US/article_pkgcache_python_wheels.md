@@ -2,12 +2,12 @@
 
 > **Avoid repeated PyPI downloads for `build_tools` Python libraries**
 
-Ports declare Python libraries as build tools, e.g. `build_tools = ["python3:mako", "python3:MarkupSafe@2.1.0"]`. Each is installed into the build venv via `pip`. The **Python Wheel Cache** stores the resolved wheel set (with transitive deps) into `pkgcache/python-wheels`, so later installs restore the wheels and run a fully offline `pip install --no-index --find-links` — no PyPI traffic on a hit.
+Ports declare Python libraries as build tools, e.g. `build_tools = ["python3:mako", "python3:MarkupSafe@2.1.0"]`. Each is installed into the build venv via `pip`. The **Python Wheel Cache** stores the resolved distribution set (wheels and source archives such as `.tar.gz`/`.zip`, with transitive deps) into `pkgcache/python-wheels`, so later installs restore them and run a fully offline `pip install --no-index --find-links` — no PyPI traffic on a hit.
 
 ## Directory Layout
 
 ```text
-python-wheels/<platform-scope>/<Name>/<Version>/<wheel-files>
+python-wheels/<platform-scope>/<Name>/<Version>/<wheel-or-sdist-files>
 ```
 
 - `<platform-scope>` = `py<minor>-<GOOS>-<GOARCH>`, e.g. `py310-linux-amd64`. Isolates by Python minor version and OS/arch — no cross-platform contamination.
