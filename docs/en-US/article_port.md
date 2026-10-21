@@ -24,9 +24,10 @@ Let's look at an example port.toml file: **ports/glog/0.6.0/port.toml**:
   toolchain_name      = "gcc"                 # optional selector
   toolchain_version   = "9.5"                 # optional selector
   build_type          = "release"             # optional selector, must match the build_type in celer.toml
-  build_system        = "cmake"               # mandatory field, should be **cmake**, **makefiles**, **b2**, **meson**, etc.
+  build_system        = "cmake"               # mandatory field, should be **cmake**, **makefiles**, **b2**, **meson**, **pip**, **custom**, etc.
   cmake_generator     = []                    # optional field, should be "Ninja", "Unix Makefiles", "Visual Studio xxx"
   build_tools         = [...]                 # optional field
+  python_packages     = [...]                 # optional field, only used by build_system = "pip"
   build_shared        = true                  # optional field, build shared library, default is shared-only
   build_static        = false                 # optional field, build static library, default is false
   build_shared_option = "--with-shared"       # optional field (makefiles only), default is --enable-shared
@@ -128,6 +129,7 @@ The following are fields and their descriptions:
 - **qmake**: Qt build system
 - **prebuilt**: Pre-built library
 - **nobuild**: Header-only libraries requiring no compilation
+- **pip**: Declarative Python package installation (usually target/runtime dependencies)
 - **custom**: Custom build logic
 
 ### cmake_generator
@@ -140,6 +142,29 @@ The following are fields and their descriptions:
 
 >**Tip:**  
 &emsp;&emsp;In actuality, Celer has built-in support for a variety of build tools, such as: Windows versions of CMake, MinGit, strawberry-perl, msys2, vswhere, and more. Although most of these tools are not user-configurable, when switching between different buildsystems, Celer automatically adds them to the buildtools list. For example, when compiling with makefiles on Windows, msys2 is automatically added to the buildtools.
+
+### pip
+
+&emsp;&emsp;`build_system = "pip"` installs a declarative list of Python packages into the target (runtime) site-packages, including packages with C extensions such as numpy. This is different from `build_tools = ["python3:xxx"]`: build_tools are installed into the host venv for build-time use, while `python_packages` are installed for the target.
+
+```toml
+[[build_configs]]
+  system_names = ["linux"]
+  system_processor = "aarch64"
+  build_system = "pip"
+  build_tools = ["qemu-aarch64"]
+  dependencies = ["cpython@3.10.20"]
+  python_packages = [
+    "lark@1.3.1",
+    "numpy@1.26.4",
+    "PyYAML@6.0.3",
+  ]
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `python_packages` | ✅ | pip package list, always `name@version` |
+| `dependencies` | required for target | Target Python dependency, usually `cpython@<version>`; not needed for host/dev |
 
 ### build_shared, build_static
 

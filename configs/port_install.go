@@ -254,6 +254,23 @@ func (p *Port) Install(options InstallOptions) (fromWhere string, retErr error) 
 	return "source", nil
 }
 
+// hasPackageOutput reports whether the build produced files besides the meta
+// file. An empty package must not be published to the artifact cache.
+func (p Port) hasPackageOutput() bool {
+	found := false
+	err := filepath.WalkDir(p.PackageDir, func(path string, entry os.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if entry.IsDir() || strings.HasSuffix(path, ".meta") {
+			return nil
+		}
+		found = true
+		return filepath.SkipAll
+	})
+	return err == nil && found
+}
+
 // shouldSkipArtifactPkgCache reports whether the artifact pkgcache must be
 // bypassed for both restore and store. Dev/host builds use the local
 // toolchain, which differs per machine; locally modified sources mean the
@@ -645,7 +662,10 @@ func (p *Port) installFromSource(options InstallOptions) error {
 	// - Python packages: copy from PACKAGE_DIR to venv
 	// - C++ packages: copy to InstalledDir.
 	destDir := p.InstalledDir
-	if p.MatchedConfig.BuildSystem == "python" {
+	if p.installIntoVenv() {
+		if buildtools.PythonTool == nil {
+			return fmt.Errorf("python tool is not available for %s", p.NameVersion())
+		}
 		destDir = buildtools.PythonTool.VenvDir()
 	}
 	if err := p.doInstallFromPackage(destDir); err != nil {
@@ -782,13 +802,6 @@ func (p *Port) doInstallFromSource() error {
 	// Generate meta file and store cache.
 	buildSystem := p.MatchedConfig.BuildSystem
 	if buildSystem != "nobuild" {
-		// Skip meta file and cache for ports with url="_".
-		// port with url="_" means no source repo and just in development.
-		if p.Package.Url == "_" {
-			logger.Printf(logger.Warning, "\n======== virtual project, skipping meta file generation and cache storing. ========\n")
-			return nil
-		}
-
 		// Write meta file with installed files and build environment.
 		metaData, err := p.buildMeta()
 		if err != nil {
@@ -803,6 +816,13 @@ func (p *Port) doInstallFromSource() error {
 		if err := os.WriteFile(metaFile, []byte(metaData), os.ModePerm); err != nil {
 			installFailed = true
 			return err
+		}
+
+		// Non-pip virtual ports may have no build output. Pip ports are
+		// cacheable even they have no local source tree.
+		repoExists := fileio.IsNotEmpty(p.MatchedConfig.PortConfig.RepoDir)
+		if p.Package.Url == "_" && (p.MatchedConfig.BuildSystem != "pip" || repoExists) {
+			return nil
 		}
 
 		// Store package cache with meta file inside. `writable` only applies to
@@ -829,6 +849,11 @@ func (p *Port) tryStoreArtifact(metaData string) error {
 	// artifacts for different arch can not co-exist in artifact cache,
 	// so we ignore storing artifact for 'prebuilt'.
 	if p.MatchedConfig.BuildSystem == "prebuilt" {
+		return nil
+	}
+
+	// No package output, no store.
+	if !p.hasPackageOutput() {
 		return nil
 	}
 
@@ -867,6 +892,7 @@ func (p *Port) tryStoreArtifact(metaData string) error {
 
 func (p *Port) checkAllTools() error {
 	var allTools []string
+	pythonRequired := p.MatchedConfig.PythonEnvRequired()
 	seen := map[string]bool{}
 
 	// collect walks the whole dependency tree and gathers every port's build
@@ -888,6 +914,7 @@ func (p *Port) checkAllTools() error {
 			if err := dep.Init(p.ctx, nameVersion); err != nil {
 				return err
 			}
+			pythonRequired = pythonRequired || dep.MatchedConfig.PythonEnvRequired()
 			allTools = append(allTools, dep.MatchedConfig.CheckTools()...)
 			if err := collect(dep); err != nil {
 				return err
@@ -903,6 +930,7 @@ func (p *Port) checkAllTools() error {
 			if err := dep.Init(p.ctx, nameVersion); err != nil {
 				return err
 			}
+			pythonRequired = pythonRequired || dep.MatchedConfig.PythonEnvRequired()
 			allTools = append(allTools, dep.MatchedConfig.CheckTools()...)
 			if err := collect(dep); err != nil {
 				return err
@@ -924,7 +952,7 @@ func (p *Port) checkAllTools() error {
 	}
 
 	// Validate tools exist and ensure tool paths are in PATH.
-	if err := buildtools.CheckTools(p.ctx, allTools...); err != nil {
+	if err := buildtools.CheckToolsWithPython(p.ctx, pythonRequired, allTools...); err != nil {
 		return err
 	}
 
@@ -1368,6 +1396,15 @@ func (p *Port) bindStagingDir(stagingDir string) {
 	}
 }
 
+// installIntoVenv reports whether the installed package belongs in the Python
+// venv. "python" ports always do; "pip" ports only when built for the host.
+func (p Port) installIntoVenv() bool {
+	if p.MatchedConfig.BuildSystem == "python" {
+		return true
+	}
+	return p.MatchedConfig.BuildSystem == "pip" && (p.DevDep || p.HostDep)
+}
+
 func (p Port) writeTraceFile(installedFrom string) error {
 	// Write installed files trace into its installation trace list.
 	if err := fileio.MkdirAll(filepath.Dir(p.traceFile), os.ModePerm); err != nil {
@@ -1380,7 +1417,11 @@ func (p Port) writeTraceFile(installedFrom string) error {
 
 	// For Python packages, transform paths to be relative to installed/.
 	// PackageFiles returns "libraryDir/relative/path", we need "venv-x.y@project/relative/path".
-	if p.MatchedConfig.BuildSystem == "python" {
+	if p.installIntoVenv() {
+		if buildtools.PythonTool == nil {
+			return fmt.Errorf("python tool is not available for %s", p.NameVersion())
+		}
+
 		venvDir := buildtools.PythonTool.VenvDir()
 		venvFolder, _ := filepath.Rel(dirs.InstalledDir, venvDir) // "venv-3.10@ros2"
 		for i, file := range packageFiles {
@@ -1400,7 +1441,7 @@ func (p Port) writeTraceFile(installedFrom string) error {
 
 	// Print install trace.
 	logger.PrintPass("%s is installed from %s", p.NameVersion(), installedFrom)
-	if p.MatchedConfig.BuildSystem == "python" {
+	if p.installIntoVenv() {
 		logger.PrintHint("Location: %s", buildtools.PythonTool.VenvDir())
 	} else {
 		logger.PrintHint("Location: %s", p.InstalledDir)

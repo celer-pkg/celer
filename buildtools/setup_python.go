@@ -83,8 +83,8 @@ func pipInstall(ctx context.Context, pipConfig context.PythonConfig, packages *[
 	wheelPlatformScope := fmt.Sprintf("py%s-%s-%s", minorVersion, runtime.GOOS, runtime.GOARCH)
 
 	// —— Try to install every spec straight from the persistent wheelhouse ————————————————————————————————————
-	if wheelhouseHasWheels(wheelhouseDir) {
-		if err := PythonTool.InstallFromWheelhouse(specs, wheelhouseDir); err == nil {
+	if wheelhouseHasDistributions(wheelhouseDir) {
+		if err := PythonTool.TryInstallFromWheelhouse(specs, wheelhouseDir); err == nil {
 			return finishPipInstall(packages, venvDir)
 		}
 	}
@@ -151,10 +151,17 @@ func finishPipInstall(packages *[]string, venvDir string) error {
 	return nil
 }
 
-// wheelhouseHasWheels reports whether dir contains at least one .whl file.
-func wheelhouseHasWheels(dir string) bool {
-	matches, _ := filepath.Glob(filepath.Join(dir, "*.whl"))
-	return len(matches) > 0
+func wheelhouseHasDistributions(dir string) bool {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return false
+	}
+	for _, entry := range entries {
+		if !entry.IsDir() && pkgcache.IsPythonDistribution(entry.Name()) {
+			return true
+		}
+	}
+	return false
 }
 
 // parseSpec splits a pip requirement specifier "name==version" into its name
@@ -385,14 +392,7 @@ func isPackageInstalled(packageName string, venvDir string) bool {
 // getWindowsDefaultPythonVersion reads Python version from static TOML.
 func getWindowsDefaultPythonVersion() string {
 	// Determine current architecture.
-	arch := runtime.GOARCH
-	switch arch {
-	case "amd64", "x86_64":
-		arch = "x86_64"
-	case "arm64":
-		arch = "aarch64"
-	}
-
+	arch := expr.FormatProcessor(runtime.GOARCH)
 	staticFile := fmt.Sprintf("static/%s-%s.toml", arch, runtime.GOOS)
 	bytes, err := static.ReadFile(staticFile)
 	if err != nil {

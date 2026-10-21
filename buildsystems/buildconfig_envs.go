@@ -185,6 +185,16 @@ func (b *BuildConfig) setupEnvs() {
 		b.setupPythonEnvs() // Expost PYTHONUSERBASE and PYTHONPATH for Python.
 	}
 
+	// Native target builds can run the target-dependency binaries on the host.
+	// Put their bin directory on PATH so tools such as qmake are discoverable.
+	sameProcessor := expr.FormatProcessor(toolchain.GetSystemProcessor()) == expr.FormatProcessor(runtime.GOARCH)
+	if !b.DevDep && !b.HostDev && toolchain != nil && sameProcessor {
+		targetBin := filepath.Join(b.PortConfig.StagingDir, b.PortConfig.LibraryDir, "bin")
+		if fileio.PathExists(targetBin) {
+			b.envBackup.setenv("PATH", env.JoinPaths("PATH", targetBin))
+		}
+	}
+
 	// Set QNX environments only when toolchain is qcc.
 	b.setupQNXEnvs()
 }

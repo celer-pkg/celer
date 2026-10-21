@@ -26,6 +26,12 @@ var (
 
 // CheckTools checks if tools exist and repair them if necessary, finally make sure tool paths are in PATH
 func CheckTools(ctx context.Context, tools ...string) error {
+	return CheckToolsWithPython(ctx, false, tools...)
+}
+
+// CheckToolsWithPython is CheckTools plus an explicit request to prepare the
+// host Python environment.
+func CheckToolsWithPython(ctx context.Context, pythonRequired bool, tools ...string) error {
 	// Remove duplicated tools.
 	var uniqueTools []string
 	for _, tool := range tools {
@@ -34,16 +40,8 @@ func CheckTools(ctx context.Context, tools ...string) error {
 		}
 	}
 
-	// Determine current architecture.
-	arch := runtime.GOARCH
-	switch arch {
-	case "amd64", "x86_64":
-		arch = "x86_64"
-	case "arm64":
-		arch = "aarch64"
-	}
-
 	// Read and decode static file.
+	arch := expr.FormatProcessor(runtime.GOARCH)
 	staticFile := fmt.Sprintf("static/%s-%s.toml", arch, runtime.GOOS)
 	bytes, err := static.ReadFile(staticFile)
 	if err != nil {
@@ -132,7 +130,7 @@ func CheckTools(ctx context.Context, tools ...string) error {
 	}
 
 	// Check if we need to install python packages.
-	pythonRequired := slices.ContainsFunc(uniqueTools, func(tool string) bool {
+	pythonRequired = pythonRequired || slices.ContainsFunc(uniqueTools, func(tool string) bool {
 		return strings.HasPrefix(tool, "python")
 	})
 
@@ -359,16 +357,8 @@ func (b BuildTools) parseNameVersion(nameVersion string) (string, string) {
 
 // FindBuildTool find build tool with tool name.
 func FindBuildTool(ctx context.Context, nameVersion string) (*BuildTool, error) {
-	// Determine current architecture
-	arch := runtime.GOARCH
-	switch arch {
-	case "amd64", "x86_64":
-		arch = "x86_64"
-	case "arm64":
-		arch = "aarch64"
-	}
-
 	// Read the static TOML file for the current platform
+	arch := expr.FormatProcessor(runtime.GOARCH)
 	staticFile := fmt.Sprintf("static/%s-%s.toml", arch, runtime.GOOS)
 	bytes, err := static.ReadFile(staticFile)
 	if err != nil {
