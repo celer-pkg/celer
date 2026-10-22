@@ -70,13 +70,13 @@ If you only want a few open-source libraries on a laptop, [Conan](https://conan.
 
 | When you need… | What Celer does |
 | --- | --- |
-| **Switch cross-compile targets** | One `platform.toml` holds toolchain, sysroot, and env vars — ARM / x86 / QNX / Windows / Linux |
-| **Keep projects from colliding** | Isolate versions, macros, and CMake vars by platform × project × build type |
-| **Mixed upstream build systems** | CMake, Makefiles, Meson, B2, QMake, Bazel, GYP |
-| **Private / prebuilt libraries** | Hash-based artifact cache shared by the team and CI |
-| **Private or restricted GitHub access** | Git repos of third-party libraries and tools you already fetched are cached |
+| **Cross-compile** | One `platform.toml` holds toolchain, sysroot, and env vars — ARM / x86 / QNX / Windows / Linux |
+| **Isolation** | Isolate versions, macros, and CMake vars by platform × project × build type |
+| **Build systems** | CMake, Makefiles, Meson, B2, QMake, Bazel, GYP |
+| **Private artifacts** | Hash-based artifact cache shared by the team and CI |
+| **Git access** | Git repos of third-party libraries and tools you already fetched are cached |
 | **Reproducible CI** | Export a workspace snapshot; the same config enters the pipeline |
-| **Build one project across machines** | `--export-dag` splits it into one job per port, wired by dependency edges; the shared pkgcache carries the artifacts |
+| **Distributed builds** | `--export-dag` splits it into one job per port, wired by dependency edges; the shared pkgcache carries the artifacts |
 
 MSVC / Clang / GCC are ready on Windows and Linux; macOS is still in progress. Additional targets (including QNX) are defined as platform configs.
 
