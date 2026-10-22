@@ -168,7 +168,7 @@ func (r RepoConfig) Restore(cacheKey string, repoInfo pkgcache.RepoInfo, archive
 			}
 			if remoteChecksum != repoInfo.Checksum {
 				_ = os.RemoveAll(repoInfo.RepoDir)
-				return false, fmt.Errorf("cached repo checksum mismatch, expect %s, got %s", repoInfo.Checksum, remoteChecksum)
+				return false, nil
 			}
 		}
 

@@ -683,6 +683,18 @@ func (p *Port) installFromSource(options InstallOptions) error {
 }
 
 func (p Port) doInstallFromPackage(destDir string) error {
+	return p.installPackageFiles(destDir, false)
+}
+
+// doInstallFromPackageWithLinks installs package files into a staging tree.
+// Staging trees are temporary and read-only during builds, so hard links avoid
+// copying large dependency trees. pkg-config files are copied instead because
+// their prefix is rewritten in place.
+func (p Port) doInstallFromPackageWithLinks(destDir string) error {
+	return p.installPackageFiles(destDir, true)
+}
+
+func (p Port) installPackageFiles(destDir string, useLinks bool) error {
 	// Check and repair current port.
 	files, err := p.PackageFiles(
 		p.PackageDir,
@@ -714,7 +726,11 @@ func (p Port) doInstallFromPackage(destDir string) error {
 			return err
 		}
 
-		if err := fileio.CopyFile(src, dest); err != nil {
+		if useLinks && !strings.HasSuffix(file, ".meta") && !strings.HasSuffix(file, ".pc") {
+			if err := fileio.LinkOrCopyFile(src, dest); err != nil {
+				return fmt.Errorf("failed to link file -> %w", err)
+			}
+		} else if err := fileio.CopyFile(src, dest); err != nil {
 			return fmt.Errorf("failed to copy file -> %w", err)
 		}
 	}
@@ -1313,7 +1329,7 @@ func (p Port) stagingDepsFiles(preparedRecord map[string]bool, stagingRoot strin
 		// doInstallFromPackage strips the "<host>-dev/" prefix; dest must already
 		// be stagingRoot/<host>-dev so PATH (tmp/staging-xxx/<host>-dev/bin) finds tools.
 		destDir := filepath.Join(stagingRoot, p.ctx.Platform().GetHostName()+"-dev")
-		if err := port.doInstallFromPackage(destDir); err != nil {
+		if err := port.doInstallFromPackageWithLinks(destDir); err != nil {
 			return err
 		}
 
@@ -1356,7 +1372,7 @@ func (p Port) stagingDepsFiles(preparedRecord map[string]bool, stagingRoot strin
 		if port.DevDep || port.HostDep {
 			destDir = filepath.Join(stagingRoot, p.ctx.Platform().GetHostName()+"-dev")
 		}
-		if err := port.doInstallFromPackage(destDir); err != nil {
+		if err := port.doInstallFromPackageWithLinks(destDir); err != nil {
 			return err
 		}
 

@@ -362,7 +362,7 @@ func (c *Celer) writePythonVenvConfig(toolchain *strings.Builder) error {
 	fmt.Fprintf(toolchain, "\n# Set environment variables for Python package discovery.\n")
 	siteRel := fmt.Sprintf("lib/python%s/site-packages", minorVersion)
 	sep := string(os.PathListSeparator)
-	fmt.Fprintf(toolchain, "set(ENV{PYTHONPATH} \"${INSTALLED_DIR}/%s%s${PYTHON_VENV_DIR}/%s%s$ENV{PYTHONPATH}\")\n\n", siteRel, sep, siteRel, sep)
+	fmt.Fprintf(toolchain, "set(ENV{PYTHONPATH} \"${PYTHON_VENV_DIR}/%s%s${INSTALLED_DIR}/%s%s$ENV{PYTHONPATH}\")\n\n", siteRel, sep, siteRel, sep)
 
 	if runtime.GOOS != "windows" {
 		fmt.Fprintf(toolchain, "# Add venv bin to PATH so tools are accessible.\n")

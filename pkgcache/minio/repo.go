@@ -186,7 +186,7 @@ func (r RepoConfig) Restore(cacheKey string, repoInfo pkgcache.RepoInfo, archive
 				return false, fmt.Errorf("invalid cached repo, verify checksum failed for %s -> %w", repoInfo.NameVersion, err)
 			} else if localChecksum != repoInfo.Checksum {
 				_ = os.RemoveAll(repoInfo.RepoDir)
-				return false, fmt.Errorf("invalid cached repo, verify checksum failed for %s -> %w", repoInfo.NameVersion, err)
+				return false, nil
 			}
 		}
 
