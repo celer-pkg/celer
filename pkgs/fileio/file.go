@@ -187,6 +187,33 @@ func CopyFile(src, dest string) error {
 	return copyFileContent(src, dest)
 }
 
+// LinkOrCopyFile hard-links src to dest when both are regular files on the
+// same filesystem, falling back to a content copy otherwise. Symlinks and
+// non-regular files are handled by CopyFile.
+func LinkOrCopyFile(src, dest string) error {
+	info, err := os.Lstat(src)
+	if err != nil {
+		return err
+	}
+	if info.Mode()&os.ModeSymlink != 0 || !info.Mode().IsRegular() {
+		return CopyFile(src, dest)
+	}
+
+	if destInfo, err := os.Lstat(dest); err == nil {
+		if os.SameFile(info, destInfo) {
+			return nil
+		}
+		if err := os.Remove(dest); err != nil {
+			return err
+		}
+	}
+
+	if err := os.Link(src, dest); err == nil {
+		return nil
+	}
+	return CopyFile(src, dest)
+}
+
 // MoveFile moves src to dst. It creates the destination directory, handles
 // symlinks, retries renames blocked by transient Windows file locks, and falls
 // back to copy+delete when rename cannot be done (e.g. across file systems).

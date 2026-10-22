@@ -23,6 +23,16 @@ func (p Port) GenBuildToolsVersions(tools []string) (string, error) {
 		return "", fmt.Errorf("failed to check tools -> %w", err)
 	}
 
+	// CheckTools may initialize the Python venv. Expose its expression
+	// variables on this port immediately so build hooks can use them even when
+	// the top-level install path (package/pkgcache restore) skipped checkAllTools.
+	if buildtools.PythonTool != nil && p.MatchedConfig != nil {
+		if exprVars := p.ctx.ExprVars(); exprVars != nil {
+			buildtools.PythonTool.RegisterExprVars(exprVars)
+		}
+		p.registerExprVars(p.MatchedConfig)
+	}
+
 	var buffer strings.Builder
 
 	for _, tool := range tools {

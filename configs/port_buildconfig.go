@@ -3,18 +3,12 @@ package configs
 import (
 	"fmt"
 	"hash/fnv"
-	"os"
 	"path/filepath"
-	"reflect"
 	"runtime"
-	"strings"
 
 	"github.com/celer-pkg/celer/buildsystems"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
-	"github.com/celer-pkg/celer/pkgs/fileio"
-
-	"github.com/BurntSushi/toml"
 )
 
 func (p *Port) initBuildConfig(nameVersion string) error {
@@ -22,10 +16,6 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 	hostName := p.ctx.Platform().GetHostName()
 	platformName := p.ctx.Platform().GetName()
 	projectName := p.ctx.Project().GetName()
-
-	if err := p.mergeBuildConfigs(); err != nil {
-		return err
-	}
 
 	// host example: x86_64-linux-dev
 	// target example: aarch64-linux-ubuntu-22.04-gcc-11.5.0-test_project_001-release
@@ -117,33 +107,6 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 	return nil
 }
 
-func (p *Port) mergeBuildConfigs() error {
-	for i := range p.BuildConfigs {
-		publicPort := dirs.GetPortPath(p.Name, p.Version)
-		projectPort := p.portFile != "" && p.portFile != publicPort
-		if !fileio.PathExists(publicPort) || !projectPort {
-			continue
-		}
-
-		bytes, err := os.ReadFile(p.portFile)
-		if err != nil {
-			return fmt.Errorf("failed to read project port: %s -> %w", p.portFile, err)
-		}
-
-		var portInProject = Port{ctx: p.ctx}
-		if err := toml.Unmarshal(bytes, &portInProject); err != nil {
-			return fmt.Errorf("failed to unmarshal project port: %s -> %w", p.portFile, err)
-		}
-
-		for j := range portInProject.BuildConfigs {
-			p.mergeFromProject(i, &portInProject.BuildConfigs[j])
-		}
-
-		p.BuildConfigs[i].Ctx = p.ctx
-	}
-	return nil
-}
-
 const (
 	windowsMaxObjPath           = 260
 	windowsShortBuildObjReserve = 210
@@ -170,85 +133,4 @@ func (p *Port) shortenBuildFolder(longFolder, nameVersion, platformName, project
 		return withPlatform
 	}
 	return filepath.Join(nameVersion, fmt.Sprintf("%s-%s", tag, bt))
-}
-
-func (p *Port) mergeFromProject(index int, overrideConfig *buildsystems.BuildConfig) {
-	if overrideConfig == nil {
-		return
-	}
-
-	// Format build_type as lower case.
-	overrideConfig.BuildType = strings.ToLower(overrideConfig.BuildType)
-	overrideConfig.BuildType_Windows = strings.ToLower(overrideConfig.BuildType_Windows)
-	overrideConfig.BuildType_Linux = strings.ToLower(overrideConfig.BuildType_Linux)
-	overrideConfig.BuildType_Darwin = strings.ToLower(overrideConfig.BuildType_Darwin)
-
-	// Helper function to merge field with platform variants.
-	mergeField := func(fieldName string) {
-		// Get field values from both configs.
-		srcVal := reflect.ValueOf(overrideConfig).Elem()
-		dstVal := reflect.ValueOf(&p.BuildConfigs[index]).Elem()
-
-		// Merge base field.
-		if srcField := srcVal.FieldByName(fieldName); srcField.IsValid() {
-			dstField := dstVal.FieldByName(fieldName)
-			if dstField.IsValid() && dstField.CanSet() {
-				if !isZeroValue(srcField) {
-					dstField.Set(srcField)
-				}
-			}
-		}
-
-		// Merge platform-specific variants.
-		for _, suffix := range []string{"_Windows", "_Linux", "_Darwin"} {
-			platformFieldName := fieldName + suffix
-			if srcField := srcVal.FieldByName(platformFieldName); srcField.IsValid() {
-				dstField := dstVal.FieldByName(platformFieldName)
-				if dstField.IsValid() && dstField.CanSet() {
-					if !isZeroValue(srcField) {
-						dstField.Set(srcField)
-					}
-				}
-			}
-		}
-	}
-
-	// List of all fields that need to be merged.
-	fields := []string{
-		"BuildSystem", "CMakeGenerator", "BuildTools",
-		"PythonPackages",
-		"BuildShared", "BuildStatic", "CStandard", "CXXStandard", "BuildType",
-		"Envs", "Patches", "Dependencies", "DevDependencies", "PkgConfigToolVars",
-		"PreConfigure", "CustomConfigure", "PostConfigure",
-		"PreBuild", "CustomBuild", "PostBuild",
-		"PreInstall", "CustomInstall", "PostInstall",
-		"AutogenOptions", "Options", "Vars",
-		"DisableDevCache", "ShortenBuildFolder",
-	}
-
-	for _, field := range fields {
-		mergeField(field)
-	}
-}
-
-// isZeroValue checks if a reflect.Value is the zero value for its type.
-func isZeroValue(v reflect.Value) bool {
-	switch v.Kind() {
-	case reflect.String:
-		return v.String() == ""
-	case reflect.Slice, reflect.Array:
-		return v.Len() == 0
-	case reflect.Pointer:
-		return v.IsNil()
-	case reflect.Bool:
-		return !v.Bool()
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return v.Int() == 0
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return v.Uint() == 0
-	case reflect.Float32, reflect.Float64:
-		return v.Float() == 0
-	default:
-		return v.IsZero()
-	}
 }
