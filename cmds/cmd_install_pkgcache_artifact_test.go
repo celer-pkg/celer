@@ -241,7 +241,8 @@ func TestInstall_PkgCache_Prebuilt_Success(t *testing.T) {
 		nameVersion,
 	}, "-")
 
-	repoCacheDir := filepath.Join(dirs.TestPkgCacheDir, "repos", nameVersion)
+	repoName, _, _ := strings.Cut(nameVersion, "@")
+	repoCacheDir := filepath.Join(dirs.TestPkgCacheDir, "repos", repoName)
 	entries, err := os.ReadDir(repoCacheDir)
 	check(err)
 

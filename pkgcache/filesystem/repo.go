@@ -87,7 +87,8 @@ func (r RepoConfig) Restore(cacheKey string, repoInfo pkgcache.RepoInfo, archive
 	}
 
 	// Locate cached archive by nameVersion + cacheKey.
-	remoteFilePath := filepath.Join(r.cacheDir, repoInfo.NameVersion, cacheKey+archiveExt)
+	repoName, _, _ := strings.Cut(repoInfo.NameVersion, "@")
+	remoteFilePath := filepath.Join(r.cacheDir, repoName, cacheKey+archiveExt)
 	if !fileio.PathExists(remoteFilePath) {
 		return false, nil
 	}
@@ -210,8 +211,9 @@ func (r RepoConfig) storeGitRepo(repoDir, repoRef, nameVersion string) error {
 	}
 
 	// Ignore when repo archive is stored before.
-	// Archive name will be like: repos/x264@stable/stable.tar.gz
-	remoteFilePath := filepath.Join(r.cacheDir, nameVersion, repoRef+".tar.gz")
+	// Archive path will be like: repos/x264/x264@stable.tar.gz
+	repoName, _, _ := strings.Cut(nameVersion, "@")
+	remoteFilePath := filepath.Join(r.cacheDir, repoName, repoRef+".tar.gz")
 	if fileio.PathExists(remoteFilePath) {
 		return nil
 	}
@@ -244,7 +246,8 @@ func (r RepoConfig) storeArchiveRepo(repoRef, nameVersion, archiveFile string) e
 
 	// Preserve original archive extension so extract dispatches correctly.
 	ext := fileio.Ext(archiveFile)
-	archivePath := filepath.Join(r.cacheDir, nameVersion, repoRef+ext)
+	repoName, _, _ := strings.Cut(nameVersion, "@")
+	archivePath := filepath.Join(r.cacheDir, repoName, repoRef+ext)
 
 	// Skip if already cached.
 	if fileio.PathExists(archivePath) {
@@ -264,7 +267,7 @@ func (r RepoConfig) storeArchiveRepo(repoRef, nameVersion, archiveFile string) e
 func (r RepoConfig) shouldCacheRepo(nameVersion string) bool {
 	parts := strings.Split(nameVersion, "@")
 	if len(parts) != 2 {
-		panic("invalid nameVersion: " + nameVersion)
+		return false
 	}
 
 	// Only cache third-party repos that defined in ports dir.

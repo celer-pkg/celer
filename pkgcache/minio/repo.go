@@ -93,7 +93,8 @@ func (r RepoConfig) Restore(cacheKey string, repoInfo pkgcache.RepoInfo, archive
 	}
 
 	// Locate cached archive by repoRef.
-	objectName := filepath.Join(r.cacheDir, repoInfo.NameVersion, cacheKey+ext)
+	repoName, _, _ := strings.Cut(repoInfo.NameVersion, "@")
+	objectName := filepath.Join(r.cacheDir, repoName, cacheKey+ext)
 
 	// Check if the cached archive exists before downloading.
 	remoteInfo, err := r.GetFileInfo(objectName)
@@ -218,7 +219,8 @@ func (r RepoConfig) Restore(cacheKey string, repoInfo pkgcache.RepoInfo, archive
 
 func (r RepoConfig) storeGitRepo(repoDir, repoRef, nameVersion string) error {
 	// Skip uploading if already cached.
-	remotePath := filepath.Join(r.cacheDir, nameVersion, repoRef+".tar.gz")
+	repoName, _, _ := strings.Cut(nameVersion, "@")
+	remotePath := filepath.Join(r.cacheDir, repoName, repoRef+".tar.gz")
 	remoteInfo, err := r.GetFileInfo(remotePath)
 	if err != nil {
 		return fmt.Errorf("failed to get minio object info for '%s' -> %w", remotePath, err)
@@ -250,7 +252,8 @@ func (r RepoConfig) storeArchiveRepo(repoRef, nameVersion, archivePath string) e
 
 	// Preserve original archive extension so extract dispatches correctly.
 	ext := fileio.Ext(archivePath)
-	remotePath := filepath.Join(r.cacheDir, nameVersion, repoRef+ext)
+	repoName, _, _ := strings.Cut(nameVersion, "@")
+	remotePath := filepath.Join(r.cacheDir, repoName, repoRef+ext)
 
 	// Skip uploading if already cached.
 	remoteInfo, err := r.GetFileInfo(remotePath)
@@ -273,7 +276,7 @@ func (r RepoConfig) storeArchiveRepo(repoRef, nameVersion, archivePath string) e
 func (r RepoConfig) shouldCacheRepo(nameVersion string) bool {
 	parts := strings.Split(nameVersion, "@")
 	if len(parts) != 2 {
-		panic("invalid nameVersion: " + nameVersion)
+		return false
 	}
 
 	// Only cache third-party repos that defined in ports dir.
