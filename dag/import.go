@@ -31,6 +31,9 @@ func Import(celer *configs.Celer, dagPath string) (*DagInfo, error) {
 
 	// Adopt the identity of the schedule, one setter per property.
 	if err := celer.SetPlatform(dag.Platform); err != nil {
+		if !celer.IsNativePlatform() || !errors.Is(err, errors.ErrPlatformNotExist) {
+			return nil, fmt.Errorf("failed to adopt the platform from '%s' -> %w", dagPath, err)
+		}
 		return nil, fmt.Errorf("failed to adopt the platform from '%s' -> %w", dagPath, err)
 	}
 	if err := celer.SetProject(dag.Project); err != nil {

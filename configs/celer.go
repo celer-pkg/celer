@@ -15,6 +15,7 @@ import (
 	"github.com/celer-pkg/celer/pkgcache/minio"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
+	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
 	"github.com/celer-pkg/celer/pkgs/logger"
@@ -164,8 +165,10 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 			jobs = runtime.NumCPU() - 1
 		}
 
-		// Default global values.
+		// Default global values. A new workspace builds with the toolchain of this machine
+		// unless a platform is configured right away.
 		c.Main = Main{
+			Platform:  NativePlatform,
 			BuildType: "release",
 			Downloads: "",
 			Jobs:      jobs,
@@ -179,16 +182,19 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 			return fmt.Errorf("failed to marshal conf -> %w", err)
 		}
 
-		// Set platform and init platform if specified.
+		// Set platform and init platform if specified. A native platform has no file to
+		// load; detectNativePlatform() below sets it up instead.
 		if platform != "" {
 			c.Main.Platform = platform
-			if err := c.platform.Init(c.Main.Platform); err != nil {
-				// Skip platform init if platform not exist.
-				if errors.Is(err, errors.ErrPlatformNotExist) && opts.SkipPlatform {
-					c.Main.Platform = ""
-					return nil
+			if !c.IsNativePlatform() {
+				if err := c.platform.Init(c.Main.Platform); err != nil {
+					// Skip platform init if platform not exist.
+					if errors.Is(err, errors.ErrPlatformNotExist) && opts.SkipPlatform {
+						c.Main.Platform = ""
+						return nil
+					}
+					return err
 				}
-				return err
 			}
 		}
 
@@ -217,11 +223,19 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 		// Use lower case build type in celer as default.
 		c.Main.BuildType = strings.ToLower(c.Main.BuildType)
 
-		// Set platform and init platform if specified.
+		// Set platform and init platform if specified. A native platform has no file to
+		// load; detectNativePlatform() below sets it up instead.
 		if platform != "" {
 			c.Main.Platform = platform
 		}
-		if c.Main.Platform != "" {
+		if c.Main.Platform == "" {
+			// An empty platform is not a platform: native has to say so explicitly.
+			if !opts.SkipPlatform {
+				return fmt.Errorf("platform is not configured -> run 'celer configure --platform=<name>' for a platform under conf/platforms -> the <name> can also be 'native' to auto-detect local toolchain")
+			}
+			return nil
+		}
+		if !c.IsNativePlatform() {
 			if err := c.platform.Init(c.Main.Platform); err != nil {
 				// Skip platform init if platform not exist.
 				if errors.Is(err, errors.ErrPlatformNotExist) && opts.SkipPlatform {
@@ -278,28 +292,13 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 		}
 	}
 
-	// Celer support detect local toolchain, if platform name is not specified, use default toolchain:
-	// Windows: default is msvc,
-	// Linux: default is gcc.
-	if c.Main.Platform == "" {
-		var toolchain = Toolchain{ctx: c}
-		if err := toolchain.Detect(c.Main.Platform); err != nil {
-			return fmt.Errorf("detect celer.toolchain -> %w", err)
+	// A native platform is built with the toolchain of this machine: gcc on PATH on
+	// Linux, MSVC located through vswhere on Windows. It has no conf/platforms file.
+	if c.IsNativePlatform() {
+		if err := c.detectNativePlatform(); err != nil {
+			return err
 		}
-		c.platform.Toolchain = &toolchain
-		c.platform.Toolchain.SystemName = runtime.GOOS
-
-		switch runtime.GOARCH {
-		case "amd64":
-			c.platform.Toolchain.SystemProcessor = "x86_64"
-		case "arm64":
-			c.platform.Toolchain.SystemProcessor = "aarch64"
-		case "386":
-			c.platform.Toolchain.SystemProcessor = "i686"
-		default:
-			return fmt.Errorf("unsupported architecture: %s", runtime.GOARCH)
-		}
-	} else {
+	} else if c.platform.Toolchain != nil {
 		c.platform.Toolchain.toolchain = toolchains.NewToolchain(
 			c,
 			c.platform.Toolchain.Name,
@@ -316,24 +315,6 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 			return fmt.Errorf("failed to detect celer.windows_kit.\n -> %w", err)
 		}
 		c.platform.WindowsKit = &windowsKit
-	}
-
-	// No platform name, detect default platform.
-	if c.Main.Platform == "" {
-		switch runtime.GOOS {
-		case "windows":
-			if c.platform.Toolchain.Name == "msvc" || c.platform.Toolchain.Name == "clang" || c.platform.Toolchain.Name == "clang-cl" {
-				c.platform.Name = "x86_64-windows"
-			} else {
-				return fmt.Errorf("unsupported toolchian %s", c.platform.Toolchain.Name)
-			}
-
-		case "linux":
-			c.platform.Name = "x86_64-linux"
-
-		default:
-			return fmt.Errorf("unsupported operating system: %s", runtime.GOOS)
-		}
 	}
 
 	if c.platform.Toolchain == nil {
@@ -382,6 +363,47 @@ func (c *Celer) Deploy(force, strip bool) error {
 	return nil
 }
 
+const NativePlatform = "native"
+
+func (c *Celer) IsNativePlatform() bool {
+	return strings.EqualFold(strings.TrimSpace(c.Main.Platform), NativePlatform)
+}
+
+func (c *Celer) detectNativePlatform() error {
+	// Reset configured platorm fields.
+	c.platform.Name = ""
+	c.platform.RootFS = nil
+	c.platform.WindowsKit = nil
+	c.platform.setupDone = false
+
+	var toolchain = Toolchain{ctx: c}
+	if err := toolchain.Detect(""); err != nil {
+		return fmt.Errorf("detect celer.toolchain -> %w", err)
+	}
+	c.platform.Toolchain = &toolchain
+	c.platform.Toolchain.SystemName = runtime.GOOS
+	c.platform.Toolchain.SystemProcessor = expr.FormatProcessor(runtime.GOARCH)
+
+	switch runtime.GOOS {
+	case "windows":
+		switch c.platform.Toolchain.Name {
+		case "msvc", "clang", "clang-cl":
+			c.platform.Name = "x86_64-windows"
+		default:
+			return fmt.Errorf("unsupported toolchian %s", c.platform.Toolchain.Name)
+		}
+
+	case "linux":
+		// Name it after the host it actually targets, not a fixed x86_64 string.
+		c.platform.Name = c.platform.Toolchain.SystemProcessor + "-linux"
+
+	default:
+		return fmt.Errorf("unsupported operating system: %s", runtime.GOOS)
+	}
+
+	return nil
+}
+
 func (c *Celer) CreatePlatform(platformName string) error {
 	// Clean platform name.
 	platformName = strings.TrimSpace(platformName)
@@ -389,6 +411,9 @@ func (c *Celer) CreatePlatform(platformName string) error {
 
 	if platformName == "" {
 		return fmt.Errorf("platform name is empty")
+	}
+	if platformName == NativePlatform {
+		return fmt.Errorf("%q is reserved for the toolchain detected on this machine, no platform file is needed", NativePlatform)
 	}
 
 	// Create platform file.

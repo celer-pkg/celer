@@ -139,8 +139,25 @@ func (c *Celer) SetJobs(jobs int) error {
 }
 
 func (c *Celer) SetPlatform(platformName string) error {
+	platformName = strings.TrimSpace(platformName)
+
 	if err := c.readOrCreate(); err != nil {
 		return err
+	}
+
+	// "native" is reserved: there is no platform file, the toolchain of this machine is
+	// detected instead.
+	if strings.EqualFold(platformName, NativePlatform) {
+		if err := c.detectNativePlatform(); err != nil {
+			return err
+		}
+		c.Main.Platform = NativePlatform
+
+		if err := c.save(); err != nil {
+			return err
+		}
+
+		return nil
 	}
 
 	// Init and setup.
