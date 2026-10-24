@@ -23,6 +23,12 @@ Each project has its unique configuration characteristics. Project configuration
 
 **Project File Location:** All project configuration files are stored in the `conf/projects` directory.
 
+**No project needed to start:** when `celer.toml` names no project, celer uses a built-in
+one called `default`. It lists no ports and pins no baseline, so `celer install <name@version>`
+works right after `celer init` — packages simply land under
+`installed/<platform>/default/<build_type>`. Configure a real project when you want a fixed
+dependency list and a pinned ports repo.
+
 ---
 
 ## Configuration Field Details

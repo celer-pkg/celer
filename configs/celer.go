@@ -256,6 +256,10 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 				}
 				return err
 			}
+		} else {
+			// Init project with default name.
+			c.project.ctx = c
+			c.project = Project{Name: DefaultProjectName}
 		}
 
 		// Validate package cache.
