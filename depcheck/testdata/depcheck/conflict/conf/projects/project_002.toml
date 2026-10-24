@@ -1,3 +1,4 @@
+ports_baseline = "master"
 ports = [
     "bbb@1.0.0"
 ]

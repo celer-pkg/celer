@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/celer-pkg/celer/pkgs/cmd"
+	"github.com/celer-pkg/celer/pkgs/errors"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 const retryMaxAttempts = 3
@@ -116,4 +118,22 @@ func GetRemoteRefCommit(target, repoUrl, repoRef string) (string, error) {
 
 	// The repoRef may be a commit.
 	return repoRef, nil
+}
+
+func fetchOrigin(repoDir string) error {
+	if !fileio.PathExists(repoDir) {
+		return errors.ErrDirNotExist
+	}
+	if !fileio.PathExists(repoDir + "/.git") {
+		return errors.ErrNotGitDir
+	}
+
+	title := fmt.Sprintf("[fetch %s]", repoDir)
+	executor := cmd.NewExecutor(title, "git", "fetch", "--prune", "origin")
+	executor.SetWorkDir(repoDir)
+	output, err := executor.ExecuteOutputLive()
+	if err != nil {
+		return fmt.Errorf("%s -> %w", output, err)
+	}
+	return nil
 }

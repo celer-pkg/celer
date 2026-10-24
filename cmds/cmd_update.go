@@ -148,7 +148,36 @@ func (u *updateCmd) updateConfRepo() error {
 
 func (u *updateCmd) updatePortsRepo() error {
 	repoDir := filepath.Join(dirs.WorkspaceDir, "ports")
-	return git.UpdateRepo("ports repo", "", repoDir, u.force)
+
+	// A ports_baseline is either a pinned commit or a branch to follow. Without a
+	// configured project there is nothing to pin, so track the default branch.
+	baseline := strings.TrimSpace(u.celer.Project().GetPortsBaseline())
+	if baseline == "" {
+		return fmt.Errorf("no 'ports_baseline' defined in '%s'", u.celer.GetProjectName())
+	}
+
+	// Uncommitted work should be warned.
+	if fileio.PathExists(filepath.Join(repoDir, ".git")) {
+		modified, err := git.IsModified(repoDir)
+		if err != nil {
+			return err
+		}
+		if modified && u.force {
+			logger.PrintWarning("--force discards the uncommitted changes in the ports repo")
+		}
+	}
+
+	// A commit hash is reset back to, a branch is checked out and pulled to its latest;
+	// UpdateRepo picks the right one from the baseline itself.
+	if err := git.UpdateRepo("ports repo", baseline, repoDir, u.force); err != nil {
+		return fmt.Errorf("failed to update ports repo to ports_baseline '%s' -> %w", baseline, err)
+	}
+
+	if commit, err := git.GetCommitHash(repoDir); err == nil {
+		logger.PrintHint("ports repo is at '%s' (ports_baseline '%s')", commit, baseline)
+	}
+
+	return nil
 }
 
 func (u *updateCmd) updateProjectRepos(nameVersions []string) error {

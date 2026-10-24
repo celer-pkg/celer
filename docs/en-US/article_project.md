@@ -4,8 +4,9 @@
 
 ## What is Project Configuration?
 
-Project configuration defines how Celer manages dependencies and build environments for a specific project. Each project configuration contains six core components:
+Project configuration defines how Celer manages dependencies and build environments for a specific project. Each project configuration contains the following core components:
 
+- **ports_baseline** (required) - The ports repo revision this project is built against. A commit hash locks it; a branch name follows that branch. `celer configure --project` checks the ports repo out at this baseline, so the ports of a project never drift.
 - **target_platform** - Project target deployment platform. In a new workspace, when the platform is set via the configure command, it will be automatically configured.
 - **Ports (Dependencies)** - Sub-dependencies required by the project. It is recommended to configure sub-project dependencies, as third-party libraries are basically dependent on sub-projects.
 - **Vars (CMake Variables)** - Global CMake build variables needed during build
@@ -31,6 +32,7 @@ Each project has its unique configuration characteristics. Project configuration
 Let's look at a complete project configuration file `project_xxx.toml`:
 
 ```toml
+ports_baseline = "9c1f3a2b8e4d5f60718293a4b5c6d7e8f90a1b2c"
 target_platform = "aarch64-linux-ubuntu-22.04-gcc-11.5.0"
 
 ports = [
@@ -60,13 +62,14 @@ macros = [
 
 | Field | Required | Description | Example |
 |------|------|------|------|
+| `ports_baseline` | ✅ | Ports repo revision this project is built against: a commit hash to lock it, or a branch name to follow that branch. Never empty. | `9c1f3a2b8e4d5f60718293a4b5c6d7e8f90a1b2c` |
 | `target_platform` | ❌ | Project target deployment platform, must be a platform that exists in conf/platform | `aarch64-linux-ubuntu-22.04-gcc-11.5.0` |
 | `ports` | ❌ | Define third-party libraries the current project depends on. Format: `package@version` | `["x264@stable", "zlib@1.3.1"]` |
 | `vars` | ❌ | Define global CMake variables required by the current project. Format: `variable=value` | `["CMAKE_BUILD_TYPE=Release"]` |
 | `envs` | ❌ | Define global environment variables required by the current project. Format: `variable=value` | `["xorg_cv_malloc0_returns_null=yes"]` |
 | `macros` | ❌ | Define C/C++ macro definitions required by the current project. Format: `macro=value` or `macro` | `["DEBUG=1", "ENABLE_LOGGING"]` |
 
-> **Note**: All fields are optional. You can configure them selectively based on project needs.
+> **Note**: `ports_baseline` is required; every other field is optional and can be configured as the project needs.
 
 ### 1. Ports (Dependencies)
 
