@@ -149,11 +149,16 @@ func (u *updateCmd) updateConfRepo() error {
 func (u *updateCmd) updatePortsRepo() error {
 	repoDir := filepath.Join(dirs.WorkspaceDir, "ports")
 
-	// A ports_baseline is either a pinned commit or a branch to follow. Without a
-	// configured project there is nothing to pin, so track the default branch.
+	// A ports_baseline is either a pinned commit or a branch to follow, and it is required:
+	// project.Init() rejects an empty one, so an empty value here means no project is
+	// configured at all.
 	baseline := strings.TrimSpace(u.celer.Project().GetPortsBaseline())
 	if baseline == "" {
-		return fmt.Errorf("no 'ports_baseline' defined in '%s'", u.celer.GetProjectName())
+		if projectName := u.celer.GetProjectName(); projectName != "" {
+			return fmt.Errorf("'ports_baseline' is empty in the project '%s'", projectName)
+		}
+		return fmt.Errorf("no project is configured, so there is no 'ports_baseline' to follow " +
+			"- run 'celer configure --project=<name>' first")
 	}
 
 	// Uncommitted work should be warned.

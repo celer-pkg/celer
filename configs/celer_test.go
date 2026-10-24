@@ -3,6 +3,7 @@ package configs
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/celer-pkg/celer/pkgs/dirs"
@@ -50,7 +51,7 @@ func TestCeler_Init_ExistingConfig(t *testing.T) {
 	existingConfig := `[main]
 	build_type = "debug"
 	jobs = 4
-	platform = ""
+	platform = "native"
 	project = ""`
 
 	celerPath := filepath.Join(tmpDir, "celer.toml")
@@ -71,6 +72,54 @@ func TestCeler_Init_ExistingConfig(t *testing.T) {
 	}
 	if jobs := celer.Jobs(); jobs != 4 {
 		t.Errorf("Jobs() = %v, want 4", jobs)
+	}
+}
+
+func TestCeler_NativePlatform(t *testing.T) {
+	tmpDir := t.TempDir()
+	dirs.Init(tmpDir)
+
+	// A ports dir with content skips the clone this test does not want to make.
+	if err := os.MkdirAll(filepath.Join(tmpDir, "ports", ".git"), os.ModePerm); err != nil {
+		t.Fatalf("MkdirAll() error = %v", err)
+	}
+
+	config := `[main]
+build_type = "release"
+jobs = 2
+platform = "native"
+project = ""`
+	celerPath := filepath.Join(tmpDir, "celer.toml")
+	if err := os.WriteFile(celerPath, []byte(config), os.ModePerm); err != nil {
+		t.Fatalf("WriteFile() error = %v", err)
+	}
+
+	celer := NewCeler()
+	if err := celer.Init(); err != nil {
+		t.Fatalf("Init() error = %v", err)
+	}
+
+	// The reserved name is kept as-is, so the workspace stays portable.
+	if !celer.IsNativePlatform() {
+		t.Error("UsesNativePlatform() = false, want true")
+	}
+	if celer.Main.Platform != NativePlatform {
+		t.Errorf("Main.Platform = %q, want %q", celer.Main.Platform, NativePlatform)
+	}
+
+	// It resolves to the host platform, which also names the install dir.
+	hostName := celer.Platform().GetHostName()
+	if name := celer.Platform().GetName(); name != hostName {
+		t.Errorf("Platform().GetName() = %q, want the host name %q", name, hostName)
+	}
+	want := "/installed/" + hostName + "/release"
+	if dir := filepath.ToSlash(celer.InstalledDir()); !strings.HasSuffix(dir, want) {
+		t.Errorf("InstalledDir() = %q, want it to end with %q", dir, want)
+	}
+
+	// "native" needs no platform file, so creating one is refused.
+	if err := celer.CreatePlatform(NativePlatform); err == nil {
+		t.Error("CreatePlatform(native) = nil, want an error")
 	}
 }
 

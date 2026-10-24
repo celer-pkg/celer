@@ -4,6 +4,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/spf13/cobra"
@@ -22,7 +23,14 @@ func projectCompletgion(cmd *cobra.Command, args []string, toComplete string) ([
 }
 
 func platformCompletgion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	return tomlFileCompletion(dirs.ConfPlatformsDir, toComplete)
+	// "native" is reserved: the toolchain of this machine, there is no platform file.
+	var suggestions []string
+	if strings.HasPrefix(configs.NativePlatform, toComplete) {
+		suggestions = append(suggestions, configs.NativePlatform)
+	}
+
+	fileNames, _ := tomlFileCompletion(dirs.ConfPlatformsDir, toComplete)
+	return append(suggestions, fileNames...), cobra.ShellCompDirectiveNoFileComp
 }
 
 func tomlFileCompletion(dir, toComplete string) ([]string, cobra.ShellCompDirective) {

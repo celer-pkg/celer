@@ -86,7 +86,8 @@ in a single command (do not mix flags from different groups).
 Available Configuration Options:
 
   Platform Configuration:
-    --platform                  Set the target platform (e.g., x86_64-linux-ubuntu-22.04-gcc-11.5.0)
+    --platform                  Set the target platform (e.g., x86_64-linux-ubuntu-22.04-gcc-11.5.0),
+                                or 'native' for the toolchain detected on this machine
 
   Project Configuration:
     --project                   Set the current project configuration
