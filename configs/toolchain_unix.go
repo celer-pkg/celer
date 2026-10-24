@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 
 	"github.com/celer-pkg/celer/buildsystems"
-	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/configs/toolchains"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/env"
@@ -167,34 +167,44 @@ func (t *Toolchain) CheckAndRepair() error {
 }
 
 // Detect detect local installed gcc.
-func (t *Toolchain) Detect(platformName string) error {
-	if platformName == "" {
-		if err := buildtools.CheckTools(t.ctx, platformName); err != nil {
-			return err
-		}
+func (t *Toolchain) Detect(_ string) error {
+	var processor, triplet string
+	switch runtime.GOARCH {
+	case "amd64":
+		processor, triplet = "x86_64", "x86_64-linux-gnu"
+	case "arm64":
+		processor, triplet = "aarch64", "aarch64-linux-gnu"
+	case "386":
+		processor, triplet = "i686", "i686-linux-gnu"
+	default:
+		return fmt.Errorf("no local gcc triplet known for architecture %s", runtime.GOARCH)
 	}
 
 	t.Url = "file:////usr/bin"
 	t.Path = "/usr/bin"
 	t.Name = "gcc"
 	t.SystemName = "Linux"
-	t.SystemProcessor = "x86_64"
-	t.Host = "x86_64-linux-gnu"
-	t.CrosstoolPrefix = "x86_64-linux-gnu-"
-	t.CC = "x86_64-linux-gnu-gcc"
-	t.CXX = "x86_64-linux-gnu-g++"
-	t.RANLIB = "x86_64-linux-gnu-gcc-ranlib"
-	t.AR = "x86_64-linux-gnu-gcc-ar"
-	t.LD = "x86_64-linux-gnu-ld"
-	t.NM = "x86_64-linux-gnu-nm"
-	t.OBJDUMP = "x86_64-linux-gnu-objdump"
-	t.STRIP = "x86_64-linux-gnu-strip"
-	t.OBJCOPY = "x86_64-linux-gnu-objcopy"
+	t.SystemProcessor = processor
+	t.Host = triplet
+	t.CrosstoolPrefix = triplet + "-"
+	t.CC = triplet + "-gcc"
+	t.CXX = triplet + "-g++"
+	t.RANLIB = triplet + "-gcc-ranlib"
+	t.AR = triplet + "-gcc-ar"
+	t.LD = triplet + "-ld"
+	t.NM = triplet + "-nm"
+	t.OBJDUMP = triplet + "-objdump"
+	t.STRIP = triplet + "-strip"
+	t.OBJCOPY = triplet + "-objcopy"
 
+	// The toolchain is the one in /usr/bin, so make sure it is really there.
+	cc := filepath.Join(t.Path, t.CC)
+	if !fileio.PathExists(cc) || !fileio.IsExecutable(cc) {
+		return fmt.Errorf("no local gcc found at '%s', please install it manually", cc)
+	}
 	if err := t.Validate(); err != nil {
 		return err
 	}
-
 	if err := t.CheckAndRepair(); err != nil {
 		return err
 	}

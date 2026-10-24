@@ -119,8 +119,7 @@ func (c *Celer) Verbose() bool {
 }
 
 func (c *Celer) InstalledDir() string {
-	libraryDir := filepath.Join(c.Main.Platform, c.Main.Project, c.Main.BuildType)
-	return filepath.Join(dirs.WorkspaceDir, "installed", libraryDir)
+	return filepath.Join(dirs.WorkspaceDir, "installed", c.LibraryFolder())
 }
 
 func (c *Celer) InstalledDevDir() string {

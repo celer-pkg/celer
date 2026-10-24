@@ -23,6 +23,12 @@
 
 **项目文件位置：** 所有项目配置文件存放在 `conf/projects` 目录中。
 
+**不配置项目也能用：** 当 celer.toml 里没有指定 project 时，celer 使用内置的 `default`
+项目。它不列任何 ports、也不锁定 baseline，所以 `celer init` 之后直接
+`celer install <name@version>` 就能编译，产物落在
+`installed/<platform>/default/<build_type>` 下。需要固定的依赖清单和锁定的 ports 仓库时，
+再配置真正的 project。
+
 ---
 
 ## 配置字段详解

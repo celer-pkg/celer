@@ -45,6 +45,7 @@ celer configure [flags]
 ```shell
 # 平台 / 项目
 celer configure --platform=x86_64-linux-ubuntu-22.04-gcc-11.5.0
+celer configure --platform=native        # 使用本机检测到的 toolchain
 celer configure --project=project_test_02
 
 # 构建配置
@@ -78,7 +79,10 @@ celer configure --port=eigen@3.4.0 --port-url=https://example.com/eigen.git --po
 
 ## 参数校验规则
 
-- `--platform`：需对应 `conf/platforms` 下的 TOML 文件名。
+- `--platform`：需对应 `conf/platforms` 下的 TOML 文件名，或使用保留名 `native`（本机检测到的
+  toolchain：Linux 下是 gcc，Windows 下通过 vswhere 找 MSVC）。native 工作区的 celer.toml 里存的是
+  `platform = "native"`，运行时会解析成宿主机名（如 `x86_64-linux`）。`platform` 为空是非法的，
+  新建的 celer.toml 默认就是 `native`。
 - `--project`：需对应 `conf/projects` 下的 TOML 文件名。
 - `--build-type`：支持 `Release`、`Debug`、`RelWithDebInfo`、`MinSizeRel`（保存时转为小写）。
 - `--downloads`：目录必须已存在。

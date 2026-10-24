@@ -45,6 +45,7 @@ celer configure [flags]
 ```shell
 # Platform / project
 celer configure --platform=x86_64-linux-ubuntu-22.04-gcc-11.5.0
+celer configure --platform=native        # toolchain detected on this machine
 celer configure --project=project_test_02
 
 # Build settings
@@ -79,7 +80,11 @@ celer configure --port=eigen@3.4.0 --port-url=https://example.com/eigen.git --po
 
 ## Validation Rules
 
-- `--platform`: must match a TOML file name under `conf/platforms`.
+- `--platform`: must match a TOML file name under `conf/platforms`, or the reserved name `native`
+  (the toolchain found on this machine: gcc on Linux, MSVC via vswhere on Windows). A native
+  workspace records `platform = "native"` and resolves it to the host name, such as
+  `x86_64-linux`. An empty `platform` is invalid, and a newly created `celer.toml` starts
+  with `native`.
 - `--project`: must match a TOML file name under `conf/projects`.
 - `--build-type`: supports `Release`, `Debug`, `RelWithDebInfo`, `MinSizeRel` (stored in lowercase).
 - `--downloads`: directory must already exist.
