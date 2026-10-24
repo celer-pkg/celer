@@ -53,6 +53,49 @@ func IsModified(repoDir string) (bool, error) {
 	return len(lines) > 0, nil
 }
 
+// ChangeBranch checks the repo is clean, then checks it out at ref, which may be a
+// branch, a tag or a commit hash. A ref that cannot be resolved locally is fetched
+// first: a pinned commit is often reachable only from a branch that was never fetched,
+// and a shallow clone carries no history.
+func ChangeBranch(target, repoDir, ref string) error {
+	if !fileio.PathExists(repoDir) {
+		return errors.ErrDirNotExist
+	}
+	if !fileio.PathExists(filepath.Join(repoDir, ".git")) {
+		return errors.ErrNotGitDir
+	}
+
+	// Check if repo is modified.
+	modified, err := IsModified(repoDir)
+	if err != nil {
+		return err
+	}
+	if modified {
+		return fmt.Errorf("repository has local modifications, changing branch is skipped.")
+	}
+
+	// Make sure the ref is available locally: a pinned commit may only be reachable from
+	// a branch that was never fetched.
+	if _, err := ResolveRefCommit(repoDir, ref); err != nil {
+		if fetchErr := fetchOrigin(repoDir); fetchErr != nil {
+			return fmt.Errorf("failed to fetch %s -> %w", repoDir, fetchErr)
+		}
+	}
+
+	// A commit hash leaves a detached HEAD, where the branch name is just "HEAD".
+	currentBranch, err := GetCurrentBranch(repoDir)
+	if err != nil {
+		return fmt.Errorf("failed to get current branch of '%s' -> %w", repoDir, err)
+	}
+	title := fmt.Sprintf("[change branch for '%s': '%s' -> '%s']", target, currentBranch, ref)
+	executor := cmd.NewExecutor(title, "git", "-C", repoDir, "checkout", ref)
+	if output, err := executor.ExecuteOutputLive(); err != nil {
+		return fmt.Errorf("failed to change branch '%s' -> %s -> %w", repoDir, output, err)
+	}
+
+	return nil
+}
+
 // Clean clean git repo.
 func CleanRepo(target, repoDir string) error {
 	if !fileio.PathExists(repoDir) {

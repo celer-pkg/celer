@@ -4,8 +4,9 @@
 
 ## 什么是项目配置？
 
-项目配置定义了 Celer 如何为特定项目管理依赖和构建环境。每个项目配置包含6个核心组件：
+项目配置定义了 Celer 如何为特定项目管理依赖和构建环境。每个项目配置包含以下核心组件：
 
+- **ports_baseline（必选）** - 本项目构建所依据的 ports 仓库版本。写 commit hash 表示锁定该版本，写分支名表示跟随该分支。`celer configure --project` 会把 ports 仓库切到这个 baseline，项目用到的 ports 因此不会随时间漂移。
 - **target_platform** - 项目目标部署平台，全新的workspace里当通过configure命令设置了platform后会自动配置platform
 - **ports（子依赖）** - 项目所需的子依赖，推荐配置子进程项目，因为三方库基本由子进程项目依赖
 - **vars（CMake 变量）** - 构建时需要的全局 CMake 构建变量
@@ -31,6 +32,7 @@
 让我们看一个完整的项目配置文件 `project_xxx.toml`：
 
 ```toml
+ports_baseline = "9c1f3a2b8e4d5f60718293a4b5c6d7e8f90a1b2c"
 target_platform = "aarch64-linux-ubuntu-22.04-gcc-11.5.0"
 
 ports = [
@@ -60,13 +62,14 @@ macros = [
 
 | 字段 | 必选 | 描述 | 示例 |
 |------|------|------|------|
+| `ports_baseline` | ✅ | 本项目构建所依据的 ports 仓库版本：commit hash 表示锁定，分支名表示跟随该分支。不能为空。 | `9c1f3a2b8e4d5f60718293a4b5c6d7e8f90a1b2c` |
 | `target_platform` | ❌ | 项目目标部署平台, 必须是conf/platform里存在的platform | `aarch64-linux-ubuntu-22.04-gcc-11.5.0` |
 | `ports` | ❌ | 定义当前项目依赖的第三方库，格式为 `包名@版本号` | `["x264@stable", "zlib@1.3.1"]` |
 | `vars` | ❌ | 定义当前项目所需的全局 CMake 变量，格式为 `变量名=值` | `["CMAKE_BUILD_TYPE=Release"]` |
 | `envs` | ❌ | 定义当前项目所需的全局环境变量，格式为 `变量名=值` | `["xorg_cv_malloc0_returns_null=yes"]` |
 | `macros` | ❌ | 定义当前项目所需的 C/C++ 宏定义，格式为 `宏名=值` 或 `宏名` | `["DEBUG=1", "ENABLE_LOGGING"]` |
 
-> **注意**：所有字段都是可选的，您可以根据项目需求选择性配置。
+> **注意**：`ports_baseline` 是必填字段，其余字段都是可选的，您可以根据项目需求选择性配置。
 
 ### 1. ports（依赖库）
 

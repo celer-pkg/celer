@@ -13,6 +13,8 @@ import (
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/git"
+	"github.com/celer-pkg/celer/pkgs/logger"
 )
 
 func (c *Celer) readOrCreate() error {
@@ -169,6 +171,20 @@ func (c *Celer) SetProject(projectName string) error {
 	if err := c.save(); err != nil {
 		return err
 	}
+
+	// Pin the ports repo to the baseline of the project, so the ports a project was
+	// built against do not drift.
+	portsBaseline := strings.TrimSpace(c.Project().GetPortsBaseline())
+	if !fileio.PathExists(filepath.Join(dirs.PortsDir, ".git")) {
+		logger.PrintWarning("ports repo is not cloned yet, 'celer init' will pin it to ports_baseline '%s'", portsBaseline)
+		return nil
+	}
+
+	// `celer update --ports-repo` is the escape hatch from the baseline.
+	if err := git.ChangeBranch("ports", dirs.PortsDir, portsBaseline); err != nil {
+		return fmt.Errorf("failed to pin ports repo to ports_baseline '%s' -> %w", portsBaseline, err)
+	}
+	logger.PrintSuccess("ports repo is pinned to ports_baseline '%s'", portsBaseline)
 
 	return nil
 }

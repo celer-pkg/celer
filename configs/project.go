@@ -16,6 +16,7 @@ import (
 
 type Project struct {
 	TargetPlatform string   `toml:"target_platform,omitempty"`
+	PortsBaseline  string   `toml:"ports_baseline"`
 	BuildType      string   `toml:"build_type"`
 	Ports          []string `toml:"ports"`
 	Vars           []string `toml:"vars"`
@@ -51,6 +52,12 @@ func (p *Project) Init(ctx context.Context, projectName string) error {
 		return fmt.Errorf("failed to read %s -> %w", projectPath, err)
 	}
 
+	// ports_baseline is mandatory.
+	p.PortsBaseline = strings.TrimSpace(p.PortsBaseline)
+	if p.PortsBaseline == "" {
+		return fmt.Errorf("no 'ports_baseline' is defined in %s, it's used to pin the ports repo with a commit hash or a branch", projectPath)
+	}
+
 	// Default build_type.
 	if p.BuildType == "" {
 		p.BuildType = "Release"
@@ -63,6 +70,12 @@ func (p *Project) Init(ctx context.Context, projectName string) error {
 }
 
 func (p Project) Write(platformPath string, override bool) error {
+	// Mandatory: there must never be a project without a pinned ports repo.
+	p.PortsBaseline = strings.TrimSpace(p.PortsBaseline)
+	if p.PortsBaseline == "" {
+		return fmt.Errorf("ports_baseline is required: it pins the ports repo of the project with a commit hash, or names a branch to follow")
+	}
+
 	if p.BuildType == "" {
 		p.BuildType = "Release"
 	}
@@ -100,6 +113,10 @@ func (p Project) Write(platformPath string, override bool) error {
 
 func (p Project) GetName() string {
 	return p.Name
+}
+
+func (p Project) GetPortsBaseline() string {
+	return p.PortsBaseline
 }
 
 func (p Project) GetTargetPlatform() string {
