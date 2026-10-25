@@ -112,7 +112,12 @@ project = ""`
 	if name := celer.Platform().GetName(); name != hostName {
 		t.Errorf("Platform().GetName() = %q, want the host name %q", name, hostName)
 	}
-	want := "/installed/" + hostName + "/release"
+
+	// No project configured: the built-in default one keeps the paths well formed.
+	if name := celer.Project().GetName(); name != DefaultProjectName {
+		t.Errorf("Project().GetName() = %q, want %q", name, DefaultProjectName)
+	}
+	want := "/installed/" + hostName + "/" + DefaultProjectName + "/release"
 	if dir := filepath.ToSlash(celer.InstalledDir()); !strings.HasSuffix(dir, want) {
 		t.Errorf("InstalledDir() = %q, want it to end with %q", dir, want)
 	}

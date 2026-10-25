@@ -14,6 +14,10 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+// DefaultProjectName is the built-in project used when celer.toml does not name one, so
+// a fresh workspace can build something right away. It lists no ports and pins nothing.
+const DefaultProjectName = "default"
+
 type Project struct {
 	TargetPlatform string   `toml:"target_platform,omitempty"`
 	PortsBaseline  string   `toml:"ports_baseline"`
