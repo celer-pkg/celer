@@ -23,7 +23,16 @@ func Export(ctx context.Context, roots []string, ignoreCache bool, outPath strin
 	if err != nil {
 		return fmt.Errorf("failed to build dag -> %w", err)
 	}
-	return writeDag(dag, outPath)
+	if err := writeDag(dag, outPath); err != nil {
+		return err
+	}
+
+	// Publish the binary that produced the schedule: the node restores it and continues in it.
+	pkgCache := ctx.PkgCache()
+	if pkgCache == nil || pkgCache.GetBinaryCache() == nil {
+		return nil
+	}
+	return pkgCache.GetBinaryCache().Store()
 }
 
 // buildDag schedule the build of specified roots: it pins the whole closure, hashes every node of it.
@@ -304,6 +313,7 @@ func classifyNodes(ctx context.Context, nodes []node, ignoreCache bool) ([]node,
 			cached = append(cached, item.NameVersion)
 			continue
 		}
+		targets = append(targets, item)
 	}
 	return targets, cached, nil
 }

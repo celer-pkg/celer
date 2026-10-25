@@ -53,6 +53,7 @@ func InitPkgCache(ctx context.Context) (*pkgcache.CacheConfigs, error) {
 	}
 
 	return &pkgcache.CacheConfigs{
+		BinaryCache:      NewBinaryCache(ctx, client),
 		DownloadCache:    NewDownloadConfig(ctx, client),
 		RepoCache:        NewRepoConfig(ctx, client),
 		AritifactCache:   NewArtifactConfig(ctx, client),

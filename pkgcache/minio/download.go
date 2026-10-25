@@ -73,10 +73,9 @@ func (d DownloadConfig) Store(fileName, sha256, srcPath string) error {
 			return fmt.Errorf("'%s' is cached but has no sha256 metadata; remove it before re-storing", fileName)
 		}
 		if remoteSha256 == sha256 {
-			return nil // already cached with the same content
+			return fmt.Errorf("'%s' is cached with sha256=%s, but storing sha256=%s; remove the cached object manually if you want to replace it", fileName, remoteSha256, sha256)
 		}
-
-		return fmt.Errorf("'%s' is cached with sha256=%s, but storing sha256=%s; remove the cached object manually if you want to replace it", fileName, remoteSha256, sha256)
+		return nil // already cached with the same content
 	}
 
 	// Upload file with progress.

@@ -17,6 +17,7 @@ or comma separated) instead of the whole project; nothing else changes. `deploy`
 | Field | Use |
 |-------|-----|
 | `platform` / `project` / `build_type` | Adopted by `--apply-dag` and written to `celer.toml` before init: every machine builds the schedule's workspace, not its own. |
+| `celer_version` | The celer that exported the file. `--apply-dag` re-executes the schedule with that binary, restored from pkgcache. |
 | `conf_ref` / `ports_ref` | The local `HEAD` commits the master hashed. `--apply-dag` resets both repos to them, because the configs are part of the build hash. |
 | `target_nodes[]` | One job per entry, parameter `CELER_PORT`. |
 | `target_nodes[].dependencies` | Job edges; a dependency listed in `cached` is already in pkgcache and needs no edge. |
@@ -28,7 +29,7 @@ or comma separated) instead of the whole project; nothing else changes. `deploy`
 
 ```mermaid
 flowchart LR
-    E["export the schedule"] --> D["distribute<br/>one celer-agent per node"]
+    E["export the schedule<br/>(and store this celer)"] --> D["distribute<br/>one celer-agent per node"]
     D --> A["apply<br/>collect from pkgcache"]
     A --> P["package<br/>one tarball"]
 ```
@@ -60,6 +61,14 @@ celer install --apply-dag=dag.json <name_version>
 The schedule's `platform` decides what celer builds, not which machine runs it; to split pools,
 pass `params.CELER_PLATFORM` into `agent { label ... }` and label agents `celer-agent-<platform>`.
 
+## Pinning the celer binary
+
+`--export-dag` stores the exporting binary as `celers/celer-<os>-<arch>-<version>`;
+`--apply-dag` restores it to `<workspace>/tmp/files-*` and `exec`s it, so the `celer` on `PATH`
+only bootstraps. Nothing lands in the workspace root and `tmp/files-*` can be deleted freely.
+
+Offline or `CELER_PKGCACHE_WRITABLE=false` stores nothing.
+
 ## pkgcache backend
 
 `configurePkgCache()` reads the backend from the master's environment:
@@ -83,7 +92,8 @@ in the build log.
   `confBranchScript()` once in *Manage Jenkins → In-process Script Approval*; the other lists
   are baked in from the previous build (one build behind). `CELER_PORTS_VISIBILITY` hides the
   ports row while deploying with plain CSS. Without the plugin, use `string`/`choice`.
-- Pipeline Utility Steps (`readJSON` in the master job).
+- Pipeline Utility Steps (`readJSON` in the master job: it reads `platform`, `project` and
+  `target_nodes[]` from the schedule to create the node jobs).
 - Copy Artifact (`copyArtifacts` in the node job).
 - Pipeline: Build Step and Pipeline: Basic Steps ≥ 2.20: aborting a running node job, and
   `waitUntil(quiet: true)` ([SECURITY-3870](https://www.jenkins.io/security/advisory/2026-09-02/),
