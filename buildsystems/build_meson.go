@@ -132,6 +132,11 @@ func (m meson) configureOptions() ([]string, error) {
 }
 
 func (m meson) configured() bool {
+	// Staged deps live in a temp dir for each build. This dir is deleted after install.
+	// So if the port has deps, any leftover build.ninja will always point to a deleted dir.
+	if len(m.Dependencies) > 0 || len(m.DevDependencies) > 0 {
+		return false
+	}
 	buildFile := filepath.Join(m.PortConfig.BuildDir, "build.ninja")
 	return fileio.PathExists(m.PortConfig.RepoDir) && fileio.PathExists(buildFile)
 }

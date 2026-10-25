@@ -219,39 +219,47 @@ func (c cmake) configureOptions() ([]string, error) {
 }
 
 func (c cmake) configured() bool {
+	// Staged deps live in a temp dir for each build. This dir is deleted after install.
+	// So if the port has deps, any leftover CMakeCache.txt will always point to a deleted dir.
+	if len(c.Dependencies) > 0 || len(c.DevDependencies) > 0 {
+		return false
+	}
+
 	if err := c.detectGenerator(); err != nil {
 		logger.Printf(logger.Error, "failed to detect generator -> %s", err)
 		return false
 	}
 
-	switch c.CMakeGenerator {
-	case "Ninja":
-		cmakeCache := filepath.Join(c.PortConfig.BuildDir, "CMakeCache.txt")
-		buildFile := filepath.Join(c.PortConfig.BuildDir, "build.ninja")
-		ruluesFile := filepath.Join(c.PortConfig.BuildDir, "rules.ninja")
-		return fileio.PathExists(c.PortConfig.RepoDir) &&
-			fileio.PathExists(cmakeCache) &&
-			fileio.PathExists(buildFile) &&
-			fileio.PathExists(ruluesFile)
-
-	case "Unix Makefiles":
-		cmakeCache := filepath.Join(c.PortConfig.BuildDir, "CMakeCache.txt")
-		makefile := filepath.Join(c.PortConfig.BuildDir, "Makefile")
-		return fileio.PathExists(c.PortConfig.RepoDir) &&
-			fileio.PathExists(cmakeCache) &&
-			fileio.PathExists(makefile)
-
-	case visualStudio_18_2026, visualStudio_17_2022, visualStudio_16_2019, visualStudio_15_2017, visualStudio_14_2015:
-		cmakeCache := filepath.Join(c.PortConfig.BuildDir, "CMakeCache.txt")
-		slnFile := filepath.Join(c.PortConfig.BuildDir, c.PortConfig.LibName+".sln")
-		vcxprojFile := filepath.Join(c.PortConfig.BuildDir, c.PortConfig.LibName+".vcxproj")
-		return fileio.PathExists(c.PortConfig.RepoDir) &&
-			fileio.PathExists(cmakeCache) &&
-			fileio.PathExists(slnFile) &&
-			fileio.PathExists(vcxprojFile)
+	cmakeCache := filepath.Join(c.PortConfig.BuildDir, "CMakeCache.txt")
+	if !fileio.PathExists(c.PortConfig.RepoDir) || !fileio.PathExists(cmakeCache) {
+		return false
 	}
 
-	return false
+	var buildFiles []string
+	switch c.CMakeGenerator {
+	case "Ninja":
+		buildFiles = []string{
+			filepath.Join(c.PortConfig.BuildDir, "build.ninja"),
+			filepath.Join(c.PortConfig.BuildDir, "rules.ninja"),
+		}
+	case "Unix Makefiles":
+		buildFiles = []string{filepath.Join(c.PortConfig.BuildDir, "Makefile")}
+	case visualStudio_18_2026, visualStudio_17_2022, visualStudio_16_2019, visualStudio_15_2017, visualStudio_14_2015:
+		buildFiles = []string{
+			filepath.Join(c.PortConfig.BuildDir, c.PortConfig.LibName+".sln"),
+			filepath.Join(c.PortConfig.BuildDir, c.PortConfig.LibName+".vcxproj"),
+		}
+	default:
+		return false
+	}
+
+	for _, buildFile := range buildFiles {
+		if !fileio.PathExists(buildFile) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (c cmake) Configure(options []string) error {

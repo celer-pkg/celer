@@ -10,9 +10,9 @@ import (
 	"github.com/celer-pkg/celer/pkgs/git"
 )
 
-// TestParseDAG locks down the checks done before a build follows an exported
-// DAG: the file must parse, and it must have been exported by this celer
-// version, since the schedule's own workspace identity is adopted by the caller.
+// TestParseDAG locks down what is checked before a build follows an exported DAG: the file
+// must parse and the version that exported it must be readable, because Import switches to
+// that very binary (restored from pkgcache) instead of running on.
 func TestParseDAG(t *testing.T) {
 	dir := t.TempDir()
 
@@ -37,41 +37,31 @@ func TestParseDAG(t *testing.T) {
 	}
 
 	var tests = []struct {
-		name         string
-		path         string
-		celerVersion string
-		nodes        int
-		wantErr      bool
+		name    string
+		path    string
+		nodes   int
+		wantErr bool
 	}{
 		{
-			name:         "same celer version",
-			path:         valid,
-			celerVersion: "v0.0.0",
-			nodes:        2,
+			name:  "a valid schedule",
+			path:  valid,
+			nodes: 2,
 		},
 		{
-			name:         "another celer version",
-			path:         valid,
-			celerVersion: "v0.4.2",
-			wantErr:      true,
+			name:    "malformed json",
+			path:    invalid,
+			wantErr: true,
 		},
 		{
-			name:         "malformed json",
-			path:         invalid,
-			celerVersion: "v0.0.0",
-			wantErr:      true,
-		},
-		{
-			name:         "missing file",
-			path:         filepath.Join(dir, "not-exist.json"),
-			celerVersion: "v0.0.0",
-			wantErr:      true,
+			name:    "missing file",
+			path:    filepath.Join(dir, "not-exist.json"),
+			wantErr: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			report, err := parseDag(tt.path, tt.celerVersion)
+			report, err := parseDag(tt.path)
 			if tt.wantErr {
 				if err == nil {
 					t.Fatal("Parse() should fail")
@@ -84,6 +74,9 @@ func TestParseDAG(t *testing.T) {
 			}
 			if len(report.TargetNodes) != tt.nodes {
 				t.Fatalf("Parse() returned %d nodes, want %d", len(report.TargetNodes), tt.nodes)
+			}
+			if report.CelerVersion != "v0.0.0" {
+				t.Fatalf("Parse() returned celer version %q, want v0.0.0", report.CelerVersion)
 			}
 		})
 	}

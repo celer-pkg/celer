@@ -282,7 +282,7 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 			}
 
 			if !opts.SkipPkgCache {
-				if err := c.initPkgCacheCaches(); err != nil {
+				if err := c.initPkgCache(); err != nil {
 					return fmt.Errorf("failed to init pkgcache -> %w", err)
 				}
 			}
@@ -493,15 +493,15 @@ func (c *Celer) CloneConf(url, branch string, force bool) error {
 			Clone("[clone conf repo]", "conf repo"); err != nil {
 			return fmt.Errorf("clone conf repo -> %w", err)
 		}
+	}
 
-		if err := c.readOrCreate(); err != nil {
-			return err
-		}
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
 
-		c.Main.ConfUrl = url
-		if err := c.save(); err != nil {
-			return err
-		}
+	c.Main.ConfUrl = url
+	if err := c.save(); err != nil {
+		return err
 	}
 
 	return nil
@@ -522,8 +522,8 @@ func (c *Celer) GetProjectName() string {
 	return cfg.Main.Project
 }
 
-// initPkgCacheCaches populates repoCache, artifactCache and downloadCache on PkgCache.
-func (c *Celer) initPkgCacheCaches() error {
+// initPkgCache populates repoCache, artifactCache and downloadCache on PkgCache.
+func (c *Celer) initPkgCache() error {
 	if c.configData.PkgCache == nil {
 		return nil
 	}
@@ -533,12 +533,14 @@ func (c *Celer) initPkgCacheCaches() error {
 		if err != nil {
 			return err
 		}
+		c.configData.PkgCache.binaryCache = cacheConfigs.BinaryCache
 		c.configData.PkgCache.downloadCache = cacheConfigs.DownloadCache
 		c.configData.PkgCache.repoCache = cacheConfigs.RepoCache
 		c.configData.PkgCache.artifactCache = cacheConfigs.AritifactCache
 		c.configData.PkgCache.pythonWheelCache = cacheConfigs.PythonWheelCache
 	} else if c.configData.PkgCache.FS != nil {
 		cacheConfigs := filesystem.InitPkgCache(c)
+		c.configData.PkgCache.binaryCache = cacheConfigs.BinaryCache
 		c.configData.PkgCache.downloadCache = cacheConfigs.DownloadCache
 		c.configData.PkgCache.repoCache = cacheConfigs.RepoCache
 		c.configData.PkgCache.artifactCache = cacheConfigs.AritifactCache

@@ -16,9 +16,34 @@ import (
 
 // Import reads an exported dag json and makes the workspace adopt its identity.
 func Import(celer *configs.Celer, dagPath string) (*DagInfo, error) {
-	dag, err := parseDag(dagPath, celer.Version())
+	dag, err := parseDag(dagPath)
 	if err != nil {
 		return nil, err
+	}
+
+	// Adopt pkgcache first: it is where the celer that exported this schedule lives.
+	if dag.PkgCache != nil {
+		if dag.PkgCache.Minio != nil {
+			if err := celer.SetPkgCacheMinio(
+				dag.PkgCache.Minio.Host,
+				dag.PkgCache.Minio.AccessKey,
+				dag.PkgCache.Minio.SecretKey); err != nil {
+				return nil, fmt.Errorf("failed to adopt the minio as pkgcache solution from '%s' -> %w", dagPath, err)
+			}
+		} else if dag.PkgCache.FS != nil {
+			if err := celer.SetPkgCacheFSDir(dag.PkgCache.FS.Dir); err != nil {
+				return nil, fmt.Errorf("failed to adopt the fs as pkgcache solution -> %w", err)
+			}
+		}
+	}
+
+	// A schedule is reproducible only with the same version celer that exported it,
+	// all binaries are stored in the same pkgcache.
+	if dag.CelerVersion != celer.Version() {
+		if err := switchToPinnedCeler(celer, dag); err != nil {
+			return nil, fmt.Errorf("failed to switch current celer from '%s' to pinned '%s' -> %w",
+				celer.Version(), dag.CelerVersion, err)
+		}
 	}
 
 	// Make sure that all scheduled jobs use the same revision of the conf repo and ports repo.
@@ -31,9 +56,6 @@ func Import(celer *configs.Celer, dagPath string) (*DagInfo, error) {
 
 	// Adopt the identity of the schedule, one setter per property.
 	if err := celer.SetPlatform(dag.Platform); err != nil {
-		if !celer.IsNativePlatform() || !errors.Is(err, errors.ErrPlatformNotExist) {
-			return nil, fmt.Errorf("failed to adopt the platform from '%s' -> %w", dagPath, err)
-		}
 		return nil, fmt.Errorf("failed to adopt the platform from '%s' -> %w", dagPath, err)
 	}
 	if err := celer.SetProject(dag.Project); err != nil {
@@ -41,22 +63,6 @@ func Import(celer *configs.Celer, dagPath string) (*DagInfo, error) {
 	}
 	if err := celer.SetBuildType(dag.BuildType); err != nil {
 		return nil, fmt.Errorf("failed to adopt the build type from '%s' -> %w", dagPath, err)
-	}
-
-	// Adopt pkgcache solution if configured: minio and fs are mutually exclusive.
-	if dag.PkgCache != nil {
-		if dag.PkgCache.Minio != nil {
-			if err := celer.SetPkgCacheMinio(
-				dag.PkgCache.Minio.Host,
-				dag.PkgCache.Minio.AccessKey,
-				dag.PkgCache.Minio.SecretKey); err != nil {
-				return nil, fmt.Errorf("failed to adopt the minio as pkgcache solution from '%s' -> %w", dagPath, err)
-			}
-		} else if dag.PkgCache.FS != nil {
-			if err := celer.SetPkgCacheFSDir(dag.PkgCache.FS.Dir); err != nil {
-				return nil, fmt.Errorf("faild to adopt the fs as pkgcache solution -> %w", err)
-			}
-		}
 	}
 
 	// Pin the sources of the schedule.
@@ -172,7 +178,7 @@ func Install(ctx context.Context, nameVersion string, devDep bool, options confi
 }
 
 // parseDag reads a DAG written by Export.
-func parseDag(dagPath, celerVersion string) (*Dag, error) {
+func parseDag(dagPath string) (*Dag, error) {
 	bytes, err := os.ReadFile(dagPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read %s -> %w", dagPath, err)
@@ -183,10 +189,22 @@ func parseDag(dagPath, celerVersion string) (*Dag, error) {
 		return nil, fmt.Errorf("failed to parse %s -> %w", dagPath, err)
 	}
 
-	if dag.CelerVersion != celerVersion {
-		return nil, fmt.Errorf("celer version doesn't matches, %s was exported by celer %s", dagPath, dag.CelerVersion)
-	}
 	return &dag, nil
+}
+
+func switchToPinnedCeler(celer *configs.Celer, dag *Dag) error {
+	pkgcache := celer.PkgCache()
+	if pkgcache == nil || pkgcache.GetBinaryCache() == nil {
+		return fmt.Errorf("no pkgcache binary cache is configured, so celer %s cannot be restored", dag.CelerVersion)
+	}
+
+	binaryPath, err := pkgcache.GetBinaryCache().Restore(dag.CelerVersion)
+	if err != nil {
+		return fmt.Errorf("failed to restore celer %s from pkgcache -> %w", dag.CelerVersion, err)
+	}
+
+	logger.PrintHint("restored celer %s, taking over with '%s'", dag.CelerVersion, binaryPath)
+	return reExecSelf(binaryPath)
 }
 
 // preferName names a strict install path the way --prefer takes it.

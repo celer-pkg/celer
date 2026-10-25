@@ -17,6 +17,7 @@ type PkgCache struct {
 	FS       *pkgcache.FS    `toml:"fs,omitempty" json:"fs,omitempty"`
 
 	// Internal field.
+	binaryCache      pkgcache.BinaryCache
 	artifactCache    pkgcache.AritifactCache
 	repoCache        pkgcache.RepoCache
 	downloadCache    pkgcache.DownloadCache
@@ -37,6 +38,13 @@ func (p PkgCache) GetFS() *pkgcache.FS {
 
 func (p PkgCache) IsWritable() bool {
 	return p.Writable == nil || *p.Writable
+}
+
+func (p PkgCache) GetBinaryCache() pkgcache.BinaryCache {
+	if p.binaryCache == nil {
+		return nil
+	}
+	return p.binaryCache
 }
 
 func (p PkgCache) GetArtifactCache() pkgcache.AritifactCache {

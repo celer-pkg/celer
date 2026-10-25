@@ -3,10 +3,14 @@ package pkgcache
 import (
 	"fmt"
 	"path/filepath"
+	"runtime"
 	"strings"
+
+	"github.com/celer-pkg/celer/pkgs/expr"
 )
 
 type CacheConfigs struct {
+	BinaryCache      BinaryCache
 	DownloadCache    DownloadCache
 	RepoCache        RepoCache
 	AritifactCache   AritifactCache
@@ -20,6 +24,7 @@ type DirType uint8
 
 const (
 	DirRoot DirType = iota
+	DirBinaries
 	DirRepos
 	DirArtifacts
 	DirDownloads
@@ -42,6 +47,9 @@ func (f FS) Validate() error {
 // GetDir returns the path for a cache subdir under the nfs root.
 func (f FS) GetDir(dirType DirType, version string) string {
 	switch dirType {
+	case DirBinaries:
+		return filepath.Join(f.Dir, "celers")
+
 	case DirArtifacts:
 		return filepath.Join(f.Dir, "artifacts-"+version)
 
@@ -86,8 +94,8 @@ func (m Minio) Validate() error {
 // backends these are not filesystem paths, so no filepath.Join here.
 func (m Minio) GetDir(dirType DirType, version string) string {
 	switch dirType {
-	case DirArtifacts:
-		return "artifacts-" + version
+	case DirBinaries:
+		return "celers"
 
 	case DirRepos:
 		return "repos"
@@ -97,6 +105,9 @@ func (m Minio) GetDir(dirType DirType, version string) string {
 
 	case DirPythonWheels:
 		return "python-wheels"
+
+	case DirArtifacts:
+		return "artifacts-" + version
 
 	default:
 		return ""
@@ -111,11 +122,23 @@ type PkgCache interface {
 	GetMinio() *Minio
 	GetFS() *FS
 	IsWritable() bool
+	GetBinaryCache() BinaryCache
 	GetDownloadCache() DownloadCache
 	GetArtifactCache() AritifactCache
 	GetRepoCache() RepoCache
 	GetPythonWheelCache() PythonWheelCache
 }
+
+// ========================== celer binary cache ========================== //
+
+// BinaryCache stores the celer binary of a version, so a node runs the one that exported
+// its schedule instead of whatever its PATH happens to have.
+type BinaryCache interface {
+	Restore(version string) (string, error)
+	Store() error
+}
+
+// ========================== artifact cache ========================== //
 
 // AritifactCache stores/restores a port's built package, keyed by name@version + build hash.
 type AritifactCache interface {
@@ -123,6 +146,8 @@ type AritifactCache interface {
 	Restore(packageDir, nameVersion, buildsystem, buildhash string) (bool, error)
 	Store(packageDir, metadata string) error
 }
+
+// ========================== reopo cache ========================== //
 
 // RepoInfo holds the repo identity fields shared by Restore and Store.
 type RepoInfo struct {
@@ -137,6 +162,8 @@ type RepoCache interface {
 	Restore(cacheKey string, repoInfo RepoInfo, archiveName string, prebuilt bool) (bool, error)
 	Store(cacheKey string, repoInfo RepoInfo, archiveFile string) error
 }
+
+// ========================== download cache ========================== //
 
 // DownloadCache stores/restores downloaded files (tools, archives), keyed by
 // fileName and verified by sha-256.
@@ -182,4 +209,18 @@ func IsPythonDistribution(name string) bool {
 	default:
 		return false
 	}
+}
+
+func CelerBinaryName(version string) string {
+	ext := ""
+	if runtime.GOOS == "windows" {
+		ext = ".exe"
+	}
+
+	return fmt.Sprintf("celer-%s-%s-%s%s",
+		runtime.GOOS,
+		expr.FormatProcessor(runtime.GOARCH),
+		version,
+		ext,
+	)
 }

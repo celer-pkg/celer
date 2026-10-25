@@ -1,7 +1,7 @@
 // Node job: install one node of the master.
 
 // Run command on either a POSIX or a Windows agent (sh vs bat).
-def execute(String cmd) {
+def run(String cmd) {
     if (isUnix()) {
         sh "${cmd}"
     } else {
@@ -81,8 +81,9 @@ pipeline {
                         filter: 'dag.json',
                     )
 
-                    execute "celer init --url=https://github.com/celer-pkg/test-conf.git"
-                    execute "celer install --apply-dag=dag.json --prefer=source --force --clean-source ${params.CELER_PORT}"
+                    run "celer init --url=https://github.com/celer-pkg/test-conf.git"
+                    run "celer clean --all"
+                    run "celer install --apply-dag=dag.json --prefer=source --force --clean-source ${params.CELER_PORT}"
                 }
             }
         }

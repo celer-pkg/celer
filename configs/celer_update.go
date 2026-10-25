@@ -263,7 +263,7 @@ func (c *Celer) SetPkgCacheFSDir(dir string) error {
 	}
 
 	// Refresh pkgcache config.
-	if err := c.initPkgCacheCaches(); err != nil {
+	if err := c.initPkgCache(); err != nil {
 		return err
 	}
 	return c.save()
@@ -306,7 +306,7 @@ func (c *Celer) SetPkgCacheMinio(host, accessKey, secretKey string) error {
 	}
 
 	// Refresh pkgcache config.
-	if err := c.initPkgCacheCaches(); err != nil {
+	if err := c.initPkgCache(); err != nil {
 		return err
 	}
 	return c.save()
@@ -325,7 +325,7 @@ func (c *Celer) SetPkgCacheWritable(writable bool) error {
 	c.configData.PkgCache.Writable = &writable
 
 	// Refresh pkgcache config.
-	if err := c.initPkgCacheCaches(); err != nil {
+	if err := c.initPkgCache(); err != nil {
 		return err
 	}
 	return c.save()

@@ -58,7 +58,7 @@ func (i *initCmd) doInit() error {
 
 	// Initialize celer conf.
 	if err := i.celer.Init(); err != nil {
-		return logger.PrintError(err, "Failed to initialize celer.")
+		return logger.PrintError(err, "failed to initialize celer.")
 	}
 
 	// Setup conf repository.
