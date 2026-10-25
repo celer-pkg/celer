@@ -32,7 +32,7 @@ func Import(celer *configs.Celer, dagPath string) (*DagInfo, error) {
 			}
 		} else if dag.PkgCache.FS != nil {
 			if err := celer.SetPkgCacheFSDir(dag.PkgCache.FS.Dir); err != nil {
-				return nil, fmt.Errorf("faild to adopt the fs as pkgcache solution -> %w", err)
+				return nil, fmt.Errorf("failed to adopt the fs as pkgcache solution -> %w", err)
 			}
 		}
 	}
@@ -41,7 +41,7 @@ func Import(celer *configs.Celer, dagPath string) (*DagInfo, error) {
 	// all binaries are stored in the same pkgcache.
 	if dag.CelerVersion != celer.Version() {
 		if err := switchToPinnedCeler(celer, dag); err != nil {
-			return nil, fmt.Errorf("failed to switch current celer from '%s' to pined '%s' -> %w",
+			return nil, fmt.Errorf("failed to switch current celer from '%s' to pinned '%s' -> %w",
 				celer.Version(), dag.CelerVersion, err)
 		}
 	}

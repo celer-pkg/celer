@@ -3,7 +3,7 @@ package minio
 import (
 	"fmt"
 	"os"
-	"path/filepath"
+	"path"
 	"strings"
 
 	"github.com/celer-pkg/celer/context"
@@ -59,7 +59,7 @@ func (d BinaryCache) Store() error {
 
 	// Build object name like: 'celer-linux-x86_64-v0.5.1'.
 	binaryName := pkgcache.CelerBinaryName(d.version)
-	objectName := filepath.Join(d.cacheDir, binaryName)
+	objectName := path.Join(d.cacheDir, binaryName)
 
 	// Seeking celer binary with its name is enough.
 	if info, err := d.GetFileInfo(objectName); err != nil {
@@ -86,7 +86,7 @@ func (d BinaryCache) Restore(version string) (string, error) {
 	// The requested version, never d.version: this runs precisely because the running
 	// binary is another version than the schedule's.
 	binaryName := pkgcache.CelerBinaryName(version)
-	objectName := filepath.Join(d.cacheDir, binaryName)
+	objectName := path.Join(d.cacheDir, binaryName)
 	remoteInfo, err := d.GetFileInfo(objectName)
 	if err != nil {
 		return "", err
