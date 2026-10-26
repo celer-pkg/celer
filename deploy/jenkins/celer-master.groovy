@@ -190,6 +190,12 @@ try {
 
 pipeline {
     agent { label 'celer-master' }
+
+    environment {
+        // Force Jenkins plugin AnsiColor to render color.
+        FORCE_COLOR = '1'
+    }
+
     // agent {
     //     docker {
     //         label 'celer-master'
@@ -209,6 +215,7 @@ pipeline {
     options {
         timeout(time: 4, unit: 'HOURS')
         buildDiscarder(logRotator(numToKeepStr: '100', daysToKeepStr: '90', artifactNumToKeepStr: '30'))
+        ansiColor('xterm')
     }
 
     stages {

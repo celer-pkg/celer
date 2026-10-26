@@ -36,6 +36,12 @@ def cleanWorkspace() {
 
 pipeline {
     agent { label "celer-agent" }
+
+    environment {
+        // Force Jenkins plugin AnsiColor to render color.
+        FORCE_COLOR = '1'
+    }
+
     // agent {
     //     docker {
     //         image 'ubuntu:22.04'
@@ -54,6 +60,7 @@ pipeline {
     options {
         timeout(time: 4, unit: 'HOURS')
         buildDiscarder(logRotator(numToKeepStr: '500'))
+        ansiColor('xterm')
     }
 
     parameters {

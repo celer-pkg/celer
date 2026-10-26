@@ -98,3 +98,4 @@ in the build log.
 - Pipeline: Build Step and Pipeline: Basic Steps ≥ 2.20: aborting a running node job, and
   `waitUntil(quiet: true)` ([SECURITY-3870](https://www.jenkins.io/security/advisory/2026-09-02/),
   [JENKINS-59776](https://issues.jenkins.io/browse/JENKINS-59776)).
+- AnsiColor: Adds ANSI coloring to the Console Output.
