@@ -2,8 +2,33 @@ package logger
 
 import (
 	"fmt"
+	"os"
 	"strings"
+
+	"golang.org/x/term"
 )
+
+// colorEnabled reports whether ANSI color codes should be emitted. It is
+// disabled when stdout is not a terminal (e.g. piped into a Jenkins log) or
+// when NO_COLOR is set / TERM=dumb, matching the common no-color convention.
+// FORCE_COLOR / CLICOLOR_FORCE opt back in, e.g. for a Jenkins log rendered by
+// the AnsiColor plugin.
+var colorEnabled = detectColorEnabled()
+
+func detectColorEnabled() bool {
+	// Explicit disable wins over everything.
+	if os.Getenv("NO_COLOR") != "" {
+		return false
+	}
+	// Explicit enable: emit colors even when stdout is not a terminal.
+	if os.Getenv("FORCE_COLOR") != "" || os.Getenv("CLICOLOR_FORCE") != "" {
+		return true
+	}
+	if os.Getenv("TERM") == "dumb" {
+		return false
+	}
+	return term.IsTerminal(int(os.Stdout.Fd()))
+}
 
 type Style struct {
 	codes []string
@@ -75,7 +100,7 @@ func (s *Style) BgRGB(r, g, b int) *Style {
 
 // String returns the ANSI escape sequence.
 func (s *Style) String() string {
-	if len(s.codes) == 0 {
+	if !colorEnabled || len(s.codes) == 0 {
 		return ""
 	}
 	return esc + strings.Join(s.codes, ";") + "m"
@@ -83,7 +108,7 @@ func (s *Style) String() string {
 
 // Format returns a format string for use with fmt.Printf.
 func (s *Style) Format() string {
-	if len(s.codes) == 0 {
+	if !colorEnabled || len(s.codes) == 0 {
 		return "%s"
 	}
 	return s.String() + "%s" + reset
@@ -91,7 +116,7 @@ func (s *Style) Format() string {
 
 // Apply applies the style to the given text.
 func (s *Style) Apply(text string) string {
-	if len(s.codes) == 0 {
+	if !colorEnabled || len(s.codes) == 0 {
 		return text
 	}
 	return s.String() + text + reset
@@ -109,7 +134,7 @@ func (s *Style) Sprintf(format string, a ...any) string {
 
 // Convenience function - direct use.
 func Color(text string, codes ...string) string {
-	if len(codes) == 0 {
+	if !colorEnabled || len(codes) == 0 {
 		return text
 	}
 	return esc + strings.Join(codes, ";") + "m" + text + reset

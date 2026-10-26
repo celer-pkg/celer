@@ -44,6 +44,8 @@ func Import(celer *configs.Celer, dagPath string) (*DagInfo, error) {
 			return nil, fmt.Errorf("failed to switch current celer from '%s' to pinned '%s' -> %w",
 				celer.Version(), dag.CelerVersion, err)
 		}
+	} else {
+		logger.PrintInfo("celer binary is at the schedule's revision '%s'", dag.CelerVersion)
 	}
 
 	// Make sure that all scheduled jobs use the same revision of the conf repo and ports repo.
