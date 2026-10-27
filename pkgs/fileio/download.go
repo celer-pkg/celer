@@ -1,6 +1,7 @@
 package fileio
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,6 +15,20 @@ import (
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/logger"
 )
+
+const (
+	defaultUserAgent  = "celer"
+	fallbackUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+)
+
+type httpStatusError struct {
+	code   int
+	status string
+}
+
+func (e httpStatusError) Error() string {
+	return fmt.Sprintf("unexpected status: %s", e.status)
+}
 
 type downloader struct {
 	url        string
@@ -58,7 +73,16 @@ func (d *downloader) AppendHeader(key, value string) {
 func (d downloader) Start(httpClient *http.Client) (downloaded string, err error) {
 	var lastErr error
 	for attempt := 1; attempt <= d.maxRetries; attempt++ {
-		downloaded, err = d.startOnce(httpClient)
+		downloaded, err = d.startOnce(httpClient, defaultUserAgent)
+
+		// Some hosts reject unknown clients with 403. A real browser UA usually
+		// passes, so give it one try before counting this attempt as failed.
+		var statusErr *httpStatusError
+		if errors.As(err, &statusErr) && statusErr.code == http.StatusForbidden {
+			logger.PrintWarning("Download rejected with 403, retrying with a browser User-Agent")
+			downloaded, err = d.startOnce(httpClient, fallbackUserAgent)
+		}
+
 		if err == nil {
 			return downloaded, nil
 		}
@@ -72,14 +96,13 @@ func (d downloader) Start(httpClient *http.Client) (downloaded string, err error
 	return "", fmt.Errorf("download failed after %d attempts -> %w", d.maxRetries, lastErr)
 }
 
-func (d downloader) startOnce(httpClient *http.Client) (downloaded string, err error) {
+func (d downloader) startOnce(httpClient *http.Client, userAgent string) (downloaded string, err error) {
 	req, err := http.NewRequest("GET", d.url, nil)
 	if err != nil {
 		return "", fmt.Errorf("create request -> %w", err)
 	}
 
-	// Simulate a browser-like User-Agent header.
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+	req.Header.Set("User-Agent", userAgent)
 	req.Header.Set("Accept", "*/*")
 	req.Header.Set("Connection", "keep-alive")
 	for k, v := range d.headers {
@@ -95,7 +118,7 @@ func (d downloader) startOnce(httpClient *http.Client) (downloaded string, err e
 
 	// Check if url valid.
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("unexpected status: %s", resp.Status)
+		return "", &httpStatusError{code: resp.StatusCode, status: resp.Status}
 	}
 
 	// Get file name.

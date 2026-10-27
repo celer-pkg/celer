@@ -28,7 +28,6 @@ func (g gyp) Name() string {
 }
 
 func (g gyp) CheckTools() []string {
-	// Start with build_tools from port.toml
 	tools := slices.Clone(g.BuildConfig.BuildTools)
 
 	// Add build tools dynamically.

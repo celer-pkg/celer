@@ -32,7 +32,6 @@ func (b b2) Name() string {
 }
 
 func (b b2) CheckTools() []string {
-	// Start with build_tools from port.toml
 	tools := slices.Clone(b.BuildConfig.BuildTools)
 
 	// Add default tools

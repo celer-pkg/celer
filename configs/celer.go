@@ -112,7 +112,7 @@ type configData struct {
 	Features *features `toml:"features,omitempty"`
 }
 
-// ================================ Main ================================ //
+// ================================ Main ================================= //
 
 type Main struct {
 	ConfUrl   string `toml:"conf_url"`

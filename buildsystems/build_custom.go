@@ -21,7 +21,6 @@ type custom struct {
 }
 
 func (c custom) CheckTools() []string {
-	// Start with build_tools from port.toml
 	tools := slices.Clone(c.BuildConfig.BuildTools)
 
 	// Add default tools

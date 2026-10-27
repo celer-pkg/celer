@@ -33,7 +33,6 @@ func (makefiles) Name() string {
 }
 
 func (m *makefiles) CheckTools() []string {
-	// Start with build_tools from port.toml
 	tools := slices.Clone(m.BuildConfig.BuildTools)
 
 	// Add build tools dynamically.
