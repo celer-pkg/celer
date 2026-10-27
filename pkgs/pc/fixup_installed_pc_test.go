@@ -3,6 +3,7 @@ package pc
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -22,11 +23,6 @@ func TestFixupPkgConfigFile_StandardPrefix(t *testing.T) {
 	}
 }
 
-// TestFixupPkgConfigFile_VendorEmbeddedBuildDir repros the OGRE/assimp layout:
-// the .pc was generated with CMAKE_INSTALL_PREFIX pointing at an ExternalProject
-// build dir, then the whole tree was copied to opt/<vendor> without rewriting
-// the .pc. Fixup must rewrite the baked build-dir absolute paths to ${prefix},
-// not the relocated path.
 func TestFixupPkgConfigFile_VendorEmbeddedBuildDir(t *testing.T) {
 	root := t.TempDir()
 	buildDir := filepath.Join(t.TempDir(), "assimp_install")
@@ -48,6 +44,108 @@ func TestFixupPkgConfigFile_VendorEmbeddedBuildDir(t *testing.T) {
 		"includedir=${prefix}/include\n"
 	if got != want {
 		t.Fatalf("got:\n%s\nwant:\n%s", got, want)
+	}
+}
+
+func TestFixupPkgConfigFile_NoPrefixLine(t *testing.T) {
+	root := t.TempDir()
+	pcPath := filepath.Join(root, "lib", "pkgconfig", "benchmark_main.pc")
+	mustWritePc(t, pcPath, ""+
+		"libdir="+root+"/lib\n"+
+		"\n"+
+		"Name: benchmark\n"+
+		"Description: Google microbenchmark framework (with main() function)\n"+
+		"Version: 1.9.4\n"+
+		"Requires: benchmark\n"+
+		"Libs: -L${libdir} -lbenchmark_main\n")
+
+	if err := FixupPkgConfigFile(root); err != nil {
+		t.Fatal(err)
+	}
+
+	got := mustRead(t, pcPath)
+	want := "prefix=${pcfiledir}/../..\n" +
+		"libdir=${prefix}/lib\n" +
+		"\n" +
+		"Name: benchmark\n" +
+		"Description: Google microbenchmark framework (with main() function)\n" +
+		"Version: 1.9.4\n" +
+		"Requires: benchmark\n" +
+		"Libs: -L${libdir} -lbenchmark_main\n"
+	if got != want {
+		t.Fatalf("got:\n%s\nwant:\n%s", got, want)
+	}
+}
+
+func TestFixupPkgConfigFile_NoPrefixLineTwice(t *testing.T) {
+	root := t.TempDir()
+	pcPath := filepath.Join(root, "lib", "pkgconfig", "benchmark_main.pc")
+	mustWritePc(t, pcPath, "libdir="+root+"/lib\n\nName: benchmark\n")
+
+	if err := FixupPkgConfigFile(root); err != nil {
+		t.Fatal(err)
+	}
+
+	first := mustRead(t, pcPath)
+	if err := FixupPkgConfigFile(root); err != nil {
+		t.Fatal(err)
+	}
+	if second := mustRead(t, pcPath); second != first {
+		t.Fatalf("second run changed output:\nfirst:\n%s\nsecond:\n%s", first, second)
+	}
+}
+
+func TestFixupPkgConfigFile_StagingLibPathFlags(t *testing.T) {
+	root := t.TempDir()
+	staging := t.TempDir()
+	pcPath := filepath.Join(root, "lib", "pkgconfig", "libevent_openssl.pc")
+	mustWritePc(t, pcPath, ""+
+		"prefix="+root+"\n"+
+		"exec_prefix=${prefix}\n"+
+		"libdir=${prefix}/lib\n"+
+		"\n"+
+		"Name: libevent_openssl\n"+
+		"Libs: -L${libdir} -levent_openssl\n"+
+		"Libs.private:   -L"+staging+"/lib/libssl.so -L"+staging+"/lib/libcrypto.so\n"+
+		"Cflags: -I${prefix}/include\n")
+
+	if err := FixupPkgConfigFile(root); err != nil {
+		t.Fatal(err)
+	}
+
+	got := mustRead(t, pcPath)
+	if strings.Contains(got, staging) {
+		t.Fatalf("staging path leaked:\n%s", got)
+	}
+	want := "prefix=${pcfiledir}/../..\n" +
+		"exec_prefix=${prefix}\n" +
+		"libdir=${prefix}/lib\n" +
+		"\n" +
+		"Name: libevent_openssl\n" +
+		"Libs: -L${libdir} -levent_openssl\n" +
+		"Libs.private: -lssl -lcrypto\n" +
+		"Cflags: -I${prefix}/include\n"
+	if got != want {
+		t.Fatalf("got:\n%s\nwant:\n%s", got, want)
+	}
+}
+
+func TestLibNameFromPathFlag(t *testing.T) {
+	cases := map[string]string{
+		"-L/usr/lib/libssl.so":            "ssl",
+		"-L/usr/lib/libfoo.so.1.2":        "foo",
+		"-L/usr/lib/libbar.a":             "bar",
+		"-L${libdir}":                     "",
+		"-L/usr/lib":                      "",
+		"-L/usr/lib/lib64":                "",
+		"-lssl":                           "",
+		"/usr/lib/libssl.so":              "",
+		"-L/opt/x/lib/libevent_core.so.2": "event_core",
+	}
+	for field, want := range cases {
+		if got := readLibNameFromPath(field); got != want {
+			t.Errorf("libNameFromPathFlag(%q) = %q, want %q", field, got, want)
+		}
 	}
 }
 
