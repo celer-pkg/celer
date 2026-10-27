@@ -25,7 +25,6 @@ func (qmake) Name() string {
 }
 
 func (q *qmake) CheckTools() []string {
-	// Start with build_tools from port.toml
 	tools := slices.Clone(q.BuildConfig.BuildTools)
 
 	// Add default tools

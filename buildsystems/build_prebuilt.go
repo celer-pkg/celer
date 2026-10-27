@@ -29,7 +29,6 @@ func (p *prebuilt) Name() string {
 }
 
 func (p prebuilt) CheckTools() []string {
-	// Start with build_tools from port.toml
 	tools := slices.Clone(p.BuildConfig.BuildTools)
 
 	// Add default tools

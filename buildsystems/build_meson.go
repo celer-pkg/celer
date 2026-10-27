@@ -35,7 +35,6 @@ func (meson) Name() string {
 }
 
 func (m meson) CheckTools() []string {
-	// Start with build_tools from port.toml
 	tools := slices.Clone(m.BuildConfig.BuildTools)
 
 	// Add default tools

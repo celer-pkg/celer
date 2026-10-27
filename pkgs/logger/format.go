@@ -41,7 +41,13 @@ func PrintError(err error, format string, args ...any) error {
 }
 
 func PrintWarning(format string, args ...any) {
-	Printf(Warning, "\n[!] %s\n", fmt.Sprintf(format, args...))
+	message := fmt.Sprintf(format, args...)
+
+	const minWidth = 75
+	width := max(minWidth, len(message)+8)
+	separator := strings.Repeat("=", width)
+
+	Printf(Warning, "\n%s\n[!] WARNING:\n    %s\n%s\n", separator, message, separator)
 }
 
 func PrintPass(format string, args ...any) {

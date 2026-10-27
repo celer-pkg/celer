@@ -86,8 +86,6 @@ func (c *Celer) Downloads() string {
 }
 
 func (c *Celer) RootFS() context.RootFS {
-	// Must return exactly nil if RootFS is none.
-	// otherwise, the result of RootFS() will not be nil.
 	if c.platform.RootFS == nil {
 		return nil
 	}
