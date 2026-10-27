@@ -62,12 +62,21 @@ func doFixupPkgConfigFile(pkgPath string) error {
 	// anchor makes both regular ports (old prefix = package dir) and vendored
 	// ones relocatable.
 	oldPrefix := ""
+	hasPrefixLine := false
 	for _, line := range lines {
 		line = strings.ReplaceAll(line, "prefix =", "prefix=")
 		if after, ok := strings.CutPrefix(line, "prefix="); ok {
+			hasPrefixLine = true
 			oldPrefix = strings.TrimSpace(after)
 			break
 		}
+	}
+
+	// Some install templates omit the prefix= line entirely.
+	// Fill the libdir/includedir with absolute path. The .pc lives in
+	// <prefix>/lib/pkgconfig, so the parent of libdir is the prefix.
+	if !hasPrefixLine {
+		oldPrefix = prefixFromAbsoluteDirs(lines)
 	}
 	if oldPrefix != "" {
 		oldPrefix = filepath.ToSlash(oldPrefix)
@@ -75,6 +84,9 @@ func doFixupPkgConfigFile(pkgPath string) error {
 	}
 
 	var buffer bytes.Buffer
+	if !hasPrefixLine && oldPrefix != "" {
+		fmt.Fprintf(&buffer, "prefix=${pcfiledir}/../..\n")
+	}
 	for _, line := range lines {
 		// Remove space before `=`.
 		line = strings.ReplaceAll(line, "prefix =", "prefix=")
@@ -95,6 +107,10 @@ func doFixupPkgConfigFile(pkgPath string) error {
 			line = strings.ReplaceAll(line, oldPrefix, "${prefix}")
 		}
 
+		// Some build systems emit `-L/path/to/libfoo.so` when a find_package
+		// hands them full library paths.
+		line = standardizeLibPathFlags(line)
+
 		fmt.Fprintf(&buffer, "%s\n", line)
 	}
 
@@ -103,4 +119,74 @@ func doFixupPkgConfigFile(pkgPath string) error {
 	}
 
 	return nil
+}
+
+// prefixFromAbsoluteDirs derives the install prefix for a .pc that has no
+// prefix= line. The only absolute paths in such templates are the install
+// dirs, so the parent of libdir= (or includedir=) is the prefix the file was
+// generated with.
+func prefixFromAbsoluteDirs(lines []string) string {
+	for _, dirName := range []string{"libdir", "includedir"} {
+		for _, line := range lines {
+			line = strings.ReplaceAll(line, dirName+" =", dirName+"=")
+			pathValue, ok := strings.CutPrefix(line, dirName+"=")
+			if !ok {
+				continue
+			}
+
+			pathValue = strings.TrimSpace(pathValue)
+			if !filepath.IsAbs(pathValue) {
+				break // Already self-locating (or var-indirected); try the next var.
+			}
+			return filepath.Dir(filepath.ToSlash(pathValue))
+		}
+	}
+	return ""
+}
+
+// standardizeLibPathFlags rewrites `-L/abs/path/libfoo.so` (or libfoo.a) into `-lfoo`.
+func standardizeLibPathFlags(line string) string {
+	if !strings.Contains(line, "-L/") {
+		return line
+	}
+
+	changed := false
+	fields := strings.Fields(line)
+	for index, field := range fields {
+		if libName := readLibNameFromPath(field); libName != "" {
+			fields[index] = "-l" + libName
+			changed = true
+		}
+	}
+	if !changed {
+		return line
+	}
+
+	return strings.Join(fields, " ")
+}
+
+// readLibNameFromPath returns the library name for a `-L` flag that points at
+// a library file rather than a directory, or "" when the flag is not of that
+// shape. Only absolute paths are rewritten, so `-L${libdir}` stays untouched.
+func readLibNameFromPath(field string) string {
+	path, ok := strings.CutPrefix(field, "-L")
+	if !ok || !filepath.IsAbs(path) {
+		return ""
+	}
+
+	// The 'base' would be like 'libssl.so'
+	base := filepath.Base(filepath.ToSlash(path))
+	if !strings.HasPrefix(base, "lib") {
+		return ""
+	}
+
+	// Strip the lib prefix, then the extension (.so, .so.1.1, .a).
+	name := strings.TrimPrefix(base, "lib")
+	for _, ext := range []string{".so", ".a"} {
+		if stripped, _, found := strings.Cut(name, ext); found {
+			return stripped
+		}
+	}
+
+	return ""
 }

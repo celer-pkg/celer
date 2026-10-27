@@ -81,5 +81,6 @@ func isLinkedAbsolutePath(line, workspaceDir string) bool {
 	return strings.Contains(line, "INTERFACE_LINK_LIBRARIES") ||
 		strings.Contains(line, "INTERFACE_INCLUDE_DIRECTORIES") ||
 		strings.Contains(line, "IMPORTED_LOCATION") ||
-		strings.Contains(line, "IMPORTED_LINK_INTERFACE_LIBRARIES")
+		strings.Contains(line, "IMPORTED_LINK_INTERFACE_LIBRARIES") ||
+		strings.Contains(line, "_IMPORT_PREFIX")
 }
