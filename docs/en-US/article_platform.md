@@ -113,7 +113,6 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
 | `ldflags_debug` | ❌ | Linker flags preferred when `build_type=debug`; falls back to `ldflags` when unset | `["-Wl,--export-dynamic"]` |
 | `cmake_policy_version_minimum` | ❌ | Minimum CMake policy version, passed as `-DCMAKE_POLICY_VERSION_MINIMUM=<value>` on the cmake **command line**. Needed by ports that declare `cmake_minimum_required(VERSION < 3.5)` under CMake 4.x (which removed `< 3.5` compatibility). Defaults to `3.5` when unset | `"3.5"`<br>`"3.6"` |
 | `cmake_vars` | ❌ | List of `KEY=VALUE` CMake built-in variables written into `toolchain_file.cmake` as `set(KEY VALUE CACHE INTERNAL "")`. Each entry **must start with `CMAKE`**. | `["CMAKE_FIND_PACKAGE_PREFER_CONFIG=ON"]`<br>`["CMAKE_POSITION_INDEPENDENT_CODE=ON"]` |
-| `embedded_system` | ❌ | Whether this is for embedded systems (like MCU or bare-metal) | `true` (MCU/bare-metal)<br>`false` or omit (regular systems) |
 | `fc` | ❌ | Fortran compiler (if needed) | `x86_64-linux-gnu-gfortran` |
 | `ranlib` | ❌ | Library index generator | `x86_64-linux-gnu-ranlib` |
 | `ar` | ❌ | Static library archiver | `x86_64-linux-gnu-ar` |
@@ -220,7 +219,6 @@ Embedded systems (like MCUs or bare-metal environments) require special configur
   system_processor = "arm"
   host = "arm-none-eabi"
   crosstool_prefix = "arm-none-eabi-"
-  embedded_system = true
   cc = "arm-none-eabi-gcc"
   cxx = "arm-none-eabi-g++"
   ar = "arm-none-eabi-ar"
@@ -229,7 +227,6 @@ Embedded systems (like MCUs or bare-metal environments) require special configur
 ```
 
 > 💡 **Key Points**:
-> - `embedded_system = true` tells Celer this is an embedded environment
 > - `system_name = "Generic"` indicates no specific operating system
 > - `host = "arm-none-eabi"` is the standard triple for bare-metal ARM toolchain
 > - No rootfs configuration needed, as MCUs don't have a filesystem

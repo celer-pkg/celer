@@ -14,7 +14,7 @@ type Clang struct {
 	context.Context
 }
 
-func (c *Clang) Dir(abspath string) string {
+func (c *Clang) RuntimeDir(abspath string) string {
 	if strings.Contains(abspath, "Microsoft Visual Studio") {
 		return filepath.ToSlash(abspath)
 	} else {

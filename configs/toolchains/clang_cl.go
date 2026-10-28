@@ -15,7 +15,7 @@ type ClangCL struct {
 	context.Context
 }
 
-func (c *ClangCL) Dir(abspath string) string {
+func (c *ClangCL) RuntimeDir(abspath string) string {
 	return filepath.ToSlash(abspath)
 }
 

@@ -16,7 +16,7 @@ type MSVC struct {
 	context.Context
 }
 
-func (m *MSVC) Dir(abspath string) string {
+func (m *MSVC) RuntimeDir(abspath string) string {
 	return filepath.ToSlash(abspath)
 }
 

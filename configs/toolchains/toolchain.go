@@ -8,7 +8,7 @@ import (
 )
 
 type Toolchain interface {
-	Dir(abspath string) string
+	RuntimeDir(abspath string) string
 	AssembleBuildTools(toolchain *strings.Builder)
 	CFlags() []string
 	CXXFlags() []string
@@ -17,17 +17,16 @@ type Toolchain interface {
 }
 
 type Infos struct {
-	Url             string `toml:"url"`                       // Download url or local file url.
-	SHA256          string `toml:"sha256"`                    // SHA256 of the toolchain archive, used for verification and caching.
-	Name            string `toml:"name"`                      // It should be "gcc", "msvc", "clang-cl", "clang" and "msys2".
-	Version         string `toml:"version"`                   // It should be version of gcc/msvc/clang.
-	Archive         string `toml:"archive,omitempty"`         // Archive can be changed to avoid conflict.
-	Path            string `toml:"path"`                      // Runtime path of tool, it's relative path and would be converted to absolute path later.
-	SystemName      string `toml:"system_name"`               // It would be "Windows", "Linux", "Android" and so on.
-	SystemProcessor string `toml:"system_processor"`          // It would be "x86_64", "aarch64" and so on.
-	SystemVersion   string `toml:"system_version,omitempty"`  // It would be a version for Android API level, etc.
-	Host            string `toml:"host"`                      // It would be "x86_64-linux-gnu", "aarch64-linux-gnu" and so on.
-	EmbeddedSystem  bool   `toml:"embedded_system,omitempty"` // Whether it's for embedded system, like mcu or bare-metal.
+	Url             string `toml:"url"`                      // Download url or local file url.
+	SHA256          string `toml:"sha256"`                   // SHA256 of the toolchain archive, used for verification and caching.
+	Name            string `toml:"name"`                     // It should be "gcc", "msvc", "clang-cl", "clang" and "msys2".
+	Version         string `toml:"version"`                  // It should be version of gcc/msvc/clang.
+	Archive         string `toml:"archive,omitempty"`        // Archive can be changed to avoid conflict.
+	Path            string `toml:"path"`                     // Runtime path of tool, it's relative path and would be converted to absolute path later.
+	SystemName      string `toml:"system_name"`              // It would be "Windows", "Linux", "Android" and so on.
+	SystemProcessor string `toml:"system_processor"`         // It would be "x86_64", "aarch64" and so on.
+	SystemVersion   string `toml:"system_version,omitempty"` // It would be a version for Android API level, etc.
+	Host            string `toml:"host"`                     // It would be "x86_64-linux-gnu", "aarch64-linux-gnu" and so on.
 }
 
 type BuildTools struct {
@@ -75,7 +74,7 @@ type BuildTools struct {
 
 func (b BuildTools) writeIfNotEmpty(toolchain *strings.Builder, key, value string) {
 	if value != "" {
-		fmt.Fprintf(toolchain, "set(%s %q)\n", key, "${TOOLCHAIN}/"+value)
+		fmt.Fprintf(toolchain, "set(%s %q)\n", key, "${TOOLCHAIN_RUNTIME_DIR}/"+value)
 	}
 }
 

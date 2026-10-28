@@ -399,33 +399,38 @@ func InitAsLocalRepo(repoDir, target string) error {
 
 	logger.Printf(logger.Title, "\n[init '%s' for tracking file change]\n", target)
 
+	// Captures the output of the command run inside the current step, for the
+	// error message if it fails.
+	var output []byte
+	runTask := func(name string, cmd *exec.Cmd) error {
+		return logger.NewProgressTask(logger.OpGit, name).Run(logger.WorkspaceRelPath(repoDir), func() error {
+			var err error
+			output, err = cmd.CombinedOutput()
+			return err
+		})
+	}
+
 	// git init
-	logger.Printf(logger.Hint, "[-] git -C %s init", repoDir)
 	cmd := exec.Command("git", "-C", repoDir, "init")
 	cmd.Env = gitEnv
-	if output, err := cmd.CombinedOutput(); err != nil {
+	if err := runTask("init", cmd); err != nil {
 		return fmt.Errorf("failed to git init repo: %s -> %w", output, err)
 	}
-	logger.PrintInline(logger.Hint, "[✔] git -C %s init\n", repoDir)
 
 	// git add
-	logger.Printf(logger.Hint, "[-] git -C %s add -A", repoDir)
 	cmd = exec.Command("git", "-C", repoDir, "add", "-A")
 	cmd.Env = gitEnv
-	if output, err := cmd.CombinedOutput(); err != nil {
+	if err := runTask("add -A", cmd); err != nil {
 		return fmt.Errorf("failed to git add -A: %w (output: %s)", err, output)
 	}
-	logger.PrintInline(logger.Hint, "[✔] git -C %s add -A\n", repoDir)
 
 	// git commit
 	message := `"init for tracking file change"`
-	logger.Printf(logger.Hint, "[-] git -C %s commit -m %s", repoDir, message)
 	cmd = exec.Command("git", "-C", repoDir, "commit", "-m", message)
 	cmd.Env = gitEnv
-	if output, err := cmd.CombinedOutput(); err != nil {
+	if err := runTask("commit", cmd); err != nil {
 		return fmt.Errorf("failed to git commit: %w (output: %s)", err, output)
 	}
-	logger.PrintInline(logger.Hint, "[✔] git -C %s commit -m %s\n", repoDir, message)
 
 	return nil
 }
