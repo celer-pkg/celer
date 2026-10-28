@@ -13,47 +13,46 @@ const (
 	Strike    = "9"
 )
 
-// 16 colors - foreground
+// 16 colors - foreground.
 const (
-	Black   = "30"
-	Red     = "31"
-	Green   = "32"
-	Yellow  = "33"
-	Blue    = "34"
-	Magenta = "35"
-	Cyan    = "36"
-	White   = "37"
-	Gray    = "90"
+	Black   = "30" // #000000
+	Red     = "31" // #cd0000
+	Green   = "32" // #00cd00
+	Yellow  = "33" // #cdcd00
+	Blue    = "34" // #0000ee
+	Magenta = "35" // #cd00cd
+	Cyan    = "36" // #00cdcd
+	White   = "37" // #e5e5e5
+	Gray    = "90" // #7f7f7f, same value as BrightBlack
 
-	BrightBlack   = "90"
-	BrightRed     = "91"
-	BrightGreen   = "92"
-	BrightYellow  = "93"
-	BrightBlue    = "94"
-	BrightMagenta = "95"
-	BrightCyan    = "96"
-	BrightWhite   = "97"
+	BrightBlack   = "90" // #7f7f7f
+	BrightRed     = "91" // #ff0000
+	BrightGreen   = "92" // #00ff00
+	BrightYellow  = "93" // #ffff00
+	BrightBlue    = "94" // #5c5cff
+	BrightMagenta = "95" // #ff00ff
+	BrightCyan    = "96" // #00ffff
+	BrightWhite   = "97" // #ffffff
 )
 
-// 16 colors - background
+// 256 colors - foreground.
+//
+// Unlike the 16 colors above, these name a fixed palette entry ("38;5;n"), so
+// the hex shown is exactly what you get.
 const (
-	BgBlack   = "40"
-	BgRed     = "41"
-	BgGreen   = "42"
-	BgYellow  = "43"
-	BgBlue    = "44"
-	BgMagenta = "45"
-	BgCyan    = "46"
-	BgWhite   = "47"
-
-	BgBrightBlack   = "100"
-	BgBrightRed     = "101"
-	BgBrightGreen   = "102"
-	BgBrightYellow  = "103"
-	BgBrightBlue    = "104"
-	BgBrightMagenta = "105"
-	BgBrightCyan    = "106"
-	BgBrightWhite   = "107"
+	Orange     = "38;5;208" // #ff8700 warmer than Yellow
+	Gold       = "38;5;220" // #ffd700 bright yellow (CSS gold)
+	Lime       = "38;5;46"  // #00ff00 vivid green (CSS lime)
+	Aqua       = "38;5;51"  // #00ffff vivid cyan (CSS aqua)
+	DodgerBlue = "38;5;33"  // #0087ff brighter, more saturated than Blue
+	Fuchsia    = "38;5;201" // #ff00ff pure magenta (CSS fuchsia)
+	Pink       = "38;5;213" // #ff87ff soft magenta
+	Teal       = "38;5;37"  // #00afaf low-saturation blue-green
+	TealLight  = "38;5;38"  // #00afd7 lighter low-saturation blue-green
+	VividRed   = "38;5;196" // #ff0000 pure bright red
+	Charcoal   = "38;5;240" // #585858 weakest helper text
+	Slate      = "38;5;244" // #808080 neutral mid gray
+	Silver     = "38;5;250" // #bcbcbc lighter secondary text
 )
 
 const (
