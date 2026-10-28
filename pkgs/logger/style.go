@@ -3,6 +3,7 @@ package logger
 import (
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	"golang.org/x/term"
@@ -41,6 +42,11 @@ func New(codes ...string) *Style {
 func (s *Style) Add(code string) *Style {
 	s.codes = append(s.codes, code)
 	return s
+}
+
+// With returns a copy of s with extra codes appended, leaving s unchanged.
+func (s *Style) With(codes ...string) *Style {
+	return &Style{codes: slices.Concat(s.codes, codes)}
 }
 
 // Methods for style attributes.

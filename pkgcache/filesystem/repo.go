@@ -13,6 +13,7 @@ import (
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
+	"github.com/celer-pkg/celer/pkgs/logger"
 )
 
 type RepoConfig struct {
@@ -114,7 +115,7 @@ func (r RepoConfig) Restore(cacheKey string, repoInfo pkgcache.RepoInfo, archive
 	}
 
 	// Extract archive to repo dir (status reported here, not at flatten).
-	if err := fileio.NewProgressTask(fileio.OpExtract, repoInfo.NameVersion).Start(repoInfo.RepoDir, func() error {
+	if err := logger.NewProgressTask(logger.OpExtract, repoInfo.NameVersion).Start(repoInfo.RepoDir, func() error {
 		if err := fileio.Extract(downloaded, repoInfo.RepoDir); err != nil {
 			return err
 		}

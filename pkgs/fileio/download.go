@@ -147,7 +147,7 @@ func (d downloader) startOnce(httpClient *http.Client, userAgent string) (downlo
 
 	// Copy to local file with progress.
 	completed := func(formattedTimeCost, formattedSize string) {
-		NewProgressTask(OpDownload, d.archive).
+		logger.NewProgressTask(logger.OpDownload, d.archive).
 			Complete("", formattedSize, formattedTimeCost)
 	}
 	progress := NewProgressBar("download: "+fileName, resp.ContentLength, completed)

@@ -212,7 +212,7 @@ func (r *Repair) deploySingleFile(downloaded, destDir string) error {
 // deployArchive extracts archive to destination and reports Extract status.
 func (r *Repair) deployArchive(downloaded, destDir string) error {
 	displayName := expr.If(r.downloader.archive != "", r.downloader.archive, filepath.Base(downloaded))
-	return NewProgressTask(OpExtract, displayName).Start(destDir, func() error {
+	return logger.NewProgressTask(logger.OpExtract, displayName).Start(destDir, func() error {
 		if err := Extract(downloaded, destDir); err != nil {
 			return fmt.Errorf("failed to extract '%s' -> %w", downloaded, err)
 		}
