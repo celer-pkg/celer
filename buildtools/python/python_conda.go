@@ -157,13 +157,19 @@ func (c *CondaPython) GetExecutable() (string, error) {
 
 	// Environment not found, attempt to create it with the specified Python version.
 	// Use conda-forge channel as the default source.
-	logger.Printf(logger.Hint, "[-] creating conda environment for Python %s (venv name: %s)", minorVersion, envName)
-	createCmd := exec.Command(c.condaBinary, "create", "-y", "-c", "conda-forge", "-n", envName, fmt.Sprintf("python=%s", minorVersion))
-	if output, err := createCmd.CombinedOutput(); err != nil {
-		return "", fmt.Errorf("failed to create conda environment for Python %s -> %s -> %w",
-			minorVersion, string(output), err)
+	var createOutput []byte
+	var taskFunc = func() error {
+		var runErr error
+		python := fmt.Sprintf("python=%s", minorVersion)
+		cmd := exec.Command(c.condaBinary, "create", "-y", "-c", "conda-forge", "-n", envName, python)
+		createOutput, runErr = cmd.CombinedOutput()
+		return runErr
 	}
-	logger.PrintInline(logger.Hint, "[✔] creating conda environment for Python %s (venv name: %s)\n", minorVersion, envName)
+	taskTitle := fmt.Sprintf("python %s · conda-forge", minorVersion)
+	if err := logger.NewProgressTask(logger.OpCreate, envName).Run(taskTitle, taskFunc); err != nil {
+		return "", fmt.Errorf("failed to create conda environment for Python %s -> %s -> %w",
+			minorVersion, string(createOutput), err)
+	}
 
 	// Verify the new environment was created.
 	cmd = exec.Command(c.condaBinary, "run", "-n", envName, "python", "--version")

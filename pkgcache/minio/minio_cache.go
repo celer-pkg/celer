@@ -11,6 +11,7 @@ import (
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/logger"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
@@ -151,7 +152,7 @@ func (m minioCache) uploadFile(filePath, objectName, displayName string) error {
 
 	title := fmt.Sprintf("uploading '%s'", displayName)
 	completed := func(formattedTimeCost, formattedSize string) {
-		fileio.NewProgressTask(fileio.OpStore, displayName).
+		logger.NewProgressTask(logger.OpStore, displayName).
 			Complete("", formattedSize, formattedTimeCost)
 	}
 	progress := fileio.NewProgressBar(title, fileStat.Size(), completed)
@@ -191,7 +192,7 @@ func (m minioCache) downloadFile(dstDir, objectName, displayName string) (string
 
 	title := fmt.Sprintf("downloading '%s'", displayName)
 	completed := func(formattedTimeCost, formattedSize string) {
-		fileio.NewProgressTask(fileio.OpRestore, displayName).
+		logger.NewProgressTask(logger.OpRestore, displayName).
 			Complete("", formattedSize, formattedTimeCost)
 	}
 	progress := fileio.NewProgressBar(title, objInfo.Size, completed)

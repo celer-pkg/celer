@@ -9,6 +9,7 @@ import (
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/logger"
 )
 
 func InitPkgCache(ctx context.Context) *pkgcache.CacheConfigs {
@@ -40,7 +41,7 @@ func (f fsCache) uploadFile(filePath, remotePath, sha256, displayName string) er
 
 	title := fmt.Sprintf("uploading '%s'", displayName)
 	completed := func(formattedTimeCost, formattedSize string) {
-		fileio.NewProgressTask(fileio.OpStore, displayName).
+		logger.NewProgressTask(logger.OpStore, displayName).
 			Complete("", formattedSize, formattedTimeCost)
 	}
 	return f.doUploadFile(filePath, remotePath, sha256, fileio.NewProgressBar(title, srcInfo.Size(), completed))
@@ -73,7 +74,7 @@ func (f fsCache) downloadFile(dstDir, remotePath, displayName string) (string, e
 	defer remoteFile.Close()
 
 	completed := func(formattedTimeCost, formattedSize string) {
-		fileio.NewProgressTask(fileio.OpRestore, displayName).
+		logger.NewProgressTask(logger.OpRestore, displayName).
 			Complete("", formattedSize, formattedTimeCost)
 	}
 	progress := fileio.NewProgressBar(fmt.Sprintf("downloading '%s'", displayName), srcInfo.Size(), completed)
