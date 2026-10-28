@@ -57,35 +57,6 @@ func (s *Style) Dim() *Style       { return s.Add(Dim) }
 func (s *Style) Reverse() *Style   { return s.Add(Reverse) }
 func (s *Style) Strike() *Style    { return s.Add(Strike) }
 
-// Functions for common colors.
-func (s *Style) Red() *Style     { return s.Add(Red) }
-func (s *Style) Green() *Style   { return s.Add(Green) }
-func (s *Style) Yellow() *Style  { return s.Add(Yellow) }
-func (s *Style) Blue() *Style    { return s.Add(Blue) }
-func (s *Style) Cyan() *Style    { return s.Add(Cyan) }
-func (s *Style) Magenta() *Style { return s.Add(Magenta) }
-func (s *Style) White() *Style   { return s.Add(White) }
-func (s *Style) Black() *Style   { return s.Add(Black) }
-
-// Bright color methods.
-func (s *Style) BrightRed() *Style     { return s.Add(BrightRed) }
-func (s *Style) BrightGreen() *Style   { return s.Add(BrightGreen) }
-func (s *Style) BrightYellow() *Style  { return s.Add(BrightYellow) }
-func (s *Style) BrightBlue() *Style    { return s.Add(BrightBlue) }
-func (s *Style) BrightCyan() *Style    { return s.Add(BrightCyan) }
-func (s *Style) BrightMagenta() *Style { return s.Add(BrightMagenta) }
-func (s *Style) BrightWhite() *Style   { return s.Add(BrightWhite) }
-func (s *Style) BrightBlack() *Style   { return s.Add(BrightBlack) }
-
-// Background color methods.
-func (s *Style) BgRed() *Style     { return s.Add(BgRed) }
-func (s *Style) BgGreen() *Style   { return s.Add(BgGreen) }
-func (s *Style) BgYellow() *Style  { return s.Add(BgYellow) }
-func (s *Style) BgBlue() *Style    { return s.Add(BgBlue) }
-func (s *Style) BgCyan() *Style    { return s.Add(BgCyan) }
-func (s *Style) BgMagenta() *Style { return s.Add(BgMagenta) }
-func (s *Style) BgWhite() *Style   { return s.Add(BgWhite) }
-
 // 256-color and RGB methods.
 func (s *Style) Color256(code int) *Style {
 	return s.Add(fmt.Sprintf("38;5;%d", code))
