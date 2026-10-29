@@ -1471,7 +1471,7 @@ func (p Port) writeTraceFile(installedFrom string) error {
 // match it. conda python and the venv are both driven by [python] version, so
 // this keeps cpython aligned with them too.
 func (p *Port) checkCPythonVersionConflict() error {
-	pythonConfig := p.ctx.PythonConfig()
+	pythonConfig := p.ctx.Project().GetPythonConfig()
 	if pythonConfig == nil || pythonConfig.GetVersion() == "" {
 		return nil
 	}

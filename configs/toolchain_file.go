@@ -313,7 +313,7 @@ func (c *Celer) writePythonVenvConfig(toolchain *strings.Builder) error {
 
 	// Get python version of current project.
 	pythonVersion := buildtools.GetDefaultPythonVersion()
-	pythonConfig := c.PythonConfig()
+	pythonConfig := c.Project().GetPythonConfig()
 	if pythonConfig != nil && pythonConfig.GetVersion() != "" {
 		pythonVersion = pythonConfig.GetVersion()
 	}

@@ -171,7 +171,7 @@ func (p pip) runPip(logSuffix, pythonExe string, args []string) error {
 
 func (p pip) indexArgs() []string {
 	var args []string
-	pythonConfig := p.Ctx.PythonConfig()
+	pythonConfig := p.Ctx.Project().GetPythonConfig()
 	if pythonConfig == nil {
 		return nil
 	}

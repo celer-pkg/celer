@@ -132,13 +132,6 @@ func (c *Celer) ExprVars() *context.ExprVars {
 	return &c.exprVars
 }
 
-func (c *Celer) PythonConfig() context.PythonConfig {
-	if c.configData.Python != nil {
-		return c.configData.Python
-	}
-	return nil
-}
-
 func (c *Celer) Features() context.Features {
 	if c.configData.Features != nil {
 		return c.configData.Features

@@ -26,7 +26,7 @@ var PythonTool *python.PythonTool
 func pipInstall(ctx context.Context, pipConfig context.PythonConfig, packages *[]string) error {
 	// Get python version from project config if available, otherwise use default version.
 	pythonVersion := GetDefaultPythonVersion()
-	pythonConfig := ctx.PythonConfig()
+	pythonConfig := ctx.Project().GetPythonConfig()
 	if pythonConfig != nil && pythonConfig.GetVersion() != "" {
 		pythonVersion = pythonConfig.GetVersion()
 	}
@@ -414,7 +414,7 @@ func getWindowsDefaultPythonVersion() string {
 
 func shouldUseConda(ctx context.Context) bool {
 	// If no Python config or version is specified, use system Python.
-	pythonConfig := ctx.PythonConfig()
+	pythonConfig := ctx.Project().GetPythonConfig()
 	if pythonConfig == nil || pythonConfig.GetVersion() == "" {
 		return false
 	}
