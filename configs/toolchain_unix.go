@@ -103,7 +103,7 @@ func (t *Toolchain) Validate() error {
 			return fmt.Errorf("toolchain.path is empty")
 		}
 
-		firstSection := strings.Split(filepath.ToSlash(t.Path), "/")[0]
+		firstSection, _, _ := strings.Cut(filepath.ToSlash(t.Path), "/")
 		t.rootDir = filepath.Join(toolsDir, firstSection)
 		t.abspath = filepath.Join(toolsDir, t.Path)
 		os.Setenv("PATH", env.JoinPaths("PATH", t.abspath))

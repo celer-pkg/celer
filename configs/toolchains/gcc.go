@@ -15,7 +15,7 @@ type GCC struct {
 	context.Context
 }
 
-func (g *GCC) Dir(abspath string) string {
+func (g *GCC) RuntimeDir(abspath string) string {
 	if strings.HasPrefix(g.Url, "file:///") {
 		return strings.TrimPrefix(filepath.ToSlash(g.Url), "file:///")
 	}
@@ -46,11 +46,8 @@ func (g *GCC) AssembleBuildTools(toolchain *strings.Builder) {
 	g.writeIfNotEmpty(toolchain, "CMAKE_STRIP", g.STRIP)
 	g.writeIfNotEmpty(toolchain, "CMAKE_READELF", g.READELF)
 
-	if g.EmbeddedSystem {
+	if strings.EqualFold(g.SystemName, "generic") {
 		fmt.Fprint(toolchain, "\n# Embedded system settings.\n")
-		fmt.Fprintf(toolchain, "set(CMAKE_SYSTEM_INCLUDE_PATH %s)\n", "\"/include\"")
-		fmt.Fprintf(toolchain, "set(CMAKE_SYSTEM_LIBRARY_PATH %s)\n", "\"/lib\"")
-		fmt.Fprintf(toolchain, "set(CMAKE_SYSTEM_PROGRAM_PATH %s)\n", "\"/bin\"")
 		fmt.Fprintf(toolchain, "set(CMAKE_TRY_COMPILE_TARGET_TYPE %s)\n", "STATIC_LIBRARY")
 
 		fmt.Fprintf(toolchain, "set(CMAKE_C_USE_RESPONSE_FILE_FOR_OBJECTS %s)\n", "0")

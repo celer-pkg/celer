@@ -67,7 +67,7 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildsystem, buildHash 
 
 	remoteMetaPath, remoteFilePath := a.artifactPaths(nameVersion, buildHash)
 	if !fileio.PathExists(remoteFilePath) {
-		logger.PrintWarning("======== no cached artifact for %s ========", nameVersion)
+		logger.PrintWarning("no cached artifact for %s.", nameVersion)
 		return false, nil // not an error even not exist.
 	}
 
@@ -76,7 +76,7 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildsystem, buildHash 
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			if buildsystem != "nobuild" {
-				logger.PrintWarning("======== cached artifact for %s has no metadata, it'll build from source ========", nameVersion)
+				logger.PrintWarning("cached artifact for %s has no metadata, it'll build from source.", nameVersion)
 			}
 			return false, nil
 		}

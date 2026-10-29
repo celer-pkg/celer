@@ -18,7 +18,7 @@ type QCC struct {
 	context.Context
 }
 
-func (q *QCC) Dir(abspath string) string {
+func (q *QCC) RuntimeDir(abspath string) string {
 	if strings.HasPrefix(q.Url, "file:///") {
 		return strings.TrimPrefix(filepath.ToSlash(q.Url), "file:///")
 	}

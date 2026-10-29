@@ -122,7 +122,7 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 	if info, err := a.GetFileInfo(remoteArtifactPath); err != nil {
 		return fmt.Errorf("failed to check cached artifact '%s' -> %w", remoteArtifactPath, err)
 	} else if info != nil {
-		logger.PrintWarning("======== cached artifact for %s exists, it will be overwritten by this build ========", nameVersion)
+		logger.PrintWarning("cached artifact for %s exists, it will be overwritten by this build.", nameVersion)
 	}
 
 	// Upload archive file with progress.
@@ -183,7 +183,7 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildsystem, buildHash 
 	// archive download below prints a done line.
 	if remoteMetaInfo == nil {
 		if buildsystem != "nobuild" {
-			logger.PrintWarning("======== cached artifact for %s has no metadata, it'll build from source ========", nameVersion)
+			logger.PrintWarning("cached artifact for %s has no metadata, it'll build from source.", nameVersion)
 		}
 		return false, nil
 	}
@@ -208,7 +208,7 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildsystem, buildHash 
 		return false, fmt.Errorf("failed to get file info '%s' -> %w", remoteArtifactPath, err)
 	}
 	if remoteInfo == nil {
-		logger.PrintWarning("======== no cached artifact for %s ========", nameVersion)
+		logger.PrintWarning("no cached artifact for %s", nameVersion)
 		return false, nil
 	}
 
@@ -222,7 +222,7 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildsystem, buildHash 
 		if got, err := fileio.SHA256Sum(tmpDownloaded); err != nil {
 			return false, err
 		} else if got != expected {
-			logger.PrintWarning("======== cached artifact for %s is corrupted, it'll build from source ========", nameVersion)
+			logger.PrintWarning("cached artifact for %s is corrupted, it'll build from source.", nameVersion)
 			return false, nil
 		}
 	}

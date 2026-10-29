@@ -131,7 +131,7 @@ func (d DownloadConfig) Restore(fileName, sha256 string) (bool, error) {
 		if got, err := fileio.SHA256Sum(tmpDownloaded); err != nil {
 			return false, err
 		} else if got != remoteSha256 {
-			logger.PrintWarning("======== cached '%s' is corrupted (sha-256 mismatch), re-download from source ========", fileName)
+			logger.PrintWarning("cached '%s' is corrupted (sha-256 mismatch), re-download from source.", fileName)
 			return false, nil
 		}
 	}

@@ -138,7 +138,7 @@ func (c *Celer) preExposeInstalledDir(builder *strings.Builder, installedDir str
 
 	// Set PATH: add dev bin first.
 	fmt.Fprintf(builder, "\n# Dev runtime path.\n")
-	fmt.Fprintf(builder, `set(ENV{PATH} "%s%s$ENV{PATH}")`+"\n", "${INSTALLED_DEV_DIR}/bin", string(os.PathListSeparator))
+	fmt.Fprintf(builder, `set(ENV{PATH} "%s%s$ENV{PATH}")`+"\n\n", "${INSTALLED_DEV_DIR}/bin", string(os.PathListSeparator))
 
 	toolchainName := c.platform.Toolchain.GetName()
 
@@ -155,7 +155,7 @@ func (c *Celer) preExposeInstalledDir(builder *strings.Builder, installedDir str
 		}
 	}
 	if includeBuilder.Len() > 0 {
-		fmt.Fprintf(builder, "# Expose header files.\n")
+		fmt.Fprintf(builder, "# Expose installed header files.\n")
 		fmt.Fprintf(builder, `foreach(flag_var CMAKE_C_FLAGS_INIT CMAKE_CXX_FLAGS_INIT)`+"\n")
 		builder.WriteString(includeBuilder.String())
 		fmt.Fprintf(builder, `endforeach()`+"\n\n")
@@ -167,7 +167,9 @@ func (c *Celer) preExposeInstalledDir(builder *strings.Builder, installedDir str
 	case "linux":
 		if toolchainName == "gcc" || toolchainName == "clang" || toolchainName == "qcc" {
 			fmt.Fprintf(&libBuilder, `  string(APPEND ${flag_var} " -L${INSTALLED_DIR}/lib")`+"\n")
-			fmt.Fprintf(&libBuilder, `  string(APPEND ${flag_var} " -Wl,-rpath-link,${INSTALLED_DIR}/lib")`+"\n")
+			if !strings.EqualFold(c.platform.Toolchain.GetSystemName(), "generic") {
+				fmt.Fprintf(&libBuilder, `  string(APPEND ${flag_var} " -Wl,-rpath-link,${INSTALLED_DIR}/lib")`+"\n")
+			}
 		}
 	case "windows":
 		if toolchainName == "msvc" || toolchainName == "clang-cl" {
@@ -175,7 +177,7 @@ func (c *Celer) preExposeInstalledDir(builder *strings.Builder, installedDir str
 		}
 	}
 	if libBuilder.Len() > 0 {
-		fmt.Fprintf(builder, "# Expose library files.\n")
+		fmt.Fprintf(builder, "# Expose installed library files.\n")
 		fmt.Fprintf(builder, `foreach(flag_var CMAKE_SHARED_LINKER_FLAGS_INIT CMAKE_MODULE_LINKER_FLAGS_INIT CMAKE_EXE_LINKER_FLAGS_INIT)`+"\n")
 		builder.WriteString(libBuilder.String())
 		fmt.Fprintf(builder, `endforeach()`+"\n")

@@ -23,6 +23,10 @@ type Toolchain struct {
 	CStandard   string `toml:"c_standard,omitempty"`
 	CXXStandard string `toml:"cxx_standard,omitempty"`
 
+	// For mcu toolchain, inner libraries may need to be exposed.
+	IncludeDirs []string `toml:"include_dirs,omitempty"`
+	LibDirs     []string `toml:"lib_dirs,omitempty"`
+
 	// Default minimum is "3.5"
 	CMakePolicyVersionMinimum string `toml:"cmake_policy_version_minimum,omitempty"`
 
@@ -117,7 +121,7 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 	}
 
 	fmt.Fprintf(toolchain, "\n# ============== Cross-compile toolchain ============== #\n")
-	fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN", t.toolchain.Dir(t.abspath))
+	fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN_RUNTIME_DIR", t.toolchain.RuntimeDir(t.abspath))
 	t.toolchain.AssembleBuildTools(toolchain)
 
 	// Some toolchain like clang may link runtime flags.
@@ -167,20 +171,63 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 		}
 	}
 
+	// Expose toolchain inner libraries.
+	if len(t.IncludeDirs) > 0 || len(t.LibDirs) > 0 {
+		fmt.Fprint(toolchain, "\n# Expose toolchain inner headers and libraries.\n")
+		fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN_ROOT_DIR", fileio.ToRelPath(t.rootDir))
+
+		toolchainName := t.GetName()
+
+		// Expose header files.
+		var includeBuilder strings.Builder
+		for _, includeDir := range t.IncludeDirs {
+			switch runtime.GOOS {
+			case "linux":
+				if toolchainName == "gcc" || toolchainName == "clang" || toolchainName == "qcc" {
+					fmt.Fprintf(&includeBuilder, `  string(APPEND ${flag_var} " -isystem ${TOOLCHAIN_ROOT_DIR}/%s")`+"\n", includeDir)
+				}
+			case "windows":
+				if toolchainName == "msvc" || toolchainName == "clang-cl" {
+					fmt.Fprintf(&includeBuilder, `  string(APPEND ${flag_var} "/I ${TOOLCHAIN_ROOT_DIR}/%s")`+"\n", includeDir)
+				}
+			}
+		}
+		if includeBuilder.Len() > 0 {
+			fmt.Fprintf(toolchain, `foreach(flag_var CMAKE_C_FLAGS_INIT CMAKE_CXX_FLAGS_INIT)`+"\n")
+			toolchain.WriteString(includeBuilder.String())
+			fmt.Fprintf(toolchain, `endforeach()`+"\n")
+		}
+
+		// Expose library files.
+		var libBuilder strings.Builder
+		for _, libDir := range t.LibDirs {
+			switch runtime.GOOS {
+			case "linux":
+				if toolchainName == "gcc" || toolchainName == "clang" || toolchainName == "qcc" {
+					fmt.Fprintf(&libBuilder, `  string(APPEND ${flag_var} " -L${TOOLCHAIN_ROOT_DIR}/%s")`+"\n", libDir)
+					if !strings.EqualFold(t.SystemName, "generic") {
+						fmt.Fprintf(&libBuilder, `  string(APPEND ${flag_var} " -Wl,-rpath-link,${TOOLCHAIN_ROOT_DIR}/%s")`+"\n", libDir)
+					}
+				}
+			case "windows":
+				if toolchainName == "msvc" || toolchainName == "clang-cl" {
+					fmt.Fprintf(&libBuilder, `  string(APPEND ${flag_var} "'/LIBPATH:\"${TOOLCHAIN_ROOT_DIR}/%s\"'")`+"\n", libDir)
+				}
+			}
+		}
+		if libBuilder.Len() > 0 {
+			fmt.Fprintf(toolchain, `foreach(flag_var CMAKE_SHARED_LINKER_FLAGS_INIT CMAKE_MODULE_LINKER_FLAGS_INIT CMAKE_EXE_LINKER_FLAGS_INIT)`+"\n")
+			toolchain.WriteString(libBuilder.String())
+			fmt.Fprintf(toolchain, `endforeach()`+"\n")
+		}
+	}
+
 	buildType := t.ctx.BuildType()
 	cflags, cxxflags, ldflags := t.effectiveFlags(buildType)
 	if len(cflags) > 0 || len(cxxflags) > 0 || len(ldflags) > 0 {
-		fmt.Fprint(toolchain, "\n# Setting extra build flags.\n")
-
-		// If both cflags and cxxflags exist, use foreach to avoid duplication
-		if len(cflags) > 0 && len(cxxflags) > 0 {
-			fmt.Fprint(toolchain, "foreach(flag_var CMAKE_C_FLAGS_INIT CMAKE_CXX_FLAGS_INIT)\n")
-			appendFlags("${flag_var}", cflags, "  ")
-			fmt.Fprint(toolchain, "endforeach()\n")
-		} else {
-			appendFlags("CMAKE_C_FLAGS_INIT", cflags, "")
-			appendFlags("CMAKE_CXX_FLAGS_INIT", cxxflags, "")
-		}
+		fmt.Fprint(toolchain, "\n# Append extra build flags.\n")
+		appendFlags("CMAKE_C_FLAGS_INIT", cflags, "")
+		appendFlags("CMAKE_CXX_FLAGS_INIT", cxxflags, "")
 
 		if len(ldflags) > 0 {
 			fmt.Fprint(toolchain, "foreach(flag_var CMAKE_EXE_LINKER_FLAGS_INIT CMAKE_SHARED_LINKER_FLAGS_INIT CMAKE_MODULE_LINKER_FLAGS_INIT)\n")
@@ -208,149 +255,42 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 	return nil
 }
 
-func (t Toolchain) GetName() string {
-	return t.Name
-}
-
-func (t Toolchain) GetSHA256() string {
-	return t.SHA256
-}
-
-func (t Toolchain) GetHost() string {
-	return t.Host
-}
-
-func (t Toolchain) GetVersion() string {
-	return t.Version
-}
-
-func (t Toolchain) GetSystemName() string {
-	return t.SystemName
-}
-
-func (t Toolchain) GetSystemVersion() string {
-	return t.SystemVersion
-}
-
-func (t Toolchain) GetSystemProcessor() string {
-	return t.SystemProcessor
-}
-
-func (t Toolchain) GetCrosstoolPrefix() string {
-	return t.CrosstoolPrefix
-}
-
-func (t Toolchain) GetCStandard() string {
-	return t.CStandard
-}
-
-func (t Toolchain) GetCXXStandard() string {
-	return t.CXXStandard
-}
-
-func (t Toolchain) GetCC() string {
-	return t.CC
-}
-
-func (t Toolchain) GetCXX() string {
-	return t.CXX
-}
-
-func (t Toolchain) GetCFlags() []string {
-	return t.CFlags
-}
-
-func (t Toolchain) GetCXXFlags() []string {
-	return t.CXXFlags
-}
-
-func (t Toolchain) GetLDFlags() []string {
-	return t.LDFlags
-}
-
-func (t Toolchain) GetCMakePolicyVersionMinimum() string {
-	return t.CMakePolicyVersionMinimum
-}
-
-func (t Toolchain) GetCMakeVars() []string {
-	return t.CMakeVars
-}
-
-func (t Toolchain) GetCPP() string {
-	return t.CPP
-}
-
-func (t Toolchain) GetAR() string {
-	return t.AR
-}
-
-func (t Toolchain) GetLD() string {
-	return t.LD
-}
-
-func (t Toolchain) GetAS() string {
-	return t.AS
-}
-
-func (t Toolchain) GetFC() string {
-	return t.FC
-}
-
-func (t Toolchain) GetRANLIB() string {
-	return t.RANLIB
-}
-
-func (t Toolchain) GetNM() string {
-	return t.NM
-}
-
-func (t Toolchain) GetOBJCOPY() string {
-	return t.OBJCOPY
-}
-
-func (t Toolchain) GetOBJDUMP() string {
-	return t.OBJDUMP
-}
-
-func (t Toolchain) GetSTRIP() string {
-	return t.STRIP
-}
-
-func (t Toolchain) GetREADELF() string {
-	return t.READELF
-}
-
-func (t Toolchain) GetSIZE() string {
-	return t.SIZE
-}
-
-func (t Toolchain) GetSTRINGS() string {
-	return t.STRINGS
-}
-
-func (t Toolchain) GetGCOV() string {
-	return t.GCOV
-}
-
-func (t Toolchain) GetADDR2LINE() string {
-	return t.ADDR2LINE
-}
-
-func (t Toolchain) GetCXXFILT() string {
-	return t.CXXFILT
-}
-func (t Toolchain) GetMSVC() *context.MSVC {
-	return &t.MSVC
-}
-
-func (t Toolchain) GetAbsDir() string {
-	return t.abspath
-}
-
-func (t Toolchain) GetRootDir() string {
-	return t.rootDir
-}
-
+func (t Toolchain) GetName() string                      { return t.Name }
+func (t Toolchain) GetSHA256() string                    { return t.SHA256 }
+func (t Toolchain) GetHost() string                      { return t.Host }
+func (t Toolchain) GetVersion() string                   { return t.Version }
+func (t Toolchain) GetSystemName() string                { return t.SystemName }
+func (t Toolchain) GetSystemVersion() string             { return t.SystemVersion }
+func (t Toolchain) GetSystemProcessor() string           { return t.SystemProcessor }
+func (t Toolchain) GetCrosstoolPrefix() string           { return t.CrosstoolPrefix }
+func (t Toolchain) GetCStandard() string                 { return t.CStandard }
+func (t Toolchain) GetCXXStandard() string               { return t.CXXStandard }
+func (t Toolchain) GetCC() string                        { return t.CC }
+func (t Toolchain) GetCXX() string                       { return t.CXX }
+func (t Toolchain) GetCFlags() []string                  { return t.CFlags }
+func (t Toolchain) GetCXXFlags() []string                { return t.CXXFlags }
+func (t Toolchain) GetLDFlags() []string                 { return t.LDFlags }
+func (t Toolchain) GetCMakePolicyVersionMinimum() string { return t.CMakePolicyVersionMinimum }
+func (t Toolchain) GetCMakeVars() []string               { return t.CMakeVars }
+func (t Toolchain) GetCPP() string                       { return t.CPP }
+func (t Toolchain) GetAR() string                        { return t.AR }
+func (t Toolchain) GetLD() string                        { return t.LD }
+func (t Toolchain) GetAS() string                        { return t.AS }
+func (t Toolchain) GetFC() string                        { return t.FC }
+func (t Toolchain) GetRANLIB() string                    { return t.RANLIB }
+func (t Toolchain) GetNM() string                        { return t.NM }
+func (t Toolchain) GetOBJCOPY() string                   { return t.OBJCOPY }
+func (t Toolchain) GetOBJDUMP() string                   { return t.OBJDUMP }
+func (t Toolchain) GetSTRIP() string                     { return t.STRIP }
+func (t Toolchain) GetREADELF() string                   { return t.READELF }
+func (t Toolchain) GetSIZE() string                      { return t.SIZE }
+func (t Toolchain) GetSTRINGS() string                   { return t.STRINGS }
+func (t Toolchain) GetGCOV() string                      { return t.GCOV }
+func (t Toolchain) GetADDR2LINE() string                 { return t.ADDR2LINE }
+func (t Toolchain) GetCXXFILT() string                   { return t.CXXFILT }
+func (t Toolchain) GetMSVC() *context.MSVC               { return &t.MSVC }
+func (t Toolchain) GetAbsDir() string                    { return t.abspath }
+func (t Toolchain) GetRootDir() string                   { return t.rootDir }
 func (t Toolchain) GetCrosstoolPrefixPath() string {
 	return filepath.Join(t.abspath, t.CrosstoolPrefix)
 }
@@ -438,45 +378,22 @@ func (t Toolchain) buildEnvVars(rootfs context.RootFS, buildsystem string, portE
 		envs = append(envs, "CC="+strings.Join(ccFlags, " "), "CXX="+strings.Join(cxxFlags, " "))
 	}
 
-	if t.GetAS() != "" {
-		envs = append(envs, "AS="+t.GetAS())
+	// API to append tool into envs if configured.
+	appendEnv := func(name, value string) {
+		if value != "" {
+			envs = append(envs, fmt.Sprintf("%s=%s", name, value))
+		}
 	}
-
-	if t.GetFC() != "" {
-		envs = append(envs, "FC="+t.GetFC())
-	}
-
-	if t.GetRANLIB() != "" {
-		envs = append(envs, "RANLIB="+t.GetRANLIB())
-	}
-
-	if t.GetAR() != "" {
-		envs = append(envs, "AR="+t.GetAR())
-	}
-
-	if t.GetLD() != "" {
-		envs = append(envs, "LD="+t.GetLD())
-	}
-
-	if t.GetNM() != "" {
-		envs = append(envs, "NM="+t.GetNM())
-	}
-
-	if t.GetOBJCOPY() != "" {
-		envs = append(envs, "OBJCOPY="+t.GetOBJCOPY())
-	}
-
-	if t.GetOBJDUMP() != "" {
-		envs = append(envs, "OBJDUMP="+t.GetOBJDUMP())
-	}
-
-	if t.GetSTRIP() != "" {
-		envs = append(envs, "STRIP="+t.GetSTRIP())
-	}
-
-	if t.GetREADELF() != "" {
-		envs = append(envs, "READELF="+t.GetREADELF())
-	}
+	appendEnv("AS", t.GetAS())
+	appendEnv("FC", t.GetFC())
+	appendEnv("RANLIB", t.GetRANLIB())
+	appendEnv("AR", t.GetAR())
+	appendEnv("LD", t.GetLD())
+	appendEnv("NM", t.GetNM())
+	appendEnv("OBJCOPY", t.GetOBJCOPY())
+	appendEnv("OBJDUMP", t.GetOBJDUMP())
+	appendEnv("STRIP", t.GetSTRIP())
+	appendEnv("READELF", t.GetREADELF())
 
 	return envs
 }
