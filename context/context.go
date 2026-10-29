@@ -30,7 +30,6 @@ type Context interface {
 	CCacheEnabled() bool
 	GenerateToolchainFile() error
 	ExprVars() *ExprVars
-	PythonConfig() PythonConfig
 	Features() Features
 }
 

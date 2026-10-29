@@ -12,6 +12,7 @@ Project configuration defines how Celer manages dependencies and build environme
 - **Vars (CMake Variables)** - Global CMake build variables needed during build
 - **Envs (Environment Variables)** - Global environment variables needed during build
 - **Macros (Macro Definitions)** - Global C/C++ preprocessor macros needed during build
+- **python (Python build environment)** - Python version and pip index sources for the build, see [Python Version Management](./article_python_management.md)
 
 **Why do we need project configuration?**
 
@@ -62,6 +63,11 @@ macros = [
   "MICRO_VAR1=111",
   "MICRO_VAR2"
 ]
+
+# Python configuration (optional; the table must come last)
+[python]
+  version = "3.11.5"
+  index_url = "https://pypi.example.com/simple"
 ```
 
 ### Configuration Field Descriptions
@@ -74,6 +80,7 @@ macros = [
 | `vars` | ❌ | Define global CMake variables required by the current project. Format: `variable=value` | `["CMAKE_BUILD_TYPE=Release"]` |
 | `envs` | ❌ | Define global environment variables required by the current project. Format: `variable=value` | `["xorg_cv_malloc0_returns_null=yes"]` |
 | `macros` | ❌ | Define C/C++ macro definitions required by the current project. Format: `macro=value` or `macro` | `["DEBUG=1", "ENABLE_LOGGING"]` |
+| `python` | ❌ | Python build environment for the project (version and pip indexes), see below | `[python]` table |
 
 > **Note**: `ports_baseline` is required; every other field is optional and can be configured as the project needs.
 
@@ -162,6 +169,34 @@ or special scenarios. These flags may change or be removed in the future.
 [features]
   ignore_check_cmake_abs_path = true
 ```
+
+### 6. python (Python Build Environment)
+
+Defines the Python version used at build time for this project, plus optional pip index
+sources. Python configuration is project-level: it no longer lives in the workspace's
+`celer.toml`, so different projects can use different Python versions and private PyPI mirrors.
+
+**Format:** `[python]` table
+
+**Example:**
+```toml
+[python]
+  version = "3.11.5"
+  index_url = "https://pypi.example.com/simple"
+  extra_index_urls = ["https://pypi.internal/simple"]
+  trusted_hosts = ["pypi.internal"]
+```
+
+| Field | Required | Description |
+|------|------|------|
+| `version` | ❌ | Python version (e.g. `3.11.5`) used to select/provision the virtual environment |
+| `index_url` | ❌ | pip primary index URL (equivalent to `pip install -i`) |
+| `extra_index_urls` | ❌ | pip extra index URLs (equivalent to `--extra-index-url`) |
+| `trusted_hosts` | ❌ | pip trusted hosts (equivalent to `--trusted-host`) |
+
+> **Note**: `[python]` is a TOML table — every key after it belongs to the table, so keep it at
+> the end of the file. For version selection strategy, venv locations and fallback behavior, see
+> [Python Version Management](./article_python_management.md).
 
 ---
 

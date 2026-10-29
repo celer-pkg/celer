@@ -8,5 +8,6 @@ type Project interface {
 	GetTargetPlatform() string
 	GetVars() []string
 	GetEnvs() []string
+	GetPythonConfig() PythonConfig
 	Write(platformPath string, override bool) error
 }

@@ -18,6 +18,33 @@ import (
 // a fresh workspace can build something right away. It lists no ports and pins nothing.
 const DefaultProjectName = "default"
 
+// ================================ Python ================================ //
+
+type Python struct {
+	Version        string   `toml:"version,omitempty"`
+	IndexUrl       string   `toml:"index_url,omitempty"`
+	ExtraIndexUrls []string `toml:"extra_index_urls,omitempty"`
+	TrustedHosts   []string `toml:"trusted_hosts,omitempty"`
+}
+
+func (p *Python) GetVersion() string {
+	return p.Version
+}
+
+func (p *Python) GetIndexUrl() string {
+	return p.IndexUrl
+}
+
+func (p *Python) GetExtraIndexUrls() []string {
+	return p.ExtraIndexUrls
+}
+
+func (p *Python) GetTrustedHosts() []string {
+	return p.TrustedHosts
+}
+
+// ================================ Project ================================ //
+
 type Project struct {
 	TargetPlatform string   `toml:"target_platform,omitempty"`
 	PortsBaseline  string   `toml:"ports_baseline"`
@@ -26,6 +53,7 @@ type Project struct {
 	Vars           []string `toml:"vars"`
 	Envs           []string `toml:"envs"`
 	Macros         []string `toml:"macros"`
+	Python         *Python  `toml:"python,omitempty"`
 
 	// Internal fields.
 	Name string `toml:"-"`
@@ -69,7 +97,6 @@ func (p *Project) Init(ctx context.Context, projectName string) error {
 
 	// Set values of internal fields.
 	p.Name = projectName
-
 	return nil
 }
 
@@ -115,28 +142,18 @@ func (p Project) Write(platformPath string, override bool) error {
 	return os.WriteFile(platformPath, bytes, os.ModePerm)
 }
 
-func (p Project) GetName() string {
-	return p.Name
-}
+func (p Project) GetName() string           { return p.Name }
+func (p Project) GetPortsBaseline() string  { return p.PortsBaseline }
+func (p Project) GetTargetPlatform() string { return p.TargetPlatform }
+func (p Project) GetPorts() []string        { return p.Ports }
+func (p Project) GetVars() []string         { return p.Vars }
+func (p Project) GetEnvs() []string         { return p.Envs }
 
-func (p Project) GetPortsBaseline() string {
-	return p.PortsBaseline
-}
-
-func (p Project) GetTargetPlatform() string {
-	return p.TargetPlatform
-}
-
-func (p Project) GetPorts() []string {
-	return p.Ports
-}
-
-func (p Project) GetVars() []string {
-	return p.Vars
-}
-
-func (p Project) GetEnvs() []string {
-	return p.Envs
+func (p Project) GetPythonConfig() context.PythonConfig {
+	if p.Python != nil {
+		return p.Python
+	}
+	return nil
 }
 
 func (p Project) deploy(force bool) error {

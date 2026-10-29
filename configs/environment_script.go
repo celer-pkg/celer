@@ -46,7 +46,7 @@ func (c *Celer) GenerateEnvironmentScript() error {
 	// Python virtual environment (mirrors writePythonVenvConfig guards).
 	if buildtools.PythonTool != nil && buildtools.PythonTool.Path != "" {
 		pythonVersion := buildtools.GetDefaultPythonVersion()
-		if pc := c.PythonConfig(); pc != nil && pc.GetVersion() != "" {
+		if pc := c.Project().GetPythonConfig(); pc != nil && pc.GetVersion() != "" {
 			pythonVersion = pc.GetVersion()
 		}
 

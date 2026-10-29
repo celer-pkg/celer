@@ -76,31 +76,6 @@ func (i features) ShouldIgnoreCheckCMakeAbsPath() bool {
 	return i.IgnoreCheckCMakeAbsPath
 }
 
-// ================================ Python ================================ //
-
-type Python struct {
-	Version        string   `toml:"version,omitempty"`
-	IndexUrl       string   `toml:"index_url,omitempty"`
-	ExtraIndexUrls []string `toml:"extra_index_urls,omitempty"`
-	TrustedHosts   []string `toml:"trusted_hosts,omitempty"`
-}
-
-func (p *Python) GetVersion() string {
-	return p.Version
-}
-
-func (p *Python) GetIndexUrl() string {
-	return p.IndexUrl
-}
-
-func (p *Python) GetExtraIndexUrls() []string {
-	return p.ExtraIndexUrls
-}
-
-func (p *Python) GetTrustedHosts() []string {
-	return p.TrustedHosts
-}
-
 // ================================ configData ============================ //
 
 type configData struct {
@@ -108,7 +83,6 @@ type configData struct {
 	Proxy    *Proxy    `toml:"proxy,omitempty"`
 	PkgCache *PkgCache `toml:"pkgcache,omitempty"`
 	CCache   *CCache   `toml:"ccache,omitempty"`
-	Python   *Python   `toml:"python,omitempty"`
 	Features *features `toml:"features,omitempty"`
 }
 

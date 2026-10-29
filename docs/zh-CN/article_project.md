@@ -12,6 +12,7 @@
 - **vars（CMake 变量）** - 构建时需要的全局 CMake 构建变量
 - **envs（环境变量）** - 构建时需要的全局环境变量
 - **macros（宏定义）** - 构建时需要的全局的C/C++ 预处理器宏
+- **python（Python 构建环境）** - 构建期 Python 的版本和 pip 索引源，详见 [Python 版本管理](./article_python_management.md)
 
 **为什么需要项目配置？**
 
@@ -62,6 +63,11 @@ macros = [
   "MICRO_VAR1=111",
   "MICRO_VAR2"
 ]
+
+# Python 配置（可选，表必须放在末尾）
+[python]
+  version = "3.11.5"
+  index_url = "https://pypi.example.com/simple"
 ```
 
 ### 配置字段说明
@@ -74,6 +80,7 @@ macros = [
 | `vars` | ❌ | 定义当前项目所需的全局 CMake 变量，格式为 `变量名=值` | `["CMAKE_BUILD_TYPE=Release"]` |
 | `envs` | ❌ | 定义当前项目所需的全局环境变量，格式为 `变量名=值` | `["xorg_cv_malloc0_returns_null=yes"]` |
 | `macros` | ❌ | 定义当前项目所需的 C/C++ 宏定义，格式为 `宏名=值` 或 `宏名` | `["DEBUG=1", "ENABLE_LOGGING"]` |
+| `python` | ❌ | 项目的 Python 构建环境配置（版本与 pip 索引），见下文 | `[python]` 表 |
 
 > **注意**：`ports_baseline` 是必填字段，其余字段都是可选的，您可以根据项目需求选择性配置。
 
@@ -161,6 +168,32 @@ macros = [
 [features]
   ignore_check_cmake_abs_path = true
 ```
+
+### 6. python（Python 构建环境）
+
+定义本项目在构建期使用的 Python 版本，以及可选的 pip 索引源。Python 配置属于项目级配置，
+不再写在工作空间的 `celer.toml` 中；多个项目可以各自使用不同的 Python 版本和私有 PyPI 镜像。
+
+**格式：** `[python]` 表
+
+**示例：**
+```toml
+[python]
+  version = "3.11.5"
+  index_url = "https://pypi.example.com/simple"
+  extra_index_urls = ["https://pypi.internal/simple"]
+  trusted_hosts = ["pypi.internal"]
+```
+
+| 字段 | 必选 | 描述 |
+|------|------|------|
+| `version` | ❌ | Python 版本（如 `3.11.5`），用于选择/准备虚拟环境 |
+| `index_url` | ❌ | pip 主索引地址（等价于 `pip install -i`） |
+| `extra_index_urls` | ❌ | pip 额外索引地址列表（等价于 `--extra-index-url`） |
+| `trusted_hosts` | ❌ | pip 信任的 host 列表（等价于 `--trusted-host`） |
+
+> **注意**：`[python]` 是 TOML 表，出现后其后的键值都属于该表，请把它放在文件末尾。
+> 版本选择策略、虚拟环境位置和默认回退行为详见 [Python 版本管理](./article_python_management.md)。
 
 ---
 

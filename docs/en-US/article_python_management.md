@@ -28,7 +28,7 @@ Python is increasingly used as a build-time dependency for C/C++ projects. Many 
 Celer uses a smart decision tree to select which Python to use:
 
 ```
-Is Python version specified in project config?
+Is a Python version specified in the project's `[python]` config?
 │
 ├─ YES → Does system Python version match? 
 │        │
@@ -53,7 +53,7 @@ Is Python version specified in project config?
 
 **Python Resolution:**
 ```
-1. Check if project specifies python_version
+1. Check if the project's `[python]` config specifies version
    ├─ If YES, compare with default Windows Python
    │  ├─ If versions match → Use system Python
    │  └─ If versions differ → Download via conda
@@ -80,7 +80,7 @@ Is Python version specified in project config?
 **Python Resolution:**
 ```
 1. Detect system Python3 version
-2. Check if project specifies python_version
+2. Check if the project's `[python]` config specifies version
    ├─ If YES, compare with system Python
    │  ├─ If versions match → Use system Python
    │  └─ If versions differ → Download via conda
@@ -100,19 +100,20 @@ Is Python version specified in project config?
 
 ---
 
-## 📝 Configuring Python Version in Projects
+## 📝 Configuring Python in Projects
+
+Python configuration is **project-level**: it lives in the project file
+(`conf/projects/<project_name>/<project_name>.toml`), not in the workspace's `celer.toml`.
+This way the same project shares one Python setup across workspaces, and different projects
+can use different versions and pip indexes.
 
 ### Project Configuration File Format
 
-Add `python_version` to your project configuration file:
+Add a `[python]` table at the end of the project file:
 
 ```toml
-# conf/projects/project_xxx.toml
+# conf/projects/project_xxx/project_xxx.toml
 
-# Specify Python version (optional)
-python_version = "3.11.5"
-
-# Other project configuration
 ports = [
     "boost@1.83.0",
     "openssl@3.0.1",
@@ -122,7 +123,31 @@ ports = [
 vars = [
     "CMAKE_VAR1=value1"
 ]
+
+# Python configuration (optional)
+[python]
+  version = "3.11.5"
+  index_url = "https://pypi.example.com/simple"
+  extra_index_urls = ["https://pypi.internal/simple"]
+  trusted_hosts = ["pypi.internal"]
 ```
+
+> **Note**: `[python]` is a TOML table — once it appears, every following key belongs to it.
+> Keep it at the end of the file (or after other tables) so `ports`, `vars`, etc. are not
+> accidentally parsed as fields of `[python]`.
+
+### Configuration Fields
+
+| Field | Required | Description | Example |
+|------|------|------|------|
+| `version` | ❌ | Python version used to select/provision the virtual environment | `"3.11.5"` |
+| `index_url` | ❌ | pip primary index URL, equivalent to `pip install -i` | `"https://pypi.example.com/simple"` |
+| `extra_index_urls` | ❌ | pip extra index URLs, equivalent to `--extra-index-url` | `["https://pypi.internal/simple"]` |
+| `trusted_hosts` | ❌ | pip trusted hosts, equivalent to `--trusted-host` | `["pypi.internal"]` |
+
+`index_url`, `extra_index_urls` and `trusted_hosts` are passed to the `pip download` /
+`pip install` invocations Celer runs internally, so Python build tools can be installed from a
+private PyPI mirror or over self-signed HTTPS.
 
 ### Version Specification Format
 
@@ -134,18 +159,27 @@ Python versions should be specified in the following formats:
 
 **Examples:**
 ```toml
-python_version = "3.11.5"      # Exact version
-python_version = "3.10.12"     # Another exact version
-python_version = "3.12"        # Minor version
+[python]
+  version = "3.11.5"   # Exact version
+```
+
+```toml
+[python]
+  version = "3.10.12"  # Another exact version
+```
+
+```toml
+[python]
+  version = "3.12"     # Minor version
 ```
 
 ### Default Behavior When Not Specified
 
-If `python_version` is not specified in your project:
+If the project has no `[python]` table, or it has no `version`:
 
 **On Windows:**
 - Uses the default Python version from `buildtools/static/x86_64-windows.toml`
-- Example: If the static config specifies Python 3.9.0, all projects without explicit python_version will use 3.9.0
+- Example: If the static config specifies Python 3.9.0, all projects without `python.version` will use 3.9.0
 
 **On Linux/macOS:**
 - Attempts to use detected system Python3

@@ -28,7 +28,7 @@ Python 已经成为 C/C++ 项目编译期间的依赖库。许多现代库（如
 Celer 使用智能决策树来选择使用哪个 Python：
 
 ```
-项目toml里配置中是否指定了 Python 版本？
+项目的 [python] 配置中是否指定了 Python 版本？
 │
 ├─ 是 → 系统 Python 版本是否匹配？
 │       │
@@ -53,7 +53,7 @@ Celer 使用智能决策树来选择使用哪个 Python：
 
 **Python 解析流程：**
 ```
-1. 检查项目是否指定了 python_version
+1. 检查项目的 [python] 配置是否指定了 version
    ├─ 如果是，与 Windows 默认 Python 比较版本
    │  ├─ 版本匹配 → 使用系统 Python
    │  └─ 版本不匹配 → 通过 conda 下载
@@ -62,7 +62,7 @@ Celer 使用智能决策树来选择使用哪个 Python：
 
 **虚拟环境存储位置：**
 ```
-{工作区}/installed/venv-{小版本号}@{平台名称}/
+{工作区}/installed/venv-{小版本号}@{项目名}/
 ├── Scripts/
 │   ├── python.exe
 │   ├── pip.exe
@@ -80,7 +80,7 @@ Celer 使用智能决策树来选择使用哪个 Python：
 **Python 解析流程：**
 ```
 1. 检测系统 Python3 版本
-2. 检查项目是否指定了 python_version
+2. 检查项目的 [python] 配置是否指定了 version
    ├─ 如果是，与系统 Python 比较版本
    │  ├─ 版本匹配 → 使用系统 Python
    │  └─ 版本不匹配 → 通过 conda 下载
@@ -89,7 +89,7 @@ Celer 使用智能决策树来选择使用哪个 Python：
 
 **虚拟环境存储位置：**
 ```
-{工作区}/installed/venv-{小版本号}@{平台名称}/
+{工作区}/installed/venv-{小版本号}@{项目名}/
 ├── bin/
 │   ├── python3
 │   ├── pip
@@ -100,19 +100,19 @@ Celer 使用智能决策树来选择使用哪个 Python：
 
 ---
 
-## 📝 在项目中配置 Python 版本
+## 📝 在项目中配置 Python
+
+Python 配置是**项目级**配置，写在项目配置文件（`conf/projects/<项目名>/<项目名>.toml`）里，
+不再放在工作空间的 `celer.toml` 中。这样同一项目在不同工作空间中共享同一份 Python 设置，
+不同项目也可以各自指定版本和 pip 源。
 
 ### 项目配置文件格式
 
-在项目配置文件中添加 `python_version`：
+在项目文件末尾添加 `[python]` 表：
 
 ```toml
-# conf/projects/project_xxx.toml
+# conf/projects/project_xxx/project_xxx.toml
 
-# 指定 Python 版本（可选）
-python_version = "3.11.5"
-
-# 其他项目配置
 ports = [
     "boost@1.83.0",
     "openssl@3.0.1",
@@ -122,7 +122,29 @@ ports = [
 vars = [
     "CMAKE_VAR1=value1"
 ]
+
+# Python 配置（可选）
+[python]
+  version = "3.11.5"
+  index_url = "https://pypi.example.com/simple"
+  extra_index_urls = ["https://pypi.internal/simple"]
+  trusted_hosts = ["pypi.internal"]
 ```
+
+> **注意**：`[python]` 是 TOML 表，一旦出现，其后所有键值都属于该表。请把它放在文件末尾，
+> 或其他表之后，避免把 `ports`、`vars` 等顶层字段误写进 `[python]`。
+
+### 配置字段
+
+| 字段 | 必选 | 描述 | 示例 |
+|------|------|------|------|
+| `version` | ❌ | Python 版本，用于选择/准备虚拟环境 | `"3.11.5"` |
+| `index_url` | ❌ | pip 主索引地址，等价于 `pip install -i` | `"https://pypi.example.com/simple"` |
+| `extra_index_urls` | ❌ | pip 额外索引地址列表，等价于 `--extra-index-url` | `["https://pypi.internal/simple"]` |
+| `trusted_hosts` | ❌ | pip 信任的 host 列表，等价于 `--trusted-host` | `["pypi.internal"]` |
+
+`index_url`、`extra_index_urls`、`trusted_hosts` 会传给 Celer 内部执行的 `pip download` /
+`pip install`，用于在私有 PyPI 镜像或自签名 HTTPS 环境下安装 Python 构建工具。
 
 ### 版本指定格式
 
@@ -134,18 +156,27 @@ Python 版本应按以下格式指定：
 
 **示例：**
 ```toml
-python_version = "3.11.5"      # 完整版本
-python_version = "3.10.12"     # 另一个完整版本
-python_version = "3.12"        # 小版本号
+[python]
+  version = "3.11.5"   # 完整版本
+```
+
+```toml
+[python]
+  version = "3.10.12"  # 另一个完整版本
+```
+
+```toml
+[python]
+  version = "3.12"     # 小版本号
 ```
 
 ### 未指定时的默认行为
 
-如果在项目配置中未指定 `python_version`：
+如果项目中没有 `[python]` 表，或其中没有 `version`：
 
 **在 Windows 上：**
 - 使用 `buildtools/static/x86_64-windows.toml` 中的默认 Python 版本
-- 示例：如果 static 配置指定 Python 3.9.0，所有未明确指定 python_version 的项目都将使用 3.9.0
+- 示例：如果 static 配置指定 Python 3.9.0，所有未指定 `python.version` 的项目都将使用 3.9.0
 
 **在 Linux/macOS 上：**
 - 尝试使用检测到的系统 Python3
@@ -216,5 +247,3 @@ Celer 支持通过 `build_system = "custom"` 将纯 Python 包安装到虚拟环
 ```
 
 安装后，包会出现在 venv 的 `site-packages` 中，可通过 `celer remove ament_package@humble` 移除。
-
-

@@ -135,7 +135,7 @@ func CheckToolsWithPython(ctx context.Context, pythonRequired bool, tools ...str
 	})
 
 	// Install python packages.
-	pythonConfig := ctx.PythonConfig()
+	pythonConfig := ctx.Project().GetPythonConfig()
 	if pythonRequired {
 		if err := pipInstall(ctx, pythonConfig, &uniqueTools); err != nil {
 			return err
