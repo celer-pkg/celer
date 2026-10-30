@@ -338,6 +338,12 @@ func (b BuildConfig) Validate() error {
 		return fmt.Errorf("build_system %q does not support version suffix, only cmake, meson and gyp support versions", b.BuildSystem)
 	}
 
+	// meson and gyp are provisioned as Python packages (meson/gyp-next), so their
+	// versions must be pinned to keep builds reproducible over time.
+	if (name == "meson" || name == "gyp") && !hasVersion {
+		return fmt.Errorf("build_system %q requires a version for %s, e.g. %q", name, b.PortConfig.PortFile, name+"@x.y.z")
+	}
+
 	if name == "pip" && len(b.PythonPackages) == 0 {
 		return fmt.Errorf("build_system %q requires python_packages for %s", "pip", b.PortConfig.PortFile)
 	}

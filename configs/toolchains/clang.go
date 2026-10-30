@@ -42,17 +42,9 @@ func (c *Clang) AssembleBuildTools(toolchain *strings.Builder) {
 	c.writeIfNotEmpty(toolchain, "CMAKE_READELF", c.READELF)
 }
 
-func (c *Clang) CFlags() []string {
-	return []string{}
-}
-
-func (c *Clang) CXXFlags() []string {
-	return []string{}
-}
-
-func (c *Clang) LDFlags() []string {
-	return []string{}
-}
+func (c *Clang) CFlags() []string   { return []string{} }
+func (c *Clang) CXXFlags() []string { return []string{} }
+func (c *Clang) LDFlags() []string  { return []string{} }
 
 func (c *Clang) RuntimeFlags() []string {
 	var flags []string

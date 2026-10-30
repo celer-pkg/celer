@@ -142,20 +142,27 @@
 - **pip**: 声明式安装 Python 包（通常用于目标平台运行时依赖）
 - **custom**: 自定义构建逻辑
 
+> **注意：** `cmake`、`meson` 和 `gyp` 支持版本后缀（`name@version`）。其中 **meson** 和 **gyp** 的版本是**必填**的，因为 Celer 会把它们作为 Python 包（`meson` / `gyp-next`）安装——锁定版本可以保证多年后构建依然可复现：
+>
+> ```toml
+> build_system = "meson@1.11.2"
+> build_system = "gyp@0.19.0"
+> ```
+
 ### cmake_generator
 
 &emsp;&emsp;CMake在configure能根据不同的系统生成Unix Makefiles， Xcodee 或者 Visual Studio xxx等构建文件，同时也支持手动制定构建工具，它的值为： **Ninja**, **Unix Makefiles**, **Visual Studio xxxx**.
 
 ### build_tools
 
-&emsp;&emsp;**build_tools** 是一个可选字段，用于指定一些库需要本地安装的额外工具，例如：ruby、perl、甚至通过 pip3 安装的额外 python 库，例如：["ruby", "perl", "python3:setuptools"]。
+&emsp;&emsp;**build_tools** 是一个可选字段，用于指定一些库需要本地安装的额外工具，例如：ruby、perl、甚至通过 pip3 安装的额外 python 库，例如：["ruby", "perl", "python3:setuptools@80.9.0"]。Python 库条目必须使用 `python3:name@version` 形式指定版本。
 
 >**Tip:**  
 &emsp;&emsp;实际上，Celer 已内置支持多种构建工具，包括：Windows 版的 CMake、MinGit、strawberry-perl、msys2、vswhere 等。虽然这些工具大多不支持用户配置，但当切换不同的构建系统时，Celer 会自动将它们加入构建工具列表。例如在 Windows 上使用 makefiles 编译时，msys2 就会被自动添加到构建工具中。
 
 ### pip
 
-&emsp;&emsp;`build_system = "pip"` 用于声明式安装 Python 包，适合目标平台（运行时）依赖，包括 numpy 这类带 C 扩展的包。它和 `build_tools = ["python3:xxx"]` 的区别是：**build_tools 安装到宿主机 venv，用于构建期工具；python_packages 安装到目标平台的 site-packages。**
+&emsp;&emsp;`build_system = "pip"` 用于声明式安装 Python 包，适合目标平台（运行时）依赖，包括 numpy 这类带 C 扩展的包。它和 `build_tools = ["python3:xxx@x.y.z"]` 的区别是：**build_tools 安装到宿主机 venv，用于构建期工具；python_packages 安装到目标平台的 site-packages。**
 
 ```toml
 [[build_configs]]

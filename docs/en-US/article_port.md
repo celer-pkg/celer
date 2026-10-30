@@ -132,20 +132,27 @@ The following are fields and their descriptions:
 - **pip**: Declarative Python package installation (usually target/runtime dependencies)
 - **custom**: Custom build logic
 
+> **Note:** `cmake`, `meson` and `gyp` accept a version suffix (`name@version`). For **meson** and **gyp** the version is **required**, because Celer installs them as Python packages (`meson` / `gyp-next`) — pinning them keeps builds reproducible over time:
+>
+> ```toml
+> build_system = "meson@1.11.2"
+> build_system = "gyp@0.19.0"
+> ```
+
 ### cmake_generator
 
 &emsp;&emsp;CMake can generate default build system files in different OS and also allows to specify it manually. Currently, celer supports **Ninja**, **Unix Makefiles**, **Visual Studio xxxx**.
 
 ### build_tools
 
-&emsp;&emsp;Optional, some libraries require certain tools to be installed, such as: ruby, perl, or even additional python libraries via pip3, for example: pip3 install setuptools. Celer has managered some builtin buildtools: [windows builtin buildtools](../../buildtools/static/x86_64-windows.toml) and [linux builtin buildtools](../../buildtools/static/x86_64-linux.toml), Celer also support definng extral buildtools by creating **x86_64-windows.toml** or **x86_64-linux.toml** under folder of **conf/buildtools**.
+&emsp;&emsp;Optional, some libraries require certain tools to be installed, such as: ruby, perl, or even additional python libraries via pip3, for example: `build_tools = ["ruby", "perl", "python3:setuptools@80.9.0"]`. Python library entries must always pin a version using `python3:name@version`. Celer has managered some builtin buildtools: [windows builtin buildtools](../../buildtools/static/x86_64-windows.toml) and [linux builtin buildtools](../../buildtools/static/x86_64-linux.toml), Celer also support definng extral buildtools by creating **x86_64-windows.toml** or **x86_64-linux.toml** under folder of **conf/buildtools**.
 
 >**Tip:**  
 &emsp;&emsp;In actuality, Celer has built-in support for a variety of build tools, such as: Windows versions of CMake, MinGit, strawberry-perl, msys2, vswhere, and more. Although most of these tools are not user-configurable, when switching between different buildsystems, Celer automatically adds them to the buildtools list. For example, when compiling with makefiles on Windows, msys2 is automatically added to the buildtools.
 
 ### pip
 
-&emsp;&emsp;`build_system = "pip"` installs a declarative list of Python packages into the target (runtime) site-packages, including packages with C extensions such as numpy. This is different from `build_tools = ["python3:xxx"]`: build_tools are installed into the host venv for build-time use, while `python_packages` are installed for the target.
+&emsp;&emsp;`build_system = "pip"` installs a declarative list of Python packages into the target (runtime) site-packages, including packages with C extensions such as numpy. This is different from `build_tools = ["python3:xxx@x.y.z"]`: build_tools are installed into the host venv for build-time use, while `python_packages` are installed for the target.
 
 ```toml
 [[build_configs]]

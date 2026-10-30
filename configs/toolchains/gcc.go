@@ -64,18 +64,7 @@ func (g *GCC) AssembleBuildTools(toolchain *strings.Builder) {
 	}
 }
 
-func (g *GCC) CFlags() []string {
-	return []string{}
-}
-
-func (g *GCC) CXXFlags() []string {
-	return []string{}
-}
-
-func (g *GCC) LDFlags() []string {
-	return []string{}
-}
-
-func (g *GCC) RuntimeFlags() []string {
-	return []string{}
-}
+func (g *GCC) CFlags() []string       { return []string{} }
+func (g *GCC) CXXFlags() []string     { return []string{} }
+func (g *GCC) LDFlags() []string      { return []string{} }
+func (g *GCC) RuntimeFlags() []string { return []string{} }

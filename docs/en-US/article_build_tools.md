@@ -117,6 +117,20 @@ Environment variables set globally when the tool is activated. Each entry is `KE
 
 ---
 
+## 🐍 Python Libraries as Build Tools
+
+Python libraries needed at build time are declared with a `python3:` (or `python:`) prefix. The version is **mandatory** and uses the `name@version` form:
+
+```toml
+build_tools = ["python3:mako@1.3.10", "python3:MarkupSafe@2.1.0"]
+```
+
+Celer converts each entry into pip's `name==version` form and installs it into the project's build venv. A spec without a version, such as `python3:mako`, is rejected: unpinned libraries make builds non-reproducible and prevent the [Python Wheel Cache](./article_pkgcache_python_wheels.md) from working reliably.
+
+> 💡 Only `name@version` is accepted — do not write `name==version` in `build_tools`.
+
+---
+
 ## 🛠️ Customizing Build Tools
 
 ### Adding a New Tool

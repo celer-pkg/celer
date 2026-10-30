@@ -81,21 +81,10 @@ func (m *MSVC) AssembleBuildTools(toolchain *strings.Builder) {
 	}
 }
 
-func (m *MSVC) CFlags() []string {
-	return []string{}
-}
-
-func (m *MSVC) CXXFlags() []string {
-	return []string{}
-}
-
-func (m *MSVC) LDFlags() []string {
-	return []string{}
-}
-
-func (m *MSVC) RuntimeFlags() []string {
-	return []string{}
-}
+func (m *MSVC) CFlags() []string       { return []string{} }
+func (m *MSVC) CXXFlags() []string     { return []string{} }
+func (m *MSVC) LDFlags() []string      { return []string{} }
+func (m *MSVC) RuntimeFlags() []string { return []string{} }
 
 // ReadMSVCEnvs call MSVC's batch file to get all build environment variables.
 func ReadMSVCEnvs(toolchain context.Toolchain) (map[string]string, error) {

@@ -502,20 +502,3 @@ func (c *Celer) SetCCacheRemoteOnly(remoteOnly bool) error {
 
 	return nil
 }
-
-// validateIndexURL checks that a pip index URL carries a scheme and host,
-// the same shape requirement applied to --ccache-remote-storage. An empty
-// value is allowed (used to clear the setting).
-func validateIndexURL(raw string) error {
-	if raw == "" {
-		return nil
-	}
-	parsedURL, err := url.Parse(raw)
-	if err != nil {
-		return fmt.Errorf("invalid python index URL -> %w", err)
-	}
-	if parsedURL.Scheme == "" || parsedURL.Host == "" {
-		return fmt.Errorf("python index URL must contain scheme and host (e.g., https://pypi.example.com/simple)")
-	}
-	return nil
-}

@@ -83,25 +83,11 @@ func (r *RootFS) CheckAndRepair() error {
 	return nil
 }
 
-func (r RootFS) GetSHA256() string {
-	return r.SHA256
-}
-
-func (r RootFS) GetAbsDir() string {
-	return r.abspath
-}
-
-func (r RootFS) GetPkgConfigPath() []string {
-	return r.PkgConfigPath
-}
-
-func (r RootFS) GetIncludeDirs() []string {
-	return r.IncludeDirs
-}
-
-func (r RootFS) GetLibDirs() []string {
-	return r.LibDirs
-}
+func (r RootFS) GetSHA256() string          { return r.SHA256 }
+func (r RootFS) GetAbsDir() string          { return r.abspath }
+func (r RootFS) GetPkgConfigPath() []string { return r.PkgConfigPath }
+func (r RootFS) GetIncludeDirs() []string   { return r.IncludeDirs }
+func (r RootFS) GetLibDirs() []string       { return r.LibDirs }
 
 func (r RootFS) Generate(toolchain *strings.Builder) error {
 	var buffer bytes.Buffer
