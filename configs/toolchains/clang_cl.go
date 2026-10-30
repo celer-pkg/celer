@@ -80,18 +80,7 @@ func (c *ClangCL) AssembleBuildTools(toolchain *strings.Builder) {
 	}
 }
 
-func (c *ClangCL) CFlags() []string {
-	return []string{}
-}
-
-func (c *ClangCL) CXXFlags() []string {
-	return []string{}
-}
-
-func (c *ClangCL) LDFlags() []string {
-	return []string{}
-}
-
-func (c *ClangCL) RuntimeFlags() []string {
-	return []string{}
-}
+func (c *ClangCL) CFlags() []string       { return []string{} }
+func (c *ClangCL) CXXFlags() []string     { return []string{} }
+func (c *ClangCL) LDFlags() []string      { return []string{} }
+func (c *ClangCL) RuntimeFlags() []string { return []string{} }

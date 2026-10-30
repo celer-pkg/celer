@@ -2,7 +2,7 @@
 
 > **Avoid repeated PyPI downloads for `build_tools` Python libraries**
 
-Ports declare Python libraries as build tools, e.g. `build_tools = ["python3:mako", "python3:MarkupSafe@2.1.0"]`. Each is installed into the build venv via `pip`. The **Python Wheel Cache** stores the resolved distribution set (wheels and source archives such as `.tar.gz`/`.zip`, with transitive deps) into `pkgcache/python-wheels`, so later installs restore them and run a fully offline `pip install --no-index --find-links` — no PyPI traffic on a hit.
+Ports declare Python libraries as build tools, e.g. `build_tools = ["python3:mako@1.3.10", "python3:MarkupSafe@2.1.0"]`. Every entry must pin a version in `python3:name@version` form. Each is installed into the build venv via `pip`. The **Python Wheel Cache** stores the resolved distribution set (wheels and source archives such as `.tar.gz`/`.zip`, with transitive deps) into `pkgcache/python-wheels`, so later installs restore them and run a fully offline `pip install --no-index --find-links` — no PyPI traffic on a hit.
 
 ## Directory Layout
 
@@ -36,7 +36,7 @@ pkgcache/python-wheels/py310-linux-amd64/
 ```toml
 # ports/m/mesa/24.0.0/port.toml
 [package]
-    build_tools = ["python3:mako", "python3:packaging", "python3:MarkupSafe@2.1.0"]
+    build_tools = ["python3:mako@1.3.10", "python3:packaging@24.2", "python3:MarkupSafe@2.1.0"]
 ```
 
 ```bash

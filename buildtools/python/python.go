@@ -118,7 +118,8 @@ func (p PythonTool) InstallFromWheelhouse(specs []string, wheelhouseDir string) 
 func (p PythonTool) TryInstallFromWheelhouse(specs []string, wheelhouseDir string) error {
 	executor := cmd.NewExecutor("[python3 install from wheelhouse]",
 		p.wheelhouseInstallCommand(specs, wheelhouseDir))
-	return executor.Execute()
+	_, err := executor.ExecuteOutput()
+	return err
 }
 
 func (p PythonTool) wheelhouseInstallCommand(specs []string, wheelhouseDir string) string {

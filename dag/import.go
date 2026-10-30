@@ -100,11 +100,11 @@ func Install(ctx context.Context, nameVersion string, devDep bool, options confi
 		platformName := expr.If(ctx.Platform().GetName() != "", ctx.Platform().GetName(), "native")
 
 		// Display install header.
-		logger.Println(logger.Title, "=======================================================================")
+		logger.Println(logger.Title, "===========================================================================")
 		logger.Printf(logger.Title, "🚀 start to install %s\n", nameVersion)
 		logger.Printf(logger.Title, "📌 platform: %s\n", platformName)
 		logger.Printf(logger.Title, "📌 product: %s\n", ctx.Project().GetName())
-		logger.Println(logger.Title, "=======================================================================")
+		logger.Println(logger.Title, "===========================================================================")
 	}
 
 	// Init the port.

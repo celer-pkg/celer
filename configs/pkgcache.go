@@ -24,17 +24,9 @@ type PkgCache struct {
 	pythonWheelCache pkgcache.PythonWheelCache
 }
 
-func NewPkgCache() *PkgCache {
-	return &PkgCache{}
-}
-
-func (p PkgCache) GetMinio() *pkgcache.Minio {
-	return p.Minio
-}
-
-func (p PkgCache) GetFS() *pkgcache.FS {
-	return p.FS
-}
+func NewPkgCache() *PkgCache                 { return &PkgCache{} }
+func (p PkgCache) GetMinio() *pkgcache.Minio { return p.Minio }
+func (p PkgCache) GetFS() *pkgcache.FS       { return p.FS }
 
 func (p PkgCache) IsWritable() bool {
 	return p.Writable == nil || *p.Writable

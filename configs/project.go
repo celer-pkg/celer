@@ -27,21 +27,10 @@ type Python struct {
 	TrustedHosts   []string `toml:"trusted_hosts,omitempty"`
 }
 
-func (p *Python) GetVersion() string {
-	return p.Version
-}
-
-func (p *Python) GetIndexUrl() string {
-	return p.IndexUrl
-}
-
-func (p *Python) GetExtraIndexUrls() []string {
-	return p.ExtraIndexUrls
-}
-
-func (p *Python) GetTrustedHosts() []string {
-	return p.TrustedHosts
-}
+func (p *Python) GetVersion() string          { return p.Version }
+func (p *Python) GetIndexUrl() string         { return p.IndexUrl }
+func (p *Python) GetExtraIndexUrls() []string { return p.ExtraIndexUrls }
+func (p *Python) GetTrustedHosts() []string   { return p.TrustedHosts }
 
 // ================================ Project ================================ //
 

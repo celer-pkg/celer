@@ -2,7 +2,7 @@
 
 > **避免 `build_tools` 中 Python 库的重复 PyPI 下载**
 
-端口会把 Python 库声明为构建工具，如 `build_tools = ["python3:mako", "python3:MarkupSafe@2.1.0"]`，每个通过 `pip` 装进构建 venv。**Python Wheel 缓存**把解析出的分发包（wheel 以及 `.tar.gz`/`.zip` 等源码包，含传递依赖）存进 `pkgcache/python-wheels`，后续安装直接 restore 出 wheelhouse，跑完全离线的 `pip install --no-index --find-links`——命中时不打 PyPI。
+端口会把 Python 库声明为构建工具，如 `build_tools = ["python3:mako@1.3.10", "python3:MarkupSafe@2.1.0"]`，每个条目都必须以 `python3:name@version` 形式指定版本，然后通过 `pip` 装进构建 venv。**Python Wheel 缓存**把解析出的分发包（wheel 以及 `.tar.gz`/`.zip` 等源码包，含传递依赖）存进 `pkgcache/python-wheels`，后续安装直接 restore 出 wheelhouse，跑完全离线的 `pip install --no-index --find-links`——命中时不打 PyPI。
 
 ## 目录结构
 
@@ -38,7 +38,7 @@ pkgcache/python-wheels/py310-linux-amd64/
 ```toml
 # ports/m/mesa/24.0.0/port.toml
 [package]
-    build_tools = ["python3:mako", "python3:packaging", "python3:MarkupSafe@2.1.0"]
+    build_tools = ["python3:mako@1.3.10", "python3:packaging@24.2", "python3:MarkupSafe@2.1.0"]
 ```
 
 ```bash

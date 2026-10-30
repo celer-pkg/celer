@@ -23,7 +23,19 @@ import (
 
 var PythonTool *python.PythonTool
 
-func pipInstall(ctx context.Context, pipConfig context.PythonConfig, packages *[]string) error {
+// GetDefaultPythonVersion returns the default Python version for the current platform.
+// - Windows: reads from buildtools/static TOML python tool definition (via GetDefaultPythonVersion from build_tools.go)
+// - Linux/macOS: returns detected system python3 version.
+func GetDefaultPythonVersion() string {
+	// For Windows, delegate to build_tools implementation.
+	if runtime.GOOS == "windows" {
+		return getWindowsDefaultPythonVersion()
+	} else { // For Linux/macOS, detect system python3 version.
+		return python.GetSystemPythonVersion()
+	}
+}
+
+func pipInstall(ctx context.Context, pipConfig context.PythonConfig, specs *[]string) error {
 	// Get python version from project config if available, otherwise use default version.
 	pythonVersion := GetDefaultPythonVersion()
 	pythonConfig := ctx.Project().GetPythonConfig()
@@ -37,32 +49,29 @@ func pipInstall(ctx context.Context, pipConfig context.PythonConfig, packages *[
 		return fmt.Errorf("failed to setup python -> %w", err)
 	}
 
-	// Collect python package specs that are not installed in the venv.
+	// Collect python package installSpecs that are not installed in the venv.
 	// python3:mako@1.2.0 -> mako==1.2.0
-	var specs []string
-	for _, pkg := range *packages {
-		if !strings.HasPrefix(pkg, "python3:") && !strings.HasPrefix(pkg, "python:") {
+	var installSpecs []string
+	for _, spec := range *specs {
+		if !strings.HasPrefix(spec, "python3:") && !strings.HasPrefix(spec, "python:") {
 			continue
 		}
 
-		// Format python3 library name version.
-		var nameVersion string
-		if after, ok := strings.CutPrefix(pkg, "python:"); ok {
-			nameVersion = after
-		} else {
-			nameVersion = strings.TrimPrefix(pkg, "python3:")
+		// Format python library name version.
+		formated, err := formatPythonSpec(spec)
+		if err != nil {
+			return err
 		}
-		nameVersion = strings.ReplaceAll(nameVersion, "@", "==")
 
-		if isPackageInstalled(nameVersion, venvDir) {
+		if isPackageInstalled(formated, venvDir) {
 			continue
 		}
-		specs = append(specs, nameVersion)
+		installSpecs = append(installSpecs, formated)
 	}
 
 	// Nothing to do; still make sure the python bin dir is on PATH.
-	if len(specs) == 0 {
-		return finishPipInstall(packages, venvDir)
+	if len(installSpecs) == 0 {
+		return finishPipInstall(specs, venvDir)
 	}
 
 	// Persistent wheelhouse per python minor version, shared across all specs as
@@ -84,14 +93,14 @@ func pipInstall(ctx context.Context, pipConfig context.PythonConfig, packages *[
 
 	// —— Try to install every spec straight from the persistent wheelhouse ————————————————————————————————————
 	if wheelhouseHasDistributions(wheelhouseDir) {
-		if err := PythonTool.TryInstallFromWheelhouse(specs, wheelhouseDir); err == nil {
-			return finishPipInstall(packages, venvDir)
+		if err := PythonTool.TryInstallFromWheelhouse(installSpecs, wheelhouseDir); err == nil {
+			return finishPipInstall(specs, venvDir)
 		}
 	}
 
 	// Process each spec independently so its wheels are cached under
 	// python-wheels/<platform>/<name>/<version>/ and reused across machines.
-	for _, spec := range specs {
+	for _, spec := range installSpecs {
 		name, version := parseSpec(spec)
 		cacheKey := filepath.Join(wheelPlatformScope, name, version)
 
@@ -135,15 +144,14 @@ func pipInstall(ctx context.Context, pipConfig context.PythonConfig, packages *[
 			return fmt.Errorf("failed to install python package '%s' -> %w", spec, err)
 		}
 	}
-	return finishPipInstall(packages, venvDir)
+	return finishPipInstall(specs, venvDir)
 }
 
-// finishPipInstall removes python3: entries from the libraries list and ensures
-// the venv bin dir is on PATH.
+// finishPipInstall removes python3:python: entries from the libraries list and ensures the venv bin dir is on PATH.
 func finishPipInstall(packages *[]string, venvDir string) error {
-	// Remove python3:xxx from list.
+	// Remove python3:xxx and python:xxx from list.
 	*packages = slices.DeleteFunc(*packages, func(element string) bool {
-		return strings.HasPrefix(element, "python3")
+		return strings.HasPrefix(element, "python3:") || strings.HasPrefix(element, "python:")
 	})
 
 	// Always ensure Python bin directory is in PATH.
@@ -322,18 +330,6 @@ func getPythonVenvPath(pythonVersion, projectName string) string {
 	return filepath.Join(dirs.WorkspaceDir, "installed", fmt.Sprintf("venv-%s@%s", minorVersion, projectName))
 }
 
-// GetDefaultPythonVersion returns the default Python version for the current platform.
-// - Windows: reads from buildtools/static TOML python tool definition (via GetDefaultPythonVersion from build_tools.go)
-// - Linux/macOS: returns detected system python3 version.
-func GetDefaultPythonVersion() string {
-	// For Windows, delegate to build_tools implementation.
-	if runtime.GOOS == "windows" {
-		return getWindowsDefaultPythonVersion()
-	} else { // For Linux/macOS, detect system python3 version.
-		return python.GetSystemPythonVersion()
-	}
-}
-
 // isPackageInstalled checks if a Python package is already installed.
 // This avoids frequent PyPI requests that could lead to IP blocking.
 func isPackageInstalled(packageName string, venvDir string) bool {
@@ -431,4 +427,18 @@ func normalizeVersion(fullVersion string) string {
 		return parts[0] + "." + parts[1]
 	}
 	return fullVersion
+}
+
+// formatPythonSpec converts a build tool spec to a pip requirement spec.
+// The version is mandatory: python3:mako@1.2.0 -> mako==1.2.0.
+func formatPythonSpec(spec string) (string, error) {
+	original := strings.TrimSpace(spec)
+	stripped := strings.TrimPrefix(strings.TrimPrefix(original, "python3:"), "python:")
+	name, version, ok := strings.Cut(stripped, "@")
+	name, version = strings.TrimSpace(name), strings.TrimSpace(version)
+
+	if !ok || name == "" || version == "" {
+		return "", fmt.Errorf("invalid python package spec %q, it should be like python3:name@version", original)
+	}
+	return name + "==" + version, nil
 }

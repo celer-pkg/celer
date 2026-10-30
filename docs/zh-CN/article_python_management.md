@@ -184,6 +184,20 @@ Python 版本应按以下格式指定：
 
 ---
 
+## 🧰 声明 Python 构建工具库
+
+端口构建期需要的 Python 库在 `build_tools` 中通过 `python3:` 前缀声明。版本是**必填**的，必须使用 `name@version` 形式：
+
+```toml
+[[build_configs]]
+  build_system = "cmake"
+  build_tools = ["python3:mako@1.3.10", "python3:MarkupSafe@2.1.0"]
+```
+
+Celer 会用 pip 把每个库安装到项目的虚拟环境中（`mako==1.3.10`）。不带版本的条目（如 `python3:mako`）会被拒绝。`meson` 和 `gyp` 构建系统同样以 Python 包方式安装，因此也必须指定版本（`build_system = "meson@1.11.2"`、`build_system = "gyp@0.19.0"`）。详见 [构建工具](./article_build_tools.md) 和 [Python Wheel 缓存](./article_pkgcache_python_wheels.md)。
+
+---
+
 ## 📦 安装 Python 包
 
 Celer 支持通过 `build_system = "custom"` 将纯 Python 包安装到虚拟环境中。流程与 C++ 包一致：**暂存 → venv → trace → 移除**。
@@ -247,3 +261,5 @@ Celer 支持通过 `build_system = "custom"` 将纯 Python 包安装到虚拟环
 ```
 
 安装后，包会出现在 venv 的 `site-packages` 中，可通过 `celer remove ament_package@humble` 移除。
+
+
