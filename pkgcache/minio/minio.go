@@ -41,7 +41,7 @@ func InitPkgCache(ctx context.Context) (*pkgcache.CacheConfigs, error) {
 	}
 
 	// Probe the endpoint so config errors surface at startup: minio.New only
-	// parses the host without any network I/O。
+	// parses the host without any network I/O.
 	if !ctx.Offline() {
 		if _, err := client.BucketExists(context.Background(), bucketName); err != nil {
 			resp := minio.ToErrorResponse(err)
@@ -62,18 +62,19 @@ func InitPkgCache(ctx context.Context) (*pkgcache.CacheConfigs, error) {
 	}, nil
 }
 
-type minioCache struct {
+type Minio struct {
 	client     *minio.Client
 	bucketName string
 }
 
-func (m minioCache) CreateBucketIfNotExist() error {
+func (m Minio) CreateBucketIfNotExist() error {
 	found, err := m.client.BucketExists(context.Background(), m.bucketName)
 	if err != nil {
 		return err
 	}
 	if !found {
-		opts := minio.MakeBucketOptions{ObjectLocking: true}
+		// No object locking: the bucket stays mutable so celer can prune expired artifacts.
+		opts := minio.MakeBucketOptions{ObjectLocking: false}
 		if err := m.client.MakeBucket(context.Background(), m.bucketName, opts); err != nil {
 			return err
 		}
@@ -82,7 +83,7 @@ func (m minioCache) CreateBucketIfNotExist() error {
 	return nil
 }
 
-func (m minioCache) GetFileInfo(objectName string) (*minio.ObjectInfo, error) {
+func (m Minio) GetFileInfo(objectName string) (*minio.ObjectInfo, error) {
 	opts := minio.StatObjectOptions{}
 	info, err := m.client.StatObject(context.Background(), m.bucketName, objectName, opts)
 	if err != nil {
@@ -97,7 +98,7 @@ func (m minioCache) GetFileInfo(objectName string) (*minio.ObjectInfo, error) {
 }
 
 // metaSha256 returns the sha256 recorded in the object's user metadata at upload time.
-func (m minioCache) metaSha256(info *minio.ObjectInfo) string {
+func (m Minio) metaSha256(info *minio.ObjectInfo) string {
 	if info == nil {
 		return ""
 	}
@@ -109,7 +110,61 @@ func (m minioCache) metaSha256(info *minio.ObjectInfo) string {
 	return ""
 }
 
-func (m minioCache) putObject(filePath, objectName string, hook io.Reader) (*minio.UploadInfo, error) {
+// RemoveObjectVersion removes an object, or one specific version of it when versionID is set.
+func (m Minio) RemoveObjectVersion(objectName, versionID string) error {
+	// RemoveObjects is a batch API that reads a channel of objects; feed it one
+	// buffered item then close, turning it into a synchronous single-object delete.
+	objectsCh := make(chan minio.ObjectInfo, 1)
+	objectsCh <- minio.ObjectInfo{Key: objectName, VersionID: versionID}
+	close(objectsCh)
+
+	options := minio.RemoveObjectsOptions{}
+	for removeErr := range m.client.RemoveObjects(context.Background(), m.bucketName, objectsCh, options) {
+		if removeErr.Err != nil {
+			return fmt.Errorf("failed to remove object '%s' version '%s' -> %w", objectName, versionID, removeErr.Err)
+		}
+	}
+	return nil
+}
+
+// ListObjectsWithVersions lists every object version under prefix.
+func (m Minio) ListObjectsWithVersions(prefix string) ([]minio.ObjectInfo, error) {
+	var objects []minio.ObjectInfo
+	opts := minio.ListObjectsOptions{Prefix: prefix, Recursive: true, WithVersions: true}
+	for object := range m.client.ListObjects(context.Background(), m.bucketName, opts) {
+		if object.Err != nil {
+			return nil, object.Err
+		}
+		objects = append(objects, object)
+	}
+	return objects, nil
+}
+
+func (m Minio) removeObject(objectName string, versionIDs []string) error {
+	if len(versionIDs) == 0 {
+		return m.RemoveObjectVersion(objectName, "")
+	}
+	for _, versionID := range versionIDs {
+		if err := m.RemoveObjectVersion(objectName, versionID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (m Minio) readObject(tmpDir, objectName string) (string, bool) {
+	local, err := m.downloadSilent(tmpDir, objectName)
+	if err != nil {
+		return "", false
+	}
+	bytes, err := os.ReadFile(local)
+	if err != nil {
+		return "", false
+	}
+	return string(bytes), true
+}
+
+func (m Minio) putObject(filePath, objectName string, hook io.Reader) (*minio.UploadInfo, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
@@ -144,7 +199,7 @@ func (m minioCache) putObject(filePath, objectName string, hook io.Reader) (*min
 
 // uploadFile uploads filePath to objectName with a progress bar, mirroring the
 // restore side's downloadFile presentation.
-func (m minioCache) uploadFile(filePath, objectName, displayName string) error {
+func (m Minio) uploadFile(filePath, objectName, displayName string) error {
 	fileStat, err := os.Stat(filePath)
 	if err != nil {
 		return err
@@ -164,14 +219,14 @@ func (m minioCache) uploadFile(filePath, objectName, displayName string) error {
 }
 
 // uploadSilent uploads filePath to objectName without any progress output.
-func (m minioCache) uploadSilent(filePath, objectName string) error {
+func (m Minio) uploadSilent(filePath, objectName string) error {
 	_, err := m.putObject(filePath, objectName, nil)
 	return err
 }
 
 // downloadFile downloads objectName to a task-owned tmp file inside dstDir with a
 // progress bar.
-func (m minioCache) downloadFile(dstDir, objectName, displayName string) (string, error) {
+func (m Minio) downloadFile(dstDir, objectName, displayName string) (string, error) {
 	opts := minio.GetObjectOptions{}
 	object, err := m.client.GetObject(context.Background(), m.bucketName, objectName, opts)
 	if err != nil {
@@ -204,7 +259,7 @@ func (m minioCache) downloadFile(dstDir, objectName, displayName string) (string
 }
 
 // downloadSilent downloads objectName to a task-owned tmp dir.
-func (m minioCache) downloadSilent(dstDir, objectName string) (string, error) {
+func (m Minio) downloadSilent(dstDir, objectName string) (string, error) {
 	opts := minio.GetObjectOptions{}
 	object, err := m.client.GetObject(context.Background(), m.bucketName, objectName, opts)
 	if err != nil {

@@ -19,11 +19,20 @@
       ]
     },
     {
-      "Sid": "NeverDelete",
-      "Effect": "Deny",
+      "Sid": "PruneArtifactsOnly",
+      "Effect": "Allow",
       "Action": [
         "s3:DeleteObject",
-        "s3:DeleteObjectVersion",
+        "s3:DeleteObjectVersion"
+      ],
+      "Resource": [
+        "arn:aws:s3:::celer-cache/artifacts-*/*"
+      ]
+    },
+    {
+      "Sid": "ProtectBucketAndRetention",
+      "Effect": "Deny",
+      "Action": [
         "s3:DeleteBucket",
         "s3:PutObjectRetention",
         "s3:PutObjectLegalHold",

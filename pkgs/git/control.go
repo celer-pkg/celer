@@ -57,7 +57,7 @@ func UpdateRepo(target, repoRef, repoDir string, force bool) error {
 
 	// Fetch and prune before resolving the ref, so a branch deleted upstream is gone
 	// locally instead of being checked out from a stale origin/<branch>.
-	if err := fetchOrigin(repoDir); err != nil {
+	if err := fetchPrune(repoDir); err != nil {
 		return fmt.Errorf("failed to fetch '%s' -> %w", target, err)
 	}
 

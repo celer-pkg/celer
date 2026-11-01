@@ -13,7 +13,7 @@ import (
 
 // PythonWheelConfig implements pkgcache.PythonWheelCache on the shared FS cache.
 type PythonWheelConfig struct {
-	fsCache
+	FileSystem
 	ctx      context.Context
 	cacheDir string
 	writable bool
@@ -28,7 +28,7 @@ func NewPythonWheelConfig(ctx context.Context) *PythonWheelConfig {
 	filesystem := pkgCache.GetFS()
 	cacheRootDir := filesystem.GetDir(pkgcache.DirRoot, ctx.Version())
 	return &PythonWheelConfig{
-		fsCache: fsCache{
+		FileSystem: FileSystem{
 			cacheDirRoot: cacheRootDir,
 		},
 		ctx:      ctx,

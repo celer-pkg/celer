@@ -13,7 +13,7 @@ import (
 )
 
 type BinaryCache struct {
-	minioCache
+	Minio
 	ctx      context.Context
 	cacheDir string
 	version  string
@@ -28,11 +28,11 @@ func NewBinaryCache(ctx context.Context, client *minio.Client) *BinaryCache {
 
 	minioConfig := pkgCache.GetMinio()
 	return &BinaryCache{
-		ctx:        ctx,
-		minioCache: minioCache{client: client, bucketName: bucketName},
-		cacheDir:   minioConfig.GetDir(pkgcache.DirBinaries, ctx.Version()),
-		version:    ctx.Version(),
-		writable:   pkgCache.IsWritable(),
+		ctx:      ctx,
+		Minio:    Minio{client: client, bucketName: bucketName},
+		cacheDir: minioConfig.GetDir(pkgcache.DirBinaries, ctx.Version()),
+		version:  ctx.Version(),
+		writable: pkgCache.IsWritable(),
 	}
 }
 

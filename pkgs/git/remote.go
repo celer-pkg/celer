@@ -2,6 +2,8 @@ package git
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -120,7 +122,7 @@ func GetRemoteRefCommit(target, repoUrl, repoRef string) (string, error) {
 	return repoRef, nil
 }
 
-func fetchOrigin(repoDir string) error {
+func fetchPrune(repoDir string) error {
 	if !fileio.PathExists(repoDir) {
 		return errors.ErrDirNotExist
 	}
@@ -128,12 +130,10 @@ func fetchOrigin(repoDir string) error {
 		return errors.ErrNotGitDir
 	}
 
-	title := fmt.Sprintf("[fetch %s]", repoDir)
-	executor := cmd.NewExecutor(title, "git", "fetch", "--prune", "origin")
-	executor.SetWorkDir(repoDir)
-	output, err := executor.ExecuteOutputLive()
-	if err != nil {
-		return fmt.Errorf("%s -> %w", output, err)
-	}
-	return nil
+	cmd := exec.Command("git", "fetch", "--prune", "origin")
+	cmd.Dir = repoDir
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Start()
 }

@@ -3,6 +3,7 @@ package minio
 import (
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/celer-pkg/celer/context"
@@ -13,7 +14,7 @@ import (
 )
 
 type PythonWheelConfig struct {
-	minioCache
+	Minio
 	ctx      context.Context
 	cacheDir string
 	writable bool
@@ -28,7 +29,7 @@ func NewPythonWheelConfig(ctx context.Context, client *minio.Client) *PythonWhee
 	minioConfig := pkgCache.GetMinio()
 	return &PythonWheelConfig{
 		ctx: ctx,
-		minioCache: minioCache{
+		Minio: Minio{
 			client:     client,
 			bucketName: bucketName,
 		},
@@ -39,7 +40,7 @@ func NewPythonWheelConfig(ctx context.Context, client *minio.Client) *PythonWhee
 
 // keyPrefix returns the minio object prefix holding the wheelhouse for cacheKey.
 func (p PythonWheelConfig) keyPrefix(cacheKey string) string {
-	return filepath.Join(p.cacheDir, cacheKey)
+	return path.Join(p.cacheDir, cacheKey)
 }
 
 // Restore lists every distribution object under cacheKey's prefix and downloads
@@ -84,7 +85,7 @@ func (p PythonWheelConfig) Restore(cacheKey, destDir string) (bool, error) {
 	defer os.RemoveAll(localTmpDir)
 
 	for _, file := range files {
-		objectName := filepath.Join(p.cacheDir, cacheKey, file)
+		objectName := path.Join(p.cacheDir, cacheKey, file)
 		tmpFile, err := p.downloadFile(localTmpDir, objectName, file)
 		if err != nil {
 			return false, fmt.Errorf("failed to download python distribution %s -> %w", file, err)
@@ -127,7 +128,7 @@ func (p PythonWheelConfig) Store(cacheKey, wheelhouseDir string) error {
 		if err != nil {
 			return fmt.Errorf("failed to compute sha256 for '%s' -> %w", entity.Name(), err)
 		}
-		fileObject := filepath.Join(prefix, entity.Name())
+		fileObject := path.Join(prefix, entity.Name())
 
 		// The cache is authoritative: never auto-overwrite an existing entry.
 		if info, err := p.GetFileInfo(fileObject); err != nil {

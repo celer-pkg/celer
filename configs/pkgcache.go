@@ -9,12 +9,15 @@ import (
 	"github.com/celer-pkg/celer/pkgcache/dev"
 )
 
+const DefaultKeepLatestCount = 10
+
 // ================= PkgCache ================= //
 
 type PkgCache struct {
-	Writable *bool           `toml:"writable,omitempty" json:"writable,omitempty"`
-	Minio    *pkgcache.Minio `toml:"minio,omitempty" json:"minio,omitempty"`
-	FS       *pkgcache.FS    `toml:"fs,omitempty" json:"fs,omitempty"`
+	Writable        *bool           `toml:"writable,omitempty" json:"writable,omitempty"`
+	KeepLatestCount *int            `toml:"keep_latest_count,omitempty" json:"keep_latest_count,omitempty"`
+	Minio           *pkgcache.Minio `toml:"minio,omitempty" json:"minio,omitempty"`
+	FS              *pkgcache.FS    `toml:"fs,omitempty" json:"fs,omitempty"`
 
 	// Internal field.
 	binaryCache      pkgcache.BinaryCache
@@ -24,12 +27,31 @@ type PkgCache struct {
 	pythonWheelCache pkgcache.PythonWheelCache
 }
 
-func NewPkgCache() *PkgCache                 { return &PkgCache{} }
+// NewPkgCache returns a pkgcache config with explicit defaults so a freshly
+// configured fs/minio backend writes writable=true and keep_latest_count=10 into
+// celer.toml for direct editing.
+func NewPkgCache() *PkgCache {
+	writable := true
+	keepLatest := DefaultKeepLatestCount
+	return &PkgCache{
+		Writable:        &writable,
+		KeepLatestCount: &keepLatest,
+	}
+}
+
 func (p PkgCache) GetMinio() *pkgcache.Minio { return p.Minio }
 func (p PkgCache) GetFS() *pkgcache.FS       { return p.FS }
 
 func (p PkgCache) IsWritable() bool {
 	return p.Writable == nil || *p.Writable
+}
+
+// GetKeepLatestCount returns how many of the newest artifacts to keep per port.
+func (p PkgCache) GetKeepLatestCount() int {
+	if p.KeepLatestCount == nil || *p.KeepLatestCount <= 0 {
+		return DefaultKeepLatestCount
+	}
+	return *p.KeepLatestCount
 }
 
 func (p PkgCache) GetBinaryCache() pkgcache.BinaryCache {

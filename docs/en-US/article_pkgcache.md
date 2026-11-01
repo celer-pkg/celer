@@ -99,7 +99,7 @@ Notes:
 
 - The script needs MinIO **administrator** credentials, used only to create the bucket, policy and credential. They are never written to `celer.toml` and never echoed (`--dry-run` prints the `mc` commands without running them).
 - The credential is a plain MinIO user (Console: *Identity → Users → celer-pkgcache*), not a service account.
-- It can read, upload and overwrite, but **never delete**. Removing an object stays a manual administrator action in the Console or with `mc rm`.
+- It can read, upload and overwrite. Deletion is **scoped to `artifacts-*/`** so celer can prune expired artifacts, and cannot touch `repos/`, `downloads/` or `celers/`; deleting anything else stays a manual administrator action.
 - More details (`--rotate`, verification, admin deletion): [`deploy/minio/README.md`](../../deploy/minio/README.md).
 
 ## Options
@@ -113,12 +113,15 @@ celer configure --pkgcache-writable=false
 | Field | Description |
 |------|-------------|
 | `pkgcache.writable` | Only controls *writing*: `false` keeps the cache read-only |
+| `pkgcache.keep_latest_count` | Newest artifacts kept per port; older ones are pruned after each store (default `10`) |
 | `pkgcache.fs.dir` | Cache root. Must already exist. |
 | `pkgcache.minio.host` / `access_key` / `secret_key` | S3 endpoint and credentials |
 
 `writable` only gates **writes**. Reading (restoring) never depends on it, so an entry another machine already pushed is always reused - a read-only node still builds fast from the shared cache, it just never adds to it. Set `writable = false` on a dev machine that shares a cache it does not own.
 
 > **Note**: `writable` is a key of `[pkgcache]` itself, so it must come **before** `[pkgcache.fs]` / `[pkgcache.minio]` (a TOML table cannot be reopened). `celer configure` always writes it in the right place.
+
+`keep_latest_count` bounds artifact growth: after a port's artifact is uploaded, celer deletes that port's older artifacts beyond this count, ordered by the git commit time recorded in each artifact's metadata. The count is per **source version**, not per artifact file: artifacts of the same commit (or of the same archive checksum) are a single entry, and only the newest one is kept.
 
 ## Layout
 
