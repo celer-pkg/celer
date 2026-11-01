@@ -209,7 +209,7 @@ After configuration, the `celer.toml` file will be updated as follows:
 
 ### What is Deployment?
 
-Deploying Celer is the process of building all third-party libraries required by the project in the build environment of the selected platform.
+Deploying Celer is the process of building all third-party libraries and apps required by the project in the build environment of the selected platform.
 
 ### Execute Deployment
 

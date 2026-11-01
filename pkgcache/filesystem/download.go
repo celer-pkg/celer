@@ -15,7 +15,7 @@ import (
 // DownloadConfig implements pkgcache.DownloadCache for storing/restoring
 // downloaded files (tools, archives) in a shared FS cache.
 type DownloadConfig struct {
-	fsCache
+	FileSystem
 	ctx      context.Context
 	cacheDir string
 	writable bool
@@ -30,7 +30,7 @@ func NewDownloadConfig(ctx context.Context) *DownloadConfig {
 	filesystem := pkgCache.GetFS()
 	cacheRootDir := filesystem.GetDir(pkgcache.DirRoot, ctx.Version())
 	return &DownloadConfig{
-		fsCache: fsCache{
+		FileSystem: FileSystem{
 			cacheDirRoot: cacheRootDir,
 		},
 		ctx:      ctx,

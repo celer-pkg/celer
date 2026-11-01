@@ -27,13 +27,13 @@ func InitPkgCache(ctx context.Context) *pkgcache.CacheConfigs {
 	}
 }
 
-type fsCache struct {
+type FileSystem struct {
 	cacheDirRoot string // Remote cache root.
 }
 
 // uploadFile uploads filePath to remotePath with a progress bar, mirroring the
 // minio backend's uploadFile presentation.
-func (f fsCache) uploadFile(filePath, remotePath, sha256, displayName string) error {
+func (f FileSystem) uploadFile(filePath, remotePath, sha256, displayName string) error {
 	srcInfo, err := os.Stat(filePath)
 	if err != nil {
 		return fmt.Errorf("failed to get file info for '%s' -> %w", filePath, err)
@@ -48,13 +48,13 @@ func (f fsCache) uploadFile(filePath, remotePath, sha256, displayName string) er
 }
 
 // uploadSilent uploads filePath to remotePath without any progress output.
-func (f fsCache) uploadSilent(filePath, remotePath, sha256 string) error {
+func (f FileSystem) uploadSilent(filePath, remotePath, sha256 string) error {
 	return f.doUploadFile(filePath, remotePath, sha256, nil)
 }
 
 // downloadFile downloads remotePath to a tmp file inside dstDir with a
 // progress bar, dstDir is a task-owned dir.
-func (f fsCache) downloadFile(dstDir, remotePath, displayName string) (string, error) {
+func (f FileSystem) downloadFile(dstDir, remotePath, displayName string) (string, error) {
 	srcInfo, err := os.Stat(remotePath)
 	if err != nil {
 		return "", fmt.Errorf("remote file not exist for '%s' -> %w", remotePath, err)
@@ -94,7 +94,7 @@ func (f fsCache) downloadFile(dstDir, remotePath, displayName string) (string, e
 
 // doUploadFile uploads a local file to the remote cache. When progress is
 // non-nil it is used to render an upload progress bar; nil disables output.
-func (f fsCache) doUploadFile(localPath, remotePath, sha256 string, progress io.Writer) error {
+func (f FileSystem) doUploadFile(localPath, remotePath, sha256 string, progress io.Writer) error {
 	// Make sure parent dir is available (+a compatible mkdir).
 	if err := os.MkdirAll(filepath.Dir(remotePath), os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create cache dir for '%s' -> %w", remotePath, err)

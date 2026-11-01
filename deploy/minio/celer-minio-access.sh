@@ -96,9 +96,9 @@ mc() { command ./mc --config-dir "$CONF_DIR" --no-color "$@"; }
 # print mc's "Configuration written to ..." notices.
 mc alias list >/dev/null 2>&1 || true
 
-echo "==> 1/3 bucket ${BUCKET} with object locking (implies versioning)"
+echo "==> 1/3 bucket ${BUCKET} (mutable, no object lock)"
 mc alias set "$ALIAS" "$HOST" "$ADMIN_USER" "$ADMIN_PASSWORD"
-mc mb --with-lock --ignore-existing "${ALIAS}/${BUCKET}"
+mc mb --ignore-existing "${ALIAS}/${BUCKET}"
 
 echo "==> 2/3 policy ${POLICY_NAME} from ${POLICY_FILE}"
 # `mc admin policy create` is an upsert, so the JSON file stays the source of

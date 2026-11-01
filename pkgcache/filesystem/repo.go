@@ -17,7 +17,7 @@ import (
 )
 
 type RepoConfig struct {
-	fsCache
+	FileSystem
 	ctx      context.Context
 	cacheDir string
 	writable bool
@@ -33,7 +33,7 @@ func NewRepoConfig(ctx context.Context) *RepoConfig {
 	cacheRootDir := filesystem.GetDir(pkgcache.DirRoot, ctx.Version())
 	repoCacheDir := filesystem.GetDir(pkgcache.DirRepos, ctx.Version())
 	return &RepoConfig{
-		fsCache: fsCache{
+		FileSystem: FileSystem{
 			cacheDirRoot: cacheRootDir,
 		},
 		ctx:      ctx,
@@ -157,7 +157,7 @@ func (r RepoConfig) Restore(cacheKey string, repoInfo pkgcache.RepoInfo, archive
 			}
 			if localCommit != expectedCommit {
 				_ = os.RemoveAll(repoInfo.RepoDir)
-				return false, fmt.Errorf("repo commit don't match, expect '%s', got '%s'", expectedCommit, localCommit)
+				return false, nil
 			}
 		}
 	} else {

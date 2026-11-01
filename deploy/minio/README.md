@@ -55,7 +55,7 @@ Flags: `--host`, `--admin-user`, `--admin-password`, `--runtime-access-key`
 
 | Object | Role |
 |--------|------|
-| bucket `celer-cache` | created with object locking, which implies versioning |
+| bucket `celer-cache` | created without object locking, so celer can prune expired artifacts |
 | policy from `celer-minio-policy.json` | read + upload, delete denied |
 | access key `celer-pkgcache` | a MinIO user (a user *is* an access key/secret pair), with the policy attached |
 
@@ -69,7 +69,7 @@ The script:
 
 1. registers the endpoint with a temporary `mc` configuration directory, so your
    own `~/.mc` aliases are never touched
-2. creates `celer-cache` with object locking (`mb --with-lock`)
+2. creates `celer-cache` without object locking (mutable)
 3. applies the policy from the JSON in this directory (`mc admin policy create`
    is an upsert, and MinIO refuses to remove a policy that is still attached)
 4. creates the user (or replaces its secret with `--rotate`), then attaches the
@@ -88,14 +88,15 @@ prints the commands with all secrets masked.
 | `ListBucket`, `GetBucketLocation`, `ListObjects` | yes | cache lookups |
 | `GetObject` | yes | restore/download |
 | `PutObject`, multipart upload | yes | store, and overwrite an existing entry |
-| `DeleteObject` / `DeleteObjectVersion` | **no** | explicit `Deny` |
+| `DeleteObject` / `DeleteObjectVersion` | **yes, only under `artifacts-*/`** | celer prunes expired artifacts; other prefixes stay protected |
 | `PutObjectRetention`, `PutObjectLegalHold`, `BypassGovernanceRetention` | **no** | keeps the object lock meaningful |
 | `PutBucketPolicy`, `PutBucketVersioning`, `PutLifecycleConfiguration`, `DeleteBucket` | **no** | the credential cannot weaken the rule or expire objects |
 
 `CreateBucket` is intentionally absent: `celer-minio-access.sh` creates the bucket, so the
 runtime access key stays minimal. If the bucket is later removed, celer fails to
 store an artifact and reports the missing bucket — ask an administrator to
-re-create it with `mb --with-lock`.
+re-create it (no object lock). An existing bucket that was created *with* object
+locking cannot be un-locked in place: re-create it to let celer reclaim space.
 
 ## Verifying
 

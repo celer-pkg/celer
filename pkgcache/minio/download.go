@@ -3,6 +3,7 @@ package minio
 import (
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/celer-pkg/celer/context"
@@ -16,7 +17,7 @@ import (
 // DownloadConfig implements pkgcache.DownloadCache for storing/restoring
 // downloaded files (tools, archives) in a shared cache.
 type DownloadConfig struct {
-	minioCache
+	Minio
 	ctx      context.Context
 	cacheDir string
 	writable bool
@@ -31,7 +32,7 @@ func NewDownloadConfig(ctx context.Context, client *minio.Client) *DownloadConfi
 	minioConfig := pkgCache.GetMinio()
 	return &DownloadConfig{
 		ctx: ctx,
-		minioCache: minioCache{
+		Minio: Minio{
 			client:     client,
 			bucketName: bucketName,
 		},
@@ -62,7 +63,7 @@ func (d DownloadConfig) Store(fileName, sha256, srcPath string) error {
 	}
 
 	fileToStore := filepath.Join(d.ctx.Downloads(), fileName)
-	objectName := filepath.Join(d.cacheDir, fileName)
+	objectName := path.Join(d.cacheDir, fileName)
 
 	// The cache is authoritative: never auto-overwrite an existing entry.
 	if info, err := d.GetFileInfo(objectName); err != nil {
@@ -97,7 +98,7 @@ func (d DownloadConfig) Restore(fileName, sha256 string) (bool, error) {
 		return false, fmt.Errorf("no sha256 hash provided for %s/%s", d.cacheDir, fileName)
 	}
 
-	objectName := filepath.Join(d.cacheDir, fileName)
+	objectName := path.Join(d.cacheDir, fileName)
 
 	remoteInfo, err := d.GetFileInfo(objectName)
 	if err != nil {

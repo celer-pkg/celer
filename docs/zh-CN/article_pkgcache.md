@@ -92,7 +92,7 @@ celer configure --pkgcache-minio-host=http://minio.example.com:9000 \
 
 - 脚本需要 MinIO **管理员**凭证，只用于建桶/策略/凭证；不会写进 `celer.toml`，也不会回显（先跑 `--dry-run` 可以只看它要执行哪些 `mc` 命令）。
 - 这个凭证是一个普通 MinIO 用户（Console 里在 *Identity → Users → celer-pkgcache*），不是 service account。
-- 它能读、能传、能覆盖，**不能删**。删除对象只能由管理员在 Console 或 `mc rm` 手动执行。
+- 它能读、能传、能覆盖；删除**仅限 `artifacts-*/` 前缀**，用于清理过期制品，删不到 `repos/`、`downloads/`、`celers/`。其他对象的删除仍需管理员手动执行。
 - 更多细节（`--rotate` 轮换、验证步骤、管理员删除）见 [`deploy/minio/README.md`](../../deploy/minio/README.md)。
 
 ## 选项
@@ -106,12 +106,15 @@ celer configure --pkgcache-writable=false
 | 字段 | 说明 |
 |------|------|
 | `pkgcache.writable` | **只管写入**：`false` 时为只读缓存 |
+| `pkgcache.keep_latest_count` | 每个 port 保留的最新制品数，超出的在每次上传后清理（默认 `10`） |
 | `pkgcache.fs.dir` | 缓存根目录，必须已存在 |
 | `pkgcache.minio.host` / `access_key` / `secret_key` | S3 地址和凭证 |
 
 `writable` 只控制写入，读取（恢复）永远不受影响：别的机器放进缓存的条目照样会被复用——只读节点依然能快速构建，只是不再往缓存里加东西。开发机共用不属于自己的缓存时设 `writable = false`。
 
 > **注意**：`writable` 属于 `[pkgcache]` 本身，必须写在 `[pkgcache.fs]` / `[pkgcache.minio]` **之前**（TOML 表不能重复打开）。`celer configure` 会按正确顺序写入。
+
+`keep_latest_count` 用于控制制品增长：某个 port 的制品上传后，celer 会按各制品元数据里记录的 git commit 时间排序，删除该 port 超出的较旧制品。这里的数量按**源码版本**算、不是按制品文件算：同一 commit（或同一压缩包 checksum）产生的多个制品算一个，只保留其中最新的一个。
 
 ## 布局
 

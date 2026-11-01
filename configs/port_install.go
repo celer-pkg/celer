@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/buildtools"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/expr"
@@ -901,6 +902,25 @@ func (p *Port) tryStoreArtifact(metaData string) error {
 	}
 	if err := artifactCache.Store(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
 		return err
+	}
+
+	// Best-effort prune: keep only the newest artifacts of this port, ordered by
+	// the git commit time recorded in each artifact's meta.
+	// Archive sources record the archive checksum instead of a commit, so no
+	// resolver is passed and they are ordered by storage time.
+	var commitTime pkgcache.CommitTime
+	repoDir := p.MatchedConfig.PortConfig.RepoDir
+	if repoDir != "" && strings.HasSuffix(p.Package.Url, ".git") {
+		commitTime = func(ref string) (int64, bool) {
+			unixTime, err := git.CommitTime(repoDir, ref)
+			if err != nil {
+				return 0, false
+			}
+			return unixTime, true
+		}
+	}
+	if err := artifactCache.Prune(p.NameVersion(), pkgCache.GetKeepLatestCount(), commitTime); err != nil {
+		logger.PrintWarning("failed to prune expired artifacts of %s -> %s", p.NameVersion(), err)
 	}
 
 	return nil

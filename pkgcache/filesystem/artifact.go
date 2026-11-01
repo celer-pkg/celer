@@ -10,13 +10,14 @@ import (
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
+	"github.com/celer-pkg/celer/pkgcache/meta"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/logger"
 )
 
 type ArtifactConfig struct {
-	fsCache
+	FileSystem
 	ctx        context.Context
 	cacheDir   string
 	writable   bool
@@ -31,7 +32,7 @@ func NewArtifactConfig(ctx context.Context) *ArtifactConfig {
 
 	cacheRootDir := pkgCache.GetFS().GetDir(pkgcache.DirRoot, ctx.Version())
 	return &ArtifactConfig{
-		fsCache: fsCache{
+		FileSystem: FileSystem{
 			cacheDirRoot: cacheRootDir,
 		},
 		ctx:        ctx,
@@ -209,6 +210,100 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 	}
 
 	return nil
+}
+
+// Prune keeps only the newest keepCount source refs of nameVersion, ordered by the
+// git commit time recorded in each artifact's .meta. Without a resolver, or when
+// the ref is not a resolvable commit (archive sources record a checksum), the
+// artifact's own modification time is used. Both the archive and its meta of a
+// pruned entry are removed.
+func (a ArtifactConfig) Prune(nameVersion string, keepCount int, commitTime pkgcache.CommitTime) error {
+	if a.ctx.Offline() || !a.writable || keepCount <= 0 {
+		return nil
+	}
+
+	packageDir := filepath.Join(
+		a.cacheDir,
+		a.ctx.Platform().GetName(),
+		a.ctx.Project().GetName(),
+		a.ctx.BuildType(),
+		nameVersion,
+	)
+	entries, err := os.ReadDir(packageDir)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
+		return fmt.Errorf("failed to list artifacts in '%s' -> %w", packageDir, err)
+	}
+
+	// Do remove and print pruned info.
+	artifacts := collectArtifacts(packageDir, nameVersion, entries, commitTime)
+	pruned := removeArtifacts(packageDir, pkgcache.FilterExpiredArtifacts(artifacts, keepCount))
+	if len(pruned) > 0 {
+		logger.PrintPass("pruned %d expired artifact(s) of %s (kept newest %d):", len(pruned), nameVersion, keepCount)
+		for _, item := range pruned {
+			logger.PrintHint("  - commit: %s", item.RepoRef)
+			logger.PrintHint("    build:  %s", item.BuildHash)
+		}
+	}
+
+	return nil
+}
+
+// collectArtifacts reads the meta of every stored artifact and resolves its
+// ordering time: the commit time of the source ref, or the artifact's own
+// modification time for archive sources, which record a checksum instead.
+func collectArtifacts(packageDir, nameVersion string, entries []os.DirEntry, commitTime pkgcache.CommitTime) []pkgcache.PruneArtifact {
+	var artifacts []pkgcache.PruneArtifact
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".tar.gz") {
+			continue
+		}
+		buildHash := strings.TrimSuffix(entry.Name(), ".tar.gz")
+		metaBytes, err := os.ReadFile(filepath.Join(packageDir, "metas", buildHash+".meta"))
+		if err != nil {
+			continue
+		}
+		commitHash, ok := meta.PortCommit(string(metaBytes), nameVersion)
+		if !ok {
+			continue
+		}
+		info, err := entry.Info()
+		if err != nil {
+			continue
+		}
+		sortTime, resolved := int64(0), false
+		if commitTime != nil {
+			sortTime, resolved = commitTime(commitHash)
+		}
+		if !resolved {
+			// Archive (non-git) sources have no commit to resolve; order them by the
+			// artifact's own storage time instead of keeping them forever.
+			sortTime = info.ModTime().Unix()
+		}
+		artifacts = append(artifacts, pkgcache.PruneArtifact{
+			BuildHash:   buildHash,
+			CommitHash:  commitHash,
+			SortTime:    sortTime,
+			StorageTime: info.ModTime().Unix(),
+		})
+	}
+	return artifacts
+}
+
+// removeArtifacts removes the given artifacts from packageDir.
+func removeArtifacts(packageDir string, expired []pkgcache.PruneArtifact) []pkgcache.PrunedArtifact {
+	var pruned []pkgcache.PrunedArtifact
+	for _, artifact := range expired {
+		if err := os.Remove(filepath.Join(packageDir, artifact.BuildHash+".tar.gz")); err != nil && !errors.Is(err, os.ErrNotExist) {
+			logger.PrintWarning("failed to remove expired artifact '%s' -> %s", artifact.BuildHash, err)
+			continue
+		}
+		_ = os.Remove(filepath.Join(packageDir, "metas", artifact.BuildHash+".meta"))
+		pruned = append(pruned, pkgcache.PrunedArtifact{BuildHash: artifact.BuildHash, RepoRef: artifact.CommitHash})
+	}
+	return pruned
 }
 
 func (a ArtifactConfig) artifactPaths(nameVersion, buildHash string) (metaPath, archivePath string) {
