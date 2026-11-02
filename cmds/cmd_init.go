@@ -4,6 +4,8 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/git"
 	"github.com/celer-pkg/celer/pkgs/logger"
 
 	"github.com/spf13/cobra"
@@ -66,12 +68,14 @@ func (i *initCmd) doInit() error {
 		return logger.PrintError(err, "Failed to setup conf repository.")
 	}
 
-	if i.branch != "" {
-		logger.PrintSuccess("Successfully initialized celer with repository: %s --branch %s", i.url, i.branch)
-	} else {
-		logger.PrintSuccess("Successfully initialized celer with repository: %s", i.url)
+	// Show conf repo url and branch.
+	branch, err := git.GetCurrentBranch(dirs.ConfDir)
+	if err != nil {
+		return err
 	}
-
+	logger.PrintSuccess("Successfully initialized celer")
+	logger.PrintHint("[conf repo url] - %s", i.url)
+	logger.PrintHint("[conf repo ref] - %s", branch)
 	return nil
 }
 

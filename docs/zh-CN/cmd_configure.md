@@ -59,7 +59,7 @@ celer configure --offline=true
 celer configure --verbose=false
 
 # pkgcache 组（可同命令组合）
-# fs 与 minio 为互斥后端；写入默认开启，readonly=true 表示这个节点只读。
+# 配置一个后端会覆盖另一个；写入默认开启，readonly=true 表示这个节点只读。
 celer configure --pkgcache-fs-dir=/home/xxx/cache --pkgcache-readonly=false
 celer configure --pkgcache-minio-host=http://minio.example.com:9000 \
                 --pkgcache-minio-access-key=xxx \
@@ -90,7 +90,7 @@ celer configure --port=eigen@3.4.0 --port-url=https://example.com/eigen.git --po
 - `--jobs`：必须大于 `0`。
 - `--pkgcache-fs-dir`：不能为空，且目录必须已存在。
 - `--pkgcache-minio-host` / `--pkgcache-minio-access-key` / `--pkgcache-minio-secret-key`：host 必须可访问；空值表示保持不变，因此可以单独轮换某个密钥。
-- fs 与 minio 后端互斥；已配置其中一个后再配置另一个会报错。
+- fs 与 minio 只能选一个：配置其中一个会自动覆盖另一个。
 - `--pkgcache-readonly`：pkgcache 唯一的选项；使用前需先配置任一后端（可同命令一起配置）。写入默认开启，它**只管写入**：为 `true` 时不再往缓存里写，但缓存里已有的条目依然会被恢复。
 - `--pkgcache-keep-artifact-count`：`0`（默认）表示不清理；设成正整数后，每次上传完会删除该 port 较旧的制品。只应在负责共享缓存策略的节点上设置。
 - `--proxy-host`：不能为空。

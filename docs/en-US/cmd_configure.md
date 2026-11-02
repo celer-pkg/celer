@@ -59,7 +59,7 @@ celer configure --offline=true
 celer configure --verbose=false
 
 # PkgCache group (can combine in one command)
-# fs and minio are mutually exclusive backends; writing is on by default,
+# configuring a backend replaces the other one; writing is on by default,
 # readonly=true makes this node read-only.
 celer configure --pkgcache-fs-dir=/home/xxx/cache --pkgcache-readonly=false
 celer configure --pkgcache-minio-host=http://minio.example.com:9000 \
@@ -92,7 +92,7 @@ celer configure --port=eigen@3.4.0 --port-url=https://example.com/eigen.git --po
 - `--jobs`: must be greater than `0`.
 - `--pkgcache-fs-dir`: cannot be empty, and directory must already exist.
 - `--pkgcache-minio-host` / `--pkgcache-minio-access-key` / `--pkgcache-minio-secret-key`: host must be reachable; empty values keep the current setting, so a key can be rotated alone.
-- fs and minio backends are mutually exclusive; configuring one while the other is set fails.
+- fs and minio are mutually exclusive: configuring one replaces the other one.
 - `--pkgcache-readonly`: `true` keeps the package cache read-only. Writing is on by default; a backend (fs or minio) must be configured first (or in the same command). It only gates **writing**: cached entries are still restored.
 - `--pkgcache-keep-artifact-count`: `0` (default) disables the artifact pruning; a positive count deletes a port's older artifacts after each upload. Only set it on a node that owns the shared cache policy.
 - `--proxy-host`: cannot be empty.
