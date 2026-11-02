@@ -9,15 +9,13 @@ import (
 	"github.com/celer-pkg/celer/pkgcache/dev"
 )
 
-const DefaultKeepLatestCount = 10
-
 // ================= PkgCache ================= //
 
 type PkgCache struct {
-	ReadOnly        bool            `toml:"readonly,omitempty" json:"readonly,omitempty"`
-	KeepLatestCount *int            `toml:"keep_latest_count,omitempty" json:"keep_latest_count,omitempty"`
-	Minio           *pkgcache.Minio `toml:"minio,omitempty" json:"minio,omitempty"`
-	FS              *pkgcache.FS    `toml:"fs,omitempty" json:"fs,omitempty"`
+	ReadOnly          bool            `toml:"readonly,omitempty" json:"readonly,omitempty"`
+	KeepArtifactCount *int            `toml:"keep_artifact_count,omitempty" json:"keep_artifact_count,omitempty"`
+	Minio             *pkgcache.Minio `toml:"minio,omitempty" json:"minio,omitempty"`
+	FS                *pkgcache.FS    `toml:"fs,omitempty" json:"fs,omitempty"`
 
 	// Internal field.
 	binaryCache      pkgcache.BinaryCache
@@ -27,16 +25,10 @@ type PkgCache struct {
 	pythonWheelCache pkgcache.PythonWheelCache
 }
 
-// NewPkgCache returns a pkgcache config with explicit defaults so a freshly
-// configured fs/minio backend writes keep_latest_count=10 into celer.toml for
-// direct editing. readonly defaults to false, so it is omitted from the file.
-func NewPkgCache() *PkgCache {
-	keepLatest := DefaultKeepLatestCount
-	return &PkgCache{
-		ReadOnly:        false,
-		KeepLatestCount: &keepLatest,
-	}
-}
+// NewPkgCache returns an empty pkgcache config: readonly defaults to false and
+// keep_artifact_count stays unset, so artifact pruning is disabled until a node
+// opts in explicitly.
+func NewPkgCache() *PkgCache { return &PkgCache{} }
 
 func (p PkgCache) GetMinio() *pkgcache.Minio { return p.Minio }
 func (p PkgCache) GetFS() *pkgcache.FS       { return p.FS }
@@ -45,12 +37,14 @@ func (p PkgCache) IsReadOnly() bool {
 	return p.ReadOnly
 }
 
-// GetKeepLatestCount returns how many of the newest artifacts to keep per port.
-func (p PkgCache) GetKeepLatestCount() int {
-	if p.KeepLatestCount == nil || *p.KeepLatestCount <= 0 {
-		return DefaultKeepLatestCount
+// GetKeepArtifactCount returns how many of the newest artifacts to keep per port,
+// or 0 when pruning is disabled. Pruning deletes from a cache other nodes share,
+// so it only runs with a count this node explicitly configured.
+func (p PkgCache) GetKeepArtifactCount() int {
+	if p.KeepArtifactCount == nil || *p.KeepArtifactCount <= 0 {
+		return 0
 	}
-	return *p.KeepLatestCount
+	return *p.KeepArtifactCount
 }
 
 func (p PkgCache) GetBinaryCache() pkgcache.BinaryCache {

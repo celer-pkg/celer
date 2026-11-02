@@ -904,23 +904,26 @@ func (p *Port) tryStoreArtifact(metaData string) error {
 		return err
 	}
 
-	// Best-effort prune: keep only the newest artifacts of this port, ordered by
-	// the git commit time recorded in each artifact's meta.
-	// Archive sources record the archive checksum instead of a commit, so no
-	// resolver is passed and they are ordered by storage time.
-	var commitTime pkgcache.CommitTime
-	repoDir := p.MatchedConfig.PortConfig.RepoDir
-	if repoDir != "" && strings.HasSuffix(p.Package.Url, ".git") {
-		commitTime = func(ref string) (int64, bool) {
-			unixTime, err := git.CommitTime(repoDir, ref)
-			if err != nil {
-				return 0, false
+	// Best-effort prune. It is opt-in: keep_artifact_count is unset by default, so a node
+	// without the setting never deletes artifacts that other nodes share the same cache with.
+	// Pruning keeps only the newest artifacts of this port, ordered by the git commit
+	// time recorded in each artifact's meta; archive sources record the archive checksum
+	// instead of a commit, so no resolver is passed and they are ordered by storage time.
+	if keepCount := pkgCache.GetKeepArtifactCount(); keepCount > 0 {
+		var commitTime pkgcache.CommitTime
+		repoDir := p.MatchedConfig.PortConfig.RepoDir
+		if repoDir != "" && strings.HasSuffix(p.Package.Url, ".git") {
+			commitTime = func(ref string) (int64, bool) {
+				unixTime, err := git.CommitTime(repoDir, ref)
+				if err != nil {
+					return 0, false
+				}
+				return unixTime, true
 			}
-			return unixTime, true
 		}
-	}
-	if err := artifactCache.Prune(p.NameVersion(), pkgCache.GetKeepLatestCount(), commitTime); err != nil {
-		logger.PrintWarning("failed to prune expired artifacts of %s -> %s", p.NameVersion(), err)
+		if err := artifactCache.Prune(p.NameVersion(), keepCount, commitTime); err != nil {
+			logger.PrintWarning("failed to prune expired artifacts of %s -> %s", p.NameVersion(), err)
+		}
 	}
 
 	return nil

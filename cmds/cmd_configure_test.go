@@ -51,6 +51,7 @@ func TestConfigureCmd_CommandStructure(t *testing.T) {
 		{"pkgcache-minio-access-key", ""},
 		{"pkgcache-minio-secret-key", ""},
 		{"pkgcache-readonly", ""},
+		{"pkgcache-keep-artifact-count", ""},
 		{"proxy-host", ""},
 		{"proxy-port", ""},
 		{"ccache-enabled", ""},
@@ -128,6 +129,11 @@ func TestConfigureCmd_Completion(t *testing.T) {
 			name:       "complete_pkgcache_readonly_flag",
 			toComplete: "--pkgcache-r",
 			expected:   []string{"--pkgcache-readonly"},
+		},
+		{
+			name:       "complete_pkgcache_keep_artifact_count_flag",
+			toComplete: "--pkgcache-keep",
+			expected:   []string{"--pkgcache-keep-artifact-count"},
 		},
 		{
 			name:       "complete_pkgcache_minio_host_flag",
@@ -573,6 +579,53 @@ func TestConfigure_PkgCacheReadOnly(t *testing.T) {
 	}
 	if celer2.PkgCache().IsReadOnly() {
 		t.Fatal("cache should be writable")
+	}
+}
+
+func TestConfigure_PkgCacheKeepArtifactCount(t *testing.T) {
+	celer := newInitializedCeler(t)
+	cmd := &configureCmd{}
+
+	if err := os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := runCommand(t, cmd.Command(celer),
+		"--pkgcache-fs-dir="+dirs.TestPkgCacheDir,
+		"--pkgcache-keep-artifact-count=100",
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if got := celer2.PkgCache().GetKeepArtifactCount(); got != 100 {
+		t.Fatalf("keep_artifact_count should be `100`, got `%d`", got)
+	}
+}
+
+// Pruning deletes from a shared cache, so it must stay disabled until a node
+// explicitly configures a count.
+func TestConfigure_PkgCacheKeepArtifactCount_DefaultsToDisabled(t *testing.T) {
+	celer := newInitializedCeler(t)
+	cmd := &configureCmd{}
+
+	if err := os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := runCommand(t, cmd.Command(celer), "--pkgcache-fs-dir="+dirs.TestPkgCacheDir); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if got := celer2.PkgCache().GetKeepArtifactCount(); got != 0 {
+		t.Fatalf("keep_artifact_count should stay disabled, got `%d`", got)
 	}
 }
 

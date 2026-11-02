@@ -31,6 +31,7 @@ celer configure [flags]
 | --pkgcache-minio-access-key   | string  | Set pkgcache minio access key                          |
 | --pkgcache-minio-secret-key   | string  | Set pkgcache minio secret key                          |
 | --pkgcache-readonly           | boolean | `true` keeps the package cache read-only; restoring stays allowed |
+| --pkgcache-keep-artifact-count  | integer | Keep only the newest N artifacts per port; `0` (default) disables pruning |
 | --ccache-enabled           | boolean | Enable/disable ccache                                |
 | --ccache-dir               | string  | Set ccache working directory                         |
 | --ccache-maxsize           | string  | Set ccache max size                                  |
@@ -93,6 +94,7 @@ celer configure --port=eigen@3.4.0 --port-url=https://example.com/eigen.git --po
 - `--pkgcache-minio-host` / `--pkgcache-minio-access-key` / `--pkgcache-minio-secret-key`: host must be reachable; empty values keep the current setting, so a key can be rotated alone.
 - fs and minio backends are mutually exclusive; configuring one while the other is set fails.
 - `--pkgcache-readonly`: `true` keeps the package cache read-only. Writing is on by default; a backend (fs or minio) must be configured first (or in the same command). It only gates **writing**: cached entries are still restored.
+- `--pkgcache-keep-artifact-count`: `0` (default) disables the artifact pruning; a positive count deletes a port's older artifacts after each upload. Only set it on a node that owns the shared cache policy.
 - `--proxy-host`: cannot be empty.
 - `--proxy-port`: must be greater than `0`.
 - `--ccache-dir`: directory must already exist.

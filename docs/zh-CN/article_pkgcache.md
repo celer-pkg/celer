@@ -106,15 +106,9 @@ celer configure --pkgcache-readonly=true
 | 字段 | 说明 |
 |------|------|
 | `pkgcache.readonly` | **只管写入**：`true` 时为只读缓存 |
-| `pkgcache.keep_latest_count` | 每个 port 保留的最新制品数，超出的在每次上传后清理（默认 `10`） |
+| `pkgcache.keep_artifact_count` | 每个 port 保留的最新制品数，超出的在每次上传后清理；不配置则不清理 |
 | `pkgcache.fs.dir` | 缓存根目录，必须已存在 |
 | `pkgcache.minio.host` / `access_key` / `secret_key` | S3 地址和凭证 |
-
-`readonly` 只控制写入，读取（恢复）永远不受影响：别的机器放进缓存的条目照样会被复用——只读节点依然能快速构建，只是不再往缓存里加东西。开发机共用不属于自己的缓存时设 `readonly = true`。
-
-> **注意**：`readonly` 属于 `[pkgcache]` 本身，必须写在 `[pkgcache.fs]` / `[pkgcache.minio]` **之前**（TOML 表不能重复打开）。`celer configure` 会按正确顺序写入。
-
-`keep_latest_count` 用于控制制品增长：某个 port 的制品上传后，celer 会按各制品元数据里记录的 git commit 时间排序，删除该 port 超出的较旧制品。这里的数量按**源码版本**算、不是按制品文件算：同一 commit（或同一压缩包 checksum）产生的多个制品算一个，只保留其中最新的一个。
 
 ## 布局
 

@@ -95,22 +95,25 @@ func buildDag(ctx context.Context, roots []string, ignoreCache bool) (*Dag, erro
 	}
 
 	// Set pkgcache solution if configured: minio and fs are mutually exclusive.
-	if ctx.PkgCache() != nil {
-		minio := ctx.PkgCache().GetMinio()
-		fs := ctx.PkgCache().GetFS()
+	if pkgCache := ctx.PkgCache(); pkgCache != nil {
+		minio := pkgCache.GetMinio()
+		fs := pkgCache.GetFS()
 		if minio != nil {
 			if err := minio.Validate(); err != nil {
 				return nil, err
 			}
-			dag.PkgCache = &configs.PkgCache{
-				Minio: minio,
-			}
+			dag.PkgCache = &configs.PkgCache{Minio: minio}
 		} else if fs != nil {
 			if err := fs.Validate(); err != nil {
 				return nil, err
 			}
-			dag.PkgCache = &configs.PkgCache{
-				FS: fs,
+			dag.PkgCache = &configs.PkgCache{FS: fs}
+		}
+
+		// Export dag with keepArtifactCount that read from pkgcache.
+		if dag.PkgCache != nil {
+			if keepCount := pkgCache.GetKeepArtifactCount(); keepCount > 0 {
+				dag.PkgCache.KeepArtifactCount = &keepCount
 			}
 		}
 	}

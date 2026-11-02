@@ -53,6 +53,9 @@ def configurePkgCache() {
     }
 
     def extra = env.CELER_PKGCACHE_READONLY ? " --pkgcache-readonly=${env.CELER_PKGCACHE_READONLY}" : ''
+    if (env.CELER_PKGCACHE_KEEP_ARTIFACT_COUNT) {
+        extra += " --pkgcache-keep-artifact-count=${env.CELER_PKGCACHE_KEEP_ARTIFACT_COUNT}"
+    }
     if (!minio.every()) {
         run "celer configure --pkgcache-fs-dir=${env.CELER_PKGCACHE_FS_DIR}${extra}"
         return
