@@ -126,7 +126,7 @@ func TestConfigureCmd_Completion(t *testing.T) {
 		},
 		{
 			name:       "complete_pkgcache_readonly_flag",
-			toComplete: "--pkgcache-w",
+			toComplete: "--pkgcache-r",
 			expected:   []string{"--pkgcache-readonly"},
 		},
 		{
@@ -549,7 +549,7 @@ func TestConfigure_PkgCacheDir(t *testing.T) {
 	}
 }
 
-func TestConfigure_PkgCacheWritable(t *testing.T) {
+func TestConfigure_PkgCacheReadOnly(t *testing.T) {
 	celer := newInitializedCeler(t)
 	cmd := &configureCmd{}
 
@@ -1004,7 +1004,7 @@ func TestConfigure_PkgCacheMinio_ConflictWithFSShouldFail(t *testing.T) {
 
 // Regression: option flags before any backend is configured must fail with
 // a clear error, not panic or pass silently.
-func TestConfigure_PkgCacheWritable_BeforeBackendFails(t *testing.T) {
+func TestConfigure_PkgCacheReadOnly_BeforeBackendFails(t *testing.T) {
 	celer := newInitializedCeler(t)
 
 	cmd := &configureCmd{}
