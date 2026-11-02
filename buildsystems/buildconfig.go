@@ -104,7 +104,8 @@ type libraryType struct {
 }
 
 type BuildConfig struct {
-	Url              string   `toml:"url,omitempty"` // Used to override url in package.
+	Url              string   `toml:"url,omitempty"`      // Used to override url in package.
+	Checksum         string   `toml:"checksum,omitempty"` // Used to override checksum in package.
 	SystemName       string   `toml:"system_name,omitempty"`
 	SystemNames      []string `toml:"system_names,omitempty"`
 	SystemNameExcept string   `toml:"system_name_except,omitempty"`
