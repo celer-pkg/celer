@@ -39,7 +39,7 @@ When source code needs to be prepared, Celer follows this flow:
 2. If the source directory is already usable, reuse it directly and skip repo cache lookup
 3. If the source directory does not exist and `checksum` in port.toml is not empty and the library is defined in `ports/`, try restoring from `pkgcache/repos` first
 4. If there is no cache hit, fall back to the normal git clone or archive download/extract flow
-5. After the source is ready, if `pkgcache.writable=true` and the current run is not in offline mode, package that source into repo cache
+5. After the source is ready, if `pkgcache.readonly=false` and the current run is not in offline mode, package that source into repo cache
 
 ## Quick Start
 
@@ -54,7 +54,7 @@ Configure the cache directory in `celer.toml`:
 	project = "project_01"
 
 [pkgcache]
-	writable = true
+	readonly = false
 
 [pkgcache.fs]
 	dir = "/home/test/pkgcache"
@@ -62,8 +62,8 @@ Configure the cache directory in `celer.toml`:
 
 Notes:
 - `dir` must already exist
-- Celer writes new source cache entries into `pkgcache/repos` only when `writable=true`
-- `writable` only gates the write: with `writable=false`, Celer still restores existing cache entries
+- Celer writes new source cache entries into `pkgcache/repos` only when `readonly=false`
+- `readonly` only gates the write: with `readonly=true`, Celer still restores existing cache entries
 
 ### Third-Party Library Caching (Global Policy)
 
@@ -127,7 +127,7 @@ Celer tries repo cache before clone/download when all of these are true:
 Celer writes the prepared source tree into `pkgcache/repos` when all of these are true:
 
 - a pkgcache backend is configured
-- `pkgcache.writable=true`
+- `pkgcache.readonly=false`
 - The current library is defined in `ports/` directory (checked via `shouldCacheRepo()`)
 - `checksum` in port.toml is not empty
 - The current run is not in offline mode
@@ -148,7 +148,7 @@ ports/
 For example, `x264@stable` must exist as `ports/x/x264/stable/port.toml` to be eligible for caching. This automatic policy simplifies cache management - you don't need explicit configuration to enable caching for third-party libraries, they are automatically cached if:
 1. Defined in `ports/` directory
 2. Have a non-empty `checksum` in their port configuration
-3. Other conditions are met (writable cache, online mode, etc.)
+3. Other conditions are met (cache not read-only, online mode, etc.)
 
 Project-specific overrides defined in `conf/projects/` are **excluded** from repo caching and will always perform fresh clones/downloads to ensure project customizations are respected.
 
@@ -209,7 +209,7 @@ For projects using both repo cache and build artifact cache, configure in `celer
 
 ```toml
 [pkgcache]
-	writable = true                # false makes this node read-only
+	readonly = false               # true makes this node read-only
 
 [pkgcache.fs]
 	dir = "/path/to/shared/cache"  # Local or network-mounted directory
@@ -218,7 +218,7 @@ For projects using both repo cache and build artifact cache, configure in `celer
 **Best practices:**
 - In teams with restricted network access, place `pkgcache.fs.dir` on a LAN-shared directory
 - Provide accurate `checksum` values (git commit hash or sha256) for third-party libraries in `ports/`
-- Keep the cache writable so reusable build outputs keep being shared
+- Keep the cache writable (`readonly = false`) so reusable build outputs keep being shared
 
 This reduces both:
 - Source acquisition time

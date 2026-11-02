@@ -53,7 +53,7 @@ pipeline {
     //             '-e CELER_PKGCACHE_MINIO_ACCESS_KEY ' +
     //             '-e CELER_PKGCACHE_MINIO_SECRET_KEY ' +
     //             '-e CELER_PKGCACHE_FS_DIR ' +
-    //             '-e CELER_PKGCACHE_WRITABLE'
+    //             '-e CELER_PKGCACHE_READONLY'
     //     }
     // }
 

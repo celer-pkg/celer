@@ -17,7 +17,7 @@ type BinaryCache struct {
 	ctx      context.Context
 	cacheDir string
 	version  string
-	writable bool
+	readOnly bool
 }
 
 func NewBinaryCache(ctx context.Context, client *minio.Client) *BinaryCache {
@@ -32,7 +32,7 @@ func NewBinaryCache(ctx context.Context, client *minio.Client) *BinaryCache {
 		Minio:    Minio{client: client, bucketName: bucketName},
 		cacheDir: minioConfig.GetDir(pkgcache.DirBinaries, ctx.Version()),
 		version:  ctx.Version(),
-		writable: pkgCache.IsWritable(),
+		readOnly: pkgCache.IsReadOnly(),
 	}
 }
 
@@ -42,8 +42,8 @@ func (d BinaryCache) Store() error {
 		return nil
 	}
 
-	// Skip for not writable.
-	if !d.writable {
+	// Skip when the cache is read-only.
+	if d.readOnly {
 		return nil
 	}
 

@@ -89,7 +89,7 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 	// Check if local file is valid. If not, try to restore from cache or download again.
 	pkgCache := ctx.PkgCache()
 	canUseCache := r.sha256 != "" && !r.ctx.Offline() && pkgCache != nil
-	canStoreInCache := canUseCache && pkgCache.IsWritable()
+	canStoreInCache := canUseCache && !pkgCache.IsReadOnly()
 
 	// Determine if download is needed.
 	needToDownload, err := r.needToDownload(fileName, r.sha256)

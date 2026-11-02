@@ -20,7 +20,7 @@ type DownloadConfig struct {
 	Minio
 	ctx      context.Context
 	cacheDir string
-	writable bool
+	readOnly bool
 }
 
 func NewDownloadConfig(ctx context.Context, client *minio.Client) *DownloadConfig {
@@ -37,7 +37,7 @@ func NewDownloadConfig(ctx context.Context, client *minio.Client) *DownloadConfi
 			bucketName: bucketName,
 		},
 		cacheDir: minioConfig.GetDir(pkgcache.DirDownloads, ctx.Version()),
-		writable: pkgCache.IsWritable(),
+		readOnly: pkgCache.IsReadOnly(),
 	}
 }
 
@@ -48,8 +48,8 @@ func (d DownloadConfig) Store(fileName, sha256, srcPath string) error {
 		return nil
 	}
 
-	// skip for not writable.
-	if !d.writable {
+	// skip when read-only.
+	if d.readOnly {
 		return nil
 	}
 

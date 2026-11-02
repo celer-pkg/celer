@@ -50,7 +50,7 @@ func TestConfigureCmd_CommandStructure(t *testing.T) {
 		{"pkgcache-minio-host", ""},
 		{"pkgcache-minio-access-key", ""},
 		{"pkgcache-minio-secret-key", ""},
-		{"pkgcache-writable", ""},
+		{"pkgcache-readonly", ""},
 		{"proxy-host", ""},
 		{"proxy-port", ""},
 		{"ccache-enabled", ""},
@@ -125,9 +125,9 @@ func TestConfigureCmd_Completion(t *testing.T) {
 			expected:   []string{"--pkgcache-fs-dir"},
 		},
 		{
-			name:       "complete_pkgcache_writable_flag",
-			toComplete: "--pkgcache-w",
-			expected:   []string{"--pkgcache-writable"},
+			name:       "complete_pkgcache_readonly_flag",
+			toComplete: "--pkgcache-r",
+			expected:   []string{"--pkgcache-readonly"},
 		},
 		{
 			name:       "complete_pkgcache_minio_host_flag",
@@ -247,7 +247,7 @@ func TestConfigureCmd_PkgCacheGroupShouldSucceed(t *testing.T) {
 
 	if _, err := runCommand(t, cmd.Command(celer),
 		"--pkgcache-fs-dir="+dirs.TestPkgCacheDir,
-		"--pkgcache-writable=true",
+		"--pkgcache-readonly=true",
 	); err != nil {
 		t.Fatalf("expected success when package-cache group flags are provided, got: %v", err)
 	}
@@ -260,8 +260,8 @@ func TestConfigureCmd_PkgCacheGroupShouldSucceed(t *testing.T) {
 	if celer2.PkgCache().GetFS().Dir != filepath.ToSlash(dirs.TestPkgCacheDir) {
 		t.Fatalf("cache dir should be `%s`", dirs.TestPkgCacheDir)
 	}
-	if !celer2.PkgCache().IsWritable() {
-		t.Fatal("cache writable should be `true`")
+	if !celer2.PkgCache().IsReadOnly() {
+		t.Fatal("cache should be read-only")
 	}
 }
 
@@ -544,12 +544,12 @@ func TestConfigure_PkgCacheDir(t *testing.T) {
 	}
 
 	// The cache must be writable by default on the first backend configuration.
-	if !celer2.PkgCache().IsWritable() {
+	if celer2.PkgCache().IsReadOnly() {
 		t.Fatal("pkgcache should default to writable on first backend configuration")
 	}
 }
 
-func TestConfigure_PkgCacheWritable(t *testing.T) {
+func TestConfigure_PkgCacheReadOnly(t *testing.T) {
 	celer := newInitializedCeler(t)
 	cmd := &configureCmd{}
 
@@ -558,11 +558,11 @@ func TestConfigure_PkgCacheWritable(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// pkgcache-dir and pkgcache-writable are in the same group, so we can set
+	// pkgcache-dir and pkgcache-readonly are in the same group, so we can set
 	// them together in a single command just like a user would.
 	if _, err := runCommand(t, cmd.Command(celer),
 		"--pkgcache-fs-dir="+dirs.TestPkgCacheDir,
-		"--pkgcache-writable=true",
+		"--pkgcache-readonly=false",
 	); err != nil {
 		t.Fatal(err)
 	}
@@ -571,8 +571,8 @@ func TestConfigure_PkgCacheWritable(t *testing.T) {
 	if err := celer2.Init(); err != nil {
 		t.Fatal(err)
 	}
-	if !celer2.PkgCache().IsWritable() {
-		t.Fatal("cache writable should be `true`")
+	if celer2.PkgCache().IsReadOnly() {
+		t.Fatal("cache should be writable")
 	}
 }
 
@@ -913,7 +913,7 @@ func TestConfigure_PkgCacheMinio(t *testing.T) {
 		"--pkgcache-minio-host="+server.URL,
 		"--pkgcache-minio-access-key=test-access-key",
 		"--pkgcache-minio-secret-key=test-secret-key",
-		"--pkgcache-writable=true",
+		"--pkgcache-readonly=false",
 	); err != nil {
 		t.Fatal(err)
 	}
@@ -935,8 +935,8 @@ func TestConfigure_PkgCacheMinio(t *testing.T) {
 	if minioCfg.SecretKey != "test-secret-key" {
 		t.Fatalf("minio secret key should be `test-secret-key`, got `%s`", minioCfg.SecretKey)
 	}
-	if !celer2.PkgCache().IsWritable() {
-		t.Fatal("minio writable should be `true`")
+	if celer2.PkgCache().IsReadOnly() {
+		t.Fatal("minio cache should be writable")
 	}
 }
 
@@ -1004,12 +1004,12 @@ func TestConfigure_PkgCacheMinio_ConflictWithFSShouldFail(t *testing.T) {
 
 // Regression: option flags before any backend is configured must fail with
 // a clear error, not panic or pass silently.
-func TestConfigure_PkgCacheWritable_BeforeBackendFails(t *testing.T) {
+func TestConfigure_PkgCacheReadOnly_BeforeBackendFails(t *testing.T) {
 	celer := newInitializedCeler(t)
 
 	cmd := &configureCmd{}
 	stderr, err := runCommand(t, cmd.Command(celer),
-		"--pkgcache-writable=true",
+		"--pkgcache-readonly=true",
 	)
 	if err == nil {
 		t.Fatal("expected error when no pkgcache backend has been configured")

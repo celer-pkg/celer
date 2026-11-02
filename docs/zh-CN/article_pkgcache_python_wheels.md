@@ -29,7 +29,7 @@ pkgcache/python-wheels/py310-linux-amd64/
 
 ```toml
 [pkgcache]
-	writable = true              # 写入 wheel 必须
+	readonly = false             # 写入 wheel 必须
 
 [pkgcache.fs]
 	dir = "/home/test/pkgcache"

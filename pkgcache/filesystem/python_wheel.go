@@ -16,7 +16,7 @@ type PythonWheelConfig struct {
 	FileSystem
 	ctx      context.Context
 	cacheDir string
-	writable bool
+	readOnly bool
 }
 
 func NewPythonWheelConfig(ctx context.Context) *PythonWheelConfig {
@@ -33,7 +33,7 @@ func NewPythonWheelConfig(ctx context.Context) *PythonWheelConfig {
 		},
 		ctx:      ctx,
 		cacheDir: filesystem.GetDir(pkgcache.DirPythonWheels, ctx.Version()),
-		writable: pkgCache.IsWritable(),
+		readOnly: pkgCache.IsReadOnly(),
 	}
 }
 
@@ -69,7 +69,7 @@ func (p PythonWheelConfig) Store(cacheKey, wheelhouseDir string) error {
 	if p.ctx.Offline() {
 		return nil
 	}
-	if !p.writable {
+	if p.readOnly {
 		return nil
 	}
 

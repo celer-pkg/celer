@@ -17,7 +17,7 @@ import (
 type BinaryCache struct {
 	ctx      context.Context
 	cacheDir string
-	writable bool
+	readOnly bool
 }
 
 func NewBinaryCache(ctx context.Context) *BinaryCache {
@@ -29,13 +29,13 @@ func NewBinaryCache(ctx context.Context) *BinaryCache {
 	return &BinaryCache{
 		ctx:      ctx,
 		cacheDir: pkgCache.GetFS().GetDir(pkgcache.DirBinaries, ctx.Version()),
-		writable: pkgCache.IsWritable(),
+		readOnly: pkgCache.IsReadOnly(),
 	}
 }
 
 func (b BinaryCache) Store() error {
 	// Skip when offline or the cache is read-only.
-	if b.ctx.Offline() || !b.writable {
+	if b.ctx.Offline() || b.readOnly {
 		return nil
 	}
 

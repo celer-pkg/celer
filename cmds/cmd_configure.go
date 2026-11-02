@@ -35,7 +35,7 @@ type configureCmd struct {
 	// Pkg-cache flags.
 	pkgCacheFS       pkgcache.FS
 	pkgCacheMinio    pkgcache.Minio
-	pkgCacheWritable bool
+	pkgCacheReadOnly bool
 
 	proxy  configs.Proxy
 	ccache configs.CCache
@@ -53,7 +53,7 @@ var flagGroup = map[string]string{
 	"pkgcache-minio-host":       "pkgcache",
 	"pkgcache-minio-access-key": "pkgcache",
 	"pkgcache-minio-secret-key": "pkgcache",
-	"pkgcache-writable":         "pkgcache",
+	"pkgcache-readonly":         "pkgcache",
 	"proxy-host":                "proxy",
 	"proxy-port":                "proxy",
 	"proxy-remove":              "proxy",
@@ -101,7 +101,7 @@ Available Configuration Options:
     --pkgcache-minio-host         Set the minio backend host (e.g. http://minio.example.com:9000)
     --pkgcache-minio-access-key   Set the minio access key
     --pkgcache-minio-secret-key   Set the minio secret key
-    --pkgcache-writable           Set pkgcache.writable: false makes the cache read-only, restoring stays allowed (true/false)
+    --pkgcache-readonly           Set pkgcache.readonly: true makes the cache read-only, restoring stays allowed (true/false)
 
   Proxy Configuration:
     --proxy-host                Set the proxy server hostname
@@ -132,7 +132,7 @@ Examples:
   celer configure --pkgcache-minio-host=http://srv:9000 \
                   --pkgcache-minio-access-key=xxx \
                   --pkgcache-minio-secret-key=yyy                  # Configure pkgcache.minio
-  celer configure --pkgcache-writable=false                        # Make the cache read-only
+  celer configure --pkgcache-readonly=true                         # Make the cache read-only
   celer configure --proxy-host=proxy.example.com                   # Set proxy host
   celer configure --proxy-port=8080                                # Set proxy port
   celer configure --proxy-remove                                   # Remove http/https proxy
@@ -164,7 +164,7 @@ Examples:
 				flags.Changed("pkgcache-minio-host") ||
 				flags.Changed("pkgcache-minio-access-key") ||
 				flags.Changed("pkgcache-minio-secret-key") ||
-				flags.Changed("pkgcache-writable") {
+				flags.Changed("pkgcache-readonly") {
 				initOpt.SkipPkgCache = true
 			}
 			if err := c.celer.InitWithOptions(initOpt); err != nil {
@@ -230,7 +230,7 @@ Examples:
 	flags.StringVar(&c.pkgCacheMinio.AccessKey, "pkgcache-minio-access-key", "", "configure pkgcache.minio access key.")
 	flags.StringVar(&c.pkgCacheMinio.SecretKey, "pkgcache-minio-secret-key", "", "configure pkgcache.minio secret key.")
 
-	flags.BoolVar(&c.pkgCacheWritable, "pkgcache-writable", true, "configure pkgcache writable.")
+	flags.BoolVar(&c.pkgCacheReadOnly, "pkgcache-readonly", false, "configure pkgcache readonly.")
 
 	// Proxy flags.
 	flags.StringVar(&c.proxy.Host, "proxy-host", "", "configure proxy host.")
@@ -257,7 +257,7 @@ Examples:
 	command.RegisterFlagCompletionFunc("verbose", boolCompletion)
 
 	// PkgCache flag completions.
-	command.RegisterFlagCompletionFunc("pkgcache-writable", boolCompletion)
+	command.RegisterFlagCompletionFunc("pkgcache-readonly", boolCompletion)
 
 	// CCache flag completions.
 	command.RegisterFlagCompletionFunc("ccache-enabled", boolCompletion)
@@ -428,11 +428,11 @@ func (c *configureCmd) configurePkgCache(flags *pflag.FlagSet) error {
 	}
 
 	// The write switch lives on [pkgcache] itself, not on a backend.
-	if flags.Changed("pkgcache-writable") {
-		if err := c.celer.SetPkgCacheWritable(c.pkgCacheWritable); err != nil {
-			return logger.PrintError(err, "failed to set pkgcache writable: %s", expr.If(c.pkgCacheWritable, "true", "false"))
+	if flags.Changed("pkgcache-readonly") {
+		if err := c.celer.SetPkgCacheReadOnly(c.pkgCacheReadOnly); err != nil {
+			return logger.PrintError(err, "failed to set pkgcache readonly: %s", expr.If(c.pkgCacheReadOnly, "true", "false"))
 		}
-		logger.PrintSuccess("current pkgcache writable: %s.", expr.If(c.pkgCacheWritable, "true", "false"))
+		logger.PrintSuccess("current pkgcache readonly: %s.", expr.If(c.pkgCacheReadOnly, "true", "false"))
 	}
 
 	return nil
@@ -491,7 +491,7 @@ func (c *configureCmd) completion(cmd *cobra.Command, args []string, toComplete 
 		"--pkgcache-minio-host",
 		"--pkgcache-minio-access-key",
 		"--pkgcache-minio-secret-key",
-		"--pkgcache-writable",
+		"--pkgcache-readonly",
 		"--proxy-host",
 		"--proxy-port",
 		"--proxy-remove",
