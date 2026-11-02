@@ -953,14 +953,26 @@ func TestConfigure_CCacheRemoteOnly_OFF(t *testing.T) {
 	}
 }
 
+func newFakeMinioServer(t *testing.T) *httptest.Server {
+	t.Helper()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet && r.URL.Query().Has("location") {
+			w.Header().Set("Content-Type", "application/xml")
+			_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?><LocationConstraint xmlns="http://s3.amazonaws.com/doc/2006-03-01/"></LocationConstraint>`))
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	t.Cleanup(server.Close)
+	return server
+}
+
 func TestConfigure_PkgCacheMinio(t *testing.T) {
 	celer := newInitializedCeler(t)
 	cmd := &configureCmd{}
 
-	// A local http server stands in for the minio host so that the
-	// reachability check passes.
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
-	t.Cleanup(server.Close)
+	server := newFakeMinioServer(t)
 
 	if _, err := runCommand(t, cmd.Command(celer),
 		"--pkgcache-minio-host="+server.URL,
@@ -999,8 +1011,7 @@ func TestConfigure_PkgCacheMinio_RotateSecretKey(t *testing.T) {
 	celer := newInitializedCeler(t)
 	cmd := &configureCmd{}
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
-	t.Cleanup(server.Close)
+	server := newFakeMinioServer(t)
 
 	if _, err := runCommand(t, cmd.Command(celer),
 		"--pkgcache-minio-host="+server.URL,
@@ -1031,10 +1042,17 @@ func TestConfigure_PkgCacheMinio_RotateSecretKey(t *testing.T) {
 	}
 }
 
-// fs and minio are mutually exclusive pkgcache backends.
-func TestConfigure_PkgCacheMinio_ConflictWithFSShouldFail(t *testing.T) {
+// fs and minio are mutually exclusive pkgcache backends: configuring one
+// replaces the other, so switching a workspace needs no manual cleanup.
+func TestConfigure_PkgCacheMinio_ReplacesFS(t *testing.T) {
 	celer := newInitializedCeler(t)
 	cmd := &configureCmd{}
+
+	// Go offline first: the minio backend probes the endpoint on configure, and
+	// the test must not depend on a reachable S3.
+	if _, err := runCommand(t, cmd.Command(celer), "--offline=true"); err != nil {
+		t.Fatal(err)
+	}
 
 	if err := os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm); err != nil {
 		t.Fatal(err)
@@ -1043,15 +1061,59 @@ func TestConfigure_PkgCacheMinio_ConflictWithFSShouldFail(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
-	t.Cleanup(server.Close)
-
-	stderr, err := runCommand(t, cmd.Command(celer), "--pkgcache-minio-host="+server.URL)
-	if err == nil {
-		t.Fatal("expected error when configuring minio while fs is configured")
+	if _, err := runCommand(t, cmd.Command(celer),
+		"--pkgcache-minio-host=http://minio.example.com:9000",
+		"--pkgcache-minio-access-key=test-access-key",
+		"--pkgcache-minio-secret-key=test-secret-key",
+	); err != nil {
+		t.Fatalf("configuring minio should replace the fs backend, got: %v", err)
 	}
-	if !strings.Contains(stderr, "both 'minio' and 'fs'") {
-		t.Fatalf("stderr should report backend conflict, got:\n%s", stderr)
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if celer2.PkgCache().GetFS() != nil {
+		t.Fatal("fs backend should be dropped once minio is configured")
+	}
+	if minioCfg := celer2.PkgCache().GetMinio(); minioCfg == nil || minioCfg.Host != "http://minio.example.com:9000" {
+		t.Fatal("minio host should be `http://minio.example.com:9000`")
+	}
+}
+
+func TestConfigure_PkgCacheFS_ReplacesMinio(t *testing.T) {
+	celer := newInitializedCeler(t)
+	cmd := &configureCmd{}
+
+	// See TestConfigure_PkgCacheMinio_ReplacesFS: offline keeps the test hermetic.
+	if _, err := runCommand(t, cmd.Command(celer), "--offline=true"); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := runCommand(t, cmd.Command(celer),
+		"--pkgcache-minio-host=http://minio.example.com:9000",
+		"--pkgcache-minio-access-key=test-access-key",
+		"--pkgcache-minio-secret-key=test-secret-key",
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := runCommand(t, cmd.Command(celer), "--pkgcache-fs-dir="+dirs.TestPkgCacheDir); err != nil {
+		t.Fatalf("configuring fs should replace the minio backend, got: %v", err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if celer2.PkgCache().GetMinio() != nil {
+		t.Fatal("minio backend should be dropped once fs is configured")
+	}
+	if fsCfg := celer2.PkgCache().GetFS(); fsCfg == nil || fsCfg.Dir != filepath.ToSlash(dirs.TestPkgCacheDir) {
+		t.Fatalf("fs dir should be `%s`", dirs.TestPkgCacheDir)
 	}
 }
 

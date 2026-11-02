@@ -5,8 +5,6 @@ PkgCache 缓存构建产物、源码仓库和下载文件。后端只能选一�
 - **fs**：本地目录，或 NFS / SMB 挂载
 - **minio**：S3 兼容对象存储
 
-同时配两个会报错：`pkgcache can not configure both 'minio' and 'fs'`。
-
 - [缓存构建产物](article_pkgcache_artifacts.md)
 - [缓存源码仓库](article_pkgcache_repos.md)
 - [缓存下载文件](article_pkgcache_downloads.md)

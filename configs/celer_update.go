@@ -248,10 +248,7 @@ func (c *Celer) SetPkgCacheFSDir(dir string) error {
 	if c.configData.PkgCache == nil {
 		c.configData.PkgCache = NewPkgCache()
 	}
-	// fs and minio backends are mutually exclusive.
-	if c.configData.PkgCache.Minio != nil {
-		return errors.ErrPkgCacheDuplicated
-	}
+	c.configData.PkgCache.Minio = nil
 
 	// Update fs dir.
 	if c.configData.PkgCache.FS == nil {
@@ -279,11 +276,7 @@ func (c *Celer) SetPkgCacheMinio(host, accessKey, secretKey string) error {
 	if c.configData.PkgCache == nil {
 		c.configData.PkgCache = NewPkgCache()
 	}
-
-	// fs and minio are mutually exclusive.
-	if c.configData.PkgCache.FS != nil {
-		return errors.ErrPkgCacheDuplicated
-	}
+	c.configData.PkgCache.FS = nil
 
 	// Update minio config, empty value means unchanged.
 	if c.configData.PkgCache.Minio == nil {
