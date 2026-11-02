@@ -124,7 +124,7 @@ type PkgCache interface {
 	GetMinio() *Minio
 	GetFS() *FS
 	IsReadOnly() bool
-	GetKeepLatestCount() int
+	GetKeepArtifactCount() int
 	GetBinaryCache() BinaryCache
 	GetDownloadCache() DownloadCache
 	GetArtifactCache() AritifactCache

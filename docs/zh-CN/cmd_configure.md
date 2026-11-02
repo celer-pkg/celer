@@ -31,6 +31,7 @@ celer configure [flags]
 | --pkgcache-minio-access-key   | 字符串  | 设置 pkgcache minio access key                  |
 | --pkgcache-minio-secret-key   | 字符串  | 设置 pkgcache minio secret key                  |
 | --pkgcache-readonly           | 布尔    | `true` 时 pkgcache 只读（仍可恢复缓存）        |
+| --pkgcache-keep-artifact-count  | 整数    | 每个 port 只保留最新 N 个制品；`0`（默认）表示不清理 |
 | --ccache-enabled           | 布尔    | 开启/关闭 ccache                       |
 | --ccache-dir               | 字符串  | 设置 ccache 工作目录                   |
 | --ccache-maxsize           | 字符串  | 设置 ccache 最大容量                   |
@@ -91,6 +92,7 @@ celer configure --port=eigen@3.4.0 --port-url=https://example.com/eigen.git --po
 - `--pkgcache-minio-host` / `--pkgcache-minio-access-key` / `--pkgcache-minio-secret-key`：host 必须可访问；空值表示保持不变，因此可以单独轮换某个密钥。
 - fs 与 minio 后端互斥；已配置其中一个后再配置另一个会报错。
 - `--pkgcache-readonly`：pkgcache 唯一的选项；使用前需先配置任一后端（可同命令一起配置）。写入默认开启，它**只管写入**：为 `true` 时不再往缓存里写，但缓存里已有的条目依然会被恢复。
+- `--pkgcache-keep-artifact-count`：`0`（默认）表示不清理；设成正整数后，每次上传完会删除该 port 较旧的制品。只应在负责共享缓存策略的节点上设置。
 - `--proxy-host`：不能为空。
 - `--proxy-port`：必须大于 `0`。
 - `--ccache-dir`：目录必须已存在。

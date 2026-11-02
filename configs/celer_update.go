@@ -331,6 +331,31 @@ func (c *Celer) SetPkgCacheReadOnly(readOnly bool) error {
 	return c.save()
 }
 
+// SetPkgCacheKeepArtifactCount sets how many of the newest artifacts to keep per
+// port. A count <= 0 disables pruning, so celer never deletes from the shared
+// cache.
+func (c *Celer) SetPkgCacheKeepArtifactCount(count int) error {
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	if c.configData.PkgCache == nil || (c.configData.PkgCache.Minio == nil && c.configData.PkgCache.FS == nil) {
+		return errors.ErrPkgCacheNotConfigured
+	}
+
+	if count <= 0 {
+		c.configData.PkgCache.KeepArtifactCount = nil
+	} else {
+		c.configData.PkgCache.KeepArtifactCount = &count
+	}
+
+	// Refresh pkgcache config.
+	if err := c.initPkgCache(); err != nil {
+		return err
+	}
+	return c.save()
+}
+
 func (c *Celer) SetProxyHost(host string) error {
 	if strings.TrimSpace(host) == "" {
 		return fmt.Errorf("proxy host is invalid")

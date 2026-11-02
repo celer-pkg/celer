@@ -35,6 +35,13 @@ func Import(celer *configs.Celer, dagPath string) (*DagInfo, error) {
 				return nil, fmt.Errorf("failed to adopt the fs as pkgcache solution -> %w", err)
 			}
 		}
+
+		// Adopt the exporter's retention policy.
+		if dag.PkgCache.KeepArtifactCount != nil && (dag.PkgCache.Minio != nil || dag.PkgCache.FS != nil) {
+			if err := celer.SetPkgCacheKeepArtifactCount(*dag.PkgCache.KeepArtifactCount); err != nil {
+				return nil, fmt.Errorf("failed to adopt the artifact keep count from '%s' -> %w", dagPath, err)
+			}
+		}
 	}
 
 	// A schedule is reproducible only with the same version celer that exported it,

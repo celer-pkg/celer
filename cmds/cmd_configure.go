@@ -33,38 +33,40 @@ type configureCmd struct {
 	portRef string
 
 	// Pkg-cache flags.
-	pkgCacheFS       pkgcache.FS
-	pkgCacheMinio    pkgcache.Minio
-	pkgCacheReadOnly bool
+	pkgCacheFS                pkgcache.FS
+	pkgCacheMinio             pkgcache.Minio
+	pkgCacheReadOnly          bool
+	pkgCacheKeepArtifactCount int
 
 	proxy  configs.Proxy
 	ccache configs.CCache
 }
 
 var flagGroup = map[string]string{
-	"platform":                  "platform",
-	"project":                   "project",
-	"build-type":                "build-type",
-	"downloads":                 "downloads",
-	"jobs":                      "jobs",
-	"offline":                   "offline",
-	"verbose":                   "verbose",
-	"pkgcache-fs-dir":           "pkgcache",
-	"pkgcache-minio-host":       "pkgcache",
-	"pkgcache-minio-access-key": "pkgcache",
-	"pkgcache-minio-secret-key": "pkgcache",
-	"pkgcache-readonly":         "pkgcache",
-	"proxy-host":                "proxy",
-	"proxy-port":                "proxy",
-	"proxy-remove":              "proxy",
-	"ccache-enabled":            "ccache",
-	"ccache-dir":                "ccache",
-	"ccache-maxsize":            "ccache",
-	"ccache-remote-storage":     "ccache",
-	"ccache-remote-only":        "ccache",
-	"port":                      "port",
-	"port-url":                  "port",
-	"port-ref":                  "port",
+	"platform":                     "platform",
+	"project":                      "project",
+	"build-type":                   "build-type",
+	"downloads":                    "downloads",
+	"jobs":                         "jobs",
+	"offline":                      "offline",
+	"verbose":                      "verbose",
+	"pkgcache-fs-dir":              "pkgcache",
+	"pkgcache-minio-host":          "pkgcache",
+	"pkgcache-minio-access-key":    "pkgcache",
+	"pkgcache-minio-secret-key":    "pkgcache",
+	"pkgcache-readonly":            "pkgcache",
+	"pkgcache-keep-artifact-count": "pkgcache",
+	"proxy-host":                   "proxy",
+	"proxy-port":                   "proxy",
+	"proxy-remove":                 "proxy",
+	"ccache-enabled":               "ccache",
+	"ccache-dir":                   "ccache",
+	"ccache-maxsize":               "ccache",
+	"ccache-remote-storage":        "ccache",
+	"ccache-remote-only":           "ccache",
+	"port":                         "port",
+	"port-url":                     "port",
+	"port-ref":                     "port",
 }
 
 func (c *configureCmd) Command(celer *configs.Celer) *cobra.Command {
@@ -97,11 +99,12 @@ Available Configuration Options:
     --verbose                   Enable/disable verbose output (true/false)
 
   PkgCache Configuration (fs and minio are mutually exclusive backends):
-    --pkgcache-fs-dir             Set the fs backend directory path
-    --pkgcache-minio-host         Set the minio backend host (e.g. http://minio.example.com:9000)
-    --pkgcache-minio-access-key   Set the minio access key
-    --pkgcache-minio-secret-key   Set the minio secret key
-    --pkgcache-readonly           Set pkgcache.readonly: true makes the cache read-only, restoring stays allowed (true/false)
+    --pkgcache-fs-dir               Set the fs backend directory path
+    --pkgcache-minio-host           Set the minio backend host (e.g. http://minio.example.com:9000)
+    --pkgcache-minio-access-key     Set the minio access key
+    --pkgcache-minio-secret-key     Set the minio secret key
+    --pkgcache-readonly             Set pkgcache.readonly: true makes the cache read-only, restoring stays allowed (true/false)
+    --pkgcache-keep-artifact-count  Set pkgcache.keep_artifact_count: keep only the newest N artifacts per port, 0 disables pruning (int)
 
   Proxy Configuration:
     --proxy-host                Set the proxy server hostname
@@ -164,7 +167,8 @@ Examples:
 				flags.Changed("pkgcache-minio-host") ||
 				flags.Changed("pkgcache-minio-access-key") ||
 				flags.Changed("pkgcache-minio-secret-key") ||
-				flags.Changed("pkgcache-readonly") {
+				flags.Changed("pkgcache-readonly") ||
+				flags.Changed("pkgcache-keep-artifact-count") {
 				initOpt.SkipPkgCache = true
 			}
 			if err := c.celer.InitWithOptions(initOpt); err != nil {
@@ -231,6 +235,7 @@ Examples:
 	flags.StringVar(&c.pkgCacheMinio.SecretKey, "pkgcache-minio-secret-key", "", "configure pkgcache.minio secret key.")
 
 	flags.BoolVar(&c.pkgCacheReadOnly, "pkgcache-readonly", false, "configure pkgcache readonly.")
+	flags.IntVar(&c.pkgCacheKeepArtifactCount, "pkgcache-keep-artifact-count", 0, "configure pkgcache keep_artifact_count, 0 disables pruning.")
 
 	// Proxy flags.
 	flags.StringVar(&c.proxy.Host, "proxy-host", "", "configure proxy host.")
@@ -435,6 +440,14 @@ func (c *configureCmd) configurePkgCache(flags *pflag.FlagSet) error {
 		logger.PrintSuccess("current pkgcache readonly: %s.", expr.If(c.pkgCacheReadOnly, "true", "false"))
 	}
 
+	// The retention policy also lives on [pkgcache] itself: 0 disables pruning.
+	if flags.Changed("pkgcache-keep-artifact-count") {
+		if err := c.celer.SetPkgCacheKeepArtifactCount(c.pkgCacheKeepArtifactCount); err != nil {
+			return logger.PrintError(err, "failed to set pkgcache keep_artifact_count: %d", c.pkgCacheKeepArtifactCount)
+		}
+		logger.PrintSuccess("current pkgcache keep_artifact_count: %s.", expr.If(c.pkgCacheKeepArtifactCount > 0, fmt.Sprintf("%d", c.pkgCacheKeepArtifactCount), "disabled"))
+	}
+
 	return nil
 }
 
@@ -492,6 +505,7 @@ func (c *configureCmd) completion(cmd *cobra.Command, args []string, toComplete 
 		"--pkgcache-minio-access-key",
 		"--pkgcache-minio-secret-key",
 		"--pkgcache-readonly",
+		"--pkgcache-keep-artifact-count",
 		"--proxy-host",
 		"--proxy-port",
 		"--proxy-remove",
