@@ -39,7 +39,7 @@
 2. 如果源码目录已经可用，直接复用，不再读 repo 缓存
 3. 如果源码目录不存在，并且 `port.toml` 的 `checksum`不为空，已启用且该库定义在 `ports/` 中，则先尝试从 `pkgcache/repos` 恢复源码
 4. 如果缓存未命中，再执行正常的 git clone 或压缩包下载/解压
-5. 当源码准备完成后，如果 `pkgcache.writable=true` 且当前不是 offline 模式，则把源码打包写入 repo 缓存
+5. 当源码准备完成后，如果 `pkgcache.readonly=false` 且当前不是 offline 模式，则把源码打包写入 repo 缓存
 
 ## 快速开始
 
@@ -54,7 +54,7 @@
 	project = "project_01"
 
 [pkgcache]
-	writable = true
+	readonly = false
 
 [pkgcache.fs]
 	dir = "/home/test/pkgcache"
@@ -62,8 +62,8 @@
 
 说明：
 - `dir` 必须是一个已经存在的目录
-- `writable=true` 时，Celer 才会把新的源码缓存写入 `pkgcache/repos`
-- `writable` 只管写入：`writable=false` 时，仍然可以恢复已有缓存
+- `readonly=false` 时，Celer 才会把新的源码缓存写入 `pkgcache/repos`
+- `readonly` 只管写入：`readonly=true` 时，仍然可以恢复已有缓存
 
 ### 第三方库自动缓存（全局策略）
 
@@ -129,7 +129,7 @@ pkgcache/repos/x264@stable/3147391d946bb4b6c68edd901f2add6ac1f31f8c.tar.gz
 
 - 当前不是 offline 模式
 - 已配置 pkgcache 后端（fs 或 minio）
-- `pkgcache.writable=true`
+- `pkgcache.readonly=false`
 - 当前库定义在 `ports/` 目录中（通过 `shouldCacheRepo()` 检查）
 - clone / download / 解压已经成功完成
 
@@ -190,7 +190,7 @@ repo 缓存在 `pkgcache/repos` 下按 `name@version` 分类：
 
 ```toml
 [pkgcache]
-	writable = true               # false 表示这个节点只读
+	readonly = false              # true 表示这个节点只读
 
 [pkgcache.fs]
 	dir = "/path/to/shared/cache"  # 本地或网络共享目录
@@ -199,7 +199,7 @@ repo 缓存在 `pkgcache/repos` 下按 `name@version` 分类：
 **最佳实践：**
 - 在网络较差或访问 GitHub 受限的团队环境里，把 `pkgcache.fs.dir` 放到局域网共享目录
 - 在 `ports/` 中的第三方库 `port.toml` 里提供准确的 `checksum`（git commit hash 或 sha256）
-- 让共享缓存保持可写（`writable=true`），可复用的构建结果才能沉淀下来
+- 让共享缓存保持可写（`readonly=false`），可复用的构建结果才能沉淀下来
 
 这样可以同时减少：
 - 拉源码的时间（通过 repo 缓存）

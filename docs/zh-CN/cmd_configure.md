@@ -30,7 +30,7 @@ celer configure [flags]
 | --pkgcache-minio-host         | 字符串  | 设置 pkgcache minio 后端地址（fs 与 minio 互斥）|
 | --pkgcache-minio-access-key   | 字符串  | 设置 pkgcache minio access key                  |
 | --pkgcache-minio-secret-key   | 字符串  | 设置 pkgcache minio secret key                  |
-| --pkgcache-writable           | 布尔    | `false` 时 pkgcache 只读（仍可恢复缓存）        |
+| --pkgcache-readonly           | 布尔    | `true` 时 pkgcache 只读（仍可恢复缓存）        |
 | --ccache-enabled           | 布尔    | 开启/关闭 ccache                       |
 | --ccache-dir               | 字符串  | 设置 ccache 工作目录                   |
 | --ccache-maxsize           | 字符串  | 设置 ccache 最大容量                   |
@@ -58,8 +58,8 @@ celer configure --offline=true
 celer configure --verbose=false
 
 # pkgcache 组（可同命令组合）
-# fs 与 minio 为互斥后端；写入默认开启，writable=false 表示这个节点只读。
-celer configure --pkgcache-fs-dir=/home/xxx/cache --pkgcache-writable=true
+# fs 与 minio 为互斥后端；写入默认开启，readonly=true 表示这个节点只读。
+celer configure --pkgcache-fs-dir=/home/xxx/cache --pkgcache-readonly=false
 celer configure --pkgcache-minio-host=http://minio.example.com:9000 \
                 --pkgcache-minio-access-key=xxx \
                 --pkgcache-minio-secret-key=yyy
@@ -90,7 +90,7 @@ celer configure --port=eigen@3.4.0 --port-url=https://example.com/eigen.git --po
 - `--pkgcache-fs-dir`：不能为空，且目录必须已存在。
 - `--pkgcache-minio-host` / `--pkgcache-minio-access-key` / `--pkgcache-minio-secret-key`：host 必须可访问；空值表示保持不变，因此可以单独轮换某个密钥。
 - fs 与 minio 后端互斥；已配置其中一个后再配置另一个会报错。
-- `--pkgcache-writable`：pkgcache 唯一的选项；使用前需先配置任一后端（可同命令一起配置）。写入默认开启，它**只管写入**：为 `false` 时不再往缓存里写，但缓存里已有的条目依然会被恢复。
+- `--pkgcache-readonly`：pkgcache 唯一的选项；使用前需先配置任一后端（可同命令一起配置）。写入默认开启，它**只管写入**：为 `true` 时不再往缓存里写，但缓存里已有的条目依然会被恢复。
 - `--proxy-host`：不能为空。
 - `--proxy-port`：必须大于 `0`。
 - `--ccache-dir`：目录必须已存在。

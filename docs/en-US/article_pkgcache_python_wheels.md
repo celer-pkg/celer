@@ -27,7 +27,7 @@ pkgcache/python-wheels/py310-linux-amd64/
 
 ```toml
 [pkgcache]
-	writable = true              # required to store wheels
+	readonly = false             # required to store wheels
 
 [pkgcache.fs]
 	dir = "/home/test/pkgcache"

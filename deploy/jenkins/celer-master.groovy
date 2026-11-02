@@ -52,7 +52,7 @@ def configurePkgCache() {
         error 'pkgcache: set CELER_PKGCACHE_FS_DIR, or CELER_PKGCACHE_MINIO_HOST with _ACCESS_KEY and _SECRET_KEY.'
     }
 
-    def extra = env.CELER_PKGCACHE_WRITABLE ? " --pkgcache-writable=${env.CELER_PKGCACHE_WRITABLE}" : ''
+    def extra = env.CELER_PKGCACHE_READONLY ? " --pkgcache-readonly=${env.CELER_PKGCACHE_READONLY}" : ''
     if (!minio.every()) {
         run "celer configure --pkgcache-fs-dir=${env.CELER_PKGCACHE_FS_DIR}${extra}"
         return
@@ -208,7 +208,7 @@ pipeline {
     //             '-e CELER_PKGCACHE_MINIO_ACCESS_KEY ' +
     //             '-e CELER_PKGCACHE_MINIO_SECRET_KEY ' +
     //             '-e CELER_PKGCACHE_FS_DIR ' +
-    //             '-e CELER_PKGCACHE_WRITABLE'
+    //             '-e CELER_PKGCACHE_READONLY'
     //     }
     // }
     

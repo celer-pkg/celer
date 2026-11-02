@@ -537,7 +537,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archiveName string, depth int) (err
 	// For archive sources, cache before initializing local git tracking so the cache
 	// stays keyed by the original archive checksum without the generated .git directory.
 	// Store repo even checksum is empty, then can fill checksum in port.toml, if you want restore it from pkgcache/repos.
-	if repoUrl != "_" && repoCache != nil && pkgCache.IsWritable() {
+	if repoUrl != "_" && repoCache != nil && !pkgCache.IsReadOnly() {
 		archiveFile := filepath.Join(b.Ctx.Downloads(), archiveName)
 		cacheKey := b.repoCacheKey(nameVersion)
 		repoInfo := pkgcache.RepoInfo{

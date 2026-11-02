@@ -14,7 +14,7 @@ const DefaultKeepLatestCount = 10
 // ================= PkgCache ================= //
 
 type PkgCache struct {
-	Writable        *bool           `toml:"writable,omitempty" json:"writable,omitempty"`
+	ReadOnly        bool            `toml:"readonly,omitempty" json:"readonly,omitempty"`
 	KeepLatestCount *int            `toml:"keep_latest_count,omitempty" json:"keep_latest_count,omitempty"`
 	Minio           *pkgcache.Minio `toml:"minio,omitempty" json:"minio,omitempty"`
 	FS              *pkgcache.FS    `toml:"fs,omitempty" json:"fs,omitempty"`
@@ -28,13 +28,12 @@ type PkgCache struct {
 }
 
 // NewPkgCache returns a pkgcache config with explicit defaults so a freshly
-// configured fs/minio backend writes writable=true and keep_latest_count=10 into
-// celer.toml for direct editing.
+// configured fs/minio backend writes keep_latest_count=10 into celer.toml for
+// direct editing. readonly defaults to false, so it is omitted from the file.
 func NewPkgCache() *PkgCache {
-	writable := true
 	keepLatest := DefaultKeepLatestCount
 	return &PkgCache{
-		Writable:        &writable,
+		ReadOnly:        false,
 		KeepLatestCount: &keepLatest,
 	}
 }
@@ -42,8 +41,8 @@ func NewPkgCache() *PkgCache {
 func (p PkgCache) GetMinio() *pkgcache.Minio { return p.Minio }
 func (p PkgCache) GetFS() *pkgcache.FS       { return p.FS }
 
-func (p PkgCache) IsWritable() bool {
-	return p.Writable == nil || *p.Writable
+func (p PkgCache) IsReadOnly() bool {
+	return p.ReadOnly
 }
 
 // GetKeepLatestCount returns how many of the newest artifacts to keep per port.

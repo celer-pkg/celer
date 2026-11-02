@@ -22,7 +22,7 @@ type RepoConfig struct {
 	Minio
 	ctx      context.Context
 	cacheDir string
-	writable bool
+	readOnly bool
 }
 
 func NewRepoConfig(ctx context.Context, client *minio.Client) *RepoConfig {
@@ -39,7 +39,7 @@ func NewRepoConfig(ctx context.Context, client *minio.Client) *RepoConfig {
 			bucketName: bucketName,
 		},
 		cacheDir: minioConfig.GetDir(pkgcache.DirRepos, ctx.Version()),
-		writable: pkgCache.IsWritable(),
+		readOnly: pkgCache.IsReadOnly(),
 	}
 }
 
@@ -52,8 +52,8 @@ func (r RepoConfig) Store(cacheKey string, repoInfo pkgcache.RepoInfo, archiveFi
 		return nil
 	}
 
-	// skip when pkgcache is not writable.
-	if !r.writable {
+	// skip when pkgcache is read-only.
+	if r.readOnly {
 		return nil
 	}
 

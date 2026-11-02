@@ -20,7 +20,7 @@ type ArtifactConfig struct {
 	FileSystem
 	ctx        context.Context
 	cacheDir   string
-	writable   bool
+	readOnly   bool
 	maxRetries int
 }
 
@@ -37,7 +37,7 @@ func NewArtifactConfig(ctx context.Context) *ArtifactConfig {
 		},
 		ctx:        ctx,
 		cacheDir:   pkgCache.GetFS().GetDir(pkgcache.DirArtifacts, ctx.Version()),
-		writable:   pkgCache.IsWritable(),
+		readOnly:   pkgCache.IsReadOnly(),
 		maxRetries: 3,
 	}
 }
@@ -134,8 +134,8 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		return nil
 	}
 
-	// skip for not writable.
-	if !a.writable {
+	// skip when read-only.
+	if a.readOnly {
 		return nil
 	}
 
@@ -218,7 +218,7 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 // artifact's own modification time is used. Both the archive and its meta of a
 // pruned entry are removed.
 func (a ArtifactConfig) Prune(nameVersion string, keepCount int, commitTime pkgcache.CommitTime) error {
-	if a.ctx.Offline() || !a.writable || keepCount <= 0 {
+	if a.ctx.Offline() || a.readOnly || keepCount <= 0 {
 		return nil
 	}
 

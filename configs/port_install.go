@@ -842,7 +842,7 @@ func (p *Port) doInstallFromSource() error {
 			return nil
 		}
 
-		// Store package cache with meta file inside. `writable` only applies to
+		// Store package cache with meta file inside. `readonly` only applies to
 		// storing: restoring an artifact stays allowed either way.
 		if err := p.tryStoreArtifact(metaData); err != nil {
 			return err
@@ -874,9 +874,9 @@ func (p *Port) tryStoreArtifact(metaData string) error {
 		return nil
 	}
 
-	// Check if pkgcache was configured and writable.
+	// Check if pkgcache was configured and not read-only.
 	pkgCache := p.ctx.PkgCache()
-	if pkgCache == nil || !pkgCache.IsWritable() {
+	if pkgCache == nil || pkgCache.IsReadOnly() {
 		return nil
 	}
 

@@ -21,7 +21,7 @@ type ArtifactConfig struct {
 	Minio
 	ctx        context.Context
 	cacheDir   string
-	writable   bool
+	readOnly   bool
 	maxRetries int
 }
 
@@ -39,7 +39,7 @@ func NewArtifactConfig(ctx context.Context, client *minio.Client) *ArtifactConfi
 			bucketName: bucketName,
 		},
 		cacheDir:   minioConfig.GetDir(pkgcache.DirArtifacts, ctx.Version()),
-		writable:   pkgCache.IsWritable(),
+		readOnly:   pkgCache.IsReadOnly(),
 		maxRetries: 3,
 	}
 }
@@ -52,8 +52,8 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		return nil
 	}
 
-	// skip for not writable.
-	if !a.writable {
+	// skip when read-only.
+	if a.readOnly {
 		return nil
 	}
 
@@ -244,7 +244,7 @@ type objectIndex struct {
 // object's last-modified time is used. Both the archive and its meta of a pruned
 // entry are removed.
 func (a ArtifactConfig) Prune(nameVersion string, keepCount int, commitTime pkgcache.CommitTime) error {
-	if a.ctx.Offline() || !a.writable || keepCount <= 0 {
+	if a.ctx.Offline() || a.readOnly || keepCount <= 0 {
 		return nil
 	}
 

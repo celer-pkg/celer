@@ -123,7 +123,7 @@ func (m Minio) GetDir(dirType DirType, version string) string {
 type PkgCache interface {
 	GetMinio() *Minio
 	GetFS() *FS
-	IsWritable() bool
+	IsReadOnly() bool
 	GetKeepLatestCount() int
 	GetBinaryCache() BinaryCache
 	GetDownloadCache() DownloadCache

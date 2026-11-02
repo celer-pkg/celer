@@ -18,7 +18,7 @@ type DownloadConfig struct {
 	FileSystem
 	ctx      context.Context
 	cacheDir string
-	writable bool
+	readOnly bool
 }
 
 func NewDownloadConfig(ctx context.Context) *DownloadConfig {
@@ -35,7 +35,7 @@ func NewDownloadConfig(ctx context.Context) *DownloadConfig {
 		},
 		ctx:      ctx,
 		cacheDir: filesystem.GetDir(pkgcache.DirDownloads, ctx.Version()),
-		writable: pkgCache.IsWritable(),
+		readOnly: pkgCache.IsReadOnly(),
 	}
 }
 
@@ -46,8 +46,8 @@ func (d DownloadConfig) Store(fileName, sha256, srcPath string) error {
 		return nil
 	}
 
-	// skip for not writable.
-	if !d.writable {
+	// skip when read-only.
+	if d.readOnly {
 		return nil
 	}
 

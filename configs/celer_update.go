@@ -312,8 +312,8 @@ func (c *Celer) SetPkgCacheMinio(host, accessKey, secretKey string) error {
 	return c.save()
 }
 
-// SetPkgCacheWritable turns writing into the shared cache on or off.
-func (c *Celer) SetPkgCacheWritable(writable bool) error {
+// SetPkgCacheReadOnly turns writing into the shared cache on or off.
+func (c *Celer) SetPkgCacheReadOnly(readOnly bool) error {
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
@@ -322,7 +322,7 @@ func (c *Celer) SetPkgCacheWritable(writable bool) error {
 		return errors.ErrPkgCacheNotConfigured
 	}
 
-	c.configData.PkgCache.Writable = &writable
+	c.configData.PkgCache.ReadOnly = readOnly
 
 	// Refresh pkgcache config.
 	if err := c.initPkgCache(); err != nil {
