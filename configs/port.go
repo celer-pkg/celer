@@ -165,6 +165,9 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 	if p.MatchedConfig.BuildSystem == "prebuilt" && p.MatchedConfig.Url != "" {
 		p.Package.Url = p.MatchedConfig.Url
 	}
+	if p.MatchedConfig.BuildSystem == "prebuilt" && p.MatchedConfig.Checksum != "" {
+		p.Package.Checksum = p.MatchedConfig.Checksum
+	}
 
 	// Init build config.
 	if err := p.initBuildConfig(nameVersion); err != nil {
