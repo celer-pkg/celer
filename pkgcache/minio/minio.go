@@ -30,6 +30,24 @@ func InitPkgCache(ctx context.Context) (*pkgcache.CacheConfigs, error) {
 		return nil, nil
 	}
 
+	client, err := NewClient(minioConfig, !ctx.Offline())
+	if err != nil {
+		return nil, err
+	}
+
+	return &pkgcache.CacheConfigs{
+		ClientCache:      NewClientCache(ctx, client),
+		DownloadCache:    NewDownloadConfig(ctx, client),
+		RepoCache:        NewRepoConfig(ctx, client),
+		AritifactCache:   NewArtifactConfig(ctx, client),
+		PythonWheelCache: NewPythonWheelConfig(ctx, client),
+	}, nil
+}
+
+// NewClient builds a minio client from an explicit config. probe=false skips the
+// BucketExists check, so callers that only read (e.g. `celer client`) treat a missing
+// bucket as an empty cache instead of failing at startup.
+func NewClient(minioConfig *pkgcache.Minio, probe bool) (*minio.Client, error) {
 	// Initialize minio client object.
 	client, err := minio.New(minioConfig.Host, &minio.Options{
 		Creds:           credentials.NewStaticV4(minioConfig.AccessKey, minioConfig.SecretKey, ""),
@@ -42,24 +60,20 @@ func InitPkgCache(ctx context.Context) (*pkgcache.CacheConfigs, error) {
 
 	// Probe the endpoint so config errors surface at startup: minio.New only
 	// parses the host without any network I/O.
-	if !ctx.Offline() {
-		if _, err := client.BucketExists(context.Background(), bucketName); err != nil {
-			resp := minio.ToErrorResponse(err)
-			hint := "check that pkgcache.minio.host is reachable and points to the S3 API port, not the minio console port"
-			if strings.Contains(resp.Message, "API port") {
-				hint = fmt.Sprintf("'%s' points to the minio console port, use the S3 API port instead (e.g. :9000 instead of :9001)", minioConfig.Host)
-			}
-			return nil, fmt.Errorf("failed to reach pkgcache.minio at '%s' -> %w (%s)", minioConfig.Host, err, hint)
-		}
+	if !probe {
+		return client, nil
 	}
 
-	return &pkgcache.CacheConfigs{
-		BinaryCache:      NewBinaryCache(ctx, client),
-		DownloadCache:    NewDownloadConfig(ctx, client),
-		RepoCache:        NewRepoConfig(ctx, client),
-		AritifactCache:   NewArtifactConfig(ctx, client),
-		PythonWheelCache: NewPythonWheelConfig(ctx, client),
-	}, nil
+	if _, err := client.BucketExists(context.Background(), bucketName); err != nil {
+		resp := minio.ToErrorResponse(err)
+		hint := "check that pkgcache.minio.host is reachable and points to the S3 API port, not the minio console port"
+		if strings.Contains(resp.Message, "API port") {
+			hint = fmt.Sprintf("'%s' points to the minio console port, use the S3 API port instead (e.g. :9000 instead of :9001)", minioConfig.Host)
+		}
+		return nil, fmt.Errorf("failed to reach pkgcache.minio at '%s' -> %w (%s)", minioConfig.Host, err, hint)
+	}
+
+	return client, nil
 }
 
 type Minio struct {

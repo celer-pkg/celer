@@ -23,11 +23,15 @@ var preserveKeys = []string{
 	"HOSTTYPE",
 	"MACHTYPE",
 	"OSTYPE",
-	"CELER_PORTS_REPO",
 	"HTTP_PROXY",
 	"HTTPS_PROXY",
 	"http_proxy",
 	"https_proxy",
+	"CELER_PORTS_REPO",
+	"CELER_PKGCACHE_FS_DIR",
+	"CELER_PKGCACHE_MINIO_HOST",
+	"CELER_PKGCACHE_MINIO_ACCESS_KEY",
+	"CELER_PKGCACHE_MINIO_SECRET_KEY",
 }
 
 // CleanEnv clear all environments and reset PATH.

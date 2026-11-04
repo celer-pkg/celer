@@ -29,10 +29,10 @@ func Export(ctx context.Context, roots []string, ignoreCache bool, outPath strin
 
 	// Publish the binary that produced the schedule: the node restores it and continues in it.
 	pkgCache := ctx.PkgCache()
-	if pkgCache == nil || pkgCache.GetBinaryCache() == nil {
+	if pkgCache == nil || pkgCache.GetClientCache() == nil {
 		return nil
 	}
-	return pkgCache.GetBinaryCache().Store()
+	return pkgCache.GetClientCache().Store()
 }
 
 // buildDag schedule the build of specified roots: it pins the whole closure, hashes every node of it.
