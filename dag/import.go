@@ -203,11 +203,11 @@ func parseDag(dagPath string) (*Dag, error) {
 
 func switchToPinnedCeler(celer *configs.Celer, dag *Dag) error {
 	pkgcache := celer.PkgCache()
-	if pkgcache == nil || pkgcache.GetBinaryCache() == nil {
+	if pkgcache == nil || pkgcache.GetClientCache() == nil {
 		return fmt.Errorf("no pkgcache binary cache is configured, so celer %s cannot be restored", dag.CelerVersion)
 	}
 
-	binaryPath, err := pkgcache.GetBinaryCache().Restore(dag.CelerVersion)
+	binaryPath, err := pkgcache.GetClientCache().Restore(dag.CelerVersion)
 	if err != nil {
 		return fmt.Errorf("failed to restore celer %s from pkgcache -> %w", dag.CelerVersion, err)
 	}

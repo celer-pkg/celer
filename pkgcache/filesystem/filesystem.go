@@ -19,7 +19,7 @@ func InitPkgCache(ctx context.Context) *pkgcache.CacheConfigs {
 	}
 
 	return &pkgcache.CacheConfigs{
-		BinaryCache:      NewBinaryCache(ctx),
+		ClientCache:      NewClientCache(ctx),
 		DownloadCache:    NewDownloadConfig(ctx),
 		RepoCache:        NewRepoConfig(ctx),
 		AritifactCache:   NewArtifactConfig(ctx),
