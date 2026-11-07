@@ -3,7 +3,7 @@
 // Run command on either a POSIX or a Windows agent (sh vs bat).
 def run(String cmd) {
     if (isUnix()) {
-        sh "${cmd}"
+        sh "export PATH=\"$HOME/.local/bin:\$PATH\"; ${cmd}"
     } else {
         bat "${cmd}"
     }

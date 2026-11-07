@@ -477,7 +477,7 @@ func (p *Port) installFromPackage(options InstallOptions) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("failed to read package meta of %s -> %w", p.NameVersion(), err)
 	}
-	newMeta, err := p.buildMeta()
+	newMeta, err := p.BuildMeta()
 	if err != nil {
 		return false, fmt.Errorf("failed to calculate meta of %s -> %w", p.NameVersion(), err)
 	}
@@ -820,7 +820,7 @@ func (p *Port) doInstallFromSource() error {
 	buildSystem := p.MatchedConfig.BuildSystem
 	if buildSystem != "nobuild" {
 		// Write meta file with installed files and build environment.
-		metaData, err := p.buildMeta()
+		metaData, err := p.BuildMeta()
 		if err != nil {
 			installFailed = true
 			return err
