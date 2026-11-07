@@ -207,6 +207,7 @@ type AritifactCache interface {
 	Restore(packageDir, nameVersion, buildsystem, buildhash string) (bool, error)
 	Store(packageDir, metadata string) error
 	Prune(nameVersion string, keepCount int, commitTime CommitTime) error
+	ReadMeta(nameVersion, buildhash string) (data []byte, found bool, err error)
 }
 
 // ========================== reopo cache ========================== //

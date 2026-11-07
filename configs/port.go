@@ -13,6 +13,8 @@ import (
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/git"
+	"github.com/celer-pkg/celer/pkgs/logger"
 
 	"github.com/BurntSushi/toml"
 )
@@ -214,7 +216,7 @@ func (p Port) Installed() (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	newMeta, err := p.buildMeta()
+	targetMeta, err := p.BuildMeta()
 	if err != nil {
 		// Repo not exist is not error.
 		if errors.Is(err, errors.ErrRepoNotExit) {
@@ -224,13 +226,19 @@ func (p Port) Installed() (bool, error) {
 	}
 
 	// Remove installed package if build config changed.
-	localMeta := string(metaBytes)
-	if localMeta != newMeta {
+	lastMeta := string(metaBytes)
+	if lastMeta != targetMeta {
 		options := RemoveOptions{
 			Purge:      true,
 			Recursive:  false,
 			BuildCache: true,
 		}
+
+		// Show git diff between two meta data.
+		if err := git.PrintDiff([]byte(targetMeta), []byte(lastMeta)); err != nil {
+			logger.PrintWarning("failed to diff the build meta of %s -> %s", p.NameVersion(), err)
+		}
+
 		if err := p.Remove(options); err != nil {
 			return false, fmt.Errorf("failed to remove installed package -> %w", err)
 		}

@@ -1,6 +1,7 @@
 package dag
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"maps"
@@ -125,8 +126,11 @@ func buildDag(ctx context.Context, roots []string, ignoreCache bool) (*Dag, erro
 // of stdout: celer's own progress output shares stdout with it, and CI reads the
 // file directly.
 func writeDag(report *Dag, outPath string) error {
-	bytes, err := json.MarshalIndent(report, "", "  ")
-	if err != nil {
+	var buffer bytes.Buffer
+	encoder := json.NewEncoder(&buffer)
+	encoder.SetEscapeHTML(false) // Section titles carry "<<<": keep them readable in the file.
+	encoder.SetIndent("", "  ")
+	if err := encoder.Encode(report); err != nil {
 		return fmt.Errorf("failed to encode the build DAG -> %w", err)
 	}
 
@@ -134,7 +138,7 @@ func writeDag(report *Dag, outPath string) error {
 	if err := os.MkdirAll(filepath.Dir(outPath), os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create the output dir of %s -> %w", outPath, err)
 	}
-	if err := os.WriteFile(outPath, append(bytes, '\n'), os.ModePerm); err != nil {
+	if err := os.WriteFile(outPath, buffer.Bytes(), os.ModePerm); err != nil {
 		return fmt.Errorf("failed to write the build DAG to %s -> %w", outPath, err)
 	}
 

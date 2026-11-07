@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"slices"
 	"strings"
@@ -51,7 +52,10 @@ func pipInstall(ctx context.Context, pipConfig context.PythonConfig, specs *[]st
 
 	// Collect python package installSpecs that are not installed in the venv.
 	// python3:mako@1.2.0 -> mako==1.2.0
-	var installSpecs []string
+	var (
+		positions    = make(map[string]int, len(*specs))
+		installSpecs []string
+	)
 	for _, spec := range *specs {
 		if !strings.HasPrefix(spec, "python3:") && !strings.HasPrefix(spec, "python:") {
 			continue
@@ -63,9 +67,18 @@ func pipInstall(ctx context.Context, pipConfig context.PythonConfig, specs *[]st
 			return err
 		}
 
+		// The venv holds one version per distribution, so keep only the last spec of each.
+		name, _ := parseNameVersion(formated)
+		key := normalizedDistName(name)
+		if position, ok := positions[key]; ok {
+			installSpecs[position] = formated
+			continue
+		}
+
 		if isPackageInstalled(formated, venvDir) {
 			continue
 		}
+		positions[key] = len(installSpecs)
 		installSpecs = append(installSpecs, formated)
 	}
 
@@ -101,7 +114,7 @@ func pipInstall(ctx context.Context, pipConfig context.PythonConfig, specs *[]st
 	// Process each spec independently so its wheels are cached under
 	// python-wheels/<platform>/<name>/<version>/ and reused across machines.
 	for _, spec := range installSpecs {
-		name, version := parseSpec(spec)
+		name, version := parseNameVersion(spec)
 		cacheKey := filepath.Join(wheelPlatformScope, name, version)
 
 		// —— Restore this spec's cached wheels from pkgcache into the wheelhouse ——————————————————————————————
@@ -172,9 +185,9 @@ func wheelhouseHasDistributions(dir string) bool {
 	return false
 }
 
-// parseSpec splits a pip requirement specifier "name==version" into its name
+// parseNameVersion splits a pip requirement specifier "name==version" into its name
 // and version. A spec without a version pins nothing and returns an empty version.
-func parseSpec(spec string) (name, version string) {
+func parseNameVersion(spec string) (name, version string) {
 	if name, version, ok := strings.Cut(spec, "=="); ok {
 		return name, version
 	}
@@ -330,7 +343,8 @@ func getPythonVenvPath(pythonVersion, projectName string) string {
 	return filepath.Join(dirs.WorkspaceDir, "installed", fmt.Sprintf("venv-%s@%s", minorVersion, projectName))
 }
 
-// isPackageInstalled checks if a Python package is already installed.
+// isPackageInstalled checks if a Python package is already installed, at exactly
+// the pinned version.
 // This avoids frequent PyPI requests that could lead to IP blocking.
 func isPackageInstalled(packageName string, venvDir string) bool {
 	libDir := filepath.Join(venvDir, expr.If(runtime.GOOS == "windows", "Lib", "lib"))
@@ -349,40 +363,52 @@ func isPackageInstalled(packageName string, venvDir string) bool {
 		versionGlob = version
 	}
 
+	// Pip names a metadata directory after the normalized distribution name:
+	// "gyp-next" is written as "gyp_next-<version>.dist-info".
+	distName := normalizedDistName(name)
+
 	var packageDirPattern, distInfoPattern, eggInfoPattern string
 	switch runtime.GOOS {
 	case "windows":
 		// Windows: Lib/site-packages/{name} and Lib/site-packages/{name}-{version}.dist-info.
 		packageDirPattern = filepath.Join(libDir, "site-packages", name)
-		distInfoPattern = filepath.Join(libDir, "site-packages", name+"-"+versionGlob+".dist-info")
-		eggInfoPattern = filepath.Join(libDir, "site-packages", name+"-"+versionGlob+".egg-info")
+		distInfoPattern = filepath.Join(libDir, "site-packages", distName+"-"+versionGlob+".dist-info")
+		eggInfoPattern = filepath.Join(libDir, "site-packages", distName+"-"+versionGlob+".egg-info")
 
 	case "linux", "darwin":
 		// Linux/Darwin: lib/python*/site-packages/{name} and lib/python*/site-packages/{name}-{version}.dist-info.
 		packageDirPattern = filepath.Join(libDir, "python*", "site-packages", name)
-		distInfoPattern = filepath.Join(libDir, "python*", "site-packages", name+"-"+versionGlob+".dist-info")
-		eggInfoPattern = filepath.Join(libDir, "python*", "site-packages", name+"-"+versionGlob+".egg-info")
+		distInfoPattern = filepath.Join(libDir, "python*", "site-packages", distName+"-"+versionGlob+".dist-info")
+		eggInfoPattern = filepath.Join(libDir, "python*", "site-packages", distName+"-"+versionGlob+".egg-info")
 
 	default:
 		panic("unsupported os: " + runtime.GOOS)
 	}
 
-	matches, err := filepath.Glob(packageDirPattern)
-	if err == nil && len(matches) > 0 {
-		return true
+	// The import directory alone says nothing about the version, so it only counts
+	// for a spec that pins nothing; a pinned spec must find that exact version.
+	patterns := []string{distInfoPattern, eggInfoPattern}
+	if version == "" {
+		patterns = append(patterns, packageDirPattern)
 	}
 
-	matches, err = filepath.Glob(distInfoPattern)
-	if err == nil && len(matches) > 0 {
-		return true
-	}
-
-	matches, err = filepath.Glob(eggInfoPattern)
-	if err == nil && len(matches) > 0 {
-		return true
+	for _, pattern := range patterns {
+		if matches, err := filepath.Glob(pattern); err == nil && len(matches) > 0 {
+			return true
+		}
 	}
 
 	return false
+}
+
+// normalizedDistName returns a distribution name the way pip writes it in metadata
+// directory names (PEP 503): lowercase, with runs of '-', '_' and '.' collapsed
+// into one '_'. "gyp-next" is stored as "gyp_next-<version>.dist-info".
+var repeatedSeparator = regexp.MustCompile(`[-_.]+`)
+
+func normalizedDistName(name string) string {
+	normalized := repeatedSeparator.ReplaceAllString(strings.ToLower(name), "_")
+	return strings.Trim(normalized, "_")
 }
 
 // getWindowsDefaultPythonVersion reads Python version from static TOML.
