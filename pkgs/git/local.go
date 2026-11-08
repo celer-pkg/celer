@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/celer-pkg/celer/context"
@@ -44,6 +45,22 @@ func GetCurrentTag(repoDir string) (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
+// CommitTime returns the committer timestamp (unix seconds) of commit in repoDir.
+// A shallow clone keeps only recent history, so an older commit may not be
+// resolvable; callers should treat the error as "unknown" and fall back.
+func CommitTime(repoDir, commit string) (int64, error) {
+	cmd := exec.Command("git", "-C", repoDir, "log", "-1", "--format=%ct", commit)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return 0, fmt.Errorf("get commit time of '%s' -> %s", commit, output)
+	}
+	value, err := strconv.ParseInt(strings.TrimSpace(string(output)), 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("parse commit time of '%s' -> %w", commit, err)
+	}
+	return value, nil
+}
+
 // IsModified check if repo is modified.
 func IsModified(repoDir string) (bool, error) {
 	lines, err := statusLines(repoDir)
@@ -77,7 +94,7 @@ func ChangeBranch(target, repoDir, ref string) error {
 	// Make sure the ref is available locally: a pinned commit may only be reachable from
 	// a branch that was never fetched.
 	if _, err := ResolveRefCommit(repoDir, ref); err != nil {
-		if fetchErr := fetchOrigin(repoDir); fetchErr != nil {
+		if fetchErr := fetchPrune(repoDir); fetchErr != nil {
 			return fmt.Errorf("failed to fetch %s -> %w", repoDir, fetchErr)
 		}
 	}

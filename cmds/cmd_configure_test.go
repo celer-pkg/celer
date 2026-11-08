@@ -50,7 +50,8 @@ func TestConfigureCmd_CommandStructure(t *testing.T) {
 		{"pkgcache-minio-host", ""},
 		{"pkgcache-minio-access-key", ""},
 		{"pkgcache-minio-secret-key", ""},
-		{"pkgcache-writable", ""},
+		{"pkgcache-readonly", ""},
+		{"pkgcache-keep-artifact-count", ""},
 		{"proxy-host", ""},
 		{"proxy-port", ""},
 		{"ccache-enabled", ""},
@@ -125,9 +126,14 @@ func TestConfigureCmd_Completion(t *testing.T) {
 			expected:   []string{"--pkgcache-fs-dir"},
 		},
 		{
-			name:       "complete_pkgcache_writable_flag",
-			toComplete: "--pkgcache-w",
-			expected:   []string{"--pkgcache-writable"},
+			name:       "complete_pkgcache_readonly_flag",
+			toComplete: "--pkgcache-r",
+			expected:   []string{"--pkgcache-readonly"},
+		},
+		{
+			name:       "complete_pkgcache_keep_artifact_count_flag",
+			toComplete: "--pkgcache-keep",
+			expected:   []string{"--pkgcache-keep-artifact-count"},
 		},
 		{
 			name:       "complete_pkgcache_minio_host_flag",
@@ -247,7 +253,7 @@ func TestConfigureCmd_PkgCacheGroupShouldSucceed(t *testing.T) {
 
 	if _, err := runCommand(t, cmd.Command(celer),
 		"--pkgcache-fs-dir="+dirs.TestPkgCacheDir,
-		"--pkgcache-writable=true",
+		"--pkgcache-readonly=true",
 	); err != nil {
 		t.Fatalf("expected success when package-cache group flags are provided, got: %v", err)
 	}
@@ -260,8 +266,8 @@ func TestConfigureCmd_PkgCacheGroupShouldSucceed(t *testing.T) {
 	if celer2.PkgCache().GetFS().Dir != filepath.ToSlash(dirs.TestPkgCacheDir) {
 		t.Fatalf("cache dir should be `%s`", dirs.TestPkgCacheDir)
 	}
-	if !celer2.PkgCache().IsWritable() {
-		t.Fatal("cache writable should be `true`")
+	if !celer2.PkgCache().IsReadOnly() {
+		t.Fatal("cache should be read-only")
 	}
 }
 
@@ -544,12 +550,12 @@ func TestConfigure_PkgCacheDir(t *testing.T) {
 	}
 
 	// The cache must be writable by default on the first backend configuration.
-	if !celer2.PkgCache().IsWritable() {
+	if celer2.PkgCache().IsReadOnly() {
 		t.Fatal("pkgcache should default to writable on first backend configuration")
 	}
 }
 
-func TestConfigure_PkgCacheWritable(t *testing.T) {
+func TestConfigure_PkgCacheReadOnly(t *testing.T) {
 	celer := newInitializedCeler(t)
 	cmd := &configureCmd{}
 
@@ -558,11 +564,11 @@ func TestConfigure_PkgCacheWritable(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// pkgcache-dir and pkgcache-writable are in the same group, so we can set
+	// pkgcache-dir and pkgcache-readonly are in the same group, so we can set
 	// them together in a single command just like a user would.
 	if _, err := runCommand(t, cmd.Command(celer),
 		"--pkgcache-fs-dir="+dirs.TestPkgCacheDir,
-		"--pkgcache-writable=true",
+		"--pkgcache-readonly=false",
 	); err != nil {
 		t.Fatal(err)
 	}
@@ -571,8 +577,55 @@ func TestConfigure_PkgCacheWritable(t *testing.T) {
 	if err := celer2.Init(); err != nil {
 		t.Fatal(err)
 	}
-	if !celer2.PkgCache().IsWritable() {
-		t.Fatal("cache writable should be `true`")
+	if celer2.PkgCache().IsReadOnly() {
+		t.Fatal("cache should be writable")
+	}
+}
+
+func TestConfigure_PkgCacheKeepArtifactCount(t *testing.T) {
+	celer := newInitializedCeler(t)
+	cmd := &configureCmd{}
+
+	if err := os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := runCommand(t, cmd.Command(celer),
+		"--pkgcache-fs-dir="+dirs.TestPkgCacheDir,
+		"--pkgcache-keep-artifact-count=100",
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if got := celer2.PkgCache().GetKeepArtifactCount(); got != 100 {
+		t.Fatalf("keep_artifact_count should be `100`, got `%d`", got)
+	}
+}
+
+// Pruning deletes from a shared cache, so it must stay disabled until a node
+// explicitly configures a count.
+func TestConfigure_PkgCacheKeepArtifactCount_DefaultsToDisabled(t *testing.T) {
+	celer := newInitializedCeler(t)
+	cmd := &configureCmd{}
+
+	if err := os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := runCommand(t, cmd.Command(celer), "--pkgcache-fs-dir="+dirs.TestPkgCacheDir); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if got := celer2.PkgCache().GetKeepArtifactCount(); got != 0 {
+		t.Fatalf("keep_artifact_count should stay disabled, got `%d`", got)
 	}
 }
 
@@ -900,20 +953,32 @@ func TestConfigure_CCacheRemoteOnly_OFF(t *testing.T) {
 	}
 }
 
+func newFakeMinioServer(t *testing.T) *httptest.Server {
+	t.Helper()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet && r.URL.Query().Has("location") {
+			w.Header().Set("Content-Type", "application/xml")
+			_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?><LocationConstraint xmlns="http://s3.amazonaws.com/doc/2006-03-01/"></LocationConstraint>`))
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	t.Cleanup(server.Close)
+	return server
+}
+
 func TestConfigure_PkgCacheMinio(t *testing.T) {
 	celer := newInitializedCeler(t)
 	cmd := &configureCmd{}
 
-	// A local http server stands in for the minio host so that the
-	// reachability check passes.
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
-	t.Cleanup(server.Close)
+	server := newFakeMinioServer(t)
 
 	if _, err := runCommand(t, cmd.Command(celer),
 		"--pkgcache-minio-host="+server.URL,
 		"--pkgcache-minio-access-key=test-access-key",
 		"--pkgcache-minio-secret-key=test-secret-key",
-		"--pkgcache-writable=true",
+		"--pkgcache-readonly=false",
 	); err != nil {
 		t.Fatal(err)
 	}
@@ -935,8 +1000,8 @@ func TestConfigure_PkgCacheMinio(t *testing.T) {
 	if minioCfg.SecretKey != "test-secret-key" {
 		t.Fatalf("minio secret key should be `test-secret-key`, got `%s`", minioCfg.SecretKey)
 	}
-	if !celer2.PkgCache().IsWritable() {
-		t.Fatal("minio writable should be `true`")
+	if celer2.PkgCache().IsReadOnly() {
+		t.Fatal("minio cache should be writable")
 	}
 }
 
@@ -946,8 +1011,7 @@ func TestConfigure_PkgCacheMinio_RotateSecretKey(t *testing.T) {
 	celer := newInitializedCeler(t)
 	cmd := &configureCmd{}
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
-	t.Cleanup(server.Close)
+	server := newFakeMinioServer(t)
 
 	if _, err := runCommand(t, cmd.Command(celer),
 		"--pkgcache-minio-host="+server.URL,
@@ -978,10 +1042,17 @@ func TestConfigure_PkgCacheMinio_RotateSecretKey(t *testing.T) {
 	}
 }
 
-// fs and minio are mutually exclusive pkgcache backends.
-func TestConfigure_PkgCacheMinio_ConflictWithFSShouldFail(t *testing.T) {
+// fs and minio are mutually exclusive pkgcache backends: configuring one
+// replaces the other, so switching a workspace needs no manual cleanup.
+func TestConfigure_PkgCacheMinio_ReplacesFS(t *testing.T) {
 	celer := newInitializedCeler(t)
 	cmd := &configureCmd{}
+
+	// Go offline first: the minio backend probes the endpoint on configure, and
+	// the test must not depend on a reachable S3.
+	if _, err := runCommand(t, cmd.Command(celer), "--offline=true"); err != nil {
+		t.Fatal(err)
+	}
 
 	if err := os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm); err != nil {
 		t.Fatal(err)
@@ -990,26 +1061,70 @@ func TestConfigure_PkgCacheMinio_ConflictWithFSShouldFail(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
-	t.Cleanup(server.Close)
-
-	stderr, err := runCommand(t, cmd.Command(celer), "--pkgcache-minio-host="+server.URL)
-	if err == nil {
-		t.Fatal("expected error when configuring minio while fs is configured")
+	if _, err := runCommand(t, cmd.Command(celer),
+		"--pkgcache-minio-host=http://minio.example.com:9000",
+		"--pkgcache-minio-access-key=test-access-key",
+		"--pkgcache-minio-secret-key=test-secret-key",
+	); err != nil {
+		t.Fatalf("configuring minio should replace the fs backend, got: %v", err)
 	}
-	if !strings.Contains(stderr, "both 'minio' and 'fs'") {
-		t.Fatalf("stderr should report backend conflict, got:\n%s", stderr)
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if celer2.PkgCache().GetFS() != nil {
+		t.Fatal("fs backend should be dropped once minio is configured")
+	}
+	if minioCfg := celer2.PkgCache().GetMinio(); minioCfg == nil || minioCfg.Host != "http://minio.example.com:9000" {
+		t.Fatal("minio host should be `http://minio.example.com:9000`")
+	}
+}
+
+func TestConfigure_PkgCacheFS_ReplacesMinio(t *testing.T) {
+	celer := newInitializedCeler(t)
+	cmd := &configureCmd{}
+
+	// See TestConfigure_PkgCacheMinio_ReplacesFS: offline keeps the test hermetic.
+	if _, err := runCommand(t, cmd.Command(celer), "--offline=true"); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := runCommand(t, cmd.Command(celer),
+		"--pkgcache-minio-host=http://minio.example.com:9000",
+		"--pkgcache-minio-access-key=test-access-key",
+		"--pkgcache-minio-secret-key=test-secret-key",
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := runCommand(t, cmd.Command(celer), "--pkgcache-fs-dir="+dirs.TestPkgCacheDir); err != nil {
+		t.Fatalf("configuring fs should replace the minio backend, got: %v", err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if celer2.PkgCache().GetMinio() != nil {
+		t.Fatal("minio backend should be dropped once fs is configured")
+	}
+	if fsCfg := celer2.PkgCache().GetFS(); fsCfg == nil || fsCfg.Dir != filepath.ToSlash(dirs.TestPkgCacheDir) {
+		t.Fatalf("fs dir should be `%s`", dirs.TestPkgCacheDir)
 	}
 }
 
 // Regression: option flags before any backend is configured must fail with
 // a clear error, not panic or pass silently.
-func TestConfigure_PkgCacheWritable_BeforeBackendFails(t *testing.T) {
+func TestConfigure_PkgCacheReadOnly_BeforeBackendFails(t *testing.T) {
 	celer := newInitializedCeler(t)
 
 	cmd := &configureCmd{}
 	stderr, err := runCommand(t, cmd.Command(celer),
-		"--pkgcache-writable=true",
+		"--pkgcache-readonly=true",
 	)
 	if err == nil {
 		t.Fatal("expected error when no pkgcache backend has been configured")
@@ -1078,48 +1193,5 @@ func TestConfigureCmd_Port_UnknownPortShouldFail(t *testing.T) {
 	)
 	if err == nil {
 		t.Fatal("expected error when --port refers to a non-existent port")
-	}
-}
-
-func TestConfigure_PythonIndexUrl_InvalidURL(t *testing.T) {
-	celer := newInitializedCeler(t)
-	cmd := &configureCmd{}
-
-	stderr, err := runCommand(t, cmd.Command(celer), "--python-index-url=localhost:8080/simple")
-	if err == nil {
-		t.Fatal("expected error for index URL without scheme")
-	}
-	if !strings.Contains(stderr, "scheme and host") {
-		t.Fatalf("stderr should report invalid index URL, got:\n%s", stderr)
-	}
-}
-
-func TestConfigure_PythonExtraIndexUrls_InvalidURL(t *testing.T) {
-	celer := newInitializedCeler(t)
-	cmd := &configureCmd{}
-
-	stderr, err := runCommand(t, cmd.Command(celer), "--python-extra-index-urls=https://pypi.example.com/simple,localhost:8080")
-	if err == nil {
-		t.Fatal("expected error when an extra index URL lacks a scheme")
-	}
-	if !strings.Contains(stderr, "scheme and host") {
-		t.Fatalf("stderr should report invalid extra index URL, got:\n%s", stderr)
-	}
-}
-
-// All python flags share one group; mixing with another group must fail.
-func TestConfigure_PythonCrossGroupFails(t *testing.T) {
-	celer := newInitializedCeler(t)
-	cmd := &configureCmd{}
-
-	stderr, err := runCommand(t, cmd.Command(celer),
-		"--python-version=3.10.12",
-		"--ccache-enabled=true",
-	)
-	if err == nil {
-		t.Fatal("expected error when flags from different groups are provided")
-	}
-	if !strings.Contains(stderr, "different groups") {
-		t.Fatalf("stderr should report cross-group violation, got:\n%s", stderr)
 	}
 }

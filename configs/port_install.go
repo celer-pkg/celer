@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/buildtools"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/expr"
@@ -476,7 +477,7 @@ func (p *Port) installFromPackage(options InstallOptions) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("failed to read package meta of %s -> %w", p.NameVersion(), err)
 	}
-	newMeta, err := p.buildMeta()
+	newMeta, err := p.BuildMeta()
 	if err != nil {
 		return false, fmt.Errorf("failed to calculate meta of %s -> %w", p.NameVersion(), err)
 	}
@@ -819,7 +820,7 @@ func (p *Port) doInstallFromSource() error {
 	buildSystem := p.MatchedConfig.BuildSystem
 	if buildSystem != "nobuild" {
 		// Write meta file with installed files and build environment.
-		metaData, err := p.buildMeta()
+		metaData, err := p.BuildMeta()
 		if err != nil {
 			installFailed = true
 			return err
@@ -841,7 +842,7 @@ func (p *Port) doInstallFromSource() error {
 			return nil
 		}
 
-		// Store package cache with meta file inside. `writable` only applies to
+		// Store package cache with meta file inside. `readonly` only applies to
 		// storing: restoring an artifact stays allowed either way.
 		if err := p.tryStoreArtifact(metaData); err != nil {
 			return err
@@ -873,9 +874,9 @@ func (p *Port) tryStoreArtifact(metaData string) error {
 		return nil
 	}
 
-	// Check if pkgcache was configured and writable.
+	// Check if pkgcache was configured and not read-only.
 	pkgCache := p.ctx.PkgCache()
-	if pkgCache == nil || !pkgCache.IsWritable() {
+	if pkgCache == nil || pkgCache.IsReadOnly() {
 		return nil
 	}
 
@@ -901,6 +902,28 @@ func (p *Port) tryStoreArtifact(metaData string) error {
 	}
 	if err := artifactCache.Store(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
 		return err
+	}
+
+	// Best-effort prune. It is opt-in: keep_artifact_count is unset by default, so a node
+	// without the setting never deletes artifacts that other nodes share the same cache with.
+	// Pruning keeps only the newest artifacts of this port, ordered by the git commit
+	// time recorded in each artifact's meta; archive sources record the archive checksum
+	// instead of a commit, so no resolver is passed and they are ordered by storage time.
+	if keepCount := pkgCache.GetKeepArtifactCount(); keepCount > 0 {
+		var commitTime pkgcache.CommitTime
+		repoDir := p.MatchedConfig.PortConfig.RepoDir
+		if repoDir != "" && strings.HasSuffix(p.Package.Url, ".git") {
+			commitTime = func(ref string) (int64, bool) {
+				unixTime, err := git.CommitTime(repoDir, ref)
+				if err != nil {
+					return 0, false
+				}
+				return unixTime, true
+			}
+		}
+		if err := artifactCache.Prune(p.NameVersion(), keepCount, commitTime); err != nil {
+			logger.PrintWarning("failed to prune expired artifacts of %s -> %s", p.NameVersion(), err)
+		}
 	}
 
 	return nil

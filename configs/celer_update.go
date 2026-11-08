@@ -248,10 +248,7 @@ func (c *Celer) SetPkgCacheFSDir(dir string) error {
 	if c.configData.PkgCache == nil {
 		c.configData.PkgCache = NewPkgCache()
 	}
-	// fs and minio backends are mutually exclusive.
-	if c.configData.PkgCache.Minio != nil {
-		return errors.ErrPkgCacheDuplicated
-	}
+	c.configData.PkgCache.Minio = nil
 
 	// Update fs dir.
 	if c.configData.PkgCache.FS == nil {
@@ -279,11 +276,7 @@ func (c *Celer) SetPkgCacheMinio(host, accessKey, secretKey string) error {
 	if c.configData.PkgCache == nil {
 		c.configData.PkgCache = NewPkgCache()
 	}
-
-	// fs and minio are mutually exclusive.
-	if c.configData.PkgCache.FS != nil {
-		return errors.ErrPkgCacheDuplicated
-	}
+	c.configData.PkgCache.FS = nil
 
 	// Update minio config, empty value means unchanged.
 	if c.configData.PkgCache.Minio == nil {
@@ -312,8 +305,8 @@ func (c *Celer) SetPkgCacheMinio(host, accessKey, secretKey string) error {
 	return c.save()
 }
 
-// SetPkgCacheWritable turns writing into the shared cache on or off.
-func (c *Celer) SetPkgCacheWritable(writable bool) error {
+// SetPkgCacheReadOnly turns writing into the shared cache on or off.
+func (c *Celer) SetPkgCacheReadOnly(readOnly bool) error {
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
@@ -322,7 +315,32 @@ func (c *Celer) SetPkgCacheWritable(writable bool) error {
 		return errors.ErrPkgCacheNotConfigured
 	}
 
-	c.configData.PkgCache.Writable = &writable
+	c.configData.PkgCache.ReadOnly = readOnly
+
+	// Refresh pkgcache config.
+	if err := c.initPkgCache(); err != nil {
+		return err
+	}
+	return c.save()
+}
+
+// SetPkgCacheKeepArtifactCount sets how many of the newest artifacts to keep per
+// port. A count <= 0 disables pruning, so celer never deletes from the shared
+// cache.
+func (c *Celer) SetPkgCacheKeepArtifactCount(count int) error {
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	if c.configData.PkgCache == nil || (c.configData.PkgCache.Minio == nil && c.configData.PkgCache.FS == nil) {
+		return errors.ErrPkgCacheNotConfigured
+	}
+
+	if count <= 0 {
+		c.configData.PkgCache.KeepArtifactCount = nil
+	} else {
+		c.configData.PkgCache.KeepArtifactCount = &count
+	}
 
 	// Refresh pkgcache config.
 	if err := c.initPkgCache(); err != nil {
@@ -500,22 +518,5 @@ func (c *Celer) SetCCacheRemoteOnly(remoteOnly bool) error {
 		return err
 	}
 
-	return nil
-}
-
-// validateIndexURL checks that a pip index URL carries a scheme and host,
-// the same shape requirement applied to --ccache-remote-storage. An empty
-// value is allowed (used to clear the setting).
-func validateIndexURL(raw string) error {
-	if raw == "" {
-		return nil
-	}
-	parsedURL, err := url.Parse(raw)
-	if err != nil {
-		return fmt.Errorf("invalid python index URL -> %w", err)
-	}
-	if parsedURL.Scheme == "" || parsedURL.Host == "" {
-		return fmt.Errorf("python index URL must contain scheme and host (e.g., https://pypi.example.com/simple)")
-	}
 	return nil
 }

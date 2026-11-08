@@ -67,7 +67,7 @@ pass `params.CELER_PLATFORM` into `agent { label ... }` and label agents `celer-
 `--apply-dag` restores it to `<workspace>/tmp/files-*` and `exec`s it, so the `celer` on `PATH`
 only bootstraps. Nothing lands in the workspace root and `tmp/files-*` can be deleted freely.
 
-Offline or `CELER_PKGCACHE_WRITABLE=false` stores nothing.
+Offline or `CELER_PKGCACHE_READONLY=true` stores nothing.
 
 ## pkgcache backend
 
@@ -77,7 +77,8 @@ Offline or `CELER_PKGCACHE_WRITABLE=false` stores nothing.
 |----------|-----|
 | `CELER_PKGCACHE_MINIO_HOST` / `_ACCESS_KEY` / `_SECRET_KEY` | minio backend; all three required. |
 | `CELER_PKGCACHE_FS_DIR` | fs directory instead (minio wins when both are set). |
-| `CELER_PKGCACHE_WRITABLE` | Optional `false` for a read-only cache. |
+| `CELER_PKGCACHE_READONLY` | Optional `true` for a read-only cache. |
+| `CELER_PKGCACHE_KEEP_ARTIFACT_COUNT` | Optional artifact retention: keep only the newest N artifacts per port. Unset disables pruning, which is the safe default for a shared cache. |
 
 One is mandatory: the master collects the node artifacts from that cache. Set them on the
 `celer-master` node (Nodes → Configure → Node Properties → Environment variables) or globally,

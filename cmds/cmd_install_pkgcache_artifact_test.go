@@ -46,7 +46,7 @@ func TestInstall_PkgCache_Artifact_Success(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPkgCacheFSDir(dirs.TestPkgCacheDir))
-	check(celer.SetPkgCacheWritable(true))
+	check(celer.SetPkgCacheReadOnly(false))
 	check(celer.SetPlatform(platform))
 
 	var port configs.Port
@@ -123,7 +123,7 @@ func TestInstall_PkgCache_Artifact_With_Deps_Success(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPkgCacheFSDir(dirs.TestPkgCacheDir))
-	check(celer.SetPkgCacheWritable(true))
+	check(celer.SetPkgCacheReadOnly(false))
 	check(celer.SetPlatform(platform))
 
 	var glogPort configs.Port
@@ -212,7 +212,7 @@ func TestInstall_PkgCache_Prebuilt_Success(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPkgCacheFSDir(dirs.TestPkgCacheDir))
-	check(celer.SetPkgCacheWritable(true))
+	check(celer.SetPkgCacheReadOnly(false))
 	check(celer.SetPlatform(platform))
 
 	var port configs.Port
@@ -344,7 +344,7 @@ func TestInstall_PkgCache_With_Commit_Success(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPkgCacheFSDir(dirs.TestPkgCacheDir))
-	check(celer.SetPkgCacheWritable(true))
+	check(celer.SetPkgCacheReadOnly(false))
 	check(celer.SetPlatform(platform))
 
 	var port configs.Port
@@ -410,7 +410,7 @@ func TestInstall_PkgCache_With_Commit_Missing_FallsBackToSource(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPkgCacheFSDir(dirs.TestPkgCacheDir))
-	check(celer.SetPkgCacheWritable(true))
+	check(celer.SetPkgCacheReadOnly(false))
 	check(celer.SetPlatform(platform))
 
 	var port configs.Port
@@ -498,7 +498,7 @@ func TestInstall_Command_ReportContainsPkgCacheSource(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPkgCacheFSDir(dirs.TestPkgCacheDir))
-	check(celer.SetPkgCacheWritable(true))
+	check(celer.SetPkgCacheReadOnly(false))
 	check(celer.SetPlatform(platform))
 
 	// Prepare cache by installing from source once.

@@ -52,7 +52,7 @@ func ResetMetaCache() {
 // BuildHash returns the pkgcache build hash of this port: the sha-256 of its
 // recursive meta.
 func (p Port) BuildHash() (string, error) {
-	metaData, err := p.buildMeta()
+	metaData, err := p.BuildMeta()
 	if err != nil {
 		return "", err
 	}
@@ -86,7 +86,8 @@ func (p Port) meta2hash(metaData string) string {
 	return fmt.Sprintf("%x", checksum)
 }
 
-func (p Port) buildMeta() (string, error) {
+// BuildMeta returns the text the build hash is computed from.
+func (p Port) BuildMeta() (string, error) {
 	// Try find prebuilt meta from cache first.
 	key := fmt.Sprintf("%s|%t", p.NameVersion(), p.DevDep || p.HostDep)
 	if v, ok := buildMetaCache.Load(key); ok {

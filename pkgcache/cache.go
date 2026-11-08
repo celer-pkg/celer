@@ -1,16 +1,19 @@
 package pkgcache
 
 import (
+	"cmp"
 	"fmt"
 	"path/filepath"
 	"runtime"
+	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/celer-pkg/celer/pkgs/expr"
 )
 
 type CacheConfigs struct {
-	BinaryCache      BinaryCache
+	ClientCache      ClientCache
 	DownloadCache    DownloadCache
 	RepoCache        RepoCache
 	AritifactCache   AritifactCache
@@ -121,8 +124,9 @@ func (m Minio) GetDir(dirType DirType, version string) string {
 type PkgCache interface {
 	GetMinio() *Minio
 	GetFS() *FS
-	IsWritable() bool
-	GetBinaryCache() BinaryCache
+	IsReadOnly() bool
+	GetKeepArtifactCount() int
+	GetClientCache() ClientCache
 	GetDownloadCache() DownloadCache
 	GetArtifactCache() AritifactCache
 	GetRepoCache() RepoCache
@@ -131,20 +135,79 @@ type PkgCache interface {
 
 // ========================== celer binary cache ========================== //
 
-// BinaryCache stores the celer binary of a version, so a node runs the one that exported
+// ClientCache stores the celer binary of a version, so a node runs the one that exported
 // its schedule instead of whatever its PATH happens to have.
-type BinaryCache interface {
+type ClientCache interface {
 	Restore(version string) (string, error)
 	Store() error
+	List() ([]string, error)
+	Fetch(version, destPath string) error
 }
 
 // ========================== artifact cache ========================== //
+
+// PrunedArtifact identifies an artifact removed by AritifactCache.Prune.
+type PrunedArtifact struct {
+	BuildHash string // build hash: the artifact file name without the .tar.gz suffix
+	RepoRef   string // source ref from the meta: a git commit, or an archive sha256
+}
+
+// CommitTime resolves the git commit time of a source ref. It returns ok=false
+// when the ref is not a resolvable commit in the local repo.
+type CommitTime func(repoRef string) (unixTime int64, ok bool)
+
+// PruneArtifact is one stored artifact, as seen by the prune policy.
+type PruneArtifact struct {
+	BuildHash   string // build hash: the artifact file name without the .tar.gz suffix
+	CommitHash  string // source ref from the meta: a git commit, or an archive sha256
+	SortTime    int64  // ordering key: commit time, or storage time for archives
+	StorageTime int64  // when the artifact was stored
+}
+
+// FilterExpiredArtifacts applies the prune policy and returns the artifacts to remove.
+//
+// - Only one build config is valid per port, so artifacts built from the same
+// source ref are one version, and only the newest artifact of a version matters.
+//
+// - keepCount counts versions instead of artifact files: everything beyond the
+// newest keepCount versions is removed, including older artifacts of a kept version.
+func FilterExpiredArtifacts(artifacts []PruneArtifact, keepCount int) []PruneArtifact {
+	// Fewer artifacts than the count can never exceed it.
+	if len(artifacts) <= keepCount {
+		return nil
+	}
+
+	// Newest first: by commit time, then by storage time, so the newest artifact of
+	// a version always comes before its older siblings.
+	ordered := slices.Clone(artifacts)
+	slices.SortFunc(ordered, func(x, y PruneArtifact) int {
+		if byTime := cmp.Compare(y.SortTime, x.SortTime); byTime != 0 {
+			return byTime
+		}
+		return cmp.Compare(y.StorageTime, x.StorageTime)
+	})
+
+	// Keep the newest artifact of the first keepCount versions; every other artifact
+	// expires, including the older siblings of a kept version.
+	keptVersions := make(map[string]bool, keepCount)
+	var expired []PruneArtifact
+	for _, artifact := range ordered {
+		if !keptVersions[artifact.CommitHash] && len(keptVersions) < keepCount {
+			keptVersions[artifact.CommitHash] = true
+		} else {
+			expired = append(expired, artifact)
+		}
+	}
+	return expired
+}
 
 // AritifactCache stores/restores a port's built package, keyed by name@version + build hash.
 type AritifactCache interface {
 	Exists(nameVersion, buildhash string) (bool, error)
 	Restore(packageDir, nameVersion, buildsystem, buildhash string) (bool, error)
 	Store(packageDir, metadata string) error
+	Prune(nameVersion string, keepCount int, commitTime CommitTime) error
+	ReadMeta(nameVersion, buildhash string) (data []byte, found bool, err error)
 }
 
 // ========================== reopo cache ========================== //
@@ -211,16 +274,62 @@ func IsPythonDistribution(name string) bool {
 	}
 }
 
-func CelerBinaryName(version string) string {
-	ext := ""
-	if runtime.GOOS == "windows" {
-		ext = ".exe"
+func ClientName(version string) string {
+	prefix := fmt.Sprintf("celer-%s-%s-", expr.FormatProcessor(runtime.GOARCH), runtime.GOOS)
+	ext := expr.If(runtime.GOOS == "windows", ".exe", "")
+	return prefix + version + ext
+}
+
+// ClientVersion returns the version encoded in a celer binary name of this
+// platform. ok is false for names of another platform or with no version.
+func ClientVersion(name string) (string, bool) {
+	prefix := fmt.Sprintf("celer-%s-%s-", expr.FormatProcessor(runtime.GOARCH), runtime.GOOS)
+	if !strings.HasPrefix(name, prefix) {
+		return "", false
 	}
 
-	return fmt.Sprintf("celer-%s-%s-%s%s",
-		runtime.GOOS,
-		expr.FormatProcessor(runtime.GOARCH),
-		version,
-		ext,
-	)
+	ext := expr.If(runtime.GOOS == "windows", ".exe", "")
+	version := strings.TrimSuffix(strings.TrimPrefix(name, prefix), ext)
+	if version == "" {
+		return "", false
+	}
+
+	return version, true
+}
+
+// SortVersions sorts versions in place, newest first.
+func SortVersions(versions []string) {
+	slices.SortFunc(versions, func(x, y string) int {
+		return CompareVersions(y, x)
+	})
+}
+
+// CompareVersions orders versions segment by segment: the `+<build>` suffix is ignored
+// (it is a build timestamp, not part of the version).
+func CompareVersions(x, y string) int {
+	x, _, _ = strings.Cut(x, "+")
+	y, _, _ = strings.Cut(y, "+")
+
+	xs := strings.Split(strings.TrimPrefix(x, "v"), ".")
+	ys := strings.Split(strings.TrimPrefix(y, "v"), ".")
+
+	for i := 0; i < len(xs) && i < len(ys); i++ {
+		if c := compareVersionSegment(xs[i], ys[i]); c != 0 {
+			return c
+		}
+	}
+
+	return cmp.Compare(len(xs), len(ys))
+}
+
+// compareVersionSegment compares numbers numerically (so 9 < 10) and anything else
+// bytewise, so a release sorts before its suffixes ('0' < '0-dev').
+func compareVersionSegment(x, y string) int {
+	xn, xerr := strconv.Atoi(x)
+	yn, yerr := strconv.Atoi(y)
+	if xerr == nil && yerr == nil {
+		return cmp.Compare(xn, yn)
+	}
+
+	return strings.Compare(x, y)
 }

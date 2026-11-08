@@ -306,17 +306,12 @@ func (p pip) emulatorArgs() []string {
 	return []string{"-L", rootfs.GetAbsDir()}
 }
 
-// formatPythonPackage enforces the single port.toml syntax: name@version.
-// It is converted to pip's name==version when writing requirements.txt.
 func formatPythonPackage(spec string) (string, error) {
 	name, version, ok := strings.Cut(strings.TrimSpace(spec), "@")
-	name = strings.TrimSpace(name)
-	version = strings.TrimSpace(version)
-	if !ok || name == "" || version == "" ||
-		strings.ContainsAny(name, " \t/:;") ||
-		strings.ContainsAny(version, " \t/:@;'\"") ||
-		strings.Contains(name, "==") || strings.Contains(version, "==") {
-		return "", fmt.Errorf("invalid python package spec %q, use name@version", spec)
+	name, version = strings.TrimSpace(name), strings.TrimSpace(version)
+
+	if !ok || name == "" || version == "" {
+		return "", fmt.Errorf("invalid python package spec %q, it should be like name@version", spec)
 	}
 	return name + "==" + version, nil
 }

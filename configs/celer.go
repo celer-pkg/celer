@@ -507,14 +507,14 @@ func (c *Celer) initPkgCache() error {
 		if err != nil {
 			return err
 		}
-		c.configData.PkgCache.binaryCache = cacheConfigs.BinaryCache
+		c.configData.PkgCache.clientCache = cacheConfigs.ClientCache
 		c.configData.PkgCache.downloadCache = cacheConfigs.DownloadCache
 		c.configData.PkgCache.repoCache = cacheConfigs.RepoCache
 		c.configData.PkgCache.artifactCache = cacheConfigs.AritifactCache
 		c.configData.PkgCache.pythonWheelCache = cacheConfigs.PythonWheelCache
 	} else if c.configData.PkgCache.FS != nil {
 		cacheConfigs := filesystem.InitPkgCache(c)
-		c.configData.PkgCache.binaryCache = cacheConfigs.BinaryCache
+		c.configData.PkgCache.clientCache = cacheConfigs.ClientCache
 		c.configData.PkgCache.downloadCache = cacheConfigs.DownloadCache
 		c.configData.PkgCache.repoCache = cacheConfigs.RepoCache
 		c.configData.PkgCache.artifactCache = cacheConfigs.AritifactCache

@@ -35,13 +35,13 @@ Celer 使用**基于 SHA-256 的验证**来缓存下载文件并确保数据完�
 	jobs = 32
 
 [pkgcache]
-	writable = true              # 必须为 true 才会写入缓存
+	readonly = false             # 必须为 false 才会写入缓存
 
 [pkgcache.fs]
 	dir = "/home/test/pkgcache"  # 本地或网络挂载目录, 可以为FTP，SMB，或者NFS等
 ```
 
-**重要**：需要设置 `writable = true` 才能自动缓存下载。它**只管写入**：为 `false` 时缓存里已有的文件照样会被复用，校验值也照常校验。
+**重要**：需要设置 `readonly = false` 才能自动缓存下载。它**只管写入**：为 `true` 时缓存里已有的文件照样会被复用，校验值也照常校验。
 
 ### 第二步：为构建工具添加 SHA-256 校验值
 

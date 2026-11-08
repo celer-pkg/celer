@@ -3,6 +3,7 @@ package minio
 import (
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -18,10 +19,10 @@ import (
 )
 
 type RepoConfig struct {
-	minioCache
+	Minio
 	ctx      context.Context
 	cacheDir string
-	writable bool
+	readOnly bool
 }
 
 func NewRepoConfig(ctx context.Context, client *minio.Client) *RepoConfig {
@@ -33,12 +34,12 @@ func NewRepoConfig(ctx context.Context, client *minio.Client) *RepoConfig {
 	minioConfig := pkgCache.GetMinio()
 	return &RepoConfig{
 		ctx: ctx,
-		minioCache: minioCache{
+		Minio: Minio{
 			client:     client,
 			bucketName: bucketName,
 		},
 		cacheDir: minioConfig.GetDir(pkgcache.DirRepos, ctx.Version()),
-		writable: pkgCache.IsWritable(),
+		readOnly: pkgCache.IsReadOnly(),
 	}
 }
 
@@ -51,8 +52,8 @@ func (r RepoConfig) Store(cacheKey string, repoInfo pkgcache.RepoInfo, archiveFi
 		return nil
 	}
 
-	// skip when pkgcache is not writable.
-	if !r.writable {
+	// skip when pkgcache is read-only.
+	if r.readOnly {
 		return nil
 	}
 
@@ -95,7 +96,7 @@ func (r RepoConfig) Restore(cacheKey string, repoInfo pkgcache.RepoInfo, archive
 
 	// Locate cached archive by repoRef.
 	repoName, _, _ := strings.Cut(repoInfo.NameVersion, "@")
-	objectName := filepath.Join(r.cacheDir, repoName, cacheKey+ext)
+	objectName := path.Join(r.cacheDir, repoName, cacheKey+ext)
 
 	// Check if the cached archive exists before downloading.
 	remoteInfo, err := r.GetFileInfo(objectName)
@@ -167,7 +168,7 @@ func (r RepoConfig) Restore(cacheKey string, repoInfo pkgcache.RepoInfo, archive
 				return false, fmt.Errorf("git repo is broken for '%s' -> %w", repoInfo.RepoDir, err)
 			} else if localCommit != expectedCommit {
 				_ = os.RemoveAll(repoInfo.RepoDir)
-				return false, fmt.Errorf("repo commit don't match, expect '%s', got '%s'", expectedCommit, localCommit)
+				return false, nil
 			}
 		}
 	} else {
@@ -221,7 +222,7 @@ func (r RepoConfig) Restore(cacheKey string, repoInfo pkgcache.RepoInfo, archive
 func (r RepoConfig) storeGitRepo(repoDir, repoRef, nameVersion string) error {
 	// Skip uploading if already cached.
 	repoName, _, _ := strings.Cut(nameVersion, "@")
-	remotePath := filepath.Join(r.cacheDir, repoName, repoRef+".tar.gz")
+	remotePath := path.Join(r.cacheDir, repoName, repoRef+".tar.gz")
 	remoteInfo, err := r.GetFileInfo(remotePath)
 	if err != nil {
 		return fmt.Errorf("failed to get minio object info for '%s' -> %w", remotePath, err)
@@ -254,7 +255,7 @@ func (r RepoConfig) storeArchiveRepo(repoRef, nameVersion, archivePath string) e
 	// Preserve original archive extension so extract dispatches correctly.
 	ext := fileio.Ext(archivePath)
 	repoName, _, _ := strings.Cut(nameVersion, "@")
-	remotePath := filepath.Join(r.cacheDir, repoName, repoRef+ext)
+	remotePath := path.Join(r.cacheDir, repoName, repoRef+ext)
 
 	// Skip uploading if already cached.
 	remoteInfo, err := r.GetFileInfo(remotePath)

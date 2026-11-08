@@ -11,6 +11,7 @@ import (
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/git"
 	"github.com/celer-pkg/celer/pkgs/logger"
 )
 
@@ -33,6 +34,13 @@ func Import(celer *configs.Celer, dagPath string) (*DagInfo, error) {
 		} else if dag.PkgCache.FS != nil {
 			if err := celer.SetPkgCacheFSDir(dag.PkgCache.FS.Dir); err != nil {
 				return nil, fmt.Errorf("failed to adopt the fs as pkgcache solution -> %w", err)
+			}
+		}
+
+		// Adopt the exporter's retention policy.
+		if dag.PkgCache.KeepArtifactCount != nil && (dag.PkgCache.Minio != nil || dag.PkgCache.FS != nil) {
+			if err := celer.SetPkgCacheKeepArtifactCount(*dag.PkgCache.KeepArtifactCount); err != nil {
+				return nil, fmt.Errorf("failed to adopt the artifact keep count from '%s' -> %w", dagPath, err)
 			}
 		}
 	}
@@ -100,11 +108,11 @@ func Install(ctx context.Context, nameVersion string, devDep bool, options confi
 		platformName := expr.If(ctx.Platform().GetName() != "", ctx.Platform().GetName(), "native")
 
 		// Display install header.
-		logger.Println(logger.Title, "=======================================================================")
+		logger.Println(logger.Title, "===========================================================================")
 		logger.Printf(logger.Title, "🚀 start to install %s\n", nameVersion)
 		logger.Printf(logger.Title, "📌 platform: %s\n", platformName)
 		logger.Printf(logger.Title, "📌 product: %s\n", ctx.Project().GetName())
-		logger.Println(logger.Title, "=======================================================================")
+		logger.Println(logger.Title, "===========================================================================")
 	}
 
 	// Init the port.
@@ -140,9 +148,9 @@ func Install(ctx context.Context, nameVersion string, devDep bool, options confi
 			return "", logger.PrintError(err, "failed to calculate the build hash of %s", nameVersion)
 		}
 		if buildhash != expect.BuildHash {
-			return "", logger.PrintError(
-				fmt.Errorf("build hash mismatch: '%s' expects '%s' but this workspace computes '%s'", expect.DagPath, expect.BuildHash, buildhash),
-				"failed to install '%s'", nameVersion)
+			reportMismatch(ctx, port, expect.BuildHash)
+			msg := fmt.Errorf("build hash mismatch: '%s' expects '%s' but this workspace computes '%s'", expect.DagPath, expect.BuildHash, buildhash)
+			return "", logger.PrintError(msg, "failed to install '%s'", nameVersion)
 		}
 	}
 
@@ -196,11 +204,11 @@ func parseDag(dagPath string) (*Dag, error) {
 
 func switchToPinnedCeler(celer *configs.Celer, dag *Dag) error {
 	pkgcache := celer.PkgCache()
-	if pkgcache == nil || pkgcache.GetBinaryCache() == nil {
+	if pkgcache == nil || pkgcache.GetClientCache() == nil {
 		return fmt.Errorf("no pkgcache binary cache is configured, so celer %s cannot be restored", dag.CelerVersion)
 	}
 
-	binaryPath, err := pkgcache.GetBinaryCache().Restore(dag.CelerVersion)
+	binaryPath, err := pkgcache.GetClientCache().Restore(dag.CelerVersion)
 	if err != nil {
 		return fmt.Errorf("failed to restore celer %s from pkgcache -> %w", dag.CelerVersion, err)
 	}
@@ -223,4 +231,48 @@ func preferName(prefer configs.InstallPrefer) string {
 	default:
 		return ""
 	}
+}
+
+// reportMismatch explains a build hash mismatch by comparing two build meta data content with `git diff`.
+func reportMismatch(ctx context.Context, port configs.Port, buildHash string) {
+	localText, err := port.BuildMeta()
+	if err != nil {
+		logger.PrintWarning("failed to collect the build meta of %s -> %s", port.NameVersion(), err)
+		return
+	}
+
+	scheduled, missingErr := scheduledMeta(ctx, port.NameVersion(), buildHash)
+	if missingErr != nil {
+		logger.PrintWarning("no meta file found in pkgcache for '%s' -> %s", port.NameVersion(), missingErr)
+		return
+	}
+
+	if err := git.PrintDiff(scheduled, []byte(localText)); err != nil {
+		logger.PrintWarning("failed to diff the build meta of %s -> %s", port.NameVersion(), err)
+		return
+	}
+}
+
+// scheduledMeta returns the meta the schedule was exported from, as carried by the
+// node's artifact in pkgcache. When it is not available, missing says why.
+func scheduledMeta(ctx context.Context, nameVersion, buildHash string) ([]byte, error) {
+	if buildHash == "" {
+		return nil, fmt.Errorf("the schedule records no build hash")
+	}
+	if ctx.Offline() {
+		return nil, fmt.Errorf("pkgcache is offline here")
+	}
+	pkgCache := ctx.PkgCache()
+	if pkgCache == nil || pkgCache.GetArtifactCache() == nil {
+		return nil, fmt.Errorf("pkgcache is not configured here")
+	}
+
+	metaBytes, found, err := pkgCache.GetArtifactCache().ReadMeta(nameVersion, buildHash)
+	switch {
+	case err != nil:
+		return nil, fmt.Errorf("failed to read it from pkgcache -> %s", err)
+	case !found:
+		return nil, fmt.Errorf("pkgcache has no artifact of %s under the schedule's build hash", nameVersion)
+	}
+	return metaBytes, nil
 }

@@ -117,6 +117,20 @@ Celer 从两个来源查找构建工具，按顺序合并：
 
 ---
 
+## 🐍 以构建工具形式使用 Python 库
+
+构建期需要的 Python 库通过 `python3:`（或 `python:`）前缀声明。版本是**必填**的，格式为 `name@version`：
+
+```toml
+build_tools = ["python3:mako@1.3.10", "python3:MarkupSafe@2.1.0"]
+```
+
+Celer 会把每个条目转换为 pip 的 `name==version` 形式并安装到项目的构建 venv 中。不带版本的写法（如 `python3:mako`）会报错：未锁定版本会导致构建不可复现，也无法可靠使用 [Python Wheel 缓存](./article_pkgcache_python_wheels.md)。
+
+> 💡 只接受 `name@version` 形式，请不要在 `build_tools` 中写 `name==version`。
+
+---
+
 ## 🛠️ 自定义构建工具
 
 ### 添加新工具

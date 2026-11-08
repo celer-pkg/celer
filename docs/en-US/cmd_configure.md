@@ -30,7 +30,8 @@ celer configure [flags]
 | --pkgcache-minio-host         | string  | Set pkgcache minio backend host (fs and minio are mutually exclusive) |
 | --pkgcache-minio-access-key   | string  | Set pkgcache minio access key                          |
 | --pkgcache-minio-secret-key   | string  | Set pkgcache minio secret key                          |
-| --pkgcache-writable           | boolean | `false` keeps the package cache read-only; restoring stays allowed |
+| --pkgcache-readonly           | boolean | `true` keeps the package cache read-only; restoring stays allowed |
+| --pkgcache-keep-artifact-count  | integer | Keep only the newest N artifacts per port; `0` (default) disables pruning |
 | --ccache-enabled           | boolean | Enable/disable ccache                                |
 | --ccache-dir               | string  | Set ccache working directory                         |
 | --ccache-maxsize           | string  | Set ccache max size                                  |
@@ -58,9 +59,9 @@ celer configure --offline=true
 celer configure --verbose=false
 
 # PkgCache group (can combine in one command)
-# fs and minio are mutually exclusive backends; writing is on by default,
-# writable=false makes this node read-only.
-celer configure --pkgcache-fs-dir=/home/xxx/cache --pkgcache-writable=true
+# configuring a backend replaces the other one; writing is on by default,
+# readonly=true makes this node read-only.
+celer configure --pkgcache-fs-dir=/home/xxx/cache --pkgcache-readonly=false
 celer configure --pkgcache-minio-host=http://minio.example.com:9000 \
                 --pkgcache-minio-access-key=xxx \
                 --pkgcache-minio-secret-key=yyy
@@ -91,8 +92,9 @@ celer configure --port=eigen@3.4.0 --port-url=https://example.com/eigen.git --po
 - `--jobs`: must be greater than `0`.
 - `--pkgcache-fs-dir`: cannot be empty, and directory must already exist.
 - `--pkgcache-minio-host` / `--pkgcache-minio-access-key` / `--pkgcache-minio-secret-key`: host must be reachable; empty values keep the current setting, so a key can be rotated alone.
-- fs and minio backends are mutually exclusive; configuring one while the other is set fails.
-- `--pkgcache-writable`: `false` keeps the package cache read-only. Writing is on by default; a backend (fs or minio) must be configured first (or in the same command). It only gates **writing**: cached entries are still restored.
+- fs and minio are mutually exclusive: configuring one replaces the other one.
+- `--pkgcache-readonly`: `true` keeps the package cache read-only. Writing is on by default; a backend (fs or minio) must be configured first (or in the same command). It only gates **writing**: cached entries are still restored.
+- `--pkgcache-keep-artifact-count`: `0` (default) disables the artifact pruning; a positive count deletes a port's older artifacts after each upload. Only set it on a node that owns the shared cache policy.
 - `--proxy-host`: cannot be empty.
 - `--proxy-port`: must be greater than `0`.
 - `--ccache-dir`: directory must already exist.

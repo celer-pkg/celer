@@ -3,7 +3,7 @@
 // Run command on either a POSIX or a Windows agent (sh vs bat).
 def run(String cmd) {
     if (isUnix()) {
-        sh "${cmd}"
+        sh "export PATH=\"$HOME/.local/bin:\$PATH\"; ${cmd}"
     } else {
         bat "${cmd}"
     }
@@ -53,7 +53,7 @@ pipeline {
     //             '-e CELER_PKGCACHE_MINIO_ACCESS_KEY ' +
     //             '-e CELER_PKGCACHE_MINIO_SECRET_KEY ' +
     //             '-e CELER_PKGCACHE_FS_DIR ' +
-    //             '-e CELER_PKGCACHE_WRITABLE'
+    //             '-e CELER_PKGCACHE_READONLY'
     //     }
     // }
 

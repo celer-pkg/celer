@@ -43,11 +43,22 @@ func PrintError(err error, format string, args ...any) error {
 func PrintWarning(format string, args ...any) {
 	message := fmt.Sprintf(format, args...)
 
+	// Size the frame to the widest line, not to the whole message.
 	const minWidth = 75
-	width := max(minWidth, len(message)+8)
+	width := minWidth
+	for line := range strings.SplitSeq(message, "\n") {
+		width = max(width, len(line)+4)
+	}
 	separator := strings.Repeat("=", width)
 
-	Printf(Warning, "\n%s\n[!] WARNING:\n    %s\n%s\n", separator, message, separator)
+	Printf(Warning, "\n%s\n[!] WARNING:\n", separator)
+	for i, line := range strings.Split(message, "\n") {
+		if i == 0 {
+			line = "    " + line + "\n"
+		}
+		Printf(Warning, "%s\n", line) // The frame color resumes after the line's own reset.
+	}
+	Printf(Warning, "%s\n", separator)
 }
 
 func PrintPass(format string, args ...any) {

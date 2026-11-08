@@ -30,13 +30,9 @@ func (g gyp) Name() string {
 func (g gyp) CheckTools() []string {
 	tools := slices.Clone(g.BuildConfig.BuildTools)
 
-	// Add build tools dynamically.
-	_, version, hasVersion := strings.Cut(g.buildSystem, "@")
-	if hasVersion && strings.TrimSpace(version) != "" {
-		tools = append(tools, "git", "cmake", "ninja", "python3:gyp-next=="+strings.TrimSpace(version))
-	} else {
-		tools = append(tools, "git", "cmake", "ninja", "python3:gyp-next")
-	}
+	// For python buildsystem, it's reqired to carry a fixed version, e.g. "gyp@0.19.0".
+	_, version, _ := strings.Cut(g.buildSystem, "@")
+	tools = append(tools, "git", "cmake", "ninja", "python3:gyp-next@"+strings.TrimSpace(version))
 	return tools
 }
 

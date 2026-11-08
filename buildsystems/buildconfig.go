@@ -104,7 +104,8 @@ type libraryType struct {
 }
 
 type BuildConfig struct {
-	Url              string   `toml:"url,omitempty"` // Used to override url in package.
+	Url              string   `toml:"url,omitempty"`      // Used to override url in package.
+	Checksum         string   `toml:"checksum,omitempty"` // Used to override checksum in package.
 	SystemName       string   `toml:"system_name,omitempty"`
 	SystemNames      []string `toml:"system_names,omitempty"`
 	SystemNameExcept string   `toml:"system_name_except,omitempty"`
@@ -338,6 +339,12 @@ func (b BuildConfig) Validate() error {
 		return fmt.Errorf("build_system %q does not support version suffix, only cmake, meson and gyp support versions", b.BuildSystem)
 	}
 
+	// meson and gyp are provisioned as Python packages (meson/gyp-next), so their
+	// versions must be pinned to keep builds reproducible over time.
+	if (name == "meson" || name == "gyp") && !hasVersion {
+		return fmt.Errorf("build_system %q requires a version for %s, e.g. %q", name, b.PortConfig.PortFile, name+"@x.y.z")
+	}
+
 	if name == "pip" && len(b.PythonPackages) == 0 {
 		return fmt.Errorf("build_system %q requires python_packages for %s", "pip", b.PortConfig.PortFile)
 	}
@@ -531,7 +538,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archiveName string, depth int) (err
 	// For archive sources, cache before initializing local git tracking so the cache
 	// stays keyed by the original archive checksum without the generated .git directory.
 	// Store repo even checksum is empty, then can fill checksum in port.toml, if you want restore it from pkgcache/repos.
-	if repoUrl != "_" && repoCache != nil && pkgCache.IsWritable() {
+	if repoUrl != "_" && repoCache != nil && !pkgCache.IsReadOnly() {
 		archiveFile := filepath.Join(b.Ctx.Downloads(), archiveName)
 		cacheKey := b.repoCacheKey(nameVersion)
 		repoInfo := pkgcache.RepoInfo{

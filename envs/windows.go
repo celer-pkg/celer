@@ -26,12 +26,16 @@ var preserveKeys = []string{
 	"PROCESSOR_LEVEL",
 	"PROCESSOR_REVISION",
 	"NUMBER_OF_PROCESSORS",
-	"CELER_PORTS_REPO",
 	"GITHUB_ACTIONS",
 	"HTTP_PROXY",
 	"HTTPS_PROXY",
 	"http_proxy",
 	"https_proxy",
+	"CELER_PORTS_REPO",
+	"CELER_PKGCACHE_FS_DIR",
+	"CELER_PKGCACHE_MINIO_HOST",
+	"CELER_PKGCACHE_MINIO_ACCESS_KEY",
+	"CELER_PKGCACHE_MINIO_SECRET_KEY",
 }
 
 // CleanEnv clear all environments that not required and reset PATH.

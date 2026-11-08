@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"slices"
 	"strings"
@@ -23,7 +24,19 @@ import (
 
 var PythonTool *python.PythonTool
 
-func pipInstall(ctx context.Context, pipConfig context.PythonConfig, packages *[]string) error {
+// GetDefaultPythonVersion returns the default Python version for the current platform.
+// - Windows: reads from buildtools/static TOML python tool definition (via GetDefaultPythonVersion from build_tools.go)
+// - Linux/macOS: returns detected system python3 version.
+func GetDefaultPythonVersion() string {
+	// For Windows, delegate to build_tools implementation.
+	if runtime.GOOS == "windows" {
+		return getWindowsDefaultPythonVersion()
+	} else { // For Linux/macOS, detect system python3 version.
+		return python.GetSystemPythonVersion()
+	}
+}
+
+func pipInstall(ctx context.Context, pipConfig context.PythonConfig, specs *[]string) error {
 	// Get python version from project config if available, otherwise use default version.
 	pythonVersion := GetDefaultPythonVersion()
 	pythonConfig := ctx.Project().GetPythonConfig()
@@ -37,32 +50,41 @@ func pipInstall(ctx context.Context, pipConfig context.PythonConfig, packages *[
 		return fmt.Errorf("failed to setup python -> %w", err)
 	}
 
-	// Collect python package specs that are not installed in the venv.
+	// Collect python package installSpecs that are not installed in the venv.
 	// python3:mako@1.2.0 -> mako==1.2.0
-	var specs []string
-	for _, pkg := range *packages {
-		if !strings.HasPrefix(pkg, "python3:") && !strings.HasPrefix(pkg, "python:") {
+	var (
+		positions    = make(map[string]int, len(*specs))
+		installSpecs []string
+	)
+	for _, spec := range *specs {
+		if !strings.HasPrefix(spec, "python3:") && !strings.HasPrefix(spec, "python:") {
 			continue
 		}
 
-		// Format python3 library name version.
-		var nameVersion string
-		if after, ok := strings.CutPrefix(pkg, "python:"); ok {
-			nameVersion = after
-		} else {
-			nameVersion = strings.TrimPrefix(pkg, "python3:")
+		// Format python library name version.
+		formated, err := formatPythonSpec(spec)
+		if err != nil {
+			return err
 		}
-		nameVersion = strings.ReplaceAll(nameVersion, "@", "==")
 
-		if isPackageInstalled(nameVersion, venvDir) {
+		// The venv holds one version per distribution, so keep only the last spec of each.
+		name, _ := parseNameVersion(formated)
+		key := normalizedDistName(name)
+		if position, ok := positions[key]; ok {
+			installSpecs[position] = formated
 			continue
 		}
-		specs = append(specs, nameVersion)
+
+		if isPackageInstalled(formated, venvDir) {
+			continue
+		}
+		positions[key] = len(installSpecs)
+		installSpecs = append(installSpecs, formated)
 	}
 
 	// Nothing to do; still make sure the python bin dir is on PATH.
-	if len(specs) == 0 {
-		return finishPipInstall(packages, venvDir)
+	if len(installSpecs) == 0 {
+		return finishPipInstall(specs, venvDir)
 	}
 
 	// Persistent wheelhouse per python minor version, shared across all specs as
@@ -79,20 +101,20 @@ func pipInstall(ctx context.Context, pipConfig context.PythonConfig, packages *[
 		wheelCache = pkgCache.GetPythonWheelCache()
 	}
 	canRestore := pkgCache != nil && !ctx.Offline() && wheelCache != nil
-	canStore := canRestore && pkgCache.IsWritable()
+	canStore := canRestore && !pkgCache.IsReadOnly()
 	wheelPlatformScope := fmt.Sprintf("py%s-%s-%s", minorVersion, runtime.GOOS, runtime.GOARCH)
 
 	// —— Try to install every spec straight from the persistent wheelhouse ————————————————————————————————————
 	if wheelhouseHasDistributions(wheelhouseDir) {
-		if err := PythonTool.TryInstallFromWheelhouse(specs, wheelhouseDir); err == nil {
-			return finishPipInstall(packages, venvDir)
+		if err := PythonTool.TryInstallFromWheelhouse(installSpecs, wheelhouseDir); err == nil {
+			return finishPipInstall(specs, venvDir)
 		}
 	}
 
 	// Process each spec independently so its wheels are cached under
 	// python-wheels/<platform>/<name>/<version>/ and reused across machines.
-	for _, spec := range specs {
-		name, version := parseSpec(spec)
+	for _, spec := range installSpecs {
+		name, version := parseNameVersion(spec)
 		cacheKey := filepath.Join(wheelPlatformScope, name, version)
 
 		// —— Restore this spec's cached wheels from pkgcache into the wheelhouse ——————————————————————————————
@@ -135,15 +157,14 @@ func pipInstall(ctx context.Context, pipConfig context.PythonConfig, packages *[
 			return fmt.Errorf("failed to install python package '%s' -> %w", spec, err)
 		}
 	}
-	return finishPipInstall(packages, venvDir)
+	return finishPipInstall(specs, venvDir)
 }
 
-// finishPipInstall removes python3: entries from the libraries list and ensures
-// the venv bin dir is on PATH.
+// finishPipInstall removes python3:python: entries from the libraries list and ensures the venv bin dir is on PATH.
 func finishPipInstall(packages *[]string, venvDir string) error {
-	// Remove python3:xxx from list.
+	// Remove python3:xxx and python:xxx from list.
 	*packages = slices.DeleteFunc(*packages, func(element string) bool {
-		return strings.HasPrefix(element, "python3")
+		return strings.HasPrefix(element, "python3:") || strings.HasPrefix(element, "python:")
 	})
 
 	// Always ensure Python bin directory is in PATH.
@@ -164,9 +185,9 @@ func wheelhouseHasDistributions(dir string) bool {
 	return false
 }
 
-// parseSpec splits a pip requirement specifier "name==version" into its name
+// parseNameVersion splits a pip requirement specifier "name==version" into its name
 // and version. A spec without a version pins nothing and returns an empty version.
-func parseSpec(spec string) (name, version string) {
+func parseNameVersion(spec string) (name, version string) {
 	if name, version, ok := strings.Cut(spec, "=="); ok {
 		return name, version
 	}
@@ -322,19 +343,8 @@ func getPythonVenvPath(pythonVersion, projectName string) string {
 	return filepath.Join(dirs.WorkspaceDir, "installed", fmt.Sprintf("venv-%s@%s", minorVersion, projectName))
 }
 
-// GetDefaultPythonVersion returns the default Python version for the current platform.
-// - Windows: reads from buildtools/static TOML python tool definition (via GetDefaultPythonVersion from build_tools.go)
-// - Linux/macOS: returns detected system python3 version.
-func GetDefaultPythonVersion() string {
-	// For Windows, delegate to build_tools implementation.
-	if runtime.GOOS == "windows" {
-		return getWindowsDefaultPythonVersion()
-	} else { // For Linux/macOS, detect system python3 version.
-		return python.GetSystemPythonVersion()
-	}
-}
-
-// isPackageInstalled checks if a Python package is already installed.
+// isPackageInstalled checks if a Python package is already installed, at exactly
+// the pinned version.
 // This avoids frequent PyPI requests that could lead to IP blocking.
 func isPackageInstalled(packageName string, venvDir string) bool {
 	libDir := filepath.Join(venvDir, expr.If(runtime.GOOS == "windows", "Lib", "lib"))
@@ -353,40 +363,52 @@ func isPackageInstalled(packageName string, venvDir string) bool {
 		versionGlob = version
 	}
 
+	// Pip names a metadata directory after the normalized distribution name:
+	// "gyp-next" is written as "gyp_next-<version>.dist-info".
+	distName := normalizedDistName(name)
+
 	var packageDirPattern, distInfoPattern, eggInfoPattern string
 	switch runtime.GOOS {
 	case "windows":
 		// Windows: Lib/site-packages/{name} and Lib/site-packages/{name}-{version}.dist-info.
 		packageDirPattern = filepath.Join(libDir, "site-packages", name)
-		distInfoPattern = filepath.Join(libDir, "site-packages", name+"-"+versionGlob+".dist-info")
-		eggInfoPattern = filepath.Join(libDir, "site-packages", name+"-"+versionGlob+".egg-info")
+		distInfoPattern = filepath.Join(libDir, "site-packages", distName+"-"+versionGlob+".dist-info")
+		eggInfoPattern = filepath.Join(libDir, "site-packages", distName+"-"+versionGlob+".egg-info")
 
 	case "linux", "darwin":
 		// Linux/Darwin: lib/python*/site-packages/{name} and lib/python*/site-packages/{name}-{version}.dist-info.
 		packageDirPattern = filepath.Join(libDir, "python*", "site-packages", name)
-		distInfoPattern = filepath.Join(libDir, "python*", "site-packages", name+"-"+versionGlob+".dist-info")
-		eggInfoPattern = filepath.Join(libDir, "python*", "site-packages", name+"-"+versionGlob+".egg-info")
+		distInfoPattern = filepath.Join(libDir, "python*", "site-packages", distName+"-"+versionGlob+".dist-info")
+		eggInfoPattern = filepath.Join(libDir, "python*", "site-packages", distName+"-"+versionGlob+".egg-info")
 
 	default:
 		panic("unsupported os: " + runtime.GOOS)
 	}
 
-	matches, err := filepath.Glob(packageDirPattern)
-	if err == nil && len(matches) > 0 {
-		return true
+	// The import directory alone says nothing about the version, so it only counts
+	// for a spec that pins nothing; a pinned spec must find that exact version.
+	patterns := []string{distInfoPattern, eggInfoPattern}
+	if version == "" {
+		patterns = append(patterns, packageDirPattern)
 	}
 
-	matches, err = filepath.Glob(distInfoPattern)
-	if err == nil && len(matches) > 0 {
-		return true
-	}
-
-	matches, err = filepath.Glob(eggInfoPattern)
-	if err == nil && len(matches) > 0 {
-		return true
+	for _, pattern := range patterns {
+		if matches, err := filepath.Glob(pattern); err == nil && len(matches) > 0 {
+			return true
+		}
 	}
 
 	return false
+}
+
+// normalizedDistName returns a distribution name the way pip writes it in metadata
+// directory names (PEP 503): lowercase, with runs of '-', '_' and '.' collapsed
+// into one '_'. "gyp-next" is stored as "gyp_next-<version>.dist-info".
+var repeatedSeparator = regexp.MustCompile(`[-_.]+`)
+
+func normalizedDistName(name string) string {
+	normalized := repeatedSeparator.ReplaceAllString(strings.ToLower(name), "_")
+	return strings.Trim(normalized, "_")
 }
 
 // getWindowsDefaultPythonVersion reads Python version from static TOML.
@@ -431,4 +453,18 @@ func normalizeVersion(fullVersion string) string {
 		return parts[0] + "." + parts[1]
 	}
 	return fullVersion
+}
+
+// formatPythonSpec converts a build tool spec to a pip requirement spec.
+// The version is mandatory: python3:mako@1.2.0 -> mako==1.2.0.
+func formatPythonSpec(spec string) (string, error) {
+	original := strings.TrimSpace(spec)
+	stripped := strings.TrimPrefix(strings.TrimPrefix(original, "python3:"), "python:")
+	name, version, ok := strings.Cut(stripped, "@")
+	name, version = strings.TrimSpace(name), strings.TrimSpace(version)
+
+	if !ok || name == "" || version == "" {
+		return "", fmt.Errorf("invalid python package spec %q, it should be like python3:name@version", original)
+	}
+	return name + "==" + version, nil
 }

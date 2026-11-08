@@ -17,10 +17,10 @@ import (
 )
 
 type RepoConfig struct {
-	fsCache
+	FileSystem
 	ctx      context.Context
 	cacheDir string
-	writable bool
+	readOnly bool
 }
 
 func NewRepoConfig(ctx context.Context) *RepoConfig {
@@ -33,12 +33,12 @@ func NewRepoConfig(ctx context.Context) *RepoConfig {
 	cacheRootDir := filesystem.GetDir(pkgcache.DirRoot, ctx.Version())
 	repoCacheDir := filesystem.GetDir(pkgcache.DirRepos, ctx.Version())
 	return &RepoConfig{
-		fsCache: fsCache{
+		FileSystem: FileSystem{
 			cacheDirRoot: cacheRootDir,
 		},
 		ctx:      ctx,
 		cacheDir: repoCacheDir,
-		writable: pkgCache.IsWritable(),
+		readOnly: pkgCache.IsReadOnly(),
 	}
 }
 
@@ -51,8 +51,8 @@ func (r RepoConfig) Store(cacheKey string, repoInfo pkgcache.RepoInfo, archiveFi
 		return nil
 	}
 
-	// skip when pkgcache is not writable.
-	if !r.writable {
+	// skip when pkgcache is read-only.
+	if r.readOnly {
 		return nil
 	}
 
@@ -157,7 +157,7 @@ func (r RepoConfig) Restore(cacheKey string, repoInfo pkgcache.RepoInfo, archive
 			}
 			if localCommit != expectedCommit {
 				_ = os.RemoveAll(repoInfo.RepoDir)
-				return false, fmt.Errorf("repo commit don't match, expect '%s', got '%s'", expectedCommit, localCommit)
+				return false, nil
 			}
 		}
 	} else {

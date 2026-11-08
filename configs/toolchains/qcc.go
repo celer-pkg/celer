@@ -80,13 +80,8 @@ func (q *QCC) CXXFlags() []string {
 	}
 }
 
-func (q *QCC) LDFlags() []string {
-	return []string{}
-}
-
-func (q *QCC) RuntimeFlags() []string {
-	return []string{}
-}
+func (q *QCC) LDFlags() []string      { return []string{} }
+func (q *QCC) RuntimeFlags() []string { return []string{} }
 
 // ReadQNXEnvs read QNX's source file to get all build environment variables.
 func ReadQNXEnvs(toolchain context.Toolchain) (map[string]string, error) {

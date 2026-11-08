@@ -1,6 +1,7 @@
 package dag
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"maps"
@@ -29,10 +30,10 @@ func Export(ctx context.Context, roots []string, ignoreCache bool, outPath strin
 
 	// Publish the binary that produced the schedule: the node restores it and continues in it.
 	pkgCache := ctx.PkgCache()
-	if pkgCache == nil || pkgCache.GetBinaryCache() == nil {
+	if pkgCache == nil || pkgCache.GetClientCache() == nil {
 		return nil
 	}
-	return pkgCache.GetBinaryCache().Store()
+	return pkgCache.GetClientCache().Store()
 }
 
 // buildDag schedule the build of specified roots: it pins the whole closure, hashes every node of it.
@@ -95,22 +96,25 @@ func buildDag(ctx context.Context, roots []string, ignoreCache bool) (*Dag, erro
 	}
 
 	// Set pkgcache solution if configured: minio and fs are mutually exclusive.
-	if ctx.PkgCache() != nil {
-		minio := ctx.PkgCache().GetMinio()
-		fs := ctx.PkgCache().GetFS()
+	if pkgCache := ctx.PkgCache(); pkgCache != nil {
+		minio := pkgCache.GetMinio()
+		fs := pkgCache.GetFS()
 		if minio != nil {
 			if err := minio.Validate(); err != nil {
 				return nil, err
 			}
-			dag.PkgCache = &configs.PkgCache{
-				Minio: minio,
-			}
+			dag.PkgCache = &configs.PkgCache{Minio: minio}
 		} else if fs != nil {
 			if err := fs.Validate(); err != nil {
 				return nil, err
 			}
-			dag.PkgCache = &configs.PkgCache{
-				FS: fs,
+			dag.PkgCache = &configs.PkgCache{FS: fs}
+		}
+
+		// Export dag with keepArtifactCount that read from pkgcache.
+		if dag.PkgCache != nil {
+			if keepCount := pkgCache.GetKeepArtifactCount(); keepCount > 0 {
+				dag.PkgCache.KeepArtifactCount = &keepCount
 			}
 		}
 	}
@@ -122,8 +126,11 @@ func buildDag(ctx context.Context, roots []string, ignoreCache bool) (*Dag, erro
 // of stdout: celer's own progress output shares stdout with it, and CI reads the
 // file directly.
 func writeDag(report *Dag, outPath string) error {
-	bytes, err := json.MarshalIndent(report, "", "  ")
-	if err != nil {
+	var buffer bytes.Buffer
+	encoder := json.NewEncoder(&buffer)
+	encoder.SetEscapeHTML(false) // Section titles carry "<<<": keep them readable in the file.
+	encoder.SetIndent("", "  ")
+	if err := encoder.Encode(report); err != nil {
 		return fmt.Errorf("failed to encode the build DAG -> %w", err)
 	}
 
@@ -131,7 +138,7 @@ func writeDag(report *Dag, outPath string) error {
 	if err := os.MkdirAll(filepath.Dir(outPath), os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create the output dir of %s -> %w", outPath, err)
 	}
-	if err := os.WriteFile(outPath, append(bytes, '\n'), os.ModePerm); err != nil {
+	if err := os.WriteFile(outPath, buffer.Bytes(), os.ModePerm); err != nil {
 		return fmt.Errorf("failed to write the build DAG to %s -> %w", outPath, err)
 	}
 

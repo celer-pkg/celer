@@ -5,8 +5,6 @@ PkgCache 缓存构建产物、源码仓库和下载文件。后端只能选一�
 - **fs**：本地目录，或 NFS / SMB 挂载
 - **minio**：S3 兼容对象存储
 
-同时配两个会报错：`pkgcache can not configure both 'minio' and 'fs'`。
-
 - [缓存构建产物](article_pkgcache_artifacts.md)
 - [缓存源码仓库](article_pkgcache_repos.md)
 - [缓存下载文件](article_pkgcache_downloads.md)
@@ -18,7 +16,7 @@ PkgCache 缓存构建产物、源码仓库和下载文件。后端只能选一�
 
 ```toml
 [pkgcache]
-  writable = true
+  readonly = false
 
 [pkgcache.fs]
   dir = "/home/test/pkgcache"
@@ -92,26 +90,23 @@ celer configure --pkgcache-minio-host=http://minio.example.com:9000 \
 
 - 脚本需要 MinIO **管理员**凭证，只用于建桶/策略/凭证；不会写进 `celer.toml`，也不会回显（先跑 `--dry-run` 可以只看它要执行哪些 `mc` 命令）。
 - 这个凭证是一个普通 MinIO 用户（Console 里在 *Identity → Users → celer-pkgcache*），不是 service account。
-- 它能读、能传、能覆盖，**不能删**。删除对象只能由管理员在 Console 或 `mc rm` 手动执行。
+- 它能读、能传、能覆盖；删除**仅限 `artifacts-*/` 前缀**，用于清理过期制品，删不到 `repos/`、`downloads/`、`celers/`。其他对象的删除仍需管理员手动执行。
 - 更多细节（`--rotate` 轮换、验证步骤、管理员删除）见 [`deploy/minio/README.md`](../../deploy/minio/README.md)。
 
 ## 选项
 
-默认就是可写；改之前必须先配好 fs 或 minio。`writable = false` 会把节点变成纯读取方。
+默认就是可写；改之前必须先配好 fs 或 minio。`readonly = true` 会把节点变成纯读取方。
 
 ```bash
-celer configure --pkgcache-writable=false
+celer configure --pkgcache-readonly=true
 ```
 
 | 字段 | 说明 |
 |------|------|
-| `pkgcache.writable` | **只管写入**：`false` 时为只读缓存 |
+| `pkgcache.readonly` | **只管写入**：`true` 时为只读缓存 |
+| `pkgcache.keep_artifact_count` | 每个 port 保留的最新制品数，超出的在每次上传后清理；不配置则不清理 |
 | `pkgcache.fs.dir` | 缓存根目录，必须已存在 |
 | `pkgcache.minio.host` / `access_key` / `secret_key` | S3 地址和凭证 |
-
-`writable` 只控制写入，读取（恢复）永远不受影响：别的机器放进缓存的条目照样会被复用——只读节点依然能快速构建，只是不再往缓存里加东西。开发机共用不属于自己的缓存时设 `writable = false`。
-
-> **注意**：`writable` 属于 `[pkgcache]` 本身，必须写在 `[pkgcache.fs]` / `[pkgcache.minio]` **之前**（TOML 表不能重复打开）。`celer configure` 会按正确顺序写入。
 
 ## 布局
 

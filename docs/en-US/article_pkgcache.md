@@ -5,8 +5,6 @@ PkgCache stores build artifacts, source repos, and downloaded files. Pick **one*
 - **fs**: a local directory, or an NFS / SMB mount
 - **minio**: S3-compatible object storage
 
-Configuring both fails: `pkgcache can not configure both 'minio' and 'fs'`.
-
 - [Cache Build Artifacts](article_pkgcache_artifacts.md)
 - [Cache Source Repositories](article_pkgcache_repos.md)
 - [Cache Downloaded Files](article_pkgcache_downloads.md)
@@ -18,7 +16,7 @@ Configuring both fails: `pkgcache can not configure both 'minio' and 'fs'`.
 
 ```toml
 [pkgcache]
-  writable = true
+  readonly = false
 
 [pkgcache.fs]
   dir = "/home/test/pkgcache"
@@ -99,26 +97,23 @@ Notes:
 
 - The script needs MinIO **administrator** credentials, used only to create the bucket, policy and credential. They are never written to `celer.toml` and never echoed (`--dry-run` prints the `mc` commands without running them).
 - The credential is a plain MinIO user (Console: *Identity → Users → celer-pkgcache*), not a service account.
-- It can read, upload and overwrite, but **never delete**. Removing an object stays a manual administrator action in the Console or with `mc rm`.
+- It can read, upload and overwrite. Deletion is **scoped to `artifacts-*/`** so celer can prune expired artifacts, and cannot touch `repos/`, `downloads/` or `celers/`; deleting anything else stays a manual administrator action.
 - More details (`--rotate`, verification, admin deletion): [`deploy/minio/README.md`](../../deploy/minio/README.md).
 
 ## Options
 
-Writing is on by default. A backend must be configured before it can be changed; `writable = false` turns the node into a pure reader.
+Writing is on by default. A backend must be configured before it can be changed; `readonly = true` turns the node into a pure reader.
 
 ```bash
-celer configure --pkgcache-writable=false
+celer configure --pkgcache-readonly=true
 ```
 
 | Field | Description |
 |------|-------------|
-| `pkgcache.writable` | Only controls *writing*: `false` keeps the cache read-only |
+| `pkgcache.readonly` | Only controls *writing*: `true` keeps the cache read-only |
+| `pkgcache.keep_artifact_count` | Newest artifacts kept per port; older ones are pruned after each store. Unset disables pruning. |
 | `pkgcache.fs.dir` | Cache root. Must already exist. |
 | `pkgcache.minio.host` / `access_key` / `secret_key` | S3 endpoint and credentials |
-
-`writable` only gates **writes**. Reading (restoring) never depends on it, so an entry another machine already pushed is always reused - a read-only node still builds fast from the shared cache, it just never adds to it. Set `writable = false` on a dev machine that shares a cache it does not own.
-
-> **Note**: `writable` is a key of `[pkgcache]` itself, so it must come **before** `[pkgcache.fs]` / `[pkgcache.minio]` (a TOML table cannot be reopened). `celer configure` always writes it in the right place.
 
 ## Layout
 

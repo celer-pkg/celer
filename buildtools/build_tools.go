@@ -284,7 +284,6 @@ func (b *BuildTool) checkAndFix() error {
 
 	// Only print if tool was just downloaded (didn't exist before).
 	if !fileio.PathExists(location) {
-		// Print download & extract info.
 		logger.PrintPass("tool: %s", fileio.Base(b.Url))
 		logger.PrintHint("Location: %s", location)
 	}

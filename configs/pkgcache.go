@@ -12,39 +12,46 @@ import (
 // ================= PkgCache ================= //
 
 type PkgCache struct {
-	Writable *bool           `toml:"writable,omitempty" json:"writable,omitempty"`
-	Minio    *pkgcache.Minio `toml:"minio,omitempty" json:"minio,omitempty"`
-	FS       *pkgcache.FS    `toml:"fs,omitempty" json:"fs,omitempty"`
+	ReadOnly          bool            `toml:"readonly,omitempty" json:"readonly,omitempty"`
+	KeepArtifactCount *int            `toml:"keep_artifact_count,omitempty" json:"keep_artifact_count,omitempty"`
+	Minio             *pkgcache.Minio `toml:"minio,omitempty" json:"minio,omitempty"`
+	FS                *pkgcache.FS    `toml:"fs,omitempty" json:"fs,omitempty"`
 
 	// Internal field.
-	binaryCache      pkgcache.BinaryCache
+	clientCache      pkgcache.ClientCache
 	artifactCache    pkgcache.AritifactCache
 	repoCache        pkgcache.RepoCache
 	downloadCache    pkgcache.DownloadCache
 	pythonWheelCache pkgcache.PythonWheelCache
 }
 
-func NewPkgCache() *PkgCache {
-	return &PkgCache{}
+// NewPkgCache returns an empty pkgcache config: readonly defaults to false and
+// keep_artifact_count stays unset, so artifact pruning is disabled until a node
+// opts in explicitly.
+func NewPkgCache() *PkgCache { return &PkgCache{} }
+
+func (p PkgCache) GetMinio() *pkgcache.Minio { return p.Minio }
+func (p PkgCache) GetFS() *pkgcache.FS       { return p.FS }
+
+func (p PkgCache) IsReadOnly() bool {
+	return p.ReadOnly
 }
 
-func (p PkgCache) GetMinio() *pkgcache.Minio {
-	return p.Minio
+// GetKeepArtifactCount returns how many of the newest artifacts to keep per port,
+// or 0 when pruning is disabled. Pruning deletes from a cache other nodes share,
+// so it only runs with a count this node explicitly configured.
+func (p PkgCache) GetKeepArtifactCount() int {
+	if p.KeepArtifactCount == nil || *p.KeepArtifactCount <= 0 {
+		return 0
+	}
+	return *p.KeepArtifactCount
 }
 
-func (p PkgCache) GetFS() *pkgcache.FS {
-	return p.FS
-}
-
-func (p PkgCache) IsWritable() bool {
-	return p.Writable == nil || *p.Writable
-}
-
-func (p PkgCache) GetBinaryCache() pkgcache.BinaryCache {
-	if p.binaryCache == nil {
+func (p PkgCache) GetClientCache() pkgcache.ClientCache {
+	if p.clientCache == nil {
 		return nil
 	}
-	return p.binaryCache
+	return p.clientCache
 }
 
 func (p PkgCache) GetArtifactCache() pkgcache.AritifactCache {

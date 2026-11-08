@@ -100,6 +100,13 @@ func (c custom) Build(options []string) error {
 			toolchain.SetEnvs(rootfs, c.Name(), c.Envs)
 		}
 
+		// Create build dir if not exists.
+		if !c.BuildInSource {
+			if err := os.MkdirAll(c.PortConfig.BuildDir, os.ModePerm); err != nil {
+				return err
+			}
+		}
+
 		scripts := strings.Join(c.CustomBuild, " && ")
 		scripts = c.expandVariables(scripts)
 		title := fmt.Sprintf("[build %s]", c.PortConfig.nameVersion())
@@ -123,6 +130,13 @@ func (c custom) Install(options []string) error {
 			toolchain.ClearEnvs()
 		} else {
 			toolchain.SetEnvs(rootfs, c.Name(), c.Envs)
+		}
+
+		// Create build dir if not exists.
+		if !c.BuildInSource {
+			if err := os.MkdirAll(c.PortConfig.BuildDir, os.ModePerm); err != nil {
+				return err
+			}
 		}
 
 		scripts := strings.Join(c.CustomInstall, " && ")
