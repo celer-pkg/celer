@@ -188,14 +188,12 @@ func (c *cleanCmd) cleanAll() error {
 		return nil
 	}
 
-	var cleaned bool
 	entities, err := os.ReadDir(dirs.BuildtreesDir)
 	if err != nil {
 		return err
 	}
 
 	for _, entity := range entities {
-		cleaned = false
 		nameVersion := entity.Name()
 		buildDir := filepath.Join(dirs.BuildtreesDir, entity.Name())
 		entities, err := os.ReadDir(buildDir)
@@ -203,7 +201,6 @@ func (c *cleanCmd) cleanAll() error {
 			return err
 		}
 
-		var skipClean bool
 		for _, entity := range entities {
 			// Remove everything except the src directory.
 			if entity.Name() != "src" {
@@ -216,26 +213,18 @@ func (c *cleanCmd) cleanAll() error {
 		// Clean the git repo (if the port still exists).
 		var port configs.Port
 		if err := port.Init(c.celer, nameVersion); err != nil {
-			if errors.Is(err, errors.ErrPortNotFound) {
-				skipClean = true
+			logger.PrintWarning("skip cleaning '%s' -> %s", nameVersion, err)
+			continue
+		}
+		if err := port.MatchedConfig.Clean(); err != nil {
+			if errors.Is(errors.ErrNotGitDir, err) {
+				continue
 			}
 
 			return err
 		}
-		if !skipClean {
-			if err := port.MatchedConfig.Clean(); err != nil {
-				if errors.Is(errors.ErrNotGitDir, err) {
-					continue
-				}
 
-				return err
-			}
-		}
-		cleaned = true
-
-		if cleaned {
-			logger.Printf(logger.Hint, "[✔] clean %s\n", entity.Name())
-		}
+		logger.Printf(logger.Hint, "[✔] clean %s\n", entity.Name())
 	}
 
 	logger.PrintSuccess("all packages cleaned.")

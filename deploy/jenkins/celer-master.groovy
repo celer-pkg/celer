@@ -311,6 +311,7 @@ pipeline {
                     // The conf branch defaults to master.
                     def confBranch = params.CELER_CONF_BRANCH ?: 'master'
                     run "celer init --url=${params.CELER_CONF_URL} --branch=${confBranch}"
+                    run "celer update --ports-repo"
                     run "celer configure --platform=${params.CELER_PLATFORM}"
                     run "celer configure --project=${params.CELER_PROJECT}"
                     run "celer configure --build-type=${params.CELER_BUILD_TYPE}"
