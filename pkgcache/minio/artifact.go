@@ -392,3 +392,29 @@ func (a ArtifactConfig) artifactPaths(nameVersion, buildHash string) (metaPath, 
 	remoteDir := path.Join(a.cacheDir, a.ctx.Platform().GetName(), a.ctx.Project().GetName(), a.ctx.BuildType(), nameVersion)
 	return path.Join(remoteDir, "metas", buildHash+".meta"), path.Join(remoteDir, buildHash+".tar.gz")
 }
+
+// ReadMeta returns the meta stored with an artifact. It downloads that one object
+// instead of restoring the package: the caller only wants to compare it.
+func (a ArtifactConfig) ReadMeta(nameVersion, buildHash string) ([]byte, bool, error) {
+	if a.ctx.Offline() {
+		return nil, false, nil
+	}
+
+	tmpDir, err := dirs.NewTmpFilesDir()
+	if err != nil {
+		return nil, false, err
+	}
+	defer os.RemoveAll(tmpDir)
+
+	metaPath, _ := a.artifactPaths(nameVersion, buildHash)
+	content, ok := a.readObject(tmpDir, metaPath)
+	if !ok {
+		return nil, false, nil
+	}
+
+	// The object name is the hash of its content, the same check Restore does.
+	if hash := fmt.Sprintf("%x", sha256.Sum256([]byte(content))); hash != buildHash {
+		return nil, false, fmt.Errorf("the cached meta of %s does not hash to %s", nameVersion, buildHash)
+	}
+	return []byte(content), true, nil
+}
