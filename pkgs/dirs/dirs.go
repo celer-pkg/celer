@@ -125,9 +125,12 @@ func init() {
 // containing celer.toml. If not found, returns startDir unchanged.
 func findWorkspaceRoot(currentDir string) string {
 	dir := currentDir
+
 	for {
-		if _, err := os.Stat(filepath.Join(dir, "celer.toml")); err == nil {
-			return dir
+		for _, item := range []string{"celer.toml", "conf", "ports"} {
+			if _, err := os.Stat(filepath.Join(dir, item)); err == nil {
+				return dir
+			}
 		}
 
 		// If reached root, fall back to original dir.

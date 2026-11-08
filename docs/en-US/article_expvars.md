@@ -16,6 +16,9 @@
 | `${BUILDTREES_DIR}` | Celer context | Buildtrees root directory |
 | `${INSTALLED_DIR}` | Celer context | Installed directory for current platform/project/build type |
 | `${INSTALLED_DEV_DIR}` | Celer context | Installed dev directory for host tools |
+| `${CMAKE_TOOLCHAIN_FILE}` | Celer context | Path to the generated `toolchain_file.cmake` |
+| `${CMAKE_BUILD_TYPE}` | Celer context | Current build type (lowercase, e.g. `release`, `debug`) |
+| `${CMAKE_BUILD_PARALLEL_LEVEL}` | Celer context | Parallel build jobs, from `jobs` in `celer.toml` |
 
 ## Platform Variables
 

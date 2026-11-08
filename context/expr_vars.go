@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/celer-pkg/celer/pkgs/dirs"
@@ -39,7 +40,9 @@ func (e *ExprVars) Init(ctx Context) {
 	e.vars["BUILDTREES_DIR"] = dirs.BuildtreesDir
 	e.vars["INSTALLED_DIR"] = "${INSTALLED_DIR}"
 	e.vars["INSTALLED_DEV_DIR"] = "${INSTALLED_DEV_DIR}"
-	e.vars["TOOLCHAIN_FILE"] = filepath.Join(dirs.WorkspaceDir, "toolchain_file.cmake")
+	e.vars["CMAKE_TOOLCHAIN_FILE"] = filepath.Join(dirs.WorkspaceDir, "toolchain_file.cmake")
+	e.vars["CMAKE_BUILD_TYPE"] = ctx.BuildType()
+	e.vars["CMAKE_BUILD_PARALLEL_LEVEL"] = strconv.Itoa(ctx.Jobs())
 }
 
 // Put stores or updates an expression variable.
