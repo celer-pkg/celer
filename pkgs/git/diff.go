@@ -62,8 +62,8 @@ func PrintDiff(left, right []byte) error {
 	}
 
 	// Print diff warning message.
-	text := fmt.Sprintf("Remote cached meta differs from this workspace:\n%s"+
-		"\nNote: '-' is the meta that expected or previous, '+' is what this workspace computes.",
+	text := fmt.Sprintf("Cached meta differs from this workspace computes:\n%s"+
+		"\nNote: '-' is the meta that cached, '+' is what this workspace computes.",
 		sprintDiff(diffTxt))
 	logger.PrintWarning("%s", text)
 

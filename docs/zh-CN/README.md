@@ -34,7 +34,7 @@ celer configure --project=project_test_01
 celer install glog@0.6.0
 ```
 
-然后在自己的工程里：
+不想依赖 Celer 也可以利用 Celer 生成的`toolchain_file.cmake`进行交叉编译：
 
 ```bash
 cmake -B build -DCMAKE_TOOLCHAIN_FILE=<celer 生成的 toolchain_file.cmake>
