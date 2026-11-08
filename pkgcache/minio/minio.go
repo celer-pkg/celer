@@ -66,11 +66,16 @@ func NewClient(minioConfig *pkgcache.Minio, probe bool) (*minio.Client, error) {
 
 	if _, err := client.BucketExists(context.Background(), bucketName); err != nil {
 		resp := minio.ToErrorResponse(err)
-		hint := "check that pkgcache.minio.host is reachable and points to the S3 API port, not the minio console port"
-		if strings.Contains(resp.Message, "API port") {
-			hint = fmt.Sprintf("'%s' points to the minio console port, use the S3 API port instead (e.g. :9000 instead of :9001)", minioConfig.Host)
+		hint := "check pkgcache.minio.host is the S3 API port, not the console port"
+		switch {
+		case strings.Contains(resp.Message, "API port"):
+			hint = fmt.Sprintf("'%s' is the console port, use the S3 API port such as :9000", minioConfig.Host)
+		case resp.Code == "SignatureDoesNotMatch" || resp.Code == "InvalidAccessKeyId":
+			hint = fmt.Sprintf("secret_key mismatch for access_key '%s' or whitespace around the keys", minioConfig.AccessKey)
+		case resp.Code == "AccessDenied":
+			hint = fmt.Sprintf("access_key '%s' is not allowed to use the bucket, check its policy", minioConfig.AccessKey)
 		}
-		return nil, fmt.Errorf("failed to reach pkgcache.minio at '%s' -> %w (%s)", minioConfig.Host, err, hint)
+		return nil, fmt.Errorf("failed to access pkgcache.minio -> %w (%s)", err, hint)
 	}
 
 	return client, nil
