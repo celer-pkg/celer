@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	"os"
 	"strings"
 
 	"github.com/celer-pkg/celer/configs"
@@ -57,6 +58,13 @@ Examples:
 func (i *initCmd) doInit() error {
 	i.url = strings.TrimSpace(i.url)
 	i.branch = strings.TrimSpace(i.branch)
+
+	// Init always works in the current directory.
+	cwd, err := os.Getwd()
+	if err != nil {
+		return logger.PrintError(err, "failed to get current dir.")
+	}
+	dirs.Init(cwd)
 
 	// Initialize celer conf.
 	if err := i.celer.Init(); err != nil {

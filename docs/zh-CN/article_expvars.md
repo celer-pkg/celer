@@ -16,6 +16,9 @@
 | `${BUILDTREES_DIR}` | Celer 上下文 | buildtrees 根目录 |
 | `${INSTALLED_DIR}` | Celer 上下文 | 当前平台/项目/构建类型的安装目录 |
 | `${INSTALLED_DEV_DIR}` | Celer 上下文 | 主机工具的 dev 安装目录 |
+| `${CMAKE_TOOLCHAIN_FILE}` | Celer 上下文 | Celer 生成的 `toolchain_file.cmake` 路径 |
+| `${CMAKE_BUILD_TYPE}` | Celer 上下文 | 当前构建类型（小写，如 `release`、`debug`） |
+| `${CMAKE_BUILD_PARALLEL_LEVEL}` | Celer 上下文 | 并行构建任务数，来自 `celer.toml` 的 `jobs` |
 
 ## 平台变量
 
