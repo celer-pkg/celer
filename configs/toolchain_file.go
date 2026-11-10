@@ -67,6 +67,9 @@ func (c *Celer) GenerateToolchainFile() error {
 	// Write pkg-config configuration.
 	c.writePkgConfig(&builder)
 
+	// Pin the target Python extension suffix when cross-compiling.
+	c.writePythonCrossCompileConfig(&builder)
+
 	// Generate Python virtual environment configuration if available.
 	if err := c.writePythonVenvConfig(&builder); err != nil {
 		return err
@@ -302,6 +305,83 @@ func (c *Celer) writeCUDAConfig(toolchain *strings.Builder) {
 
 	fmt.Fprintf(toolchain, "set(CMAKE_CUDA_FLAGS_INIT %q CACHE STRING \"CUDA compiler flags.\" FORCE)\n",
 		"-Wno-deprecated-gpu-targets --forward-unknown-opts --forward-slash-prefix-opts")
+}
+
+// writePythonCrossCompileConfig makes the build interpreter report the target
+// Python's extension suffix when cross-compiling.
+// Both ament's python_cmake_module and pybind11 ask sysconfig for the suffix.
+func (c *Celer) writePythonCrossCompileConfig(toolchain *strings.Builder) {
+	multiarch := c.targetMultiarch()
+	if multiarch == "" {
+		return
+	}
+
+	minorVersion := c.targetPythonMinorVersion()
+	if minorVersion == "" {
+		return
+	}
+
+	// Cross builds name extension modules after the build machine, because ament
+	// and pybind11 both ask the build interpreter for the suffix. Loading the
+	// target's sysconfigdata makes that interpreter report the target's suffix
+	// instead. The lib dir is appended so entries already on PYTHONPATH keep
+	// precedence.
+	sysconfigData := "_sysconfigdata__" + strings.ToLower(c.platform.Toolchain.GetSystemName()) + "_" + multiarch
+	targetLibDir := "${INSTALLED_DIR}/lib/python" + minorVersion
+	fmt.Fprintf(toolchain, "\n# ============== Target Python extension suffix ============== #\n")
+	fmt.Fprintf(toolchain, "# Cross-compiling: point the build interpreter at the target Python's\n")
+	fmt.Fprintf(toolchain, "# sysconfigdata so extension modules are named for the target, not the host.\n")
+	fmt.Fprintf(toolchain, "if(EXISTS %q)\n", targetLibDir+"/"+sysconfigData+".py")
+	fmt.Fprintf(toolchain, "  set(ENV{%s} %q)\n", "_PYTHON_SYSCONFIGDATA_NAME", sysconfigData)
+	fmt.Fprintf(toolchain, "  set(ENV{PYTHONPATH} \"$ENV{PYTHONPATH}:%s\")\n", targetLibDir)
+	fmt.Fprintf(toolchain, "endif()\n")
+}
+
+// targetMultiarch returns the target multiarch triplet (e.g. "aarch64-linux-gnu")
+// that CPython embeds in its extension suffix.
+func (c *Celer) targetMultiarch() string {
+	toolchain := c.platform.Toolchain
+	if toolchain == nil {
+		return ""
+	}
+
+	// Only GNU-style Linux targets embed a multiarch triplet in the SOABI.
+	if !strings.EqualFold(toolchain.GetSystemName(), "linux") {
+		return ""
+	}
+
+	// Native builds: the host interpreter already reports the target suffix.
+	if strings.EqualFold(toolchain.GetHost(), c.platform.buildHost()) {
+		return ""
+	}
+
+	// CPython hardcodes "<arch>-linux-gnu" for GNU Linux targets (see its
+	// configure's platform triplet detection), so mirror that.
+	return toolchain.GetSystemProcessor() + "-linux-gnu"
+}
+
+func (c *Celer) targetPythonMinorVersion() string {
+	var version string
+	if pythonConfig := c.Project().GetPythonConfig(); pythonConfig != nil {
+		version = pythonConfig.GetVersion()
+	}
+	if version == "" {
+		for _, item := range c.project.Vars {
+			if key, value, ok := strings.Cut(item, "="); ok && strings.TrimSpace(key) == "PYTHON_VERSION" {
+				version = strings.TrimSpace(value)
+				break
+			}
+		}
+	}
+	if version == "" {
+		version = buildtools.GetDefaultPythonVersion()
+	}
+
+	parts := strings.Split(version, ".")
+	if len(parts) < 2 {
+		return ""
+	}
+	return parts[0] + "." + parts[1]
 }
 
 // writePythonVenvConfig generates Python virtual environment configuration if Python tool is available.
