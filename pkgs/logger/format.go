@@ -54,7 +54,7 @@ func PrintWarning(format string, args ...any) {
 	Printf(Warning, "\n%s\n[!] WARNING:\n", separator)
 	for i, line := range strings.Split(message, "\n") {
 		if i == 0 {
-			line = "    " + line + "\n"
+			line = "    " + line
 		}
 		Printf(Warning, "%s\n", line) // The frame color resumes after the line's own reset.
 	}
