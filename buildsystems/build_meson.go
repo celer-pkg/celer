@@ -35,10 +35,8 @@ func (meson) Name() string {
 }
 
 func (m meson) CheckTools() []string {
-	tools := slices.Clone(m.BuildConfig.BuildTools)
-
-	// Add default tools
-	tools = append(tools, "ninja", "cmake")
+	tools := m.defaultBuildTools()
+	tools = append(tools, "ninja")
 
 	// Add build tools dynamically.
 	switch runtime.GOOS {

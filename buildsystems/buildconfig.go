@@ -908,6 +908,10 @@ func (b *BuildConfig) CheckTools() []string {
 	return b.buildSystem.CheckTools()
 }
 
+func (b *BuildConfig) Configured() bool {
+	return b.buildSystem.configured()
+}
+
 // pythonEnvChecker is implemented by build systems that need the host venv.
 type pythonEnvChecker interface {
 	pythonEnvRequired() bool
@@ -923,8 +927,14 @@ func (b *BuildConfig) PythonEnvRequired() bool {
 	return false
 }
 
-func (b *BuildConfig) Configured() bool {
-	return b.buildSystem.configured()
+func (b BuildConfig) defaultBuildTools() []string {
+	tools := slices.Clone(b.BuildTools)
+	if strings.HasPrefix(b.BuildSystem, "cmake") {
+		tools = append(tools, b.BuildSystem)
+	} else {
+		tools = append(tools, "git", "cmake")
+	}
+	return tools
 }
 
 func (b BuildConfig) buildLibraryType() libraryType {

@@ -41,11 +41,9 @@ func (c cmake) Name() string {
 }
 
 func (c cmake) CheckTools() []string {
-	// Start with build_tools from port.toml
-	tools := slices.Clone(c.BuildConfig.BuildTools)
+	tools := c.defaultBuildTools()
 
 	// Add build tools dynamically.
-	tools = append(tools, c.buildSystem)
 	toolchainName := c.Ctx.Platform().GetToolchain().GetName()
 	if toolchainName == "clang" || c.CMakeGenerator == "Ninja" {
 		tools = append(tools, "ninja")

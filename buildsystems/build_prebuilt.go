@@ -3,7 +3,6 @@ package buildsystems
 import (
 	"os"
 	"path/filepath"
-	"slices"
 
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
@@ -29,11 +28,7 @@ func (p *prebuilt) Name() string {
 }
 
 func (p prebuilt) CheckTools() []string {
-	tools := slices.Clone(p.BuildConfig.BuildTools)
-
-	// Add default tools
-	tools = append(tools, "cmake")
-	return tools
+	return p.defaultBuildTools()
 }
 
 func (p *prebuilt) configured() bool {

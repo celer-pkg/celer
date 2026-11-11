@@ -32,11 +32,7 @@ func (b b2) Name() string {
 }
 
 func (b b2) CheckTools() []string {
-	tools := slices.Clone(b.BuildConfig.BuildTools)
-
-	// Add default tools
-	tools = append(tools, "cmake")
-	return tools
+	return b.defaultBuildTools()
 }
 
 func (b *b2) preConfigure() error {

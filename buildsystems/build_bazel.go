@@ -8,7 +8,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"slices"
 	"strings"
 	"time"
 
@@ -29,8 +28,8 @@ func (bazel) Name() string {
 }
 
 func (b bazel) CheckTools() []string {
-	tools := slices.Clone(b.BuildConfig.BuildTools)
-	tools = append(tools, "cmake", "bazel")
+	tools := b.defaultBuildTools()
+	tools = append(tools, "bazel")
 	return tools
 }
 
