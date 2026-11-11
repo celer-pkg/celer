@@ -1,13 +1,36 @@
+import groovy.transform.Field
+
 // Master job: export the build schedule (for the whole project with `deploy`, or ports
 // with `install`), then run one job per scheduled node, each as soon as its own
 // dependencies are done.
 
-// Run command on either a POSIX or a Windows agent (sh vs bat).
+// Directory of the celer version CELER_VERSION downloaded; empty means the installed celer.
+@Field String celerBinDir = ''
+
+// Run command on either a POSIX or a Windows agent (sh vs bat). 
+// Once this build pinned a celer version it wins over both $HOME/.local/bin and PATH.
 def run(String cmd) {
+    def prefix = celerBinDir ? celerBinDir + (isUnix() ? ':' : ';') : ''
     if (isUnix()) {
-        sh "export PATH=\"$HOME/.local/bin:\$PATH\"; ${cmd}"
+        sh "export PATH=\"${prefix}$HOME/.local/bin:\$PATH\"; ${cmd}"
+    } else if (prefix) {
+        bat "set \"PATH=${prefix}%PATH%\" && ${cmd}"
     } else {
         bat "${cmd}"
+    }
+}
+
+// CELER_VERSION choices: the celer binaries already in pkgcache, newest first. `celer
+// client list` reads the cache from CELER_PKGCACHE_*, so it also works before `init`.
+def celerVersions() {
+    try {
+        def out = isUnix()
+            ? sh(returnStdout: true, script: 'export PATH="$HOME/.local/bin:$PATH"; celer client list').trim()
+            : bat(returnStdout: true, script: 'celer client list').trim()
+        return out ? out.readLines() : []
+    } catch (Throwable t) {
+        echo "celer client list failed, CELER_VERSION stays empty: ${t.message}"
+        return []
     }
 }
 
@@ -26,16 +49,18 @@ def dagCommand(String dagFlag) {
     return cmd
 }
 
-// Clean tmp files except buildtrees to reuse repo sources.
+// Clean tmp files except buildtrees to reuse repo sources. celer-bins/ is where the celer
+// binary selected by CELER_VERSION is downloaded; *.tar.gz is the previous packed artifact.
 def cleanWorkspace() {
     if (isUnix()) {
-        sh 'rm -rf celer.toml installed packages stripped toolchain_file.cmake environment.sh dag.json *.tar.gz'
+        sh 'rm -rf celer.toml installed packages stripped toolchain_file.cmake environment.sh dag.json celer-bins *.tar.gz'
     } else {
         bat '''
         del /F /Q "celer.toml" "toolchain_file.cmake" "environment.bat" "dag.json" "celer-*.tar.gz" 2>nul
         rmdir /S /Q "installed" 2>nul
         rmdir /S /Q "packages" 2>nul
         rmdir /S /Q "stripped" 2>nul
+        rmdir /S /Q "celer-bins" 2>nul
         '''
     }
 }
@@ -45,18 +70,19 @@ def cleanWorkspace() {
 // so a run without it cannot finish the build.
 def configurePkgCache() {
     def minio = [env.CELER_PKGCACHE_MINIO_HOST, env.CELER_PKGCACHE_MINIO_ACCESS_KEY, env.CELER_PKGCACHE_MINIO_SECRET_KEY]
-    if (minio.any() && !minio.every()) {
-        error 'pkgcache: set all of CELER_PKGCACHE_MINIO_HOST, _ACCESS_KEY and _SECRET_KEY, or none of them.'
+    def useMinio = minio.every()
+    if (minio.any() && !useMinio) {
+        error 'pkgcache: set all of CELER_PKGCACHE_MINIO_HOST, CELER_PKGCACHE_MINIO_ACCESS_KEY and CELER_PKGCACHE_MINIO_SECRET_KEY, or none of them.'
     }
-    if (!minio.every() && !env.CELER_PKGCACHE_FS_DIR) {
-        error 'pkgcache: set CELER_PKGCACHE_FS_DIR, or CELER_PKGCACHE_MINIO_HOST with _ACCESS_KEY and _SECRET_KEY.'
+    if (!useMinio && !env.CELER_PKGCACHE_FS_DIR) {
+        error 'pkgcache: set CELER_PKGCACHE_FS_DIR, or CELER_PKGCACHE_MINIO_HOST with CELER_PKGCACHE_MINIO_ACCESS_KEY and CELER_PKGCACHE_MINIO_SECRET_KEY.'
     }
 
     def extra = env.CELER_PKGCACHE_READONLY ? " --pkgcache-readonly=${env.CELER_PKGCACHE_READONLY}" : ''
     if (env.CELER_PKGCACHE_KEEP_ARTIFACT_COUNT) {
         extra += " --pkgcache-keep-artifact-count=${env.CELER_PKGCACHE_KEEP_ARTIFACT_COUNT}"
     }
-    if (!minio.every()) {
+    if (!useMinio) {
         run "celer configure --pkgcache-fs-dir=${env.CELER_PKGCACHE_FS_DIR}${extra}"
         return
     }
@@ -79,8 +105,9 @@ def confChoices(String kind) {
 }
 
 // Active Choices dropdown of a fixed list: a plain `choice` parameter cannot search.
-// randomName is the DOM id the plugin's filter script looks up.
-def choiceParam(String name, String description, List values, boolean filterable) {
+// randomName is the DOM id the plugin's filter script looks up. `script` overrides the
+// generated fixed-list script with a dynamic one (e.g. the conf repo's branches).
+def choiceParam(String name, String description, List values, boolean filterable, Map script = null) {
     return [
         $class: 'ChoiceParameter',
         name: name,
@@ -89,7 +116,7 @@ def choiceParam(String name, String description, List values, boolean filterable
         choiceType: 'PT_SINGLE_SELECT',
         filterable: filterable,
         filterLength: 1,
-        script: [$class: 'GroovyScript', script: [classpath: [], sandbox: true, script: 'return ' + values.inspect()]]
+        script: script ?: [$class: 'GroovyScript', script: [classpath: [], sandbox: true, script: 'return ' + values.inspect()]]
     ]
 }
 
@@ -231,24 +258,17 @@ pipeline {
                     def platforms = confChoices('platforms') ?: [params.CELER_PLATFORM ?: 'aarch64-linux-ubuntu-22.04-gcc-11.5.0']
                     def projects = confChoices('projects') ?: [params.CELER_PROJECT ?: 'project_test_01']
                     def ports = confPorts()
+                    def celerList = celerVersions() ?: ['']
 
                     properties([
                         parameters([
+                            choiceParam('CELER_VERSION', 'The celer version this build runs, from pkgcache - [mandatory]', celerList, true),
                             string(name: 'CELER_CONF_URL', defaultValue: 'https://github.com/celer-pkg/test-conf.git', description: 'The git repo url of celer workspace - [mandatory]'),
-                            [
-                                $class: 'ChoiceParameter',
-                                name: 'CELER_CONF_BRANCH',
-                                randomName: 'celer-conf-branch',
-                                description: 'The git branch of conf repo, defaulting to its HEAD branch - [optional]',
-                                choiceType: 'PT_SINGLE_SELECT',
-                                filterable: true,
-                                filterLength: 1,
-                                script: [
-                                    $class: 'GroovyScript',
-                                    fallbackScript: [classpath: [], sandbox: true, script: 'return ["master", "SCRIPT FAILED: see Manage Jenkins > In-process Script Approval"]'],
-                                    script: [classpath: [], sandbox: false, script: confBranchScript(confUrl)]
-                                ]
-                            ],
+                            choiceParam('CELER_CONF_BRANCH', 'The git branch of conf repo, defaulting to its HEAD branch - [optional]', [], true, [
+                                $class: 'GroovyScript',
+                                fallbackScript: [classpath: [], sandbox: true, script: 'return ["master", "SCRIPT FAILED: see Manage Jenkins > In-process Script Approval"]'],
+                                script: [classpath: [], sandbox: false, script: confBranchScript(confUrl)]
+                            ]),
                             choiceParam('CELER_PLATFORM', 'The platform of celer workspace, from the conf repo - [mandatory]', platforms, true),
                             choiceParam('CELER_PROJECT', 'The project of celer workspace, from the conf repo - [mandatory]', projects, true),
                             choiceParam('CELER_BUILD_TYPE', 'The CMake build type - [mandatory]', ['Release', 'Debug', 'RelWithDebInfo', 'MinSizeRel'], false),
@@ -287,26 +307,30 @@ pipeline {
             steps {
                 script {
                     // Validate the required parameters up front.
-                    if (!params.CELER_CONF_URL) {
-                        error 'no CELER_CONF_URL specified for celer workspace.'
-                    }
-                    if (!params.CELER_PLATFORM) {
-                        error 'no CELER_PLATFORM selected for celer workspace.'
-                    }
-                    if (!params.CELER_PROJECT) {
-                        error 'no CELER_PROJECT selected for celer workspace.'
-                    }
-                    if (!params.CELER_BUILD_TYPE) {
-                        error 'no CELER_BUILD_TYPE selected for celer workspace.'
-                    }
-                    if (!params.CELER_MODE) {
-                        error 'no CELER_MODE selected for celer workspace.'
+                    def required = [
+                        'CELER_CONF_URL'  : 'specified',
+                        'CELER_PLATFORM'  : 'selected',
+                        'CELER_PROJECT'   : 'selected',
+                        'CELER_BUILD_TYPE': 'selected',
+                        'CELER_MODE'      : 'selected'
+                    ]
+                    def missing = required.find { name, verb -> !params[name] }
+                    if (missing) {
+                        error "no ${missing.key} ${missing.value} for celer workspace."
                     }
                     if (params.CELER_MODE == 'install' && !portList(params.CELER_PORTS)) {
                         error 'no port given for install mode.'
                     }
 
                     cleanWorkspace() // Keep buildtrees for reuse repo sources.
+
+                    // Run this build with the selected celer version. `client download` itself
+                    // has to use the installed celer, so the pin is recorded afterwards.
+                    if (params.CELER_VERSION) {
+                        def dir = "${env.WORKSPACE}/celer-bins"
+                        run "celer client download --version=${params.CELER_VERSION} --dest=${dir}/${isUnix() ? 'celer' : 'celer.exe'}"
+                        celerBinDir = dir
+                    }
 
                     // The conf branch defaults to master.
                     def confBranch = params.CELER_CONF_BRANCH ?: 'master'
@@ -339,39 +363,31 @@ pipeline {
                     // dag simply leaves nothing to schedule.
                     def dag = readJSON(file: 'dag.json')
                     def targetNodes = dag.target_nodes ?: []
-                    def byNameVersion = targetNodes.collectEntries { n -> [(n.name_version): n] }
-
-                    // Every node installs on the platform of the schedule, and reads the
-                    // schedule file of this build: a newer schedule must never reach it.
-                    def platform = dag.platform
-                    def project = dag.project
-                    def masterBuild = env.BUILD_NUMBER
-
-                    // A node starts once every one of its own scheduled dependencies is
-                    // done. A cached dependency is not in the dag, so it never blocks.
-                    def done = [:]
+                    def scheduled = targetNodes*.name_version
 
                     if (targetNodes.isEmpty()) {
                         echo 'nothing to build: pkgcache has already cached every port'
                         return
                     }
 
+                    // A node starts once its own scheduled dependencies is done.
+                    def done = [:]
                     def branches = targetNodes.collectEntries { n ->
                         def nameVersion = n.name_version
-                        def deps = n.dependencies.findAll { byNameVersion.containsKey(it) }
+                        def deps = n.dependencies.findAll { it in scheduled }
                         [
                             (nameVersion): {
-                                waitUntil(quiet: true) { 
-                                    deps.every { done[it] } 
+                                waitUntil(quiet: true) {
+                                    deps.every { done[it] }
                                 }
 
-                                // Any result other than success fails the branch, 
+                                // Any result other than success fails the branch,
                                 // regardless of how the node build ended, and failFast reacts to that failure.
                                 def run = build(job: 'celer-agent', propagate: false, parameters: [
-                                    string(name: 'MASTER_BUILD', value: masterBuild),
+                                    string(name: 'MASTER_BUILD', value: env.BUILD_NUMBER),
                                     string(name: 'CELER_PORT', value: nameVersion),
-                                    string(name: 'CELER_PLATFORM', value: platform),
-                                    string(name: 'CELER_PROJECT', value: project)
+                                    string(name: 'CELER_PLATFORM', value: dag.platform),
+                                    string(name: 'CELER_PROJECT', value: dag.project)
                                 ])
                                 if (run.result != 'SUCCESS') {
                                     error "node ${nameVersion} ended ${run.result}"
