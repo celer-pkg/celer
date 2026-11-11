@@ -21,10 +21,7 @@ type custom struct {
 }
 
 func (c custom) CheckTools() []string {
-	tools := slices.Clone(c.BuildConfig.BuildTools)
-
-	// Add default tools
-	tools = append(tools, "cmake")
+	tools := c.defaultBuildTools()
 
 	// Auto-detect Python usage from custom commands to ensure the venv is set up.
 	if c.needsPython() && !slices.Contains(tools, "python3") {

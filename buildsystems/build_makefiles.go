@@ -33,10 +33,9 @@ func (makefiles) Name() string {
 }
 
 func (m *makefiles) CheckTools() []string {
-	tools := slices.Clone(m.BuildConfig.BuildTools)
+	tools := m.defaultBuildTools()
 
 	// Add build tools dynamically.
-	tools = append(tools, "cmake")
 	if runtime.GOOS == "windows" {
 		configureWithPerl := m.shouldConfigureWithPerl()
 		tool := expr.If(configureWithPerl, "strawberry-perl", "msys2")

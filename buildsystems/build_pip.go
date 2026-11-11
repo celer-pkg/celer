@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"slices"
 	"strings"
 
 	"github.com/celer-pkg/celer/buildtools"
@@ -35,7 +34,7 @@ func (p pip) configured() bool {
 
 func (p pip) CheckTools() []string {
 	toolchain := p.Ctx.Platform().GetToolchain()
-	tools := slices.Clone(p.BuildConfig.BuildTools)
+	tools := p.defaultBuildTools()
 	configMatch := p.BuildConfig.SystemProcessor == "aarch64" && p.BuildConfig.SystemName == "linux"
 	detectMatch := toolchain.GetSystemProcessor() == "aarch64" && toolchain.GetSystemName() == "linux"
 	if configMatch || detectMatch {

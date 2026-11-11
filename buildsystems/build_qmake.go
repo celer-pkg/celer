@@ -25,11 +25,7 @@ func (qmake) Name() string {
 }
 
 func (q *qmake) CheckTools() []string {
-	tools := slices.Clone(q.BuildConfig.BuildTools)
-
-	// Add default tools
-	tools = append(tools, "cmake")
-	return tools
+	return q.defaultBuildTools()
 }
 
 func (q qmake) preConfigure() error {
