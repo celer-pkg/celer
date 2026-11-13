@@ -97,7 +97,7 @@ func (c *Celer) Strip() error {
 			if err := fileio.CopyFile(path, destPath); err != nil {
 				return fmt.Errorf("failed to copy symlink %s -> %w", path, err)
 			}
-			printStripLog("copy", relPath)
+			printStripLog("strip -> copy", relPath)
 			return nil
 		}
 
@@ -105,15 +105,14 @@ func (c *Celer) Strip() error {
 			if _, err := cmd.NewExecutor("", stripTool, "-o", destPath, path).ExecuteOutput(); err != nil {
 				return fmt.Errorf("failed to strip %s -> %w", path, err)
 			}
-			printStripLog("strip", relPath)
-			return nil
+			printStripLog("strip -> lib/bin", relPath)
+		} else {
+			// Configs, shell scripts, and other runtime data.
+			if err := fileio.CopyFile(path, destPath); err != nil {
+				return fmt.Errorf("failed to copy %s -> %w", path, err)
+			}
+			printStripLog("strip -> copy", relPath)
 		}
-
-		// Configs, shell scripts, and other runtime data.
-		if err := fileio.CopyFile(path, destPath); err != nil {
-			return fmt.Errorf("failed to copy %s -> %w", path, err)
-		}
-		printStripLog("copy", relPath)
 		return nil
 	})
 }
