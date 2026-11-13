@@ -438,6 +438,11 @@ func (p Port) doInstallFromPkgCache(options InstallOptions) (bool, error) {
 		if err != nil {
 			return false, fmt.Errorf("read cache with build hash: %s", err)
 		}
+
+		// Explain the reason why an unexpected miss happened.
+		if !restored && p.MatchedConfig.BuildSystem != "nobuild" {
+			p.explainCacheMiss(artifactCache, buildhash)
+		}
 		return restored, nil
 	}
 

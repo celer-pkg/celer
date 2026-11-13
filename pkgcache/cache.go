@@ -2,6 +2,8 @@ package pkgcache
 
 import (
 	"cmp"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"path/filepath"
 	"runtime"
@@ -201,13 +203,42 @@ func FilterExpiredArtifacts(artifacts []PruneArtifact, keepCount int) []PruneArt
 	return expired
 }
 
+// IsBuildHash reports whether s is a build hash: the 64 hex chars of a sha-256.
+func IsBuildHash(s string) bool {
+	if len(s) != sha256.Size*2 {
+		return false
+	}
+	_, err := hex.DecodeString(s)
+	return err == nil
+}
+
 // AritifactCache stores/restores a port's built package, keyed by name@version + build hash.
 type AritifactCache interface {
+	// Exists reports whether the entry is complete and restorable, so a DAG export can
+	// classify a node as cached without restoring it.
 	Exists(nameVersion, buildhash string) (bool, error)
+
+	// Restore extracts the artifact of buildhash into packageDir and verifies the archive
+	// against its meta.
 	Restore(packageDir, nameVersion, buildsystem, buildhash string) (bool, error)
+
+	// Store uploads the meta before the archive, so a half-written entry stays recognizable
+	// as a meta without an archive.
 	Store(packageDir, metadata string) error
+
+	// Prune keeps the newest keepCount versions of nameVersion, ordered by commitTime (git
+	// sources) or storage time (archives), and drops the older artifacts of those versions too.
 	Prune(nameVersion string, keepCount int, commitTime CommitTime) error
+
+	// ReadMeta returns only the meta of buildhash, without restoring the package, after
+	// checking that its content still hashes to the key.
 	ReadMeta(nameVersion, buildhash string) (data []byte, found bool, err error)
+
+	// LatestMeta returns the meta of the newest cached build of nameVersion under the
+	// current platform/project/build type, whatever its build hash: a miss is explained
+	// by diffing it against the meta computed for the current workspace. Incomplete
+	// entries (meta without archive) are ignored.
+	LatestMeta(nameVersion string) (data []byte, buildhash string, found bool, err error)
 }
 
 // ========================== reopo cache ========================== //

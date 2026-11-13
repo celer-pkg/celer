@@ -241,15 +241,14 @@ func reportMismatch(ctx context.Context, port configs.Port, buildHash string) {
 		return
 	}
 
-	scheduled, missingErr := scheduledMeta(ctx, port.NameVersion(), buildHash)
-	if missingErr != nil {
-		logger.PrintWarning("no meta file found in pkgcache for '%s' -> %s", port.NameVersion(), missingErr)
+	scheduled, err := scheduledMeta(ctx, port.NameVersion(), buildHash)
+	if err != nil {
+		logger.PrintWarning("no meta file found in pkgcache for '%s' -> %s", port.NameVersion(), err)
 		return
 	}
 
 	if err := git.PrintDiff(scheduled, []byte(localText)); err != nil {
 		logger.PrintWarning("failed to diff the build meta of %s -> %s", port.NameVersion(), err)
-		return
 	}
 }
 

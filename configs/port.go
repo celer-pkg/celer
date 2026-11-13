@@ -234,7 +234,7 @@ func (p Port) Installed() (bool, error) {
 			BuildCache: true,
 		}
 
-		// Show git diff between two meta data.
+		// Show git diff meta between installed and newly computed.
 		if err := git.PrintDiff([]byte(targetMeta), []byte(lastMeta)); err != nil {
 			logger.PrintWarning("failed to diff the build meta of %s -> %s", p.NameVersion(), err)
 		}

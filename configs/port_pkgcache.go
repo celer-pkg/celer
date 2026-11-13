@@ -9,12 +9,14 @@ import (
 	"sync"
 
 	"github.com/celer-pkg/celer/buildsystems"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgcache/meta"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
+	"github.com/celer-pkg/celer/pkgs/logger"
 	"github.com/celer-pkg/celer/pkgs/refs"
 
 	"github.com/BurntSushi/toml"
@@ -84,6 +86,39 @@ func (p Port) ResolveSource() (string, error) {
 func (p Port) meta2hash(metaData string) string {
 	checksum := sha256.Sum256([]byte(metaData))
 	return fmt.Sprintf("%x", checksum)
+}
+
+// explainCacheMiss tells why a cached artifact was not restored: it diffs the newest
+// cached meta of the port (same platform/project/build type) against the meta computed
+// from this workspace. Nothing is printed when the port was never cached.
+func (p Port) explainCacheMiss(cache pkgcache.AritifactCache, buildhash string) {
+	cachedMeta, cachedHash, found, err := cache.LatestMeta(p.NameVersion())
+	if err != nil {
+		logger.PrintWarning("failed to read the cached meta of %s -> %s", p.NameVersion(), err)
+		return
+	}
+	if !found {
+		logger.PrintInfo("no complete cached build of %s to compare with", p.NameVersion())
+		return
+	}
+	if cachedHash == buildhash {
+		return
+	}
+
+	localMeta, err := p.BuildMeta()
+	if err != nil {
+		logger.PrintWarning("failed to computer the build meta of %s -> %s", p.NameVersion(), err)
+		return
+	}
+
+	diff, err := git.SprintDiff(cachedMeta, []byte(localMeta))
+	if err != nil {
+		logger.PrintWarning("failed to diff the build meta of '%s' -> %s", p.NameVersion(), err)
+	} else if diff != "" {
+		text := fmt.Sprintf("No cached artifact matches, compared with the newest cached, it'll build from source:\n%s"+
+			"\nNote: '-' is the meta that cached, '+' is what this workspace computes.", diff)
+		logger.PrintWarning("%s", text)
+	}
 }
 
 // BuildMeta returns the text the build hash is computed from.

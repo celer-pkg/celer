@@ -189,3 +189,9 @@ When the hash changes:
 3. The new artifact is stored under the new hash
 
 > **Result**: You never reuse stale or incompatible cached artifacts.
+
+### Explaining a Cache Miss
+
+When a port already has cached builds but none matches the current inputs, celer prints
+a diff between the newest cached meta and the one computed from this workspace, so the
+changed commit, option, or build tool is visible instead of a bare "build from source" line.

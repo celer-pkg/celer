@@ -7,6 +7,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
@@ -150,6 +151,12 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildsystem, buildHash 
 		return false, fmt.Errorf("failed to get file object info '%s' -> %w", remoteMetaFilePath, err)
 	}
 
+	// The meta is a tiny cache-metadata check downloaded silently; only the
+	// archive download below prints a done line.
+	if remoteMetaInfo == nil {
+		return false, nil
+	}
+
 	// Use a task-owned tmp dir for the downloaded meta.
 	localTmpDir, err := dirs.NewTmpFilesDir()
 	if err != nil {
@@ -157,14 +164,6 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildsystem, buildHash 
 	}
 	defer os.RemoveAll(localTmpDir)
 
-	// The meta is a tiny cache-metadata check downloaded silently; only the
-	// archive download below prints a done line.
-	if remoteMetaInfo == nil {
-		if buildsystem != "nobuild" {
-			logger.PrintWarning("cached artifact for %s has no metadata, it'll build from source.", nameVersion)
-		}
-		return false, nil
-	}
 	tmpMetaFile, err := a.downloadSilent(localTmpDir, remoteMetaFilePath)
 	if err != nil {
 		return false, fmt.Errorf("failed to download meta file '%s' -> %w", remoteMetaFilePath, err)
@@ -388,8 +387,12 @@ func (a ArtifactConfig) Exists(nameVersion, buildHash string) (bool, error) {
 	return remoteInfo != nil, nil
 }
 
+func (a ArtifactConfig) remoteDir(nameVersion string) string {
+	return path.Join(a.cacheDir, a.ctx.Platform().GetName(), a.ctx.Project().GetName(), a.ctx.BuildType(), nameVersion)
+}
+
 func (a ArtifactConfig) artifactPaths(nameVersion, buildHash string) (metaPath, archivePath string) {
-	remoteDir := path.Join(a.cacheDir, a.ctx.Platform().GetName(), a.ctx.Project().GetName(), a.ctx.BuildType(), nameVersion)
+	remoteDir := a.remoteDir(nameVersion)
 	return path.Join(remoteDir, "metas", buildHash+".meta"), path.Join(remoteDir, buildHash+".tar.gz")
 }
 
@@ -417,4 +420,91 @@ func (a ArtifactConfig) ReadMeta(nameVersion, buildHash string) ([]byte, bool, e
 		return nil, false, fmt.Errorf("the cached meta of %s does not hash to %s", nameVersion, buildHash)
 	}
 	return []byte(content), true, nil
+}
+
+type cachedBuild struct {
+	hasMeta    bool
+	hasArchive bool
+	metaAt     time.Time
+}
+
+// LatestMeta returns the meta of the newest cached build of nameVersion under the
+// current platform/project/build type.
+func (a ArtifactConfig) LatestMeta(nameVersion string) ([]byte, string, bool, error) {
+	if a.ctx.Offline() {
+		return nil, "", false, nil
+	}
+
+	var (
+		prefix = a.remoteDir(nameVersion) + "/"
+		builds = map[string]cachedBuild{}
+		opts   = minio.ListObjectsOptions{Prefix: prefix, Recursive: true}
+	)
+	for object := range a.client.ListObjects(context.Background(), a.bucketName, opts) {
+		if object.Err != nil {
+			resp := minio.ToErrorResponse(object.Err)
+			if resp.Code == minio.NoSuchBucket {
+				return nil, "", false, nil
+			}
+			return nil, "", false, fmt.Errorf("failed to list the cached artifacts of '%s' -> %w", nameVersion, object.Err)
+		}
+
+		// Both objects of a build carry the same hash: <hash>.tar.gz and metas/<hash>.meta.
+		// Anything else under the port dir (a stray object, a folder marker) is ignored.
+		key := strings.TrimPrefix(object.Key, prefix)
+
+		var (
+			hash   string
+			isMeta bool
+		)
+		switch {
+		case strings.HasPrefix(key, "metas/") && strings.HasSuffix(key, ".meta"):
+			hash, isMeta = strings.TrimSuffix(strings.TrimPrefix(key, "metas/"), ".meta"), true
+		case strings.HasSuffix(key, ".tar.gz"):
+			hash = strings.TrimSuffix(key, ".tar.gz")
+		default:
+			continue // Neither an archive nor a meta of a build.
+		}
+		if !pkgcache.IsBuildHash(hash) {
+			continue
+		}
+
+		build := builds[hash]
+		if isMeta {
+			build.hasMeta, build.metaAt = true, object.LastModified
+		} else {
+			build.hasArchive = true
+		}
+		builds[hash] = build
+	}
+
+	latestHash, found := pickLatestBuild(builds)
+	if !found {
+		return nil, "", false, nil
+	}
+
+	data, found, err := a.ReadMeta(nameVersion, latestHash)
+	if err != nil {
+		return nil, "", false, err
+	}
+	if !found {
+		return nil, "", false, nil
+	}
+	return data, latestHash, true, nil
+}
+
+func pickLatestBuild(builds map[string]cachedBuild) (string, bool) {
+	var (
+		latestHash string
+		latestAt   time.Time
+	)
+	for hash, build := range builds {
+		if !build.hasMeta || !build.hasArchive {
+			continue
+		}
+		if latestHash == "" || build.metaAt.After(latestAt) {
+			latestHash, latestAt = hash, build.metaAt
+		}
+	}
+	return latestHash, latestHash != ""
 }
