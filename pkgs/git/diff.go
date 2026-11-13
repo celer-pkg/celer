@@ -16,21 +16,21 @@ const (
 	maxDiffWidth = 200
 )
 
-// PrintDiff print the changed and context lines of a `git diff -U3` between two texts.
-func PrintDiff(left, right []byte) error {
+// SprintDiff report the changed and context lines of a `git diff -U3` between two texts.
+func SprintDiff(left, right []byte) (string, error) {
 	tmpDir, err := dirs.NewTmpFilesDir()
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer os.RemoveAll(tmpDir)
 
 	leftPath := filepath.Join(tmpDir, "left")
 	rightPath := filepath.Join(tmpDir, "right")
 	if err := os.WriteFile(leftPath, left, os.ModePerm); err != nil {
-		return fmt.Errorf("failed to write %s -> %w", leftPath, err)
+		return "", fmt.Errorf("failed to write %s -> %w", leftPath, err)
 	}
 	if err := os.WriteFile(rightPath, right, os.ModePerm); err != nil {
-		return fmt.Errorf("failed to write %s -> %w", rightPath, err)
+		return "", fmt.Errorf("failed to write %s -> %w", rightPath, err)
 	}
 
 	// --no-index compares two plain files, so this works outside any repository and
@@ -40,7 +40,7 @@ func PrintDiff(left, right []byte) error {
 		"--no-ext-diff", "--unified=3", "--", leftPath, rightPath).Output()
 	// Only a real failure is an error, not the "they differ" exit code.
 	if exitErr, ok := err.(*exec.ExitError); err != nil && (!ok || exitErr.ExitCode() != 1) {
-		return err
+		return "", err
 	}
 
 	var (
@@ -58,21 +58,31 @@ func PrintDiff(left, right []byte) error {
 
 	diffTxt := strings.Join(lines, "\n")
 	if diffTxt == "" {
-		return nil
+		return "", nil
+	}
+
+	return formatDiff(diffTxt), nil
+}
+
+// PrintDiff print the changed and context lines of a `git diff -U3` between two texts.
+func PrintDiff(left, right []byte) error {
+	diff, err := SprintDiff(left, right)
+	if err != nil {
+		return err
 	}
 
 	// Print diff warning message.
-	text := fmt.Sprintf("Cached meta differs from this workspace computes:\n%s"+
-		"\nNote: '-' is the meta that cached, '+' is what this workspace computes.",
-		sprintDiff(diffTxt))
-	logger.PrintWarning("%s", text)
-
+	if diff != "" {
+		text := fmt.Sprintf("Cached meta differs from this workspace computes:\n%s"+
+			"\nNote: '-' is the meta that cached, '+' is what this workspace computes.", diff)
+		logger.PrintWarning("%s", text)
+	}
 	return nil
 }
 
-// sprintDiff renders a diff the way a build log is read: '+' green, '-' red,
+// formatDiff renders a diff the way a build log is read: '+' green, '-' red,
 // context muted, and capped so a large diff cannot bury the rest of the log.
-func sprintDiff(diff string) string {
+func formatDiff(diff string) string {
 	if diff == "" {
 		return ""
 	}

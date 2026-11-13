@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
@@ -76,9 +77,6 @@ func (a ArtifactConfig) Restore(packageDir, nameVersion, buildsystem, buildHash 
 	metaBytes, err := os.ReadFile(remoteMetaPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			if buildsystem != "nobuild" {
-				logger.PrintWarning("cached artifact for %s has no metadata, it'll build from source.", nameVersion)
-			}
 			return false, nil
 		}
 		return false, err
@@ -306,8 +304,12 @@ func removeArtifacts(packageDir string, expired []pkgcache.PruneArtifact) []pkgc
 	return pruned
 }
 
+func (a ArtifactConfig) remoteDir(nameVersion string) string {
+	return filepath.Join(a.cacheDir, a.ctx.Platform().GetName(), a.ctx.Project().GetName(), a.ctx.BuildType(), nameVersion)
+}
+
 func (a ArtifactConfig) artifactPaths(nameVersion, buildHash string) (metaPath, archivePath string) {
-	remoteFileDir := filepath.Join(a.cacheDir, a.ctx.Platform().GetName(), a.ctx.Project().GetName(), a.ctx.BuildType(), nameVersion)
+	remoteFileDir := a.remoteDir(nameVersion)
 	return filepath.Join(remoteFileDir, "metas", buildHash+".meta"), filepath.Join(remoteFileDir, buildHash+".tar.gz")
 }
 
@@ -332,4 +334,52 @@ func (a ArtifactConfig) ReadMeta(nameVersion, buildHash string) ([]byte, bool, e
 		return nil, false, fmt.Errorf("the cached meta of %s does not hash to %s", nameVersion, buildHash)
 	}
 	return bytes, true, nil
+}
+
+// LatestMeta returns the meta of the newest cached build of nameVersion under the
+// current platform/project/build type.
+func (a ArtifactConfig) LatestMeta(nameVersion string) ([]byte, string, bool, error) {
+	if a.ctx.Offline() {
+		return nil, "", false, nil
+	}
+
+	hash, found, err := latestMetaHash(a.remoteDir(nameVersion))
+	if err != nil || !found {
+		return nil, "", false, err
+	}
+
+	data, found, err := a.ReadMeta(nameVersion, hash)
+	if err != nil || !found {
+		return nil, "", false, err
+	}
+	return data, hash, true, nil
+}
+
+func latestMetaHash(remoteDir string) (string, bool, error) {
+	entities, err := os.ReadDir(filepath.Join(remoteDir, "metas"))
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return "", false, nil
+		}
+		return "", false, err
+	}
+
+	var (
+		latestHash string
+		latestTime time.Time
+	)
+	for _, entity := range entities {
+		hash, ok := strings.CutSuffix(entity.Name(), ".meta")
+		if !ok || !pkgcache.IsBuildHash(hash) || !fileio.PathExists(filepath.Join(remoteDir, hash+".tar.gz")) {
+			continue
+		}
+		info, err := entity.Info()
+		if err != nil {
+			continue
+		}
+		if latestHash == "" || info.ModTime().After(latestTime) {
+			latestHash, latestTime = hash, info.ModTime()
+		}
+	}
+	return latestHash, latestHash != "", nil
 }
