@@ -185,6 +185,15 @@ func (c *Celer) SetProject(projectName string) error {
 	}
 	c.Main.Project = projectName
 
+	// Set project's target_platform as current platform.
+	targetPlatform := strings.TrimSpace(c.project.TargetPlatform)
+	if targetPlatform != "" {
+		if err := c.platform.Init(targetPlatform); err != nil {
+			return fmt.Errorf("failed to verify project's target_platform -> %w", err)
+		}
+		c.Main.Platform = targetPlatform
+	}
+
 	if err := c.save(); err != nil {
 		return err
 	}
@@ -196,12 +205,15 @@ func (c *Celer) SetProject(projectName string) error {
 		logger.PrintWarning("ports repo is not cloned yet, 'celer init' will pin it to ports_baseline '%s'", portsBaseline)
 		return nil
 	}
-
-	// `celer update --ports-repo` is the escape hatch from the baseline.
 	if err := git.ChangeBranch("ports", dirs.PortsDir, portsBaseline); err != nil {
-		return fmt.Errorf("failed to pin ports repo to ports_baseline '%s' -> %w", portsBaseline, err)
+		return fmt.Errorf("failed to pin ports repo to ports_baseline '%s' -> %w",
+			portsBaseline, err)
 	}
-	logger.PrintSuccess("ports repo is pinned to ports_baseline '%s'", portsBaseline)
+	logger.PrintHint("\n[ports baseline ] --> %s", portsBaseline)
+
+	if targetPlatform != "" {
+		logger.PrintHint("[target platrorm] --> %s", targetPlatform)
+	}
 
 	return nil
 }

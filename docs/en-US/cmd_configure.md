@@ -17,8 +17,8 @@ celer configure [flags]
 ## Command Options
 | Option                     | Type    | Description                                          |
 |----------------------------|---------|------------------------------------------------------|
+| --project                  | string  | Set current project (applies its target_platform as the current platform) |
 | --platform                 | string  | Set target platform                                  |
-| --project                  | string  | Set current project                                  |
 | --build-type               | string  | Set build type                                       |
 | --downloads                | string  | Set downloads directory                              |
 | --jobs                     | integer | Set parallel build jobs                              |

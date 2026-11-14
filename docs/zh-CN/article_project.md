@@ -7,7 +7,7 @@
 项目配置定义了 Celer 如何为特定项目管理依赖和构建环境。每个项目配置包含以下核心组件：
 
 - **ports_baseline（必选）** - 本项目构建所依据的 ports 仓库版本。写 commit hash 表示锁定该版本，写分支名表示跟随该分支。`celer configure --project` 会把 ports 仓库切到这个 baseline，项目用到的 ports 因此不会随时间漂移。
-- **target_platform** - 项目目标部署平台，全新的workspace里当通过configure命令设置了platform后会自动配置platform
+- **target_platform** - 项目默认的目标部署平台。执行 `celer configure --project` 选择项目时会自动应用为当前平台；之后仍可通过 `celer configure --platform` 手动覆盖。
 - **ports（子依赖）** - 项目所需的子依赖，推荐配置子进程项目，因为三方库基本由子进程项目依赖
 - **vars（CMake 变量）** - 构建时需要的全局 CMake 构建变量
 - **envs（环境变量）** - 构建时需要的全局环境变量

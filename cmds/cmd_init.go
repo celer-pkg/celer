@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
@@ -81,9 +82,11 @@ func (i *initCmd) doInit() error {
 	if err != nil {
 		return err
 	}
-	logger.PrintSuccess("Successfully initialized celer")
+
+	fmt.Println()
 	logger.PrintHint("[conf repo url] - %s", i.url)
 	logger.PrintHint("[conf repo ref] - %s", branch)
+	logger.PrintSuccess("Successfully initialized celer")
 	return nil
 }
 

@@ -65,11 +65,11 @@ func Import(celer *configs.Celer, dagPath string) (*DagInfo, error) {
 	}
 
 	// Adopt the identity of the schedule, one setter per property.
-	if err := celer.SetPlatform(dag.Platform); err != nil {
-		return nil, fmt.Errorf("failed to adopt the platform from '%s' -> %w", dagPath, err)
-	}
 	if err := celer.SetProject(dag.Project); err != nil {
 		return nil, fmt.Errorf("failed to adopt the project from '%s' -> %w", dagPath, err)
+	}
+	if err := celer.SetPlatform(dag.Platform); err != nil {
+		return nil, fmt.Errorf("failed to adopt the platform from '%s' -> %w", dagPath, err)
 	}
 	if err := celer.SetBuildType(dag.BuildType); err != nil {
 		return nil, fmt.Errorf("failed to adopt the build type from '%s' -> %w", dagPath, err)

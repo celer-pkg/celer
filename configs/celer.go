@@ -90,8 +90,8 @@ type configData struct {
 
 type Main struct {
 	ConfUrl   string `toml:"conf_url"`
-	Platform  string `toml:"platform"`
 	Project   string `toml:"project"`
+	Platform  string `toml:"platform"`
 	BuildType string `toml:"build_type"`
 	Downloads string `toml:"downloads,omitempty"`
 	Jobs      int    `toml:"jobs"`
