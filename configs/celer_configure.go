@@ -188,6 +188,9 @@ func (c *Celer) SetProject(projectName string) error {
 	// Set project's target_platform as current platform.
 	targetPlatform := strings.TrimSpace(c.project.TargetPlatform)
 	if targetPlatform != "" {
+		if err := c.platform.Init(targetPlatform); err != nil {
+			return fmt.Errorf("failed to verify project's target_platform -> %w", err)
+		}
 		c.Main.Platform = targetPlatform
 	}
 
