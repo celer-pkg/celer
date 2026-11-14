@@ -160,7 +160,7 @@ After initialization, a `celer.toml` configuration file will be generated in the
 
 ### Flexible Combination
 
-**platform** and **project** are two independent configurations that can be freely combined. For example, even if the target environment is **aarch64-linux**, you can choose to compile/develop/debug on the **x86_64-linux** platform.
+**platform** and **project** are two independent configurations that can work together: a project may provide a default platform through `target_platform`, which is applied by `celer configure --project`; a later `celer configure --platform` can still override it. For example, even if the project defaults to **aarch64-linux**, you can choose to compile/develop/debug on the **x86_64-linux** platform.
 
 ### Configuration Commands
 
@@ -168,7 +168,7 @@ After initialization, a `celer.toml` configuration file will be generated in the
 # Configure platform
 celer configure --platform=x86_64-linux-ubuntu-22.04-gcc-11.5.0
 
-# Configure project
+# Configure project (also applies the project's target_platform, if any)
 celer configure --project=project_test_02
 ```
 

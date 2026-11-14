@@ -87,7 +87,8 @@ Available Configuration Options:
                                 or 'native' for the toolchain detected on this machine
 
   Project Configuration:
-    --project                   Set the current project configuration
+    --project                   Set the current project configuration. If the project defines
+                                target_platform, it becomes the current platform.
 
   Build Configuration:
     --build-type                Set the build type (Release, Debug, RelWithDebInfo, MinSizeRel)
@@ -126,6 +127,7 @@ Available Configuration Options:
 Examples:
   celer configure --platform=x86_64-linux-ubuntu-22.04-gcc-11.5.0  # Set target platform
   celer configure --project=myproject                              # Set current project
+  celer configure --project=myproject --platform=native            # Project default platform, then override it
   celer configure --build-type=Release                             # Set build type to Release
   celer configure --downloads=/home/xxx/Downloads                  # Set download directory
   celer configure --jobs=8                                         # Use 8 parallel build jobs
@@ -220,7 +222,7 @@ Examples:
 	// Register flags.
 	flags := command.Flags()
 	flags.StringVar(&c.platform, "platform", "", "configure platform.")
-	flags.StringVar(&c.project, "project", "", "configure project.")
+	flags.StringVar(&c.project, "project", "", "configure project, its target_platform becomes the platform.")
 	flags.StringVar(&c.buildType, "build-type", "", "configure build type.")
 	flags.StringVar(&c.downloads, "downloads", "", "configure downloads.")
 	flags.IntVar(&c.jobs, "jobs", 0, "configure jobs.")
@@ -289,27 +291,20 @@ func (c configureCmd) checkIfInitialized() error {
 }
 
 func (c *configureCmd) configureMain(flags *pflag.FlagSet) error {
-	if flags.Changed("platform") {
-		if err := c.celer.SetPlatform(c.platform); err != nil {
-			return logger.PrintError(err, "failed to set platform.")
-		}
-		logger.PrintSuccess("current platform: %s", c.platform)
-	}
-
+	// Project is applied first: it may set the default target platform,
+	// and an explicit --platform must win over it.
 	if flags.Changed("project") {
 		if err := c.celer.SetProject(c.project); err != nil {
 			return logger.PrintError(err, "failed to set project: %s", c.project)
 		}
 		logger.PrintSuccess("current project: %s", c.project)
+	}
 
-		// Auto configure platform.
-		targetPlatform := c.celer.Project().GetTargetPlatform()
-		if targetPlatform != "" && c.celer.Platform().GetName() == "" {
-			if err := c.celer.SetPlatform(targetPlatform); err != nil {
-				return logger.PrintError(err, "failed to set platform: %s", targetPlatform)
-			}
-			logger.PrintSuccess("current platform: %s => Default target platform defined in project", c.celer.Platform().GetName())
+	if flags.Changed("platform") {
+		if err := c.celer.SetPlatform(c.platform); err != nil {
+			return logger.PrintError(err, "failed to set platform.")
 		}
+		logger.PrintSuccess("current platform: %s", c.platform)
 	}
 
 	if flags.Changed("build-type") {
