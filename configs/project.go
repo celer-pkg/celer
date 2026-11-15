@@ -73,6 +73,9 @@ func (p *Project) Init(ctx context.Context, projectName string) error {
 		return fmt.Errorf("failed to read %s -> %w", projectPath, err)
 	}
 
+	// Normalize the default platform name.
+	p.TargetPlatform = strings.TrimSpace(p.TargetPlatform)
+
 	// ports_baseline is mandatory.
 	p.PortsBaseline = strings.TrimSpace(p.PortsBaseline)
 	if p.PortsBaseline == "" {

@@ -87,7 +87,8 @@ Available Configuration Options:
                                 or 'native' for the toolchain detected on this machine
 
   Project Configuration:
-    --project                   Set the current project configuration
+    --project                   Set the current project configuration. If the project defines
+                                target_platform, it becomes the current platform.
 
   Build Configuration:
     --build-type                Set the build type (Release, Debug, RelWithDebInfo, MinSizeRel)
@@ -126,6 +127,7 @@ Available Configuration Options:
 Examples:
   celer configure --platform=x86_64-linux-ubuntu-22.04-gcc-11.5.0  # Set target platform
   celer configure --project=myproject                              # Set current project
+  celer configure --project=myproject --platform=native            # Project default platform, then override it
   celer configure --build-type=Release                             # Set build type to Release
   celer configure --downloads=/home/xxx/Downloads                  # Set download directory
   celer configure --jobs=8                                         # Use 8 parallel build jobs
@@ -220,7 +222,7 @@ Examples:
 	// Register flags.
 	flags := command.Flags()
 	flags.StringVar(&c.platform, "platform", "", "configure platform.")
-	flags.StringVar(&c.project, "project", "", "configure project.")
+	flags.StringVar(&c.project, "project", "", "configure project, its target_platform becomes the platform.")
 	flags.StringVar(&c.buildType, "build-type", "", "configure build type.")
 	flags.StringVar(&c.downloads, "downloads", "", "configure downloads.")
 	flags.IntVar(&c.jobs, "jobs", 0, "configure jobs.")
@@ -289,60 +291,53 @@ func (c configureCmd) checkIfInitialized() error {
 }
 
 func (c *configureCmd) configureMain(flags *pflag.FlagSet) error {
+	// Project is applied first: it may set the default target platform,
+	// and an explicit --platform must win over it.
+	if flags.Changed("project") {
+		if err := c.celer.SetProject(c.project); err != nil {
+			return logger.PrintError(err, "failed to configure project: %s", c.project)
+		}
+		logger.PrintSuccess("current project: %s", c.project)
+	}
+
 	if flags.Changed("platform") {
 		if err := c.celer.SetPlatform(c.platform); err != nil {
-			return logger.PrintError(err, "failed to set platform.")
+			return logger.PrintError(err, "failed to configure platform.")
 		}
 		logger.PrintSuccess("current platform: %s", c.platform)
 	}
 
-	if flags.Changed("project") {
-		if err := c.celer.SetProject(c.project); err != nil {
-			return logger.PrintError(err, "failed to set project: %s", c.project)
-		}
-		logger.PrintSuccess("current project: %s", c.project)
-
-		// Auto configure platform.
-		targetPlatform := c.celer.Project().GetTargetPlatform()
-		if targetPlatform != "" && c.celer.Platform().GetName() == "" {
-			if err := c.celer.SetPlatform(targetPlatform); err != nil {
-				return logger.PrintError(err, "failed to set platform: %s", targetPlatform)
-			}
-			logger.PrintSuccess("current platform: %s => Default target platform defined in project", c.celer.Platform().GetName())
-		}
-	}
-
 	if flags.Changed("build-type") {
 		if err := c.celer.SetBuildType(c.buildType); err != nil {
-			return logger.PrintError(err, "failed to set build type: %s", c.buildType)
+			return logger.PrintError(err, "failed to configure build type: %s", c.buildType)
 		}
 		logger.PrintSuccess("current build type: %s", c.buildType)
 	}
 
 	if flags.Changed("downloads") {
 		if err := c.celer.SetDownloads(c.downloads); err != nil {
-			return logger.PrintError(err, "failed to set downloads: %s", c.downloads)
+			return logger.PrintError(err, "failed to configure downloads: %s", c.downloads)
 		}
 		logger.PrintSuccess("current downloads: %s", c.downloads)
 	}
 
 	if flags.Changed("jobs") {
 		if err := c.celer.SetJobs(c.jobs); err != nil {
-			return logger.PrintError(err, "failed to set job num: %d.", c.jobs)
+			return logger.PrintError(err, "failed to configure job num: %d.", c.jobs)
 		}
 		logger.PrintSuccess("current job num: %d.", c.jobs)
 	}
 
 	if flags.Changed("offline") {
 		if err := c.celer.SetOffline(c.offline); err != nil {
-			return logger.PrintError(err, "failed to set offline mode: %s", expr.If(c.offline, "true", "false"))
+			return logger.PrintError(err, "failed to configure offline mode: %s", expr.If(c.offline, "true", "false"))
 		}
 		logger.PrintSuccess("current offline mode: %s", expr.If(c.offline, "true", "false"))
 	}
 
 	if flags.Changed("verbose") {
 		if err := c.celer.SetVerbose(c.verbose); err != nil {
-			return logger.PrintError(err, "failed to set verbose mode: %s", expr.If(c.verbose, "true", "false"))
+			return logger.PrintError(err, "failed to configure verbose mode: %s", expr.If(c.verbose, "true", "false"))
 		}
 		logger.PrintSuccess("current verbose mode: %s", expr.If(c.verbose, "true", "false"))
 	}
@@ -405,7 +400,7 @@ func (c *configureCmd) configureProxy(flags *pflag.FlagSet) error {
 
 		if flags.Changed("proxy-port") {
 			if err := c.celer.SetProxyPort(c.proxy.Port); err != nil {
-				return logger.PrintError(err, "failed to set proxy port: %d.", c.proxy.Port)
+				return logger.PrintError(err, "failed to configure proxy port: %d.", c.proxy.Port)
 			}
 			logger.PrintSuccess("current proxy port: %d.", c.proxy.Port)
 		}
@@ -418,7 +413,7 @@ func (c *configureCmd) configurePkgCache(flags *pflag.FlagSet) error {
 	// fs backend.
 	if flags.Changed("pkgcache-fs-dir") {
 		if err := c.celer.SetPkgCacheFSDir(c.pkgCacheFS.Dir); err != nil {
-			return logger.PrintError(err, "failed to set pkgcache.fs dir: %s", c.pkgCacheFS.Dir)
+			return logger.PrintError(err, "failed to configure pkgcache.fs dir: %s", c.pkgCacheFS.Dir)
 		}
 		logger.PrintSuccess("current pkgcache.fs dir: %s.", expr.If(c.pkgCacheFS.Dir != "", c.pkgCacheFS.Dir, "empty"))
 	}
@@ -427,7 +422,7 @@ func (c *configureCmd) configurePkgCache(flags *pflag.FlagSet) error {
 	// flag can rotate them alone.
 	if flags.Changed("pkgcache-minio-host") || flags.Changed("pkgcache-minio-access-key") || flags.Changed("pkgcache-minio-secret-key") {
 		if err := c.celer.SetPkgCacheMinio(c.pkgCacheMinio.Host, c.pkgCacheMinio.AccessKey, c.pkgCacheMinio.SecretKey); err != nil {
-			return logger.PrintError(err, "failed to set pkgcache.minio: %s", c.pkgCacheMinio.Host)
+			return logger.PrintError(err, "failed to configure pkgcache.minio: %s", c.pkgCacheMinio.Host)
 		}
 		logger.PrintSuccess("current pkgcache.minio host: %s.", expr.If(c.pkgCacheMinio.Host != "", c.pkgCacheMinio.Host, "unchanged"))
 	}
@@ -435,7 +430,7 @@ func (c *configureCmd) configurePkgCache(flags *pflag.FlagSet) error {
 	// The write switch lives on [pkgcache] itself, not on a backend.
 	if flags.Changed("pkgcache-readonly") {
 		if err := c.celer.SetPkgCacheReadOnly(c.pkgCacheReadOnly); err != nil {
-			return logger.PrintError(err, "failed to set pkgcache readonly: %s", expr.If(c.pkgCacheReadOnly, "true", "false"))
+			return logger.PrintError(err, "failed to configure pkgcache readonly: %s", expr.If(c.pkgCacheReadOnly, "true", "false"))
 		}
 		logger.PrintSuccess("current pkgcache readonly: %s.", expr.If(c.pkgCacheReadOnly, "true", "false"))
 	}
@@ -443,7 +438,7 @@ func (c *configureCmd) configurePkgCache(flags *pflag.FlagSet) error {
 	// The retention policy also lives on [pkgcache] itself: 0 disables pruning.
 	if flags.Changed("pkgcache-keep-artifact-count") {
 		if err := c.celer.SetPkgCacheKeepArtifactCount(c.pkgCacheKeepArtifactCount); err != nil {
-			return logger.PrintError(err, "failed to set pkgcache keep_artifact_count: %d", c.pkgCacheKeepArtifactCount)
+			return logger.PrintError(err, "failed to configure pkgcache keep_artifact_count: %d", c.pkgCacheKeepArtifactCount)
 		}
 		logger.PrintSuccess("current pkgcache keep_artifact_count: %s.", expr.If(c.pkgCacheKeepArtifactCount > 0, fmt.Sprintf("%d", c.pkgCacheKeepArtifactCount), "disabled"))
 	}

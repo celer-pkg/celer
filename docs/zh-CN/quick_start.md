@@ -160,7 +160,7 @@ celer configure --proxy-host=127.0.0.1 --proxy-port=7890
 
 ### 灵活的组合方式
 
-**platform** 和 **project** 是两个独立的配置项，它们可以自由组合。例如，即使目标环境是 **aarch64-linux**，你也可以选择在 **x86_64-linux** 平台上进行编译/开发/调试。
+**platform** 和 **project** 是两个独立的配置项，但可以联动：项目可以用 `target_platform` 提供默认平台，执行 `celer configure --project` 时自动应用；随后仍可用 `celer configure --platform` 手动覆盖。例如，即使项目默认目标是 **aarch64-linux**，你也可以指定在 **x86_64-linux** 平台上进行编译/开发/调试。
 
 ### 配置命令
 
@@ -168,7 +168,7 @@ celer configure --proxy-host=127.0.0.1 --proxy-port=7890
 # 配置平台
 celer configure --platform=x86_64-linux-ubuntu-22.04-gcc-11.5.0
 
-# 配置项目
+# 配置项目（同时应用项目的 target_platform，如果有）
 celer configure --project=project_test_02
 ```
 
