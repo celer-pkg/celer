@@ -152,7 +152,7 @@ celer configure --proxy-host=127.0.0.1 --proxy-port=7890
 - **测试仓库：** `https://github.com/celer-pkg/celer-conf.git` 是一个测试用的 conf 仓库，你可以使用它来体验 Celer，也可以参考它创建自己的 conf 仓库。
 - **Ports 仓库：** 在初始化期间，Celer 会克隆一个 ports 仓库到当前工作目录，该仓库包含所有可用的第三方库配置文件。
   - Celer 会优先使用环境变量 `CELER_PORTS_REPO` 中指定的 ports 仓库
-  - 如果环境变量未设置，Celer 会使用默认的 ports 仓库：`https://github.com/celer-pkg/ports.git`
+  - 如果环境变量未设置，Celer 会使用默认的 ports 仓库：`https://github.com/celer-pkg/celer-ports.git`
 
 ---
 

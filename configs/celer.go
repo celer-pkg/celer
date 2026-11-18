@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	defaultPortsRepoUrl   = "https://github.com/celer-pkg/ports.git"
+	defaultPortsRepoUrl   = "https://github.com/celer-pkg/celer-ports.git"
 	defaultPortRepoBranch = ""
 )
 
