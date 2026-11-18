@@ -1,5 +1,5 @@
 [toolchain]
-  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/gcc-ubuntu-11.5.0-x86_64-x86_64-linux-gnu.tar.xz"
+  url = "https://github.com/celer-pkg/celer-conf/releases/download/resource/gcc-ubuntu-11.5.0-x86_64-x86_64-linux-gnu.tar.xz"
   sha256 = "3a7ef1c459debf2543f634a9e6d6209a5a1e5cb8b1b80a7ce72677fcc992f7d3"
   path = "gcc-ubuntu-11.5.0-x86_64-x86_64-linux-gnu/bin"
   name = "gcc"
@@ -20,7 +20,7 @@
   objcopy = "x86_64-linux-gnu-objcopy"
 
 [rootfs]
-  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/ubuntu-base-22.04.5-base-amd64.tar.xz"
+  url = "https://github.com/celer-pkg/celer-conf/releases/download/resource/ubuntu-base-22.04.5-base-amd64.tar.xz"
   sha256 = "08442eca9ccf64fd307d8a92582902315a66dc075216812d454596b1208da3bb"
   path = "ubuntu-base-22.04.5-base-amd64"
   pkg_config_path = ["usr/lib/x86_64-linux-gnu/pkgconfig"]

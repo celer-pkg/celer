@@ -1,5 +1,5 @@
 [toolchain]
-  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/LLVM-21.1.4-win64.zip"
+  url = "https://github.com/celer-pkg/celer-conf/releases/download/resource/LLVM-21.1.4-win64.zip"
   sha256 = "3f1e13be63d3bf8476bf794c6285998c32377ae7aaa2b3419216fe92e6d8f7fb"
   path = "LLVM-21.1.4-win64/bin"
   name = "clang"

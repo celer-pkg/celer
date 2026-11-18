@@ -29,7 +29,7 @@ Celer 使用**基于 SHA-256 的验证**来缓存下载文件并确保数据完�
 
 ```toml
 [main]
-	conf_repo = "https://github.com/celer-pkg/test-conf.git"
+	conf_repo = "https://github.com/celer-pkg/celer-conf.git"
 	platform = "x86_64-linux-ubuntu-22.04-gcc-11.5.0"
 	project = "project_01"
 	jobs = 32
@@ -62,7 +62,7 @@ Celer 使用**基于 SHA-256 的验证**来缓存下载文件并确保数据完�
 **conf/platforms/x86_64-linux-ubuntu-22.04-gcc-11.5.0.toml**
 ```toml
 [rootfs]
-  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/ubuntu-base-22.04.5-base-amd64.tar.xz"
+  url = "https://github.com/celer-pkg/celer-conf/releases/download/resource/ubuntu-base-22.04.5-base-amd64.tar.xz"
   sha256 = "08442eca9ccf64fd307d8a92582902315a66dc075216812d454596b1208da3bb"
   path = "ubuntu-base-22.04.5-base-amd64"
   pkg_config_path = ["usr/lib/x86_64-linux-gnu/pkgconfig"]

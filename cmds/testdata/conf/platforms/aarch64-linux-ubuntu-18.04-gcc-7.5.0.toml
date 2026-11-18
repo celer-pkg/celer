@@ -1,5 +1,5 @@
 [toolchain]
-  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/gcc-ubuntu-7.5.0-x86_64-aarch64-linux-gnu.tar.xz"
+  url = "https://github.com/celer-pkg/celer-conf/releases/download/resource/gcc-ubuntu-7.5.0-x86_64-aarch64-linux-gnu.tar.xz"
   sha256 = "sha256:69dbb395d3156863c9151f0d7629ddad4f4652d1ca54942cf968e4d058de5f03"
   path = "gcc-ubuntu-7.5.0-x86_64-aarch64-linux-gnu/bin"
   name = "gcc"
@@ -30,7 +30,7 @@
   ]
 
 [rootfs]
-  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/ubuntu-base-18.04.5-base-arm64.tar.xz"
+  url = "https://github.com/celer-pkg/celer-conf/releases/download/resource/ubuntu-base-18.04.5-base-arm64.tar.xz"
   sha256 = "sha256:467e77447f8017878ae4f3b2d81fc17c44daee88878c55cf004dece661fcf099"
   path = "ubuntu-base-18.04.5-base-arm64"
   pkg_config_path = ["usr/lib/aarch64-linux-gnu/pkgconfig"]

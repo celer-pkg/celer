@@ -254,7 +254,7 @@ pipeline {
         stage('register parameters') {
             steps {
                 script {
-                    def confUrl = params.CELER_CONF_URL ?: 'https://github.com/celer-pkg/test-conf.git'
+                    def confUrl = params.CELER_CONF_URL ?: 'https://github.com/celer-pkg/celer-conf.git'
                     def platforms = confChoices('platforms') ?: [params.CELER_PLATFORM ?: 'aarch64-linux-ubuntu-22.04-gcc-11.5.0']
                     def projects = confChoices('projects') ?: [params.CELER_PROJECT ?: 'project_test_01']
                     def ports = confPorts()
@@ -263,7 +263,7 @@ pipeline {
                     properties([
                         parameters([
                             choiceParam('CELER_VERSION', 'The celer version this build runs, from pkgcache - [mandatory]', celerList, true),
-                            string(name: 'CELER_CONF_URL', defaultValue: 'https://github.com/celer-pkg/test-conf.git', description: 'The git repo url of celer workspace - [mandatory]'),
+                            string(name: 'CELER_CONF_URL', defaultValue: 'https://github.com/celer-pkg/celer-conf.git', description: 'The git repo url of celer workspace - [mandatory]'),
                             choiceParam('CELER_CONF_BRANCH', 'The git branch of conf repo, defaulting to its HEAD branch - [optional]', [], true, [
                                 $class: 'GroovyScript',
                                 fallbackScript: [classpath: [], sandbox: true, script: 'return ["master", "SCRIPT FAILED: see Manage Jenkins > In-process Script Approval"]'],

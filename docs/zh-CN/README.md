@@ -24,7 +24,7 @@ Celer 管理 C/C++ 第三方库：安装、编译、缓存，按「平台 × 项
 
 ```bash
 # 示例配置仓库，可换成团队自己的 conf
-celer init --url=https://github.com/celer-pkg/test-conf.git
+celer init --url=https://github.com/celer-pkg/celer-conf.git
 
 # 选定平台和项目（一个 platform.toml 就是一套工具链 + sysroot）
 celer configure --platform=x86_64-linux-ubuntu-22.04-gcc-11.5.0

@@ -1,5 +1,5 @@
 [toolchain]
-  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/qnx800.tar.xz"
+  url = "https://github.com/celer-pkg/celer-conf/releases/download/resource/qnx800.tar.xz"
   sha256 = "3e64f39e6a4900efdc06187b48483f71f6ebba04878505c853b6df709c84a42f"
   path = "qnx800/host/linux/x86_64/usr/bin"
   name = "qcc"
