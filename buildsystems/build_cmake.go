@@ -217,14 +217,16 @@ func (c cmake) configureOptions() ([]string, error) {
 }
 
 func (c cmake) configured() bool {
-	// Staged deps live in a temp dir for each build. This dir is deleted after install.
-	// So if the port has deps, any leftover CMakeCache.txt will always point to a deleted dir.
-	if len(c.Dependencies) > 0 || len(c.DevDependencies) > 0 {
+	// Resolve the generator first: the build and install steps need it to pass the right
+	// --config for a multi-config generator (Visual Studio, Xcode).
+	if err := c.detectGenerator(); err != nil {
+		logger.Printf(logger.Error, "failed to detect generator -> %s", err)
 		return false
 	}
 
-	if err := c.detectGenerator(); err != nil {
-		logger.Printf(logger.Error, "failed to detect generator -> %s", err)
+	// Staged deps live in a temp dir for each build. This dir is deleted after install.
+	// So if the port has deps, any leftover CMakeCache.txt will always point to a deleted dir.
+	if len(c.Dependencies) > 0 || len(c.DevDependencies) > 0 {
 		return false
 	}
 
@@ -234,15 +236,15 @@ func (c cmake) configured() bool {
 	}
 
 	var buildFiles []string
-	switch c.CMakeGenerator {
-	case "Ninja":
+	switch {
+	case c.CMakeGenerator == "Ninja":
 		buildFiles = []string{
 			filepath.Join(c.PortConfig.BuildDir, "build.ninja"),
 			filepath.Join(c.PortConfig.BuildDir, "rules.ninja"),
 		}
-	case "Unix Makefiles":
+	case c.CMakeGenerator == "Unix Makefiles":
 		buildFiles = []string{filepath.Join(c.PortConfig.BuildDir, "Makefile")}
-	case visualStudio_18_2026, visualStudio_17_2022, visualStudio_16_2019, visualStudio_15_2017, visualStudio_14_2015:
+	case strings.HasPrefix(c.CMakeGenerator, "Visual Studio"):
 		buildFiles = []string{
 			filepath.Join(c.PortConfig.BuildDir, c.PortConfig.LibName+".sln"),
 			filepath.Join(c.PortConfig.BuildDir, c.PortConfig.LibName+".vcxproj"),
@@ -409,13 +411,20 @@ func (c *cmake) detectGenerator() error {
 				c.CMakeGenerator = msvcGenerator
 			}
 		}
-	} else if c.CMakeGenerator != "Ninja" &&
-		c.CMakeGenerator != "Unix Makefiles" &&
-		c.CMakeGenerator != "Xcode" {
+	} else if !c.generatorSupported() {
 		return fmt.Errorf("unsupported cmake generator: %q", c.CMakeGenerator)
 	}
 
 	return nil
+}
+
+func (c cmake) generatorSupported() bool {
+	switch c.CMakeGenerator {
+	case "Ninja", "Unix Makefiles":
+		return true
+	}
+
+	return c.multiConfigGenerator()
 }
 
 func (c cmake) multiConfigGenerator() bool {

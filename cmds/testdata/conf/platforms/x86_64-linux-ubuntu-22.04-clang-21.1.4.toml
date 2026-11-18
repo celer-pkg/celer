@@ -1,0 +1,28 @@
+[toolchain]
+  url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.4/LLVM-21.1.4-Linux-X64.tar.xz"
+  sha256 = "53c8d9a173c39c952ae367974b0b9c1dcfddeb81341c3d0553748e8407abe9f8"
+  path = "LLVM-21.1.4-Linux-X64/bin"
+  name = "clang"
+  version = "21.1.4"
+  system_name = "linux"
+  system_processor = "x86_64"
+  host = "x86_64-linux-gnu"
+  crosstool_prefix = "x86_64-linux-gnu-"
+  cc = "clang"
+  cxx = "clang++"
+  ar = "llvm-ar"
+  ld = "ld.lld"
+  cpp = "clang-cpp"
+  gcov = "llvm-cov"
+  nm = "llvm-nm"
+  objdump = "llvm-objdump"
+  strip = "llvm-strip"
+  objcopy = "llvm-objcopy"
+  as = "llvm-as"
+
+[rootfs]
+  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/ubuntu-base-22.04.5-base-amd64.tar.xz"
+  sha256 = "08442eca9ccf64fd307d8a92582902315a66dc075216812d454596b1208da3bb"
+  path = "ubuntu-base-22.04.5-base-amd64"
+  pkg_config_path = ["usr/lib/x86_64-linux-gnu/pkgconfig"]
+  lib_dirs = ["lib/x86_64-linux-gnu", "usr/lib/x86_64-linux-gnu"]

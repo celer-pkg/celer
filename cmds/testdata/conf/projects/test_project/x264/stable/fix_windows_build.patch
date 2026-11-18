@@ -1,0 +1,17 @@
+diff --git a/configure b/configure
+index e242e73c..f8026a1a 100755
+--- a/configure
++++ b/configure
+@@ -1575,10 +1575,10 @@ if [ "$shared" = "yes" ]; then
+     if [ "$SYS" = "WINDOWS" -o "$SYS" = "CYGWIN" ]; then
+         echo "SONAME=libx264-$API.dll" >> config.mak
+         if [ $compiler_style = MS ]; then
+-            echo 'IMPLIBNAME=libx264.dll.lib' >> config.mak
++            echo 'IMPLIBNAME=libx264.lib' >> config.mak
+             echo "SOFLAGS=-dll -implib:\$(IMPLIBNAME) $SOFLAGS" >> config.mak
+         else
+-            echo 'IMPLIBNAME=libx264.dll.a' >> config.mak
++            echo "IMPLIBNAME=libx264-$API.dll" >> config.mak
+             echo "SOFLAGS=-shared -Wl,--out-implib,\$(IMPLIBNAME) $SOFLAGS" >> config.mak
+         fi
+     elif [ "$SYS" = "MACOSX" ]; then

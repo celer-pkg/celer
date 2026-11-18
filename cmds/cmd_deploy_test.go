@@ -5,14 +5,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"slices"
 	"testing"
 
 	"github.com/celer-pkg/celer/buildsystems"
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
 	"github.com/celer-pkg/celer/pkgs/refs"
@@ -191,6 +189,7 @@ func setupTestRepo(t *testing.T) (repoUrl string, headCommit, olderCommit string
 func TestDeploy_Clone_ExistingRepo_ResetsToResolvedCommit(t *testing.T) {
 	dirs.RemoveAllForTest()
 	defer refs.StoreResolvedCommits(nil)
+	celer := newTestCeler(t, "", testProject)
 
 	repoUrl, headCommit, olderCommit := setupTestRepo(t)
 
@@ -216,7 +215,7 @@ func TestDeploy_Clone_ExistingRepo_ResetsToResolvedCommit(t *testing.T) {
 
 	// Call Clone with the existing repo — it should HardReset to the resolved commit.
 	config := buildsystems.BuildConfig{
-		Ctx: fakeContext{},
+		Ctx: celer,
 		PortConfig: buildsystems.PortConfig{
 			LibName:    "test",
 			LibVersion: "1.0",
@@ -238,9 +237,43 @@ func TestDeploy_Clone_ExistingRepo_ResetsToResolvedCommit(t *testing.T) {
 	}
 }
 
+func TestDeploy_Clone_PartialRepo_Refetches(t *testing.T) {
+	dirs.RemoveAllForTest()
+	celer := newTestCeler(t, "", testProject)
+
+	repoUrl, headCommit, _ := setupTestRepo(t)
+
+	repoDir := filepath.Join(t.TempDir(), "src")
+	if err := os.MkdirAll(filepath.Join(repoDir, ".git"), os.ModePerm); err != nil {
+		t.Fatalf("failed to create partial repo dir: %v", err)
+	}
+
+	config := buildsystems.BuildConfig{
+		Ctx: celer,
+		PortConfig: buildsystems.PortConfig{
+			LibName:    "partial",
+			LibVersion: "1.0",
+			RepoDir:    repoDir,
+		},
+	}
+
+	if err := config.Clone(repoUrl, "master", "", 0); err != nil {
+		t.Fatalf("Clone failed: %v", err)
+	}
+
+	currentCommit, err := git.GetCommitHash(repoDir)
+	if err != nil {
+		t.Fatalf("partial repo was not fetched again: %v", err)
+	}
+	if currentCommit != headCommit {
+		t.Fatalf("expected fetched commit %s, got %s", headCommit, currentCommit)
+	}
+}
+
 func TestDeploy_Clone_ExistingRepo_NoResolvedCommit_NoReset(t *testing.T) {
 	dirs.RemoveAllForTest()
 	defer refs.StoreResolvedCommits(nil)
+	celer := newTestCeler(t, "", testProject)
 
 	repoUrl, headCommit, _ := setupTestRepo(t)
 
@@ -254,7 +287,7 @@ func TestDeploy_Clone_ExistingRepo_NoResolvedCommit_NoReset(t *testing.T) {
 	refs.StoreResolvedCommits(nil)
 
 	config := buildsystems.BuildConfig{
-		Ctx: fakeContext{},
+		Ctx: celer,
 		PortConfig: buildsystems.PortConfig{
 			LibName:    "test",
 			LibVersion: "1.0",
@@ -279,6 +312,7 @@ func TestDeploy_Clone_ExistingRepo_NoResolvedCommit_NoReset(t *testing.T) {
 func TestDeploy_Clone_FreshClone_ResetsToResolvedCommit(t *testing.T) {
 	dirs.RemoveAllForTest()
 	defer refs.StoreResolvedCommits(nil)
+	celer := newTestCeler(t, "", testProject)
 
 	repoUrl, _, olderCommit := setupTestRepo(t)
 
@@ -291,7 +325,7 @@ func TestDeploy_Clone_FreshClone_ResetsToResolvedCommit(t *testing.T) {
 	repoDir := filepath.Join(t.TempDir(), "new-src")
 
 	cfg := buildsystems.BuildConfig{
-		Ctx: fakeContext{},
+		Ctx: celer,
 		PortConfig: buildsystems.PortConfig{
 			LibName:    "test",
 			LibVersion: "1.0",
@@ -325,6 +359,7 @@ func TestDeploy_Clone_FreshClone_ResetsToResolvedCommit(t *testing.T) {
 func TestDeploy_Clone_FreshClone_NoResolvedCommit_StaysOnBranch(t *testing.T) {
 	dirs.RemoveAllForTest()
 	defer refs.StoreResolvedCommits(nil)
+	celer := newTestCeler(t, "", testProject)
 
 	repoUrl, headCommit, _ := setupTestRepo(t)
 
@@ -334,7 +369,7 @@ func TestDeploy_Clone_FreshClone_NoResolvedCommit_StaysOnBranch(t *testing.T) {
 	repoDir := filepath.Join(t.TempDir(), "new-src")
 
 	cfg := buildsystems.BuildConfig{
-		Ctx: fakeContext{},
+		Ctx: celer,
 		PortConfig: buildsystems.PortConfig{
 			LibName:    "test",
 			LibVersion: "1.0",
@@ -366,13 +401,13 @@ func TestDeploy_Clone_FreshClone_NoResolvedCommit_StaysOnBranch(t *testing.T) {
 }
 
 func TestDeployCmd_Success(t *testing.T) {
-	celer := newInitializedCeler(t)
+	platform := buildTestPlatform()
+	project := testProjectName
 
-	var (
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-		project         = "project_test_clean"
-	)
+	celer := newTestCeler(t, platform, configs.Project{
+		Name:  project,
+		Ports: []string{"x264@stable"},
+	})
 
 	configBuildType := &configureCmd{}
 	if _, err := runCommand(t, configBuildType.Command(celer), "--build-type=Release"); err != nil {
@@ -403,8 +438,8 @@ func TestDeployCmd_Success(t *testing.T) {
 		t.Fatalf("deploy should succeed for project %s: %v\nstderr:\n%s", project, err, stderr)
 	}
 
-	// Successful deploy must produce x264's buildtree (project_test_clean
-	// has only x264@stable in its ports list).
+	// Successful deploy must produce x264's buildtree (the project has only
+	// x264@stable in its ports list).
 	buildDir := fmt.Sprintf("%s/x264@stable/%s-%s-%s",
 		dirs.BuildtreesDir, platform, project, celer.BuildType())
 	if !fileio.PathExists(buildDir) {

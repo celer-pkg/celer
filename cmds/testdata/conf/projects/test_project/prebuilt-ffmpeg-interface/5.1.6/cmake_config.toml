@@ -1,0 +1,25 @@
+namespace = "FFmpeg"
+
+[linux]
+filenames = [
+    "libavutil.so.57",
+    "libavcodec.so.59",
+    "libavdevice.so.59",
+    "libavfilter.so.8",
+    "libavformat.so.59",
+    "libpostproc.so.56",
+    "libswresample.so.4",
+    "libswscale.so.6",
+]
+
+[windows]
+filenames = [
+    "avutil.lib",
+    "avcodec.lib",
+    "avdevice.lib",
+    "avfilter.lib",
+    "avformat.lib",
+    "postproc.lib",
+    "swresample.lib",
+    "swscale.lib",
+]

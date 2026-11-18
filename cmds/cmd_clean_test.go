@@ -372,7 +372,7 @@ func TestCleanCmd_CleanAll_PortNotFound_RemovesNonSrcAndKeepsSrc(t *testing.T) {
 }
 
 func TestCleanCmd_Execute_ValidateTargetsError(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &cleanCmd{}
 
 	// `celer clean` without any target and without --all must fail at cobra's
@@ -387,7 +387,7 @@ func TestCleanCmd_Execute_ValidateTargetsError(t *testing.T) {
 }
 
 func TestCleanCmd_Execute_AllWithoutTargets(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &cleanCmd{}
 
 	if _, err := runCommand(t, cmd.Command(celer), "--all"); err != nil {
@@ -396,13 +396,13 @@ func TestCleanCmd_Execute_AllWithoutTargets(t *testing.T) {
 }
 
 func TestClean(t *testing.T) {
-	celer := newInitializedCeler(t)
+	platform := buildTestPlatform()
+	project := testProjectName
 
-	var (
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-		project         = "project_test_clean"
-	)
+	celer := newTestCeler(t, platform, configs.Project{
+		Name:  project,
+		Ports: []string{"x264@stable"},
+	})
 
 	// Configure platform/project/build-type via `celer configure`, exactly as
 	// a user would. Each flag is its own command to obey configure's

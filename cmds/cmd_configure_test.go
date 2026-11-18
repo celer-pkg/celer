@@ -5,15 +5,14 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
-	"github.com/celer-pkg/celer/pkgs/expr"
 
+	"github.com/BurntSushi/toml"
 	"github.com/spf13/cobra"
 )
 
@@ -230,9 +229,8 @@ func TestConfigureCmd_Completion(t *testing.T) {
 }
 
 func TestConfigureCmd_NoFlagShouldFail(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
-
 	stderr, err := runCommand(t, cmd.Command(celer))
 	if err == nil {
 		t.Fatal("expected error when no configuration flag is provided")
@@ -244,7 +242,7 @@ func TestConfigureCmd_NoFlagShouldFail(t *testing.T) {
 }
 
 func TestConfigureCmd_PkgCacheGroupShouldSucceed(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	if err := os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm); err != nil {
@@ -272,7 +270,7 @@ func TestConfigureCmd_PkgCacheGroupShouldSucceed(t *testing.T) {
 }
 
 func TestConfigureCmd_CrossGroupFlagsShouldFail(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	stderr, err := runCommand(t, cmd.Command(celer),
@@ -288,13 +286,9 @@ func TestConfigureCmd_CrossGroupFlagsShouldFail(t *testing.T) {
 }
 
 func TestConfigure_Platform(t *testing.T) {
-	celer := newInitializedCeler(t)
+	platform := hostTestPlatform()
+	celer := newTestCeler(t, platform, testProject)
 	cmd := &configureCmd{}
-
-	var (
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-	)
 
 	if _, err := runCommand(t, cmd.Command(celer), "--platform="+platform); err != nil {
 		t.Fatal(err)
@@ -313,28 +307,87 @@ func TestConfigure_Platform(t *testing.T) {
 }
 
 func TestConfigure_Project(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
-	const projectName = "project_test_01"
-	if _, err := runCommand(t, cmd.Command(celer), "--project="+projectName); err != nil {
-		t.Fatal(err)
+	if stderr, err := runCommand(t, cmd.Command(celer), "--project="+testProjectName); err != nil {
+		t.Fatalf("%v\n%s", err, stderr)
 	}
-	if celer.Project().GetName() != projectName {
-		t.Fatalf("project should be `%s`", projectName)
+	if celer.Project().GetName() != testProjectName {
+		t.Fatalf("project should be `%s`", testProjectName)
 	}
 
 	celer2 := configs.NewCeler()
 	if err := celer2.Init(); err != nil {
 		t.Fatal(err)
 	}
-	if celer2.Project().GetName() != projectName {
-		t.Fatalf("project should be `%s`", projectName)
+	if celer2.Project().GetName() != testProjectName {
+		t.Fatalf("project should be `%s`", testProjectName)
+	}
+}
+
+func TestConfigure_Project_AppliesTargetPlatform(t *testing.T) {
+	platform := hostTestPlatform()
+	celer := newTestCeler(t, platform, configs.Project{
+		Name:           testProjectName,
+		TargetPlatform: platform,
+	})
+	cmd := &configureCmd{}
+
+	if stderr, err := runCommand(t, cmd.Command(celer), "--project="+testProjectName); err != nil {
+		t.Fatalf("%v\n%s", err, stderr)
+	}
+	if celer.Platform().GetName() != platform {
+		t.Fatalf("platform should follow the project target_platform `%s`", platform)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if celer2.Platform().GetName() != platform {
+		t.Fatalf("platform should be persisted as `%s`", platform)
+	}
+}
+
+func TestConfigure_Project_PlatformOverridesTargetPlatformAfterwards(t *testing.T) {
+	platform := hostTestPlatform()
+	celer := newTestCeler(t, platform, configs.Project{
+		Name:           testProjectName,
+		TargetPlatform: platform,
+	})
+	cmd := &configureCmd{}
+
+	// Selecting the project applies its target_platform.
+	if _, err := runCommand(t, cmd.Command(celer), "--project="+testProjectName); err != nil {
+		t.Fatal(err)
+	}
+	if celer.Platform().GetName() != platform {
+		t.Fatalf("platform should follow the project target_platform `%s`", platform)
+	}
+
+	// A later explicit platform still wins over the project default.
+	if _, err := runCommand(t, cmd.Command(celer), "--platform=native"); err != nil {
+		t.Fatal(err)
+	}
+	if celer.Main.Platform != configs.NativePlatform {
+		t.Fatalf("platform should be overridden to native, got `%s`", celer.Main.Platform)
+	}
+	if name, hostName := celer.Platform().GetName(), celer.Platform().GetHostName(); name != hostName {
+		t.Fatalf("platform should resolve to the host name `%s`, got `%s`", hostName, name)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if celer2.Main.Platform != configs.NativePlatform {
+		t.Fatalf("platform should be persisted as native, got `%s`", celer2.Main.Platform)
 	}
 }
 
 func TestConfigure_Project_NotExist(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	stderr, err := runCommand(t, cmd.Command(celer), "--project=xxxx")
@@ -347,7 +400,7 @@ func TestConfigure_Project_NotExist(t *testing.T) {
 }
 
 func TestConfigure_Project_Empty(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	// `--project=` (empty value) reaches RunE with the flag marked changed,
@@ -358,7 +411,7 @@ func TestConfigure_Project_Empty(t *testing.T) {
 }
 
 func TestConfigure_BuildType_Release(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	if _, err := runCommand(t, cmd.Command(celer), "--build-type=Release"); err != nil {
@@ -378,7 +431,7 @@ func TestConfigure_BuildType_Release(t *testing.T) {
 }
 
 func TestConfigure_BuildType_Debug(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	if _, err := runCommand(t, cmd.Command(celer), "--build-type=Debug"); err != nil {
@@ -398,7 +451,7 @@ func TestConfigure_BuildType_Debug(t *testing.T) {
 }
 
 func TestConfigure_BuildType_Empty(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	stderr, err := runCommand(t, cmd.Command(celer), "--build-type=")
@@ -411,7 +464,7 @@ func TestConfigure_BuildType_Empty(t *testing.T) {
 }
 
 func TestConfigure_BuildType_Invalid(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	stderr, err := runCommand(t, cmd.Command(celer), "--build-type=xxxx")
@@ -424,7 +477,7 @@ func TestConfigure_BuildType_Invalid(t *testing.T) {
 }
 
 func TestConfigure_Jobs(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	if _, err := runCommand(t, cmd.Command(celer), "--jobs=4"); err != nil {
@@ -444,7 +497,7 @@ func TestConfigure_Jobs(t *testing.T) {
 }
 
 func TestConfigure_Jobs_Invalid(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	stderr, err := runCommand(t, cmd.Command(celer), "--jobs=-1")
@@ -457,7 +510,7 @@ func TestConfigure_Jobs_Invalid(t *testing.T) {
 }
 
 func TestConfigure_Offline_ON(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	if _, err := runCommand(t, cmd.Command(celer), "--offline=true"); err != nil {
@@ -477,7 +530,7 @@ func TestConfigure_Offline_ON(t *testing.T) {
 }
 
 func TestConfigure_Offline_OFF(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	if _, err := runCommand(t, cmd.Command(celer), "--offline=false"); err != nil {
@@ -497,7 +550,7 @@ func TestConfigure_Offline_OFF(t *testing.T) {
 }
 
 func TestConfigure_Verbose_ON(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	if _, err := runCommand(t, cmd.Command(celer), "--verbose=true"); err != nil {
@@ -517,7 +570,7 @@ func TestConfigure_Verbose_ON(t *testing.T) {
 }
 
 func TestConfigure_Verbose_OFF(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	if _, err := runCommand(t, cmd.Command(celer), "--verbose=false"); err != nil {
@@ -529,12 +582,11 @@ func TestConfigure_Verbose_OFF(t *testing.T) {
 }
 
 func TestConfigure_PkgCacheDir(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 
 	// Must create cache dir before setting cache dir.
-	if err := os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm); err != nil {
-		t.Fatal(err)
-	}
+	check(t, os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm))
+	defer os.RemoveAll(dirs.TestPkgCacheDir)
 
 	cmd := &configureCmd{}
 	if _, err := runCommand(t, cmd.Command(celer), "--pkgcache-fs-dir="+dirs.TestPkgCacheDir); err != nil {
@@ -556,13 +608,12 @@ func TestConfigure_PkgCacheDir(t *testing.T) {
 }
 
 func TestConfigure_PkgCacheReadOnly(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	// Must create cache dir before setting cache dir.
-	if err := os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm); err != nil {
-		t.Fatal(err)
-	}
+	check(t, os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm))
+	defer os.RemoveAll(dirs.TestPkgCacheDir)
 
 	// pkgcache-dir and pkgcache-readonly are in the same group, so we can set
 	// them together in a single command just like a user would.
@@ -583,12 +634,12 @@ func TestConfigure_PkgCacheReadOnly(t *testing.T) {
 }
 
 func TestConfigure_PkgCacheKeepArtifactCount(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
-	if err := os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm); err != nil {
-		t.Fatal(err)
-	}
+	// Must create cache dir before setting cache dir.
+	check(t, os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm))
+	defer os.RemoveAll(dirs.TestPkgCacheDir)
 
 	if _, err := runCommand(t, cmd.Command(celer),
 		"--pkgcache-fs-dir="+dirs.TestPkgCacheDir,
@@ -609,12 +660,12 @@ func TestConfigure_PkgCacheKeepArtifactCount(t *testing.T) {
 // Pruning deletes from a shared cache, so it must stay disabled until a node
 // explicitly configures a count.
 func TestConfigure_PkgCacheKeepArtifactCount_DefaultsToDisabled(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
-	if err := os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm); err != nil {
-		t.Fatal(err)
-	}
+	// Must create cache dir before setting cache dir.
+	check(t, os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm))
+	defer os.RemoveAll(dirs.TestPkgCacheDir)
 
 	if _, err := runCommand(t, cmd.Command(celer), "--pkgcache-fs-dir="+dirs.TestPkgCacheDir); err != nil {
 		t.Fatal(err)
@@ -630,7 +681,7 @@ func TestConfigure_PkgCacheKeepArtifactCount_DefaultsToDisabled(t *testing.T) {
 }
 
 func TestConfigure_PkgCacheDir_DirNotExist(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 
 	cmd := &configureCmd{}
 	stderr, err := runCommand(t, cmd.Command(celer), "--pkgcache-fs-dir="+dirs.TestPkgCacheDir)
@@ -643,7 +694,7 @@ func TestConfigure_PkgCacheDir_DirNotExist(t *testing.T) {
 }
 
 func TestConfigure_Proxy(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	if _, err := runCommand(t, cmd.Command(celer),
@@ -667,7 +718,7 @@ func TestConfigure_Proxy(t *testing.T) {
 }
 
 func TestConfigure_Proxy_Invalid_Host(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 
 	cmd := &configureCmd{}
 	stderr, err := runCommand(t, cmd.Command(celer), "--proxy-host=")
@@ -680,7 +731,7 @@ func TestConfigure_Proxy_Invalid_Host(t *testing.T) {
 }
 
 func TestConfigure_Proxy_Invalid_Port(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	stderr, err := runCommand(t, cmd.Command(celer), "--proxy-port=-1")
@@ -693,7 +744,7 @@ func TestConfigure_Proxy_Invalid_Port(t *testing.T) {
 }
 
 func TestConfigure_CCacheEnabled_ON(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	ccacheDir := filepath.Join(dirs.TmpDir, "ccache")
@@ -720,7 +771,7 @@ func TestConfigure_CCacheEnabled_ON(t *testing.T) {
 }
 
 func TestConfigure_CCacheEnabled_OFF(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	ccacheDir := filepath.Join(dirs.TmpDir, "ccache")
@@ -745,7 +796,7 @@ func TestConfigure_CCacheEnabled_OFF(t *testing.T) {
 }
 
 func TestConfigure_CCacheDir(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	ccacheDir := filepath.Join(dirs.TmpDir, "ccache")
@@ -768,7 +819,7 @@ func TestConfigure_CCacheDir(t *testing.T) {
 }
 
 func TestConfigure_CCacheMaxSize(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	const maxSize = "10G"
@@ -786,7 +837,7 @@ func TestConfigure_CCacheMaxSize(t *testing.T) {
 }
 
 func TestConfigure_BuildType_RelWithDebInfo(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	if _, err := runCommand(t, cmd.Command(celer), "--build-type=RelWithDebInfo"); err != nil {
@@ -806,7 +857,7 @@ func TestConfigure_BuildType_RelWithDebInfo(t *testing.T) {
 }
 
 func TestConfigure_BuildType_MinSizeRel(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	if _, err := runCommand(t, cmd.Command(celer), "--build-type=MinSizeRel"); err != nil {
@@ -826,7 +877,7 @@ func TestConfigure_BuildType_MinSizeRel(t *testing.T) {
 }
 
 func TestConfigure_Jobs_Zero(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	stderr, err := runCommand(t, cmd.Command(celer), "--jobs=0")
@@ -839,7 +890,7 @@ func TestConfigure_Jobs_Zero(t *testing.T) {
 }
 
 func TestConfigure_CCacheRemoteStorage_Valid(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	const remoteStorage = "http://localhost:8080/ccache"
@@ -857,7 +908,7 @@ func TestConfigure_CCacheRemoteStorage_Valid(t *testing.T) {
 }
 
 func TestConfigure_CCacheRemoteStorage_InvalidURL(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	stderr, err := runCommand(t, cmd.Command(celer), "--ccache-remote-storage=localhost:8080/ccache")
@@ -870,7 +921,7 @@ func TestConfigure_CCacheRemoteStorage_InvalidURL(t *testing.T) {
 }
 
 func TestConfigure_CCacheRemoteStorage_Empty(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	// Empty string should be allowed (to clear the setting).
@@ -880,7 +931,7 @@ func TestConfigure_CCacheRemoteStorage_Empty(t *testing.T) {
 }
 
 func TestConfigure_Downloads(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	downloads := filepath.Join(dirs.TmpDir, "downloads")
@@ -891,17 +942,20 @@ func TestConfigure_Downloads(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	celer2 := configs.NewCeler()
-	if err := celer2.Init(); err != nil {
+	// Read celer.toml directly instead of re-initializing celer: Init would honor the new
+	// downloads dir and fetch the build tools into it again.
+	var cfg struct{ Main configs.Main }
+	celerPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
+	if _, err := toml.DecodeFile(celerPath, &cfg); err != nil {
 		t.Fatal(err)
 	}
-	if celer2.Downloads() != downloads {
-		t.Fatalf("downloads dir should be `%s`, got `%s`", downloads, celer2.Downloads())
+	if want := filepath.ToSlash(downloads); cfg.Main.Downloads != want {
+		t.Fatalf("downloads dir should be `%s`, got `%s`", want, cfg.Main.Downloads)
 	}
 }
 
 func TestConfigure_Downloads_NotExist(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	stderr, err := runCommand(t, cmd.Command(celer),
@@ -916,7 +970,7 @@ func TestConfigure_Downloads_NotExist(t *testing.T) {
 }
 
 func TestConfigure_CCacheRemoteOnly_ON(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	if _, err := runCommand(t, cmd.Command(celer), "--ccache-remote-only=true"); err != nil {
@@ -933,7 +987,7 @@ func TestConfigure_CCacheRemoteOnly_ON(t *testing.T) {
 }
 
 func TestConfigure_CCacheRemoteOnly_OFF(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	// Flip it on then off so the assertion is meaningful.
@@ -969,7 +1023,7 @@ func newFakeMinioServer(t *testing.T) *httptest.Server {
 }
 
 func TestConfigure_PkgCacheMinio(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	server := newFakeMinioServer(t)
@@ -1008,7 +1062,7 @@ func TestConfigure_PkgCacheMinio(t *testing.T) {
 // Providing a single minio flag keeps the other fields unchanged,
 // so keys can be rotated alone.
 func TestConfigure_PkgCacheMinio_RotateSecretKey(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	server := newFakeMinioServer(t)
@@ -1045,7 +1099,7 @@ func TestConfigure_PkgCacheMinio_RotateSecretKey(t *testing.T) {
 // fs and minio are mutually exclusive pkgcache backends: configuring one
 // replaces the other, so switching a workspace needs no manual cleanup.
 func TestConfigure_PkgCacheMinio_ReplacesFS(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	// Go offline first: the minio backend probes the endpoint on configure, and
@@ -1082,7 +1136,7 @@ func TestConfigure_PkgCacheMinio_ReplacesFS(t *testing.T) {
 }
 
 func TestConfigure_PkgCacheFS_ReplacesMinio(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	// See TestConfigure_PkgCacheMinio_ReplacesFS: offline keeps the test hermetic.
@@ -1120,7 +1174,7 @@ func TestConfigure_PkgCacheFS_ReplacesMinio(t *testing.T) {
 // Regression: option flags before any backend is configured must fail with
 // a clear error, not panic or pass silently.
 func TestConfigure_PkgCacheReadOnly_BeforeBackendFails(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 
 	cmd := &configureCmd{}
 	stderr, err := runCommand(t, cmd.Command(celer),
@@ -1135,7 +1189,7 @@ func TestConfigure_PkgCacheReadOnly_BeforeBackendFails(t *testing.T) {
 }
 
 func TestConfigureCmd_Port_UpdatesUrlAndRef(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	const (
@@ -1174,7 +1228,7 @@ func TestConfigureCmd_Port_UpdatesUrlAndRef(t *testing.T) {
 }
 
 func TestConfigureCmd_Port_MissingUrlAndRefShouldFail(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	_, err := runCommand(t, cmd.Command(celer), "--port=eigen@3.4.0")
@@ -1184,7 +1238,7 @@ func TestConfigureCmd_Port_MissingUrlAndRefShouldFail(t *testing.T) {
 }
 
 func TestConfigureCmd_Port_UnknownPortShouldFail(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 	cmd := &configureCmd{}
 
 	_, err := runCommand(t, cmd.Command(celer),

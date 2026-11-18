@@ -51,17 +51,21 @@ func (c *Collector) collectRecursive(nameVersion string) error {
 	}
 	c.collected[nameVersion] = &port
 
-	// Recursively collect dependencies.
-	for _, config := range port.BuildConfigs {
-		for _, nameVersion := range config.Dependencies {
-			if err := c.collectRecursive(nameVersion); err != nil {
-				return err
-			}
+	// Only the matched build config is deployed on this platform,
+	// and the export keeps just that config.
+	matched := port.MatchedConfig
+	if matched == nil {
+		return fmt.Errorf("no matched build config for port %s", nameVersion)
+	}
+
+	for _, dep := range matched.Dependencies {
+		if err := c.collectRecursive(dep); err != nil {
+			return err
 		}
-		for _, nameVersion := range config.DevDependencies {
-			if err := c.collectRecursive(nameVersion); err != nil {
-				return err
-			}
+	}
+	for _, dep := range matched.DevDependencies {
+		if err := c.collectRecursive(dep); err != nil {
+			return err
 		}
 	}
 

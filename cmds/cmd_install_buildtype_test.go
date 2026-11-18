@@ -1,14 +1,11 @@
 package cmds
 
 import (
-	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
@@ -16,41 +13,28 @@ func TestInstall_BuildType(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	var (
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-		project         = "project_test_install"
+		platform = buildTestPlatform()
+		project  = testProjectName
 	)
 
 	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
-	check(celer.SetPlatform(platform))
-	check(celer.SetProject(project))
+	celer := newTestCeler(t, platform, testProject)
+	check(t, celer.SetBuildType("Release"))
+	check(t, celer.SetPlatform(platform))
+	check(t, celer.SetProject(project))
 
 	t.Run("install with build type Release", func(t *testing.T) {
-		check(celer.SetBuildType("Release"))
+		check(t, celer.SetBuildType("Release"))
 
 		var (
-			nameVersion     = "eigen@3.4.0"
-			windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-			platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-			packageDir      = filepath.Join(dirs.PackagesDir, platform, project, celer.BuildType(), nameVersion)
+			nameVersion = "eigen@3.4.0"
+			packageDir  = filepath.Join(dirs.PackagesDir, platform, project, celer.BuildType(), nameVersion)
 		)
 
 		var port configs.Port
 		var options = configs.InstallOptions{Prefer: configs.PreferSource}
-		check(port.Init(celer, nameVersion))
+		check(t, port.Init(celer, nameVersion))
 		if _, err := port.Install(options); err != nil {
 			t.Fatal(err)
 		}
@@ -62,7 +46,7 @@ func TestInstall_BuildType(t *testing.T) {
 
 		// Check if installed.
 		installed, err := port.Installed()
-		check(err)
+		check(t, err)
 
 		if !installed {
 			t.Fatal("package is not installed")
@@ -74,22 +58,20 @@ func TestInstall_BuildType(t *testing.T) {
 			Recursive:  true,
 			BuildCache: true,
 		}
-		check(port.Remove(removeOptions))
+		check(t, port.Remove(removeOptions))
 	})
 
 	t.Run("install with build type Debug", func(t *testing.T) {
-		check(celer.SetBuildType("Debug"))
+		check(t, celer.SetBuildType("Debug"))
 
 		var (
-			nameVersion     = "eigen@3.4.0"
-			windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-			platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-			packageDir      = filepath.Join(dirs.PackagesDir, platform, project, celer.BuildType(), nameVersion)
+			nameVersion = "eigen@3.4.0"
+			packageDir  = filepath.Join(dirs.PackagesDir, platform, project, celer.BuildType(), nameVersion)
 		)
 
 		var port configs.Port
 		var options = configs.InstallOptions{Prefer: configs.PreferSource}
-		check(port.Init(celer, nameVersion))
+		check(t, port.Init(celer, nameVersion))
 		if _, err := port.Install(options); err != nil {
 			t.Fatal(err)
 		}
@@ -101,7 +83,7 @@ func TestInstall_BuildType(t *testing.T) {
 
 		// Check if installed.
 		installed, err := port.Installed()
-		check(err)
+		check(t, err)
 
 		if !installed {
 			t.Fatal("package is not installed")
@@ -113,6 +95,6 @@ func TestInstall_BuildType(t *testing.T) {
 			Recursive:  true,
 			BuildCache: true,
 		}
-		check(port.Remove(removeOptions))
+		check(t, port.Remove(removeOptions))
 	})
 }
