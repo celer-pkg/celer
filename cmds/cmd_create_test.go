@@ -212,7 +212,7 @@ func TestCreateCmd_Validation(t *testing.T) {
 
 func TestCreateCmd_CommandExecutionValidation(t *testing.T) {
 	t.Run("empty project value should fail", func(t *testing.T) {
-		celer := newInitializedCeler(t)
+		celer := newTestCeler(t, "", testProject)
 		cmd := &createCmd{}
 
 		stderr, err := runCommand(t, cmd.Command(celer), "--project=")
@@ -225,11 +225,11 @@ func TestCreateCmd_CommandExecutionValidation(t *testing.T) {
 	})
 
 	t.Run("positional args should fail", func(t *testing.T) {
-		celer := newInitializedCeler(t)
+		celer := newTestCeler(t, "", testProject)
 		cmd := &createCmd{}
 
 		// cobra.NoArgs handles this — error comes from cobra, not from RunE.
-		_, err := runCommand(t, cmd.Command(celer), "unexpected-arg", "--project=test_project")
+		_, err := runCommand(t, cmd.Command(celer), "unexpected-arg", "--project="+testProjectName)
 		if err == nil {
 			t.Fatal("expected error when positional args are provided")
 		}
@@ -237,7 +237,7 @@ func TestCreateCmd_CommandExecutionValidation(t *testing.T) {
 }
 
 func TestCreateCmd(t *testing.T) {
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, "", testProject)
 
 	// ============= Create platform ============= //
 	t.Run("CreatePlatformSuccess", func(t *testing.T) {
@@ -271,15 +271,20 @@ func TestCreateCmd(t *testing.T) {
 
 	// ============= Create project ============= //
 	t.Run("CreateProjectSuccess", func(t *testing.T) {
-		const projectName = "project_test_create"
-		cmd := &createCmd{}
-		if _, err := runCommand(t, cmd.Command(celer), "--project="+projectName); err != nil {
+		projectPath := filepath.Join(dirs.ConfProjectsDir, testProjectName+".toml")
+
+		// Make sure the project to create has been removed.
+		if err := os.Remove(projectPath); err != nil {
 			t.Fatal(err)
 		}
 
-		projectPath := filepath.Join(dirs.ConfProjectsDir, projectName+".toml")
+		cmd := &createCmd{}
+		if _, err := runCommand(t, cmd.Command(celer), "--project="+testProjectName); err != nil {
+			t.Fatal(err)
+		}
+
 		if !fileio.PathExists(projectPath) {
-			t.Errorf("project does not exist: %s", projectName)
+			t.Errorf("project does not exist: %s", projectPath)
 		}
 
 		t.Cleanup(func() {

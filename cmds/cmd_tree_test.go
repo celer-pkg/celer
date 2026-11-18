@@ -1,13 +1,14 @@
 package cmds
 
 import (
-	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/dirs"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
+
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/dirs"
 
 	"github.com/spf13/cobra"
 )
@@ -141,7 +142,7 @@ func TestTreeCmd_Completion(t *testing.T) {
 		{
 			name:           "complete_project",
 			toComplete:     "test",
-			expectContains: []string{"test_project"},
+			expectContains: []string{testProjectName},
 		},
 		{
 			name:             "no_match",
@@ -273,6 +274,9 @@ func setupTestEnvironment(t *testing.T) {
 	if err := os.MkdirAll(boostDir, 0755); err != nil {
 		t.Fatalf("Failed to create test ports directory: %v", err)
 	}
+	// The ports repo is shared with the tests that run after this one, and an untracked
+	// port makes them fail when they pin the ports baseline.
+	t.Cleanup(func() { os.RemoveAll(filepath.Join(portsDir, "boost")) })
 
 	// Create a dummy port.toml file.
 	portToml := filepath.Join(boostDir, "port.toml")
@@ -287,8 +291,10 @@ func setupTestEnvironment(t *testing.T) {
 	}
 
 	// Create a dummy project file.
-	projectToml := filepath.Join(projectsDir, "test_project.toml")
+	projectToml := filepath.Join(projectsDir, testProjectName+".toml")
 	if err := os.WriteFile(projectToml, []byte("# Test project"), 0644); err != nil {
 		t.Fatalf("Failed to create test project.toml: %v", err)
 	}
+	// The conf dir is shared with the tests that run after this one.
+	t.Cleanup(func() { os.Remove(projectToml) })
 }

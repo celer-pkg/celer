@@ -1,0 +1,83 @@
+namespace = "FFmpeg"
+
+[linux]
+[[linux.components]]
+component = "avutil"
+filename = "libavutil.so.57"
+dependencies = []
+
+[[linux.components]]
+component = "avcodec"
+filename = "libavcodec.so.59"
+dependencies = ["avutil"]
+
+[[linux.components]]
+component = "avdevice"
+filename = "libavdevice.so.59"
+dependencies = ["avformat", "avutil"]
+
+[[linux.components]]
+component = "avfilter"
+filename = "libavfilter.so.8"
+dependencies = ["swscale", "swresample"]
+
+[[linux.components]]
+component = "avformat"
+filename = "libavformat.so.59"
+dependencies = ["avcodec", "avutil"]
+
+[[linux.components]]
+component = "postproc"
+filename = "libpostproc.so.56"
+dependencies = ["avcodec", "swscale", "avutil"]
+
+[[linux.components]]
+component = "swresample"
+filename = "libswresample.so.4"
+dependencies = ["avcodec", "swscale", "avutil", "avformat"]
+
+[[linux.components]]
+component = "swscale"
+filename = "libswscale.so.6"
+dependencies = ["avcodec", "avutil", "avformat"]
+
+[windows]
+[[windows.components]]
+component = "avutil"
+filename = "avutil.lib"
+dependencies = []
+
+[[windows.components]]
+component = "avcodec"
+filename = "avcodec.lib"
+dependencies = ["avutil"]
+
+[[windows.components]]
+component = "avdevice"
+filename = "avdevice.lib"
+dependencies = ["avformat", "avutil"]
+
+[[windows.components]]
+component = "avfilter"
+filename = "avfilter.lib"
+dependencies = ["swscale", "swresample"]
+
+[[windows.components]]
+component = "avformat"
+filename = "avformat.lib"
+dependencies = ["avcodec", "avutil"]
+
+[[windows.components]]
+component = "postproc"
+filename = "postproc.lib"
+dependencies = ["avcodec", "swscale", "avutil"]
+
+[[windows.components]]
+component = "swresample"
+filename = "swresample.lib"
+dependencies = ["avcodec", "swscale", "avutil", "avformat"]
+
+[[windows.components]]
+component = "swscale"
+filename = "swscale.lib"
+dependencies = ["avcodec", "avutil", "avformat"]

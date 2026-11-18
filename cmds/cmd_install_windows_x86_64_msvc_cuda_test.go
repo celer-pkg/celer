@@ -6,57 +6,42 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/cmd"
 	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/expr"
 )
 
 func TestInstall_x86_64_MSVC_CUDA(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-
 	var (
-		nameVersion     = "cuda_toolkit@12.9.1"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-		project         = "project_test_install"
+		nameVersion = "cuda_toolkit@12.9.1"
+		platform    = buildTestPlatform()
+		project     = testProjectName
 	)
 
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
-	check(celer.SetPlatform(platform))
-	check(celer.SetProject(project))
+	celer := newTestCeler(t, platform, testProject)
+	check(t, celer.SetBuildType("Release"))
+	check(t, celer.SetPlatform(platform))
+	check(t, celer.SetProject(project))
 
 	var port configs.Port
 	var options configs.InstallOptions
-	check(port.Init(celer, nameVersion))
+	check(t, port.Init(celer, nameVersion))
 	_, err := port.Install(options)
-	check(err)
+	check(t, err)
 
 	// Regenerate toolchain file after CUDA installation so it can detect installed CUDA files.
-	check(celer.GenerateToolchainFile())
+	check(t, celer.GenerateToolchainFile())
 
 	// Clear build dir.
 	buildDir := filepath.Join(os.TempDir(), "build_cmake_test")
-	check(os.RemoveAll(buildDir))
-	check(os.MkdirAll(buildDir, os.ModePerm))
+	check(t, os.RemoveAll(buildDir))
+	check(t, os.MkdirAll(buildDir, os.ModePerm))
 	t.Cleanup(func() { os.RemoveAll(buildDir) })
 
 	// Build test project.
@@ -76,14 +61,14 @@ func TestInstall_x86_64_MSVC_CUDA(t *testing.T) {
 		"-B", buildDir,
 	)
 	executer.SetWorkDir(buildDir)
-	check(executer.Execute())
+	check(t, executer.Execute())
 
 	executer = cmd.NewExecutor("build test project", "cmake", "--build", buildDir)
 	executer.SetWorkDir(buildDir)
-	check(executer.Execute())
+	check(t, executer.Execute())
 
 	// Clear up.
-	check(port.Remove(configs.RemoveOptions{
+	check(t, port.Remove(configs.RemoveOptions{
 		Purge:      true,
 		BuildCache: true,
 		Recursive:  true,

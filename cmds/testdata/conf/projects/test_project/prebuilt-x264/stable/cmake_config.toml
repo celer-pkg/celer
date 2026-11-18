@@ -1,0 +1,7 @@
+namespace = "x264"
+
+[linux]
+filename = "libx264.so.164"
+
+[windows]
+filename = "libx264.lib"

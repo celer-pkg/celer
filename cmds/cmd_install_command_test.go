@@ -187,22 +187,15 @@ func TestInstallCmd_Completion(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Create mock port structure for testing completion.
 	testPortDir := dirs.GetPortDir("testlib", "1.0.0")
-	check(os.MkdirAll(testPortDir, os.ModePerm))
+	check(t, os.MkdirAll(testPortDir, os.ModePerm))
+	t.Cleanup(func() { os.RemoveAll(testPortDir) })
 
 	// Create a port.toml file
 	portFile := filepath.Join(testPortDir, "port.toml")
 	f, err := os.Create(portFile)
-	check(err)
+	check(t, err)
 	f.Close()
 
 	celer := configs.NewCeler()
@@ -268,14 +261,6 @@ func TestInstallCmd_BuildSuggestions(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Setup test environment
 	tmpDir := t.TempDir()
 
@@ -295,11 +280,11 @@ func TestInstallCmd_BuildSuggestions(t *testing.T) {
 		// e.g., tmpDir/o/opencv/4.8.0/port.toml
 		firstChar := strings.ToLower(string(port.name[0]))
 		portDir := filepath.Join(tmpDir, firstChar, port.name, port.version)
-		check(os.MkdirAll(portDir, os.ModePerm))
+		check(t, os.MkdirAll(portDir, os.ModePerm))
 
 		portFile := filepath.Join(portDir, "port.toml")
 		f, err := os.Create(portFile)
-		check(err)
+		check(t, err)
 		f.Close()
 	}
 

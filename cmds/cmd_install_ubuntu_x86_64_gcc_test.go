@@ -105,26 +105,16 @@ func buildWithAMD64GCC(t *testing.T, platform, nameVersion string, nobuild bool)
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
-	const project = "project_test_install"
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
+	const project = testProjectName
+	celer := newTestCeler(t, platform, testProject)
+	check(t,celer.SetBuildType("Release"))
 	if platform != "" {
-		check(celer.SetPlatform(platform))
+		check(t,celer.SetPlatform(platform))
 	} else {
 		platform = celer.Platform().GetHostName()
 	}
-	check(celer.SetProject(project))
+	check(t,celer.SetProject(project))
 
 	var (
 		packageFolder = filepath.Join(platform, project, celer.BuildType(), nameVersion)
@@ -132,7 +122,7 @@ func buildWithAMD64GCC(t *testing.T, platform, nameVersion string, nobuild bool)
 		options       = configs.InstallOptions{Prefer: configs.PreferSource}
 	)
 
-	check(port.Init(celer, nameVersion))
+	check(t,port.Init(celer, nameVersion))
 	if _, err := port.Install(options); err != nil {
 		t.Fatal(err)
 	}
@@ -147,7 +137,7 @@ func buildWithAMD64GCC(t *testing.T, platform, nameVersion string, nobuild bool)
 
 	// Check if installed.
 	installed, err := port.Installed()
-	check(err)
+	check(t,err)
 	if !installed {
 		t.Fatal("package is not installed")
 	}
@@ -158,5 +148,5 @@ func buildWithAMD64GCC(t *testing.T, platform, nameVersion string, nobuild bool)
 		Recursive:  true,
 		BuildCache: true,
 	}
-	check(port.Remove(removeOptions))
+	check(t,port.Remove(removeOptions))
 }

@@ -2,14 +2,12 @@ package cmds
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
 
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
@@ -17,13 +15,15 @@ func setupWorkspaceForAutoremove(t *testing.T) (*configs.Celer, string, string, 
 	t.Helper()
 
 	var (
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-		project         = "project_test_autoremove"
+		platform        = buildTestPlatform()
+		project         = testProjectName
 		portNameVersion = "sqlite3@3.49.0"
 	)
 
-	celer := newInitializedCeler(t)
+	celer := newTestCeler(t, platform, configs.Project{
+		Name:  project,
+		Ports: []string{"gflags@2.2.2", "x264@stable"},
+	})
 	if _, err := runCommand(t, (&configureCmd{}).Command(celer), "--build-type=Release"); err != nil {
 		t.Fatal(err)
 	}

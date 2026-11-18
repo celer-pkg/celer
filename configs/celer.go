@@ -150,12 +150,6 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 			Verbose:   false,
 		}
 
-		// Create celer conf file with default values.
-		bytes, err := toml.Marshal(c)
-		if err != nil {
-			return fmt.Errorf("failed to marshal conf -> %w", err)
-		}
-
 		// Set platform and init platform if specified. A native platform has no file to
 		// load; detectNativePlatform() below sets it up instead.
 		if platform != "" {
@@ -172,9 +166,19 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 			}
 		}
 
+		// Marshal after the platform is resolved, so the file records the platform this
+		// workspace actually starts on instead of the native placeholder.
+		bytes, err := toml.Marshal(c)
+		if err != nil {
+			return fmt.Errorf("failed to marshal conf -> %w", err)
+		}
+
 		if err := os.WriteFile(configPath, bytes, os.ModePerm); err != nil {
 			return err
 		}
+
+		// A new workspace has no project yet: it starts with the built-in default one.
+		c.project = Project{Name: DefaultProjectName, ctx: c}
 	} else {
 		// Read celer conf.
 		bytes, err := os.ReadFile(configPath)

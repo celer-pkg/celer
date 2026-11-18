@@ -44,19 +44,9 @@ func TestSearchCmd_Search_ExactMatch(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
+	celer := newTestCeler(t, "", testProject)
+	check(t, celer.SetBuildType("Release"))
 
 	// Test exact match search.
 	searchCmd := searchCmd{celer: celer}
@@ -81,19 +71,9 @@ func TestSearchCmd_Search_PrefixMatch(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
+	celer := newTestCeler(t, "", testProject)
+	check(t, celer.SetBuildType("Release"))
 
 	// Test prefix match search.
 	searchCmd := searchCmd{celer: celer}
@@ -114,19 +94,9 @@ func TestSearchCmd_Search_SuffixMatch(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
+	celer := newTestCeler(t, "", testProject)
+	check(t, celer.SetBuildType("Release"))
 
 	// Create search command.
 	searchCmd := searchCmd{celer: celer}
@@ -149,19 +119,9 @@ func TestSearchCmd_Search_ContainsMatch(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
+	celer := newTestCeler(t, "", testProject)
+	check(t, celer.SetBuildType("Release"))
 
 	// Create search command.
 	searchCmd := searchCmd{celer: celer}
@@ -184,19 +144,9 @@ func TestSearchCmd_Search_NoMatch(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
+	celer := newTestCeler(t, "", testProject)
+	check(t, celer.SetBuildType("Release"))
 
 	// Create search command.
 	searchCmd := searchCmd{celer: celer}
@@ -216,20 +166,13 @@ func TestSearchCmd_Search_PortsDirNotExist(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer without setting up (so ports dir won't exist).
 	celer := configs.NewCeler()
-	check(celer.Init())
+	check(t, celer.Init())
 
-	// Ensure ports directory does not exist.
-	check(os.RemoveAll(dirs.PortsDir))
+	// Ensure ports directory does not exist. Move the shared clone aside instead of
+	// deleting it, and restore it when the test is done.
+	swapPortsDir(t, false)
 
 	// Create search command.
 	searchCmd := searchCmd{celer: celer}
@@ -249,27 +192,17 @@ func TestSearchCmd_Search_ProjectSpecificPorts(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
-	check(celer.SetProject("project_test_01"))
+	celer := newTestCeler(t, "", testProject)
+	check(t, celer.SetBuildType("Release"))
+	check(t, celer.SetProject(testProjectName))
 
 	// Create a test project-specific port.
-	projectPortDir := filepath.Join(dirs.ConfProjectsDir, "project_test_01", "testlib", "1.0.0")
-	check(os.MkdirAll(projectPortDir, os.ModePerm))
+	projectPortDir := filepath.Join(dirs.ConfProjectsDir, testProjectName, "testlib", "1.0.0")
+	check(t, os.MkdirAll(projectPortDir, os.ModePerm))
 
 	portTomlPath := filepath.Join(projectPortDir, "port.toml")
-	check(os.WriteFile(portTomlPath, []byte("[package]\nname = \"testlib\"\nversion = \"1.0.0\"\n"), 0644))
+	check(t, os.WriteFile(portTomlPath, []byte("[package]\nname = \"testlib\"\nversion = \"1.0.0\"\n"), 0644))
 
 	// Create search command.
 	searchCmd := searchCmd{celer: celer}
@@ -297,19 +230,9 @@ func TestSearchCmd_Search_InvalidWildcard(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
+	celer := newTestCeler(t, "", testProject)
+	check(t, celer.SetBuildType("Release"))
 
 	// Create search command.
 	searchCmd := searchCmd{celer: celer}
@@ -330,19 +253,9 @@ func TestSearchCmd_Completion(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
+	celer := newTestCeler(t, "", testProject)
+	check(t, celer.SetBuildType("Release"))
 
 	searchCmd := searchCmd{celer: celer}
 	cmd := searchCmd.Command(celer)
@@ -374,14 +287,14 @@ func TestSearchCmd_Completion(t *testing.T) {
 
 	t.Run("completion from project ports", func(t *testing.T) {
 		// Set a project.
-		check(celer.SetProject("project_test_01"))
+		check(t, celer.SetProject(testProjectName))
 
 		// Create a test project-specific port for completion.
-		projectPortDir := filepath.Join(dirs.ConfProjectsDir, "project_test_01", "mylib", "2.0.0")
-		check(os.MkdirAll(projectPortDir, os.ModePerm))
+		projectPortDir := filepath.Join(dirs.ConfProjectsDir, testProjectName, "mylib", "2.0.0")
+		check(t, os.MkdirAll(projectPortDir, os.ModePerm))
 
 		portTomlPath := filepath.Join(projectPortDir, "port.toml")
-		check(os.WriteFile(portTomlPath, []byte("[package]\nname = \"mylib\"\nversion = \"2.0.0\"\n"), 0644))
+		check(t, os.WriteFile(portTomlPath, []byte("[package]\nname = \"mylib\"\nversion = \"2.0.0\"\n"), 0644))
 
 		suggestions, _ := searchCmd.completion(cmd, []string{}, "mylib")
 
@@ -397,17 +310,9 @@ func TestSearchCmd_Completion_ErrorHandling(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer without setup (ports dir may not exist).
 	celer := configs.NewCeler()
-	check(celer.Init())
+	check(t, celer.Init())
 
 	searchCmd := searchCmd{celer: celer}
 	cmd := searchCmd.Command(celer)
@@ -430,19 +335,9 @@ func TestSearchCmd_DoSearch_Integration(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
+	celer := newTestCeler(t, "", testProject)
+	check(t, celer.SetBuildType("Release"))
 
 	// Create search command.
 	searchCmd := searchCmd{celer: celer}
@@ -458,31 +353,24 @@ func TestSearchCmd_Search_DuplicateResults(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
-	check(celer.SetProject("project_test_01"))
+	celer := newTestCeler(t, "", testProject)
+	check(t, celer.SetBuildType("Release"))
+	check(t, celer.SetProject(testProjectName))
 
 	// Create a port that exists in both global and project-specific locations.
 	globalPortDir := dirs.GetPortDir("duplib", "1.0.0")
-	projectPortDir := filepath.Join(dirs.ConfProjectsDir, "project_test_01", "duplib", "1.0.0")
+	projectPortDir := filepath.Join(dirs.ConfProjectsDir, testProjectName, "duplib", "1.0.0")
 
-	check(os.MkdirAll(globalPortDir, os.ModePerm))
-	check(os.MkdirAll(projectPortDir, os.ModePerm))
+	check(t, os.MkdirAll(globalPortDir, os.ModePerm))
+	// The ports repo is shared with the tests that run after this one, and an untracked
+	// port makes them fail when they pin the ports baseline.
+	t.Cleanup(func() { _ = os.RemoveAll(globalPortDir) })
+	check(t, os.MkdirAll(projectPortDir, os.ModePerm))
 
 	portContent := []byte("[package]\nname = \"duplib\"\nversion = \"1.0.0\"\n")
-	check(os.WriteFile(filepath.Join(globalPortDir, "port.toml"), portContent, 0644))
-	check(os.WriteFile(filepath.Join(projectPortDir, "port.toml"), portContent, 0644))
+	check(t, os.WriteFile(filepath.Join(globalPortDir, "port.toml"), portContent, 0644))
+	check(t, os.WriteFile(filepath.Join(projectPortDir, "port.toml"), portContent, 0644))
 
 	// Create search command.
 	searchCmd := searchCmd{celer: celer}
@@ -512,21 +400,13 @@ func TestSearchCmd_Search_EmptyPortsDir(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
 	celer := configs.NewCeler()
-	check(celer.Init())
+	check(t, celer.Init())
 
-	// Create empty ports directory.
-	check(os.RemoveAll(dirs.PortsDir))
-	check(os.MkdirAll(dirs.PortsDir, os.ModePerm))
+	// Create empty ports directory. Move the shared clone aside instead of deleting it,
+	// and restore it when the test is done.
+	swapPortsDir(t, true)
 
 	// Create search command.
 	searchCmd := searchCmd{celer: celer}
@@ -546,19 +426,9 @@ func TestSearchCmd_Search_SpecialCharacters(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
+	celer := newTestCeler(t, "", testProject)
+	check(t, celer.SetBuildType("Release"))
 
 	// Create search command.
 	searchCmd := searchCmd{celer: celer}

@@ -1,9 +1,9 @@
 package cmds
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
-	"runtime"
 	"slices"
 	"strings"
 	"testing"
@@ -11,6 +11,7 @@ import (
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
+	cerrs "github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 
@@ -160,17 +161,9 @@ func TestUpdateCmd_Completion(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
 	celer := configs.NewCeler()
-	check(celer.Init())
+	check(t, celer.Init())
 
 	updateCmd := updateCmd{celer: celer}
 	cmd := updateCmd.Command(celer)
@@ -232,7 +225,7 @@ func TestUpdateCmd_Completion(t *testing.T) {
 	t.Run("completion_for_buildtrees", func(t *testing.T) {
 		// Create a test buildtree directory
 		testBuildtree := filepath.Join(dirs.BuildtreesDir, "test-package@1.0.0")
-		check(os.MkdirAll(testBuildtree, os.ModePerm))
+		check(t, os.MkdirAll(testBuildtree, os.ModePerm))
 
 		suggestions, _ := updateCmd.completion(cmd, []string{}, "test")
 		if found := slices.Contains(suggestions, "test-package@1.0.0"); !found {
@@ -255,19 +248,9 @@ func TestUpdateCmd_UpdateConfRepo(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
+	celer := newTestCeler(t, "", testProject)
+	check(t, celer.SetBuildType("Release"))
 
 	// Create update command
 	updateCmd := updateCmd{
@@ -295,19 +278,9 @@ func TestUpdateCmd_UpdateConfRepo_Force(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
+	celer := newTestCeler(t, "", testProject)
+	check(t, celer.SetBuildType("Release"))
 
 	// Create update command with force
 	updateCmd := updateCmd{
@@ -322,7 +295,7 @@ func TestUpdateCmd_UpdateConfRepo_Force(t *testing.T) {
 		t.Fatal("conf directory should exist before update")
 	}
 	// Make a local modification to test force update.
-	check(os.WriteFile(filepath.Join(confDir, "hello.txt"), []byte("test"), os.ModePerm))
+	check(t, os.WriteFile(filepath.Join(confDir, "hello.txt"), []byte("test"), os.ModePerm))
 
 	// Update conf repo (with force)
 	if err := updateCmd.updateConfRepo(); err != nil {
@@ -334,19 +307,9 @@ func TestUpdateCmd_UpdatePortsRepo(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
+	celer := newTestCeler(t, "", testProject)
+	check(t, celer.SetBuildType("Release"))
 
 	// Create update command.
 	updateCmd := updateCmd{
@@ -373,19 +336,9 @@ func TestUpdateCmd_UpdateProjectRepos_NoTargets(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
+	celer := newTestCeler(t, "", testProject)
+	check(t, celer.SetBuildType("Release"))
 
 	// Create update command.
 	updateCmd := updateCmd{
@@ -406,27 +359,16 @@ func TestUpdateCmd_UpdatePortRepo_SrcNotExist(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
 	var (
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-		project         = "project_test_update"
+		platform = buildTestPlatform()
+		project  = testProjectName
 	)
 
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
-	check(celer.SetPlatform(platform))
-	check(celer.SetProject(project))
+	celer := newTestCeler(t, platform, testProject)
+	check(t, celer.SetBuildType("Release"))
+	check(t, celer.SetPlatform(platform))
+	check(t, celer.SetProject(project))
 
 	// Test with a port that doesn't have src directory.
 	nameVersion := "zlib@123.456.789"
@@ -437,14 +379,18 @@ func TestUpdateCmd_UpdatePortRepo_SrcNotExist(t *testing.T) {
 		force:     false,
 	}
 
-	visited := make(map[string]bool)
-	err := updateCmd.updatePortRepo(nameVersion, visited)
-	if err == nil {
-		t.Fatal("updatePortRepo should return error when src doesn't exist")
+	// A port that was never built has no src: updating it is skipped, not an error.
+	if err := updateCmd.updatePortRepo("zlib@1.3.1", make(map[string]bool)); err != nil {
+		t.Fatalf("updatePortRepo should skip a port without src, got: %v", err)
 	}
 
-	if !strings.Contains(err.Error(), "not defined") {
-		t.Errorf("Expected 'not defined' error, got: %v", err)
+	// A port that does not exist at all is an error.
+	err := updateCmd.updatePortRepo(nameVersion, make(map[string]bool))
+	if err == nil {
+		t.Fatal("updatePortRepo should fail when the port does not exist")
+	}
+	if !strings.Contains(err.Error(), "port is not found") {
+		t.Errorf("expected a 'port is not found' error, got: %v", err)
 	}
 }
 
@@ -452,27 +398,16 @@ func TestUpdateCmd_UpdatePortRepo_NonGitRepo(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
 	var (
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-		project         = "project_test_update"
+		platform = buildTestPlatform()
+		project  = testProjectName
 	)
 
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
-	check(celer.SetPlatform(platform))
-	check(celer.SetProject(project))
+	celer := newTestCeler(t, platform, testProject)
+	check(t, celer.SetBuildType("Release"))
+	check(t, celer.SetPlatform(platform))
+	check(t, celer.SetProject(project))
 
 	// Test with a non-git port (if available)
 	t.Run("update port without git repo", func(t *testing.T) {
@@ -480,11 +415,11 @@ func TestUpdateCmd_UpdatePortRepo_NonGitRepo(t *testing.T) {
 		nameVersion := "sqlite3@3.49.0"
 
 		var port configs.Port
-		check(port.Init(celer, nameVersion))
+		check(t, port.Init(celer, nameVersion))
 
 		// Create src directory to test the git check
 		srcDir := filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src")
-		check(os.MkdirAll(srcDir, os.ModePerm))
+		check(t, os.MkdirAll(srcDir, os.ModePerm))
 
 		updateCmd := updateCmd{
 			celer:     celer,
@@ -498,8 +433,8 @@ func TestUpdateCmd_UpdatePortRepo_NonGitRepo(t *testing.T) {
 			t.Fatal("updatePortRepo should return error for non-git repo")
 		}
 
-		if !strings.Contains(err.Error(), "not a git repository") {
-			t.Errorf("Expected 'not a git repository' error, got: %v", err)
+		if !errors.Is(err, cerrs.ErrNotGitDir) {
+			t.Errorf("Expected ErrNotGitDir, got: %v", err)
 		}
 	})
 }
@@ -508,27 +443,16 @@ func TestUpdateCmd_UpdatePortRepo_CircularDependency(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
 	var (
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-		project         = "project_test_update"
+		platform = buildTestPlatform()
+		project  = testProjectName
 	)
 
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
-	check(celer.SetPlatform(platform))
-	check(celer.SetProject(project))
+	celer := newTestCeler(t, platform, testProject)
+	check(t, celer.SetBuildType("Release"))
+	check(t, celer.SetPlatform(platform))
+	check(t, celer.SetProject(project))
 
 	// Test circular dependency detection.
 	t.Run("circular dependency prevention", func(t *testing.T) {
@@ -556,34 +480,23 @@ func TestUpdateCmd_UpdatePortRepo_WithGitRepo(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
 	var (
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-		project         = "project_test_update"
+		platform = buildTestPlatform()
+		project  = testProjectName
 	)
 
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
-	check(celer.SetPlatform(platform))
-	check(celer.SetProject(project))
-	check(buildtools.CheckTools(celer, "git"))
+	celer := newTestCeler(t, platform, testProject)
+	check(t, celer.SetBuildType("Release"))
+	check(t, celer.SetPlatform(platform))
+	check(t, celer.SetProject(project))
+	check(t, buildtools.CheckTools(celer, "git"))
 
 	// Install a simple git-based port.
 	nameVersion := "zlib@1.3.1"
 
 	var port configs.Port
-	check(port.Init(celer, nameVersion))
+	check(t, port.Init(celer, nameVersion))
 
 	if !strings.HasSuffix(port.Package.Url, ".git") {
 		t.Skip("Port is not a git repository")
@@ -593,7 +506,7 @@ func TestUpdateCmd_UpdatePortRepo_WithGitRepo(t *testing.T) {
 	if buildConfig == nil {
 		t.Fatal("Build config should not be nil")
 	}
-	check(buildConfig.Clone(
+	check(t, buildConfig.Clone(
 		port.Package.Url,
 		port.Package.Ref,
 		port.Package.Archive,
@@ -623,35 +536,24 @@ func TestUpdateCmd_UpdatePorts_BacktickRemoval(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
 	var (
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-		project         = "project_test_update"
+		platform = buildTestPlatform()
+		project  = testProjectName
 	)
 
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
-	check(celer.SetPlatform(platform))
-	check(celer.SetProject(project))
+	celer := newTestCeler(t, platform, testProject)
+	check(t, celer.SetBuildType("Release"))
+	check(t, celer.SetPlatform(platform))
+	check(t, celer.SetProject(project))
 
 	// Test that backticks are removed from port names
 	updateCmd := updateCmd{celer: celer}
 
-	// This should fail because the port doesn't exist, but it tests backtick removal
-	err := updateCmd.updateProjectRepos([]string{"`zlib@1.3.1`"})
+	// The port does not exist, which makes the error message carry the port name.
+	err := updateCmd.updateProjectRepos([]string{"`not-exist-lib@1.0.0`"})
 	if err == nil {
-		t.Fatal("Expected error for non-existent port src")
+		t.Fatal("Expected an error for a port that does not exist")
 	}
 
 	// The error should be about the port without backticks
@@ -664,19 +566,9 @@ func TestUpdateCmd_DoUpdate_ConfRepo(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
+	celer := newTestCeler(t, "", testProject)
+	check(t, celer.SetBuildType("Release"))
 
 	// Create update command
 	updateCmd := updateCmd{
@@ -697,19 +589,9 @@ func TestUpdateCmd_DoUpdate_PortsRepo(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
+	celer := newTestCeler(t, "", testProject)
+	check(t, celer.SetBuildType("Release"))
 
 	// Create update command
 	updateCmd := updateCmd{
@@ -720,8 +602,7 @@ func TestUpdateCmd_DoUpdate_PortsRepo(t *testing.T) {
 
 	// Note: This test doesn't actually call doUpdate as it would os.Exit
 	// Instead we test the underlying method directly
-	err := updateCmd.updatePortsRepo()
-	if err != nil {
+	if err := updateCmd.updatePortsRepo(); err != nil {
 		t.Logf("Update ports repo returned: %v (may be acceptable)", err)
 	}
 }

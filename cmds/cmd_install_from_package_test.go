@@ -1,14 +1,11 @@
 package cmds
 
 import (
-	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
@@ -16,36 +13,24 @@ func TestInstall_FromPackage(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-
 	var (
-		nameVersion     = "eigen@3.4.0"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-		project         = "project_test_install"
-		packageDir      = filepath.Join(dirs.PackagesDir, platform, project, celer.BuildType(), nameVersion)
+		nameVersion = "eigen@3.4.0"
+		platform    = buildTestPlatform()
+		project     = testProjectName
 	)
 
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
-	check(celer.SetPlatform(platform))
-	check(celer.SetProject(project))
+	celer := newTestCeler(t, platform, testProject)
+	check(t, celer.SetBuildType("Release"))
+	check(t, celer.SetPlatform(platform))
+	check(t, celer.SetProject(project))
+
+	packageDir := filepath.Join(dirs.PackagesDir, platform, project, celer.BuildType(), nameVersion)
 
 	t.Run("install success", func(t *testing.T) {
 
 		var port configs.Port
 		var options = configs.InstallOptions{Prefer: configs.PreferSource}
-		check(port.Init(celer, nameVersion))
+		check(t, port.Init(celer, nameVersion))
 
 		if _, err := port.Install(options); err != nil {
 			t.Fatal(err)
@@ -60,7 +45,7 @@ func TestInstall_FromPackage(t *testing.T) {
 			Recursive:  true,
 			BuildCache: true,
 		}
-		check(port.Remove(removeOptions))
+		check(t, port.Remove(removeOptions))
 
 		options.Prefer = configs.PreferPackage
 		if _, err := port.Install(options); err != nil {
@@ -73,7 +58,7 @@ func TestInstall_FromPackage(t *testing.T) {
 				Recursive:  true,
 				BuildCache: true,
 			}
-			check(port.Remove(removeOptions))
+			check(t, port.Remove(removeOptions))
 		})
 
 	})
@@ -82,7 +67,7 @@ func TestInstall_FromPackage(t *testing.T) {
 
 		var port configs.Port
 		var options = configs.InstallOptions{Prefer: configs.PreferSource}
-		check(port.Init(celer, nameVersion))
+		check(t, port.Init(celer, nameVersion))
 		if _, err := port.Install(options); err != nil {
 			t.Fatal(err)
 		}
@@ -95,7 +80,7 @@ func TestInstall_FromPackage(t *testing.T) {
 			Recursive:  true,
 			BuildCache: true,
 		}
-		check(port.Remove(removeOptions))
+		check(t, port.Remove(removeOptions))
 
 		options.Prefer = configs.PreferPackage
 		if _, err := port.Install(options); err != nil {

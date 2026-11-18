@@ -384,6 +384,13 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archiveName string, depth int) (err
 			if err != nil {
 				return fmt.Errorf("failed to check if empty -> %w", err)
 			}
+
+			// A clone interrupted before checkout leaves only `.git` behind. That is
+			// not a usable worktree, so treat it as empty and fetch it again.
+			if len(entities) == 1 && entities[0].Name() == ".git" {
+				entities = nil
+			}
+
 			if len(entities) > 0 {
 				if b.PortConfig.Checksum != "" {
 					// Hard reset to specified git commit hash.

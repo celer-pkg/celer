@@ -1,50 +1,38 @@
 package cmds
 
 import (
-	"github.com/celer-pkg/celer/buildtools"
-	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/expr"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
 	"time"
+
+	"github.com/celer-pkg/celer/buildtools"
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/expr"
 )
 
 func TestInstall_With_Force(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	var modTime = func(path string) time.Time {
 		info, err := os.Stat(path)
-		check(err)
+		check(t, err)
 		return info.ModTime()
 	}
 
-	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-
 	var (
-		nameVersion     = "glog@0.6.0"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-		project         = "project_test_install"
+		nameVersion = "glog@0.6.0"
+		platform    = buildTestPlatform()
+		project     = testProjectName
 	)
 
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
-	check(celer.SetProject(project))
-	check(celer.SetPlatform(platform))
+	celer := newTestCeler(t, platform, testProject)
+	check(t, celer.SetBuildType("Release"))
+	check(t, celer.SetProject(project))
+	check(t, celer.SetPlatform(platform))
 
 	var (
 		options       configs.InstallOptions
@@ -54,22 +42,22 @@ func TestInstall_With_Force(t *testing.T) {
 
 	// glog@0.6.0
 	var glogPort configs.Port
-	check(glogPort.Init(celer, nameVersion))
+	check(t, glogPort.Init(celer, nameVersion))
 	_, err := glogPort.Install(options)
-	check(err)
+	check(t, err)
 	lastGlogModTime := modTime(filepath.Join(glogPort.InstalledDir, "lib", glogLibName))
 
 	// gflags@2.2.2 (dependency of glog@0.6.0)
 	var gflagsPort configs.Port
-	check(gflagsPort.Init(celer, "gflags@2.2.2"))
+	check(t, gflagsPort.Init(celer, "gflags@2.2.2"))
 
 	lastGflagsModTime := modTime(filepath.Join(gflagsPort.InstalledDir, "lib", gflagsLibName))
 
 	// Re-install with --force.
 	options.Force = true
-	check(glogPort.Init(celer, nameVersion))
+	check(t, glogPort.Init(celer, nameVersion))
 	_, err = glogPort.Install(options)
-	check(err)
+	check(t, err)
 	newGlogModTime := modTime(filepath.Join(glogPort.InstalledDir, "lib", glogLibName))
 	newGflagsModTime := modTime(filepath.Join(gflagsPort.InstalledDir, "lib", gflagsLibName))
 
@@ -86,36 +74,23 @@ func TestInstall_With_Force_Recursive(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	var modTime = func(path string) time.Time {
 		info, err := os.Stat(path)
-		check(err)
+		check(t, err)
 		return info.ModTime()
 	}
 
-	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-
 	var (
-		nameVersion     = "glog@0.6.0"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-		project         = "project_test_install"
+		nameVersion = "glog@0.6.0"
+		platform    = buildTestPlatform()
+		project     = testProjectName
 	)
 
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
-	check(celer.SetProject(project))
-	check(celer.SetPlatform(platform))
-	check(buildtools.CheckTools(celer, "git", "cmake"))
+	celer := newTestCeler(t, platform, testProject)
+	check(t, celer.SetBuildType("Release"))
+	check(t, celer.SetProject(project))
+	check(t, celer.SetPlatform(platform))
+	check(t, buildtools.CheckTools(celer, "git", "cmake"))
 
 	var (
 		options       configs.InstallOptions
@@ -125,23 +100,23 @@ func TestInstall_With_Force_Recursive(t *testing.T) {
 
 	// glog@0.6.0
 	var glogPort configs.Port
-	check(glogPort.Init(celer, nameVersion))
+	check(t, glogPort.Init(celer, nameVersion))
 	_, err := glogPort.Install(options)
-	check(err)
+	check(t, err)
 	lastGlogModTime := modTime(filepath.Join(glogPort.InstalledDir, "lib", glogLibName))
 
 	// gflags@2.2.2 (dependency of glog@0.6.0)
 	var gflagsPort configs.Port
-	check(gflagsPort.Init(celer, "gflags@2.2.2"))
+	check(t, gflagsPort.Init(celer, "gflags@2.2.2"))
 
 	lastGflagsModTime := modTime(filepath.Join(gflagsPort.InstalledDir, "lib", gflagsLibName))
 
 	// Re-install with --force.
 	options.Force = true
 	options.Recursive = true
-	check(glogPort.Init(celer, nameVersion))
+	check(t, glogPort.Init(celer, nameVersion))
 	_, err = glogPort.Install(options)
-	check(err)
+	check(t, err)
 	newGlogModTime := modTime(filepath.Join(glogPort.InstalledDir, "lib", glogLibName))
 	newGflagsModTime := modTime(filepath.Join(gflagsPort.InstalledDir, "lib", gflagsLibName))
 

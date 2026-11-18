@@ -3,14 +3,12 @@ package cmds
 import (
 	"os"
 	"path/filepath"
-	"runtime"
 	"slices"
 	"strings"
 	"testing"
 
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/spf13/cobra"
@@ -77,25 +75,25 @@ func TestRemoveCmd_Completion(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	remove := &removeCmd{}
+	celer := newTestCeler(t, "", testProject)
+	remove := &removeCmd{celer: celer}
 	cmd := &cobra.Command{}
 
 	// Mock the getInstalledPackages method behavior
 	originalInstalledDir := dirs.InstalledDir
 	defer func() { dirs.InstalledDir = originalInstalledDir }()
 
-	// Create temporary test directory
-	testDir := filepath.Join(os.TempDir(), "celer-test-completion")
-	defer os.RemoveAll(testDir)
+	// Traces are stored per platform/project/build type under <installed>/infos/traces.
+	testDir := t.TempDir()
 	dirs.InstalledDir = testDir
 
-	traceDir := filepath.Join(testDir, "celer", "traces")
+	traceDir := filepath.Join(testDir, "infos", "traces", celer.Platform().GetName(), celer.Project().GetName(), celer.BuildType())
 	if err := os.MkdirAll(traceDir, 0755); err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
 
 	// Create a test trace file
-	tracePath := filepath.Join(traceDir, "boost@1.87.0@x86_64-linux.trace")
+	tracePath := filepath.Join(traceDir, "boost@1.87.0.trace")
 	if err := os.WriteFile(tracePath, []byte("test"), 0644); err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
@@ -299,27 +297,28 @@ func TestRemoveCmd_GetInstalledPackages(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	remove := &removeCmd{}
+	celer := newTestCeler(t, "", testProject)
+	remove := &removeCmd{celer: celer}
 
 	// Create temporary test directory structure.
-	testDir := filepath.Join(os.TempDir(), "celer-test-remove")
-	defer os.RemoveAll(testDir)
+	testDir := t.TempDir()
 
 	// Backup original dirs.InstalledDir.
 	originalInstalledDir := dirs.InstalledDir
 	dirs.InstalledDir = testDir
 	defer func() { dirs.InstalledDir = originalInstalledDir }()
 
-	traceDir := filepath.Join(testDir, "celer", "traces")
+	// Traces are stored per platform/project/build type under <installed>/infos/traces.
+	traceDir := filepath.Join(testDir, "infos", "traces", celer.Platform().GetName(), celer.Project().GetName(), celer.BuildType())
 	if err := os.MkdirAll(traceDir, 0755); err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
 
 	// Create test trace files
 	testFiles := []string{
-		"boost@1.87.0@x86_64-linux.trace",
-		"openssl@3.5.0@x86_64-linux-dev.trace",
-		"opencv@4.11.0@aarch64-linux.trace",
+		"boost@1.87.0.trace",
+		"openssl@3.5.0.trace",
+		"opencv@4.11.0.trace",
 		"invalid-file.txt",
 		"no-extension",
 	}
@@ -392,25 +391,26 @@ func TestRemoveCmd_Completion_DeduplicateInstalledPackages(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	remove := &removeCmd{}
+	celer := newTestCeler(t, "", testProject)
+	remove := &removeCmd{celer: celer}
 	cmd := &cobra.Command{}
 
 	originalInstalledDir := dirs.InstalledDir
 	defer func() { dirs.InstalledDir = originalInstalledDir }()
 
-	testDir := filepath.Join(os.TempDir(), "celer-test-remove-dedup")
-	defer os.RemoveAll(testDir)
+	testDir := t.TempDir()
 	dirs.InstalledDir = testDir
 
-	traceDir := filepath.Join(testDir, "celer", "traces")
+	traceDir := filepath.Join(testDir, "infos", "traces", celer.Platform().GetName(), celer.Project().GetName(), celer.BuildType())
 	if err := os.MkdirAll(traceDir, 0755); err != nil {
 		t.Fatalf("failed to create trace dir: %v", err)
 	}
 
-	// Same package with different trace suffixes should be deduplicated.
+	// A trace named like a flag yields the same suggestion as the flag itself, which must
+	// be listed only once.
 	testFiles := []string{
-		"boost@1.87.0@x86_64-linux.trace",
-		"boost@1.87.0@aarch64-linux.trace",
+		"boost@1.87.0.trace",
+		"--purge.trace",
 	}
 	for _, filename := range testFiles {
 		if err := os.WriteFile(filepath.Join(traceDir, filename), []byte("test"), 0644); err != nil {
@@ -418,19 +418,19 @@ func TestRemoveCmd_Completion_DeduplicateInstalledPackages(t *testing.T) {
 		}
 	}
 
-	suggestions, directive := remove.completion(cmd, nil, "boost")
+	suggestions, directive := remove.completion(cmd, nil, "")
 	if directive != cobra.ShellCompDirectiveNoFileComp {
 		t.Fatalf("expected NoFileComp directive, got: %v", directive)
 	}
 
-	var count int
+	var purgeCount int
 	for _, suggestion := range suggestions {
-		if suggestion == "boost@1.87.0" {
-			count++
+		if suggestion == "--purge" {
+			purgeCount++
 		}
 	}
-	if count != 1 {
-		t.Fatalf("expected deduplicated suggestion count 1, got %d (all: %v)", count, suggestions)
+	if purgeCount != 1 {
+		t.Fatalf("expected deduplicated suggestion count 1, got %d (all: %v)", purgeCount, suggestions)
 	}
 }
 
@@ -438,7 +438,8 @@ func TestRemoveCmd_GetInstalledPackages_NoTraceDir(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	remove := &removeCmd{}
+	celer := newTestCeler(t, "", testProject)
+	remove := &removeCmd{celer: celer}
 
 	// Backup original dirs.InstalledDir.
 	originalInstalledDir := dirs.InstalledDir
@@ -537,30 +538,19 @@ func TestRemoveCmd_Recursive(t *testing.T) {
 }
 
 func installForTestRemove(t *testing.T, nameVersion string, option configs.RemoveOptions) configs.Port {
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Cleanup workspace.
 	dirs.RemoveAllForTest()
 
 	var (
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-		project         = "project_test_remove"
+		platform = buildTestPlatform()
+		project  = testProjectName
 	)
 
 	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
-	check(celer.SetPlatform(platform))
-	check(celer.SetProject(project))
+	celer := newTestCeler(t, platform, testProject)
+	check(t, celer.SetBuildType("Release"))
+	check(t, celer.SetPlatform(platform))
+	check(t, celer.SetProject(project))
 
 	var (
 		packageFolder = filepath.Join(platform, project, celer.BuildType(), nameVersion)
@@ -568,7 +558,7 @@ func installForTestRemove(t *testing.T, nameVersion string, option configs.Remov
 		options       = configs.InstallOptions{Prefer: configs.PreferSource}
 	)
 
-	check(port.Init(celer, nameVersion))
+	check(t, port.Init(celer, nameVersion))
 	if _, err := port.Install(options); err != nil {
 		t.Fatal(err)
 	}
@@ -581,11 +571,11 @@ func installForTestRemove(t *testing.T, nameVersion string, option configs.Remov
 
 	// Check if installed.
 	installed, err := port.Installed()
-	check(err)
+	check(t, err)
 	if !installed {
 		t.Fatal("package is not installed")
 	}
 
-	check(port.Remove(option))
+	check(t, port.Remove(option))
 	return port
 }
