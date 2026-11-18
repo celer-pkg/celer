@@ -88,7 +88,7 @@ pipeline {
                         filter: 'dag.json',
                     )
 
-                    run "celer init --url=https://github.com/celer-pkg/test-conf.git"
+                    run "celer init --url=https://github.com/celer-pkg/celer-conf.git"
                     run "celer clean --all"
                     run "celer install --apply-dag=dag.json --prefer=source --force --clean-source ${params.CELER_PORT}"
                 }

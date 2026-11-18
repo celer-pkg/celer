@@ -117,7 +117,7 @@ Although **conf** is highly recommended for Celer, Celer can still work without 
 Run the following command to setup conf:
 
 ```shell
-celer init --url=https://github.com/celer-pkg/test-conf.git
+celer init --url=https://github.com/celer-pkg/celer-conf.git
 ```
 
 ### 🌏 Configure Proxy (Optional)
@@ -134,7 +134,7 @@ After initialization, a `celer.toml` configuration file will be generated in the
 
 ```toml
 [main]
-  conf_repo = "https://github.com/celer-pkg/test-conf.git"
+  conf_repo = "https://github.com/celer-pkg/celer-conf.git"
   platform = ""
   project = ""
   jobs = 16
@@ -149,7 +149,7 @@ After initialization, a `celer.toml` configuration file will be generated in the
 
 ### 💡 Tips
 
-- **Test Repository:** `https://github.com/celer-pkg/test-conf.git` is a test conf repository. You can use it to experience Celer, and you can also create your own conf repository based on it.
+- **Test Repository:** `https://github.com/celer-pkg/celer-conf.git` is a test conf repository. You can use it to experience Celer, and you can also create your own conf repository based on it.
 - **Ports Repository:** During initialization, Celer will clone a ports repository into the current workspace, which contains configuration files for all available third-party libraries.
   - Celer will use the ports repository specified in the `CELER_PORTS_REPO` environment variable if it's set
   - If the environment variable is not set, Celer will use the default ports repository: `https://github.com/celer-pkg/ports.git`
@@ -178,7 +178,7 @@ After configuration, the `celer.toml` file will be updated as follows:
 
 ```toml
 [main]
-  conf_repo = "https://github.com/celer-pkg/test-conf.git"
+  conf_repo = "https://github.com/celer-pkg/celer-conf.git"
   platform = "x86_64-linux-ubuntu-22.04-gcc-11.5.0"
   project = "project_test_02"
   jobs = 16

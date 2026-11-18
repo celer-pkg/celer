@@ -54,7 +54,7 @@
 
 ```toml
 [rootfs]
-  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/ubuntu-base-20.04.5-base-amd64.tar.gz"
+  url = "https://github.com/celer-pkg/celer-conf/releases/download/resource/ubuntu-base-20.04.5-base-amd64.tar.gz"
   name = "gcc"
   version = "9.5"
   path = "ubuntu-base-20.04.5-base-amd64"
@@ -65,7 +65,7 @@
   ]
 
 [toolchain]
-  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/gcc-9.5.0.tar.gz"
+  url = "https://github.com/celer-pkg/celer-conf/releases/download/resource/gcc-9.5.0.tar.gz"
   path = "gcc-9.5.0/bin"
   system_name = "Linux"
   system_version = "6.18.35.2"                # Android系统强制需要
@@ -142,7 +142,7 @@
 
 ```toml
 [rootfs]
-  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/ubuntu-base-22.04-amd64.tar.gz"
+  url = "https://github.com/celer-pkg/celer-conf/releases/download/resource/ubuntu-base-22.04-amd64.tar.gz"
   path = "ubuntu-base-22.04-amd64"
   pkg_config_path = [
       "usr/lib/x86_64-linux-gnu/pkgconfig",
@@ -150,7 +150,7 @@
   ]
 
 [toolchain]
-  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/gcc-11.3.0.tar.gz"
+  url = "https://github.com/celer-pkg/celer-conf/releases/download/resource/gcc-11.3.0.tar.gz"
   path = "gcc-11.3.0/bin"
   system_name = "Linux"
   system_processor = "x86_64"
@@ -179,7 +179,7 @@
 
 ```toml
 [toolchain]
-  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/qnx800.tar.xz"
+  url = "https://github.com/celer-pkg/celer-conf/releases/download/resource/qnx800.tar.xz"
   path = "qnx800/host/linux/x86_64/usr/bin"
   name = "qcc"
   version = "12.2.0"

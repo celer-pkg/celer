@@ -54,7 +54,7 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
 
 ```toml
 [rootfs]
-  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/ubuntu-base-20.04.5-base-amd64.tar.gz"
+  url = "https://github.com/celer-pkg/celer-conf/releases/download/resource/ubuntu-base-20.04.5-base-amd64.tar.gz"
   name = "gcc"
   version = "9.5"
   path = "ubuntu-base-20.04.5-base-amd64"
@@ -65,7 +65,7 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
   ]
 
 [toolchain]
-  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/gcc-9.5.0.tar.gz"
+  url = "https://github.com/celer-pkg/celer-conf/releases/download/resource/gcc-9.5.0.tar.gz"
   path = "gcc-9.5.0/bin"
   system_name = "Linux"
   system_version = "6.18.35.2"                # Mandatory for Android system
@@ -142,7 +142,7 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
 
 ```toml
 [rootfs]
-  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/ubuntu-base-22.04.5-base-amd64.tar.xz"
+  url = "https://github.com/celer-pkg/celer-conf/releases/download/resource/ubuntu-base-22.04.5-base-amd64.tar.xz"
   sha256 = "08442eca9ccf64fd307d8a92582902315a66dc075216812d454596b1208da3bb"
   path = "ubuntu-base-22.04-amd64"
   pkg_config_path = [
@@ -151,7 +151,7 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
   ]
 
 [toolchain]
-  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/gcc-11.5.0.tar.xz"
+  url = "https://github.com/celer-pkg/celer-conf/releases/download/resource/gcc-11.5.0.tar.xz"
   sha256 = "511a7f2f2e3bece19187dc9c5a6ac3412eee12b7bbb88d9f2d2118f181403014"
   path = "gcc-11.3.0/bin"
   system_name = "Linux"
@@ -179,7 +179,7 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
 
 ```toml
 [toolchain]
-  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/qnx800.tar.xz"
+  url = "https://github.com/celer-pkg/celer-conf/releases/download/resource/qnx800.tar.xz"
   sha256 = "3e64f39e6a4900efdc06187b48483f71f6ebba04878505c853b6df709c84a42f"
   path = "qnx800/host/linux/x86_64/usr/bin"
   name = "qcc"

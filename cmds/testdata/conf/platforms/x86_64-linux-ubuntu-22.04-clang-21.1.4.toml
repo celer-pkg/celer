@@ -21,7 +21,7 @@
   as = "llvm-as"
 
 [rootfs]
-  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/ubuntu-base-22.04.5-base-amd64.tar.xz"
+  url = "https://github.com/celer-pkg/celer-conf/releases/download/resource/ubuntu-base-22.04.5-base-amd64.tar.xz"
   sha256 = "08442eca9ccf64fd307d8a92582902315a66dc075216812d454596b1208da3bb"
   path = "ubuntu-base-22.04.5-base-amd64"
   pkg_config_path = ["usr/lib/x86_64-linux-gnu/pkgconfig"]

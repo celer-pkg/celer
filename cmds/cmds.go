@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	test_conf_repo_url    = "https://github.com/celer-pkg/test-conf.git"
+	test_conf_repo_url    = "https://github.com/celer-pkg/celer-conf.git"
 	test_conf_repo_branch = ""
 )
 

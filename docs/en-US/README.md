@@ -24,7 +24,7 @@ Download a binary from [Releases](https://github.com/celer-pkg/celer/releases), 
 
 ```bash
 # Example config repo — swap in your team's conf
-celer init --url=https://github.com/celer-pkg/test-conf.git
+celer init --url=https://github.com/celer-pkg/celer-conf.git
 
 # Pick a platform and project (one platform.toml = toolchain + sysroot)
 celer configure --platform=x86_64-linux-ubuntu-22.04-gcc-11.5.0

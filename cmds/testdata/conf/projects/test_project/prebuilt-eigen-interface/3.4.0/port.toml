@@ -3,5 +3,5 @@ ref = "3.4.0"
 
 [[build_configs]]
 build_system = "prebuilt"
-url = "https://github.com/celer-pkg/test-conf/releases/download/resource/prebuilt-eigen3@3.4.0.tar.gz"
+url = "https://github.com/celer-pkg/celer-conf/releases/download/resource/prebuilt-eigen3@3.4.0.tar.gz"
 library_type = "interface"
