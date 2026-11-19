@@ -1,4 +1,4 @@
-package cmds
+package integration
 
 import (
 	"os"
@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/dag"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
@@ -405,9 +406,9 @@ func TestInstall_Command_ReportContainsPkgCacheSource(t *testing.T) {
 	check(t, port.Remove(removeOptions))
 	check(t, port.MatchedConfig.Clean())
 
-	// Run install command flow.
-	install := installCmd{celer: celer}
-	check(t, install.runInstall([]string{nameVersion}))
+	// Run the same install flow the install command uses, with default flags.
+	_, err := dag.Install(celer, nameVersion, false, configs.InstallOptions{}, dag.Expectation{Banner: true})
+	check(t, err)
 
 	// Report should contain package cache source.
 	statisticPath := filepath.Join(dirs.InstalledDir, "infos", "statistics", platform, project, celer.BuildType(),

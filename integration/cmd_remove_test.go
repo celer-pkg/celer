@@ -1,4 +1,4 @@
-package cmds
+package integration
 
 import (
 	"os"
@@ -76,7 +76,7 @@ func TestRemoveCmd_Completion(t *testing.T) {
 	dirs.RemoveAllForTest()
 
 	celer := newTestCeler(t, "", testProject)
-	remove := &removeCmd{celer: celer}
+	remove := &removeCmd{Celer: celer}
 	cmd := &cobra.Command{}
 
 	// Mock the getInstalledPackages method behavior
@@ -138,7 +138,7 @@ func TestRemoveCmd_Completion(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			suggestions, directive := remove.completion(cmd, []string{}, test.toComplete)
+			suggestions, directive := remove.Completion(cmd, []string{}, test.toComplete)
 
 			// Count expected total suggestions.
 			expectedTotal := len(test.expectedPackages) + len(test.expectedFlags)
@@ -246,7 +246,7 @@ func TestRemoveCmd_ValidatePackageNames(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			_, err := remove.validatePackageNames(test.packages)
+			_, err := remove.ValidatePackageNames(test.packages)
 			if test.expectError && err == nil {
 				t.Errorf("Expected error for %s, got nil", test.description)
 			}
@@ -264,7 +264,7 @@ func TestRemoveCmd_NormalizePackageNames_PowerShellEscaped(t *testing.T) {
 	remove := &removeCmd{}
 	input := []string{"boost`@1.87.0", "  openssl@3.5.0  "}
 
-	normalized, err := remove.validatePackageNames(input)
+	normalized, err := remove.ValidatePackageNames(input)
 	if err != nil {
 		t.Fatalf("expected normalized package names, got error: %v", err)
 	}
@@ -280,10 +280,10 @@ func TestRemoveCmd_Execute_ValidationBeforeInit(t *testing.T) {
 	dirs.RemoveAllForTest()
 
 	remove := &removeCmd{
-		celer: nil, // Should not be touched for invalid input.
+		Celer: nil, // Should not be touched for invalid input.
 	}
 
-	err := remove.execute([]string{"invalid-package"})
+	err := remove.Execute([]string{"invalid-package"})
 	if err == nil {
 		t.Fatal("expected validation error")
 	}
@@ -298,7 +298,7 @@ func TestRemoveCmd_GetInstalledPackages(t *testing.T) {
 	dirs.RemoveAllForTest()
 
 	celer := newTestCeler(t, "", testProject)
-	remove := &removeCmd{celer: celer}
+	remove := &removeCmd{Celer: celer}
 
 	// Create temporary test directory structure.
 	testDir := t.TempDir()
@@ -370,7 +370,7 @@ func TestRemoveCmd_GetInstalledPackages(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			suggestions := remove.getSuggestions(test.toComplete)
+			suggestions := remove.GetSuggestions(test.toComplete)
 
 			if len(suggestions) != len(test.expected) {
 				t.Errorf("Expected %d packages, got %d: %v", len(test.expected), len(suggestions), suggestions)
@@ -392,7 +392,7 @@ func TestRemoveCmd_Completion_DeduplicateInstalledPackages(t *testing.T) {
 	dirs.RemoveAllForTest()
 
 	celer := newTestCeler(t, "", testProject)
-	remove := &removeCmd{celer: celer}
+	remove := &removeCmd{Celer: celer}
 	cmd := &cobra.Command{}
 
 	originalInstalledDir := dirs.InstalledDir
@@ -418,7 +418,7 @@ func TestRemoveCmd_Completion_DeduplicateInstalledPackages(t *testing.T) {
 		}
 	}
 
-	suggestions, directive := remove.completion(cmd, nil, "")
+	suggestions, directive := remove.Completion(cmd, nil, "")
 	if directive != cobra.ShellCompDirectiveNoFileComp {
 		t.Fatalf("expected NoFileComp directive, got: %v", directive)
 	}
@@ -439,14 +439,14 @@ func TestRemoveCmd_GetInstalledPackages_NoTraceDir(t *testing.T) {
 	dirs.RemoveAllForTest()
 
 	celer := newTestCeler(t, "", testProject)
-	remove := &removeCmd{celer: celer}
+	remove := &removeCmd{Celer: celer}
 
 	// Backup original dirs.InstalledDir.
 	originalInstalledDir := dirs.InstalledDir
 	dirs.InstalledDir = "/nonexistent/directory"
 	defer func() { dirs.InstalledDir = originalInstalledDir }()
 
-	result := remove.getSuggestions("any")
+	result := remove.GetSuggestions("any")
 	if len(result) != 0 {
 		t.Errorf("Expected empty result when trace directory doesn't exist, got %v", result)
 	}
@@ -457,11 +457,11 @@ func TestRemoveCmd_Execute_ValidationError(t *testing.T) {
 	dirs.RemoveAllForTest()
 
 	remove := &removeCmd{
-		celer: &configs.Celer{},
+		Celer: &configs.Celer{},
 	}
 
 	// Test with invalid package name.
-	err := remove.execute([]string{"invalid-package"})
+	err := remove.Execute([]string{"invalid-package"})
 	if err == nil {
 		t.Error("Expected error for invalid package name, got nil")
 	}

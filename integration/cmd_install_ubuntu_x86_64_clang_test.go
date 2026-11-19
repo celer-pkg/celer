@@ -1,6 +1,6 @@
 //go:build linux && amd64 && test_clang
 
-package cmds
+package integration
 
 import (
 	"path/filepath"

@@ -1,4 +1,4 @@
-package cmds
+package integration
 
 import (
 	"path/filepath"

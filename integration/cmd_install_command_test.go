@@ -1,4 +1,4 @@
-package cmds
+package integration
 
 import (
 	"errors"
@@ -165,7 +165,7 @@ func TestInstallCmd_ValidateAndCleanInput(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := installCmd.validateAndClean(test.input)
+			result, err := installCmd.ValidateAndClean(test.input)
 
 			if test.expectError {
 				if err == nil {
@@ -199,7 +199,7 @@ func TestInstallCmd_Completion(t *testing.T) {
 	f.Close()
 
 	celer := configs.NewCeler()
-	installCmd := installCmd{celer: celer}
+	installCmd := installCmd{Celer: celer}
 	cmd := installCmd.Command(celer)
 
 	tests := []struct {
@@ -241,7 +241,7 @@ func TestInstallCmd_Completion(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			suggestions, directive := installCmd.completion(cmd, []string{}, test.toComplete)
+			suggestions, directive := installCmd.Completion(cmd, []string{}, test.toComplete)
 
 			if directive != cobra.ShellCompDirectiveNoFileComp {
 				t.Errorf("Expected directive %v, got %v", cobra.ShellCompDirectiveNoFileComp, directive)
@@ -289,7 +289,7 @@ func TestInstallCmd_BuildSuggestions(t *testing.T) {
 	}
 
 	celer := configs.NewCeler()
-	installCmd := installCmd{celer: celer}
+	installCmd := installCmd{Celer: celer}
 
 	tests := []struct {
 		name       string
@@ -321,7 +321,7 @@ func TestInstallCmd_BuildSuggestions(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			var suggestions []string
-			installCmd.buildSuggestions(&suggestions, tmpDir, test.toComplete)
+			installCmd.BuildSuggestions(&suggestions, tmpDir, test.toComplete)
 
 			if len(suggestions) != len(test.expected) {
 				t.Errorf("Expected %d suggestions, got %d: %v", len(test.expected), len(suggestions), suggestions)
@@ -372,7 +372,7 @@ func TestInstallCmd_ErrorHandling(t *testing.T) {
 	installCmd := &installCmd{}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			_, err := installCmd.validateAndClean(test.input)
+			_, err := installCmd.ValidateAndClean(test.input)
 			if err == nil {
 				t.Errorf("Expected error for input '%s' but got none", test.input)
 				return
@@ -396,7 +396,7 @@ func TestInstallCmd_RunInstall_MultiPackages_PreInitValidation(t *testing.T) {
 
 	// The second package is invalid, so validation should fail before Init() is called.
 	// This confirms pre-init validation works in multi-package mode.
-	err := installCmd.runInstall([]string{"opencv@4.8.0", "invalid"})
+	err := installCmd.RunInstall([]string{"opencv@4.8.0", "invalid"})
 	if !errors.Is(err, logger.ErrSilent) {
 		t.Fatalf("expected ErrSilent for invalid package input, got: %v", err)
 	}

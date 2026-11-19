@@ -1,4 +1,4 @@
-package cmds
+package integration
 
 import (
 	"os"
@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/celer-pkg/celer/cmds"
 	"github.com/celer-pkg/celer/completion"
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
@@ -84,7 +85,7 @@ func TestIntegrateCmd_Completion(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			suggestions, directive := integrate.completion(cmd, []string{}, test.toComplete)
+			suggestions, directive := integrate.Completion(cmd, []string{}, test.toComplete)
 
 			if len(suggestions) != len(test.expected) {
 				t.Errorf("Expected %d suggestions, got %d", len(test.expected), len(suggestions))
@@ -202,22 +203,22 @@ func TestIntegrateCmd_DetectShell_PanicSafe(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	oldCurrentShellFn := currentShellFn
+	oldCurrentShellFn := cmds.CurrentShellFn
 	t.Cleanup(func() {
-		currentShellFn = oldCurrentShellFn
+		cmds.CurrentShellFn = oldCurrentShellFn
 	})
 
-	currentShellFn = func() completion.ShellType {
+	cmds.CurrentShellFn = func() completion.ShellType {
 		panic("unexpected panic")
 	}
 
 	integrate := &integrateCmd{}
-	shell := integrate.detectShell()
+	shell := integrate.DetectShell()
 	if shell != completion.NotSupported {
 		t.Fatalf("expected NotSupported when shell detection panics, got: %v", shell)
 	}
 
-	if err := integrate.validateEnvironment(shell); err == nil {
+	if err := integrate.ValidateEnvironment(shell); err == nil {
 		t.Fatal("validateEnvironment should return error for NotSupported shell")
 	}
 }

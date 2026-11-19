@@ -5,6 +5,8 @@
 /conf
 /cmds/ports
 /cmds/conf
+/integration/ports
+/integration/conf
 **/.venv
 **/packages
 **/tmp

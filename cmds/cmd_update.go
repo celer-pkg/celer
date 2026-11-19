@@ -16,16 +16,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type updateCmd struct {
-	celer     *configs.Celer
-	confRepo  bool
-	portsRepo bool
-	recursive bool
-	force     bool
+type UpdateCmd struct {
+	Celer     *configs.Celer
+	ConfRepo  bool
+	PortsRepo bool
+	Recursive bool
+	Force     bool
 }
 
-func (u *updateCmd) Command(celer *configs.Celer) *cobra.Command {
-	u.celer = celer
+func (u *UpdateCmd) Command(celer *configs.Celer) *cobra.Command {
+	u.Celer = celer
 	command := &cobra.Command{
 		Use:   "update",
 		Short: "Update conf repo, ports config repo or project repo.",
@@ -47,14 +47,14 @@ Examples:
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return u.doUpdate(args)
 		},
-		ValidArgsFunction: u.completion,
+		ValidArgsFunction: u.Completion,
 	}
 
 	// Register flags.
-	command.Flags().BoolVarP(&u.confRepo, "conf-repo", "c", false, "update conf repo")
-	command.Flags().BoolVarP(&u.portsRepo, "ports-repo", "p", false, "update ports repo")
-	command.Flags().BoolVarP(&u.force, "force", "f", false, "update forcibly")
-	command.Flags().BoolVarP(&u.recursive, "recursive", "r", false, "update recursively")
+	command.Flags().BoolVarP(&u.ConfRepo, "conf-repo", "c", false, "update conf repo")
+	command.Flags().BoolVarP(&u.PortsRepo, "ports-repo", "p", false, "update ports repo")
+	command.Flags().BoolVarP(&u.Force, "force", "f", false, "update forcibly")
+	command.Flags().BoolVarP(&u.Recursive, "recursive", "r", false, "update recursively")
 
 	command.MarkFlagsMutuallyExclusive("conf-repo", "ports-repo")
 
@@ -64,7 +64,7 @@ Examples:
 	return command
 }
 
-func (u *updateCmd) validateArgs(cmd *cobra.Command, args []string) error {
+func (u *UpdateCmd) validateArgs(cmd *cobra.Command, args []string) error {
 	confRepo, err := cmd.Flags().GetBool("conf-repo")
 	if err != nil {
 		return err
@@ -97,19 +97,19 @@ func (u *updateCmd) validateArgs(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func (u *updateCmd) doUpdate(args []string) error {
+func (u *UpdateCmd) doUpdate(args []string) error {
 	// Initialize celer configuration.
-	if err := u.celer.Init(); err != nil {
+	if err := u.Celer.Init(); err != nil {
 		return logger.PrintError(err, "failed to initialize celer.")
 	}
 
 	// Make sure git is available.
-	if err := buildtools.CheckTools(u.celer, "git"); err != nil {
+	if err := buildtools.CheckTools(u.Celer, "git"); err != nil {
 		return logger.PrintError(err, "failed to check if git is available")
 	}
 
 	// Repo update can not be done in offline mode.
-	if u.celer.Offline() {
+	if u.Celer.Offline() {
 		return logger.PrintError(
 			fmt.Errorf("celer update requires network access to fetch remote refs - disable offline mode (celer configure --offline=false) to update"),
 			"failed to execute update command",
@@ -117,18 +117,18 @@ func (u *updateCmd) doUpdate(args []string) error {
 	}
 
 	// Perform update based on flags.
-	if u.confRepo {
-		if err := u.updateConfRepo(); err != nil {
+	if u.ConfRepo {
+		if err := u.UpdateConfRepo(); err != nil {
 			return logger.PrintError(err, "failed to update conf repository.")
 		}
 		logger.PrintSuccess("successfully updated conf repository.")
-	} else if u.portsRepo {
-		if err := u.updatePortsRepo(); err != nil {
+	} else if u.PortsRepo {
+		if err := u.UpdatePortsRepo(); err != nil {
 			return logger.PrintError(err, "failed to update ports repository.")
 		}
 		logger.PrintSuccess("successfully updated ports repository.")
 	} else {
-		if err := u.updateProjectRepos(args); err != nil {
+		if err := u.UpdateProjectRepos(args); err != nil {
 			return logger.PrintError(err, "failed to update port repository.")
 		}
 		if len(args) == 1 {
@@ -141,20 +141,20 @@ func (u *updateCmd) doUpdate(args []string) error {
 	return nil
 }
 
-func (u *updateCmd) updateConfRepo() error {
+func (u *UpdateCmd) UpdateConfRepo() error {
 	repoDir := filepath.Join(dirs.WorkspaceDir, "conf")
-	return git.UpdateRepo("conf repo", "", repoDir, u.force)
+	return git.UpdateRepo("conf repo", "", repoDir, u.Force)
 }
 
-func (u *updateCmd) updatePortsRepo() error {
+func (u *UpdateCmd) UpdatePortsRepo() error {
 	repoDir := filepath.Join(dirs.WorkspaceDir, "ports")
 
 	// A ports_baseline is either a pinned commit or a branch to follow, and a configured
 	// project always has one - project.Init() rejects an empty value. Without one the
 	// workspace runs on the built-in default project, which pins nothing.
-	baseline := strings.TrimSpace(u.celer.Project().GetPortsBaseline())
+	baseline := strings.TrimSpace(u.Celer.Project().GetPortsBaseline())
 	if baseline == "" {
-		return git.UpdateRepo("ports repo", "", repoDir, u.force)
+		return git.UpdateRepo("ports repo", "", repoDir, u.Force)
 	}
 
 	// Uncommitted work should be warned.
@@ -163,14 +163,14 @@ func (u *updateCmd) updatePortsRepo() error {
 		if err != nil {
 			return err
 		}
-		if modified && u.force {
+		if modified && u.Force {
 			logger.PrintWarning("--force discards the uncommitted changes in the ports repo")
 		}
 	}
 
 	// A commit hash is reset back to, a branch is checked out and pulled to its latest;
 	// UpdateRepo picks the right one from the baseline itself.
-	if err := git.UpdateRepo("ports repo", baseline, repoDir, u.force); err != nil {
+	if err := git.UpdateRepo("ports repo", baseline, repoDir, u.Force); err != nil {
 		return fmt.Errorf("failed to update ports repo to ports_baseline '%s' -> %w", baseline, err)
 	}
 
@@ -181,7 +181,7 @@ func (u *updateCmd) updatePortsRepo() error {
 	return nil
 }
 
-func (u *updateCmd) updateProjectRepos(nameVersions []string) error {
+func (u *UpdateCmd) UpdateProjectRepos(nameVersions []string) error {
 	if len(nameVersions) == 0 {
 		return fmt.Errorf("no ports specified to update")
 	}
@@ -191,7 +191,7 @@ func (u *updateCmd) updateProjectRepos(nameVersions []string) error {
 
 	for _, nameVersion := range nameVersions {
 		nameVersion = strings.ReplaceAll(nameVersion, "`", "")
-		if err := u.updatePortRepo(nameVersion, visited); err != nil {
+		if err := u.UpdatePortRepo(nameVersion, visited); err != nil {
 			return err
 		}
 	}
@@ -199,7 +199,7 @@ func (u *updateCmd) updateProjectRepos(nameVersions []string) error {
 	return nil
 }
 
-func (u *updateCmd) updatePortRepo(nameVersion string, visited map[string]bool) error {
+func (u *UpdateCmd) UpdatePortRepo(nameVersion string, visited map[string]bool) error {
 	// Check for circular dependencies.
 	if visited[nameVersion] {
 		return nil // Already processed, skip.
@@ -208,14 +208,14 @@ func (u *updateCmd) updatePortRepo(nameVersion string, visited map[string]bool) 
 
 	// Read port file.
 	var port configs.Port
-	if err := port.Init(u.celer, nameVersion); err != nil {
+	if err := port.Init(u.Celer, nameVersion); err != nil {
 		return fmt.Errorf("failed to init %s -> %w", nameVersion, err)
 	}
 
 	// Update repos of port's dependencies.
-	if u.recursive {
+	if u.Recursive {
 		for _, nameVersion := range port.MatchedConfig.Dependencies {
-			if err := u.updatePortRepo(nameVersion, visited); err != nil {
+			if err := u.UpdatePortRepo(nameVersion, visited); err != nil {
 				return err
 			}
 		}
@@ -235,14 +235,14 @@ func (u *updateCmd) updatePortRepo(nameVersion string, visited map[string]bool) 
 	}
 
 	// Update port.
-	if err := git.UpdateRepo(nameVersion, port.Package.Ref, srcDir, u.force); err != nil {
+	if err := git.UpdateRepo(nameVersion, port.Package.Ref, srcDir, u.Force); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (u *updateCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (u *UpdateCmd) Completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 	var buildtreesDir = dirs.BuildtreesDir
 

@@ -20,10 +20,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type deployCmd struct {
-	celer        *configs.Celer
-	force        bool
-	snapshotPath string
+type DeployCmd struct {
+	Celer        *configs.Celer
+	Force        bool
+	SnapshotPath string
 	strip        bool
 	exportDag    string
 	applyDag     string
@@ -31,8 +31,8 @@ type deployCmd struct {
 	dagInfo *dag.DagInfo
 }
 
-func (d *deployCmd) Command(celer *configs.Celer) *cobra.Command {
-	d.celer = celer
+func (d *DeployCmd) Command(celer *configs.Celer) *cobra.Command {
+	d.Celer = celer
 	command := &cobra.Command{
 		Use:   "deploy",
 		Short: "Deploy with selected platform and project.",
@@ -56,20 +56,20 @@ Examples:
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// A schedule is read before celer is initialized.
 			if d.applyDag != "" {
-				dagInfo, err := dag.Import(d.celer, d.applyDag)
+				dagInfo, err := dag.Import(d.Celer, d.applyDag)
 				if err != nil {
 					return logger.PrintError(err, "failed to read the build schedule %s.", d.applyDag)
 				}
 				d.dagInfo = dagInfo
 			}
 
-			if err := d.celer.Init(); err != nil {
+			if err := d.Celer.Init(); err != nil {
 				return logger.PrintError(err, "failed to init celer.")
 			}
 
-			platformName := expr.If(d.celer.Platform().GetName() != "", d.celer.Platform().GetName(), "native")
-			projectName := d.celer.Project().GetName()
-			buildType := d.celer.BuildType()
+			platformName := expr.If(d.Celer.Platform().GetName() != "", d.Celer.Platform().GetName(), "native")
+			projectName := d.Celer.Project().GetName()
+			buildType := d.Celer.BuildType()
 
 			// Display deployment header.
 			logger.Println(logger.Title, "=======================================================================")
@@ -84,7 +84,7 @@ Examples:
 					return logger.PrintError(err, "failed to apply the build schedule %s.", d.applyDag)
 				}
 				if d.strip {
-					if err := d.celer.Strip(); err != nil {
+					if err := d.Celer.Strip(); err != nil {
 						return logger.PrintError(err, "failed to strip the collected tree.")
 					}
 				}
@@ -103,27 +103,27 @@ Examples:
 				// orchestrator of a distributed build schedules one job per node
 				// from this file.
 				if d.exportDag != "" {
-					if d.celer.Project().GetName() == "" {
+					if d.Celer.Project().GetName() == "" {
 						err := errors.New("cannot read ports of current project")
 						return logger.PrintError(err, "no project has been configured in celer.toml")
 					}
 
-					roots := d.celer.Project().GetPorts()
+					roots := d.Celer.Project().GetPorts()
 					if len(roots) == 0 {
 						err := errors.New("cannot read ports of current project")
-						return logger.PrintError(err, "no ports has been configured in %s.toml", d.celer.GetProjectName())
+						return logger.PrintError(err, "no ports has been configured in %s.toml", d.Celer.GetProjectName())
 					}
-					return dag.Export(d.celer, roots, d.force, d.exportDag)
+					return dag.Export(d.Celer, roots, d.Force, d.exportDag)
 				}
 
-				if err := d.celer.Deploy(d.force, d.strip); err != nil {
+				if err := d.Celer.Deploy(d.Force, d.strip); err != nil {
 					return logger.PrintError(err, "failed to deploy celer.")
 				}
 			}
 
 			// Export snapshot if requested.
-			if d.snapshotPath != "" {
-				if err := snapshot.Export(d.celer, d.snapshotPath); err != nil {
+			if d.SnapshotPath != "" {
+				if err := snapshot.Export(d.Celer, d.SnapshotPath); err != nil {
 					return fmt.Errorf("failed to export snapshot -> %w", err)
 				}
 			}
@@ -131,12 +131,12 @@ Examples:
 			logger.PrintSuccess("%s has been successfully %s.", projectName, expr.If(d.dagInfo != nil, "applied", "deployed"))
 			return nil
 		},
-		ValidArgsFunction: d.completion,
+		ValidArgsFunction: d.Completion,
 	}
 
 	flags := command.Flags()
-	flags.StringVar(&d.snapshotPath, "snapshot", "", "Export workspace snapshot after successfully deployed.")
-	flags.BoolVarP(&d.force, "force", "", false, "Force deploy or export dag without any cache.")
+	flags.StringVar(&d.SnapshotPath, "snapshot", "", "Export workspace snapshot after successfully deployed.")
+	flags.BoolVarP(&d.Force, "force", "", false, "Force deploy or export dag without any cache.")
 	flags.BoolVarP(&d.strip, "strip", "", false, "Build runtime stripped tree under workspace/stripped (same as celer strip).")
 	flags.StringVar(&d.exportDag, "export-dag", "", "Export the build DAG of the project as JSON to <file>.")
 	flags.StringVar(&d.applyDag, "apply-dag", "", "Install the nodes of a build DAG exported by --export-dag.")
@@ -147,7 +147,7 @@ Examples:
 	return command
 }
 
-func (d *deployCmd) action() string {
+func (d *DeployCmd) action() string {
 	switch {
 	case d.dagInfo != nil:
 		return "apply dag"
@@ -161,7 +161,7 @@ func (d *deployCmd) action() string {
 // collectArtifacts installs every node the schedule names, plus the ones pkgcache
 // already had, and reports where each one came from. Applying the schedule (its
 // identity and pins) happened in dag.Import; this is the part that fills the workspace.
-func (d *deployCmd) collectArtifacts() error {
+func (d *DeployCmd) collectArtifacts() error {
 	// Set prefer as 'pkgcache' to make sure all artifacts can be retrieved from pkgcache.
 	options := configs.InstallOptions{Prefer: configs.PreferPkgCache}
 
@@ -170,7 +170,7 @@ func (d *deployCmd) collectArtifacts() error {
 	var local []string
 
 	for _, nameVersion := range nodes {
-		fromWhere, err := dag.Install(d.celer, nameVersion, false, options, dag.Expectation{
+		fromWhere, err := dag.Install(d.Celer, nameVersion, false, options, dag.Expectation{
 			DagPath:      d.applyDag,
 			BuildHash:    d.dagInfo.DagHashes[nameVersion],
 			SkipDepCheck: true,
@@ -199,7 +199,7 @@ func (d *deployCmd) collectArtifacts() error {
 	return nil
 }
 
-func (d *deployCmd) validateArgs(cmd *cobra.Command, args []string) error {
+func (d *DeployCmd) validateArgs(cmd *cobra.Command, args []string) error {
 	if err := cobra.NoArgs(cmd, args); err != nil {
 		return err
 	}
@@ -215,7 +215,7 @@ func (d *deployCmd) validateArgs(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("--snapshot requires a non-empty path")
 		}
 
-		d.snapshotPath = filepath.Clean(snapshotPath)
+		d.SnapshotPath = filepath.Clean(snapshotPath)
 	}
 
 	if cmd.Flags().Changed("export-dag") {
@@ -250,25 +250,25 @@ func (d *deployCmd) validateArgs(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("--export-dag and --apply-dag are mutually exclusive")
 	}
 
-	if d.applyDag != "" && d.force {
+	if d.applyDag != "" && d.Force {
 		return fmt.Errorf("--apply-dag installs the schedule as it is, so it cannot be combined with --force")
 	}
 
 	return nil
 }
 
-func (d *deployCmd) checkProject() error {
+func (d *DeployCmd) checkProject() error {
 	depcheck := depcheck.NewDepCheck()
 
 	var ports []configs.Port
-	for _, nameVersion := range d.celer.Project().GetPorts() {
+	for _, nameVersion := range d.Celer.Project().GetPorts() {
 		var port configs.Port
-		if err := port.Init(d.celer, nameVersion); err != nil {
+		if err := port.Init(d.Celer, nameVersion); err != nil {
 			return err
 		}
 
 		// Check if every port have circular dependency.
-		if err := depcheck.CheckCircular(d.celer, port); err != nil {
+		if err := depcheck.CheckCircular(d.Celer, port); err != nil {
 			return err
 		}
 
@@ -276,14 +276,14 @@ func (d *deployCmd) checkProject() error {
 	}
 
 	// Check if ports have conflict versions.
-	if err := depcheck.CheckConflict(d.celer, ports...); err != nil {
+	if err := depcheck.CheckConflict(d.Celer, ports...); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (d *deployCmd) resolveAllRefs() error {
+func (d *DeployCmd) resolveAllRefs() error {
 	// Collect all ports (top-level + transitive dependencies) into []refs.PortInfo.
 	collected := make(map[string]refs.PortInfo)
 	var collect func(nameVersion string) error
@@ -294,7 +294,7 @@ func (d *deployCmd) resolveAllRefs() error {
 		}
 
 		var port configs.Port
-		if err := port.Init(d.celer, nameVersion); err != nil {
+		if err := port.Init(d.Celer, nameVersion); err != nil {
 			return err
 		}
 		collected[nameVersion] = refs.PortInfo{
@@ -316,7 +316,7 @@ func (d *deployCmd) resolveAllRefs() error {
 		return nil
 	}
 
-	for _, port := range d.celer.Project().GetPorts() {
+	for _, port := range d.Celer.Project().GetPorts() {
 		if err := collect(port); err != nil {
 			return err
 		}
@@ -327,7 +327,7 @@ func (d *deployCmd) resolveAllRefs() error {
 		portInfos = append(portInfos, info)
 	}
 
-	projectName := d.celer.Project().GetName()
+	projectName := d.Celer.Project().GetName()
 	resolvedRefs := refs.ResolvePorts(portInfos)
 
 	// Store resolved commits for use during clone/checkout.
@@ -349,8 +349,8 @@ func (d *deployCmd) resolveAllRefs() error {
 
 	env := snapshot.BuildEnv{
 		ExportedAt:   time.Now(),
-		CelerVersion: d.celer.Version(),
-		Platform:     d.celer.Platform().GetName(),
+		CelerVersion: d.Celer.Version(),
+		Platform:     d.Celer.Platform().GetName(),
 		Project:      projectName,
 	}
 	if err := snapshot.SaveSnapshotMarkdown(filePath, env, resolvedRefs); err != nil {
@@ -372,7 +372,7 @@ func (d *deployCmd) resolveAllRefs() error {
 	return nil
 }
 
-func (d *deployCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (d *DeployCmd) Completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 	for _, flag := range []string{"--snapshot", "--force", "--strip", "--export-dag", "--apply-dag"} {
 		if strings.HasPrefix(flag, toComplete) {

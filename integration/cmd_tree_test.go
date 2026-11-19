@@ -1,4 +1,4 @@
-package cmds
+package integration
 
 import (
 	"os"
@@ -101,7 +101,7 @@ func TestTreeCmd_ValidateTarget(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := treeCmd.validateTarget(test.target)
+			err := treeCmd.ValidateTarget(test.target)
 			if test.expectError && err == nil {
 				t.Errorf("Expected error for %s, got nil", test.description)
 			}
@@ -121,7 +121,7 @@ func TestTreeCmd_Completion(t *testing.T) {
 
 	treeCmd := treeCmd{}
 	celer := configs.NewCeler()
-	treeCmd.celer = celer
+	treeCmd.Celer = celer
 
 	tests := []struct {
 		name             string
@@ -153,7 +153,7 @@ func TestTreeCmd_Completion(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			suggestions, directive := treeCmd.completion(nil, []string{}, test.toComplete)
+			suggestions, directive := treeCmd.Completion(nil, []string{}, test.toComplete)
 
 			if directive != cobra.ShellCompDirectiveNoFileComp {
 				t.Errorf("Expected NoFileComp directive, got %d", directive)
@@ -187,42 +187,42 @@ func TestTreeCmd_PrintTree(t *testing.T) {
 
 	// Create a simple dependency tree
 	root := &portInfo{
-		nameVersion: "root@1.0.0",
-		depth:       0,
-		devDep:      false,
+		NameVersion: "root@1.0.0",
+		Depth:       0,
+		DevDep:      false,
 	}
 
 	dep1 := &portInfo{
-		parent:      root,
-		nameVersion: "dep1@1.0.0",
-		depth:       1,
-		devDep:      false,
+		Parent:      root,
+		NameVersion: "dep1@1.0.0",
+		Depth:       1,
+		DevDep:      false,
 	}
 
 	dep2 := &portInfo{
-		parent:      root,
-		nameVersion: "dep2@2.0.0",
-		depth:       1,
-		devDep:      false,
+		Parent:      root,
+		NameVersion: "dep2@2.0.0",
+		Depth:       1,
+		DevDep:      false,
 	}
 
 	devDep := &portInfo{
-		parent:      root,
-		nameVersion: "devdep@1.0.0",
-		depth:       1,
-		devDep:      true,
+		Parent:      root,
+		NameVersion: "devdep@1.0.0",
+		Depth:       1,
+		DevDep:      true,
 	}
 
-	root.depedencies = []*portInfo{dep1, dep2}
-	root.devDependencies = []*portInfo{devDep}
+	root.Dependencies = []*portInfo{dep1, dep2}
+	root.DevDependencies = []*portInfo{devDep}
 
 	// Test without hiding dev dependencies.
-	treeCmd.hideDevDep = false
-	treeCmd.printTree(root) // Should not panic
+	treeCmd.HideDevDep = false
+	treeCmd.PrintTree(root) // Should not panic
 
 	// Test with hiding dev dependencies.
-	treeCmd.hideDevDep = true
-	treeCmd.printTree(root) // Should not panic
+	treeCmd.HideDevDep = true
+	treeCmd.PrintTree(root) // Should not panic
 }
 
 func TestTreeCmd_CollectPortInfos(t *testing.T) {
@@ -233,16 +233,16 @@ func TestTreeCmd_CollectPortInfos(t *testing.T) {
 	// For now, we test that the method signature is correct
 	treeCmd := treeCmd{}
 	celer := configs.NewCeler()
-	treeCmd.celer = celer
+	treeCmd.Celer = celer
 
 	parent := &portInfo{
-		nameVersion: "test@1.0.0",
-		depth:       0,
-		devDep:      false,
+		NameVersion: "test@1.0.0",
+		Depth:       0,
+		DevDep:      false,
 	}
 
 	// This will fail without proper setup, but we're testing the error handling
-	if err := treeCmd.collectPortInfos(parent, "nonexistent@1.0.0"); err == nil {
+	if err := treeCmd.CollectPortInfos(parent, "nonexistent@1.0.0"); err == nil {
 		t.Error("Expected error for nonexistent package")
 	}
 }
@@ -253,10 +253,10 @@ func TestTreeCmd_Execute_InvalidTarget(t *testing.T) {
 
 	treeCmd := treeCmd{}
 	celer := configs.NewCeler()
-	treeCmd.celer = celer
+	treeCmd.Celer = celer
 
 	// Test with empty target
-	err := treeCmd.tree("")
+	err := treeCmd.Tree("")
 	if err == nil {
 		t.Error("Expected error for empty target")
 	}

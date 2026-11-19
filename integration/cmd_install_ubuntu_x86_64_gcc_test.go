@@ -1,6 +1,6 @@
 //go:build linux && amd64 && test_gcc
 
-package cmds
+package integration
 
 import (
 	"path/filepath"
@@ -108,13 +108,13 @@ func buildWithAMD64GCC(t *testing.T, platform, nameVersion string, nobuild bool)
 	// Init celer.
 	const project = testProjectName
 	celer := newTestCeler(t, platform, testProject)
-	check(t,celer.SetBuildType("Release"))
+	check(t, celer.SetBuildType("Release"))
 	if platform != "" {
-		check(t,celer.SetPlatform(platform))
+		check(t, celer.SetPlatform(platform))
 	} else {
 		platform = celer.Platform().GetHostName()
 	}
-	check(t,celer.SetProject(project))
+	check(t, celer.SetProject(project))
 
 	var (
 		packageFolder = filepath.Join(platform, project, celer.BuildType(), nameVersion)
@@ -122,7 +122,7 @@ func buildWithAMD64GCC(t *testing.T, platform, nameVersion string, nobuild bool)
 		options       = configs.InstallOptions{Prefer: configs.PreferSource}
 	)
 
-	check(t,port.Init(celer, nameVersion))
+	check(t, port.Init(celer, nameVersion))
 	if _, err := port.Install(options); err != nil {
 		t.Fatal(err)
 	}
@@ -137,7 +137,7 @@ func buildWithAMD64GCC(t *testing.T, platform, nameVersion string, nobuild bool)
 
 	// Check if installed.
 	installed, err := port.Installed()
-	check(t,err)
+	check(t, err)
 	if !installed {
 		t.Fatal("package is not installed")
 	}
@@ -148,5 +148,5 @@ func buildWithAMD64GCC(t *testing.T, platform, nameVersion string, nobuild bool)
 		Recursive:  true,
 		BuildCache: true,
 	}
-	check(t,port.Remove(removeOptions))
+	check(t, port.Remove(removeOptions))
 }

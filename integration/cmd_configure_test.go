@@ -1,4 +1,4 @@
-package cmds
+package integration
 
 import (
 	"net/http"
@@ -208,7 +208,7 @@ func TestConfigureCmd_Completion(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			suggestions, directive := configCmd.completion(cmd, []string{}, test.toComplete)
+			suggestions, directive := configCmd.Completion(cmd, []string{}, test.toComplete)
 
 			if directive != cobra.ShellCompDirectiveNoFileComp {
 				t.Errorf("Expected directive %v, got %v", cobra.ShellCompDirectiveNoFileComp, directive)
@@ -942,7 +942,7 @@ func TestConfigure_Downloads(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Read celer.toml directly instead of re-initializing celer: Init would honor the new
+	// Read celer.toml directly instead of re-initializing Celer: Init would honor the new
 	// downloads dir and fetch the build tools into it again.
 	var cfg struct{ Main configs.Main }
 	celerPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")

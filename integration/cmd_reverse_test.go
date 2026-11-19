@@ -1,4 +1,4 @@
-package cmds
+package integration
 
 import (
 	"os"
@@ -44,7 +44,7 @@ func TestReverseCmd_Completion(t *testing.T) {
 	dirs.RemoveAllForTest()
 
 	cmd := reverseCmd{}
-	suggestions, directive := cmd.completion(nil, []string{}, "test")
+	suggestions, directive := cmd.Completion(nil, []string{}, "test")
 
 	// Should return no file completion directive (cobra.ShellCompDirectiveNoFileComp)
 	// Note: The actual value might differ, so we just check it's a valid directive
@@ -80,7 +80,7 @@ func TestReverseCmd_ValidatePackageName(t *testing.T) {
 	cmd := reverseCmd{}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := cmd.validatePackageName(test.packageName)
+			err := cmd.ValidatePackageName(test.packageName)
 			if (err != nil) != test.wantError {
 				t.Errorf("validatePackageName() error = %v, wantError %v", err, test.wantError)
 			}
@@ -101,10 +101,10 @@ func TestReverseCmd_EmptyPorts(t *testing.T) {
 	dirs.PortsDir = filepath.Join(tempDir, "nonexistent")
 
 	celer := configs.NewCeler()
-	cmd := reverseCmd{celer: celer}
+	cmd := reverseCmd{Celer: celer}
 
 	// Test with non-existent ports directory
-	results, err := cmd.query("nonexistent@1.0.0")
+	results, err := cmd.Query("nonexistent@1.0.0")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -142,8 +142,8 @@ func TestReverseCmd_Without_Dev(t *testing.T) {
 	celer := newTestCeler(t, "", testProject)
 	check(celer.SetBuildType("Release"))
 
-	cmdReverse := reverseCmd{celer: celer}
-	dependencies, err := cmdReverse.query("eigen@3.4.0")
+	cmdReverse := reverseCmd{Celer: celer}
+	dependencies, err := cmdReverse.Query("eigen@3.4.0")
 	check(err)
 
 	expected := []string{
@@ -196,16 +196,16 @@ func TestReverseCmd_With_Dev(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 
 	// Search as default mode.
-	cmdReverse := reverseCmd{celer: celer}
-	dependencies, err := cmdReverse.query("nasm@2.16.03")
+	cmdReverse := reverseCmd{Celer: celer}
+	dependencies, err := cmdReverse.Query("nasm@2.16.03")
 	check(err)
 	if len(dependencies) > 0 {
 		t.Fatalf("expected no dependencies, but got %s", dependencies)
 	}
 
 	// Search as dev mode.
-	cmdReverse.dev = true
-	dependencies, err = cmdReverse.query("nasm@2.16.03")
+	cmdReverse.Dev = true
+	dependencies, err = cmdReverse.Query("nasm@2.16.03")
 	check(err)
 	expected := []string{
 		"ffmpeg@3.4.13",
@@ -250,24 +250,24 @@ func TestReverseCmd_TomlHasDependency(t *testing.T) {
 	cmd := reverseCmd{}
 
 	// Test regular dependencies.
-	if !cmd.tomlHasDependency(portToml, "dep1@1.0.0") {
+	if !cmd.TomlHasDependency(portToml, "dep1@1.0.0") {
 		t.Error("expected to find regular dependency")
 	}
-	if cmd.tomlHasDependency(portToml, "nonexistent@1.0.0") {
+	if cmd.TomlHasDependency(portToml, "nonexistent@1.0.0") {
 		t.Error("expected not to find nonexistent dependency")
 	}
 
 	// Test dev dependencies (should not be found in non-dev mode).
-	if cmd.tomlHasDependency(portToml, "devdep1@1.0.0") {
+	if cmd.TomlHasDependency(portToml, "devdep1@1.0.0") {
 		t.Error("expected not to find dev dependency in regular mode")
 	}
 
 	// Test dev dependencies in dev mode.
-	cmd.dev = true
-	if !cmd.tomlHasDependency(portToml, "devdep1@1.0.0") {
+	cmd.Dev = true
+	if !cmd.TomlHasDependency(portToml, "devdep1@1.0.0") {
 		t.Error("expected to find dev dependency in dev mode")
 	}
-	if !cmd.tomlHasDependency(portToml, "dep1@1.0.0") {
+	if !cmd.TomlHasDependency(portToml, "dep1@1.0.0") {
 		t.Error("expected to find regular dependency in dev mode")
 	}
 }

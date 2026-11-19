@@ -10,15 +10,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type createCmd struct {
-	celer    *configs.Celer
+type CreateCmd struct {
+	Celer    *configs.Celer
 	platform string
 	project  string
 	port     string
 }
 
-func (c *createCmd) Command(celer *configs.Celer) *cobra.Command {
-	c.celer = celer
+func (c *CreateCmd) Command(celer *configs.Celer) *cobra.Command {
+	c.Celer = celer
 	command := &cobra.Command{
 		Use:   "create",
 		Short: "Create a platform, project or port.",
@@ -41,7 +41,7 @@ EXAMPLES:
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.doCreate(cmd)
 		},
-		ValidArgsFunction: c.completion,
+		ValidArgsFunction: c.Completion,
 	}
 
 	// Register flags.
@@ -57,8 +57,8 @@ EXAMPLES:
 	return command
 }
 
-func (c *createCmd) createPlatform(platformName string) error {
-	if err := c.celer.CreatePlatform(platformName); err != nil {
+func (c *CreateCmd) createPlatform(platformName string) error {
+	if err := c.Celer.CreatePlatform(platformName); err != nil {
 		return logger.PrintError(err, "%s could not be created.", platformName)
 	}
 
@@ -66,8 +66,8 @@ func (c *createCmd) createPlatform(platformName string) error {
 	return nil
 }
 
-func (c *createCmd) createProject(projectName string) error {
-	if err := c.celer.CreateProject(projectName); err != nil {
+func (c *CreateCmd) createProject(projectName string) error {
+	if err := c.Celer.CreateProject(projectName); err != nil {
 		return logger.PrintError(err, "%s could not be created.", projectName)
 	}
 
@@ -75,8 +75,8 @@ func (c *createCmd) createProject(projectName string) error {
 	return nil
 }
 
-func (c *createCmd) createPort(nameVersion string) error {
-	if err := c.celer.CreatePort(nameVersion); err != nil {
+func (c *CreateCmd) createPort(nameVersion string) error {
+	if err := c.Celer.CreatePort(nameVersion); err != nil {
 		return logger.PrintError(err, "%s could not be created.", nameVersion)
 	}
 
@@ -84,7 +84,7 @@ func (c *createCmd) createPort(nameVersion string) error {
 	return nil
 }
 
-func (c *createCmd) doCreate(cmd *cobra.Command) error {
+func (c *CreateCmd) doCreate(cmd *cobra.Command) error {
 	// Check that exactly one flag is provided.
 	flags := cmd.Flags()
 	platformChanged := flags.Changed("platform")
@@ -109,21 +109,21 @@ func (c *createCmd) doCreate(cmd *cobra.Command) error {
 
 	// Validate inputs and create.
 	if platformChanged {
-		if err := c.validatePlatformName(c.platform); err != nil {
+		if err := c.ValidatePlatformName(c.platform); err != nil {
 			return logger.PrintError(err, "Invalid platform name.")
 		}
 		return c.createPlatform(c.platform)
 	}
 
 	if projectChanged {
-		if err := c.validateProjectName(c.project); err != nil {
+		if err := c.ValidateProjectName(c.project); err != nil {
 			return logger.PrintError(err, "Invalid project name.")
 		}
 		return c.createProject(c.project)
 	}
 
 	if portChanged {
-		if err := c.validatePortName(c.port); err != nil {
+		if err := c.ValidatePortName(c.port); err != nil {
 			return logger.PrintError(err, "Invalid port name.")
 		}
 		return c.createPort(c.port)
@@ -132,7 +132,7 @@ func (c *createCmd) doCreate(cmd *cobra.Command) error {
 	return nil
 }
 
-func (c *createCmd) validateInput(value, field string, allowSpace bool) error {
+func (c *CreateCmd) validateInput(value, field string, allowSpace bool) error {
 	trimmed := strings.TrimSpace(value)
 	if trimmed == "" {
 		return fmt.Errorf("%s cannot be empty", field)
@@ -155,17 +155,17 @@ func (c *createCmd) validateInput(value, field string, allowSpace bool) error {
 }
 
 // validatePlatformName validates platform name format
-func (c *createCmd) validatePlatformName(name string) error {
+func (c *CreateCmd) ValidatePlatformName(name string) error {
 	return c.validateInput(name, "platform name", false)
 }
 
 // validateProjectName validates project name format
-func (c *createCmd) validateProjectName(name string) error {
+func (c *CreateCmd) ValidateProjectName(name string) error {
 	return c.validateInput(name, "project name", true)
 }
 
 // validatePortName validates port name@version format
-func (c *createCmd) validatePortName(nameVersion string) error {
+func (c *CreateCmd) ValidatePortName(nameVersion string) error {
 	if strings.TrimSpace(nameVersion) == "" {
 		return fmt.Errorf("port name cannot be empty")
 	}
@@ -193,7 +193,7 @@ func (c *createCmd) validatePortName(nameVersion string) error {
 	return nil
 }
 
-func (c *createCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (c *CreateCmd) Completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 	for _, flag := range []string{"--platform", "--project", "--port"} {
 		if strings.HasPrefix(flag, toComplete) {

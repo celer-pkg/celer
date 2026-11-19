@@ -8,11 +8,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	test_conf_repo_url    = "https://github.com/celer-pkg/celer-conf.git"
-	test_conf_repo_branch = ""
-)
-
+// Command implementations are exported types: the integration tests, which live
+// in package integration, build one command and drive it directly, while the
+// celer binary registers all of them through Execute.
+//
 // Interface for command.
 type Command interface {
 	Command(celer *configs.Celer) *cobra.Command
@@ -55,22 +54,22 @@ var rootCmd = &cobra.Command{
 // Execute register all commands and executes the command.
 func Execute() error {
 	commands := []Command{
-		&versionCmd{},
-		&clientCmd{},
-		&initCmd{},
-		&updateCmd{},
-		&createCmd{},
-		&configureCmd{},
-		&installCmd{},
-		&removeCmd{},
-		&integrateCmd{},
-		&deployCmd{},
-		&treeCmd{},
-		&cleanCmd{},
-		&autoremoveCmd{},
-		&reverseCmd{},
-		&searchCmd{},
-		&stripCmd{},
+		&VersionCmd{},
+		&ClientCmd{},
+		&InitCmd{},
+		&UpdateCmd{},
+		&CreateCmd{},
+		&ConfigureCmd{},
+		&InstallCmd{},
+		&RemoveCmd{},
+		&IntegrateCmd{},
+		&DeployCmd{},
+		&TreeCmd{},
+		&CleanCmd{},
+		&AutoremoveCmd{},
+		&ReverseCmd{},
+		&SearchCmd{},
+		&StripCmd{},
 	}
 
 	// Create celer but init it in command.

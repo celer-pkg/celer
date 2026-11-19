@@ -1,4 +1,4 @@
-package cmds
+package integration
 
 import (
 	"errors"
@@ -76,40 +76,40 @@ func TestUpdateCmd_ArgsValidation(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		confRepo    bool
-		portsRepo   bool
-		recursive   bool
+		ConfRepo    bool
+		PortsRepo   bool
+		Recursive   bool
 		args        []string
 		expectError bool
 	}{
 		{
 			name:        "conf_repo_without_args_should_succeed",
-			confRepo:    true,
+			ConfRepo:    true,
 			args:        []string{},
 			expectError: false,
 		},
 		{
 			name:        "conf_repo_with_args_should_fail",
-			confRepo:    true,
+			ConfRepo:    true,
 			args:        []string{"zlib@1.3.1"},
 			expectError: true,
 		},
 		{
 			name:        "ports_repo_without_args_should_succeed",
-			portsRepo:   true,
+			PortsRepo:   true,
 			args:        []string{},
 			expectError: false,
 		},
 		{
 			name:        "ports_repo_with_args_should_fail",
-			portsRepo:   true,
+			PortsRepo:   true,
 			args:        []string{"zlib@1.3.1"},
 			expectError: true,
 		},
 		{
 			name:        "recursive_with_conf_repo_should_fail",
-			confRepo:    true,
-			recursive:   true,
+			ConfRepo:    true,
+			Recursive:   true,
 			args:        []string{},
 			expectError: true,
 		},
@@ -125,7 +125,7 @@ func TestUpdateCmd_ArgsValidation(t *testing.T) {
 		},
 		{
 			name:        "recursive_with_port_args_should_succeed",
-			recursive:   true,
+			Recursive:   true,
 			args:        []string{"ffmpeg@3.4.13"},
 			expectError: false,
 		},
@@ -136,13 +136,13 @@ func TestUpdateCmd_ArgsValidation(t *testing.T) {
 			update := updateCmd{}
 			cmd := update.Command(configs.NewCeler())
 
-			if err := cmd.Flags().Set("conf-repo", expr.If(test.confRepo, "true", "false")); err != nil {
+			if err := cmd.Flags().Set("conf-repo", expr.If(test.ConfRepo, "true", "false")); err != nil {
 				t.Fatalf("failed to set --conf-repo: %v", err)
 			}
-			if err := cmd.Flags().Set("ports-repo", expr.If(test.portsRepo, "true", "false")); err != nil {
+			if err := cmd.Flags().Set("ports-repo", expr.If(test.PortsRepo, "true", "false")); err != nil {
 				t.Fatalf("failed to set --ports-repo: %v", err)
 			}
-			if err := cmd.Flags().Set("recursive", expr.If(test.recursive, "true", "false")); err != nil {
+			if err := cmd.Flags().Set("recursive", expr.If(test.Recursive, "true", "false")); err != nil {
 				t.Fatalf("failed to set --recursive: %v", err)
 			}
 
@@ -165,7 +165,7 @@ func TestUpdateCmd_Completion(t *testing.T) {
 	celer := configs.NewCeler()
 	check(t, celer.Init())
 
-	updateCmd := updateCmd{celer: celer}
+	updateCmd := updateCmd{Celer: celer}
 	cmd := updateCmd.Command(celer)
 
 	tests := []struct {
@@ -207,7 +207,7 @@ func TestUpdateCmd_Completion(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			suggestions, directive := updateCmd.completion(cmd, []string{}, test.toComplete)
+			suggestions, directive := updateCmd.Completion(cmd, []string{}, test.toComplete)
 
 			if directive != cobra.ShellCompDirectiveNoFileComp {
 				t.Errorf("Expected directive NoFileComp, got %v", directive)
@@ -227,14 +227,14 @@ func TestUpdateCmd_Completion(t *testing.T) {
 		testBuildtree := filepath.Join(dirs.BuildtreesDir, "test-package@1.0.0")
 		check(t, os.MkdirAll(testBuildtree, os.ModePerm))
 
-		suggestions, _ := updateCmd.completion(cmd, []string{}, "test")
+		suggestions, _ := updateCmd.Completion(cmd, []string{}, "test")
 		if found := slices.Contains(suggestions, "test-package@1.0.0"); !found {
 			t.Error("Expected buildtree in suggestions")
 		}
 	})
 
 	t.Run("completion_for_projects", func(t *testing.T) {
-		suggestions, _ := updateCmd.completion(cmd, []string{}, "project")
+		suggestions, _ := updateCmd.Completion(cmd, []string{}, "project")
 
 		// Check if any project suggestions are returned,
 		// The actual projects depend on the test-conf repo.
@@ -254,9 +254,9 @@ func TestUpdateCmd_UpdateConfRepo(t *testing.T) {
 
 	// Create update command
 	updateCmd := updateCmd{
-		celer:    celer,
-		confRepo: true,
-		force:    false,
+		Celer:    celer,
+		ConfRepo: true,
+		Force:    false,
 	}
 
 	// Test updating conf repo
@@ -266,7 +266,7 @@ func TestUpdateCmd_UpdateConfRepo(t *testing.T) {
 	}
 
 	// Update conf repo (without force)
-	if err := updateCmd.updateConfRepo(); err != nil {
+	if err := updateCmd.UpdateConfRepo(); err != nil {
 		// Error is expected if there are local modifications
 		if !strings.Contains(err.Error(), "modified") {
 			t.Fatalf("Unexpected error: %v", err)
@@ -284,9 +284,9 @@ func TestUpdateCmd_UpdateConfRepo_Force(t *testing.T) {
 
 	// Create update command with force
 	updateCmd := updateCmd{
-		celer:    celer,
-		confRepo: true,
-		force:    true,
+		Celer:    celer,
+		ConfRepo: true,
+		Force:    true,
 	}
 
 	// Test updating conf repo with force
@@ -298,7 +298,7 @@ func TestUpdateCmd_UpdateConfRepo_Force(t *testing.T) {
 	check(t, os.WriteFile(filepath.Join(confDir, "hello.txt"), []byte("test"), os.ModePerm))
 
 	// Update conf repo (with force)
-	if err := updateCmd.updateConfRepo(); err != nil {
+	if err := updateCmd.UpdateConfRepo(); err != nil {
 		t.Fatalf("Update with force should succeed: %v", err)
 	}
 }
@@ -313,9 +313,9 @@ func TestUpdateCmd_UpdatePortsRepo(t *testing.T) {
 
 	// Create update command.
 	updateCmd := updateCmd{
-		celer:     celer,
-		portsRepo: true,
-		force:     false,
+		Celer:     celer,
+		PortsRepo: true,
+		Force:     false,
 	}
 
 	// Test updating ports repo.
@@ -325,7 +325,7 @@ func TestUpdateCmd_UpdatePortsRepo(t *testing.T) {
 	}
 
 	// Update ports repo.
-	if err := updateCmd.updatePortsRepo(); err != nil {
+	if err := updateCmd.UpdatePortsRepo(); err != nil {
 		if !strings.Contains(err.Error(), "modified") {
 			t.Fatalf("Unexpected error: %v", err)
 		}
@@ -342,11 +342,11 @@ func TestUpdateCmd_UpdateProjectRepos_NoTargets(t *testing.T) {
 
 	// Create update command.
 	updateCmd := updateCmd{
-		celer: celer,
+		Celer: celer,
 	}
 
 	// Test updating ports with no targets.
-	err := updateCmd.updateProjectRepos([]string{})
+	err := updateCmd.UpdateProjectRepos([]string{})
 	if err == nil {
 		t.Fatal("updatePorts should return error when no targets specified")
 	}
@@ -374,18 +374,18 @@ func TestUpdateCmd_UpdatePortRepo_SrcNotExist(t *testing.T) {
 	nameVersion := "zlib@123.456.789"
 
 	updateCmd := updateCmd{
-		celer:     celer,
-		recursive: false,
-		force:     false,
+		Celer:     celer,
+		Recursive: false,
+		Force:     false,
 	}
 
 	// A port that was never built has no src: updating it is skipped, not an error.
-	if err := updateCmd.updatePortRepo("zlib@1.3.1", make(map[string]bool)); err != nil {
+	if err := updateCmd.UpdatePortRepo("zlib@1.3.1", make(map[string]bool)); err != nil {
 		t.Fatalf("updatePortRepo should skip a port without src, got: %v", err)
 	}
 
 	// A port that does not exist at all is an error.
-	err := updateCmd.updatePortRepo(nameVersion, make(map[string]bool))
+	err := updateCmd.UpdatePortRepo(nameVersion, make(map[string]bool))
 	if err == nil {
 		t.Fatal("updatePortRepo should fail when the port does not exist")
 	}
@@ -422,13 +422,13 @@ func TestUpdateCmd_UpdatePortRepo_NonGitRepo(t *testing.T) {
 		check(t, os.MkdirAll(srcDir, os.ModePerm))
 
 		updateCmd := updateCmd{
-			celer:     celer,
-			recursive: false,
-			force:     false,
+			Celer:     celer,
+			Recursive: false,
+			Force:     false,
 		}
 
 		visited := make(map[string]bool)
-		err := updateCmd.updatePortRepo(nameVersion, visited)
+		err := updateCmd.UpdatePortRepo(nameVersion, visited)
 		if err == nil {
 			t.Fatal("updatePortRepo should return error for non-git repo")
 		}
@@ -462,13 +462,13 @@ func TestUpdateCmd_UpdatePortRepo_CircularDependency(t *testing.T) {
 		visited["test-port@1.0.0"] = true
 
 		updateCmd := updateCmd{
-			celer:     celer,
-			recursive: true,
-			force:     false,
+			Celer:     celer,
+			Recursive: true,
+			Force:     false,
 		}
 
 		// This should return nil immediately due to visited check.
-		if err := updateCmd.updatePortRepo("test-port@1.0.0", visited); err != nil {
+		if err := updateCmd.UpdatePortRepo("test-port@1.0.0", visited); err != nil {
 			// If error occurs, it should not be about circular dependency,
 			// (the visited check should prevent that).
 			t.Logf("Got error (acceptable if not about infinite recursion): %v", err)
@@ -515,12 +515,12 @@ func TestUpdateCmd_UpdatePortRepo_WithGitRepo(t *testing.T) {
 
 	// Test update with force.
 	updateCmd := updateCmd{
-		celer: celer,
-		force: true,
+		Celer: celer,
+		Force: true,
 	}
 
 	visited := make(map[string]bool)
-	updateErr := updateCmd.updatePortRepo(nameVersion, visited)
+	updateErr := updateCmd.UpdatePortRepo(nameVersion, visited)
 	if updateErr != nil {
 		t.Logf("Update returned: %v", updateErr)
 	}
@@ -548,10 +548,10 @@ func TestUpdateCmd_UpdatePorts_BacktickRemoval(t *testing.T) {
 	check(t, celer.SetProject(project))
 
 	// Test that backticks are removed from port names
-	updateCmd := updateCmd{celer: celer}
+	updateCmd := updateCmd{Celer: celer}
 
 	// The port does not exist, which makes the error message carry the port name.
-	err := updateCmd.updateProjectRepos([]string{"`not-exist-lib@1.0.0`"})
+	err := updateCmd.UpdateProjectRepos([]string{"`not-exist-lib@1.0.0`"})
 	if err == nil {
 		t.Fatal("Expected an error for a port that does not exist")
 	}
@@ -572,14 +572,14 @@ func TestUpdateCmd_DoUpdate_ConfRepo(t *testing.T) {
 
 	// Create update command
 	updateCmd := updateCmd{
-		celer:    celer,
-		confRepo: true,
-		force:    true,
+		Celer:    celer,
+		ConfRepo: true,
+		Force:    true,
 	}
 
 	// Note: This test doesn't actually call doUpdate as it would os.Exit
 	// Instead we test the underlying method directly
-	err := updateCmd.updateConfRepo()
+	err := updateCmd.UpdateConfRepo()
 	if err != nil {
 		t.Logf("Update conf repo returned: %v (may be acceptable)", err)
 	}
@@ -595,14 +595,14 @@ func TestUpdateCmd_DoUpdate_PortsRepo(t *testing.T) {
 
 	// Create update command
 	updateCmd := updateCmd{
-		celer:     celer,
-		portsRepo: true,
-		force:     true,
+		Celer:     celer,
+		PortsRepo: true,
+		Force:     true,
 	}
 
 	// Note: This test doesn't actually call doUpdate as it would os.Exit
 	// Instead we test the underlying method directly
-	if err := updateCmd.updatePortsRepo(); err != nil {
+	if err := updateCmd.UpdatePortsRepo(); err != nil {
 		t.Logf("Update ports repo returned: %v (may be acceptable)", err)
 	}
 }

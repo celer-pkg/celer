@@ -15,16 +15,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type removeCmd struct {
-	celer      *configs.Celer
-	dev        bool
+type RemoveCmd struct {
+	Celer      *configs.Celer
+	Dev        bool
 	purge      bool
-	recursive  bool
+	Recursive  bool
 	buildCache bool
 }
 
-func (r *removeCmd) Command(celer *configs.Celer) *cobra.Command {
-	r.celer = celer
+func (r *RemoveCmd) Command(celer *configs.Celer) *cobra.Command {
+	r.Celer = celer
 	command := &cobra.Command{
 		Use:   "remove",
 		Short: "Remove installed packages, optionally with their dependencies, build cache, and package files.",
@@ -42,16 +42,16 @@ Examples:
   celer remove boost@1.87.0 -rpc     # Remove with all cleanup options`,
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return r.execute(args)
+			return r.Execute(args)
 		},
-		ValidArgsFunction: r.completion,
+		ValidArgsFunction: r.Completion,
 	}
 
 	// Register flags.
 	command.Flags().BoolVarP(&r.buildCache, "build-cache", "c", false, "remove build cache along with the package")
-	command.Flags().BoolVarP(&r.recursive, "recursive", "r", false, "remove package dependencies recursively")
+	command.Flags().BoolVarP(&r.Recursive, "recursive", "r", false, "remove package dependencies recursively")
 	command.Flags().BoolVarP(&r.purge, "purge", "p", false, "purge package files completely")
-	command.Flags().BoolVarP(&r.dev, "dev", "d", false, "remove from development dependencies")
+	command.Flags().BoolVarP(&r.Dev, "dev", "d", false, "remove from development dependencies")
 
 	// Silence cobra's error and usage output to avoid duplicate messages.
 	command.SilenceErrors = true
@@ -60,15 +60,15 @@ Examples:
 }
 
 // execute performs the main logic for package removal.
-func (r *removeCmd) execute(args []string) error {
+func (r *RemoveCmd) Execute(args []string) error {
 	// Validate and normalize input arguments first.
-	nameVersions, err := r.validatePackageNames(args)
+	nameVersions, err := r.ValidatePackageNames(args)
 	if err != nil {
 		return fmt.Errorf("invalid package names -> %w", err)
 	}
 
 	// Initialize celer
-	if err := r.celer.Init(); err != nil {
+	if err := r.Celer.Init(); err != nil {
 		return fmt.Errorf("failed to initialize celer -> %w", err)
 	}
 
@@ -82,7 +82,7 @@ func (r *removeCmd) execute(args []string) error {
 	return nil
 }
 
-func (r *removeCmd) validatePackageNames(nameVersions []string) ([]string, error) {
+func (r *RemoveCmd) ValidatePackageNames(nameVersions []string) ([]string, error) {
 	regex := regexp.MustCompile(`^[a-zA-Z0-9_-]+@[a-zA-Z0-9._-]+$`)
 	normalized := make([]string, 0, len(nameVersions))
 
@@ -107,18 +107,18 @@ func (r *removeCmd) validatePackageNames(nameVersions []string) ([]string, error
 }
 
 // removePackages handles the actual package removal.
-func (r *removeCmd) removePackages(nameVersions []string) error {
+func (r *RemoveCmd) removePackages(nameVersions []string) error {
 	removeOptions := configs.RemoveOptions{
 		Purge:      r.purge,
-		Recursive:  r.recursive,
+		Recursive:  r.Recursive,
 		BuildCache: r.buildCache,
 	}
 
 	for _, nameVersion := range nameVersions {
 		var port configs.Port
-		port.DevDep = r.dev
+		port.DevDep = r.Dev
 
-		if err := port.Init(r.celer, nameVersion); err != nil {
+		if err := port.Init(r.Celer, nameVersion); err != nil {
 			return fmt.Errorf("failed to initialize package %s -> %w", nameVersion, err)
 		}
 
@@ -130,11 +130,11 @@ func (r *removeCmd) removePackages(nameVersions []string) error {
 	return nil
 }
 
-func (r *removeCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (r *RemoveCmd) Completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 
 	// Add installed package suggestions.
-	suggestions = append(suggestions, r.getSuggestions(toComplete)...)
+	suggestions = append(suggestions, r.GetSuggestions(toComplete)...)
 
 	// Add flag suggestions.
 	flags := []string{
@@ -165,17 +165,17 @@ func (r *removeCmd) completion(cmd *cobra.Command, args []string, toComplete str
 }
 
 // getSuggestions returns list of installed packages matching the completion prefix.
-func (r *removeCmd) getSuggestions(toComplete string) []string {
+func (r *RemoveCmd) GetSuggestions(toComplete string) []string {
 	// Initialize celer to get current platform/project/buildType configuration.
-	if err := r.celer.Init(); err != nil {
+	if err := r.Celer.Init(); err != nil {
 		return []string{} // Ignore error.
 	}
 
 	// Build the trace directory path for current platform/project/buildType configuration.
 	libraryDir := filepath.Join(
-		r.celer.Platform().GetName(),
-		r.celer.Project().GetName(),
-		r.celer.BuildType(),
+		r.Celer.Platform().GetName(),
+		r.Celer.Project().GetName(),
+		r.Celer.BuildType(),
 	)
 
 	traceDir := filepath.Join(dirs.InstalledDir, "infos", "traces", libraryDir)

@@ -13,15 +13,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type initCmd struct {
-	celer  *configs.Celer
+type InitCmd struct {
+	Celer  *configs.Celer
 	url    string
 	branch string
-	force  bool
+	Force  bool
 }
 
-func (i *initCmd) Command(celer *configs.Celer) *cobra.Command {
-	i.celer = celer
+func (i *InitCmd) Command(celer *configs.Celer) *cobra.Command {
+	i.Celer = celer
 	command := &cobra.Command{
 		Use:   "init",
 		Short: "Init celer with configuration repository.",
@@ -39,13 +39,13 @@ Examples:
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return i.doInit()
 		},
-		ValidArgsFunction: i.completion,
+		ValidArgsFunction: i.Completion,
 	}
 
 	// Register flags.
 	command.Flags().StringVarP(&i.url, "url", "u", "", "URL of the configuration repository")
 	command.Flags().StringVarP(&i.branch, "branch", "b", "", "Branch of the configuration repository (default: repository's default branch)")
-	command.Flags().BoolVarP(&i.force, "force", "f", false, "Force re-initialize even if configuration exists")
+	command.Flags().BoolVarP(&i.Force, "force", "f", false, "Force re-initialize even if configuration exists")
 
 	// Mark url as required.
 	command.MarkFlagRequired("url")
@@ -56,7 +56,7 @@ Examples:
 	return command
 }
 
-func (i *initCmd) doInit() error {
+func (i *InitCmd) doInit() error {
 	i.url = strings.TrimSpace(i.url)
 	i.branch = strings.TrimSpace(i.branch)
 
@@ -68,12 +68,12 @@ func (i *initCmd) doInit() error {
 	dirs.Init(cwd)
 
 	// Initialize celer conf.
-	if err := i.celer.Init(); err != nil {
+	if err := i.Celer.Init(); err != nil {
 		return logger.PrintError(err, "failed to initialize celer.")
 	}
 
 	// Setup conf repository.
-	if err := i.celer.CloneConf(i.url, i.branch, i.force); err != nil {
+	if err := i.Celer.CloneConf(i.url, i.branch, i.Force); err != nil {
 		return logger.PrintError(err, "Failed to setup conf repository.")
 	}
 
@@ -90,7 +90,7 @@ func (i *initCmd) doInit() error {
 	return nil
 }
 
-func (i *initCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (i *InitCmd) Completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 
 	// Provide flag completion

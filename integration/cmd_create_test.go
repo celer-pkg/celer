@@ -1,4 +1,4 @@
-package cmds
+package integration
 
 import (
 	"os"
@@ -98,7 +98,7 @@ func TestCreateCmd_Completion(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			suggestions, directive := createCmd.completion(cmd, []string{}, test.toComplete)
+			suggestions, directive := createCmd.Completion(cmd, []string{}, test.toComplete)
 
 			if directive != cobra.ShellCompDirectiveNoFileComp {
 				t.Errorf("Expected directive %v, got %v", cobra.ShellCompDirectiveNoFileComp, directive)
@@ -142,7 +142,7 @@ func TestCreateCmd_Validation(t *testing.T) {
 
 		for _, test := range tests {
 			t.Run(test.name, func(t *testing.T) {
-				err := createCmd.validatePlatformName(test.input)
+				err := createCmd.ValidatePlatformName(test.input)
 				if test.expectError && err == nil {
 					t.Errorf("Expected error for input '%s' but got none", test.input)
 				} else if !test.expectError && err != nil {
@@ -169,7 +169,7 @@ func TestCreateCmd_Validation(t *testing.T) {
 
 		for _, test := range tests {
 			t.Run(test.name, func(t *testing.T) {
-				err := createCmd.validateProjectName(test.input)
+				err := createCmd.ValidateProjectName(test.input)
 				if test.expectError && err == nil {
 					t.Errorf("Expected error for input '%s' but got none", test.input)
 				} else if !test.expectError && err != nil {
@@ -199,7 +199,7 @@ func TestCreateCmd_Validation(t *testing.T) {
 
 		for _, test := range tests {
 			t.Run(test.name, func(t *testing.T) {
-				err := createCmd.validatePortName(test.input)
+				err := createCmd.ValidatePortName(test.input)
 				if test.expectError && err == nil {
 					t.Errorf("Expected error for input '%s' but got none", test.input)
 				} else if !test.expectError && err != nil {

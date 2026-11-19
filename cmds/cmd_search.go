@@ -14,12 +14,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type searchCmd struct {
-	celer *configs.Celer
+type SearchCmd struct {
+	Celer *configs.Celer
 }
 
-func (s *searchCmd) Command(celer *configs.Celer) *cobra.Command {
-	s.celer = celer
+func (s *SearchCmd) Command(celer *configs.Celer) *cobra.Command {
+	s.Celer = celer
 	command := &cobra.Command{
 		Use:   "search",
 		Short: "Search available ports from ports repository.",
@@ -41,9 +41,9 @@ Examples:
   celer search *ffmpeg*      # Search for all ports containing 'ffmpeg'`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return s.doSearch(args[0])
+			return s.DoSearch(args[0])
 		},
-		ValidArgsFunction: s.completion,
+		ValidArgsFunction: s.Completion,
 	}
 
 	// Silence cobra's error and usage output to avoid duplicate messages.
@@ -52,14 +52,14 @@ Examples:
 	return command
 }
 
-func (s *searchCmd) doSearch(pattern string) error {
+func (s *SearchCmd) DoSearch(pattern string) error {
 	// Initialize celer configuration.
-	if err := s.celer.Init(); err != nil {
+	if err := s.Celer.Init(); err != nil {
 		return logger.PrintError(err, "failed to initialize celer.")
 	}
 
 	// Perform search.
-	libraries, err := s.search(pattern)
+	libraries, err := s.Search(pattern)
 	if err != nil {
 		return logger.PrintError(err, "failed to search available ports.")
 	}
@@ -81,7 +81,7 @@ func (s *searchCmd) doSearch(pattern string) error {
 	return nil
 }
 
-func (s *searchCmd) search(pattern string) ([]string, error) {
+func (s *SearchCmd) Search(pattern string) ([]string, error) {
 	var results []string
 
 	// Helper function to search in a directory.
@@ -139,7 +139,7 @@ func (s *searchCmd) search(pattern string) ([]string, error) {
 	}
 
 	// Search in project-specific ports (only if project is configured).
-	projectName := s.celer.GetProjectName()
+	projectName := s.Celer.GetProjectName()
 	if projectName != "" {
 		projectPortsDir := filepath.Join(dirs.ConfProjectsDir, projectName)
 		if err := searchInDir(projectPortsDir); err != nil {
@@ -150,7 +150,7 @@ func (s *searchCmd) search(pattern string) ([]string, error) {
 	return results, nil
 }
 
-func (s *searchCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (s *SearchCmd) Completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 
 	// Completion from global ports.
@@ -177,7 +177,7 @@ func (s *searchCmd) completion(cmd *cobra.Command, args []string, toComplete str
 	}
 
 	// Completion from project-specific ports.
-	projectName := s.celer.GetProjectName()
+	projectName := s.Celer.GetProjectName()
 	if projectName != "" {
 		projectPortsDir := filepath.Join(dirs.ConfProjectsDir, projectName)
 		if fileio.PathExists(projectPortsDir) {

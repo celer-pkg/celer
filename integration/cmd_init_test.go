@@ -1,4 +1,4 @@
-package cmds
+package integration
 
 import (
 	"os"
@@ -91,7 +91,7 @@ func TestInitCmd_Completion(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			suggestions, directive := initCmd.completion(cmd, []string{}, test.toComplete)
+			suggestions, directive := initCmd.Completion(cmd, []string{}, test.toComplete)
 
 			if directive != cobra.ShellCompDirectiveNoFileComp {
 				t.Errorf("Expected directive %v, got %v", cobra.ShellCompDirectiveNoFileComp, directive)
@@ -199,7 +199,7 @@ func TestInitCmd_Initialize(t *testing.T) {
 		// Re-init from disk should round-trip without error.
 		celer2 := configs.NewCeler()
 		if err := celer2.Init(); err != nil {
-			t.Fatalf("Failed to re-init celer: %v", err)
+			t.Fatalf("Failed to re-init Celer: %v", err)
 		}
 	})
 }

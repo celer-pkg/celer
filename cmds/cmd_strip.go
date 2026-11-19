@@ -7,12 +7,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type stripCmd struct {
-	celer *configs.Celer
+type StripCmd struct {
+	Celer *configs.Celer
 }
 
-func (s *stripCmd) Command(celer *configs.Celer) *cobra.Command {
-	s.celer = celer
+func (s *StripCmd) Command(celer *configs.Celer) *cobra.Command {
+	s.Celer = celer
 	command := cobra.Command{
 		Use:   "strip",
 		Short: "Strip installed target files.",
@@ -36,12 +36,12 @@ Requires toolchain.strip in the platform (e.g. GNU strip or llvm-strip on Window
 	return &command
 }
 
-func (s *stripCmd) strip() error {
-	if err := s.celer.Init(); err != nil {
+func (s *StripCmd) strip() error {
+	if err := s.Celer.Init(); err != nil {
 		return logger.PrintError(err, "failed to initialize celer.")
 	}
 
-	if err := s.celer.Strip(); err != nil {
+	if err := s.Celer.Strip(); err != nil {
 		return logger.PrintError(err, "failed to strip installed files.")
 	}
 

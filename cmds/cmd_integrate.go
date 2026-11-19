@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type integrateCmd struct {
+type IntegrateCmd struct {
 	remove bool
 
 	bashCompletion completion.Completion
@@ -21,9 +21,9 @@ type integrateCmd struct {
 	psCompletion   completion.Completion
 }
 
-var currentShellFn = completion.CurrentShell
+var CurrentShellFn = completion.CurrentShell
 
-func (i *integrateCmd) Command(celer *configs.Celer) *cobra.Command {
+func (i *IntegrateCmd) Command(celer *configs.Celer) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "integrate",
 		Short: "Integrate shell tab completion.",
@@ -38,9 +38,9 @@ Examples:
   celer integrate --remove # Remove tab completion`,
 		Args: cobra.NoArgs,
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
-			return i.execute()
+			return i.Execute()
 		},
-		ValidArgsFunction: i.completion,
+		ValidArgsFunction: i.Completion,
 	}
 
 	// Register flags.
@@ -53,11 +53,11 @@ Examples:
 }
 
 // execute performs the main logic for integration.
-func (i *integrateCmd) execute() error {
-	shell := i.detectShell()
+func (i *IntegrateCmd) Execute() error {
+	shell := i.DetectShell()
 
 	// Validate environment.
-	if err := i.validateEnvironment(shell); err != nil {
+	if err := i.ValidateEnvironment(shell); err != nil {
 		return fmt.Errorf("environment validation failed -> %w", err)
 	}
 
@@ -73,17 +73,17 @@ func (i *integrateCmd) execute() error {
 	return i.handleRegister(shell)
 }
 
-func (i *integrateCmd) detectShell() (shell completion.ShellType) {
+func (i *IntegrateCmd) DetectShell() (shell completion.ShellType) {
 	shell = completion.NotSupported
 	defer func() {
 		if recover() != nil {
 			shell = completion.NotSupported
 		}
 	}()
-	return currentShellFn()
+	return CurrentShellFn()
 }
 
-func (i *integrateCmd) validateEnvironment(shell completion.ShellType) error {
+func (i *IntegrateCmd) ValidateEnvironment(shell completion.ShellType) error {
 	if shell == completion.NotSupported {
 		if runtime.GOOS == "windows" {
 			return fmt.Errorf("unsupported shell environment, on Windows only powershell is supported")
@@ -96,7 +96,7 @@ func (i *integrateCmd) validateEnvironment(shell completion.ShellType) error {
 }
 
 // initializeCompletions sets up completion handlers
-func (i *integrateCmd) initializeCompletions() error {
+func (i *IntegrateCmd) initializeCompletions() error {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return fmt.Errorf("failed to get user home directory -> %w", err)
@@ -109,7 +109,7 @@ func (i *integrateCmd) initializeCompletions() error {
 	return nil
 }
 
-func (i *integrateCmd) handleRegister(shell completion.ShellType) error {
+func (i *IntegrateCmd) handleRegister(shell completion.ShellType) error {
 	if err := i.doRegister(shell); err != nil {
 		return fmt.Errorf("failed to register %s completion -> %w", i.getShellName(shell), err)
 	}
@@ -118,7 +118,7 @@ func (i *integrateCmd) handleRegister(shell completion.ShellType) error {
 	return nil
 }
 
-func (i *integrateCmd) handleUnregister(shell completion.ShellType) error {
+func (i *IntegrateCmd) handleUnregister(shell completion.ShellType) error {
 	if err := i.doUnregister(shell); err != nil {
 		return fmt.Errorf("failed to unregister %s completion -> %w", i.getShellName(shell), err)
 	}
@@ -127,7 +127,7 @@ func (i *integrateCmd) handleUnregister(shell completion.ShellType) error {
 	return nil
 }
 
-func (i *integrateCmd) getShellName(shell completion.ShellType) string {
+func (i *IntegrateCmd) getShellName(shell completion.ShellType) string {
 	switch shell {
 	case completion.BashShell:
 		return "bash"
@@ -140,7 +140,7 @@ func (i *integrateCmd) getShellName(shell completion.ShellType) string {
 	}
 }
 
-func (i *integrateCmd) doUnregister(shell completion.ShellType) error {
+func (i *IntegrateCmd) doUnregister(shell completion.ShellType) error {
 	switch shell {
 	case completion.BashShell:
 		return i.bashCompletion.Unregister()
@@ -153,7 +153,7 @@ func (i *integrateCmd) doUnregister(shell completion.ShellType) error {
 	}
 }
 
-func (i *integrateCmd) doRegister(shell completion.ShellType) error {
+func (i *IntegrateCmd) doRegister(shell completion.ShellType) error {
 	switch shell {
 	case completion.BashShell:
 		return i.bashCompletion.Register()
@@ -166,7 +166,7 @@ func (i *integrateCmd) doRegister(shell completion.ShellType) error {
 	}
 }
 
-func (i *integrateCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (i *IntegrateCmd) Completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 	for _, flag := range []string{"--remove"} {
 		if strings.HasPrefix(flag, toComplete) {

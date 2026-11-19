@@ -1,6 +1,6 @@
 //go:build linux && amd64 && test_gcc
 
-package cmds
+package integration
 
 import (
 	"fmt"

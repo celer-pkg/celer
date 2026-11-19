@@ -1,4 +1,4 @@
-package cmds
+package integration
 
 import (
 	"fmt"
@@ -68,8 +68,8 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 		"gflags@2.2.2",
 		"x264@stable",
 	}
-	if !equals(expectedPackages, cmd.packages) {
-		t.Fatalf("expected %v, got %v", expectedPackages, cmd.packages)
+	if !equals(expectedPackages, cmd.Packages) {
+		t.Fatalf("expected %v, got %v", expectedPackages, cmd.Packages)
 	}
 
 	// Check dev packages.
@@ -86,8 +86,8 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 			"libtool@2.5.4",
 		}
 	}
-	if !equals(expectedDevPackages, cmd.devPackages) {
-		t.Fatalf("expected %v, got %v", expectedDevPackages, cmd.devPackages)
+	if !equals(expectedDevPackages, cmd.DevPackages) {
+		t.Fatalf("expected %v, got %v", expectedDevPackages, cmd.DevPackages)
 	}
 
 	if fileio.PathExists(packageDir) {
@@ -154,7 +154,7 @@ func TestAutoRemove_With_BuildCache(t *testing.T) {
 	if _, err := runCommand(t, cmd1.Command(celer), "--build-cache"); err != nil {
 		t.Fatal(err)
 	}
-	if err := validatePackages(cmd1.packages, cmd1.devPackages); err != nil {
+	if err := validatePackages(cmd1.Packages, cmd1.DevPackages); err != nil {
 		t.Fatal(err)
 	}
 

@@ -1,6 +1,6 @@
 //go:build windows && amd64 && test_clang_cl
 
-package cmds
+package integration
 
 import (
 	"os"
@@ -51,10 +51,10 @@ func buildWithAMD64ClangCL(t *testing.T, platform, nameVersion string, nobuild b
 	// Init celer
 	const project = testProjectName
 	celer := newTestCeler(t, platform, testProject)
-	check(t,celer.SetBuildType("Release"))
-	check(t,celer.SetProject(project))
+	check(t, celer.SetBuildType("Release"))
+	check(t, celer.SetProject(project))
 	if platform != "" {
-		check(t,celer.SetPlatform(platform))
+		check(t, celer.SetPlatform(platform))
 	} else {
 		platform = celer.Platform().GetHostName()
 	}
@@ -64,14 +64,14 @@ func buildWithAMD64ClangCL(t *testing.T, platform, nameVersion string, nobuild b
 		options = configs.InstallOptions{Prefer: configs.PreferSource}
 	)
 
-	check(t,port.Init(celer, nameVersion))
+	check(t, port.Init(celer, nameVersion))
 	if _, err := port.Install(options); err != nil {
 		t.Fatal(err)
 	}
 
 	// Check if installed.
 	installed, err := port.Installed()
-	check(t,err)
+	check(t, err)
 	if !installed {
 		t.Fatal("package is not installed")
 	}
@@ -94,5 +94,5 @@ func buildWithAMD64ClangCL(t *testing.T, platform, nameVersion string, nobuild b
 		Recursive:  true,
 		BuildCache: true,
 	}
-	check(t,port.Remove(removeOptions))
+	check(t, port.Remove(removeOptions))
 }

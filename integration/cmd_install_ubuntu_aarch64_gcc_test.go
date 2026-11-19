@@ -1,6 +1,6 @@
 //go:build linux && amd64 && test_aarch64_gcc
 
-package cmds
+package integration
 
 import (
 	"path/filepath"

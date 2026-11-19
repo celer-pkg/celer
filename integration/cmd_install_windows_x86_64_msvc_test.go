@@ -1,6 +1,6 @@
 //go:build windows && amd64 && test_msvc
 
-package cmds
+package integration
 
 import (
 	"os"

@@ -1,4 +1,4 @@
-package cmds
+package integration
 
 import (
 	"os"
@@ -49,8 +49,8 @@ func TestSearchCmd_Search_ExactMatch(t *testing.T) {
 	check(t, celer.SetBuildType("Release"))
 
 	// Test exact match search.
-	searchCmd := searchCmd{celer: celer}
-	results, err := searchCmd.search("zlib@1.3.1")
+	searchCmd := searchCmd{Celer: celer}
+	results, err := searchCmd.Search("zlib@1.3.1")
 	if err != nil {
 		t.Fatalf("Search failed: %v", err)
 	}
@@ -76,8 +76,8 @@ func TestSearchCmd_Search_PrefixMatch(t *testing.T) {
 	check(t, celer.SetBuildType("Release"))
 
 	// Test prefix match search.
-	searchCmd := searchCmd{celer: celer}
-	results, err := searchCmd.search("zlib*")
+	searchCmd := searchCmd{Celer: celer}
+	results, err := searchCmd.Search("zlib*")
 	if err != nil {
 		t.Fatalf("Search failed: %v", err)
 	}
@@ -99,10 +99,10 @@ func TestSearchCmd_Search_SuffixMatch(t *testing.T) {
 	check(t, celer.SetBuildType("Release"))
 
 	// Create search command.
-	searchCmd := searchCmd{celer: celer}
+	searchCmd := searchCmd{Celer: celer}
 
 	// Test suffix match search.
-	results, err := searchCmd.search("*@1.3.1")
+	results, err := searchCmd.Search("*@1.3.1")
 	if err != nil {
 		t.Fatalf("Search failed: %v", err)
 	}
@@ -124,10 +124,10 @@ func TestSearchCmd_Search_ContainsMatch(t *testing.T) {
 	check(t, celer.SetBuildType("Release"))
 
 	// Create search command.
-	searchCmd := searchCmd{celer: celer}
+	searchCmd := searchCmd{Celer: celer}
 
 	// Test contains match search.
-	results, err := searchCmd.search("*lib*")
+	results, err := searchCmd.Search("*lib*")
 	if err != nil {
 		t.Fatalf("Search failed: %v", err)
 	}
@@ -149,10 +149,10 @@ func TestSearchCmd_Search_NoMatch(t *testing.T) {
 	check(t, celer.SetBuildType("Release"))
 
 	// Create search command.
-	searchCmd := searchCmd{celer: celer}
+	searchCmd := searchCmd{Celer: celer}
 
 	// Test search with no matches.
-	results, err := searchCmd.search("nonexistent-package@99.99.99")
+	results, err := searchCmd.Search("nonexistent-package@99.99.99")
 	if err != nil {
 		t.Fatalf("Search failed: %v", err)
 	}
@@ -175,10 +175,10 @@ func TestSearchCmd_Search_PortsDirNotExist(t *testing.T) {
 	swapPortsDir(t, false)
 
 	// Create search command.
-	searchCmd := searchCmd{celer: celer}
+	searchCmd := searchCmd{Celer: celer}
 
 	// Test search when ports directory doesn't exist.
-	results, err := searchCmd.search("zlib*")
+	results, err := searchCmd.Search("zlib*")
 	if err != nil {
 		t.Fatalf("Search should not fail when ports dir doesn't exist: %v", err)
 	}
@@ -205,10 +205,10 @@ func TestSearchCmd_Search_ProjectSpecificPorts(t *testing.T) {
 	check(t, os.WriteFile(portTomlPath, []byte("[package]\nname = \"testlib\"\nversion = \"1.0.0\"\n"), 0644))
 
 	// Create search command.
-	searchCmd := searchCmd{celer: celer}
+	searchCmd := searchCmd{Celer: celer}
 
 	// Test search for project-specific port.
-	results, err := searchCmd.search("testlib*")
+	results, err := searchCmd.Search("testlib*")
 	if err != nil {
 		t.Fatalf("Search failed: %v", err)
 	}
@@ -235,10 +235,10 @@ func TestSearchCmd_Search_InvalidWildcard(t *testing.T) {
 	check(t, celer.SetBuildType("Release"))
 
 	// Create search command.
-	searchCmd := searchCmd{celer: celer}
+	searchCmd := searchCmd{Celer: celer}
 
 	// Test search with invalid wildcard pattern (more than 2 wildcards).
-	results, err := searchCmd.search("*zlib*@*")
+	results, err := searchCmd.Search("*zlib*@*")
 	if err != nil {
 		t.Fatalf("Search failed: %v", err)
 	}
@@ -257,11 +257,11 @@ func TestSearchCmd_Completion(t *testing.T) {
 	celer := newTestCeler(t, "", testProject)
 	check(t, celer.SetBuildType("Release"))
 
-	searchCmd := searchCmd{celer: celer}
+	searchCmd := searchCmd{Celer: celer}
 	cmd := searchCmd.Command(celer)
 
 	t.Run("completion for ports", func(t *testing.T) {
-		suggestions, directive := searchCmd.completion(cmd, []string{}, "zlib")
+		suggestions, directive := searchCmd.Completion(cmd, []string{}, "zlib")
 		if directive != cobra.ShellCompDirectiveNoFileComp {
 			t.Errorf("Expected directive NoFileComp, got %v", directive)
 		}
@@ -277,7 +277,7 @@ func TestSearchCmd_Completion(t *testing.T) {
 	})
 
 	t.Run("completion with empty prefix", func(t *testing.T) {
-		suggestions, _ := searchCmd.completion(cmd, []string{}, "")
+		suggestions, _ := searchCmd.Completion(cmd, []string{}, "")
 
 		// Should return all available ports.
 		if len(suggestions) == 0 {
@@ -296,7 +296,7 @@ func TestSearchCmd_Completion(t *testing.T) {
 		portTomlPath := filepath.Join(projectPortDir, "port.toml")
 		check(t, os.WriteFile(portTomlPath, []byte("[package]\nname = \"mylib\"\nversion = \"2.0.0\"\n"), 0644))
 
-		suggestions, _ := searchCmd.completion(cmd, []string{}, "mylib")
+		suggestions, _ := searchCmd.Completion(cmd, []string{}, "mylib")
 
 		// Should find the project-specific port.
 		found := slices.Contains(suggestions, "mylib@2.0.0")
@@ -314,11 +314,11 @@ func TestSearchCmd_Completion_ErrorHandling(t *testing.T) {
 	celer := configs.NewCeler()
 	check(t, celer.Init())
 
-	searchCmd := searchCmd{celer: celer}
+	searchCmd := searchCmd{Celer: celer}
 	cmd := searchCmd.Command(celer)
 
 	// Test completion when ports directory doesn't exist.
-	suggestions, directive := searchCmd.completion(cmd, []string{}, "test")
+	suggestions, directive := searchCmd.Completion(cmd, []string{}, "test")
 
 	// Should not panic and should return valid directive.
 	if directive != cobra.ShellCompDirectiveNoFileComp {
@@ -340,11 +340,11 @@ func TestSearchCmd_DoSearch_Integration(t *testing.T) {
 	check(t, celer.SetBuildType("Release"))
 
 	// Create search command.
-	searchCmd := searchCmd{celer: celer}
+	searchCmd := searchCmd{Celer: celer}
 
 	// Test doSearch method (integration test).
 	// This should not panic or exit.
-	searchCmd.doSearch("zlib*")
+	searchCmd.DoSearch("zlib*")
 
 	// If we reach here, doSearch completed without fatal errors
 }
@@ -373,10 +373,10 @@ func TestSearchCmd_Search_DuplicateResults(t *testing.T) {
 	check(t, os.WriteFile(filepath.Join(projectPortDir, "port.toml"), portContent, 0644))
 
 	// Create search command.
-	searchCmd := searchCmd{celer: celer}
+	searchCmd := searchCmd{Celer: celer}
 
 	// Test search
-	results, err := searchCmd.search("duplib*")
+	results, err := searchCmd.Search("duplib*")
 	if err != nil {
 		t.Fatalf("Search failed: %v", err)
 	}
@@ -409,10 +409,10 @@ func TestSearchCmd_Search_EmptyPortsDir(t *testing.T) {
 	swapPortsDir(t, true)
 
 	// Create search command.
-	searchCmd := searchCmd{celer: celer}
+	searchCmd := searchCmd{Celer: celer}
 
 	// Test search in empty directory.
-	results, err := searchCmd.search("*")
+	results, err := searchCmd.Search("*")
 	if err != nil {
 		t.Fatalf("Search should not fail with empty ports dir: %v", err)
 	}
@@ -431,7 +431,7 @@ func TestSearchCmd_Search_SpecialCharacters(t *testing.T) {
 	check(t, celer.SetBuildType("Release"))
 
 	// Create search command.
-	searchCmd := searchCmd{celer: celer}
+	searchCmd := searchCmd{Celer: celer}
 
 	// Test search with various special characters.
 	testPatterns := []string{
@@ -442,7 +442,7 @@ func TestSearchCmd_Search_SpecialCharacters(t *testing.T) {
 	}
 
 	for _, pattern := range testPatterns {
-		_, err := searchCmd.search(pattern)
+		_, err := searchCmd.Search(pattern)
 		if err != nil {
 			t.Errorf("Search with pattern '%s' should not fail: %v", pattern, err)
 		}

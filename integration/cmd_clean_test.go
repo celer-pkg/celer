@@ -1,4 +1,4 @@
-package cmds
+package integration
 
 import (
 	"fmt"
@@ -163,7 +163,7 @@ func TestCleanCmd_ValidateTargets(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			cleanCmd := cleanCmd{}
-			err := cleanCmd.validateTargets(test.targets)
+			err := cleanCmd.ValidateTargets(test.targets)
 
 			if test.expectError && err == nil {
 				t.Error("Expected error but got none")
@@ -238,7 +238,7 @@ func TestCleanCmd_Completion(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			suggestions, directive := cleanCmd.completion(cmd, []string{}, test.toComplete)
+			suggestions, directive := cleanCmd.Completion(cmd, []string{}, test.toComplete)
 
 			if directive != cobra.ShellCompDirectiveNoFileComp {
 				t.Errorf("Expected directive %v, got %v", cobra.ShellCompDirectiveNoFileComp, directive)
@@ -289,7 +289,7 @@ func TestCleanCmd_Completion_FilterAndShortFlags(t *testing.T) {
 	cmd := clean.Command(configs.NewCeler())
 
 	t.Run("short recursive flag", func(t *testing.T) {
-		suggestions, _ := clean.completion(cmd, nil, "-r")
+		suggestions, _ := clean.Completion(cmd, nil, "-r")
 		found := slices.Contains(suggestions, "-r")
 		if !found {
 			t.Fatalf("expected -r in suggestions: %v", suggestions)
@@ -297,7 +297,7 @@ func TestCleanCmd_Completion_FilterAndShortFlags(t *testing.T) {
 	})
 
 	t.Run("short all flag", func(t *testing.T) {
-		suggestions, _ := clean.completion(cmd, nil, "-a")
+		suggestions, _ := clean.Completion(cmd, nil, "-a")
 		found := slices.Contains(suggestions, "-a")
 		if !found {
 			t.Fatalf("expected -a in suggestions: %v", suggestions)
@@ -305,7 +305,7 @@ func TestCleanCmd_Completion_FilterAndShortFlags(t *testing.T) {
 	})
 
 	t.Run("ignore non toml project files", func(t *testing.T) {
-		suggestions, _ := clean.completion(cmd, nil, "R")
+		suggestions, _ := clean.Completion(cmd, nil, "R")
 		for _, suggestion := range suggestions {
 			if suggestion == "README" {
 				t.Fatalf("README should not be suggested: %v", suggestions)
@@ -318,8 +318,8 @@ func TestCleanCmd_CleanAll_BuildtreesNotExist(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	clean := cleanCmd{celer: &configs.Celer{}}
-	if err := clean.cleanAll(); err != nil {
+	clean := cleanCmd{Celer: &configs.Celer{}}
+	if err := clean.CleanAll(); err != nil {
 		t.Fatalf("cleanAll should return nil when buildtrees does not exist: %v", err)
 	}
 }
@@ -337,8 +337,8 @@ func TestCleanCmd_CleanAll_NonDirEntryReturnsError(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	clean := cleanCmd{celer: &configs.Celer{}}
-	if err := clean.cleanAll(); err == nil {
+	clean := cleanCmd{Celer: &configs.Celer{}}
+	if err := clean.CleanAll(); err == nil {
 		t.Fatal("cleanAll should return error for non-directory entry in buildtrees")
 	}
 }
@@ -358,8 +358,8 @@ func TestCleanCmd_CleanAll_PortNotFound_RemovesNonSrcAndKeepsSrc(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	clean := cleanCmd{celer: &configs.Celer{}}
-	if err := clean.cleanAll(); err != nil {
+	clean := cleanCmd{Celer: &configs.Celer{}}
+	if err := clean.CleanAll(); err != nil {
 		t.Fatalf("cleanAll should continue when port is not found: %v", err)
 	}
 

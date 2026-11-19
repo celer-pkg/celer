@@ -17,8 +17,8 @@ import (
 	"github.com/spf13/pflag"
 )
 
-type configureCmd struct {
-	celer     *configs.Celer
+type ConfigureCmd struct {
+	Celer     *configs.Celer
 	platform  string
 	project   string
 	buildType string
@@ -69,8 +69,8 @@ var flagGroup = map[string]string{
 	"port-ref":                     "port",
 }
 
-func (c *configureCmd) Command(celer *configs.Celer) *cobra.Command {
-	c.celer = celer
+func (c *ConfigureCmd) Command(celer *configs.Celer) *cobra.Command {
+	c.Celer = celer
 	command := &cobra.Command{
 		Use:   "configure",
 		Short: "Configure settings for your workspace.",
@@ -173,7 +173,7 @@ Examples:
 				flags.Changed("pkgcache-keep-artifact-count") {
 				initOpt.SkipPkgCache = true
 			}
-			if err := c.celer.InitWithOptions(initOpt); err != nil {
+			if err := c.Celer.InitWithOptions(initOpt); err != nil {
 				return fmt.Errorf("failed to init celer -> %w", err)
 			}
 
@@ -216,7 +216,7 @@ Examples:
 
 			return nil
 		},
-		ValidArgsFunction: c.completion,
+		ValidArgsFunction: c.Completion,
 	}
 
 	// Register flags.
@@ -280,7 +280,7 @@ Examples:
 	return command
 }
 
-func (c configureCmd) checkIfInitialized() error {
+func (c ConfigureCmd) checkIfInitialized() error {
 	if !fileio.PathExists(filepath.Join(dirs.WorkspaceDir, "celer.toml")) {
 		return fmt.Errorf("celer.toml not found")
 	}
@@ -290,53 +290,53 @@ func (c configureCmd) checkIfInitialized() error {
 	return nil
 }
 
-func (c *configureCmd) configureMain(flags *pflag.FlagSet) error {
+func (c *ConfigureCmd) configureMain(flags *pflag.FlagSet) error {
 	// Project is applied first: it may set the default target platform,
 	// and an explicit --platform must win over it.
 	if flags.Changed("project") {
-		if err := c.celer.SetProject(c.project); err != nil {
+		if err := c.Celer.SetProject(c.project); err != nil {
 			return logger.PrintError(err, "failed to configure project: %s", c.project)
 		}
 		logger.PrintSuccess("current project: %s", c.project)
 	}
 
 	if flags.Changed("platform") {
-		if err := c.celer.SetPlatform(c.platform); err != nil {
+		if err := c.Celer.SetPlatform(c.platform); err != nil {
 			return logger.PrintError(err, "failed to configure platform.")
 		}
 		logger.PrintSuccess("current platform: %s", c.platform)
 	}
 
 	if flags.Changed("build-type") {
-		if err := c.celer.SetBuildType(c.buildType); err != nil {
+		if err := c.Celer.SetBuildType(c.buildType); err != nil {
 			return logger.PrintError(err, "failed to configure build type: %s", c.buildType)
 		}
 		logger.PrintSuccess("current build type: %s", c.buildType)
 	}
 
 	if flags.Changed("downloads") {
-		if err := c.celer.SetDownloads(c.downloads); err != nil {
+		if err := c.Celer.SetDownloads(c.downloads); err != nil {
 			return logger.PrintError(err, "failed to configure downloads: %s", c.downloads)
 		}
 		logger.PrintSuccess("current downloads: %s", c.downloads)
 	}
 
 	if flags.Changed("jobs") {
-		if err := c.celer.SetJobs(c.jobs); err != nil {
+		if err := c.Celer.SetJobs(c.jobs); err != nil {
 			return logger.PrintError(err, "failed to configure job num: %d.", c.jobs)
 		}
 		logger.PrintSuccess("current job num: %d.", c.jobs)
 	}
 
 	if flags.Changed("offline") {
-		if err := c.celer.SetOffline(c.offline); err != nil {
+		if err := c.Celer.SetOffline(c.offline); err != nil {
 			return logger.PrintError(err, "failed to configure offline mode: %s", expr.If(c.offline, "true", "false"))
 		}
 		logger.PrintSuccess("current offline mode: %s", expr.If(c.offline, "true", "false"))
 	}
 
 	if flags.Changed("verbose") {
-		if err := c.celer.SetVerbose(c.verbose); err != nil {
+		if err := c.Celer.SetVerbose(c.verbose); err != nil {
 			return logger.PrintError(err, "failed to configure verbose mode: %s", expr.If(c.verbose, "true", "false"))
 		}
 		logger.PrintSuccess("current verbose mode: %s", expr.If(c.verbose, "true", "false"))
@@ -345,37 +345,37 @@ func (c *configureCmd) configureMain(flags *pflag.FlagSet) error {
 	return nil
 }
 
-func (c *configureCmd) configureCCache(flags *pflag.FlagSet) error {
+func (c *ConfigureCmd) configureCCache(flags *pflag.FlagSet) error {
 	if flags.Changed("ccache-enabled") {
-		if err := c.celer.SetCCacheEnabled(c.ccache.Enabled); err != nil {
+		if err := c.Celer.SetCCacheEnabled(c.ccache.Enabled); err != nil {
 			return logger.PrintError(err, "failed to update ccache enabled.")
 		}
 		logger.PrintSuccess("current ccache enabled: %s", expr.If(c.ccache.Enabled, "true", "false"))
 	}
 
 	if flags.Changed("ccache-dir") {
-		if err := c.celer.SetCCacheDir(c.ccache.Dir); err != nil {
+		if err := c.Celer.SetCCacheDir(c.ccache.Dir); err != nil {
 			return logger.PrintError(err, "failed to update ccache dir.")
 		}
 		logger.PrintSuccess("current ccache dir: %s", c.ccache.Dir)
 	}
 
 	if flags.Changed("ccache-maxsize") {
-		if err := c.celer.SetCCacheMaxSize(c.ccache.MaxSize); err != nil {
+		if err := c.Celer.SetCCacheMaxSize(c.ccache.MaxSize); err != nil {
 			return logger.PrintError(err, "failed to update ccache.maxsize.")
 		}
 		logger.PrintSuccess("current ccache maxsize: %s", c.ccache.MaxSize)
 	}
 
 	if flags.Changed("ccache-remote-storage") {
-		if err := c.celer.SetCCacheRemoteStorage(c.ccache.RemoteStorage); err != nil {
+		if err := c.Celer.SetCCacheRemoteStorage(c.ccache.RemoteStorage); err != nil {
 			return logger.PrintError(err, "failed to update ccache.remote_storage.")
 		}
 		logger.PrintSuccess("current ccache remote storage: %s", c.ccache.RemoteStorage)
 	}
 
 	if flags.Changed("ccache-remote-only") {
-		if err := c.celer.SetCCacheRemoteOnly(c.ccache.RemoteOnly); err != nil {
+		if err := c.Celer.SetCCacheRemoteOnly(c.ccache.RemoteOnly); err != nil {
 			return logger.PrintError(err, "failed to update ccache.remote_only.")
 		}
 		logger.PrintSuccess("current ccache remote only: %s", expr.If(c.ccache.RemoteOnly, "true", "false"))
@@ -384,22 +384,22 @@ func (c *configureCmd) configureCCache(flags *pflag.FlagSet) error {
 	return nil
 }
 
-func (c *configureCmd) configureProxy(flags *pflag.FlagSet) error {
+func (c *ConfigureCmd) configureProxy(flags *pflag.FlagSet) error {
 	if flags.Changed("proxy-remove") {
-		if err := c.celer.RemoveProxy(); err != nil {
+		if err := c.Celer.RemoveProxy(); err != nil {
 			return err
 		}
 		logger.PrintSuccess("http/https proxy is removed")
 	} else {
 		if flags.Changed("proxy-host") {
-			if err := c.celer.SetProxyHost(c.proxy.Host); err != nil {
+			if err := c.Celer.SetProxyHost(c.proxy.Host); err != nil {
 				return logger.PrintError(err, "failed to configure proxy host: %s", c.proxy.Host)
 			}
 			logger.PrintSuccess("current proxy host: %s", c.proxy.Host)
 		}
 
 		if flags.Changed("proxy-port") {
-			if err := c.celer.SetProxyPort(c.proxy.Port); err != nil {
+			if err := c.Celer.SetProxyPort(c.proxy.Port); err != nil {
 				return logger.PrintError(err, "failed to configure proxy port: %d.", c.proxy.Port)
 			}
 			logger.PrintSuccess("current proxy port: %d.", c.proxy.Port)
@@ -409,10 +409,10 @@ func (c *configureCmd) configureProxy(flags *pflag.FlagSet) error {
 	return nil
 }
 
-func (c *configureCmd) configurePkgCache(flags *pflag.FlagSet) error {
+func (c *ConfigureCmd) configurePkgCache(flags *pflag.FlagSet) error {
 	// fs backend.
 	if flags.Changed("pkgcache-fs-dir") {
-		if err := c.celer.SetPkgCacheFSDir(c.pkgCacheFS.Dir); err != nil {
+		if err := c.Celer.SetPkgCacheFSDir(c.pkgCacheFS.Dir); err != nil {
 			return logger.PrintError(err, "failed to configure pkgcache.fs dir: %s", c.pkgCacheFS.Dir)
 		}
 		logger.PrintSuccess("current pkgcache.fs dir: %s.", expr.If(c.pkgCacheFS.Dir != "", c.pkgCacheFS.Dir, "empty"))
@@ -421,7 +421,7 @@ func (c *configureCmd) configurePkgCache(flags *pflag.FlagSet) error {
 	// minio backend. Empty values keep the current host/keys, so a single
 	// flag can rotate them alone.
 	if flags.Changed("pkgcache-minio-host") || flags.Changed("pkgcache-minio-access-key") || flags.Changed("pkgcache-minio-secret-key") {
-		if err := c.celer.SetPkgCacheMinio(c.pkgCacheMinio.Host, c.pkgCacheMinio.AccessKey, c.pkgCacheMinio.SecretKey); err != nil {
+		if err := c.Celer.SetPkgCacheMinio(c.pkgCacheMinio.Host, c.pkgCacheMinio.AccessKey, c.pkgCacheMinio.SecretKey); err != nil {
 			return logger.PrintError(err, "failed to configure pkgcache.minio: %s", c.pkgCacheMinio.Host)
 		}
 		logger.PrintSuccess("current pkgcache.minio host: %s.", expr.If(c.pkgCacheMinio.Host != "", c.pkgCacheMinio.Host, "unchanged"))
@@ -429,7 +429,7 @@ func (c *configureCmd) configurePkgCache(flags *pflag.FlagSet) error {
 
 	// The write switch lives on [pkgcache] itself, not on a backend.
 	if flags.Changed("pkgcache-readonly") {
-		if err := c.celer.SetPkgCacheReadOnly(c.pkgCacheReadOnly); err != nil {
+		if err := c.Celer.SetPkgCacheReadOnly(c.pkgCacheReadOnly); err != nil {
 			return logger.PrintError(err, "failed to configure pkgcache readonly: %s", expr.If(c.pkgCacheReadOnly, "true", "false"))
 		}
 		logger.PrintSuccess("current pkgcache readonly: %s.", expr.If(c.pkgCacheReadOnly, "true", "false"))
@@ -437,7 +437,7 @@ func (c *configureCmd) configurePkgCache(flags *pflag.FlagSet) error {
 
 	// The retention policy also lives on [pkgcache] itself: 0 disables pruning.
 	if flags.Changed("pkgcache-keep-artifact-count") {
-		if err := c.celer.SetPkgCacheKeepArtifactCount(c.pkgCacheKeepArtifactCount); err != nil {
+		if err := c.Celer.SetPkgCacheKeepArtifactCount(c.pkgCacheKeepArtifactCount); err != nil {
 			return logger.PrintError(err, "failed to configure pkgcache keep_artifact_count: %d", c.pkgCacheKeepArtifactCount)
 		}
 		logger.PrintSuccess("current pkgcache keep_artifact_count: %s.", expr.If(c.pkgCacheKeepArtifactCount > 0, fmt.Sprintf("%d", c.pkgCacheKeepArtifactCount), "disabled"))
@@ -446,7 +446,7 @@ func (c *configureCmd) configurePkgCache(flags *pflag.FlagSet) error {
 	return nil
 }
 
-func (c *configureCmd) configurePort(flags *pflag.FlagSet) error {
+func (c *ConfigureCmd) configurePort(flags *pflag.FlagSet) error {
 	if !flags.Changed("port") {
 		return nil
 	}
@@ -460,7 +460,7 @@ func (c *configureCmd) configurePort(flags *pflag.FlagSet) error {
 
 	// Init port and update it with url and ref.
 	var port configs.Port
-	if err := port.Init(c.celer, c.port); err != nil {
+	if err := port.Init(c.Celer, c.port); err != nil {
 		return err
 	}
 	portPath, err := port.Update(c.portUrl, c.portRef)
@@ -486,7 +486,7 @@ func (c *configureCmd) configurePort(flags *pflag.FlagSet) error {
 	return nil
 }
 
-func (c *configureCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (c *ConfigureCmd) Completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	commands := []string{
 		"--platform",
 		"--project",

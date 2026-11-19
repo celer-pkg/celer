@@ -1,4 +1,4 @@
-package cmds
+package integration
 
 import (
 	"fmt"
@@ -101,8 +101,8 @@ func TestDeployCmd_ArgsValidation(t *testing.T) {
 				t.Fatalf("expected args validation success, got: %v", err)
 			}
 
-			if test.expectedSnapshotPath != "" && deploy.snapshotPath != test.expectedSnapshotPath {
-				t.Fatalf("expected cleaned snapshot path %s, got %s", test.expectedSnapshotPath, deploy.snapshotPath)
+			if test.expectedSnapshotPath != "" && deploy.SnapshotPath != test.expectedSnapshotPath {
+				t.Fatalf("expected cleaned snapshot path %s, got %s", test.expectedSnapshotPath, deploy.SnapshotPath)
 			}
 		})
 	}
@@ -138,7 +138,7 @@ func TestDeployCmd_Completion(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			suggestions, directive := deploy.completion(cmd, []string{}, test.toComplete)
+			suggestions, directive := deploy.Completion(cmd, []string{}, test.toComplete)
 
 			if directive != cobra.ShellCompDirectiveNoFileComp {
 				t.Fatalf("expected directive %v, got %v", cobra.ShellCompDirectiveNoFileComp, directive)

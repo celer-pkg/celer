@@ -1,6 +1,6 @@
 //go:build windows && amd64 && test_clang_cl
 
-package cmds
+package integration
 
 import (
 	"path/filepath"

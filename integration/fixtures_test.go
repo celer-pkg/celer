@@ -1,4 +1,7 @@
-package cmds
+// The workspace fixture of the integration tests: a materialized conf checkout,
+// the test project, and the helpers that run a command and inspect what it
+// prints.
+package integration
 
 import (
 	"embed"
@@ -14,16 +17,20 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/celer-pkg/celer/buildtools"
+	"github.com/celer-pkg/celer/cmds"
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/spf13/cobra"
 )
 
 const (
-	testProjectName   = "test_project"
+	// testProjectName is the project the tests build against.
+	testProjectName = "test_project"
+
 	testPortsBaseline = "master"
 )
 
+// testProject is the project the tests build against.
 var testProject = configs.Project{
 	Name:          testProjectName,
 	PortsBaseline: testPortsBaseline,
@@ -32,6 +39,8 @@ var testProject = configs.Project{
 //go:embed testdata/conf
 var confFS embed.FS
 
+// newTestCeler prepares a clean workspace for one test and returns an initialized
+// celer for it.
 func newTestCeler(t *testing.T, platform string, project configs.Project) *configs.Celer {
 	t.Helper()
 	dirs.RemoveAllForTest()
@@ -173,6 +182,7 @@ func writeTestProject(t *testing.T, project configs.Project) {
 	}
 }
 
+// hostTestPlatform returns the platform the host toolchain is detected as.
 func hostTestPlatform() string {
 	if runtime.GOOS == "windows" {
 		return "x86_64-windows-clang-22.1.8"
@@ -180,6 +190,7 @@ func hostTestPlatform() string {
 	return "x86_64-linux-ubuntu-22.04-gcc-11.5.0"
 }
 
+// buildTestPlatform returns the platform the tests build for on this host.
 func buildTestPlatform() string {
 	switch runtime.GOOS {
 	case "windows":
@@ -239,9 +250,37 @@ func equals(list1, list2 []string) bool {
 	return true
 }
 
+// check fails the test when err is not nil.
 func check(t *testing.T, err error) {
 	t.Helper()
 	if err != nil {
 		t.Fatal(err)
 	}
 }
+
+const (
+	test_conf_repo_url    = "https://github.com/celer-pkg/celer-conf.git"
+	test_conf_repo_branch = ""
+)
+
+// The command tests drive the command layer through its exported API; these
+// aliases keep their local naming.
+type (
+	autoremoveCmd = cmds.AutoremoveCmd
+	cleanCmd      = cmds.CleanCmd
+	clientCmd     = cmds.ClientCmd
+	configureCmd  = cmds.ConfigureCmd
+	createCmd     = cmds.CreateCmd
+	deployCmd     = cmds.DeployCmd
+	initCmd       = cmds.InitCmd
+	installCmd    = cmds.InstallCmd
+	integrateCmd  = cmds.IntegrateCmd
+	removeCmd     = cmds.RemoveCmd
+	reverseCmd    = cmds.ReverseCmd
+	searchCmd     = cmds.SearchCmd
+	stripCmd      = cmds.StripCmd
+	treeCmd       = cmds.TreeCmd
+	updateCmd     = cmds.UpdateCmd
+	versionCmd    = cmds.VersionCmd
+	portInfo      = cmds.PortInfo
+)
