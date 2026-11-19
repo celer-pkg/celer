@@ -12,23 +12,23 @@ import (
 )
 
 func TestInstall_x86_64_Clang_CMake(t *testing.T) {
-	buildWithAMD64Clang(t, "x86_64-windows-clang-21.1.4", "gflags@2.2.2", false)
+	buildWithAMD64Clang(t, "x86_64-windows-clang-22.1.8", "gflags@2.2.2", false)
 }
 
 func TestInstall_x86_64_Clang_Meson(t *testing.T) {
-	buildWithAMD64Clang(t, "x86_64-windows-clang-21.1.4", "pkgconf@2.4.3", false)
+	buildWithAMD64Clang(t, "x86_64-windows-clang-22.1.8", "pkgconf@2.4.3", false)
 }
 
 func TestInstall_x86_64_Clang_Bazel(t *testing.T) {
-	buildWithAMD64Clang(t, "x86_64-windows-clang-21.1.4", "skcms@mirror", false)
+	buildWithAMD64Clang(t, "x86_64-windows-clang-22.1.8", "skcms@mirror", false)
 }
 
 func TestInstall_x86_64_Clang_Prebuilt(t *testing.T) {
-	buildWithAMD64Clang(t, "x86_64-windows-clang-21.1.4", "prebuilt-x264@stable", false)
+	buildWithAMD64Clang(t, "x86_64-windows-clang-22.1.8", "prebuilt-x264@stable", false)
 }
 
 func TestInstall_x86_64_Clang_Nobuild(t *testing.T) {
-	buildWithAMD64Clang(t, "x86_64-windows-clang-21.1.4", "gnulib@1.0", true)
+	buildWithAMD64Clang(t, "x86_64-windows-clang-22.1.8", "gnulib@1.0", true)
 }
 
 func buildWithAMD64Clang(t *testing.T, platform, nameVersion string, nobuild bool) {
