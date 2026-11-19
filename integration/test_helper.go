@@ -24,9 +24,7 @@ import (
 )
 
 const (
-	// testProjectName is the project the tests build against.
-	testProjectName = "test_project"
-
+	testProjectName   = "test_project"
 	testPortsBaseline = "master"
 )
 
@@ -200,7 +198,7 @@ func buildTestPlatform() string {
 			return "x86_64-windows-msvc-community-14"
 		}
 	default:
-		return "x86_64-linux-ubuntu-22.04-gcc-11.5.0"
+		return "aarch64-linux-ubuntu-22.04-gcc-11.5.0"
 	}
 }
 
