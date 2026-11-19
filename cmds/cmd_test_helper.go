@@ -175,7 +175,7 @@ func writeTestProject(t *testing.T, project configs.Project) {
 
 func hostTestPlatform() string {
 	if runtime.GOOS == "windows" {
-		return "x86_64-windows-clang-21.1.4"
+		return "x86_64-windows-clang-22.1.8"
 	}
 	return "x86_64-linux-ubuntu-22.04-gcc-11.5.0"
 }

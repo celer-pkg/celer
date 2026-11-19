@@ -1,9 +1,9 @@
 [toolchain]
-  url = "https://github.com/celer-pkg/celer-conf/releases/download/resource/LLVM-21.1.4-win64.zip"
-  sha256 = "3f1e13be63d3bf8476bf794c6285998c32377ae7aaa2b3419216fe92e6d8f7fb"
-  path = "LLVM-21.1.4-win64/bin"
+  url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-22.1.8/clang+llvm-22.1.8-x86_64-pc-windows-msvc.tar.xz"
+  sha256 = "d96c2cc1736f4eb7fa43cb9bbdf56d93551a9ae0a9aadb9c99c3c3b2b712a234"
+  path = "clang+llvm-22.1.8-x86_64-pc-windows-msvc/bin"
   name = "clang"
-  version = "21.1.4"
+  version = "22.1.8"
   system_name = "Windows"
   system_processor = "x86_64"
   host = "x86_64-w64-windows-gnu"
