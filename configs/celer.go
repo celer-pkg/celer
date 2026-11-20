@@ -37,6 +37,13 @@ type InitOption struct {
 
 var Version = "v0.0.0" // It would be set by build script.
 
+// cpuCount is the CPU budget available to this process. Unlike runtime.NumCPU(),
+// GOMAXPROCS(0) also honors a cgroup CPU quota (Go 1.25+) and the GOMAXPROCS
+// environment variable, so builds in containers and CI do not oversubscribe the host.
+func cpuCount() int {
+	return runtime.GOMAXPROCS(0)
+}
+
 func NewCeler() *Celer {
 	// Make sure build env is clean.
 	envs.CleanEnv()
@@ -47,7 +54,7 @@ func NewCeler() *Celer {
 	celer := &Celer{
 		configData: configData{
 			Main: Main{
-				Jobs:      runtime.NumCPU() - 1,
+				Jobs:      max(1, cpuCount()-1),
 				BuildType: "Release",
 			},
 		},
@@ -133,10 +140,10 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 		// Use all CPU cores for CI, otherwise use all cores except 1 to avoid blocking UI.
 		var jobs int
 		if _, ok := os.LookupEnv("GITHUB_ACTIONS"); ok {
-			jobs = runtime.NumCPU()
+			jobs = cpuCount()
 			fmt.Printf("-- GITHUB_ACTIONS: jobs: %d\n", jobs)
 		} else {
-			jobs = runtime.NumCPU() - 1
+			jobs = max(1, cpuCount()-1)
 		}
 
 		// Default global values. A new workspace builds with the toolchain of this machine
