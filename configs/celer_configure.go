@@ -5,7 +5,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -26,7 +25,7 @@ func (c *Celer) readOrCreate() error {
 		}
 
 		if c.Main.Jobs == 0 {
-			c.Main.Jobs = runtime.NumCPU()
+			c.Main.Jobs = cpuCount()
 		}
 
 		if c.Main.BuildType == "" {
@@ -60,7 +59,7 @@ func (c *Celer) readOrCreate() error {
 		}
 
 		if c.Main.Jobs == 0 {
-			c.Main.Jobs = runtime.NumCPU()
+			c.Main.Jobs = cpuCount()
 		}
 
 		if c.Main.BuildType == "" {
