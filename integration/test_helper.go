@@ -20,6 +20,7 @@ import (
 	"github.com/celer-pkg/celer/cmds"
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/spf13/cobra"
 )
 
@@ -42,6 +43,10 @@ var confFS embed.FS
 func newTestCeler(t *testing.T, platform string, project configs.Project) *configs.Celer {
 	t.Helper()
 	dirs.RemoveAllForTest()
+
+	// Keep what explains a failure (build logs, celer.toml, environment script)
+	// when the run uses `go test -artifacts`.
+	t.Cleanup(func() { preserveWorkspaceArtifacts(t) })
 
 	// Place the generated conf where a clone would land: celer resolves the conf dir from
 	// the workspace.
@@ -282,3 +287,52 @@ type (
 	versionCmd    = cmds.VersionCmd
 	portInfo      = cmds.PortInfo
 )
+
+// preserveWorkspaceArtifacts copies the parts of the workspace that explain a
+// failed integration test into the test's artifact directory.
+func preserveWorkspaceArtifacts(t *testing.T) {
+	t.Helper()
+
+	if !t.Failed() {
+		return
+	}
+
+	artifactDir := t.ArtifactDir()
+
+	// Files that pin down which build was running and in what environment.
+	for _, name := range []string{"celer.toml", "environment.sh", "environment.bat", "dag.json"} {
+		src := filepath.Join(dirs.WorkspaceDir, name)
+		copyToArtifacts(t, src, filepath.Join(artifactDir, name))
+	}
+
+	// Build logs live in buildtrees/<name@version>/<...>.log and hold the
+	// output of the failing configure/build/install command.
+	logs, err := filepath.Glob(filepath.Join(dirs.BuildtreesDir, "*", "*.log"))
+	if err != nil {
+		t.Logf("failed to list build logs -> %v", err)
+		return
+	}
+	for _, logPath := range logs {
+		rel, err := filepath.Rel(dirs.BuildtreesDir, logPath)
+		if err != nil {
+			t.Logf("failed to make %s relative to buildtrees -> %v", logPath, err)
+			continue
+		}
+		copyToArtifacts(t, logPath, filepath.Join(artifactDir, "buildtrees", rel))
+	}
+}
+
+func copyToArtifacts(t *testing.T, src, dst string) {
+	t.Helper()
+
+	if !fileio.PathExists(src) {
+		return
+	}
+	if err := os.MkdirAll(filepath.Dir(dst), os.ModePerm); err != nil {
+		t.Logf("failed to create artifact dir for %s -> %v", dst, err)
+		return
+	}
+	if err := fileio.CopyFile(src, dst); err != nil {
+		t.Logf("failed to copy %s to artifacts -> %v", src, err)
+	}
+}
