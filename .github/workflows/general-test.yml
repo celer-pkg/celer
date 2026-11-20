@@ -18,13 +18,21 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.22.1'
+        go-version: '1.27.4'
 
     - name: Build Celer
       run: go build -v ./...
 
     - name: Test
       run: |
-        go test -v ./depcheck/... -timeout 1h
-        go test -v ./configs/...  -timeout 1h
-        go test -v ./pkgs/git/... -timeout 1h
+        go test -artifacts -outputdir="${{ runner.temp }}" -v ./depcheck/... -timeout 1h
+        go test -artifacts -outputdir="${{ runner.temp }}" -v ./configs/...  -timeout 1h
+        go test -artifacts -outputdir="${{ runner.temp }}" -v ./pkgs/git/... -timeout 1h
+
+    - name: Upload test artifacts on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-artifacts
+        path: ${{ runner.temp }}/_artifacts
+        if-no-files-found: ignore
