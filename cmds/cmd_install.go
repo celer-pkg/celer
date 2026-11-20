@@ -16,11 +16,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type installCmd struct {
-	celer          *configs.Celer
-	dev            bool
-	force          bool
-	recursive      bool
+type InstallCmd struct {
+	Celer          *configs.Celer
+	Dev            bool
+	Force          bool
+	Recursive      bool
 	cleanSource    bool
 	prefer         string
 	jobs           int
@@ -33,8 +33,8 @@ type installCmd struct {
 	dagInfo   *dag.DagInfo
 }
 
-func (i *installCmd) Command(celer *configs.Celer) *cobra.Command {
-	i.celer = celer
+func (i *InstallCmd) Command(celer *configs.Celer) *cobra.Command {
+	i.Celer = celer
 	command := &cobra.Command{
 		Use:   "install",
 		Short: "Install package(s).",
@@ -83,19 +83,19 @@ EXAMPLES:
 		RunE: func(cmd *cobra.Command, args []string) error {
 			i.jobsChanged = cmd.Flags().Changed("jobs")
 			i.verboseChanged = cmd.Flags().Changed("verbose")
-			return i.runInstall(args)
+			return i.RunInstall(args)
 		},
-		ValidArgsFunction: i.completion,
+		ValidArgsFunction: i.Completion,
 	}
 
 	// Register flags.
 	flags := command.Flags()
-	flags.BoolVarP(&i.dev, "dev", "d", false, "install in dev mode.")
-	flags.BoolVarP(&i.force, "force", "f", false, "try to uninstall before installation.")
-	flags.BoolVarP(&i.recursive, "recursive", "r", false, "combine with --force, recursively reinstall dependencies.")
+	flags.BoolVarP(&i.Dev, "dev", "d", false, "install in dev mode.")
+	flags.BoolVarP(&i.Force, "force", "f", false, "try to uninstall before installation.")
+	flags.BoolVarP(&i.Recursive, "recursive", "r", false, "combine with --force, recursively reinstall dependencies.")
 	flags.BoolVarP(&i.cleanSource, "clean-source", "", false, "combine with --force, also reset the source repo (discards uncommitted changes).")
 	flags.StringVar(&i.prefer, "prefer", "", "install from one path only: source, package, pkgcache or devcache.")
-	flags.IntVarP(&i.jobs, "jobs", "j", i.celer.Jobs(), "the number of jobs to run in parallel.")
+	flags.IntVarP(&i.jobs, "jobs", "j", i.Celer.Jobs(), "the number of jobs to run in parallel.")
 	flags.BoolVarP(&i.verbose, "verbose", "v", false, "verbose detail information.")
 	flags.StringVar(&i.exportDag, "export-dag", "", "export a build DAG of a port.")
 	flags.StringVar(&i.applyDag, "apply-dag", "", "install a port with a DAG.")
@@ -106,27 +106,27 @@ EXAMPLES:
 	return command
 }
 
-func (i *installCmd) runInstall(nameVersions []string) error {
+func (i *InstallCmd) RunInstall(nameVersions []string) error {
 	// Validate and clean input before initialization so input errors are reported first.
 	roots := make([]string, 0, len(nameVersions))
 	for _, nameVersion := range nameVersions {
-		port, err := i.validateAndClean(nameVersion)
+		port, err := i.ValidateAndClean(nameVersion)
 		if err != nil {
 			return logger.PrintError(err, "invalid package specification: %s", nameVersion)
 		}
 		roots = append(roots, port)
 	}
 
-	if err := i.celer.Init(); err != nil {
+	if err := i.Celer.Init(); err != nil {
 		return logger.PrintError(err, "failed to initialize celer.")
 	}
 
 	// Export Dag: Instead of installation, celer export a DAG of ports that you want to install.
 	// Apply Dag: Set build params that defined in DAG.
 	if i.exportDag != "" {
-		return dag.Export(i.celer, roots, i.force, i.exportDag)
+		return dag.Export(i.Celer, roots, i.Force, i.exportDag)
 	} else if i.applyDag != "" {
-		dagInfo, err := dag.Import(i.celer, i.applyDag)
+		dagInfo, err := dag.Import(i.Celer, i.applyDag)
 		if err != nil {
 			return logger.PrintError(err, "failed to read the build DAG %s.", i.applyDag)
 		}
@@ -136,7 +136,7 @@ func (i *installCmd) runInstall(nameVersions []string) error {
 	// Check git first as it's needed for cloning and reading commit hashes,
 	// and must check tool after celer initialized, since "downloads" will
 	// be assign value after init.
-	if err := buildtools.CheckTools(i.celer, "git"); err != nil {
+	if err := buildtools.CheckTools(i.Celer, "git"); err != nil {
 		return logger.PrintError(err, "failed to check build tool: git")
 	}
 
@@ -154,7 +154,7 @@ func (i *installCmd) runInstall(nameVersions []string) error {
 }
 
 // validateAndClean validates and cleans the package name@version input.
-func (i *installCmd) validateAndClean(nameVersion string) (string, error) {
+func (i *InstallCmd) ValidateAndClean(nameVersion string) (string, error) {
 	if strings.TrimSpace(nameVersion) == "" {
 		return "", fmt.Errorf("package name cannot be empty")
 	}
@@ -183,15 +183,15 @@ func (i *installCmd) validateAndClean(nameVersion string) (string, error) {
 	return name + "@" + version, nil
 }
 
-func (i *installCmd) install(nameVersion string) error {
+func (i *InstallCmd) install(nameVersion string) error {
 	prefer, err := configs.ParseInstallPrefer(i.prefer)
 	if err != nil {
 		return logger.PrintError(err, "invalid --prefer value: %s", i.prefer)
 	}
 
 	options := configs.InstallOptions{
-		Force:       i.force,
-		Recursive:   i.recursive,
+		Force:       i.Force,
+		Recursive:   i.Recursive,
 		CleanSource: i.cleanSource,
 		Prefer:      prefer,
 	}
@@ -214,12 +214,12 @@ func (i *installCmd) install(nameVersion string) error {
 		expect.BuildHash = expected
 	}
 
-	_, err = dag.Install(i.celer, nameVersion, i.dev, options, expect)
+	_, err = dag.Install(i.Celer, nameVersion, i.Dev, options, expect)
 	return err
 }
 
-func (i *installCmd) overrideFlags() error {
-	if i.cleanSource && !i.force {
+func (i *InstallCmd) overrideFlags() error {
+	if i.cleanSource && !i.Force {
 		return fmt.Errorf("--clean-source must be used together with --force")
 	}
 
@@ -227,17 +227,17 @@ func (i *installCmd) overrideFlags() error {
 		if i.jobs <= 0 {
 			return fmt.Errorf("--jobs must be greater than 0")
 		}
-		i.celer.SetJobs(i.jobs)
+		i.Celer.SetJobs(i.jobs)
 	}
 
 	if i.verboseChanged {
-		i.celer.SetVerbose(i.verbose)
+		i.Celer.SetVerbose(i.verbose)
 	}
 
 	return nil
 }
 
-func (i *installCmd) buildSuggestions(suggestions *[]string, portDir string, toComplete string) {
+func (i *InstallCmd) BuildSuggestions(suggestions *[]string, portDir string, toComplete string) {
 	err := filepath.WalkDir(portDir, func(path string, entity fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -263,18 +263,18 @@ func (i *installCmd) buildSuggestions(suggestions *[]string, portDir string, toC
 	}
 }
 
-func (i *installCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (i *InstallCmd) Completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 
 	if fileio.PathExists(dirs.PortsDir) {
-		i.buildSuggestions(&suggestions, dirs.PortsDir, toComplete)
+		i.BuildSuggestions(&suggestions, dirs.PortsDir, toComplete)
 	}
 
-	projectName := i.celer.GetProjectName()
+	projectName := i.Celer.GetProjectName()
 	if projectName != "" {
 		projectPortsDir := filepath.Join(dirs.ConfProjectsDir, projectName)
 		if fileio.PathExists(projectPortsDir) {
-			i.buildSuggestions(&suggestions, projectPortsDir, toComplete)
+			i.BuildSuggestions(&suggestions, projectPortsDir, toComplete)
 		}
 	}
 

@@ -1,0 +1,92 @@
+//go:build linux && amd64 && test_clang
+
+package integration
+
+import (
+	"path/filepath"
+	"testing"
+
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/fileio"
+)
+
+const ubuntu_x86_64_clang_21_1_4 = "x86_64-linux-ubuntu-22.04-clang-21.1.4"
+
+func TestInstall_x86_64_Clang_Makefiles(t *testing.T) {
+	buildWithAMD64Clang(t, ubuntu_x86_64_clang_21_1_4, "x264@stable", false)
+}
+
+func TestInstall_x86_64_Clang_CMake(t *testing.T) {
+	buildWithAMD64Clang(t, ubuntu_x86_64_clang_21_1_4, "glog@0.6.0", false)
+}
+
+func TestInstall_x86_64_Clang_B2(t *testing.T) {
+	buildWithAMD64Clang(t, ubuntu_x86_64_clang_21_1_4, "boost@1.87.0", false)
+}
+
+func TestInstall_x86_64_Clang_Meson(t *testing.T) {
+	buildWithAMD64Clang(t, ubuntu_x86_64_clang_21_1_4, "pixman@0.44.2", false)
+}
+
+func TestInstall_x86_64_Clang_Bazel(t *testing.T) {
+	buildWithAMD64Clang(t, ubuntu_x86_64_clang_21_1_4, "skcms@mirror", false)
+}
+
+func TestInstall_x86_64_Clang_Custom(t *testing.T) {
+	buildWithAMD64Clang(t, ubuntu_x86_64_clang_21_1_4, "qpOASES_e@3.1.2", false)
+}
+
+func TestInstall_x86_64_Clang_Prebuilt(t *testing.T) {
+	buildWithAMD64Clang(t, ubuntu_x86_64_clang_21_1_4, "prebuilt-x264@stable", false)
+}
+
+func TestInstall_x86_64_Clang_Nobuild(t *testing.T) {
+	buildWithAMD64Clang(t, ubuntu_x86_64_clang_21_1_4, "gnulib@1.0", true)
+}
+
+func buildWithAMD64Clang(t *testing.T, platform, nameVersion string, nobuild bool) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	// Init celer.
+	const project = testProjectName
+	celer := newTestCeler(t, platform, testProject)
+	check(t, celer.InitWithPlatform(platform, configs.InitOption{}))
+	check(t, celer.SetBuildType("Release"))
+	check(t, celer.SetProject(project))
+
+	var (
+		packageFolder = filepath.Join(platform, project, celer.BuildType(), nameVersion)
+		port          configs.Port
+		options       = configs.InstallOptions{Prefer: configs.PreferSource}
+	)
+
+	check(t, port.Init(celer, nameVersion))
+	if _, err := port.Install(options); err != nil {
+		t.Fatal(err)
+	}
+
+	// Check if package dir exists.
+	if !nobuild {
+		packageDir := filepath.Join(dirs.PackagesDir, packageFolder)
+		if !fileio.PathExists(packageDir) {
+			t.Fatal("package dir cannot found: " + packageDir)
+		}
+	}
+
+	// Check if installed.
+	installed, err := port.Installed()
+	check(t, err)
+	if !installed {
+		t.Fatal("package is not installed")
+	}
+
+	// Clean up.
+	removeOptions := configs.RemoveOptions{
+		Purge:      true,
+		Recursive:  true,
+		BuildCache: true,
+	}
+	check(t, port.Remove(removeOptions))
+}

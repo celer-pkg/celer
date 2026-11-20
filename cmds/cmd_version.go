@@ -10,13 +10,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type versionCmd struct {
-	celer *configs.Celer
+type VersionCmd struct {
+	Celer *configs.Celer
 	short bool
 }
 
-func (v *versionCmd) Command(celer *configs.Celer) *cobra.Command {
-	v.celer = celer
+func (v *VersionCmd) Command(celer *configs.Celer) *cobra.Command {
+	v.Celer = celer
 	command := &cobra.Command{
 		Use:   "version",
 		Short: "Show version info of celer.",
@@ -38,9 +38,9 @@ scripts and CI jobs compare against 'celer_version' in a schedule.`,
 	return command
 }
 
-func (v *versionCmd) version() {
+func (v *VersionCmd) version() {
 	if v.short {
-		fmt.Println(v.celer.Version())
+		fmt.Println(v.Celer.Version())
 		return
 	}
 
@@ -53,7 +53,7 @@ func (v *versionCmd) version() {
 		"How to apply it in your cmake project: \n"+
 		"option1: %s\n"+
 		"option2: %s\n\n",
-		v.celer.Version(),
+		v.Celer.Version(),
 		logger.Sprintf(logger.Title, "set(CMAKE_TOOLCHAIN_FILE \"%s\")", toolchainPath),
 		logger.Sprintf(logger.Title, "cmake .. -DCMAKE_TOOLCHAIN_FILE=\"%s\"", toolchainPath),
 	)

@@ -20,13 +20,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type reverseCmd struct {
-	celer *configs.Celer
-	dev   bool
+type ReverseCmd struct {
+	Celer *configs.Celer
+	Dev   bool
 }
 
-func (r *reverseCmd) Command(celer *configs.Celer) *cobra.Command {
-	r.celer = celer
+func (r *ReverseCmd) Command(celer *configs.Celer) *cobra.Command {
+	r.Celer = celer
 	command := &cobra.Command{
 		Use:   "reverse",
 		Short: "Query libraries that depend on the specified package.",
@@ -48,11 +48,11 @@ Examples:
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return r.doExecute(args)
 		},
-		ValidArgsFunction: r.completion,
+		ValidArgsFunction: r.Completion,
 	}
 
 	// Register flags.
-	command.Flags().BoolVarP(&r.dev, "dev", "d", false, "include dev dependencies in reverse lookup.")
+	command.Flags().BoolVarP(&r.Dev, "dev", "d", false, "include dev dependencies in reverse lookup.")
 
 	// Silence cobra's error and usage output to avoid duplicate messages.
 	command.SilenceErrors = true
@@ -60,17 +60,17 @@ Examples:
 	return command
 }
 
-func (r *reverseCmd) doExecute(args []string) error {
+func (r *ReverseCmd) doExecute(args []string) error {
 	// Validate package name format
-	if err := r.validatePackageName(args[0]); err != nil {
+	if err := r.ValidatePackageName(args[0]); err != nil {
 		return fmt.Errorf("invalid package name -> %w", err)
 	}
 
-	if err := r.celer.Init(); err != nil {
+	if err := r.Celer.Init(); err != nil {
 		return fmt.Errorf("failed to init celer -> %w", err)
 	}
 
-	libraries, err := r.query(args[0])
+	libraries, err := r.Query(args[0])
 	if err != nil {
 		return fmt.Errorf("failed to query %s -> %w", args[0], err)
 	}
@@ -79,7 +79,7 @@ func (r *reverseCmd) doExecute(args []string) error {
 	return nil
 }
 
-func (r *reverseCmd) query(target string) ([]string, error) {
+func (r *ReverseCmd) Query(target string) ([]string, error) {
 	var libraries []string
 	visited := map[string]bool{}
 
@@ -105,7 +105,7 @@ func (r *reverseCmd) query(target string) ([]string, error) {
 			}
 			visited[nameVersion] = true
 
-			if r.tomlHasDependency(path, target) {
+			if r.TomlHasDependency(path, target) {
 				libraries = append(libraries, nameVersion)
 			}
 			return nil
@@ -115,7 +115,7 @@ func (r *reverseCmd) query(target string) ([]string, error) {
 	if fileio.PathExists(dirs.PortsDir) {
 		walkPorts(dirs.PortsDir)
 	}
-	projectName := r.celer.GetProjectName()
+	projectName := r.Celer.GetProjectName()
 	if projectName != "" {
 		projectDir := filepath.Join(dirs.ConfProjectsDir, projectName)
 		if fileio.PathExists(projectDir) {
@@ -138,7 +138,7 @@ type tomlDeps struct {
 
 // tomlHasDependency reads port.toml and checks if target appears in any
 // build_config's dependencies or dev_dependencies. Much faster than Port.Init().
-func (r *reverseCmd) tomlHasDependency(portTomlPath, target string) bool {
+func (r *ReverseCmd) TomlHasDependency(portTomlPath, target string) bool {
 	data, err := os.ReadFile(portTomlPath)
 	if err != nil {
 		return false
@@ -152,7 +152,7 @@ func (r *reverseCmd) tomlHasDependency(portTomlPath, target string) bool {
 		if slices.Contains(config.Dependencies, target) {
 			return true
 		}
-		if r.dev {
+		if r.Dev {
 			if slices.Contains(config.DevDependencies, target) {
 				return true
 			}
@@ -161,7 +161,7 @@ func (r *reverseCmd) tomlHasDependency(portTomlPath, target string) bool {
 	return false
 }
 
-func (r *reverseCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (r *ReverseCmd) Completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	suggestions := make([]string, 0)
 	visited := map[string]bool{}
 
@@ -191,7 +191,7 @@ func (r *reverseCmd) completion(cmd *cobra.Command, args []string, toComplete st
 	if fileio.PathExists(dirs.PortsDir) {
 		walkPorts(dirs.PortsDir)
 	}
-	projectName := r.celer.GetProjectName()
+	projectName := r.Celer.GetProjectName()
 	if projectName != "" {
 		projectDir := filepath.Join(dirs.ConfProjectsDir, projectName)
 		if fileio.PathExists(projectDir) {
@@ -209,7 +209,7 @@ func (r *reverseCmd) completion(cmd *cobra.Command, args []string, toComplete st
 }
 
 // validatePackageName validates the package name format (name@version)
-func (r *reverseCmd) validatePackageName(packageName string) error {
+func (r *ReverseCmd) ValidatePackageName(packageName string) error {
 	if packageName == "" {
 		return errors.New("package name cannot be empty")
 	}
@@ -229,9 +229,9 @@ func (r *reverseCmd) validatePackageName(packageName string) error {
 }
 
 // displayResults shows the reverse dependency results
-func (r *reverseCmd) displayResults(target string, libraries []string) {
+func (r *ReverseCmd) displayResults(target string, libraries []string) {
 	var title string
-	if r.dev {
+	if r.Dev {
 		title = fmt.Sprintf("reverse dependencies of %s as dev", target)
 	} else {
 		title = fmt.Sprintf("reverse dependencies of %s", target)

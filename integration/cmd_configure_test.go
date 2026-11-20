@@ -1,0 +1,1251 @@
+package integration
+
+import (
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/errors"
+
+	"github.com/BurntSushi/toml"
+	"github.com/spf13/cobra"
+)
+
+func TestConfigureCmd_CommandStructure(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	configCmd := configureCmd{}
+	celer := configs.NewCeler()
+	cmd := configCmd.Command(celer)
+
+	// Test command basic properties
+	if cmd.Use != "configure" {
+		t.Errorf("Expected Use to be 'configure', got '%s'", cmd.Use)
+	}
+
+	if cmd.Short == "" {
+		t.Error("Short description should not be empty")
+	}
+
+	// Test flags existence
+	expectedFlags := []struct {
+		name      string
+		shorthand string
+	}{
+		{"platform", ""},
+		{"project", ""},
+		{"build-type", ""},
+		{"jobs", ""},
+		{"offline", ""},
+		{"verbose", ""},
+		{"downloads", ""},
+		{"pkgcache-fs-dir", ""},
+		{"pkgcache-minio-host", ""},
+		{"pkgcache-minio-access-key", ""},
+		{"pkgcache-minio-secret-key", ""},
+		{"pkgcache-readonly", ""},
+		{"pkgcache-keep-artifact-count", ""},
+		{"proxy-host", ""},
+		{"proxy-port", ""},
+		{"ccache-enabled", ""},
+		{"ccache-dir", ""},
+		{"ccache-maxsize", ""},
+		{"ccache-remote-storage", ""},
+		{"ccache-remote-only", ""},
+		{"port", ""},
+		{"port-url", ""},
+		{"port-ref", ""},
+	}
+
+	for _, ef := range expectedFlags {
+		flag := cmd.Flags().Lookup(ef.name)
+		if flag == nil {
+			t.Errorf("--%s flag should be defined", ef.name)
+		}
+	}
+}
+
+func TestConfigureCmd_Completion(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	configCmd := configureCmd{}
+	celer := configs.NewCeler()
+	cmd := configCmd.Command(celer)
+
+	tests := []struct {
+		name       string
+		toComplete string
+		expected   []string
+	}{
+		{
+			name:       "complete_platform_flag",
+			toComplete: "--plat",
+			expected:   []string{"--platform"},
+		},
+		{
+			name:       "complete_project_flag",
+			toComplete: "--proj",
+			expected:   []string{"--project"},
+		},
+		{
+			name:       "complete_build_type_flag",
+			toComplete: "--build",
+			expected:   []string{"--build-type"},
+		},
+		{
+			name:       "complete_jobs_flag",
+			toComplete: "--job",
+			expected:   []string{"--jobs"},
+		},
+		{
+			name:       "complete_offline_flag",
+			toComplete: "--off",
+			expected:   []string{"--offline"},
+		},
+		{
+			name:       "complete_verbose_flag",
+			toComplete: "--verb",
+			expected:   []string{"--verbose"},
+		},
+		{
+			name:       "complete_downloads_flag",
+			toComplete: "--down",
+			expected:   []string{"--downloads"},
+		},
+		{
+			name:       "complete_pkgcache_fs_dir_flag",
+			toComplete: "--pkgcache-fs-d",
+			expected:   []string{"--pkgcache-fs-dir"},
+		},
+		{
+			name:       "complete_pkgcache_readonly_flag",
+			toComplete: "--pkgcache-r",
+			expected:   []string{"--pkgcache-readonly"},
+		},
+		{
+			name:       "complete_pkgcache_keep_artifact_count_flag",
+			toComplete: "--pkgcache-keep",
+			expected:   []string{"--pkgcache-keep-artifact-count"},
+		},
+		{
+			name:       "complete_pkgcache_minio_host_flag",
+			toComplete: "--pkgcache-minio-h",
+			expected:   []string{"--pkgcache-minio-host"},
+		},
+		{
+			name:       "complete_pkgcache_minio_access_key_flag",
+			toComplete: "--pkgcache-minio-a",
+			expected:   []string{"--pkgcache-minio-access-key"},
+		},
+		{
+			name:       "complete_pkgcache_minio_secret_key_flag",
+			toComplete: "--pkgcache-minio-s",
+			expected:   []string{"--pkgcache-minio-secret-key"},
+		},
+		{
+			name:       "complete_proxy_host_flag",
+			toComplete: "--proxy-h",
+			expected:   []string{"--proxy-host"},
+		},
+		{
+			name:       "complete_proxy_port_flag",
+			toComplete: "--proxy-p",
+			expected:   []string{"--proxy-port"},
+		},
+		{
+			name:       "complete_ccache_enable_flag",
+			toComplete: "--ccache-e",
+			expected:   []string{"--ccache-enabled"},
+		},
+		{
+			name:       "complete_ccache_dir_flag",
+			toComplete: "--ccache-d",
+			expected:   []string{"--ccache-dir"},
+		},
+		{
+			name:       "complete_ccache_maxsize_flag",
+			toComplete: "--ccache-m",
+			expected:   []string{"--ccache-maxsize"},
+		},
+		{
+			name:       "complete_ccache_remote_storage_flag",
+			toComplete: "--ccache-remote-s",
+			expected:   []string{"--ccache-remote-storage"},
+		},
+		{
+			name:       "complete_ccache_remote_only_flag",
+			toComplete: "--ccache-remote-o",
+			expected:   []string{"--ccache-remote-only"},
+		},
+		{
+			name:       "complete_port_flag",
+			toComplete: "--port",
+			expected:   []string{"--port", "--port-url", "--port-ref"},
+		},
+		{
+			name:       "complete_port_url_flag",
+			toComplete: "--port-u",
+			expected:   []string{"--port-url"},
+		},
+		{
+			name:       "complete_port_ref_flag",
+			toComplete: "--port-r",
+			expected:   []string{"--port-ref"},
+		},
+		{
+			name:       "no_completion_for_random",
+			toComplete: "--random",
+			expected:   []string{},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			suggestions, directive := configCmd.Completion(cmd, []string{}, test.toComplete)
+
+			if directive != cobra.ShellCompDirectiveNoFileComp {
+				t.Errorf("Expected directive %v, got %v", cobra.ShellCompDirectiveNoFileComp, directive)
+			}
+
+			if len(suggestions) != len(test.expected) {
+				t.Errorf("Expected %d suggestions, got %d: %v", len(test.expected), len(suggestions), suggestions)
+				return
+			}
+
+			for i, expected := range test.expected {
+				if i < len(suggestions) && suggestions[i] != expected {
+					t.Errorf("Expected suggestion[%d] to be %s, got %s", i, expected, suggestions[i])
+				}
+			}
+		})
+	}
+}
+
+func TestConfigureCmd_NoFlagShouldFail(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+	stderr, err := runCommand(t, cmd.Command(celer))
+	if err == nil {
+		t.Fatal("expected error when no configuration flag is provided")
+	}
+
+	if !errors.Is(err, errors.ErrNoConfigFlagProvided) {
+		t.Fatalf("stderr should report missing flag, got:\n%s", stderr)
+	}
+}
+
+func TestConfigureCmd_PkgCacheGroupShouldSucceed(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	if err := os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := runCommand(t, cmd.Command(celer),
+		"--pkgcache-fs-dir="+dirs.TestPkgCacheDir,
+		"--pkgcache-readonly=true",
+	); err != nil {
+		t.Fatalf("expected success when package-cache group flags are provided, got: %v", err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+
+	if celer2.PkgCache().GetFS().Dir != filepath.ToSlash(dirs.TestPkgCacheDir) {
+		t.Fatalf("cache dir should be `%s`", dirs.TestPkgCacheDir)
+	}
+	if !celer2.PkgCache().IsReadOnly() {
+		t.Fatal("cache should be read-only")
+	}
+}
+
+func TestConfigureCmd_CrossGroupFlagsShouldFail(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	stderr, err := runCommand(t, cmd.Command(celer),
+		"--proxy-host=127.0.0.1",
+		"--ccache-enabled=true",
+	)
+	if err == nil {
+		t.Fatal("expected error when flags from different groups are provided")
+	}
+	if !strings.Contains(stderr, "different groups") {
+		t.Fatalf("stderr should report cross-group violation, got:\n%s", stderr)
+	}
+}
+
+func TestConfigure_Platform(t *testing.T) {
+	platform := hostTestPlatform()
+	celer := newTestCeler(t, platform, testProject)
+	cmd := &configureCmd{}
+
+	if _, err := runCommand(t, cmd.Command(celer), "--platform="+platform); err != nil {
+		t.Fatal(err)
+	}
+	if celer.Platform().GetName() != platform {
+		t.Fatalf("platform should be `%s`", platform)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if celer2.Platform().GetName() != platform {
+		t.Fatalf("platform should be `%s`", platform)
+	}
+}
+
+func TestConfigure_Project(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	if stderr, err := runCommand(t, cmd.Command(celer), "--project="+testProjectName); err != nil {
+		t.Fatalf("%v\n%s", err, stderr)
+	}
+	if celer.Project().GetName() != testProjectName {
+		t.Fatalf("project should be `%s`", testProjectName)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if celer2.Project().GetName() != testProjectName {
+		t.Fatalf("project should be `%s`", testProjectName)
+	}
+}
+
+func TestConfigure_Project_AppliesTargetPlatform(t *testing.T) {
+	platform := hostTestPlatform()
+	celer := newTestCeler(t, platform, configs.Project{
+		Name:           testProjectName,
+		TargetPlatform: platform,
+	})
+	cmd := &configureCmd{}
+
+	if stderr, err := runCommand(t, cmd.Command(celer), "--project="+testProjectName); err != nil {
+		t.Fatalf("%v\n%s", err, stderr)
+	}
+	if celer.Platform().GetName() != platform {
+		t.Fatalf("platform should follow the project target_platform `%s`", platform)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if celer2.Platform().GetName() != platform {
+		t.Fatalf("platform should be persisted as `%s`", platform)
+	}
+}
+
+func TestConfigure_Project_PlatformOverridesTargetPlatformAfterwards(t *testing.T) {
+	platform := hostTestPlatform()
+	celer := newTestCeler(t, platform, configs.Project{
+		Name:           testProjectName,
+		TargetPlatform: platform,
+	})
+	cmd := &configureCmd{}
+
+	// Selecting the project applies its target_platform.
+	if _, err := runCommand(t, cmd.Command(celer), "--project="+testProjectName); err != nil {
+		t.Fatal(err)
+	}
+	if celer.Platform().GetName() != platform {
+		t.Fatalf("platform should follow the project target_platform `%s`", platform)
+	}
+
+	// A later explicit platform still wins over the project default.
+	if _, err := runCommand(t, cmd.Command(celer), "--platform=native"); err != nil {
+		t.Fatal(err)
+	}
+	if celer.Main.Platform != configs.NativePlatform {
+		t.Fatalf("platform should be overridden to native, got `%s`", celer.Main.Platform)
+	}
+	if name, hostName := celer.Platform().GetName(), celer.Platform().GetHostName(); name != hostName {
+		t.Fatalf("platform should resolve to the host name `%s`, got `%s`", hostName, name)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if celer2.Main.Platform != configs.NativePlatform {
+		t.Fatalf("platform should be persisted as native, got `%s`", celer2.Main.Platform)
+	}
+}
+
+func TestConfigure_Project_NotExist(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	stderr, err := runCommand(t, cmd.Command(celer), "--project=xxxx")
+	if err == nil {
+		t.Fatal("it should be failed")
+	}
+	if !strings.Contains(stderr, "project not exist") {
+		t.Fatalf("stderr should report missing project, got:\n%s", stderr)
+	}
+}
+
+func TestConfigure_Project_Empty(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	// `--project=` (empty value) reaches RunE with the flag marked changed,
+	// so the project setter is invoked with "" and must reject it.
+	if _, err := runCommand(t, cmd.Command(celer), "--project="); err == nil {
+		t.Fatal("it should be failed")
+	}
+}
+
+func TestConfigure_BuildType_Release(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	if _, err := runCommand(t, cmd.Command(celer), "--build-type=Release"); err != nil {
+		t.Fatal(err)
+	}
+	if celer.BuildType() != "release" {
+		t.Fatalf("build type should be `%s`", "release")
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if celer2.BuildType() != "release" {
+		t.Fatalf("build type should be `%s`", "release")
+	}
+}
+
+func TestConfigure_BuildType_Debug(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	if _, err := runCommand(t, cmd.Command(celer), "--build-type=Debug"); err != nil {
+		t.Fatal(err)
+	}
+	if celer.BuildType() != "debug" {
+		t.Fatalf("build type should be `%s`", "debug")
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if celer2.BuildType() != "debug" {
+		t.Fatalf("build type should be `%s`", "debug")
+	}
+}
+
+func TestConfigure_BuildType_Empty(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	stderr, err := runCommand(t, cmd.Command(celer), "--build-type=")
+	if err == nil {
+		t.Fatal("expected error for empty build type")
+	}
+	if !strings.Contains(stderr, "invalid build type") {
+		t.Fatalf("stderr should report invalid build type, got:\n%s", stderr)
+	}
+}
+
+func TestConfigure_BuildType_Invalid(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	stderr, err := runCommand(t, cmd.Command(celer), "--build-type=xxxx")
+	if err == nil {
+		t.Fatal("expected error for invalid build type")
+	}
+	if !strings.Contains(stderr, "invalid build type") {
+		t.Fatalf("stderr should report invalid build type, got:\n%s", stderr)
+	}
+}
+
+func TestConfigure_Jobs(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	if _, err := runCommand(t, cmd.Command(celer), "--jobs=4"); err != nil {
+		t.Fatal(err)
+	}
+	if celer.Jobs() != 4 {
+		t.Fatalf("jobs should be `%d`", 4)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if celer2.Jobs() != 4 {
+		t.Fatalf("jobs should be `%d`", 4)
+	}
+}
+
+func TestConfigure_Jobs_Invalid(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	stderr, err := runCommand(t, cmd.Command(celer), "--jobs=-1")
+	if err == nil {
+		t.Fatal("expected error for invalid jobs")
+	}
+	if !strings.Contains(stderr, "invalid jobs") {
+		t.Fatalf("stderr should report invalid jobs, got:\n%s", stderr)
+	}
+}
+
+func TestConfigure_Offline_ON(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	if _, err := runCommand(t, cmd.Command(celer), "--offline=true"); err != nil {
+		t.Fatal(err)
+	}
+	if !celer.Offline() {
+		t.Fatal("offline should be `true`")
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if !celer2.Offline() {
+		t.Fatal("offline should be `true`")
+	}
+}
+
+func TestConfigure_Offline_OFF(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	if _, err := runCommand(t, cmd.Command(celer), "--offline=false"); err != nil {
+		t.Fatal(err)
+	}
+	if celer.Offline() {
+		t.Fatal("offline should be `false`")
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if celer2.Offline() {
+		t.Fatal("offline should be `false`")
+	}
+}
+
+func TestConfigure_Verbose_ON(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	if _, err := runCommand(t, cmd.Command(celer), "--verbose=true"); err != nil {
+		t.Fatal(err)
+	}
+	if !celer.Verbose() {
+		t.Fatal("verbose should be `true`")
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if !celer2.Verbose() {
+		t.Fatal("verbose should be `true`")
+	}
+}
+
+func TestConfigure_Verbose_OFF(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	if _, err := runCommand(t, cmd.Command(celer), "--verbose=false"); err != nil {
+		t.Fatal(err)
+	}
+	if celer.Verbose() {
+		t.Fatal("verbose should be `false`")
+	}
+}
+
+func TestConfigure_PkgCacheDir(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+
+	// Must create cache dir before setting cache dir.
+	check(t, os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm))
+	defer os.RemoveAll(dirs.TestPkgCacheDir)
+
+	cmd := &configureCmd{}
+	if _, err := runCommand(t, cmd.Command(celer), "--pkgcache-fs-dir="+dirs.TestPkgCacheDir); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if celer2.PkgCache().GetFS().Dir != filepath.ToSlash(dirs.TestPkgCacheDir) {
+		t.Fatalf("cache dir should be `%s`", dirs.TestPkgCacheDir)
+	}
+
+	// The cache must be writable by default on the first backend configuration.
+	if celer2.PkgCache().IsReadOnly() {
+		t.Fatal("pkgcache should default to writable on first backend configuration")
+	}
+}
+
+func TestConfigure_PkgCacheReadOnly(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	// Must create cache dir before setting cache dir.
+	check(t, os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm))
+	defer os.RemoveAll(dirs.TestPkgCacheDir)
+
+	// pkgcache-dir and pkgcache-readonly are in the same group, so we can set
+	// them together in a single command just like a user would.
+	if _, err := runCommand(t, cmd.Command(celer),
+		"--pkgcache-fs-dir="+dirs.TestPkgCacheDir,
+		"--pkgcache-readonly=false",
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if celer2.PkgCache().IsReadOnly() {
+		t.Fatal("cache should be writable")
+	}
+}
+
+func TestConfigure_PkgCacheKeepArtifactCount(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	// Must create cache dir before setting cache dir.
+	check(t, os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm))
+	defer os.RemoveAll(dirs.TestPkgCacheDir)
+
+	if _, err := runCommand(t, cmd.Command(celer),
+		"--pkgcache-fs-dir="+dirs.TestPkgCacheDir,
+		"--pkgcache-keep-artifact-count=100",
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if got := celer2.PkgCache().GetKeepArtifactCount(); got != 100 {
+		t.Fatalf("keep_artifact_count should be `100`, got `%d`", got)
+	}
+}
+
+// Pruning deletes from a shared cache, so it must stay disabled until a node
+// explicitly configures a count.
+func TestConfigure_PkgCacheKeepArtifactCount_DefaultsToDisabled(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	// Must create cache dir before setting cache dir.
+	check(t, os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm))
+	defer os.RemoveAll(dirs.TestPkgCacheDir)
+
+	if _, err := runCommand(t, cmd.Command(celer), "--pkgcache-fs-dir="+dirs.TestPkgCacheDir); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if got := celer2.PkgCache().GetKeepArtifactCount(); got != 0 {
+		t.Fatalf("keep_artifact_count should stay disabled, got `%d`", got)
+	}
+}
+
+func TestConfigure_PkgCacheDir_DirNotExist(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+
+	cmd := &configureCmd{}
+	stderr, err := runCommand(t, cmd.Command(celer), "--pkgcache-fs-dir="+dirs.TestPkgCacheDir)
+	if err == nil {
+		t.Fatal("expected error for package cache dir not exist")
+	}
+	if !strings.Contains(stderr, "pkgcache dir not exist") {
+		t.Fatalf("stderr should report missing pkgcache dir, got:\n%s", stderr)
+	}
+}
+
+func TestConfigure_Proxy(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	if _, err := runCommand(t, cmd.Command(celer),
+		"--proxy-host=127.0.0.1",
+		"--proxy-port=7890",
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	host, port := celer2.ProxyHostPort()
+	if host != "127.0.0.1" {
+		t.Fatalf("proxy host should be `%s`", "127.0.0.1")
+	}
+	if port != 7890 {
+		t.Fatalf("proxy port should be `%d`", 7890)
+	}
+}
+
+func TestConfigure_Proxy_Invalid_Host(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+
+	cmd := &configureCmd{}
+	stderr, err := runCommand(t, cmd.Command(celer), "--proxy-host=")
+	if err == nil {
+		t.Fatal("it should be failed due to invalid host")
+	}
+	if !strings.Contains(stderr, "proxy host is invalid") {
+		t.Fatalf("stderr should report invalid host, got:\n%s", stderr)
+	}
+}
+
+func TestConfigure_Proxy_Invalid_Port(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	stderr, err := runCommand(t, cmd.Command(celer), "--proxy-port=-1")
+	if err == nil {
+		t.Fatal("it should be failed due to invalid port")
+	}
+	if !strings.Contains(stderr, "proxy port is invalid") {
+		t.Fatalf("stderr should report invalid port, got:\n%s", stderr)
+	}
+}
+
+func TestConfigure_CCacheEnabled_ON(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	ccacheDir := filepath.Join(dirs.TmpDir, "ccache")
+	if err := os.MkdirAll(ccacheDir, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+	// Two configure runs: ccache-dir then ccache-enabled (same group, but
+	// SetCCacheEnabled writes via a separate setter — the flag-group rule
+	// only forbids mixing *groups*, so two single-flag runs are fine).
+	if _, err := runCommand(t, cmd.Command(celer), "--ccache-dir="+ccacheDir); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := runCommand(t, cmd.Command(celer), "--ccache-enabled=true"); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if !celer2.CCache.Enabled {
+		t.Fatalf("ccache enabled should be `%v`", true)
+	}
+}
+
+func TestConfigure_CCacheEnabled_OFF(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	ccacheDir := filepath.Join(dirs.TmpDir, "ccache")
+	if err := os.MkdirAll(ccacheDir, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := runCommand(t, cmd.Command(celer), "--ccache-dir="+ccacheDir); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := runCommand(t, cmd.Command(celer), "--ccache-enabled=false"); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if celer2.CCache.Enabled {
+		t.Fatalf("ccache enabled should be `%v`", false)
+	}
+}
+
+func TestConfigure_CCacheDir(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	ccacheDir := filepath.Join(dirs.TmpDir, "ccache")
+	if err := os.MkdirAll(ccacheDir, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := runCommand(t, cmd.Command(celer), "--ccache-dir="+ccacheDir); err != nil {
+		t.Fatal(err)
+	}
+
+	// Verify by reloading config and setting the same dir again — should be
+	// idempotent and persisted in celer.toml.
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := runCommand(t, cmd.Command(celer), "--ccache-dir="+ccacheDir); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestConfigure_CCacheMaxSize(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	const maxSize = "10G"
+	if _, err := runCommand(t, cmd.Command(celer), "--ccache-maxsize="+maxSize); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := runCommand(t, cmd.Command(celer), "--ccache-maxsize="+maxSize); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestConfigure_BuildType_RelWithDebInfo(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	if _, err := runCommand(t, cmd.Command(celer), "--build-type=RelWithDebInfo"); err != nil {
+		t.Fatal(err)
+	}
+	if celer.BuildType() != "relwithdebinfo" {
+		t.Fatalf("build type should be `%s`", "relwithdebinfo")
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if celer2.BuildType() != "relwithdebinfo" {
+		t.Fatalf("build type should be `%s`", "relwithdebinfo")
+	}
+}
+
+func TestConfigure_BuildType_MinSizeRel(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	if _, err := runCommand(t, cmd.Command(celer), "--build-type=MinSizeRel"); err != nil {
+		t.Fatal(err)
+	}
+	if celer.BuildType() != "minsizerel" {
+		t.Fatalf("build type should be `%s`", "minsizerel")
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if celer2.BuildType() != "minsizerel" {
+		t.Fatalf("build type should be `%s`", "minsizerel")
+	}
+}
+
+func TestConfigure_Jobs_Zero(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	stderr, err := runCommand(t, cmd.Command(celer), "--jobs=0")
+	if err == nil {
+		t.Fatal("jobs cannot be 0")
+	}
+	if !strings.Contains(stderr, "invalid jobs") {
+		t.Fatalf("stderr should report invalid jobs, got:\n%s", stderr)
+	}
+}
+
+func TestConfigure_CCacheRemoteStorage_Valid(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	const remoteStorage = "http://localhost:8080/ccache"
+	if _, err := runCommand(t, cmd.Command(celer), "--ccache-remote-storage="+remoteStorage); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := runCommand(t, cmd.Command(celer), "--ccache-remote-storage="+remoteStorage); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestConfigure_CCacheRemoteStorage_InvalidURL(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	stderr, err := runCommand(t, cmd.Command(celer), "--ccache-remote-storage=localhost:8080/ccache")
+	if err == nil {
+		t.Fatal("should fail for URL without scheme")
+	}
+	if !strings.Contains(stderr, "remote storage URL") {
+		t.Fatalf("stderr should report invalid remote storage URL, got:\n%s", stderr)
+	}
+}
+
+func TestConfigure_CCacheRemoteStorage_Empty(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	// Empty string should be allowed (to clear the setting).
+	if _, err := runCommand(t, cmd.Command(celer), "--ccache-remote-storage="); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestConfigure_Downloads(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	downloads := filepath.Join(dirs.TmpDir, "downloads")
+	if err := os.MkdirAll(downloads, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := runCommand(t, cmd.Command(celer), "--downloads="+downloads); err != nil {
+		t.Fatal(err)
+	}
+
+	// Read celer.toml directly instead of re-initializing Celer: Init would honor the new
+	// downloads dir and fetch the build tools into it again.
+	var cfg struct{ Main configs.Main }
+	celerPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
+	if _, err := toml.DecodeFile(celerPath, &cfg); err != nil {
+		t.Fatal(err)
+	}
+	if want := filepath.ToSlash(downloads); cfg.Main.Downloads != want {
+		t.Fatalf("downloads dir should be `%s`, got `%s`", want, cfg.Main.Downloads)
+	}
+}
+
+func TestConfigure_Downloads_NotExist(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	stderr, err := runCommand(t, cmd.Command(celer),
+		"--downloads="+filepath.Join(dirs.TmpDir, "downloads-does-not-exist"),
+	)
+	if err == nil {
+		t.Fatal("expected error when downloads dir does not exist")
+	}
+	if !strings.Contains(stderr, "downloads dir") {
+		t.Fatalf("stderr should report missing downloads dir, got:\n%s", stderr)
+	}
+}
+
+func TestConfigure_CCacheRemoteOnly_ON(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	if _, err := runCommand(t, cmd.Command(celer), "--ccache-remote-only=true"); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if !celer2.CCache.RemoteOnly {
+		t.Fatal("ccache remote-only should be `true`")
+	}
+}
+
+func TestConfigure_CCacheRemoteOnly_OFF(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	// Flip it on then off so the assertion is meaningful.
+	if _, err := runCommand(t, cmd.Command(celer), "--ccache-remote-only=true"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := runCommand(t, cmd.Command(celer), "--ccache-remote-only=false"); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if celer2.CCache.RemoteOnly {
+		t.Fatal("ccache remote-only should be `false`")
+	}
+}
+
+func newFakeMinioServer(t *testing.T) *httptest.Server {
+	t.Helper()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet && r.URL.Query().Has("location") {
+			w.Header().Set("Content-Type", "application/xml")
+			_, _ = w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?><LocationConstraint xmlns="http://s3.amazonaws.com/doc/2006-03-01/"></LocationConstraint>`))
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	t.Cleanup(server.Close)
+	return server
+}
+
+func TestConfigure_PkgCacheMinio(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	server := newFakeMinioServer(t)
+
+	if _, err := runCommand(t, cmd.Command(celer),
+		"--pkgcache-minio-host="+server.URL,
+		"--pkgcache-minio-access-key=test-access-key",
+		"--pkgcache-minio-secret-key=test-secret-key",
+		"--pkgcache-readonly=false",
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	minioCfg := celer2.PkgCache().GetMinio()
+	if minioCfg == nil {
+		t.Fatal("pkgcache.minio should be configured")
+	}
+	if minioCfg.Host != server.URL {
+		t.Fatalf("minio host should be `%s`, got `%s`", server.URL, minioCfg.Host)
+	}
+	if minioCfg.AccessKey != "test-access-key" {
+		t.Fatalf("minio access key should be `test-access-key`, got `%s`", minioCfg.AccessKey)
+	}
+	if minioCfg.SecretKey != "test-secret-key" {
+		t.Fatalf("minio secret key should be `test-secret-key`, got `%s`", minioCfg.SecretKey)
+	}
+	if celer2.PkgCache().IsReadOnly() {
+		t.Fatal("minio cache should be writable")
+	}
+}
+
+// Providing a single minio flag keeps the other fields unchanged,
+// so keys can be rotated alone.
+func TestConfigure_PkgCacheMinio_RotateSecretKey(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	server := newFakeMinioServer(t)
+
+	if _, err := runCommand(t, cmd.Command(celer),
+		"--pkgcache-minio-host="+server.URL,
+		"--pkgcache-minio-access-key=test-access-key",
+		"--pkgcache-minio-secret-key=test-secret-key",
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	// Rotate only the secret key; host and access key stay unchanged.
+	if _, err := runCommand(t, cmd.Command(celer), "--pkgcache-minio-secret-key=new-secret-key"); err != nil {
+		t.Fatal(err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	minioCfg := celer2.PkgCache().GetMinio()
+	if minioCfg.Host != server.URL {
+		t.Fatalf("minio host should stay `%s`, got `%s`", server.URL, minioCfg.Host)
+	}
+	if minioCfg.AccessKey != "test-access-key" {
+		t.Fatalf("minio access key should stay `test-access-key`, got `%s`", minioCfg.AccessKey)
+	}
+	if minioCfg.SecretKey != "new-secret-key" {
+		t.Fatalf("minio secret key should be `new-secret-key`, got `%s`", minioCfg.SecretKey)
+	}
+}
+
+// fs and minio are mutually exclusive pkgcache backends: configuring one
+// replaces the other, so switching a workspace needs no manual cleanup.
+func TestConfigure_PkgCacheMinio_ReplacesFS(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	// Go offline first: the minio backend probes the endpoint on configure, and
+	// the test must not depend on a reachable S3.
+	if _, err := runCommand(t, cmd.Command(celer), "--offline=true"); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := runCommand(t, cmd.Command(celer), "--pkgcache-fs-dir="+dirs.TestPkgCacheDir); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := runCommand(t, cmd.Command(celer),
+		"--pkgcache-minio-host=http://minio.example.com:9000",
+		"--pkgcache-minio-access-key=test-access-key",
+		"--pkgcache-minio-secret-key=test-secret-key",
+	); err != nil {
+		t.Fatalf("configuring minio should replace the fs backend, got: %v", err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if celer2.PkgCache().GetFS() != nil {
+		t.Fatal("fs backend should be dropped once minio is configured")
+	}
+	if minioCfg := celer2.PkgCache().GetMinio(); minioCfg == nil || minioCfg.Host != "http://minio.example.com:9000" {
+		t.Fatal("minio host should be `http://minio.example.com:9000`")
+	}
+}
+
+func TestConfigure_PkgCacheFS_ReplacesMinio(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	// See TestConfigure_PkgCacheMinio_ReplacesFS: offline keeps the test hermetic.
+	if _, err := runCommand(t, cmd.Command(celer), "--offline=true"); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := runCommand(t, cmd.Command(celer),
+		"--pkgcache-minio-host=http://minio.example.com:9000",
+		"--pkgcache-minio-access-key=test-access-key",
+		"--pkgcache-minio-secret-key=test-secret-key",
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := runCommand(t, cmd.Command(celer), "--pkgcache-fs-dir="+dirs.TestPkgCacheDir); err != nil {
+		t.Fatalf("configuring fs should replace the minio backend, got: %v", err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if celer2.PkgCache().GetMinio() != nil {
+		t.Fatal("minio backend should be dropped once fs is configured")
+	}
+	if fsCfg := celer2.PkgCache().GetFS(); fsCfg == nil || fsCfg.Dir != filepath.ToSlash(dirs.TestPkgCacheDir) {
+		t.Fatalf("fs dir should be `%s`", dirs.TestPkgCacheDir)
+	}
+}
+
+// Regression: option flags before any backend is configured must fail with
+// a clear error, not panic or pass silently.
+func TestConfigure_PkgCacheReadOnly_BeforeBackendFails(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+
+	cmd := &configureCmd{}
+	stderr, err := runCommand(t, cmd.Command(celer),
+		"--pkgcache-readonly=true",
+	)
+	if err == nil {
+		t.Fatal("expected error when no pkgcache backend has been configured")
+	}
+	if !strings.Contains(stderr, "none of them was configured") {
+		t.Fatalf("stderr should report no pkgcache backend configured, got:\n%s", stderr)
+	}
+}
+
+func TestConfigureCmd_Port_UpdatesUrlAndRef(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	const (
+		nameVersion = "eigen@3.4.0"
+		newURL      = "https://example.com/eigen.git"
+		newRef      = "test-branch"
+	)
+	portFile := dirs.GetPortPath("eigen", "3.4.0")
+	original, err := os.ReadFile(portFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		_ = os.WriteFile(portFile, original, os.ModePerm)
+	})
+
+	if _, err := runCommand(t, cmd.Command(celer),
+		"--port="+nameVersion,
+		"--port-url="+newURL,
+		"--port-ref="+newRef,
+	); err != nil {
+		t.Fatalf("expected success when configuring port url/ref, got: %v", err)
+	}
+
+	updated, err := os.ReadFile(portFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := string(updated)
+	if !strings.Contains(got, newURL) {
+		t.Fatalf("port file should contain url %q, got:\n%s", newURL, got)
+	}
+	if !strings.Contains(got, newRef) {
+		t.Fatalf("port file should contain ref %q, got:\n%s", newRef, got)
+	}
+}
+
+func TestConfigureCmd_Port_MissingUrlAndRefShouldFail(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	_, err := runCommand(t, cmd.Command(celer), "--port=eigen@3.4.0")
+	if err == nil {
+		t.Fatal("expected error when --port is provided without --port-url or --port-ref")
+	}
+}
+
+func TestConfigureCmd_Port_UnknownPortShouldFail(t *testing.T) {
+	celer := newTestCeler(t, "", testProject)
+	cmd := &configureCmd{}
+
+	_, err := runCommand(t, cmd.Command(celer),
+		"--port=this-port-does-not-exist@1.0.0",
+		"--port-url=https://example.com/foo.git",
+	)
+	if err == nil {
+		t.Fatal("expected error when --port refers to a non-existent port")
+	}
+}

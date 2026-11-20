@@ -17,22 +17,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type portInfo struct {
-	parent          *portInfo
-	nameVersion     string
-	depedencies     []*portInfo
-	devDependencies []*portInfo
-	devDep          bool
-	depth           int
+type PortInfo struct {
+	Parent          *PortInfo
+	NameVersion     string
+	Dependencies    []*PortInfo
+	DevDependencies []*PortInfo
+	DevDep          bool
+	Depth           int
 }
 
-type treeCmd struct {
-	celer      *configs.Celer
-	hideDevDep bool
+type TreeCmd struct {
+	Celer      *configs.Celer
+	HideDevDep bool
 }
 
-func (t *treeCmd) Command(celer *configs.Celer) *cobra.Command {
-	t.celer = celer
+func (t *TreeCmd) Command(celer *configs.Celer) *cobra.Command {
+	t.Celer = celer
 	command := &cobra.Command{
 		Use:   "tree",
 		Short: "Show the dependency tree of a package or project.",
@@ -49,13 +49,13 @@ Examples:
   celer tree opencv@4.11.0 --hide-dev  # Hide development dependencies`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return t.tree(args[0])
+			return t.Tree(args[0])
 		},
-		ValidArgsFunction: t.completion,
+		ValidArgsFunction: t.Completion,
 	}
 
 	// Register flags.
-	command.Flags().BoolVar(&t.hideDevDep, "hide-dev", false, "hide dev dependencies in the tree view.")
+	command.Flags().BoolVar(&t.HideDevDep, "hide-dev", false, "hide dev dependencies in the tree view.")
 
 	// Silence cobra's error and usage output to avoid duplicate messages.
 	command.SilenceErrors = true
@@ -63,14 +63,14 @@ Examples:
 	return command
 }
 
-func (t *treeCmd) tree(target string) error {
+func (t *TreeCmd) Tree(target string) error {
 	// Initialize celer.
-	if err := t.celer.Init(); err != nil {
+	if err := t.Celer.Init(); err != nil {
 		return fmt.Errorf("failed to initialize celer -> %w", err)
 	}
 
 	// Validate target.
-	if err := t.validateTarget(target); err != nil {
+	if err := t.ValidateTarget(target); err != nil {
 		return fmt.Errorf("invalid target -> %w", err)
 	}
 
@@ -82,7 +82,7 @@ func (t *treeCmd) tree(target string) error {
 }
 
 // validateTarget validates the target parameter.
-func (t *treeCmd) validateTarget(target string) error {
+func (t *TreeCmd) ValidateTarget(target string) error {
 	target = strings.TrimSpace(target)
 	if target == "" {
 		return fmt.Errorf("target cannot be empty")
@@ -91,9 +91,9 @@ func (t *treeCmd) validateTarget(target string) error {
 }
 
 // showPortTree displays dependency tree for a port.
-func (t *treeCmd) showPortTree(target string, depchecker any) error {
+func (t *TreeCmd) showPortTree(target string, depchecker any) error {
 	var port configs.Port
-	if err := port.Init(t.celer, target); err != nil {
+	if err := port.Init(t.Celer, target); err != nil {
 		return fmt.Errorf("failed to initialize port %s -> %w", target, err)
 	}
 
@@ -105,42 +105,42 @@ func (t *treeCmd) showPortTree(target string, depchecker any) error {
 	}
 	checker := depchecker.(depChecker)
 
-	if err := checker.CheckCircular(t.celer, port); err != nil {
+	if err := checker.CheckCircular(t.Celer, port); err != nil {
 		return fmt.Errorf("circular dependency detected -> %w", err)
 	}
 
-	if err := checker.CheckConflict(t.celer, port); err != nil {
+	if err := checker.CheckConflict(t.Celer, port); err != nil {
 		return fmt.Errorf("version conflict detected -> %w", err)
 	}
 
-	rootInfo := portInfo{
-		nameVersion: target,
-		depth:       0,
-		devDep:      false,
+	rootInfo := PortInfo{
+		NameVersion: target,
+		Depth:       0,
+		DevDep:      false,
 	}
-	if err := t.collectPortInfos(&rootInfo, target); err != nil {
+	if err := t.CollectPortInfos(&rootInfo, target); err != nil {
 		return fmt.Errorf("failed to collect port information -> %w", err)
 	}
 
 	logger.Printf(logger.Title, "display dependencies in tree view:\n")
 	logger.Printf(logger.Line, "--------------------------------------------\n")
-	t.printTree(&rootInfo)
+	t.PrintTree(&rootInfo)
 	return nil
 }
 
 // showProjectTree displays dependency tree for a project.
-func (t *treeCmd) showProjectTree(target string, depchecker any) error {
+func (t *TreeCmd) showProjectTree(target string, depchecker any) error {
 	var project configs.Project
-	if err := project.Init(t.celer, target); err != nil {
+	if err := project.Init(t.Celer, target); err != nil {
 		return fmt.Errorf("failed to initialize project %s -> %w", target, err)
 	}
 
-	rootInfo := portInfo{
-		nameVersion: target,
-		depth:       0,
-		devDep:      false,
+	rootInfo := PortInfo{
+		NameVersion: target,
+		Depth:       0,
+		DevDep:      false,
 	}
-	nextDepth := rootInfo.depth + 1
+	nextDepth := rootInfo.Depth + 1
 
 	// Define checker interface.
 	type depChecker interface {
@@ -153,93 +153,93 @@ func (t *treeCmd) showProjectTree(target string, depchecker any) error {
 	var ports []configs.Port
 	for _, nameVersion := range project.Ports {
 		var port configs.Port
-		if err := port.Init(t.celer, nameVersion); err != nil {
+		if err := port.Init(t.Celer, nameVersion); err != nil {
 			return fmt.Errorf("failed to initialize port %s -> %w", nameVersion, err)
 		}
 
-		if err := checker.CheckCircular(t.celer, port); err != nil {
+		if err := checker.CheckCircular(t.Celer, port); err != nil {
 			return fmt.Errorf("circular dependency detected in %s -> %w", nameVersion, err)
 		}
 
 		ports = append(ports, port)
 	}
-	if err := checker.CheckConflict(t.celer, ports...); err != nil {
+	if err := checker.CheckConflict(t.Celer, ports...); err != nil {
 		return fmt.Errorf("version conflicts detected -> %w", err)
 	}
 
 	// Collect port info.
 	for _, port := range project.Ports {
-		portInfo := portInfo{
-			nameVersion: port,
-			depth:       nextDepth,
-			devDep:      false,
+		PortInfo := PortInfo{
+			NameVersion: port,
+			Depth:       nextDepth,
+			DevDep:      false,
 		}
-		if err := t.collectPortInfos(&portInfo, port); err != nil {
+		if err := t.CollectPortInfos(&PortInfo, port); err != nil {
 			return fmt.Errorf("failed to collect port information for %s -> %w", port, err)
 		}
 
-		rootInfo.depedencies = append(rootInfo.depedencies, &portInfo)
+		rootInfo.Dependencies = append(rootInfo.Dependencies, &PortInfo)
 	}
 
 	title := "display dependencies in tree view"
 	separator := strings.Repeat("-", len(title))
 	logger.Printf(logger.Title, "%s\n%s\n", title, separator)
-	t.printTree(&rootInfo)
+	t.PrintTree(&rootInfo)
 	return nil
 }
 
-func (t *treeCmd) collectPortInfos(parent *portInfo, nameVersion string) error {
+func (t *TreeCmd) CollectPortInfos(parent *PortInfo, nameVersion string) error {
 	var port configs.Port
-	if err := port.Init(t.celer, nameVersion); err != nil {
+	if err := port.Init(t.Celer, nameVersion); err != nil {
 		return err
 	}
 
 	matchedConfig := port.MatchedConfig
-	nextDepth := parent.depth + 1
+	nextDepth := parent.Depth + 1
 
 	// Collect dependency ports.
 	for _, depNameVersion := range matchedConfig.Dependencies {
 		var depPort configs.Port
-		if err := depPort.Init(t.celer, depNameVersion); err != nil {
+		if err := depPort.Init(t.Celer, depNameVersion); err != nil {
 			return err
 		}
 
-		portInfo := portInfo{
-			parent:      parent,
-			nameVersion: depNameVersion,
-			depth:       nextDepth,
-			devDep:      parent.devDep,
+		PortInfo := PortInfo{
+			Parent:      parent,
+			NameVersion: depNameVersion,
+			Depth:       nextDepth,
+			DevDep:      parent.DevDep,
 		}
-		parent.depedencies = append(parent.depedencies, &portInfo)
-		t.collectPortInfos(&portInfo, depNameVersion)
+		parent.Dependencies = append(parent.Dependencies, &PortInfo)
+		t.CollectPortInfos(&PortInfo, depNameVersion)
 	}
 
 	// Collect dev_dependency ports.
 	for _, devDepNameVersion := range matchedConfig.DevDependencies {
 		// Ignore itself.
-		if parent.devDep && devDepNameVersion == nameVersion {
+		if parent.DevDep && devDepNameVersion == nameVersion {
 			continue
 		}
 
 		var devDepPort configs.Port
-		if err := devDepPort.Init(t.celer, devDepNameVersion); err != nil {
+		if err := devDepPort.Init(t.Celer, devDepNameVersion); err != nil {
 			return err
 		}
 
-		portInfo := portInfo{
-			parent:      parent,
-			nameVersion: devDepNameVersion,
-			depth:       nextDepth,
-			devDep:      true,
+		PortInfo := PortInfo{
+			Parent:      parent,
+			NameVersion: devDepNameVersion,
+			Depth:       nextDepth,
+			DevDep:      true,
 		}
-		parent.devDependencies = append(parent.devDependencies, &portInfo)
-		t.collectPortInfos(&portInfo, devDepNameVersion)
+		parent.DevDependencies = append(parent.DevDependencies, &PortInfo)
+		t.CollectPortInfos(&PortInfo, devDepNameVersion)
 	}
 
 	return nil
 }
 
-func (t *treeCmd) printTree(info *portInfo) {
+func (t *TreeCmd) PrintTree(info *PortInfo) {
 	t.printTreeWithPrefix(info, "", true)
 
 	// Count dependencies.
@@ -250,7 +250,7 @@ func (t *treeCmd) printTree(info *portInfo) {
 	logger.Printf(logger.Summary, "dependencies: %d  dev_dependencies: %d\n", depCount, devDepCount)
 }
 
-func (t *treeCmd) countDependencies(info *portInfo) (int, int) {
+func (t *TreeCmd) countDependencies(info *PortInfo) (int, int) {
 	depCount := 0
 	devDepCount := 0
 	visited := make(map[string]bool)
@@ -259,43 +259,43 @@ func (t *treeCmd) countDependencies(info *portInfo) (int, int) {
 	return depCount, devDepCount
 }
 
-func (t *treeCmd) countDependenciesRecursive(info *portInfo, visited map[string]bool, depCount *int, devDepCount *int) {
+func (t *TreeCmd) countDependenciesRecursive(info *PortInfo, visited map[string]bool, depCount *int, devDepCount *int) {
 	// Skip root node.
-	if info.depth == 0 {
-		for _, nameVersion := range info.depedencies {
+	if info.Depth == 0 {
+		for _, nameVersion := range info.Dependencies {
 			t.countDependenciesRecursive(nameVersion, visited, depCount, devDepCount)
 		}
-		for _, nameVersion := range info.devDependencies {
+		for _, nameVersion := range info.DevDependencies {
 			t.countDependenciesRecursive(nameVersion, visited, depCount, devDepCount)
 		}
 		return
 	}
 
 	// Check if already visited.
-	if visited[info.nameVersion] {
+	if visited[info.NameVersion] {
 		return
 	}
-	visited[info.nameVersion] = true
+	visited[info.NameVersion] = true
 
 	// Count this dependency.
-	if info.devDep {
+	if info.DevDep {
 		*devDepCount++
 	} else {
 		*depCount++
 	}
 
 	// Recursively count children.
-	for _, child := range info.depedencies {
+	for _, child := range info.Dependencies {
 		t.countDependenciesRecursive(child, visited, depCount, devDepCount)
 	}
-	for _, child := range info.devDependencies {
+	for _, child := range info.DevDependencies {
 		t.countDependenciesRecursive(child, visited, depCount, devDepCount)
 	}
 }
 
-func (t *treeCmd) printTreeWithPrefix(info *portInfo, prefix string, isLast bool) {
+func (t *TreeCmd) printTreeWithPrefix(info *PortInfo, prefix string, isLast bool) {
 	var branch string
-	if info.depth == 0 {
+	if info.Depth == 0 {
 		branch = ""
 	} else if isLast {
 		branch = "└── "
@@ -304,15 +304,15 @@ func (t *treeCmd) printTreeWithPrefix(info *portInfo, prefix string, isLast bool
 	}
 
 	// Compose the line to print.
-	line := branch + info.nameVersion
-	if info.devDep {
+	line := branch + info.NameVersion
+	if info.DevDep {
 		line += " -- [dev]"
 	}
 	logger.Println(logger.Hint, prefix+line)
 
 	// Prepare the prefix for the next level.
 	var nextPrefix string
-	if info.depth == 0 {
+	if info.Depth == 0 {
 		nextPrefix = ""
 	} else if isLast {
 		nextPrefix = prefix + "    " // No vertical line if this is the last child.
@@ -321,9 +321,9 @@ func (t *treeCmd) printTreeWithPrefix(info *portInfo, prefix string, isLast bool
 	}
 
 	// Merge normal and dev dependencies (if not hidden).
-	children := info.depedencies
-	if !t.hideDevDep {
-		children = append(children, info.devDependencies...)
+	children := info.Dependencies
+	if !t.HideDevDep {
+		children = append(children, info.DevDependencies...)
 	}
 
 	// Recursively print children
@@ -332,7 +332,7 @@ func (t *treeCmd) printTreeWithPrefix(info *portInfo, prefix string, isLast bool
 	}
 }
 
-func (t *treeCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (t *TreeCmd) Completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 
 	// Support port completion from global ports.
@@ -359,7 +359,7 @@ func (t *treeCmd) completion(cmd *cobra.Command, args []string, toComplete strin
 	}
 
 	// Support port completion from project-specific ports.
-	projectName := t.celer.GetProjectName()
+	projectName := t.Celer.GetProjectName()
 	if projectName != "" {
 		projectPortsDir := filepath.Join(dirs.ConfProjectsDir, projectName)
 		if fileio.PathExists(projectPortsDir) {

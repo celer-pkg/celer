@@ -18,16 +18,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type cleanCmd struct {
-	celer     *configs.Celer
-	recursive bool
-	dev       bool
+type CleanCmd struct {
+	Celer     *configs.Celer
+	Recursive bool
+	Dev       bool
 	all       bool
 	cleaned   []string
 }
 
-func (c *cleanCmd) Command(celer *configs.Celer) *cobra.Command {
-	c.celer = celer
+func (c *CleanCmd) Command(celer *configs.Celer) *cobra.Command {
+	c.Celer = celer
 	command := &cobra.Command{
 		Use:   "clean",
 		Short: "Remove build cache and clean source repository.",
@@ -46,14 +46,14 @@ Examples:
   celer clean x264@stable ffmpeg@3.4.13 --recursive   	# Clean multiple packages`,
 		Args: c.validateArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return c.execute(args)
+			return c.Execute(args)
 		},
-		ValidArgsFunction: c.completion,
+		ValidArgsFunction: c.Completion,
 	}
 
 	// Register flags.
-	command.Flags().BoolVarP(&c.recursive, "recursive", "r", false, "clean package/project along with its depedencies.")
-	command.Flags().BoolVarP(&c.dev, "dev", "d", false, "clean package/project for dev mode.")
+	command.Flags().BoolVarP(&c.Recursive, "recursive", "r", false, "clean package/project along with its depedencies.")
+	command.Flags().BoolVarP(&c.Dev, "dev", "d", false, "clean package/project for dev mode.")
 	command.Flags().BoolVarP(&c.all, "all", "a", false, "clean all packages.")
 
 	// Silence cobra's error and usage output to avoid duplicate messages.
@@ -62,7 +62,7 @@ Examples:
 	return command
 }
 
-func (c *cleanCmd) validateArgs(cmd *cobra.Command, args []string) error {
+func (c *CleanCmd) validateArgs(cmd *cobra.Command, args []string) error {
 	all, err := cmd.Flags().GetBool("all")
 	if err != nil {
 		return err
@@ -82,22 +82,22 @@ func (c *cleanCmd) validateArgs(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func (c *cleanCmd) execute(args []string) error {
-	if err := c.celer.Init(); err != nil {
+func (c *CleanCmd) Execute(args []string) error {
+	if err := c.Celer.Init(); err != nil {
 		return logger.PrintError(err, "failed to init celer.")
 	}
 
 	// Must check tool after celer initialized, since "downloads" will be assign value after init.
-	if err := buildtools.CheckTools(c.celer, "git"); err != nil {
+	if err := buildtools.CheckTools(c.Celer, "git"); err != nil {
 		return err
 	}
 
 	if c.all {
-		if err := c.cleanAll(); err != nil {
+		if err := c.CleanAll(); err != nil {
 			return logger.PrintError(err, "failed to clean all packages.")
 		}
 	} else {
-		if err := c.validateTargets(args); err != nil {
+		if err := c.ValidateTargets(args); err != nil {
 			return logger.PrintError(err, "invalid arguments.")
 		}
 
@@ -109,25 +109,25 @@ func (c *cleanCmd) execute(args []string) error {
 	return nil
 }
 
-func (c *cleanCmd) validateTargets(targets []string) error {
+func (c *CleanCmd) ValidateTargets(targets []string) error {
 	if len(targets) == 0 {
 		return errors.New("no package or project specified")
 	}
 	return nil
 }
 
-func (c *cleanCmd) clean(targets ...string) error {
+func (c *CleanCmd) clean(targets ...string) error {
 	var summaries []string
 	for _, target := range targets {
 		if strings.Contains(target, "@") {
 			// Init port.
 			var port configs.Port
 			port.DevDep = false
-			if err := port.Init(c.celer, target); err != nil {
+			if err := port.Init(c.Celer, target); err != nil {
 				return err
 			}
 
-			if c.dev {
+			if c.Dev {
 				// Clean dev build cache.
 				port.DevDep = true
 				if err := c.doClean(port); err != nil {
@@ -146,7 +146,7 @@ func (c *cleanCmd) clean(targets ...string) error {
 			}
 		} else {
 			var project configs.Project
-			if err := project.Init(c.celer, target); err != nil {
+			if err := project.Init(c.Celer, target); err != nil {
 				return err
 			}
 
@@ -154,7 +154,7 @@ func (c *cleanCmd) clean(targets ...string) error {
 				// Init port.
 				var port configs.Port
 				port.DevDep = false
-				if err := port.Init(c.celer, nameVersion); err != nil {
+				if err := port.Init(c.Celer, nameVersion); err != nil {
 					return err
 				}
 
@@ -183,7 +183,7 @@ func (c *cleanCmd) clean(targets ...string) error {
 	return nil
 }
 
-func (c *cleanCmd) cleanAll() error {
+func (c *CleanCmd) CleanAll() error {
 	if !fileio.PathExists(dirs.BuildtreesDir) {
 		return nil
 	}
@@ -212,7 +212,7 @@ func (c *cleanCmd) cleanAll() error {
 
 		// Clean the git repo (if the port still exists).
 		var port configs.Port
-		if err := port.Init(c.celer, nameVersion); err != nil {
+		if err := port.Init(c.Celer, nameVersion); err != nil {
 			logger.PrintWarning("skip cleaning '%s' -> %s", nameVersion, err)
 			continue
 		}
@@ -231,7 +231,7 @@ func (c *cleanCmd) cleanAll() error {
 	return nil
 }
 
-func (c *cleanCmd) doClean(port configs.Port) error {
+func (c *CleanCmd) doClean(port configs.Port) error {
 	// Ignore already cleaned ports.
 	if slices.Contains(c.cleaned, port.NameVersion()+expr.If(port.DevDep || port.HostDep, "[dev]", "")) {
 		return nil
@@ -257,11 +257,11 @@ func (c *cleanCmd) doClean(port configs.Port) error {
 	}
 
 	// Clean dependencies.
-	if c.recursive {
+	if c.Recursive {
 		for _, nameVersion := range matchedConfig.Dependencies {
 			var depPort configs.Port
 			depPort.HostDep = port.DevDep || port.HostDep
-			if err := depPort.Init(c.celer, nameVersion); err != nil {
+			if err := depPort.Init(c.Celer, nameVersion); err != nil {
 				return err
 			}
 
@@ -279,7 +279,7 @@ func (c *cleanCmd) doClean(port configs.Port) error {
 			var devDepPort configs.Port
 			devDepPort.DevDep = true
 			devDepPort.HostDep = port.DevDep || port.HostDep
-			if err := devDepPort.Init(c.celer, nameVersion); err != nil {
+			if err := devDepPort.Init(c.Celer, nameVersion); err != nil {
 				return err
 			}
 
@@ -295,7 +295,7 @@ func (c *cleanCmd) doClean(port configs.Port) error {
 	return nil
 }
 
-func (c *cleanCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (c *CleanCmd) Completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 
 	// Support port completion.

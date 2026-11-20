@@ -16,16 +16,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type autoremoveCmd struct {
-	celer       *configs.Celer
-	packages    []string
-	devPackages []string
+type AutoremoveCmd struct {
+	Celer       *configs.Celer
+	Packages    []string
+	DevPackages []string
 	purge       bool
 	buildCache  bool
 }
 
-func (a *autoremoveCmd) Command(celer *configs.Celer) *cobra.Command {
-	a.celer = celer
+func (a *AutoremoveCmd) Command(celer *configs.Celer) *cobra.Command {
+	a.Celer = celer
 	command := &cobra.Command{
 		Use:   "autoremove",
 		Short: "Remove libraries that do not belong to current project.",
@@ -45,13 +45,13 @@ Examples:
   celer autoremove --purge --build-cache	# Remove packages, archives, and build cache`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := a.celer.Init(); err != nil {
+			if err := a.Celer.Init(); err != nil {
 				return fmt.Errorf("failed to init celer -> %w", err)
 			}
 
 			return a.autoremove()
 		},
-		ValidArgsFunction: a.completion,
+		ValidArgsFunction: a.Completion,
 	}
 
 	command.Flags().BoolVarP(&a.buildCache, "build-cache", "c", false, "autoremove packages along with build cache.")
@@ -63,13 +63,13 @@ Examples:
 	return command
 }
 
-func (a *autoremoveCmd) autoremove() error {
+func (a *AutoremoveCmd) autoremove() error {
 	// Reset collected state for every run.
-	a.packages = nil
-	a.devPackages = nil
+	a.Packages = nil
+	a.DevPackages = nil
 
 	// Collect packages/devPackages that belongs to project.
-	for _, nameVersion := range a.celer.Project().GetPorts() {
+	for _, nameVersion := range a.Celer.Project().GetPorts() {
 		if err := a.collectPackages(nameVersion); err != nil {
 			return fmt.Errorf("failed to collect packages -> %w", err)
 		}
@@ -86,7 +86,7 @@ func (a *autoremoveCmd) autoremove() error {
 
 	// Remove packages that do not belongs to project.
 	for _, nameVersion := range depPackages {
-		if slices.Contains(a.packages, nameVersion) {
+		if slices.Contains(a.Packages, nameVersion) {
 			continue
 		}
 		if err := a.removePackage(nameVersion, false); err != nil {
@@ -101,7 +101,7 @@ func (a *autoremoveCmd) autoremove() error {
 
 	// Remove dev_packages that do not belongs to current project.
 	for _, nameVersion := range devDepPackages {
-		if slices.Contains(a.devPackages, nameVersion) {
+		if slices.Contains(a.DevPackages, nameVersion) {
 			continue
 		}
 		if err := a.removePackage(nameVersion, true); err != nil {
@@ -114,15 +114,15 @@ func (a *autoremoveCmd) autoremove() error {
 		}
 	}
 
-	logger.PrintSuccess("autoremove successfully for %s", a.celer.Project().GetName())
+	logger.PrintSuccess("autoremove successfully for %s", a.Celer.Project().GetName())
 	return nil
 }
 
-func (a *autoremoveCmd) removePackage(nameVersion string, dev bool) error {
+func (a *AutoremoveCmd) removePackage(nameVersion string, dev bool) error {
 	var port configs.Port
 	port.DevDep = dev
 	port.HostDep = dev
-	if err := port.Init(a.celer, nameVersion); err != nil {
+	if err := port.Init(a.Celer, nameVersion); err != nil {
 		return err
 	}
 
@@ -134,30 +134,30 @@ func (a *autoremoveCmd) removePackage(nameVersion string, dev bool) error {
 	return port.Remove(options)
 }
 
-func (a *autoremoveCmd) collectPackages(nameVersion string) error {
+func (a *AutoremoveCmd) collectPackages(nameVersion string) error {
 	// Init port with name version.
 	var port configs.Port
-	if err := port.Init(a.celer, nameVersion); err != nil {
+	if err := port.Init(a.Celer, nameVersion); err != nil {
 		return err
 	}
 
 	// Check circular dependence and version conflict.
 	depcheck := depcheck.NewDepCheck()
-	if err := depcheck.CheckCircular(a.celer, port); err != nil {
+	if err := depcheck.CheckCircular(a.Celer, port); err != nil {
 		return fmt.Errorf("found circular dependence %s -> %w", nameVersion, err)
 	}
-	if err := depcheck.CheckConflict(a.celer, port); err != nil {
+	if err := depcheck.CheckConflict(a.Celer, port); err != nil {
 		return fmt.Errorf("found version conflict %s -> %w", nameVersion, err)
 	}
 
 	// Add if not added before.
-	if !slices.Contains(a.packages, nameVersion) {
-		a.packages = append(a.packages, nameVersion)
+	if !slices.Contains(a.Packages, nameVersion) {
+		a.Packages = append(a.Packages, nameVersion)
 	}
 
 	for _, nameVersion := range port.MatchedConfig.Dependencies {
-		if !slices.Contains(a.packages, nameVersion) {
-			a.packages = append(a.packages, nameVersion)
+		if !slices.Contains(a.Packages, nameVersion) {
+			a.Packages = append(a.Packages, nameVersion)
 			if err := a.collectPackages(nameVersion); err != nil {
 				return fmt.Errorf("failed to collect package for %s -> %w", nameVersion, err)
 			}
@@ -167,26 +167,26 @@ func (a *autoremoveCmd) collectPackages(nameVersion string) error {
 	return nil
 }
 
-func (a *autoremoveCmd) collectDevPackages(nameVersion string) error {
+func (a *AutoremoveCmd) collectDevPackages(nameVersion string) error {
 	// Init port with name version.
 	var port configs.Port
-	if err := port.Init(a.celer, nameVersion); err != nil {
+	if err := port.Init(a.Celer, nameVersion); err != nil {
 		return err
 	}
 
 	// Check circular dependence and version conflict.
 	depcheck := depcheck.NewDepCheck()
-	if err := depcheck.CheckCircular(a.celer, port); err != nil {
+	if err := depcheck.CheckCircular(a.Celer, port); err != nil {
 		return fmt.Errorf("found circular dependence when collecting dev package %s -> %w", nameVersion, err)
 	}
-	if err := depcheck.CheckConflict(a.celer, port); err != nil {
+	if err := depcheck.CheckConflict(a.Celer, port); err != nil {
 		return fmt.Errorf("found version conflict when collecting dev package %s -> %w", nameVersion, err)
 	}
 
 	// Collect dev dependencies.
 	for _, nameVersion := range port.MatchedConfig.DevDependencies {
-		if !slices.Contains(a.devPackages, nameVersion) {
-			a.devPackages = append(a.devPackages, nameVersion)
+		if !slices.Contains(a.DevPackages, nameVersion) {
+			a.DevPackages = append(a.DevPackages, nameVersion)
 			if err := a.collectDevPackages(nameVersion); err != nil {
 				return err
 			}
@@ -196,8 +196,8 @@ func (a *autoremoveCmd) collectDevPackages(nameVersion string) error {
 	// Dev package chains may include regular dependencies as host dependencies.
 	// They are also installed under host-dev and should not be removed.
 	for _, nameVersion := range port.MatchedConfig.Dependencies {
-		if !slices.Contains(a.devPackages, nameVersion) {
-			a.devPackages = append(a.devPackages, nameVersion)
+		if !slices.Contains(a.DevPackages, nameVersion) {
+			a.DevPackages = append(a.DevPackages, nameVersion)
 			if err := a.collectDevPackages(nameVersion); err != nil {
 				return err
 			}
@@ -207,12 +207,12 @@ func (a *autoremoveCmd) collectDevPackages(nameVersion string) error {
 	return nil
 }
 
-func (a *autoremoveCmd) installedPackages() (packages []string, devPackages []string, err error) {
+func (a *AutoremoveCmd) installedPackages() (packages []string, devPackages []string, err error) {
 	// Collect installed packages and cached packages.
 	libraryDir := filepath.Join(
-		a.celer.Platform().GetName(),
-		a.celer.Project().GetName(),
-		a.celer.BuildType(),
+		a.Celer.Platform().GetName(),
+		a.Celer.Project().GetName(),
+		a.Celer.BuildType(),
 	)
 	packages, err = a.readInstalledPackages(libraryDir)
 	if err != nil {
@@ -225,7 +225,7 @@ func (a *autoremoveCmd) installedPackages() (packages []string, devPackages []st
 	packages = mergePackages(packages, cachedPackages)
 
 	// Collect installed dev packages and cached dev packages.
-	devLibraryDir := a.celer.Platform().GetHostName() + "-dev"
+	devLibraryDir := a.Celer.Platform().GetHostName() + "-dev"
 	devPackages, err = a.readInstalledPackages(devLibraryDir)
 	if err != nil {
 		return nil, nil, err
@@ -238,7 +238,7 @@ func (a *autoremoveCmd) installedPackages() (packages []string, devPackages []st
 	return
 }
 
-func (a *autoremoveCmd) readInstalledPackages(libraryDir string) ([]string, error) {
+func (a *AutoremoveCmd) readInstalledPackages(libraryDir string) ([]string, error) {
 	traceDir := filepath.Join(dirs.InstalledDir, "infos", "traces", libraryDir)
 
 	entries, err := os.ReadDir(traceDir)
@@ -262,7 +262,7 @@ func (a *autoremoveCmd) readInstalledPackages(libraryDir string) ([]string, erro
 	return packages, nil
 }
 
-func (a *autoremoveCmd) readCachedPackages(libraryDir string) ([]string, error) {
+func (a *AutoremoveCmd) readCachedPackages(libraryDir string) ([]string, error) {
 	cacheDir := filepath.Join(dirs.PackagesDir, libraryDir)
 
 	entries, err := os.ReadDir(cacheDir)
@@ -293,7 +293,7 @@ func mergePackages(base []string, extras []string) []string {
 	return base
 }
 
-func (a *autoremoveCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (a *AutoremoveCmd) Completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 
 	// Support flags completion.

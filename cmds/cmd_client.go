@@ -17,8 +17,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type clientCmd struct {
-	celer *configs.Celer
+type ClientCmd struct {
+	Celer *configs.Celer
 
 	fsDir   string
 	minio   pkgcache.Minio
@@ -26,8 +26,8 @@ type clientCmd struct {
 	dest    string
 }
 
-func (c *clientCmd) Command(celer *configs.Celer) *cobra.Command {
-	c.celer = celer
+func (c *ClientCmd) Command(celer *configs.Celer) *cobra.Command {
+	c.Celer = celer
 	command := cobra.Command{
 		Use:   "client",
 		Short: "List or download celer clients from pkgcache.",
@@ -59,7 +59,7 @@ command usable before 'celer init', when celer.toml has no pkgcache yet.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.fetch()
 		},
-		ValidArgsFunction: c.completion,
+		ValidArgsFunction: c.Completion,
 	}
 	downloadCommand.SilenceErrors = true
 	downloadCommand.SilenceUsage = true
@@ -77,7 +77,7 @@ command usable before 'celer init', when celer.toml has no pkgcache yet.`,
 	return &command
 }
 
-func (c *clientCmd) list(cmd *cobra.Command) error {
+func (c *ClientCmd) list(cmd *cobra.Command) error {
 	cache, err := c.clientCache()
 	if err != nil {
 		return logger.PrintError(err, "failed to open the pkgcache.")
@@ -95,7 +95,7 @@ func (c *clientCmd) list(cmd *cobra.Command) error {
 	return nil
 }
 
-func (c *clientCmd) fetch() error {
+func (c *ClientCmd) fetch() error {
 	if err := checkClientVersion(c.version); err != nil {
 		return logger.PrintError(err, "invalid --version.")
 	}
@@ -116,7 +116,7 @@ func (c *clientCmd) fetch() error {
 	return nil
 }
 
-func (c *clientCmd) clientCache() (pkgcache.ClientCache, error) {
+func (c *ClientCmd) clientCache() (pkgcache.ClientCache, error) {
 	// Environment first: it is the only source before `celer configure --pkgcache-*`.
 	cache, err := c.clientCacheFromEnv()
 	if err != nil || cache != nil {
@@ -128,11 +128,11 @@ func (c *clientCmd) clientCache() (pkgcache.ClientCache, error) {
 		return nil, fmt.Errorf("no pkgcache in the environment and no '%s': set CELER_PKGCACHE_FS_DIR or CELER_PKGCACHE_MINIO_*, or run 'celer init' and 'celer configure --pkgcache-*' first", configPath)
 	}
 
-	if err := c.celer.Init(); err != nil {
+	if err := c.Celer.Init(); err != nil {
 		return nil, err
 	}
 
-	pkgCache := c.celer.PkgCache()
+	pkgCache := c.Celer.PkgCache()
 	if pkgCache == nil || pkgCache.GetClientCache() == nil {
 		return nil, fmt.Errorf("no pkgcache in the environment or in '%s'", configPath)
 	}
@@ -141,7 +141,7 @@ func (c *clientCmd) clientCache() (pkgcache.ClientCache, error) {
 }
 
 // clientCacheFromEnv builds a client cache from the pkgcache environment.
-func (c *clientCmd) clientCacheFromEnv() (pkgcache.ClientCache, error) {
+func (c *ClientCmd) clientCacheFromEnv() (pkgcache.ClientCache, error) {
 	c.fsDir = os.Getenv("CELER_PKGCACHE_FS_DIR")
 	c.minio = pkgcache.Minio{
 		Host:      os.Getenv("CELER_PKGCACHE_MINIO_HOST"),
@@ -159,7 +159,7 @@ func (c *clientCmd) clientCacheFromEnv() (pkgcache.ClientCache, error) {
 			return nil, err
 		}
 
-		return miniocache.NewClientCacheFrom(c.celer, client, &c.minio, false), nil
+		return miniocache.NewClientCacheFrom(c.Celer, client, &c.minio, false), nil
 	}
 
 	if c.fsDir != "" {
@@ -168,7 +168,7 @@ func (c *clientCmd) clientCacheFromEnv() (pkgcache.ClientCache, error) {
 			return nil, err
 		}
 
-		return filesystem.NewClientCacheFrom(c.celer, fs, false), nil
+		return filesystem.NewClientCacheFrom(c.Celer, fs, false), nil
 	}
 
 	return nil, nil
@@ -187,7 +187,7 @@ func checkClientVersion(version string) error {
 
 // completion suggests the flags of 'celer client download', which takes no positional
 // args: nothing else could be completed here.
-func (c *clientCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (c *ClientCmd) Completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 	for _, flag := range []string{"--version", "--dest"} {
 		if strings.HasPrefix(flag, toComplete) {
