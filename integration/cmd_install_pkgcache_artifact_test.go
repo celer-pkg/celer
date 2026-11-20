@@ -154,7 +154,7 @@ func TestInstall_PkgCache_Prebuilt_Success(t *testing.T) {
 	dirs.RemoveAllForTest()
 
 	var (
-		nameVersion = "cuda_cupti@13.3.75"
+		nameVersion = "cuda_cccl@12.9.27"
 		platform    = buildTestPlatform()
 		project     = testProjectName
 	)
