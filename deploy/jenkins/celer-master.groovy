@@ -221,19 +221,15 @@ try {
 pipeline {
     agent { label 'celer-master' }
 
-    environment {
-        // Force Jenkins plugin AnsiColor to render color.
-        FORCE_COLOR = '1'
-    }
-
     // agent {
     //     docker {
     //         label 'celer-master'
-    //         image 'ubuntu:22.04'
-    //         args '-u 1000:1000 ' +
-    //             '-v /mnt/data/celer_buildtrees:/workspace/buildtrees ' +
+    //         image 'xxxx/celer-ci/ubuntu:22.04'
+    //         alwaysPull true
+    //         args '--dns 8.8.8.8 ' + 
+    //             '-v /mnt/data/workspace/workspace:/workspace/buildtrees ' +
     //             '-v /etc/localtime:/etc/localtime:ro ' +
-    //             '-e HOME=/mnt/data/celer_home ' +
+    //             '-e HOME=/root ' +
     //             '-e CELER_PKGCACHE_MINIO_HOST ' +
     //             '-e CELER_PKGCACHE_MINIO_ACCESS_KEY ' +
     //             '-e CELER_PKGCACHE_MINIO_SECRET_KEY ' +
@@ -241,6 +237,10 @@ pipeline {
     //             '-e CELER_PKGCACHE_READONLY'
     //     }
     // }
+
+    environment {
+        FORCE_COLOR = '1' // Force Jenkins plugin AnsiColor to render color.
+    }
     
     options {
         timeout(time: 4, unit: 'HOURS')
@@ -249,6 +249,14 @@ pipeline {
     }
 
     stages {
+        stage('upgrade celer') {
+            steps {
+                script {
+                    run 'celer upgrade'
+                }
+            }
+        }
+        
         // Active Choices cannot be declared in `parameters {}`, so register all of them
         // here; they show up from the next build on.
         stage('register parameters') {
@@ -331,11 +339,14 @@ pipeline {
                         run "celer client download --version=${params.CELER_VERSION} --dest=${dir}/${isUnix() ? 'celer' : 'celer.exe'}"
                         celerBinDir = dir
                     }
+                    
+                    // The bind-mounted conf/ may have another owner: trust this workspace.
+                    run 'git config --global --add safe.directory "*"'
 
                     // The conf branch defaults to master.
                     def confBranch = params.CELER_CONF_BRANCH ?: 'master'
-                    run "celer init --url=${params.CELER_CONF_URL} --branch=${confBranch}"
-                    run "celer update --ports-repo"
+                    run "celer init --url=${params.CELER_CONF_URL} --branch=${confBranch} --force"
+                    run "celer update --ports-repo --force"
                     run "celer configure --platform=${params.CELER_PLATFORM}"
                     run "celer configure --project=${params.CELER_PROJECT}"
                     run "celer configure --build-type=${params.CELER_BUILD_TYPE}"
