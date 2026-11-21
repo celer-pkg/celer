@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/buildtools"
-	"github.com/celer-pkg/celer/pkgs/cmd"
+	"github.com/celer-pkg/celer/internal/cmd"
 )
 
 var toolVersionArgs = map[string][]string{

@@ -12,8 +12,8 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/logger"
+	"github.com/celer-pkg/celer/internal/dirs"
+	"github.com/celer-pkg/celer/internal/logger"
 )
 
 const (

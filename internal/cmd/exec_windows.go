@@ -10,8 +10,8 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/celer-pkg/celer/pkgs/fileio"
-	"github.com/celer-pkg/celer/pkgs/logger"
+	"github.com/celer-pkg/celer/internal/fileio"
+	"github.com/celer-pkg/celer/internal/logger"
 )
 
 // doExecute implements Windows specific command execution.

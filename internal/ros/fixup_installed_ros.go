@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/internal/fileio"
 )
 
 // FixupInstalledROS rewrites the ROS/ament/colcon artifacts that bake the

@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/internal/dirs"
+	"github.com/celer-pkg/celer/internal/fileio"
 )
 
 const ubuntu_aarch64_gcc_11_5_0 = "aarch64-linux-ubuntu-22.04-gcc-11.5.0"

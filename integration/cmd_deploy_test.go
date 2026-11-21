@@ -10,10 +10,10 @@ import (
 
 	"github.com/celer-pkg/celer/buildsystems"
 	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/fileio"
-	"github.com/celer-pkg/celer/pkgs/git"
-	"github.com/celer-pkg/celer/pkgs/refs"
+	"github.com/celer-pkg/celer/internal/dirs"
+	"github.com/celer-pkg/celer/internal/fileio"
+	"github.com/celer-pkg/celer/internal/git"
+	"github.com/celer-pkg/celer/internal/refs"
 
 	"github.com/spf13/cobra"
 )
@@ -158,9 +158,10 @@ func TestDeployCmd_Completion(t *testing.T) {
 func setupTestRepo(t *testing.T) (repoUrl string, headCommit, olderCommit string) {
 	t.Helper()
 
-	// Use the existing testdata repo as source.
-	testdataDir := filepath.Join("..", "pkgs", "git", "testdata")
-	if _, err := os.Stat(testdataDir); err != nil {
+	// Use the existing testdata repo as source. It is a leftover clone of the git
+	// test fixture, so it may be missing or empty on a fresh checkout.
+	testdataDir := filepath.Join("..", "internal", "git", "testdata")
+	if _, err := os.Stat(filepath.Join(testdataDir, ".git")); err != nil {
 		t.Skip("git testdata repo not available")
 	}
 

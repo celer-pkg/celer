@@ -8,8 +8,8 @@ import (
 
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgs/errors"
-	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/internal/errors"
+	"github.com/celer-pkg/celer/internal/expr"
 )
 
 func NewDepCheck() *depcheck {

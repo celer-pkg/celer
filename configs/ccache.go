@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/internal/dirs"
 )
 
 const ccacheDefaultMaxSize = "10G"

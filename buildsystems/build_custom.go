@@ -6,8 +6,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/celer-pkg/celer/pkgs/cmd"
-	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/internal/cmd"
+	"github.com/celer-pkg/celer/internal/expr"
 )
 
 func NewCustom(config *BuildConfig) *custom {

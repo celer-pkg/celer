@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgs/cmd"
-	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/internal/cmd"
+	"github.com/celer-pkg/celer/internal/fileio"
 )
 
 // Python interface defines methods for Python tools, including system Python and conda Python.

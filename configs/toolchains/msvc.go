@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgs/cmd"
+	"github.com/celer-pkg/celer/internal/cmd"
 )
 
 type MSVC struct {

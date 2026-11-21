@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/internal/dirs"
 )
 
 // Op is a lifecycle step shown in status lines.

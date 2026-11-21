@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/internal/expr"
 )
 
 type CacheConfigs struct {

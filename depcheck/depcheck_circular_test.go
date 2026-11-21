@@ -2,7 +2,7 @@ package depcheck
 
 import (
 	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/internal/dirs"
 	"os"
 	"path/filepath"
 	"testing"

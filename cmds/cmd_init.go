@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/git"
-	"github.com/celer-pkg/celer/pkgs/logger"
+	"github.com/celer-pkg/celer/internal/dirs"
+	"github.com/celer-pkg/celer/internal/git"
+	"github.com/celer-pkg/celer/internal/logger"
 
 	"github.com/spf13/cobra"
 )

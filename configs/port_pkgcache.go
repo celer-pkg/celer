@@ -9,15 +9,15 @@ import (
 	"sync"
 
 	"github.com/celer-pkg/celer/buildsystems"
+	"github.com/celer-pkg/celer/internal/dirs"
+	"github.com/celer-pkg/celer/internal/errors"
+	"github.com/celer-pkg/celer/internal/expr"
+	"github.com/celer-pkg/celer/internal/fileio"
+	"github.com/celer-pkg/celer/internal/git"
+	"github.com/celer-pkg/celer/internal/logger"
+	"github.com/celer-pkg/celer/internal/refs"
 	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgcache/meta"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/errors"
-	"github.com/celer-pkg/celer/pkgs/expr"
-	"github.com/celer-pkg/celer/pkgs/fileio"
-	"github.com/celer-pkg/celer/pkgs/git"
-	"github.com/celer-pkg/celer/pkgs/logger"
-	"github.com/celer-pkg/celer/pkgs/refs"
 
 	"github.com/BurntSushi/toml"
 )

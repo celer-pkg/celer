@@ -10,7 +10,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/internal/fileio"
 
 	"github.com/spf13/cobra"
 )

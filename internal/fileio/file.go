@@ -14,7 +14,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/internal/dirs"
 )
 
 // IsExecutable check if file was executable

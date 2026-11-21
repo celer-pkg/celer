@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/internal/fileio"
 )
 
 // CheckCMakeAbsPaths scans cmake config files under packageDir for absolute

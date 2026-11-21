@@ -8,8 +8,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/celer-pkg/celer/pkgs/expr"
-	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/internal/expr"
+	"github.com/celer-pkg/celer/internal/fileio"
 )
 
 // metaCache caches pkgcache-level buildMeta results keyed by nameVersion|native

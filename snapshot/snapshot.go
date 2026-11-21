@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/celer-pkg/celer/pkgs/refs"
+	"github.com/celer-pkg/celer/internal/refs"
 )
 
 // BuildEnv holds the build environment metadata for a snapshot.

@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/internal/expr"
 
 	"github.com/BurntSushi/toml"
 )

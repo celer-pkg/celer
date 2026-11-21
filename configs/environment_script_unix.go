@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/internal/dirs"
 )
 
 // venvLayout returns the site-packages dir (relative to the venv root) and the

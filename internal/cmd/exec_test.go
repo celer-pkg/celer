@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/internal/fileio"
 )
 
 func TestNewExecutor_Defaults(t *testing.T) {

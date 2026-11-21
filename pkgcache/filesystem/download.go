@@ -6,10 +6,10 @@ import (
 	"path/filepath"
 
 	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/internal/dirs"
+	"github.com/celer-pkg/celer/internal/errors"
+	"github.com/celer-pkg/celer/internal/fileio"
 	"github.com/celer-pkg/celer/pkgcache"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/errors"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 // DownloadConfig implements pkgcache.DownloadCache for storing/restoring
