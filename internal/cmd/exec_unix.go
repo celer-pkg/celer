@@ -9,8 +9,8 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/celer-pkg/celer/pkgs/fileio"
-	"github.com/celer-pkg/celer/pkgs/logger"
+	"github.com/celer-pkg/celer/internal/fileio"
+	"github.com/celer-pkg/celer/internal/logger"
 )
 
 // doExecute implements Unix/Linux/macOS specific command execution.

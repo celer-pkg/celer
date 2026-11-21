@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/celer-pkg/celer/pkgs/cmd"
-	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/internal/cmd"
+	"github.com/celer-pkg/celer/internal/fileio"
 )
 
 func NewGyp(config *BuildConfig) *gyp {

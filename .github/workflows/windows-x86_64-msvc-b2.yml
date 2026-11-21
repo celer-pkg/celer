@@ -30,7 +30,7 @@ jobs:
         run: go build -v ./...
 
       - name: Test
-        run: go test -artifacts -outputdir="${{ runner.temp }}" -tags=test_msvc -v ./cmds/ -run "TestInstall_x86_64_MSVC_B2" -timeout 1h
+        run: go test -artifacts -outputdir="${{ runner.temp }}" -tags=test_msvc -v ./integration/ -run "TestInstall_x86_64_MSVC_B2" -timeout 1h
 
       - name: Upload test artifacts on failure
         if: failure()

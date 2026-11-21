@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/internal/expr"
 )
 
 func IsSupportedArchive(filePath string) bool {

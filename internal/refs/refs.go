@@ -3,7 +3,7 @@ package refs
 import (
 	"strings"
 
-	"github.com/celer-pkg/celer/pkgs/git"
+	"github.com/celer-pkg/celer/internal/git"
 )
 
 // SourceType indicates how a port's source is fetched.

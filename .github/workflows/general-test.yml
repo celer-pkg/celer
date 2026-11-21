@@ -27,7 +27,7 @@ jobs:
       run: |
         go test -artifacts -outputdir="${{ runner.temp }}" -v ./depcheck/... -timeout 1h
         go test -artifacts -outputdir="${{ runner.temp }}" -v ./configs/...  -timeout 1h
-        go test -artifacts -outputdir="${{ runner.temp }}" -v ./pkgs/git/... -timeout 1h
+        go test -artifacts -outputdir="${{ runner.temp }}" -v ./internal/git/... -timeout 1h
 
     - name: Upload test artifacts on failure
       if: failure()

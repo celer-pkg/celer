@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgs/logger"
+	"github.com/celer-pkg/celer/internal/logger"
 )
 
 // CheckAccessible checks if the given URL is accessible,

@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/internal/dirs"
+	"github.com/celer-pkg/celer/internal/fileio"
 )
 
 func TestInstall_x86_64_Clang_CMake(t *testing.T) {

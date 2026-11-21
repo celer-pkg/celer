@@ -6,7 +6,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/celer-pkg/celer/pkgs/cmd"
+	"github.com/celer-pkg/celer/internal/cmd"
 )
 
 // CheckSystemTools checks if the system tools are installed.

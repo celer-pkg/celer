@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/celer-pkg/celer/cmds"
-	"github.com/celer-pkg/celer/pkgs/logger"
+	"github.com/celer-pkg/celer/internal/logger"
 )
 
 func main() {

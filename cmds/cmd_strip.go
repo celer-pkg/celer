@@ -2,7 +2,7 @@ package cmds
 
 import (
 	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/logger"
+	"github.com/celer-pkg/celer/internal/logger"
 
 	"github.com/spf13/cobra"
 )

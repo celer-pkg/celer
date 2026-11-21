@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/expr"
-	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/internal/dirs"
+	"github.com/celer-pkg/celer/internal/expr"
+	"github.com/celer-pkg/celer/internal/fileio"
 )
 
 type installReportEntry struct {

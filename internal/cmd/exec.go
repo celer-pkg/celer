@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/celer-pkg/celer/pkgs/fileio"
-	"github.com/celer-pkg/celer/pkgs/logger"
+	"github.com/celer-pkg/celer/internal/fileio"
+	"github.com/celer-pkg/celer/internal/logger"
 )
 
 // executor manages command execution with logging, environment configuration, and output routing.

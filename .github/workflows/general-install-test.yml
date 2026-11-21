@@ -41,7 +41,7 @@ jobs:
       run: go build -v ./...
 
     - name: Test
-      run: go test -artifacts -outputdir="${{ runner.temp }}" -v ./cmds/ -run "^TestInstall_" -skip "x86_64|AArch64" -timeout 1h
+      run: go test -artifacts -outputdir="${{ runner.temp }}" -v ./integration/ -run "^TestInstall_" -skip "x86_64|AArch64" -timeout 1h
 
     - name: Upload test artifacts on failure
       if: failure()

@@ -7,8 +7,8 @@ import (
 	"runtime"
 
 	"github.com/celer-pkg/celer/buildsystems"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/internal/dirs"
+	"github.com/celer-pkg/celer/internal/expr"
 )
 
 func (p *Port) initBuildConfig(nameVersion string) error {

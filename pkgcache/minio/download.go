@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 
 	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/internal/dirs"
+	"github.com/celer-pkg/celer/internal/fileio"
+	"github.com/celer-pkg/celer/internal/logger"
 	"github.com/celer-pkg/celer/pkgcache"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/fileio"
-	"github.com/celer-pkg/celer/pkgs/logger"
 	"github.com/minio/minio-go/v7"
 )
 

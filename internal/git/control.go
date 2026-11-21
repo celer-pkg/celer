@@ -8,9 +8,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/celer-pkg/celer/pkgs/cmd"
-	"github.com/celer-pkg/celer/pkgs/errors"
-	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/internal/cmd"
+	"github.com/celer-pkg/celer/internal/errors"
+	"github.com/celer-pkg/celer/internal/fileio"
 )
 
 // UpdateSubmodules update git submodules.

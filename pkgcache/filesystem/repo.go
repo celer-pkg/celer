@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/internal/dirs"
+	"github.com/celer-pkg/celer/internal/expr"
+	"github.com/celer-pkg/celer/internal/fileio"
+	"github.com/celer-pkg/celer/internal/git"
+	"github.com/celer-pkg/celer/internal/logger"
 	"github.com/celer-pkg/celer/pkgcache"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/expr"
-	"github.com/celer-pkg/celer/pkgs/fileio"
-	"github.com/celer-pkg/celer/pkgs/git"
-	"github.com/celer-pkg/celer/pkgs/logger"
 )
 
 type RepoConfig struct {

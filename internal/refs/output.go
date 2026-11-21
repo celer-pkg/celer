@@ -3,7 +3,7 @@ package refs
 import (
 	"fmt"
 
-	"github.com/celer-pkg/celer/pkgs/logger"
+	"github.com/celer-pkg/celer/internal/logger"
 )
 
 // truncate limits a string to maxLen characters, appending "..." if truncated.

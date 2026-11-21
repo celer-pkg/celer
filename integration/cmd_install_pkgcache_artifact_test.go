@@ -8,9 +8,9 @@ import (
 
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/dag"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/fileio"
-	"github.com/celer-pkg/celer/pkgs/git"
+	"github.com/celer-pkg/celer/internal/dirs"
+	"github.com/celer-pkg/celer/internal/fileio"
+	"github.com/celer-pkg/celer/internal/git"
 )
 
 func TestInstall_PkgCache_Artifact_Success(t *testing.T) {

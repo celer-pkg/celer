@@ -12,9 +12,9 @@ import (
 
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/git"
-	"github.com/celer-pkg/celer/pkgs/logger"
+	"github.com/celer-pkg/celer/internal/dirs"
+	"github.com/celer-pkg/celer/internal/git"
+	"github.com/celer-pkg/celer/internal/logger"
 )
 
 // Export writes the build schedule of the specified roots to outPath as JSON,

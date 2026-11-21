@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/celer-pkg/celer/pkgs/git"
+	"github.com/celer-pkg/celer/internal/git"
 )
 
 // TestParseDAG locks down what is checked before a build follows an exported DAG: the file

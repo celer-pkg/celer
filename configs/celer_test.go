@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/internal/dirs"
+	"github.com/celer-pkg/celer/internal/fileio"
 )
 
 func TestCeler_Init_NewConfig(t *testing.T) {

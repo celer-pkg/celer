@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/internal/fileio"
 )
 
 func NewPrebuilt(config *BuildConfig) *prebuilt {

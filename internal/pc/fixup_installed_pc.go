@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/internal/fileio"
 )
 
 // FixupPkgConfigFile rewrites .pc files under packageDir to use a

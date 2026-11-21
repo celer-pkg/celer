@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/internal/dirs"
+	"github.com/celer-pkg/celer/internal/fileio"
 	"github.com/celer-pkg/celer/pkgcache"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 // ClientCache stores the celer binary of a version on a shared directory, so a node runs

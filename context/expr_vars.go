@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/internal/dirs"
 )
 
 type ExprVars struct {

@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/celer-pkg/celer/pkgs/expr"
-	"github.com/celer-pkg/celer/pkgs/logger"
+	"github.com/celer-pkg/celer/internal/expr"
+	"github.com/celer-pkg/celer/internal/logger"
 )
 
 type Completed func(formattedTimeCost, formattedSize string)

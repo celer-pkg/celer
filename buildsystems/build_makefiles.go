@@ -9,9 +9,9 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/celer-pkg/celer/pkgs/cmd"
-	"github.com/celer-pkg/celer/pkgs/expr"
-	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/internal/cmd"
+	"github.com/celer-pkg/celer/internal/expr"
+	"github.com/celer-pkg/celer/internal/fileio"
 )
 
 // nmakeFileName is the Windows/MSVC makefile driven by nmake.
