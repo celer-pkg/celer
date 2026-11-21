@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
+	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/internal/dirs"
 	"github.com/celer-pkg/celer/internal/errors"
 	"github.com/celer-pkg/celer/internal/fileio"
@@ -204,6 +205,12 @@ func (c *Celer) SetProject(projectName string) error {
 		logger.PrintWarning("ports repo is not cloned yet, 'celer init' will pin it to ports_baseline '%s'", portsBaseline)
 		return nil
 	}
+
+	// Pinning runs git.
+	if err := buildtools.CheckTools(c, "git"); err != nil {
+		return fmt.Errorf("failed to check git -> %w", err)
+	}
+
 	if err := git.ChangeBranch("ports", dirs.PortsDir, portsBaseline); err != nil {
 		return fmt.Errorf("failed to pin ports repo to ports_baseline '%s' -> %w",
 			portsBaseline, err)
