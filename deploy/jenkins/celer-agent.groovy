@@ -37,18 +37,14 @@ def cleanWorkspace() {
 pipeline {
     agent { label "celer-agent" }
 
-    environment {
-        // Force Jenkins plugin AnsiColor to render color.
-        FORCE_COLOR = '1'
-    }
-
     // agent {
     //     docker {
-    //         image 'ubuntu:22.04'
     //         label 'celer-agent'
-    //         args '-u 1000:1000 ' +
-    //             '-v /mnt/data/celer_buildtrees:/workspace/buildtrees ' +
-    //             '-e HOME=/mnt/data/celer_home ' +
+    //         image 'xxxx/celer-ci/ubuntu:22.04'
+    //         args '--dns 8.8.8.8 ' + 
+    //             '-v /mnt/data/jenkins_workspace/workspace/:/workspace/buildtrees ' +
+    //             '-v /etc/localtime:/etc/localtime:ro ' +
+    //             '-e HOME=/root ' +
     //             '-e CELER_PKGCACHE_MINIO_HOST ' +
     //             '-e CELER_PKGCACHE_MINIO_ACCESS_KEY ' +
     //             '-e CELER_PKGCACHE_MINIO_SECRET_KEY ' +
@@ -56,6 +52,10 @@ pipeline {
     //             '-e CELER_PKGCACHE_READONLY'
     //     }
     // }
+
+    environment {
+        FORCE_COLOR = '1' // Force Jenkins plugin AnsiColor to render color.
+    }
 
     options {
         timeout(time: 4, unit: 'HOURS')
@@ -81,6 +81,9 @@ pipeline {
 
                     // Clean first: it also drops a stale dag.json, so the copy must come after.
                     cleanWorkspace() // Keep buildtrees for reuse repo sources.
+                    
+                    // The bind-mounted conf/ may have another owner: trust this workspace.
+                    run 'git config --global --add safe.directory "*"'
 
                     copyArtifacts (
                         projectName: 'celer-master',
