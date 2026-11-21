@@ -67,8 +67,11 @@ func (i *InitCmd) doInit() error {
 	}
 	dirs.Init(cwd)
 
-	// Initialize celer conf.
-	if err := i.Celer.Init(); err != nil {
+	// Init celer conf.
+	if err := i.Celer.InitWithOptions(configs.InitOption{
+		SkipPlatform: true,
+		SkipProject:  true,
+	}); err != nil {
 		return logger.PrintError(err, "failed to initialize celer.")
 	}
 
