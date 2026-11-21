@@ -65,15 +65,18 @@ func (d Dag) PinRepo(repoName, repoDir, repoRef string) error {
 		return fmt.Errorf("no '%s' repo in the workspace, please init celer first", repoName)
 	}
 
+	// Clean repo if modified locally.
 	modified, err := git.IsModified(repoDir)
 	if err != nil {
 		return fmt.Errorf("failed to inspect the '%s' repo -> %w", repoName, err)
 	}
 	if modified {
-		return fmt.Errorf("the '%s' repo has local modifications and the schedule calls for '%s' -> '%s': commit or discard them first",
-			repoName, repoName, repoRef)
+		if err := git.CleanRepo(repoName, repoDir); err != nil {
+			return err
+		}
 	}
 
+	// No need to reset hard to commit if already at the commit.
 	current, err := git.GetCommitHash(repoDir)
 	if err != nil {
 		return fmt.Errorf("failed to read the '%s' revision -> %w", repoName, err)
@@ -83,9 +86,8 @@ func (d Dag) PinRepo(repoName, repoDir, repoRef string) error {
 		return nil
 	}
 
-	logger.PrintInfo("git reset --hard the '%s' repo from '%s' to the schedule's revision '%s'", repoName, current, repoRef)
-
 	// HardReset resets, and fetches from origin when the revision is not local yet.
+	logger.PrintInfo("git reset --hard the '%s' repo from '%s' to the schedule's revision '%s'", repoName, current, repoRef)
 	if err := git.HardReset(repoDir, repoRef); err != nil {
 		return fmt.Errorf("failed to git reset --hard the '%s' repo to '%s' -> %w", repoName, repoRef, err)
 	}
