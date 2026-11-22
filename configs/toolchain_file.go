@@ -159,7 +159,7 @@ func (c *Celer) preExposeInstalledDir(builder *strings.Builder, installedDir str
 		}
 	case "windows":
 		if toolchainName == "msvc" || toolchainName == "clang-cl" {
-			fmt.Fprintf(&includeBuilder, `  string(APPEND ${flag_var} "/I ${INSTALLED_DIR}/include")`+"\n")
+			fmt.Fprintf(&includeBuilder, `  string(APPEND ${flag_var} " /I \"${INSTALLED_DIR}/include\"")`+"\n")
 		}
 	}
 	if includeBuilder.Len() > 0 {
@@ -181,7 +181,7 @@ func (c *Celer) preExposeInstalledDir(builder *strings.Builder, installedDir str
 		}
 	case "windows":
 		if toolchainName == "msvc" || toolchainName == "clang-cl" {
-			fmt.Fprintf(&libBuilder, `  string(APPEND ${flag_var} "'/LIBPATH:\"${INSTALLED_DIR}/lib\"'")`+"\n")
+			fmt.Fprintf(&libBuilder, `  string(APPEND ${flag_var} " /LIBPATH:\"${INSTALLED_DIR}/lib\"")`+"\n")
 		}
 	}
 	if libBuilder.Len() > 0 {
