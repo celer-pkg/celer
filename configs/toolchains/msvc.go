@@ -67,7 +67,6 @@ func (m *MSVC) AssembleBuildTools(toolchain *strings.Builder) {
 
 	if len(m.MSVC.Libs) > 0 {
 		fmt.Fprint(toolchain, "\n# MSVC library paths for linker.\n")
-		fmt.Fprintf(toolchain, `set(CMAKE_EXE_LINKER_FLAGS_INIT " /NODEFAULTLIB:LIBCMT")`+"\n")
 		for _, lib := range m.MSVC.Libs {
 			// Windows SDK libs need to include the x64 subdirectory
 			libPath := filepath.ToSlash(lib)
