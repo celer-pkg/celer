@@ -60,6 +60,11 @@ func (c *Celer) GenerateToolchainFile() error {
 	fmt.Fprintf(&builder, "  list(APPEND CMAKE_PREFIX_PATH \"$ENV{CMAKE_PREFIX_PATH}\")\n")
 	fmt.Fprintf(&builder, "endif()\n")
 
+	// The staging directory itself is a prefix: find modules that use
+	// find_path/find_library look for <prefix>/include and <prefix>/lib, and
+	// CMAKE_FIND_ROOT_PATH alone does not make the root itself a prefix.
+	fmt.Fprintf(&builder, "list(APPEND CMAKE_PREFIX_PATH \"${INSTALLED_DIR}\")\n")
+
 	// Append "lib/cmake" and "share/cmake" into CMAKE config search paths.
 	fmt.Fprintf(&builder, "list(APPEND CMAKE_PREFIX_PATH \"${INSTALLED_DIR}/lib/cmake\")\n")
 	fmt.Fprintf(&builder, "list(APPEND CMAKE_PREFIX_PATH \"${INSTALLED_DIR}/share/cmake\")\n")
