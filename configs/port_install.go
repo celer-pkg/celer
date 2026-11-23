@@ -52,8 +52,14 @@ func (p *Port) Install(options InstallOptions) (fromWhere string, retErr error) 
 		}
 		options.StagingDir = stagingDir
 
-		// The top-level owner must remove it on every return path.
-		defer os.RemoveAll(stagingDir)
+		// The top-level owner must remove it on every return path. Retry because
+		// build tools (e.g. Bazel) may release file handles a moment after they
+		// exit; warn instead of silently leaking the dir when it still fails.
+		defer func() {
+			if err := fileio.RemoveWithRetry(stagingDir); err != nil {
+				logger.PrintWarning("failed to remove staging dir '%s' -> %s", stagingDir, err)
+			}
+		}()
 	}
 	p.bindStagingDir(options.StagingDir)
 
