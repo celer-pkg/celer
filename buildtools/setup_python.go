@@ -220,6 +220,9 @@ func setupPython(ctx context.Context, pythonVersion string) error {
 		if err != nil {
 			return fmt.Errorf("failed to find conda tool for python setup -> %w", err)
 		}
+		if err := condaTool.validate(); err != nil {
+			return fmt.Errorf("failed to prepare conda tool for python setup -> %w", err)
+		}
 		currentPython = python.NewCondaPython(ctx, condaTool.Archive, condaTool.Version, pythonVersion)
 		isCondaPython = true
 	}
