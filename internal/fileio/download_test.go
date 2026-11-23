@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 )
@@ -19,7 +18,7 @@ func TestDownloadRetrySuccess(t *testing.T) {
 	defer server.Close()
 
 	// Create downloader.
-	downloader := NewDownloader(server.URL+"/test.txt", "downloads")
+	downloader := NewDownloader(server.URL+"/test.txt", t.TempDir())
 	downloader.SetArchive("text.txt")
 
 	client := &http.Client{}
@@ -32,9 +31,6 @@ func TestDownloadRetrySuccess(t *testing.T) {
 	if downloaded == "" {
 		t.Fatal("Expected downloaded file path, got empty string")
 	}
-
-	// Clean up.
-	os.Remove(downloaded)
 }
 
 // TestDownloadRetryFailureCount tests that download retries exactly maxRetries times.
@@ -51,7 +47,7 @@ func TestDownloadRetryFailureCount(t *testing.T) {
 
 	// Create downloader.
 	maxRetries := 3
-	downloader := NewDownloader(server.URL+"/test.txt", "downloads")
+	downloader := NewDownloader(server.URL+"/test.txt", t.TempDir())
 	downloader.SetArchive("text.txt")
 	downloader.SetMaxRetries(maxRetries)
 
@@ -89,7 +85,7 @@ func TestDownloadRetrySuccessAfterFailures(t *testing.T) {
 	defer server.Close()
 
 	// Create downloader.
-	downloader := NewDownloader(server.URL+"/test.txt", "downloads")
+	downloader := NewDownloader(server.URL+"/test.txt", t.TempDir())
 	downloader.SetArchive("text.txt")
 
 	client := &http.Client{}
@@ -106,9 +102,6 @@ func TestDownloadRetrySuccessAfterFailures(t *testing.T) {
 	if downloaded == "" {
 		t.Fatal("Expected downloaded file path, got empty string")
 	}
-
-	// Clean up.
-	os.Remove(downloaded)
 }
 
 // TestDownloadRetry404NotFound tests 404 error handling.
@@ -125,7 +118,7 @@ func TestDownloadRetry404NotFound(t *testing.T) {
 
 	// Create downloader.
 	maxRetries := 3
-	downloader := NewDownloader(server.URL+"/missing.txt", "downloads")
+	downloader := NewDownloader(server.URL+"/missing.txt", t.TempDir())
 	downloader.SetArchive("missing.txt")
 	downloader.SetMaxRetries(maxRetries)
 
