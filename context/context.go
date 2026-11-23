@@ -39,6 +39,7 @@ type PythonConfig interface {
 	GetIndexUrl() string
 	GetExtraIndexUrls() []string
 	GetTrustedHosts() []string
+	GetCondaChannels() []string
 }
 
 // Features features during development, can be configure temportary.

@@ -130,6 +130,7 @@ vars = [
   index_url = "https://pypi.example.com/simple"
   extra_index_urls = ["https://pypi.internal/simple"]
   trusted_hosts = ["pypi.internal"]
+  conda_channels = ["https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge"]
 ```
 
 > **Note**: `[python]` is a TOML table — once it appears, every following key belongs to it.
@@ -144,10 +145,14 @@ vars = [
 | `index_url` | ❌ | pip primary index URL, equivalent to `pip install -i` | `"https://pypi.example.com/simple"` |
 | `extra_index_urls` | ❌ | pip extra index URLs, equivalent to `--extra-index-url` | `["https://pypi.internal/simple"]` |
 | `trusted_hosts` | ❌ | pip trusted hosts, equivalent to `--trusted-host` | `["pypi.internal"]` |
+| `conda_channels` | ❌ | conda channels to provision Python (`-c`); overrides `conda-forge` | `["https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge"]` |
 
 `index_url`, `extra_index_urls` and `trusted_hosts` are passed to the `pip download` /
 `pip install` invocations Celer runs internally, so Python build tools can be installed from a
 private PyPI mirror or over self-signed HTTPS.
+
+`conda_channels` sets the `conda create` source (equivalent to `-c`); use a mirror URL to avoid
+the upstream conda source.
 
 ### Version Specification Format
 

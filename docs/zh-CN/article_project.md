@@ -183,6 +183,7 @@ macros = [
   index_url = "https://pypi.example.com/simple"
   extra_index_urls = ["https://pypi.internal/simple"]
   trusted_hosts = ["pypi.internal"]
+  conda_channels = ["https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge"]
 ```
 
 | 字段 | 必选 | 描述 |
@@ -191,6 +192,7 @@ macros = [
 | `index_url` | ❌ | pip 主索引地址（等价于 `pip install -i`） |
 | `extra_index_urls` | ❌ | pip 额外索引地址列表（等价于 `--extra-index-url`） |
 | `trusted_hosts` | ❌ | pip 信任的 host 列表（等价于 `--trusted-host`） |
+| `conda_channels` | ❌ | 准备 Python 使用的 conda 源（`-c`），覆盖默认的 `conda-forge` |
 
 > **注意**：`[python]` 是 TOML 表，出现后其后的键值都属于该表，请把它放在文件末尾。
 > 版本选择策略、虚拟环境位置和默认回退行为详见 [Python 版本管理](./article_python_management.md)。
