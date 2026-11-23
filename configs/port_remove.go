@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/celer-pkg/celer/internal/dirs"
 	"github.com/celer-pkg/celer/internal/expr"
@@ -79,7 +78,7 @@ func (p Port) Remove(options RemoveOptions) error {
 
 	// Remove build cache and logs.
 	if options.BuildCache {
-		if err := removeWithRetry(matchedConfig.PortConfig.BuildDir); err != nil {
+		if err := fileio.RemoveWithRetry(matchedConfig.PortConfig.BuildDir); err != nil {
 			return fmt.Errorf("failed to remove build cache -> %w", err)
 		}
 
@@ -260,26 +259,4 @@ func (p Port) RemoveLogs() error {
 	}
 
 	return nil
-}
-
-// removeWithRetry attempts os.RemoveAll with retries, useful when external
-// processes (e.g. Bazel server) may still hold file handles briefly after exit.
-func removeWithRetry(path string) error {
-	const maxRetries = 5
-	const baseDelay = 200 * time.Millisecond
-
-	var lastErr error
-	for i := range maxRetries {
-		lastErr = os.RemoveAll(path)
-		if lastErr == nil {
-			return nil
-		}
-
-		// Only retry if the path still exists (files locked by another process).
-		if !fileio.PathExists(path) {
-			return nil
-		}
-		time.Sleep(baseDelay * time.Duration(1<<i)) // exponential backoff: 200ms, 400ms, 800ms...
-	}
-	return lastErr
 }
