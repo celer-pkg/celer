@@ -676,3 +676,27 @@ func IsNotEmpty(dir string) bool {
 	}
 	return len(entities) > 0
 }
+
+// RemoveWithRetry attempts os.RemoveAll with retries, useful when external
+// processes may still hold file handles briefly after exit.
+func RemoveWithRetry(path string) error {
+	const maxRetries = 5
+	const baseDelay = 200 * time.Millisecond
+
+	var lastErr error
+	for i := range maxRetries {
+		lastErr = os.RemoveAll(path)
+		if lastErr == nil {
+			return nil
+		}
+
+		// Only retry if the path still exists (files locked by another process).
+		if !PathExists(path) {
+			return nil
+		}
+
+		// Exponential backoff: 200ms, 400ms, 800ms...
+		time.Sleep(baseDelay * time.Duration(1<<i))
+	}
+	return lastErr
+}
