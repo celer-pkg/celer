@@ -145,8 +145,9 @@ func (p pip) installFromWheelhouse(pythonExe, wheelhouse, targetDir, requirement
 
 func (p pip) downloadWheels(pythonExe, wheelhouse, requirementsFile string) error {
 	args := []string{
-		"-s", "-m", "pip", "download",
-		"-d", wheelhouse,
+		"-s", "-m", "pip", "wheel",
+		"--use-pep517",
+		"-w", wheelhouse,
 		"-r", requirementsFile,
 	}
 	args = append(args, p.indexArgs()...)
@@ -155,7 +156,9 @@ func (p pip) downloadWheels(pythonExe, wheelhouse, requirementsFile string) erro
 
 func (p pip) runPip(logSuffix, pythonExe string, args []string) error {
 	command, commandArgs := pythonExe, args
+	emulated := false
 	if emulator, emulatorArgs := p.emulatorCommand(); emulator != "" {
+		emulated = true
 		command = emulator
 		commandArgs = append([]string{}, emulatorArgs...)
 		commandArgs = append(commandArgs, pythonExe)
@@ -165,6 +168,11 @@ func (p pip) runPip(logSuffix, pythonExe string, args []string) error {
 	executor := cmd.NewExecutor(fmt.Sprintf("[pip %s %s]", p.PortConfig.nameVersion(), logSuffix), command, commandArgs...)
 	executor.SetWorkDir(p.PortConfig.BuildDir)
 	executor.SetLogPath(p.getLogPath(logSuffix))
+	if emulated {
+		if rootfs := p.Ctx.Platform().GetRootFS(); rootfs != nil {
+			executor.SetEnv("QEMU_LD_PREFIX", rootfs.GetAbsDir())
+		}
+	}
 	return executor.Execute()
 }
 
