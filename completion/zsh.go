@@ -54,16 +54,22 @@ func (z zsh) installBinary() error {
 		return fmt.Errorf("failed to get celer's path -> %w", err)
 	}
 
+	// Mkdir bin dir.
+	binDir := filepath.Join(z.homeDir, ".local", "bin")
+	if err := os.MkdirAll(binDir, os.ModePerm); err != nil {
+		return err
+	}
+
 	// Copy into `~/.local/bin`
-	if err := fileio.CopyFile(executable, filepath.Join(z.homeDir, ".local/bin/celer")); err != nil {
+	if err := fileio.CopyFile(executable, filepath.Join(binDir, "celer")); err != nil {
 		return fmt.Errorf("failed to copy celer to ~/.local/bin -> %w", err)
 	}
 	fmt.Println("[integrate] celer --> ~/.local/bin")
 
-	// Check if already contains the line.
+	// Check if already contains the line; a missing .zshrc is treated as empty.
 	zshrcPath := filepath.Join(z.homeDir, ".zshrc")
 	content, err := os.ReadFile(zshrcPath)
-	if err != nil {
+	if err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("failed to read ~/.zshrc -> %w", err)
 	}
 	if strings.Contains(string(content), z.registerBinary) {
@@ -71,11 +77,7 @@ func (z zsh) installBinary() error {
 	}
 
 	// Append `export PATH=~/.local/bin:$PATH` to top of .zshrc
-	file, err := os.ReadFile(zshrcPath)
-	if err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("failed to read ~/.zshrc -> %w", err)
-	}
-	newContent := z.registerBinary + "\n" + string(file)
+	newContent := z.registerBinary + "\n" + string(content)
 	if err := os.WriteFile(zshrcPath, []byte(newContent), os.ModePerm); err != nil {
 		return fmt.Errorf("failed to write to ~/.zshrc -> %w", err)
 	}
