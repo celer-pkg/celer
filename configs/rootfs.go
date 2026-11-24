@@ -80,6 +80,11 @@ func (r *RootFS) CheckAndRepair() error {
 		return fmt.Errorf("fixup rootfs usr-merge -> %w", err)
 	}
 
+	// Let emulated programs (qemu-user) resolve names through the build machine.
+	if err := syncResolvConf(r.abspath); err != nil {
+		return fmt.Errorf("fixup rootfs resolv.conf -> %w", err)
+	}
+
 	return nil
 }
 
@@ -155,4 +160,26 @@ func fixUsrMerge(sysRoot string) error {
 		}
 	}
 	return nil
+}
+
+// syncResolvConf points the sysroot's resolver at the build machine's DNS.
+// qemu-user resolves the emulated process's /etc/resolv.conf under the sysroot
+// (-L), so a rootfs captured from a board image keeps the board's nameservers,
+// which are unreachable here and stall every lookup.
+func syncResolvConf(sysRoot string) error {
+	bytes, err := os.ReadFile("/etc/resolv.conf")
+	if err != nil || !fileio.PathExists(filepath.Join(sysRoot, "etc")) {
+		return nil // Windows host, or a rootfs without /etc
+	}
+
+	// Never write through a symlink: images may link it to /run/systemd/...,
+	// where a write would either fail or hit the host's own file.
+	path := filepath.Join(sysRoot, "etc", "resolv.conf")
+	if err := os.RemoveAll(path); err != nil {
+		return err
+	}
+	if err := os.WriteFile(path, bytes, 0o644); err != nil {
+		return err
+	}
+	return os.Chmod(path, 0o644)
 }
