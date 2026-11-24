@@ -479,8 +479,15 @@ func (p *Port) installFromPackage(options InstallOptions) (bool, error) {
 		}
 	}
 	if metaFile == "" {
+		// A package dir without a meta file is the leftover of a build that was
+		// killed. It must not fail every later install: drop it and report a miss so the caller falls through to
+		// pkgcache/devcache/source (all of which clean the dir themselves).
 		suffix := expr.If(p.DevDep || p.HostDep, "[dev]", "")
-		return false, fmt.Errorf("invalid package %s, since meta file is not found for %s", p.PackageDir, p.NameVersion()+suffix)
+		logger.PrintWarning("removing incomplete package dir %s (no meta file found) for %s", p.PackageDir, p.NameVersion()+suffix)
+		if err := os.RemoveAll(p.PackageDir); err != nil {
+			return false, fmt.Errorf("failed to remove incomplete package dir %s -> %w", p.PackageDir, err)
+		}
+		return false, nil
 	}
 
 	// Install from package if meta matches.
