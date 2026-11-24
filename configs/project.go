@@ -25,12 +25,14 @@ type Python struct {
 	IndexUrl       string   `toml:"index_url,omitempty"`
 	ExtraIndexUrls []string `toml:"extra_index_urls,omitempty"`
 	TrustedHosts   []string `toml:"trusted_hosts,omitempty"`
+	CondaChannels  []string `toml:"conda_channels,omitempty"`
 }
 
 func (p *Python) GetVersion() string          { return p.Version }
 func (p *Python) GetIndexUrl() string         { return p.IndexUrl }
 func (p *Python) GetExtraIndexUrls() []string { return p.ExtraIndexUrls }
 func (p *Python) GetTrustedHosts() []string   { return p.TrustedHosts }
+func (p *Python) GetCondaChannels() []string  { return p.CondaChannels }
 
 // ================================ Project ================================ //
 

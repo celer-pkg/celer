@@ -185,6 +185,7 @@ sources. Python configuration is project-level: it no longer lives in the worksp
   index_url = "https://pypi.example.com/simple"
   extra_index_urls = ["https://pypi.internal/simple"]
   trusted_hosts = ["pypi.internal"]
+  conda_channels = ["https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge"]
 ```
 
 | Field | Required | Description |
@@ -193,6 +194,7 @@ sources. Python configuration is project-level: it no longer lives in the worksp
 | `index_url` | ❌ | pip primary index URL (equivalent to `pip install -i`) |
 | `extra_index_urls` | ❌ | pip extra index URLs (equivalent to `--extra-index-url`) |
 | `trusted_hosts` | ❌ | pip trusted hosts (equivalent to `--trusted-host`) |
+| `conda_channels` | ❌ | conda channels to provision Python (`-c`); overrides `conda-forge` |
 
 > **Note**: `[python]` is a TOML table — every key after it belongs to the table, so keep it at
 > the end of the file. For version selection strategy, venv locations and fallback behavior, see

@@ -129,6 +129,7 @@ vars = [
   index_url = "https://pypi.example.com/simple"
   extra_index_urls = ["https://pypi.internal/simple"]
   trusted_hosts = ["pypi.internal"]
+  conda_channels = ["https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge"]
 ```
 
 > **注意**：`[python]` 是 TOML 表，一旦出现，其后所有键值都属于该表。请把它放在文件末尾，
@@ -142,9 +143,12 @@ vars = [
 | `index_url` | ❌ | pip 主索引地址，等价于 `pip install -i` | `"https://pypi.example.com/simple"` |
 | `extra_index_urls` | ❌ | pip 额外索引地址列表，等价于 `--extra-index-url` | `["https://pypi.internal/simple"]` |
 | `trusted_hosts` | ❌ | pip 信任的 host 列表，等价于 `--trusted-host` | `["pypi.internal"]` |
+| `conda_channels` | ❌ | 准备 Python 使用的 conda 源（`-c`），覆盖默认的 `conda-forge` | `["https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge"]` |
 
 `index_url`、`extra_index_urls`、`trusted_hosts` 会传给 Celer 内部执行的 `pip download` /
 `pip install`，用于在私有 PyPI 镜像或自签名 HTTPS 环境下安装 Python 构建工具。
+
+`conda_channels` 用于 `conda create` 的源（等价于 `-c`），填写镜像地址即可避免访问国外源。
 
 ### 版本指定格式
 
