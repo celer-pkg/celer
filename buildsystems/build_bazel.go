@@ -8,11 +8,14 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"slices"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/celer-pkg/celer/internal/cmd"
 	"github.com/celer-pkg/celer/internal/fileio"
+	"github.com/celer-pkg/celer/internal/logger"
 )
 
 func NewBazel(config *BuildConfig) *bazel {
@@ -22,6 +25,11 @@ func NewBazel(config *BuildConfig) *bazel {
 type bazel struct {
 	*BuildConfig
 }
+
+const (
+	bazelrcFileName        = "celer.bazelrc"
+	minBazelVersionForMSVC = "6.4.0"
+)
 
 func (bazel) Name() string {
 	return "bazel"
@@ -45,7 +53,6 @@ func (b bazel) configureOptions() ([]string, error) {
 // that Bazel's @local_config_cc probes it (instead of the host gcc).
 func (b bazel) setupToolchainEnvs() error {
 	toolchain := b.Ctx.Platform().GetToolchain()
-
 	if b.DevDep || b.HostDev {
 		// Host-side dev builds use the native compiler.
 		if name := toolchain.GetName(); name != "msvc" && name != "clang-cl" {
@@ -54,19 +61,15 @@ func (b bazel) setupToolchainEnvs() error {
 		return nil
 	}
 
-	// On Windows, tell Bazel where the VC++ tools are and override the
-	// Bazel version. Bazel's @local_config_cc may fail to detect tools on
-	// VS releases newer than the project's pinned .bazelversion (e.g.
-	// Bazel 5.x cannot find VC++ in VS 2026). USE_BAZEL_VERSION forces
-	// bazelisk to download a version that understands the installed VS.
+	// On Windows, tell Bazel where the VC++ tools are. USE_BAZEL_VERSION is
+	// set separately and only when the project's own pin is missing or too
+	// old (see ensureBazelVersionForMSVC).
 	if msvc := toolchain.GetMSVC(); msvc != nil && msvc.VCVars != "" {
 		// VCVars is e.g. ".../VC/Auxiliary/Build/vcvarsall.bat";
 		// BAZEL_VC expects the VC directory (3 levels up).
 		vcDir := filepath.Dir(filepath.Dir(filepath.Dir(msvc.VCVars)))
 		b.envBackup.setenv("BAZEL_VC", vcDir)
-
-		// Use a Bazel version that supports this VS release.
-		b.envBackup.setenv("USE_BAZEL_VERSION", "6.4.0")
+		b.ensureBazelVersionForMSVC()
 	}
 
 	// Bare cross-compiler for @local_config_cc probing.
@@ -90,8 +93,7 @@ func (b bazel) setupToolchainEnvs() error {
 		b.envBackup.setenv("AR", ar)
 	}
 
-	// Other binutils for link actions (local spawn strategy respects these
-	// process env vars).
+	// Other binutils for link actions (local spawn strategy respects these process env vars).
 	for _, e := range [][2]string{
 		{"LD", toolchain.GetLD()},
 		{"NM", toolchain.GetNM()},
@@ -105,20 +107,88 @@ func (b bazel) setupToolchainEnvs() error {
 	return nil
 }
 
+func (b bazel) bazelrcPath() string {
+	return filepath.Join(b.PortConfig.BuildDir, bazelrcFileName)
+}
+
+// startupArgs passes celer's generated bazelrc and suppresses the project's
+// workspace .bazelrc.
+func (b bazel) startupArgs(args ...string) []string {
+	return append([]string{
+		"--noworkspace_rc",
+		"--bazelrc=" + filepath.ToSlash(b.bazelrcPath()),
+	}, args...)
+}
+
+func (b bazel) ensureBazelVersionForMSVC() {
+	pinned := b.projectBazelVersion()
+	if bazelVersionAtLeast(pinned, minBazelVersionForMSVC) {
+		return
+	}
+
+	if pinned == "" {
+		logger.PrintInfo("[bazel %s] no .bazelversion; using Bazel %s (USE_BAZEL_VERSION) for MSVC",
+			b.PortConfig.nameVersion(), minBazelVersionForMSVC)
+	} else {
+		logger.PrintWarning("[bazel %s] .bazelversion %s is too old for the installed VC++ tools; using Bazel %s",
+			b.PortConfig.nameVersion(), pinned, minBazelVersionForMSVC)
+	}
+	b.envBackup.setenv("USE_BAZEL_VERSION", minBazelVersionForMSVC)
+}
+
+func (b bazel) projectBazelVersion() string {
+	data, err := os.ReadFile(filepath.Join(b.PortConfig.SrcDir, ".bazelversion"))
+	if err != nil {
+		return ""
+	}
+	for _, line := range strings.Split(string(data), "\n") {
+		if line = strings.TrimSpace(line); line != "" {
+			return line
+		}
+	}
+	return ""
+}
+
+func bazelVersionAtLeast(pinned, min string) bool {
+	p, ok := parseBazelVersion(pinned)
+	if !ok {
+		return pinned != ""
+	}
+	m, _ := parseBazelVersion(min)
+	return slices.Compare(p[:], m[:]) >= 0
+}
+
+func parseBazelVersion(v string) (nums [3]int, ok bool) {
+	fields := strings.Split(strings.TrimSpace(v), ".")
+	for i := 0; i < len(fields) && i < len(nums); i++ {
+		digits := 0
+		for digits < len(fields[i]) && fields[i][digits] >= '0' && fields[i][digits] <= '9' {
+			digits++
+		}
+		if digits == 0 {
+			return [3]int{}, false
+		}
+		n, err := strconv.Atoi(fields[i][:digits])
+		if err != nil {
+			return [3]int{}, false
+		}
+		nums[i] = n
+	}
+	return nums, true
+}
+
 func (b bazel) Configure(options []string) error {
 	if err := b.setupToolchainEnvs(); err != nil {
 		return err
 	}
 
-	// Ensure BuildDir exists: Bazel's output_base lives under it (see
-	// generateBazelrc) and Bazel needs its parent directory to exist.
 	if err := os.MkdirAll(b.PortConfig.BuildDir, os.ModePerm); err != nil {
 		return fmt.Errorf("create build dir for bazel -> %w", err)
 	}
 
 	// Generate a cc_toolchain (crosstool) for cross-compilation, replacing
 	// @local_config_cc. Returns "" when not applicable (host build / no rootfs /
-	// non-gcc/clang), in which case Bazel falls back to its default detection.
+	// non-gcc/clang).
 	ccToolchainDir, err := b.generateCCToolchain()
 	if err != nil {
 		return fmt.Errorf("generate cc_toolchain for bazel -> %w", err)
@@ -175,24 +245,19 @@ func (b bazel) Build(options []string) error {
 	}
 
 	// Default: bazel build <targets> <flags>.
-	// Options that don't start with "-" are treated as build targets
-	// (e.g. "//:skcms_public"); the rest are flags. With no targets, build //...
-	var targets, flags []string
-	for _, opt := range options {
-		if strings.HasPrefix(opt, "-") {
-			flags = append(flags, opt)
-		} else {
-			targets = append(targets, opt)
-		}
-	}
+	targets, flags, exclusions := splitBazelOptions(options)
 	if len(targets) == 0 {
 		targets = []string{"//..."}
 	}
-	command := fmt.Sprintf("bazel build %s %s --jobs=%d",
-		strings.Join(targets, " "), strings.Join(flags, " "), b.PortConfig.Jobs)
+
+	args := []string{"build"}
+	args = append(args, targets...)
+	args = append(args, flags...)
+	args = append(args, exclusions...)
+	args = append(args, fmt.Sprintf("--jobs=%d", b.PortConfig.Jobs))
 
 	title := fmt.Sprintf("[build %s]", b.PortConfig.nameVersion())
-	executor := cmd.NewExecutor(title, command)
+	executor := cmd.NewExecutor(title, "bazel", b.startupArgs(args...)...)
 	executor.SetLogPath(b.getLogPath("build"))
 	executor.SetWorkDir(b.PortConfig.SrcDir)
 	if err := executor.Execute(); err != nil {
@@ -204,9 +269,9 @@ func (b bazel) Build(options []string) error {
 
 func (b bazel) shutdownServer() {
 	title := fmt.Sprintf("[bazel shutdown %s]", b.PortConfig.nameVersion())
-	shutdown := cmd.NewExecutor(title, "bazel", "shutdown")
+	shutdown := cmd.NewExecutor(title, "bazel", b.startupArgs("shutdown")...)
 	shutdown.SetWorkDir(b.PortConfig.SrcDir)
-	_ = shutdown.Execute()
+	shutdown.Execute()
 
 	// Give the server time to flush and release file handles.
 	time.Sleep(2 * time.Second)
@@ -236,78 +301,21 @@ func (b bazel) Install(options []string) error {
 		return nil
 	}
 
-	// Default install: copy outputs from bazel-bin/ to PACKAGE_DIR.
 	if err := os.MkdirAll(b.PortConfig.PackageDir, os.ModePerm); err != nil {
 		return err
 	}
-
-	// bazel-bin/ is a symlink to bazel-out/<config>/bin/. Resolve it so the
-	// walk reads real files regardless of which compilation config was used.
-	bazelBin := filepath.Join(b.PortConfig.SrcDir, "bazel-bin")
-	if resolved, err := filepath.EvalSymlinks(bazelBin); err == nil && resolved != "" {
-		bazelBin = resolved
-	}
-	if !fileio.PathExists(bazelBin) {
-		// Fall back to scanning bazel-out for any config's bin/.
-		bazelOutDir := filepath.Join(b.PortConfig.SrcDir, "bazel-out")
-		if entries, err := os.ReadDir(bazelOutDir); err == nil {
-			for _, entry := range entries {
-				if !entry.IsDir() {
-					continue
-				}
-				candidate := filepath.Join(bazelOutDir, entry.Name(), "bin")
-				if fileio.PathExists(candidate) {
-					bazelBin = candidate
-					break
-				}
-			}
-		}
-	}
-
-	if !fileio.PathExists(bazelBin) {
-		return fmt.Errorf("bazel-bin not found in %s", b.PortConfig.SrcDir)
-	}
-
-	err := filepath.WalkDir(bazelBin, func(path string, d os.DirEntry, walkErr error) error {
-		if walkErr != nil {
-			return walkErr
-		}
-		if path == bazelBin {
-			return nil
-		}
-
-		baseName := filepath.Base(path)
-
-		// Skip Bazel internal artifacts.
-		if d.IsDir() {
-			if baseName == "_objs" || strings.HasPrefix(baseName, "_solib") || strings.HasPrefix(baseName, "_") {
-				return filepath.SkipDir
-			}
-			if strings.HasSuffix(baseName, ".runfiles") {
-				return filepath.SkipDir
-			}
-		}
-
-		relPath, err := filepath.Rel(bazelBin, path)
-		if err != nil {
-			return err
-		}
-		destPath := filepath.Join(b.PortConfig.PackageDir, relPath)
-
-		if d.IsDir() {
-			return os.MkdirAll(destPath, os.ModePerm)
-		}
-
-		// Skip generated build files (not actual artifacts).
-		ext := filepath.Ext(baseName)
-		if ext == ".params" || ext == ".cmd" || ext == ".scan" || ext == ".d" || ext == ".o" {
-			return nil
-		}
-
-		return fileio.CopyFile(path, destPath)
-	})
+	outputs, err := b.declaredOutputs()
 	if err != nil {
-		return fmt.Errorf("failed to copy bazel outputs -> %w", err)
+		return err
+	}
+	for _, out := range outputs {
+		if err := b.installArtifact(out.src, out.rel); err != nil {
+			return fmt.Errorf("failed to install %s -> %w", out.src, err)
+		}
+	}
+	if len(outputs) == 0 {
+		logger.PrintWarning("[bazel %s] cquery reported no declared outputs; installing headers only",
+			b.PortConfig.nameVersion())
 	}
 
 	// Bazel has no install step -- headers stay in the source tree.
@@ -360,42 +368,164 @@ func (b bazel) Install(options []string) error {
 		return fmt.Errorf("failed to copy headers -> %w", err)
 	}
 
-	// Organize outputs: libraries into lib/, executables into bin/.
-	libDir := filepath.Join(b.PortConfig.PackageDir, "lib")
-	binDir := filepath.Join(b.PortConfig.PackageDir, "bin")
-	if entries, err := os.ReadDir(b.PortConfig.PackageDir); err == nil {
-		for _, entry := range entries {
-			if entry.IsDir() {
-				continue
-			}
-
-			name := entry.Name()
-			ext := filepath.Ext(name)
-			src := filepath.Join(b.PortConfig.PackageDir, name)
-			if ext == ".a" || ext == ".so" || strings.Contains(name, ".so.") {
-				if err := os.MkdirAll(libDir, os.ModePerm); err != nil {
-					return err
-				}
-				if err := os.Rename(src, filepath.Join(libDir, name)); err != nil {
-					return err
-				}
-			} else if fileio.IsELFFile(src) {
-				if err := os.MkdirAll(binDir, os.ModePerm); err != nil {
-					return err
-				}
-				if err := os.Rename(src, filepath.Join(binDir, name)); err != nil {
-					return err
-				}
-			}
-		}
-	}
-
 	b.shutdownServer()
 	return nil
 }
 
-// generateBazelrc generates a .bazelrc file in the source directory with
-// cross-compilation flags for Bazel.
+func splitBazelOptions(options []string) (targets, flags, exclusions []string) {
+	for _, opt := range options {
+		switch {
+		case strings.HasPrefix(opt, "//"), strings.HasPrefix(opt, "@"), strings.HasPrefix(opt, ":"):
+			targets = append(targets, opt)
+		case strings.HasPrefix(opt, "-//"), strings.HasPrefix(opt, "-@"):
+			exclusions = append(exclusions, opt)
+		default:
+			flags = append(flags, opt)
+		}
+	}
+	return targets, flags, exclusions
+}
+
+// bazelOutput is one file declared by the built targets: src is its absolute
+// path, rel the location it keeps inside the package.
+type bazelOutput struct {
+	src string
+	rel string
+}
+
+// declaredOutputs asks Bazel which files the requested targets produce,
+// resolved against this port's execroot.
+func (b bazel) declaredOutputs() ([]bazelOutput, error) {
+	options, err := b.buildOptions()
+	if err != nil {
+		return nil, err
+	}
+	targets, flags, exclusions := splitBazelOptions(options)
+	if len(targets) == 0 {
+		targets = []string{"//..."}
+	}
+
+	root := b.executionRoot()
+	if root == "" {
+		return nil, fmt.Errorf("bazel execroot not found in %s", b.PortConfig.BuildDir)
+	}
+
+	args := []string{"cquery", "--output=files"}
+	args = append(args, flags...)
+	args = append(args, targets...)
+	args = append(args, exclusions...)
+
+	title := fmt.Sprintf("[cquery %s]", b.PortConfig.nameVersion())
+	executor := cmd.NewExecutor(title, "bazel", b.startupArgs(args...)...)
+	executor.SetWorkDir(b.PortConfig.SrcDir)
+	out, err := executor.ExecuteOutput()
+	if err != nil {
+		return nil, fmt.Errorf("cquery declared outputs -> %w", err)
+	}
+
+	var outputs []bazelOutput
+	seen := make(map[string]struct{})
+	for _, line := range strings.Split(out, "\n") {
+		out, ok := b.resolveOutput(root, line)
+		if !ok {
+			continue
+		}
+		if _, dup := seen[out.src]; dup {
+			continue
+		}
+		seen[out.src] = struct{}{}
+		outputs = append(outputs, out)
+	}
+	return outputs, nil
+}
+
+// executionRoot locates the execroot under this port's private output_base.
+// The output_base is dedicated to one workspace, so execroot has one child.
+func (b bazel) executionRoot() string {
+	dir := filepath.Join(b.PortConfig.BuildDir, "output_base", "execroot")
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return ""
+	}
+	for _, entry := range entries {
+		if entry.IsDir() {
+			return filepath.Join(dir, entry.Name())
+		}
+	}
+	return ""
+}
+
+// resolveOutput turns a cquery path into a file to install. Generated files are
+// printed as bazel-out/<config>/bin/<rel>; other files are relative to the
+// workspace or, for external repos, to the execroot.
+func (b bazel) resolveOutput(execRoot, path string) (bazelOutput, bool) {
+	path = strings.TrimPrefix(strings.TrimSpace(path), "./")
+	if path == "" {
+		return bazelOutput{}, false
+	}
+
+	if parts := strings.SplitN(path, "/", 4); len(parts) == 4 && parts[0] == "bazel-out" && parts[2] == "bin" {
+		src := filepath.Join(execRoot, filepath.FromSlash(path))
+		if b.isFile(src) {
+			return bazelOutput{src: src, rel: filepath.FromSlash(parts[3])}, true
+		}
+		return bazelOutput{}, false
+	}
+
+	for _, base := range []string{b.PortConfig.SrcDir, execRoot} {
+		if src := filepath.Join(base, filepath.FromSlash(path)); b.isFile(src) {
+			return bazelOutput{src: src, rel: filepath.FromSlash(path)}, true
+		}
+	}
+	return bazelOutput{}, false
+}
+
+// installArtifact copies one build output into PACKAGE_DIR: libraries go to
+// lib/, executables and Windows runtime files to bin/, headers to include/,
+// everything else keeps its package-relative path.
+func (b bazel) installArtifact(src, relPath string) error {
+	var dest string
+	switch kind := artifactKind(src, relPath); kind {
+	case "lib", "bin":
+		dest = filepath.Join(b.PortConfig.PackageDir, kind, filepath.Base(relPath))
+		if filepath.Dir(relPath) != "." && fileio.PathExists(dest) {
+			dest = filepath.Join(b.PortConfig.PackageDir, kind, relPath)
+		}
+	case "include":
+		dest = filepath.Join(b.PortConfig.PackageDir, "include", relPath)
+	default:
+		dest = filepath.Join(b.PortConfig.PackageDir, relPath)
+	}
+	if err := os.MkdirAll(filepath.Dir(dest), os.ModePerm); err != nil {
+		return err
+	}
+	return fileio.CopyFile(src, dest)
+}
+
+// artifactKind classifies a Bazel output: "lib", "bin", "include", or "" for
+// files that keep their package-relative path.
+func artifactKind(src, relPath string) string {
+	name := strings.ToLower(filepath.Base(relPath))
+	switch filepath.Ext(name) {
+	case ".a", ".lib", ".dylib", ".tbd", ".exp", ".so":
+		return "lib"
+	case ".h", ".hh", ".hpp", ".hxx", ".inc", ".inl", ".ipp":
+		return "include"
+	case ".exe", ".dll", ".pdb", ".com":
+		return "bin"
+	}
+	if strings.Contains(name, ".so.") {
+		return "lib"
+	}
+	if fileio.IsELFFile(src) || fileio.IsPEFile(src) {
+		return "bin"
+	}
+	return ""
+}
+
+// generateBazelrc writes the bazelrc used by this port into BuildDir and
+// returns its path. It is passed via --bazelrc (see startupArgs) so that
+// SrcDir, shared by all platforms of the port, is never modified.
 func (b bazel) generateBazelrc(ccToolchainDir string) (string, error) {
 	toolchain := b.Ctx.Platform().GetToolchain()
 	rootfs := b.Ctx.Platform().GetRootFS()
@@ -403,27 +533,34 @@ func (b bazel) generateBazelrc(ccToolchainDir string) (string, error) {
 	var buffer bytes.Buffer
 	fmt.Fprintf(&buffer, "# Generated by celer for %s\n", b.PortConfig.nameVersion())
 
-	// Isolate ALL Bazel state (execroot, external deps, build outputs) under
-	// the celer BuildDir instead of the global ~/.cache/bazel, so everything
-	// build-generated stays inside the workspace.
+	// Remove .bazelrc generated by last build.
+	b.removeLegacyBazelrc()
+
+	// Keep all Bazel state and convenience symlinks in BuildDir: ~/.cache/bazel
+	// is shared with unrelated builds, and SrcDir is shared by all platforms.
 	outputBase := filepath.ToSlash(filepath.Join(b.PortConfig.BuildDir, "output_base"))
 	fmt.Fprintf(&buffer, "startup --output_base=%s\n", outputBase)
+	symlinkPrefix := filepath.ToSlash(filepath.Join(b.PortConfig.BuildDir, "bazel-"))
+	fmt.Fprintf(&buffer, "build --symlink_prefix=%s\n", symlinkPrefix)
 
-	// Cross-compilation mode (not for dev dependencies).
+	// Map celer's build type onto Bazel's compilation mode; otherwise every
+	// "release" build silently uses Bazel's default fastbuild (-O0).
+	if mode, flags := b.compilationMode(); mode != "" {
+		fmt.Fprintf(&buffer, "build --compilation_mode=%s\n", mode)
+		for _, flag := range flags {
+			writeFlags(&buffer, flag, "copt", "cxxopt")
+		}
+	}
+
+	// Cross-compilation only; dev dependencies build for the host.
 	if !b.DevDep && !b.HostDev {
 		fmt.Fprintf(&buffer, "build --spawn_strategy=local\n")
-
-		// Bazel 6.x removed @bazel_tools//platforms in favor of
-		// @platforms. Some projects (e.g. skcms via rules_docker)
-		// still reference the old location. When we override the
-		// Bazel version via USE_BAZEL_VERSION, keep compatibility.
+		// Bazel 6.x dropped @bazel_tools//platforms; keep old projects working.
 		fmt.Fprintf(&buffer, "build --incompatible_use_platforms_repo_for_constraints=false\n")
 
-		// Register celer's cc_toolchain (crosstool) for cross-compilation,
-		// replacing @local_config_cc (which is host-oriented: it injects the
-		// host binutils and misses the sysroot includes). Disabled when no
-		// crosstool was generated (no rootfs / non-gcc/clang), in which case
-		// Bazel falls back to its default host toolchain detection.
+		// Register celer's crosstool instead of @local_config_cc, which injects
+		// host binutils and misses the sysroot includes. Without one (no rootfs,
+		// non-gcc/clang) Bazel keeps its default host toolchain detection.
 		if ccToolchainDir != "" {
 			fmt.Fprintf(&buffer, "build --incompatible_enable_cc_toolchain_resolution\n")
 			fmt.Fprintf(&buffer, "build --action_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1\n")
@@ -432,100 +569,118 @@ func (b bazel) generateBazelrc(ccToolchainDir string) (string, error) {
 			fmt.Fprintf(&buffer, "build --platforms=@cc_toolchain//:target_platform\n")
 		}
 
-		// Runtime flags (e.g., clang --gcc-toolchain, --rtlib) applied to
-		// compile and link actions.
+		// Clang runtime flags (--gcc-toolchain, --rtlib) apply to compile and
+		// link actions alike.
 		for _, flag := range toolchain.RuntimeFlags() {
-			fmt.Fprintf(&buffer, "build --copt=%s\n", flag)
-			fmt.Fprintf(&buffer, "build --cxxopt=%s\n", flag)
-			fmt.Fprintf(&buffer, "build --linkopt=%s\n", flag)
+			writeFlags(&buffer, flag, "copt", "cxxopt", "linkopt")
 		}
 
-		// Sysroot lib dirs (link paths). The sysroot itself (headers + the
-		// --sysroot flag) is declared in the crosstool via builtin_sysroot; here
-		// we only add the lib search paths for the linker.
+		// Sysroot headers and --sysroot come from the crosstool; only its lib
+		// dirs are needed here so the linker can resolve target libraries.
 		if rootfs != nil {
 			sysrootDir := filepath.ToSlash(rootfs.GetAbsDir())
-			for _, libDir := range rootfs.GetLibDirs() {
-				libPath := filepath.ToSlash(filepath.Join(sysrootDir, libDir))
-				fmt.Fprintf(&buffer, "build --linkopt=-L%s\n", libPath)
-				fmt.Fprintf(&buffer, "build --linkopt=-Wl,-rpath-link,%s\n", libPath)
+			for _, dir := range rootfs.GetLibDirs() {
+				writeLibDir(&buffer, filepath.ToSlash(filepath.Join(sysrootDir, dir)))
 			}
 		}
 
-		// Dependency include/lib dirs (from the staging dir, prepended to sysroot).
+		// Dependency prefix (staging dir) ahead of the sysroot.
 		depDir := filepath.Join(b.PortConfig.StagingDir, b.PortConfig.LibraryDir)
 		depInclude := filepath.ToSlash(filepath.Join(depDir, "include"))
 		depLib := filepath.ToSlash(filepath.Join(depDir, "lib"))
-
 		if fileio.PathExists(depInclude) {
-			fmt.Fprintf(&buffer, "build --copt=-I%s\n", depInclude)
-			fmt.Fprintf(&buffer, "build --cxxopt=-I%s\n", depInclude)
+			writeIncludeDir(&buffer, depInclude)
 		}
 		if fileio.PathExists(depLib) {
-			fmt.Fprintf(&buffer, "build --linkopt=-L%s\n", depLib)
-			fmt.Fprintf(&buffer, "build --linkopt=-Wl,-rpath-link,%s\n", depLib)
+			writeLibDir(&buffer, depLib)
 		}
 
-		// RPATH for runtime library resolution.
+		// Runtime rpath, matching celer's <prefix>/bin + <prefix>/lib layout.
 		fmt.Fprintf(&buffer, "build --linkopt=-Wl,-rpath=\\$$ORIGIN/../lib\n")
 		fmt.Fprintf(&buffer, "build --linkopt=-Wl,-rpath=\\$$ORIGIN/../lib64\n")
 	}
 
-	// Include dirs from port.toml.
-	for _, incDir := range b.IncludeDirs {
-		incDir = b.ExprVars.Expand(incDir)
-		incDir = filepath.ToSlash(incDir)
-		fmt.Fprintf(&buffer, "build --copt=-I%s\n", incDir)
-		fmt.Fprintf(&buffer, "build --cxxopt=-I%s\n", incDir)
+	// Port options: include/lib dirs, language standards, CFLAGS/CXXFLAGS/LDFLAGS.
+	for _, dir := range b.IncludeDirs {
+		writeIncludeDir(&buffer, filepath.ToSlash(b.ExprVars.Expand(dir)))
 	}
-
-	// Lib dirs from port.toml.
-	for _, libDir := range b.LibDirs {
-		libDir = b.ExprVars.Expand(libDir)
-		libDir = filepath.ToSlash(libDir)
-		fmt.Fprintf(&buffer, "build --linkopt=-L%s\n", libDir)
-		fmt.Fprintf(&buffer, "build --linkopt=-Wl,-rpath-link,%s\n", libDir)
+	for _, dir := range b.LibDirs {
+		writeLibDir(&buffer, filepath.ToSlash(b.ExprVars.Expand(dir)))
 	}
-
-	// C/C++ standard from port.toml.
-	if cstd := b.CStandard; cstd != "" {
-		fmt.Fprintf(&buffer, "build --copt=-std=%s\n", cstd)
+	if b.CStandard != "" {
+		writeFlags(&buffer, "-std="+b.CStandard, "copt")
 	}
-	if cxxstd := b.CXXStandard; cxxstd != "" {
-		fmt.Fprintf(&buffer, "build --cxxopt=-std=%s\n", cxxstd)
+	if b.CXXStandard != "" {
+		writeFlags(&buffer, "-std="+b.CXXStandard, "cxxopt")
 	}
-
-	// CFLAGS/CXXFLAGS/LDFLAGS from port.toml envs - convert to bazel flags.
 	for _, env := range b.Envs {
-		before, after, ok := strings.Cut(env, "=")
+		name, value, ok := strings.Cut(env, "=")
 		if !ok {
 			continue
 		}
-
-		flagStr := strings.TrimSpace(b.expandVariables(after))
-		switch strings.TrimSpace(before) {
-		case "CFLAGS":
-			for part := range strings.FieldsSeq(flagStr) {
-				fmt.Fprintf(&buffer, "build --copt=%s\n", part)
-			}
-		case "CXXFLAGS":
-			for part := range strings.FieldsSeq(flagStr) {
-				fmt.Fprintf(&buffer, "build --cxxopt=%s\n", part)
-			}
-		case "LDFLAGS":
-			for part := range strings.FieldsSeq(flagStr) {
-				fmt.Fprintf(&buffer, "build --linkopt=%s\n", part)
-			}
+		option, known := envFlagOptions[strings.TrimSpace(name)]
+		if !known {
+			continue
+		}
+		for part := range strings.FieldsSeq(b.expandVariables(value)) {
+			writeFlags(&buffer, part, option)
 		}
 	}
 
-	// Write .bazelrc to source directory (Bazel reads .bazelrc from workspace root).
-	bazelrcPath := filepath.Join(b.PortConfig.SrcDir, ".bazelrc")
-	if err := os.WriteFile(bazelrcPath, buffer.Bytes(), os.ModePerm); err != nil {
+	if err := os.MkdirAll(b.PortConfig.BuildDir, os.ModePerm); err != nil {
 		return "", err
 	}
+	path := b.bazelrcPath()
+	return path, os.WriteFile(path, buffer.Bytes(), os.ModePerm)
+}
 
-	return bazelrcPath, nil
+// envFlagOptions maps port envs onto the Bazel option that carries the same flag.
+var envFlagOptions = map[string]string{
+	"CFLAGS":   "copt",
+	"CXXFLAGS": "cxxopt",
+	"LDFLAGS":  "linkopt",
+}
+
+// writeFlags writes one "build --<option>=<value>" line per option.
+func writeFlags(buffer *bytes.Buffer, value string, options ...string) {
+	for _, option := range options {
+		fmt.Fprintf(buffer, "build --%s=%s\n", option, value)
+	}
+}
+
+// writeIncludeDir and writeLibDir emit the flag pairs celer always writes together.
+func writeIncludeDir(buffer *bytes.Buffer, dir string) {
+	writeFlags(buffer, "-I"+dir, "copt", "cxxopt")
+}
+
+func writeLibDir(buffer *bytes.Buffer, dir string) {
+	writeFlags(buffer, "-L"+dir, "linkopt")
+	writeFlags(buffer, "-Wl,-rpath-link,"+dir, "linkopt")
+}
+
+func (b bazel) removeLegacyBazelrc() {
+	path := filepath.Join(b.PortConfig.SrcDir, ".bazelrc")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return
+	}
+	if bytes.HasPrefix(data, []byte("# Generated by celer for ")) {
+		_ = os.Remove(path)
+	}
+}
+
+func (b bazel) compilationMode() (string, []string) {
+	switch strings.ToLower(b.BuildType) {
+	case "debug":
+		return "dbg", nil
+	case "relwithdebinfo":
+		return "opt", []string{"-g"}
+	case "minsizerel":
+		return "opt", []string{"-Os"}
+	default:
+		// "release" (celer's default) and anything unexpected.
+		return "opt", nil
+	}
 }
 
 // generateCCToolchain generates a minimal Bazel cc_toolchain (crosstool) that
@@ -765,6 +920,23 @@ def _impl(ctx):
             flag_sets = [flag_set(
                 actions = _LINK_ACTIONS,
                 flag_groups = [flag_group(flags = ["--sysroot=" + SYSROOT])],
+            )],
+        ),
+        # Bazel enables the feature whose name matches --compilation_mode.
+        # The generated toolchain has to provide them; without these, -c opt
+        # would not add any optimization flags.
+        feature(
+            name = "opt",
+            flag_sets = [flag_set(
+                actions = _COMPILE_ACTIONS,
+                flag_groups = [flag_group(flags = ["-O2", "-DNDEBUG"])],
+            )],
+        ),
+        feature(
+            name = "dbg",
+            flag_sets = [flag_set(
+                actions = _COMPILE_ACTIONS,
+                flag_groups = [flag_group(flags = ["-g"])],
             )],
         ),
         feature(
