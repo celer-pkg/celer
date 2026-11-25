@@ -113,7 +113,7 @@ func (m *makefiles) preConfigure() error {
 		title := fmt.Sprintf("[pre configure %s]", m.PortConfig.nameVersion())
 		command = m.expandVariables(command)
 		executor := cmd.NewExecutor(title, command)
-		executor.SetWorkDir(m.PortConfig.RepoDir)
+		executor.SetWorkDir(m.PortConfig.SrcDir)
 		executor.MSYS2Env(runtime.GOOS == "windows")
 		if err := executor.Execute(); err != nil {
 			return err
