@@ -29,7 +29,7 @@ type DirType uint8
 
 const (
 	DirRoot DirType = iota
-	DirBinaries
+	DirClients
 	DirRepos
 	DirArtifacts
 	DirDownloads
@@ -52,8 +52,8 @@ func (f FS) Validate() error {
 // GetDir returns the path for a cache subdir under the nfs root.
 func (f FS) GetDir(dirType DirType, version string) string {
 	switch dirType {
-	case DirBinaries:
-		return filepath.Join(f.Dir, "celers")
+	case DirClients:
+		return filepath.Join(f.Dir, "clients")
 
 	case DirArtifacts:
 		return filepath.Join(f.Dir, "artifacts-"+version)
@@ -99,7 +99,7 @@ func (m Minio) Validate() error {
 // backends these are not filesystem paths, so no filepath.Join here.
 func (m Minio) GetDir(dirType DirType, version string) string {
 	switch dirType {
-	case DirBinaries:
+	case DirClients:
 		return "celers"
 
 	case DirRepos:

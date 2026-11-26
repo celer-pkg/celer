@@ -12,7 +12,7 @@ import (
 	"github.com/celer-pkg/celer/pkgcache"
 )
 
-// ClientCache stores the celer binary of a version on a shared directory, so a node runs
+// ClientCache stores the celer client binary of a version on a shared directory, so a node runs
 // the one that exported its schedule instead of whatever its PATH has.
 type ClientCache struct {
 	ctx      context.Context
@@ -28,7 +28,7 @@ func NewClientCache(ctx context.Context) *ClientCache {
 
 	return &ClientCache{
 		ctx:      ctx,
-		cacheDir: pkgCache.GetFS().GetDir(pkgcache.DirBinaries, ctx.Version()),
+		cacheDir: pkgCache.GetFS().GetDir(pkgcache.DirClients, ctx.Version()),
 		readOnly: pkgCache.IsReadOnly(),
 	}
 }
@@ -36,7 +36,7 @@ func NewClientCache(ctx context.Context) *ClientCache {
 func NewClientCacheFrom(ctx context.Context, fs *pkgcache.FS, readOnly bool) *ClientCache {
 	return &ClientCache{
 		ctx:      ctx,
-		cacheDir: fs.GetDir(pkgcache.DirBinaries, ctx.Version()),
+		cacheDir: fs.GetDir(pkgcache.DirClients, ctx.Version()),
 		readOnly: readOnly,
 	}
 }
@@ -49,7 +49,7 @@ func (c ClientCache) Store() error {
 
 	executable, err := os.Executable()
 	if err != nil {
-		return fmt.Errorf("failed to get celer's binary path -> %w", err)
+		return fmt.Errorf("failed to get client's binary path -> %w", err)
 	}
 
 	// The cache is authoritative: an existing entry is never overwritten.
@@ -62,7 +62,7 @@ func (c ClientCache) Store() error {
 		return fmt.Errorf("failed to create '%s' -> %w", c.cacheDir, err)
 	}
 	if err := fileio.CopyFile(executable, destPath); err != nil {
-		return fmt.Errorf("failed to store celer binary '%s' -> %w", destPath, err)
+		return fmt.Errorf("failed to store client binary '%s' -> %w", destPath, err)
 	}
 
 	return os.Chmod(destPath, os.ModePerm)
@@ -70,12 +70,12 @@ func (c ClientCache) Store() error {
 
 func (c ClientCache) Restore(version string) (string, error) {
 	if c.ctx.Offline() {
-		return "", fmt.Errorf("can not restore celer binary because offline is 'ON'")
+		return "", fmt.Errorf("can not restore client binary because offline is 'ON'")
 	}
 
 	version = strings.TrimSpace(version)
 	if version == "" {
-		return "", fmt.Errorf("no celer binary version provided to restore")
+		return "", fmt.Errorf("no client binary version provided to restore")
 	}
 
 	// The requested version, never the running one: this runs precisely because the
@@ -83,7 +83,7 @@ func (c ClientCache) Restore(version string) (string, error) {
 	binaryName := pkgcache.ClientName(version)
 	srcPath := filepath.Join(c.cacheDir, binaryName)
 	if !fileio.PathExists(srcPath) {
-		return "", fmt.Errorf("no celer binary found with version '%s' in '%s'", version, c.cacheDir)
+		return "", fmt.Errorf("no client binary found with version '%s' in '%s'", version, c.cacheDir)
 	}
 
 	// Copy into a task-owned tmp dir and run it from there.
@@ -95,7 +95,7 @@ func (c ClientCache) Restore(version string) (string, error) {
 	destPath := filepath.Join(tmpDir, binaryName)
 	if err := fileio.CopyFile(srcPath, destPath); err != nil {
 		os.RemoveAll(tmpDir)
-		return "", fmt.Errorf("failed to restore celer binary '%s' -> %w", destPath, err)
+		return "", fmt.Errorf("failed to restore client binary '%s' -> %w", destPath, err)
 	}
 	if err := os.Chmod(destPath, 0o755); err != nil {
 		os.RemoveAll(tmpDir)
@@ -140,12 +140,12 @@ func (c ClientCache) List() ([]string, error) {
 func (c ClientCache) Fetch(version, destPath string) error {
 	version = strings.TrimSpace(version)
 	if version == "" {
-		return fmt.Errorf("no celer binary version provided to fetch")
+		return fmt.Errorf("no client binary version provided to fetch")
 	}
 
 	srcPath := filepath.Join(c.cacheDir, pkgcache.ClientName(version))
 	if !fileio.PathExists(srcPath) {
-		return fmt.Errorf("no celer binary found with version '%s' in '%s'", version, c.cacheDir)
+		return fmt.Errorf("no client binary found with version '%s' in '%s'", version, c.cacheDir)
 	}
 
 	// Copy next to the destination, then rename into place, so a partial copy never
@@ -156,11 +156,11 @@ func (c ClientCache) Fetch(version, destPath string) error {
 	tmpPath := destPath + ".tmp"
 	os.Remove(tmpPath)
 	if err := fileio.CopyFile(srcPath, tmpPath); err != nil {
-		return fmt.Errorf("failed to fetch celer binary '%s' -> %w", version, err)
+		return fmt.Errorf("failed to fetch client binary '%s' -> %w", version, err)
 	}
 	if err := fileio.MoveFile(tmpPath, destPath); err != nil {
 		os.Remove(tmpPath)
-		return fmt.Errorf("failed to place celer binary at '%s' -> %w", destPath, err)
+		return fmt.Errorf("failed to place client binary at '%s' -> %w", destPath, err)
 	}
 
 	return os.Chmod(destPath, 0o755)

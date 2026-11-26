@@ -30,12 +30,10 @@ func NewDownloadConfig(ctx context.Context) *DownloadConfig {
 	filesystem := pkgCache.GetFS()
 	cacheRootDir := filesystem.GetDir(pkgcache.DirRoot, ctx.Version())
 	return &DownloadConfig{
-		FileSystem: FileSystem{
-			cacheDirRoot: cacheRootDir,
-		},
-		ctx:      ctx,
-		cacheDir: filesystem.GetDir(pkgcache.DirDownloads, ctx.Version()),
-		readOnly: pkgCache.IsReadOnly(),
+		cacheDirRoot: cacheRootDir,
+		ctx:          ctx,
+		cacheDir:     filesystem.GetDir(pkgcache.DirDownloads, ctx.Version()),
+		readOnly:     pkgCache.IsReadOnly(),
 	}
 }
 
