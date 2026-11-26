@@ -31,8 +31,8 @@ func NewClientCache(ctx context.Context, client *minio.Client) *ClientCache {
 
 	return &ClientCache{
 		ctx:      ctx,
-		Minio:    Minio{client: client, bucketName: bucketName},
-		cacheDir: pkgCache.GetMinio().GetDir(pkgcache.DirBinaries, ctx.Version()),
+		client: client, bucketName: bucketName,
+		cacheDir: pkgCache.GetMinio().GetDir(pkgcache.DirClients, ctx.Version()),
 		version:  ctx.Version(),
 		readOnly: pkgCache.IsReadOnly(),
 	}
@@ -41,8 +41,8 @@ func NewClientCache(ctx context.Context, client *minio.Client) *ClientCache {
 func NewClientCacheFrom(ctx context.Context, client *minio.Client, cfg *pkgcache.Minio, readOnly bool) *ClientCache {
 	return &ClientCache{
 		ctx:      ctx,
-		Minio:    Minio{client: client, bucketName: bucketName},
-		cacheDir: cfg.GetDir(pkgcache.DirBinaries, ctx.Version()),
+		client: client, bucketName: bucketName,
+		cacheDir: cfg.GetDir(pkgcache.DirClients, ctx.Version()),
 		version:  ctx.Version(),
 		readOnly: readOnly,
 	}
@@ -66,33 +66,33 @@ func (c ClientCache) Store() error {
 
 	executable, err := os.Executable()
 	if err != nil {
-		return fmt.Errorf("failed to get celer's binary path -> %w", err)
+		return fmt.Errorf("failed to get client's binary path -> %w", err)
 	}
 
 	// Build object name like: 'celer-x86_64-linux-v0.5.1'.
 	binaryName := pkgcache.ClientName(c.version)
 	objectName := path.Join(c.cacheDir, binaryName)
 
-	// Seeking celer binary with its name is enough.
+	// Seeking client binary with its name is enough.
 	if info, err := c.GetFileInfo(objectName); err != nil {
-		return fmt.Errorf("failed to check cached celer binary '%s' -> %w", objectName, err)
+		return fmt.Errorf("failed to check cached client binary '%s' -> %w", objectName, err)
 	} else if info != nil {
 		return nil
 	}
 
-	// Upload celer with progress.
+	// Upload client with progress.
 	return c.uploadFile(executable, objectName, binaryName)
 }
 
 func (c ClientCache) Restore(version string) (string, error) {
 	// skip when offline.
 	if c.ctx.Offline() {
-		return "", fmt.Errorf("can not restore celer binary because offline is 'ON'")
+		return "", fmt.Errorf("can not restore client binary because offline is 'ON'")
 	}
 
 	version = strings.TrimSpace(version)
 	if version == "" {
-		return "", fmt.Errorf("no celer binary version provided to restore")
+		return "", fmt.Errorf("no client binary version provided to restore")
 	}
 
 	// The requested version, never b.version: this runs precisely because the running
@@ -106,7 +106,7 @@ func (c ClientCache) Restore(version string) (string, error) {
 
 	// No cache found, then download from source.
 	if remoteInfo == nil {
-		return "", fmt.Errorf("no celer binary found with version '%s' in minio", version)
+		return "", fmt.Errorf("no client binary found with version '%s' in minio", version)
 	}
 
 	// Download into a task-owned tmp dir and run it from there.
@@ -139,7 +139,7 @@ func (c ClientCache) List() ([]string, error) {
 			if resp.Code == minio.NoSuchBucket {
 				return nil, nil
 			}
-			return nil, fmt.Errorf("failed to list celer binaries in minio -> %w", object.Err)
+			return nil, fmt.Errorf("failed to list client binaries in minio -> %w", object.Err)
 		}
 
 		version, ok := pkgcache.ClientVersion(path.Base(object.Key))
@@ -157,7 +157,7 @@ func (c ClientCache) List() ([]string, error) {
 func (c ClientCache) Fetch(version, destPath string) error {
 	version = strings.TrimSpace(version)
 	if version == "" {
-		return fmt.Errorf("no celer binary version provided to fetch")
+		return fmt.Errorf("no client binary version provided to fetch")
 	}
 
 	binaryName := pkgcache.ClientName(version)
@@ -167,7 +167,7 @@ func (c ClientCache) Fetch(version, destPath string) error {
 		return err
 	}
 	if remoteInfo == nil {
-		return fmt.Errorf("no celer binary found with version '%s' in minio", version)
+		return fmt.Errorf("no client binary found with version '%s' in minio", version)
 	}
 
 	destDir := filepath.Dir(destPath)
@@ -181,7 +181,7 @@ func (c ClientCache) Fetch(version, destPath string) error {
 	}
 	if err := fileio.MoveFile(tmpDownloaded, destPath); err != nil {
 		os.Remove(tmpDownloaded)
-		return fmt.Errorf("failed to place celer binary at '%s' -> %w", destPath, err)
+		return fmt.Errorf("failed to place client binary at '%s' -> %w", destPath, err)
 	}
 
 	return os.Chmod(destPath, 0o755)
