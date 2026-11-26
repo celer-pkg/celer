@@ -21,7 +21,6 @@ import (
 type RepoConfig struct {
 	Minio
 	ctx      context.Context
-	cacheDir string
 	readOnly bool
 }
 
@@ -31,15 +30,12 @@ func NewRepoConfig(ctx context.Context, client *minio.Client) *RepoConfig {
 		return nil
 	}
 
-	minioConfig := pkgCache.GetMinio()
+	minio := pkgCache.GetMinio()
 	return &RepoConfig{
-		ctx: ctx,
-		Minio: Minio{
-			client:     client,
-			bucketName: bucketName,
-		},
-		cacheDir: minioConfig.GetDir(pkgcache.DirRepos, ctx.Version()),
-		readOnly: pkgCache.IsReadOnly(),
+		ctx:          ctx,
+		client:       client,
+		cacheDirNode: minio.GetDir(pkgcache.DirRepos, ctx.Version()),
+		readOnly:     pkgCache.IsReadOnly(),
 	}
 }
 
@@ -96,7 +92,7 @@ func (r RepoConfig) Restore(cacheKey string, repoInfo pkgcache.RepoInfo, archive
 
 	// Locate cached archive by repoRef.
 	repoName, _, _ := strings.Cut(repoInfo.NameVersion, "@")
-	objectName := path.Join(r.cacheDir, repoName, cacheKey+ext)
+	objectName := path.Join(r.cacheDirNode, repoName, cacheKey+ext)
 
 	// Check if the cached archive exists before downloading.
 	remoteInfo, err := r.GetFileInfo(objectName)
@@ -222,7 +218,7 @@ func (r RepoConfig) Restore(cacheKey string, repoInfo pkgcache.RepoInfo, archive
 func (r RepoConfig) storeGitRepo(repoDir, repoRef, nameVersion string) error {
 	// Skip uploading if already cached.
 	repoName, _, _ := strings.Cut(nameVersion, "@")
-	remotePath := path.Join(r.cacheDir, repoName, repoRef+".tar.gz")
+	remotePath := path.Join(r.cacheDirNode, repoName, repoRef+".tar.gz")
 	remoteInfo, err := r.GetFileInfo(remotePath)
 	if err != nil {
 		return fmt.Errorf("failed to get minio object info for '%s' -> %w", remotePath, err)
@@ -255,7 +251,7 @@ func (r RepoConfig) storeArchiveRepo(repoRef, nameVersion, archivePath string) e
 	// Preserve original archive extension so extract dispatches correctly.
 	ext := fileio.Ext(archivePath)
 	repoName, _, _ := strings.Cut(nameVersion, "@")
-	remotePath := path.Join(r.cacheDir, repoName, repoRef+ext)
+	remotePath := path.Join(r.cacheDirNode, repoName, repoRef+ext)
 
 	// Skip uploading if already cached.
 	remoteInfo, err := r.GetFileInfo(remotePath)

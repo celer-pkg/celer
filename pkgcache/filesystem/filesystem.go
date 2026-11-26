@@ -28,7 +28,7 @@ func InitPkgCache(ctx context.Context) *pkgcache.CacheConfigs {
 }
 
 type FileSystem struct {
-	cacheDirRoot string // Remote cache root.
+	cacheDirNode string
 }
 
 // uploadFile uploads filePath to remotePath with a progress bar, mirroring the
@@ -41,8 +41,7 @@ func (f FileSystem) uploadFile(filePath, remotePath, sha256, displayName string)
 
 	title := fmt.Sprintf("uploading '%s'", displayName)
 	completed := func(formattedTimeCost, formattedSize string) {
-		logger.NewProgressTask(logger.OpStore, displayName).
-			Complete("", formattedSize, formattedTimeCost)
+		logger.NewProgressTask(logger.OpStore, displayName).Complete("", formattedSize, formattedTimeCost)
 	}
 	return f.doUploadFile(filePath, remotePath, sha256, fileio.NewProgressBar(title, srcInfo.Size(), completed))
 }
@@ -74,8 +73,7 @@ func (f FileSystem) downloadFile(dstDir, remotePath, displayName string) (string
 	defer remoteFile.Close()
 
 	completed := func(formattedTimeCost, formattedSize string) {
-		logger.NewProgressTask(logger.OpRestore, displayName).
-			Complete("", formattedSize, formattedTimeCost)
+		logger.NewProgressTask(logger.OpRestore, displayName).Complete("", formattedSize, formattedTimeCost)
 	}
 	progress := fileio.NewProgressBar(fmt.Sprintf("downloading '%s'", displayName), srcInfo.Size(), completed)
 	if _, err := io.Copy(io.MultiWriter(localFile, progress), remoteFile); err != nil {
@@ -107,7 +105,7 @@ func (f FileSystem) doUploadFile(localPath, remotePath, sha256 string, progress 
 
 	// Write to tmp dir first (excluded from chattr +a), then atomically rename
 	// into final location to avoid partial reads.
-	remoteTmpDir := filepath.Join(f.cacheDirRoot, "tmp")
+	remoteTmpDir := filepath.Join(filepath.Dir(f.cacheDirNode), "tmp")
 	if err := os.MkdirAll(remoteTmpDir, os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create tmp dir for '%s' -> %w", remoteTmpDir, err)
 	}

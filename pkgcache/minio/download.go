@@ -29,27 +29,19 @@ func NewDownloadConfig(ctx context.Context, client *minio.Client) *DownloadConfi
 		return nil
 	}
 
-	minioConfig := pkgCache.GetMinio()
+	minio := pkgCache.GetMinio()
 	return &DownloadConfig{
-		ctx: ctx,
-		Minio: Minio{
-			client:     client,
-			bucketName: bucketName,
-		},
-		cacheDir: minioConfig.GetDir(pkgcache.DirDownloads, ctx.Version()),
+		ctx:      ctx,
+		client:   client,
+		cacheDir: minio.GetDir(pkgcache.DirDownloads, ctx.Version()),
 		readOnly: pkgCache.IsReadOnly(),
 	}
 }
 
 // Store saves a downloaded file to the cache dir: downloads/{fileName}.
 func (d DownloadConfig) Store(fileName, sha256, srcPath string) error {
-	// skip when offline.
-	if d.ctx.Offline() {
-		return nil
-	}
-
-	// skip when read-only.
-	if d.readOnly {
+	// skip when offline or read-only.
+	if d.ctx.Offline() || d.readOnly {
 		return nil
 	}
 

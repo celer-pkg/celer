@@ -15,32 +15,29 @@ import (
 type PythonWheelConfig struct {
 	FileSystem
 	ctx      context.Context
-	cacheDir string
 	readOnly bool
 }
 
 func NewPythonWheelConfig(ctx context.Context) *PythonWheelConfig {
 	pkgCache := ctx.PkgCache()
-	if pkgCache == nil || pkgCache.GetFS() == nil || pkgCache.GetFS().GetDir(pkgcache.DirRoot, ctx.Version()) == "" {
+	if pkgCache == nil ||
+		pkgCache.GetFS() == nil ||
+		pkgCache.GetFS().GetDir(pkgcache.DirRoot, ctx.Version()) == "" {
 		return nil
 	}
 
-	filesystem := pkgCache.GetFS()
-	cacheRootDir := filesystem.GetDir(pkgcache.DirRoot, ctx.Version())
+	fs := pkgCache.GetFS()
 	return &PythonWheelConfig{
-		FileSystem: FileSystem{
-			cacheDirRoot: cacheRootDir,
-		},
-		ctx:      ctx,
-		cacheDir: filesystem.GetDir(pkgcache.DirPythonWheels, ctx.Version()),
-		readOnly: pkgCache.IsReadOnly(),
+		ctx:          ctx,
+		cacheDirNode: fs.GetDir(pkgcache.DirPythonWheels, ctx.Version()),
+		readOnly:     pkgCache.IsReadOnly(),
 	}
 }
 
 // Restore copies every cached distribution under cacheKey into destDir (the pip
 // --find-links target). ok=false when the cache entry does not exist.
 func (p PythonWheelConfig) Restore(cacheKey, destDir string) (bool, error) {
-	keyDir := filepath.Join(p.cacheDir, cacheKey)
+	keyDir := filepath.Join(p.cacheDirNode, cacheKey)
 	entries, err := os.ReadDir(keyDir)
 	if err != nil || !hasDistributions(entries) {
 		return false, nil
@@ -66,14 +63,12 @@ func (p PythonWheelConfig) Restore(cacheKey, destDir string) (bool, error) {
 
 // Store copies every python distribution under wheelhouseDir into the cache entry for cacheKey.
 func (p PythonWheelConfig) Store(cacheKey, wheelhouseDir string) error {
-	if p.ctx.Offline() {
-		return nil
-	}
-	if p.readOnly {
+	// skip when offline or readonly.
+	if p.ctx.Offline() || p.readOnly {
 		return nil
 	}
 
-	keyDir := filepath.Join(p.cacheDir, cacheKey)
+	keyDir := filepath.Join(p.cacheDirNode, cacheKey)
 	if err := os.MkdirAll(keyDir, os.ModePerm); err != nil {
 		return fmt.Errorf("failed to mkdir python wheel cache for '%s' -> %w", cacheKey, err)
 	}

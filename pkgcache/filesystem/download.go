@@ -17,35 +17,29 @@ import (
 type DownloadConfig struct {
 	FileSystem
 	ctx      context.Context
-	cacheDir string
 	readOnly bool
 }
 
 func NewDownloadConfig(ctx context.Context) *DownloadConfig {
 	pkgCache := ctx.PkgCache()
-	if pkgCache == nil || pkgCache.GetFS() == nil || pkgCache.GetFS().GetDir(pkgcache.DirRoot, ctx.Version()) == "" {
+	if pkgCache == nil ||
+		pkgCache.GetFS() == nil ||
+		pkgCache.GetFS().GetDir(pkgcache.DirRoot, ctx.Version()) == "" {
 		return nil
 	}
 
-	filesystem := pkgCache.GetFS()
-	cacheRootDir := filesystem.GetDir(pkgcache.DirRoot, ctx.Version())
+	fs := pkgCache.GetFS()
 	return &DownloadConfig{
-		cacheDirRoot: cacheRootDir,
 		ctx:          ctx,
-		cacheDir:     filesystem.GetDir(pkgcache.DirDownloads, ctx.Version()),
+		cacheDirNode: fs.GetDir(pkgcache.DirDownloads, ctx.Version()),
 		readOnly:     pkgCache.IsReadOnly(),
 	}
 }
 
 // Store saves a downloaded file to the cache dir: downloads/{fileName}.
 func (d DownloadConfig) Store(fileName, sha256, srcPath string) error {
-	// skip when offline.
-	if d.ctx.Offline() {
-		return nil
-	}
-
-	// skip when read-only.
-	if d.readOnly {
+	// skip when offline or readonly.
+	if d.ctx.Offline() || d.readOnly {
 		return nil
 	}
 
@@ -53,11 +47,11 @@ func (d DownloadConfig) Store(fileName, sha256, srcPath string) error {
 		return fmt.Errorf("no sha-256 provided when caching file to pkgcache for %s", fileName)
 	}
 
-	if err := os.MkdirAll(d.cacheDir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(d.cacheDirNode, os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create cache dir -> %w", err)
 	}
 
-	remoteFilePath := filepath.Join(d.cacheDir, fileName)
+	remoteFilePath := filepath.Join(d.cacheDirNode, fileName)
 
 	// The cache is authoritative: never auto-overwrite an existing entry.
 	if fileio.PathExists(remoteFilePath) {
@@ -90,7 +84,7 @@ func (d DownloadConfig) Restore(fileName, sha256 string) (bool, error) {
 		return false, fmt.Errorf("no sha-256 hash provided for '%s'", fileName)
 	}
 
-	remoteFilePath := filepath.Join(d.cacheDir, fileName)
+	remoteFilePath := filepath.Join(d.cacheDirNode, fileName)
 	if !fileio.PathExists(remoteFilePath) {
 		return false, nil
 	}

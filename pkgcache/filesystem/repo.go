@@ -19,26 +19,22 @@ import (
 type RepoConfig struct {
 	FileSystem
 	ctx      context.Context
-	cacheDir string
 	readOnly bool
 }
 
 func NewRepoConfig(ctx context.Context) *RepoConfig {
 	pkgCache := ctx.PkgCache()
-	if pkgCache == nil || pkgCache.GetFS() == nil || pkgCache.GetFS().GetDir(pkgcache.DirRoot, ctx.Version()) == "" {
+	if pkgCache == nil ||
+		pkgCache.GetFS() == nil ||
+		pkgCache.GetFS().GetDir(pkgcache.DirRoot, ctx.Version()) == "" {
 		return nil
 	}
 
-	filesystem := pkgCache.GetFS()
-	cacheRootDir := filesystem.GetDir(pkgcache.DirRoot, ctx.Version())
-	repoCacheDir := filesystem.GetDir(pkgcache.DirRepos, ctx.Version())
+	fs := pkgCache.GetFS()
 	return &RepoConfig{
-		FileSystem: FileSystem{
-			cacheDirRoot: cacheRootDir,
-		},
-		ctx:      ctx,
-		cacheDir: repoCacheDir,
-		readOnly: pkgCache.IsReadOnly(),
+		ctx:          ctx,
+		cacheDirNode: fs.GetDir(pkgcache.DirRepos, ctx.Version()),
+		readOnly:     pkgCache.IsReadOnly(),
 	}
 }
 
@@ -89,7 +85,7 @@ func (r RepoConfig) Restore(cacheKey string, repoInfo pkgcache.RepoInfo, archive
 
 	// Locate cached archive by nameVersion + cacheKey.
 	repoName, _, _ := strings.Cut(repoInfo.NameVersion, "@")
-	remoteFilePath := filepath.Join(r.cacheDir, repoName, cacheKey+archiveExt)
+	remoteFilePath := filepath.Join(r.cacheDirNode, repoName, cacheKey+archiveExt)
 	if !fileio.PathExists(remoteFilePath) {
 		return false, nil
 	}
@@ -214,7 +210,7 @@ func (r RepoConfig) storeGitRepo(repoDir, repoRef, nameVersion string) error {
 	// Ignore when repo archive is stored before.
 	// Archive path will be like: repos/x264/x264@stable.tar.gz
 	repoName, _, _ := strings.Cut(nameVersion, "@")
-	remoteFilePath := filepath.Join(r.cacheDir, repoName, repoRef+".tar.gz")
+	remoteFilePath := filepath.Join(r.cacheDirNode, repoName, repoRef+".tar.gz")
 	if fileio.PathExists(remoteFilePath) {
 		return nil
 	}
@@ -248,7 +244,7 @@ func (r RepoConfig) storeArchiveRepo(repoRef, nameVersion, archiveFile string) e
 	// Preserve original archive extension so extract dispatches correctly.
 	ext := fileio.Ext(archiveFile)
 	repoName, _, _ := strings.Cut(nameVersion, "@")
-	archivePath := filepath.Join(r.cacheDir, repoName, repoRef+ext)
+	archivePath := filepath.Join(r.cacheDirNode, repoName, repoRef+ext)
 
 	// Skip if already cached.
 	if fileio.PathExists(archivePath) {

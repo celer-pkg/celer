@@ -36,6 +36,8 @@ const (
 	DirPythonWheels
 )
 
+// ========================== pkgcache backend: FS ========================== //
+
 // FS is the config for the fs backend of pkgcache.
 type FS struct {
 	Dir string `toml:"dir" json:"dir"`
@@ -56,7 +58,8 @@ func (f FS) GetDir(dirType DirType, version string) string {
 		return filepath.Join(f.Dir, "clients")
 
 	case DirArtifacts:
-		return filepath.Join(f.Dir, "artifacts-"+version)
+		versionDir := fmt.Sprintf("artifacts-%s.x", expr.GetMinorVersion(version))
+		return filepath.Join(f.Dir, versionDir)
 
 	case DirRepos:
 		return filepath.Join(f.Dir, "repos")
@@ -71,6 +74,8 @@ func (f FS) GetDir(dirType DirType, version string) string {
 		return f.Dir
 	}
 }
+
+// ========================== pkgcache backend: Minio ========================== //
 
 // Minio is the config for the minio backend of pkgcache.
 type Minio struct {
@@ -119,6 +124,8 @@ func (m Minio) GetDir(dirType DirType, version string) string {
 	}
 }
 
+// ========================== pkgcache interfaces ========================== //
+
 // PkgCache is the shared package cache: stores/restores
 // source repos and built artifacts so repeat builds skip clone and compile.
 // The NFS/FTP backend is configured via FS, the minio backend via Minio; the
@@ -135,7 +142,7 @@ type PkgCache interface {
 	GetPythonWheelCache() PythonWheelCache
 }
 
-// ========================== celer binary cache ========================== //
+// ========================== client cache ========================== //
 
 // ClientCache stores the celer binary of a version, so a node runs the one that exported
 // its schedule instead of whatever its PATH happens to have.
@@ -305,6 +312,8 @@ func IsPythonDistribution(name string) bool {
 	}
 }
 
+// ClientName return celer client file name like "celer-x86_64-linux"
+// or "celer-x86_64-windows.exe"
 func ClientName(version string) string {
 	prefix := fmt.Sprintf("celer-%s-%s-", expr.FormatProcessor(runtime.GOARCH), runtime.GOOS)
 	ext := expr.If(runtime.GOOS == "windows", ".exe", "")

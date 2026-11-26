@@ -21,7 +21,6 @@ import (
 type ArtifactConfig struct {
 	Minio
 	ctx        context.Context
-	cacheDir   string
 	readOnly   bool
 	maxRetries int
 }
@@ -32,16 +31,13 @@ func NewArtifactConfig(ctx context.Context, client *minio.Client) *ArtifactConfi
 		return nil
 	}
 
-	minioConfig := pkgCache.GetMinio()
+	minio := pkgCache.GetMinio()
 	return &ArtifactConfig{
-		ctx: ctx,
-		Minio: Minio{
-			client:     client,
-			bucketName: bucketName,
-		},
-		cacheDir:   minioConfig.GetDir(pkgcache.DirArtifacts, ctx.Version()),
-		readOnly:   pkgCache.IsReadOnly(),
-		maxRetries: 3,
+		ctx:          ctx,
+		client:       client,
+		cacheDirNode: minio.GetDir(pkgcache.DirArtifacts, ctx.Version()),
+		readOnly:     pkgCache.IsReadOnly(),
+		maxRetries:   3,
 	}
 }
 
@@ -90,7 +86,7 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 	var (
 		libName       = versionParts[0]
 		libVersion    = versionParts[1]
-		remoteDir     = path.Join(a.cacheDir, platformName, projectName, buildType, nameVersion)
+		remoteDir     = path.Join(a.cacheDirNode, platformName, projectName, buildType, nameVersion)
 		remoteMetaDir = path.Join(remoteDir, "metas")
 	)
 
@@ -248,7 +244,7 @@ func (a ArtifactConfig) Prune(nameVersion string, keepCount int, commitTime pkgc
 	}
 
 	// List all available object versions of this port's artifacts.
-	remoteDir := path.Join(a.cacheDir, a.ctx.Platform().GetName(), a.ctx.Project().GetName(), a.ctx.BuildType(), nameVersion)
+	remoteDir := path.Join(a.cacheDirNode, a.ctx.Platform().GetName(), a.ctx.Project().GetName(), a.ctx.BuildType(), nameVersion)
 	objects, err := a.ListObjectsWithVersions(remoteDir + "/")
 	if err != nil {
 		return fmt.Errorf("failed to list artifacts in '%s/' -> %w", remoteDir, err)
@@ -388,7 +384,7 @@ func (a ArtifactConfig) Exists(nameVersion, buildHash string) (bool, error) {
 }
 
 func (a ArtifactConfig) remoteDir(nameVersion string) string {
-	return path.Join(a.cacheDir, a.ctx.Platform().GetName(), a.ctx.Project().GetName(), a.ctx.BuildType(), nameVersion)
+	return path.Join(a.cacheDirNode, a.ctx.Platform().GetName(), a.ctx.Project().GetName(), a.ctx.BuildType(), nameVersion)
 }
 
 func (a ArtifactConfig) artifactPaths(nameVersion, buildHash string) (metaPath, archivePath string) {
@@ -440,7 +436,7 @@ func (a ArtifactConfig) LatestMeta(nameVersion string) ([]byte, string, bool, er
 		builds = map[string]cachedBuild{}
 		opts   = minio.ListObjectsOptions{Prefix: prefix, Recursive: true}
 	)
-	for object := range a.client.ListObjects(context.Background(), a.bucketName, opts) {
+	for object := range a.client.ListObjects(context.Background(), bucketName, opts) {
 		if object.Err != nil {
 			resp := minio.ToErrorResponse(object.Err)
 			if resp.Code == minio.NoSuchBucket {
