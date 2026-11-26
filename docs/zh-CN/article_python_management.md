@@ -102,7 +102,7 @@ Celer 使用智能决策树来选择使用哪个 Python：
 
 ## 📝 在项目中配置 Python
 
-Python 配置是**项目级**配置，写在项目配置文件（`conf/projects/<项目名>/<项目名>.toml`）里，
+Python 配置是**项目级**配置，写在项目配置文件（`conf/projects/<项目名>/project.toml`）里，
 不再放在工作空间的 `celer.toml` 中。这样同一项目在不同工作空间中共享同一份 Python 设置，
 不同项目也可以各自指定版本和 pip 源。
 
@@ -111,7 +111,7 @@ Python 配置是**项目级**配置，写在项目配置文件（`conf/projects/
 在项目文件末尾添加 `[python]` 表：
 
 ```toml
-# conf/projects/project_xxx/project_xxx.toml
+# conf/projects/project_xxx/project.toml
 
 ports = [
     "boost@1.83.0",

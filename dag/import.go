@@ -112,6 +112,7 @@ func Install(ctx context.Context, nameVersion string, devDep bool, options confi
 		logger.Printf(logger.Title, "🚀 start to install %s\n", nameVersion)
 		logger.Printf(logger.Title, "📌 platform: %s\n", platformName)
 		logger.Printf(logger.Title, "📌 project: %s\n", ctx.Project().GetName())
+		logger.Printf(logger.Title, "📌 build_type: %s\n", ctx.BuildType())
 		logger.Println(logger.Title, "===========================================================================")
 	}
 

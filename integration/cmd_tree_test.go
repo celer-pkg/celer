@@ -290,11 +290,15 @@ func setupTestEnvironment(t *testing.T) {
 		t.Fatalf("Failed to create test projects directory: %v", err)
 	}
 
-	// Create a dummy project file.
-	projectToml := filepath.Join(projectsDir, testProjectName+".toml")
+	// Create a dummy project directory with its project.toml.
+	projectDir := filepath.Join(projectsDir, testProjectName)
+	if err := os.MkdirAll(projectDir, 0755); err != nil {
+		t.Fatalf("failed to create test project directory: %v", err)
+	}
+	projectToml := filepath.Join(projectDir, "project.toml")
 	if err := os.WriteFile(projectToml, []byte("# Test project"), 0644); err != nil {
 		t.Fatalf("Failed to create test project.toml: %v", err)
 	}
 	// The conf dir is shared with the tests that run after this one.
-	t.Cleanup(func() { os.Remove(projectToml) })
+	t.Cleanup(func() { os.RemoveAll(projectDir) })
 }

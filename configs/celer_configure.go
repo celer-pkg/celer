@@ -183,7 +183,7 @@ func (c *Celer) SetProject(projectName string) error {
 	if err := c.project.Init(c, projectName); err != nil {
 		return err
 	}
-	c.Main.Project = projectName
+	c.Main.Project = c.project.GetName()
 
 	// Set project's target_platform as current platform.
 	targetPlatform := strings.TrimSpace(c.project.TargetPlatform)
@@ -215,10 +215,10 @@ func (c *Celer) SetProject(projectName string) error {
 		return fmt.Errorf("failed to pin ports repo to ports_baseline '%s' -> %w",
 			portsBaseline, err)
 	}
-	logger.PrintHint("\n[ports baseline ] --> %s", portsBaseline)
+	logger.PrintHint("ports baseline: -> %s", portsBaseline)
 
 	if targetPlatform != "" {
-		logger.PrintHint("[target platrorm] --> %s", targetPlatform)
+		logger.PrintHint("target platform: -> %s", targetPlatform)
 	}
 
 	return nil

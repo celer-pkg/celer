@@ -103,7 +103,7 @@ Is a Python version specified in the project's `[python]` config?
 ## 📝 Configuring Python in Projects
 
 Python configuration is **project-level**: it lives in the project file
-(`conf/projects/<project_name>/<project_name>.toml`), not in the workspace's `celer.toml`.
+(`conf/projects/<project_name>/project.toml`), not in the workspace's `celer.toml`.
 This way the same project shares one Python setup across workspaces, and different projects
 can use different versions and pip indexes.
 
@@ -112,7 +112,7 @@ can use different versions and pip indexes.
 Add a `[python]` table at the end of the project file:
 
 ```toml
-# conf/projects/project_xxx/project_xxx.toml
+# conf/projects/project_xxx/project.toml
 
 ports = [
     "boost@1.83.0",

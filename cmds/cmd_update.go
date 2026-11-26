@@ -261,22 +261,7 @@ func (u *UpdateCmd) Completion(cmd *cobra.Command, args []string, toComplete str
 	}
 
 	// Support project completion.
-	if fileio.PathExists(dirs.ConfProjectsDir) {
-		entities, err := os.ReadDir(dirs.ConfProjectsDir)
-		if err != nil {
-			// Don't fail completion, just return what we have.
-			return suggestions, cobra.ShellCompDirectiveNoFileComp
-		}
-
-		for _, entity := range entities {
-			if !entity.IsDir() && strings.HasSuffix(entity.Name(), ".toml") {
-				fileName := strings.TrimSuffix(entity.Name(), ".toml")
-				if strings.HasPrefix(fileName, toComplete) {
-					suggestions = append(suggestions, fileName)
-				}
-			}
-		}
-	}
+	suggestions = append(suggestions, projectNamesCompletion(toComplete)...)
 
 	// Support flags completion.
 	flags := []string{

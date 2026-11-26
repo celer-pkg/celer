@@ -218,19 +218,19 @@ func (e *Exporter) exportConf() error {
 		return fmt.Errorf("failed to copy platform file -> %w", err)
 	}
 
-	// 2. Export only the current project's .toml file and its subdirectory (port overrides).
+	// 2. Export the current project's project.toml and its subdirectory (port overrides).
 	projectName := e.celer.Project().GetName()
-	srcProjectFile := filepath.Join(dirs.ConfProjectsDir, projectName+".toml")
-	dstProjectDir := filepath.Join(dstConf, "projects")
+	srcProjectFile := dirs.GetProjectPath(projectName)
+	dstProjectDir := filepath.Join(dstConf, "projects", projectName)
 	if err := os.MkdirAll(dstProjectDir, os.ModePerm); err != nil {
 		return err
 	}
-	if err := fileio.CopyFile(srcProjectFile, filepath.Join(dstProjectDir, projectName+".toml")); err != nil {
+	if err := fileio.CopyFile(srcProjectFile, filepath.Join(dstProjectDir, "project.toml")); err != nil {
 		return fmt.Errorf("failed to copy project file -> %w", err)
 	}
 
 	// Copy project-specific port overrides only for used ports.
-	srcProjectSubdir := filepath.Join(dirs.ConfProjectsDir, projectName)
+	srcProjectSubdir := dirs.GetProjectDir(projectName)
 	for nameVersion := range e.usedPorts {
 		parts := strings.SplitN(nameVersion, "@", 2)
 		if len(parts) != 2 {
@@ -240,7 +240,7 @@ func (e *Exporter) exportConf() error {
 		if !fileio.PathExists(srcPortDir) {
 			continue
 		}
-		dstPortDir := filepath.Join(dstProjectDir, projectName, parts[0], parts[1])
+		dstPortDir := filepath.Join(dstProjectDir, parts[0], parts[1])
 		if err := filepath.Walk(srcPortDir, func(srcPath string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
