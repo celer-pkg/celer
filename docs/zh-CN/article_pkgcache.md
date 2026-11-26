@@ -113,7 +113,7 @@ celer configure --pkgcache-readonly=true
 fs 写在 `dir` 下；minio 写在 bucket `celer-cache` 里。前缀一样：
 
 ```text
-artifacts-v0.2.7/   # 构建产物（按 Celer 版本隔离）
+artifacts-v0.2.x/   # 构建产物（v0.2.x 补丁版本共享）
 repos/              # 源码仓库
 downloads/          # 下载文件
 python-wheels/      # build_tools python 库的 pip wheel

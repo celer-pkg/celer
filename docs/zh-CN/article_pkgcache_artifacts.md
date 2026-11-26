@@ -83,7 +83,7 @@ celer install eigen@3.4.0
 - 判断`pkgcache`及其后端是否配置，如果没有配置则放弃寻找
 - 检查当前仓库是否已经被修改，如果有修改则放弃寻找
 - 读取当前仓库的git commit hash, 并根据当前的构建配置生成哈希
-- 带着哈希以及构建配置参数去 `pkgcache/artifacts-{Version}` 目录寻找匹配的制品存储
+- 带着哈希以及构建配置参数去 `pkgcache/artifacts-{Major.Minor}.x` 目录寻找匹配的制品存储
 - 找到匹配的制品压缩包则直接模拟走编译成功后的安装过程
 
 ## 私有库分发
@@ -105,7 +105,7 @@ celer install eigen@3.4.0
 
 **工作原理：**
 1. Celer 使用 port.toml 中配置的`checksum` 和`众多的构建配置`计算缓存键
-2. 在 `pkgcache/artifacts-{Version}` 中搜索匹配的制品
+2. 在 `pkgcache/artifacts-{Major.Minor}.x` 中搜索匹配的制品
 3. 如果找到，提取并使用，**无需克隆仓库**
 4. 如果未找到，则回退到从源码构建（如果可访问）
 
@@ -120,7 +120,7 @@ Celer 以层次结构组织缓存制品，便于管理：
 
 ```
 /home/test/pkgcache/
-    └── artifacts-v0.2.7                            # 按版本隔离的制品缓存
+    └── artifacts-v0.2.x                            # v0.2.x 各补丁版本共享的制品缓存
         └── x86_64-linux-ubuntu-22.04-gcc-11.5.0/   # 平台
             └── project_01/                         # 项目
                 └── release/                        # 构建类型（release/debug）

@@ -120,7 +120,7 @@ celer configure --pkgcache-readonly=true
 fs writes under `dir`. minio writes into bucket `celer-cache`. Same prefixes:
 
 ```text
-artifacts-v0.2.7/   # artifacts, isolated by Celer version
+artifacts-v0.2.x/   # artifacts, shared by Celer v0.2.x patch releases
 repos/              # source repos
 downloads/          # downloaded files
 python-wheels/      # pip wheels for build_tools python libraries

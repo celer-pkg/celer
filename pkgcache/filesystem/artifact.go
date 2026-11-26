@@ -26,17 +26,24 @@ type ArtifactConfig struct {
 
 func NewArtifactConfig(ctx context.Context) *ArtifactConfig {
 	pkgCache := ctx.PkgCache()
-	if pkgCache == nil ||
-		pkgCache.GetFS() == nil ||
-		pkgCache.GetFS().GetDir(pkgcache.DirRoot, ctx.Version()) == "" {
+	if pkgCache == nil || pkgCache.GetFS() == nil {
 		return nil
 	}
 
 	fs := pkgCache.GetFS()
+	root := fs.GetDir(pkgcache.DirRoot, ctx.Version())
+	if root == "" {
+		return nil
+	}
+
 	return &ArtifactConfig{
-		cacheDirNode: fs.GetDir(pkgcache.DirArtifacts, ctx.Version()),
-		readOnly:     pkgCache.IsReadOnly(),
-		maxRetries:   3,
+		FileSystem: FileSystem{
+			cacheDirRoot: root,
+			cacheDirNode: fs.GetDir(pkgcache.DirArtifacts, ctx.Version()),
+		},
+		ctx:        ctx,
+		readOnly:   pkgCache.IsReadOnly(),
+		maxRetries: 3,
 	}
 }
 
@@ -302,7 +309,11 @@ func removeArtifacts(packageDir string, expired []pkgcache.PruneArtifact) []pkgc
 }
 
 func (a ArtifactConfig) remoteDir(nameVersion string) string {
-	return filepath.Join(a.cacheDirNode, a.ctx.Platform().GetName(), a.ctx.Project().GetName(), a.ctx.BuildType(), nameVersion)
+	return filepath.Join(a.cacheDirNode,
+		a.ctx.Platform().GetName(),
+		a.ctx.Project().GetName(),
+		a.ctx.BuildType(),
+		nameVersion)
 }
 
 func (a ArtifactConfig) artifactPaths(nameVersion, buildHash string) (metaPath, archivePath string) {

@@ -28,7 +28,8 @@ func InitPkgCache(ctx context.Context) *pkgcache.CacheConfigs {
 }
 
 type FileSystem struct {
-	cacheDirNode string
+	cacheDirRoot string // Remote cache root.
+	cacheDirNode string // Cache subdir this config reads/writes.
 }
 
 // uploadFile uploads filePath to remotePath with a progress bar, mirroring the

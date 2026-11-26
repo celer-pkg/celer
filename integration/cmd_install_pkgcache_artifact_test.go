@@ -11,6 +11,7 @@ import (
 	"github.com/celer-pkg/celer/internal/dirs"
 	"github.com/celer-pkg/celer/internal/fileio"
 	"github.com/celer-pkg/celer/internal/git"
+	"github.com/celer-pkg/celer/pkgcache"
 )
 
 func TestInstall_PkgCache_Artifact_Success(t *testing.T) {
@@ -339,9 +340,12 @@ func TestInstall_PkgCache_With_Commit_Missing_FallsBackToSource(t *testing.T) {
 		BuildCache: true,
 	}
 	check(t, port.Remove(removeOptions))
+
 	// Drop the cached artifact to simulate a cache miss; the fs pkgcache layout
-	// is {cache_dir}/artifacts-{version}/{platform}/{project}/{buildType}/{nameVersion}.
-	check(t, os.RemoveAll(filepath.Join(dirs.TestPkgCacheDir, "artifacts-"+celer.Version())))
+	// is {cache_dir}/artifacts-{major.minor}.x/{platform}/{project}/{buildType}/{nameVersion}.
+	fs := pkgcache.FS{Dir: dirs.TestPkgCacheDir}
+	artifactsDir := fs.GetDir(pkgcache.DirArtifacts, celer.Version())
+	check(t, os.RemoveAll(artifactsDir))
 
 	port.Package.Checksum = commit
 	port.MatchedConfig.PortConfig.Checksum = commit

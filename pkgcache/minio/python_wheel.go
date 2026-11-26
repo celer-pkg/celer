@@ -27,10 +27,12 @@ func NewPythonWheelConfig(ctx context.Context, client *minio.Client) *PythonWhee
 
 	minio := pkgCache.GetMinio()
 	return &PythonWheelConfig{
-		ctx:          ctx,
-		client:       client,
-		cacheDirNode: minio.GetDir(pkgcache.DirPythonWheels, ctx.Version()),
-		readOnly:     pkgCache.IsReadOnly(),
+		Minio: Minio{
+			client:       client,
+			cacheDirNode: minio.GetDir(pkgcache.DirPythonWheels, ctx.Version()),
+		},
+		ctx:      ctx,
+		readOnly: pkgCache.IsReadOnly(),
 	}
 }
 

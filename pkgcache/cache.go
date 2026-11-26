@@ -117,7 +117,7 @@ func (m Minio) GetDir(dirType DirType, version string) string {
 		return "python-wheels"
 
 	case DirArtifacts:
-		return "artifacts-" + version
+		return fmt.Sprintf("artifacts-%s.x", expr.GetMinorVersion(version))
 
 	default:
 		return ""

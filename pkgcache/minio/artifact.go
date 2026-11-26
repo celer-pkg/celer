@@ -33,11 +33,13 @@ func NewArtifactConfig(ctx context.Context, client *minio.Client) *ArtifactConfi
 
 	minio := pkgCache.GetMinio()
 	return &ArtifactConfig{
-		ctx:          ctx,
-		client:       client,
-		cacheDirNode: minio.GetDir(pkgcache.DirArtifacts, ctx.Version()),
-		readOnly:     pkgCache.IsReadOnly(),
-		maxRetries:   3,
+		Minio: Minio{
+			client:       client,
+			cacheDirNode: minio.GetDir(pkgcache.DirArtifacts, ctx.Version()),
+		},
+		ctx:        ctx,
+		readOnly:   pkgCache.IsReadOnly(),
+		maxRetries: 3,
 	}
 }
 

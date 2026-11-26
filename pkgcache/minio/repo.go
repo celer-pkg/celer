@@ -32,10 +32,12 @@ func NewRepoConfig(ctx context.Context, client *minio.Client) *RepoConfig {
 
 	minio := pkgCache.GetMinio()
 	return &RepoConfig{
-		ctx:          ctx,
-		client:       client,
-		cacheDirNode: minio.GetDir(pkgcache.DirRepos, ctx.Version()),
-		readOnly:     pkgCache.IsReadOnly(),
+		Minio: Minio{
+			client:       client,
+			cacheDirNode: minio.GetDir(pkgcache.DirRepos, ctx.Version()),
+		},
+		ctx:      ctx,
+		readOnly: pkgCache.IsReadOnly(),
 	}
 }
 

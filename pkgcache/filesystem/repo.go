@@ -24,17 +24,23 @@ type RepoConfig struct {
 
 func NewRepoConfig(ctx context.Context) *RepoConfig {
 	pkgCache := ctx.PkgCache()
-	if pkgCache == nil ||
-		pkgCache.GetFS() == nil ||
-		pkgCache.GetFS().GetDir(pkgcache.DirRoot, ctx.Version()) == "" {
+	if pkgCache == nil || pkgCache.GetFS() == nil {
 		return nil
 	}
 
 	fs := pkgCache.GetFS()
+	root := fs.GetDir(pkgcache.DirRoot, ctx.Version())
+	if root == "" {
+		return nil
+	}
+
 	return &RepoConfig{
-		ctx:          ctx,
-		cacheDirNode: fs.GetDir(pkgcache.DirRepos, ctx.Version()),
-		readOnly:     pkgCache.IsReadOnly(),
+		FileSystem: FileSystem{
+			cacheDirRoot: root,
+			cacheDirNode: fs.GetDir(pkgcache.DirRepos, ctx.Version()),
+		},
+		ctx:      ctx,
+		readOnly: pkgCache.IsReadOnly(),
 	}
 }
 

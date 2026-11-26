@@ -22,17 +22,23 @@ type DownloadConfig struct {
 
 func NewDownloadConfig(ctx context.Context) *DownloadConfig {
 	pkgCache := ctx.PkgCache()
-	if pkgCache == nil ||
-		pkgCache.GetFS() == nil ||
-		pkgCache.GetFS().GetDir(pkgcache.DirRoot, ctx.Version()) == "" {
+	if pkgCache == nil || pkgCache.GetFS() == nil {
 		return nil
 	}
 
 	fs := pkgCache.GetFS()
+	root := fs.GetDir(pkgcache.DirRoot, ctx.Version())
+	if root == "" {
+		return nil
+	}
+
 	return &DownloadConfig{
-		ctx:          ctx,
-		cacheDirNode: fs.GetDir(pkgcache.DirDownloads, ctx.Version()),
-		readOnly:     pkgCache.IsReadOnly(),
+		FileSystem: FileSystem{
+			cacheDirRoot: root,
+			cacheDirNode: fs.GetDir(pkgcache.DirDownloads, ctx.Version()),
+		},
+		ctx:      ctx,
+		readOnly: pkgCache.IsReadOnly(),
 	}
 }
 

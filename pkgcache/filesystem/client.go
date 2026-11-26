@@ -28,17 +28,23 @@ func NewClientCache(ctx context.Context) *ClientCache {
 
 	fs := pkgCache.GetFS()
 	return &ClientCache{
-		ctx:          ctx,
-		cacheDirNode: fs.GetDir(pkgcache.DirClients, ctx.Version()),
-		readOnly:     pkgCache.IsReadOnly(),
+		FileSystem: FileSystem{
+			cacheDirRoot: fs.GetDir(pkgcache.DirRoot, ctx.Version()),
+			cacheDirNode: fs.GetDir(pkgcache.DirClients, ctx.Version()),
+		},
+		ctx:      ctx,
+		readOnly: pkgCache.IsReadOnly(),
 	}
 }
 
 func NewClientCacheFrom(ctx context.Context, fs *pkgcache.FS, readOnly bool) *ClientCache {
 	return &ClientCache{
-		ctx:          ctx,
-		cacheDirNode: fs.GetDir(pkgcache.DirClients, ctx.Version()),
-		readOnly:     readOnly,
+		FileSystem: FileSystem{
+			cacheDirRoot: fs.GetDir(pkgcache.DirRoot, ctx.Version()),
+			cacheDirNode: fs.GetDir(pkgcache.DirClients, ctx.Version()),
+		},
+		ctx:      ctx,
+		readOnly: readOnly,
 	}
 }
 

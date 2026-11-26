@@ -30,21 +30,25 @@ func NewClientCache(ctx context.Context, client *minio.Client) *ClientCache {
 
 	minio := pkgCache.GetMinio()
 	return &ClientCache{
-		ctx:          ctx,
-		client:       client,
-		cacheDirNode: minio.GetDir(pkgcache.DirClients, ctx.Version()),
-		version:      ctx.Version(),
-		readOnly:     pkgCache.IsReadOnly(),
+		Minio: Minio{
+			client:       client,
+			cacheDirNode: minio.GetDir(pkgcache.DirClients, ctx.Version()),
+		},
+		ctx:      ctx,
+		version:  ctx.Version(),
+		readOnly: pkgCache.IsReadOnly(),
 	}
 }
 
 func NewClientCacheFrom(ctx context.Context, client *minio.Client, minio *pkgcache.Minio, readOnly bool) *ClientCache {
 	return &ClientCache{
-		ctx:          ctx,
-		client:       client,
-		cacheDirNode: minio.GetDir(pkgcache.DirClients, ctx.Version()),
-		version:      ctx.Version(),
-		readOnly:     readOnly,
+		Minio: Minio{
+			client:       client,
+			cacheDirNode: minio.GetDir(pkgcache.DirClients, ctx.Version()),
+		},
+		ctx:      ctx,
+		version:  ctx.Version(),
+		readOnly: readOnly,
 	}
 }
 
