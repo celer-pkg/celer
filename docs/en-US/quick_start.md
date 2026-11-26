@@ -71,23 +71,23 @@ conf
 │   ├── x86_64-linux-ubuntu-22.04-gcc-11.5.0.toml
 │   └── x86_64-windows-msvc-community-14.toml
 └── projects                          # Project configurations
-    ├── project_test_01               # Project 01 dependencies
-    │   ├── boost                     # Override public build options
-    │   │   └── 1.87.0
+    ├── project_test_01/              # Project 01
+    │   ├── project.toml              # Project 01 configuration
+    │   ├── boost/                    # Override public build options
+    │   │   └── 1.87.0/
     │   │       └── port.toml
-    │   └── sqlite3                   # Override public build options
-    │       └── 3.49.0
+    │   └── sqlite3/                  # Override public build options
+    │       └── 3.49.0/
     │           └── port.toml
-    ├── project_test_01.toml          # Project 01 configuration
-    ├── project_test_02               # Project 02 dependencies
-    │   ├── ffmpeg                    # Override public build options
-    │   │   └── 5.1.6
-    │   │       └── port.toml
-    │   ├── lib_001                   # Private library
-    │   │   └── port.toml
-    │   └── lib_002                   # Private library
-    │       └── port.toml
-    └── project_test_02.toml          # Project 02 configuration
+    └── project_test_02/              # Project 02
+        ├── project.toml              # Project 02 configuration
+        ├── ffmpeg/                   # Override public build options
+        │   └── 5.1.6/
+        │       └── port.toml
+        ├── lib_001/                  # Private library
+        │   └── port.toml
+        └── lib_002/                  # Private library
+            └── port.toml
 ```
 
 ### 📚 Conf Files Description
@@ -96,8 +96,8 @@ conf
 |-----------|-------------|
 | `buildtools/*.toml` | Define extra build tools required by some libraries |
 | `platforms/*.toml` | Define platform configurations with toolchains and rootfs |
-| `projects/*.toml` | Define project configurations with dependencies, CMake variables, C++ macros, and build options |
-| `projects/*/port.toml` | Override project-specific third-party library versions, custom build parameters, and define private libraries |
+| `projects/*/project.toml` | Define project configurations with dependencies, CMake variables, C++ macros, and build options |
+| `projects/*/<lib>/<version>/port.toml` | Override project-specific third-party library versions, custom build parameters, and define private libraries |
 
 ### 🔗 Related Documentation
 

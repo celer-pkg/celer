@@ -22,7 +22,7 @@
 - 快速切换不同项目的构建配置
 - 独立管理每个项目的优化策略和宏定义
 
-**项目文件位置：** 所有项目配置文件存放在 `conf/projects` 目录中。
+**项目文件位置：** 所有项目配置文件存放在 `conf/projects/<project>/project.toml`。
 
 **不配置项目也能用：** 当 celer.toml 里没有指定 project 时，celer 使用内置的 `default`
 项目。它不列任何 ports、也不锁定 baseline，所以 `celer init` 之后直接
@@ -36,7 +36,7 @@
 
 ### 完整示例配置
 
-让我们看一个完整的项目配置文件 `project_xxx.toml`：
+让我们看一个完整的项目配置文件 `conf/projects/project_xxx/project.toml`：
 
 ```toml
 ports_baseline = "9c1f3a2b8e4d5f60718293a4b5c6d7e8f90a1b2c"
@@ -255,7 +255,7 @@ celer tree project_001
 
 ```
 conf/projects/my_project/
-├── my_project.toml
+├── project.toml
 ├── algorithm_base/          # 项目自有 port（顶层）
 │   └── 1.0.0/port.toml
 └── ports/                   # 引入的第三方 port（vendor）

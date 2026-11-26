@@ -71,23 +71,23 @@ conf
 │   ├── x86_64-linux-ubuntu-22.04-gcc-11.5.0.toml
 │   └── x86_64-windows-msvc-community-14.toml
 └── projects/                        # 项目配置
-    ├── project_test_01/             # 项目 01 的依赖
+    ├── project_test_01/             # 项目 01
+    │   ├── project.toml             # 项目 01 配置文件
     │   ├── boost/                   # 覆盖公共构建选项
     │   │   └── 1.87.0/
     │   │       └── port.toml
     │   └── sqlite3/                 # 覆盖公共构建选项
     │       └── 3.49.0/
     │           └── port.toml
-    ├── project_test_01.toml         # 项目 01 配置文件
-    ├── project_test_02/             # 项目 02 的依赖
-    │   ├── ffmpeg/                  # 覆盖公共构建选项
-    │   │   └── 5.1.6/
-    │   │       └── port.toml
-    │   ├── lib_001/                 # 项目私有库
-    │   │   └── port.toml
-    │   └── lib_002/                 # 项目私有库
-    │       └── port.toml
-    └── project_test_02.toml         # 项目 02 配置文件
+    └── project_test_02/             # 项目 02
+        ├── project.toml             # 项目 02 配置文件
+        ├── ffmpeg/                  # 覆盖公共构建选项
+        │   └── 5.1.6/
+        │       └── port.toml
+        ├── lib_001/                 # 项目私有库
+        │   └── port.toml
+        └── lib_002/                 # 项目私有库
+            └── port.toml
 ```
 
 ### 📚 Conf 文件说明
@@ -96,8 +96,8 @@ conf
 |---------|------|
 | `buildtools/*.toml` | 定义某些第三方库在编译期间需要的额外工具 |
 | `platforms/*.toml` | 定义平台配置，包括工具链和根文件系统 |
-| `projects/*.toml` | 定义项目配置，包括依赖项、CMake 变量、C++ 宏和构建选项 |
-| `projects/*/port.toml` | 用于覆盖项目特定的第三方库版本、自定义构建参数和定义项目的私有库 |
+| `projects/*/project.toml` | 定义项目配置，包括依赖项、CMake 变量、C++ 宏和构建选项 |
+| `projects/*/<lib>/<version>/port.toml` | 用于覆盖项目特定的第三方库版本、自定义构建参数和定义项目的私有库 |
 
 ### 🔗 相关文档
 

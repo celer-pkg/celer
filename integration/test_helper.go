@@ -173,7 +173,7 @@ func testCelerTomlPlatform(t *testing.T) string {
 func writeTestProject(t *testing.T, project configs.Project) {
 	t.Helper()
 
-	path := filepath.Join(dirs.ConfProjectsDir, project.Name+".toml")
+	path := filepath.Join(dirs.ConfProjectsDir, project.Name, "project.toml")
 	if err := os.MkdirAll(filepath.Dir(path), os.ModePerm); err != nil {
 		t.Fatalf("MkdirAll() error = %v", err)
 	}

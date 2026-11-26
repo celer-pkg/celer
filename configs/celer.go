@@ -416,16 +416,13 @@ func (c *Celer) CreatePlatform(platformName string) error {
 }
 
 func (c *Celer) CreateProject(projectName string) error {
-	// Clean platform name.
-	projectName = strings.TrimSpace(projectName)
-	projectName = strings.TrimSuffix(projectName, ".toml")
-
-	if projectName == "" {
-		return fmt.Errorf("project name is empty")
+	projectName, err := CleanProjectName(projectName)
+	if err != nil {
+		return err
 	}
 
 	// Create project file.
-	projectPath := filepath.Join(dirs.ConfProjectsDir, projectName+".toml")
+	projectPath := dirs.GetProjectPath(projectName)
 	var project = Project{PortsBaseline: "master"}
 	if err := project.Write(projectPath, false); err != nil {
 		return err

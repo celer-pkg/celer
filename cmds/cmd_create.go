@@ -2,9 +2,11 @@ package cmds
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/internal/dirs"
 	"github.com/celer-pkg/celer/internal/logger"
 
 	"github.com/spf13/cobra"
@@ -59,28 +61,40 @@ EXAMPLES:
 
 func (c *CreateCmd) createPlatform(platformName string) error {
 	if err := c.Celer.CreatePlatform(platformName); err != nil {
-		return logger.PrintError(err, "%s could not be created.", platformName)
+		return logger.PrintError(err, "failed to create platform: %s", platformName)
 	}
 
-	logger.PrintSuccess("%s is created, please proceed with its refinement.", platformName)
+	platformName = strings.TrimSuffix(strings.TrimSpace(platformName), ".toml")
+	path := filepath.Join(dirs.ConfPlatformsDir, platformName+".toml")
+	logger.PrintSuccess("The platform %q is created successfully.", platformName)
+	logger.PrintHint("[▶] Edit %s to set its toolchain.", logger.WorkspaceRelPath(path))
 	return nil
 }
 
 func (c *CreateCmd) createProject(projectName string) error {
-	if err := c.Celer.CreateProject(projectName); err != nil {
-		return logger.PrintError(err, "%s could not be created.", projectName)
+	name, err := configs.CleanProjectName(projectName)
+	if err != nil {
+		return logger.PrintError(err, "failed to create project: %s", projectName)
 	}
 
-	logger.PrintSuccess("%s is created, please proceed with its refinement.", projectName)
+	if err := c.Celer.CreateProject(name); err != nil {
+		return logger.PrintError(err, "failed to create project: %s", projectName)
+	}
+
+	path := dirs.GetProjectPath(name)
+	logger.PrintSuccess("The project %q is created successfully.", name)
+	logger.PrintHint("[▶] Edit %s to add its ports and target platform.", logger.WorkspaceRelPath(path))
 	return nil
 }
 
 func (c *CreateCmd) createPort(nameVersion string) error {
 	if err := c.Celer.CreatePort(nameVersion); err != nil {
-		return logger.PrintError(err, "%s could not be created.", nameVersion)
+		return logger.PrintError(err, "failed to create new port: %s", nameVersion)
 	}
 
-	logger.PrintSuccess("%s is created, please proceed with its refinement.", nameVersion)
+	parts := strings.Split(nameVersion, "@")
+	logger.PrintSuccess("The port %q is created successfully.", nameVersion)
+	logger.PrintHint("[▶] Edit %s to add its source and build config.", logger.WorkspaceRelPath(dirs.GetPortPath(parts[0], parts[1])))
 	return nil
 }
 

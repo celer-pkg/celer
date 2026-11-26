@@ -12,6 +12,7 @@ import (
 	"github.com/celer-pkg/celer/internal/dirs"
 	"github.com/celer-pkg/celer/internal/errors"
 	"github.com/celer-pkg/celer/internal/fileio"
+	"github.com/celer-pkg/celer/internal/logger"
 
 	"github.com/BurntSushi/toml"
 )
@@ -169,7 +170,7 @@ func (p *Platform) Write(platformPath string) error {
 
 	// Check if conf/celer.toml exists.
 	if fileio.PathExists(platformPath) {
-		return fmt.Errorf("%s is already exists", platformPath)
+		return fmt.Errorf("the platform %q is already exists", logger.WorkspaceRelPath(platformPath))
 	}
 
 	// Make sure the parent directory exists.

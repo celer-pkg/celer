@@ -141,7 +141,7 @@ func (s *SearchCmd) Search(pattern string) ([]string, error) {
 	// Search in project-specific ports (only if project is configured).
 	projectName := s.Celer.GetProjectName()
 	if projectName != "" {
-		projectPortsDir := filepath.Join(dirs.ConfProjectsDir, projectName)
+		projectPortsDir := dirs.GetProjectDir(projectName)
 		if err := searchInDir(projectPortsDir); err != nil {
 			return nil, err
 		}
@@ -179,7 +179,7 @@ func (s *SearchCmd) Completion(cmd *cobra.Command, args []string, toComplete str
 	// Completion from project-specific ports.
 	projectName := s.Celer.GetProjectName()
 	if projectName != "" {
-		projectPortsDir := filepath.Join(dirs.ConfProjectsDir, projectName)
+		projectPortsDir := dirs.GetProjectDir(projectName)
 		if fileio.PathExists(projectPortsDir) {
 			filepath.WalkDir(projectPortsDir, func(path string, d fs.DirEntry, err error) error {
 				if err != nil {

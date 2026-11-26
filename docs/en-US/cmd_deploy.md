@@ -31,7 +31,7 @@ celer deploy [flags]
 
 | Option     | Short | Type    | Default Value | Description                                       |
 |------------|-------|---------|---------------|---------------------------------------------------|
-| --force    | -     | boolean | false         | Force deployment, ignoring already installed libs |
+| --force    | -f    | boolean | false         | Force deployment, ignoring already installed libs |
 | --snapshot | -     | string  | empty string  | Export workspace snapshot after successful deploy |
 | --strip    | -     | boolean | false         | After deploy, run the same runtime strip as [`celer strip`](./cmd_strip.md) |
 | --export-dag | -   | string  | empty string  | Export the build DAG of the current project as JSON to `<file>` instead of deploying |

@@ -266,8 +266,8 @@ func (p Port) Installed() (bool, error) {
 //   - ErrAmbiguousProjectPort if both (1) and (2) exist
 //   - ErrPortNotFound if none of the three exists
 func (p Port) resolveProjectPort(project, name, version string) (string, error) {
-	topLevelPort := filepath.Join(dirs.ConfProjectsDir, project, name, version, "port.toml")
-	vendorPort := filepath.Join(dirs.ConfProjectsDir, project, "ports", name, version, "port.toml")
+	topLevelPort := filepath.Join(dirs.GetProjectDir(project), name, version, "port.toml")
+	vendorPort := filepath.Join(dirs.GetProjectDir(project), "ports", name, version, "port.toml")
 
 	hasTopLevelPort := fileio.PathExists(topLevelPort)
 	hasVendorPort := fileio.PathExists(vendorPort)
@@ -362,7 +362,7 @@ func (p Port) Write(portPath string) error {
 
 	// Check if tool exists.
 	if fileio.PathExists(portPath) {
-		return fmt.Errorf("%s is already exists", portPath)
+		return fmt.Errorf("the port %q is already exists", logger.WorkspaceRelPath(portPath))
 	}
 
 	// Make sure the parent directory exists.

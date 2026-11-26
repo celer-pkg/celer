@@ -272,7 +272,7 @@ func (i *InstallCmd) Completion(cmd *cobra.Command, args []string, toComplete st
 
 	projectName := i.Celer.GetProjectName()
 	if projectName != "" {
-		projectPortsDir := filepath.Join(dirs.ConfProjectsDir, projectName)
+		projectPortsDir := dirs.GetProjectDir(projectName)
 		if fileio.PathExists(projectPortsDir) {
 			i.BuildSuggestions(&suggestions, projectPortsDir, toComplete)
 		}
