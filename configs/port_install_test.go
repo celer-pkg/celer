@@ -18,9 +18,16 @@ func TestInstallFromPackage_MissingMetaIsCacheMiss(t *testing.T) {
 		t.Fatalf("failed to write package file -> %v", err)
 	}
 
-	p := Port{Name: "demo", Version: "1.0", PackageDir: pkgDir}
-	p.MatchedConfig = &buildsystems.BuildConfig{
-		PortConfig: buildsystems.PortConfig{PackageDir: pkgDir},
+	p := Port{
+		Name:       "demo",
+		Version:    "1.0",
+		ctx:        fakeContext{buildType: "release"},
+		PackageDir: pkgDir,
+		MatchedConfig: &buildsystems.BuildConfig{
+			PortConfig: buildsystems.PortConfig{
+				PackageDir: pkgDir,
+			},
+		},
 	}
 
 	installed, err := p.installFromPackage(InstallOptions{})
