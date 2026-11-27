@@ -465,7 +465,7 @@ func (c *Celer) CloneConf(url, branch string, force bool) error {
 			return fmt.Errorf("conf repo has local modifications, update is skipped ... 🚩 you can try with --force/-f 🚩")
 		}
 
-		if err := git.UpdateRepo("conf repo", branch, confDir, force); err != nil {
+		if err := git.UpdateRepo("conf repo", confDir, c.Main.ConfUrl, branch, force); err != nil {
 			return fmt.Errorf("update conf repo -> %w", err)
 		}
 	} else {
@@ -532,7 +532,7 @@ func (c *Celer) initPkgCache() error {
 	return nil
 }
 
-func (c *Celer) portsRepoUrl() string {
+func (c *Celer) PortsRepoUrl() string {
 	portsRepo := os.Getenv("CELER_PORTS_REPO")
 	if portsRepo != "" {
 		return portsRepo
@@ -569,7 +569,7 @@ func (c *Celer) clonePorts() error {
 			return fmt.Errorf("offline is on, cloning ports is aborted")
 		}
 
-		portsRepoUrl := c.portsRepoUrl()
+		portsRepoUrl := c.PortsRepoUrl()
 		if err := fileio.CheckAccessible(portsRepoUrl); err != nil {
 			return fmt.Errorf("%s is not accessible, cloning ports is aborted", portsRepoUrl)
 		}
