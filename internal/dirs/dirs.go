@@ -57,6 +57,18 @@ func GetPortPath(name, version string) string {
 	return filepath.Join(GetPortDir(name, version), "port.toml")
 }
 
+// GetProjectDir returns the directory of a project，
+// like "conf/projects/myproject".
+func GetProjectDir(name string) string {
+	return filepath.Join(ConfProjectsDir, name)
+}
+
+// GetProjectPath returns the configuration file of a project,
+// like "conf/projects/myproject/project.toml".
+func GetProjectPath(name string) string {
+	return filepath.Join(GetProjectDir(name), "project.toml")
+}
+
 // ParentDir return the parent directory of path.
 func ParentDir(path string, levels int) string {
 	for range levels {

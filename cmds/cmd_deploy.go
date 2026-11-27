@@ -111,7 +111,7 @@ Examples:
 					roots := d.Celer.Project().GetPorts()
 					if len(roots) == 0 {
 						err := errors.New("cannot read ports of current project")
-						return logger.PrintError(err, "no ports has been configured in %s.toml", d.Celer.GetProjectName())
+						return logger.PrintError(err, "no port has been configured in project %q", d.Celer.GetProjectName())
 					}
 					return dag.Export(d.Celer, roots, d.Force, d.exportDag)
 				}
@@ -136,7 +136,7 @@ Examples:
 
 	flags := command.Flags()
 	flags.StringVar(&d.SnapshotPath, "snapshot", "", "Export workspace snapshot after successfully deployed.")
-	flags.BoolVarP(&d.Force, "force", "", false, "Force deploy or export dag without any cache.")
+	flags.BoolVarP(&d.Force, "force", "f", false, "Force deploy or export dag without any cache.")
 	flags.BoolVarP(&d.strip, "strip", "", false, "Build runtime stripped tree under workspace/stripped (same as celer strip).")
 	flags.StringVar(&d.exportDag, "export-dag", "", "Export the build DAG of the project as JSON to <file>.")
 	flags.StringVar(&d.applyDag, "apply-dag", "", "Install the nodes of a build DAG exported by --export-dag.")
@@ -374,7 +374,7 @@ func (d *DeployCmd) resolveAllRefs() error {
 
 func (d *DeployCmd) Completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
-	for _, flag := range []string{"--snapshot", "--force", "--strip", "--export-dag", "--apply-dag"} {
+	for _, flag := range []string{"--snapshot", "--force", "-f", "--strip", "--export-dag", "--apply-dag"} {
 		if strings.HasPrefix(flag, toComplete) {
 			suggestions = append(suggestions, flag)
 		}

@@ -187,8 +187,11 @@ func TestCleanCmd_Completion(t *testing.T) {
 	os.MkdirAll(filepath.Join(dirs.BuildtreesDir, "ffmpeg@3.4.13"), os.ModePerm)
 
 	// Create test projects.
-	os.WriteFile(filepath.Join(dirs.ConfProjectsDir, "project1.toml"), []byte{}, 0644)
-	os.WriteFile(filepath.Join(dirs.ConfProjectsDir, "project2.toml"), []byte{}, 0644)
+	for _, name := range []string{"project1", "project2"} {
+		projectDir := filepath.Join(dirs.ConfProjectsDir, name)
+		os.MkdirAll(projectDir, os.ModePerm)
+		os.WriteFile(filepath.Join(projectDir, "project.toml"), []byte{}, 0644)
+	}
 
 	cleanCmd := cleanCmd{}
 	celer := configs.NewCeler()
@@ -275,7 +278,11 @@ func TestCleanCmd_Completion_FilterAndShortFlags(t *testing.T) {
 	}
 
 	// Project entries.
-	if err := os.WriteFile(filepath.Join(dirs.ConfProjectsDir, "proj1.toml"), []byte{}, os.ModePerm); err != nil {
+	proj1Dir := filepath.Join(dirs.ConfProjectsDir, "proj1")
+	if err := os.MkdirAll(proj1Dir, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(proj1Dir, "project.toml"), []byte{}, os.ModePerm); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(dirs.ConfProjectsDir, "README.md"), []byte{}, os.ModePerm); err != nil {

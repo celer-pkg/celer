@@ -271,10 +271,11 @@ func TestCreateCmd(t *testing.T) {
 
 	// ============= Create project ============= //
 	t.Run("CreateProjectSuccess", func(t *testing.T) {
-		projectPath := filepath.Join(dirs.ConfProjectsDir, testProjectName+".toml")
+		projectDir := filepath.Join(dirs.ConfProjectsDir, testProjectName)
+		projectPath := filepath.Join(projectDir, "project.toml")
 
 		// Make sure the project to create has been removed.
-		if err := os.Remove(projectPath); err != nil {
+		if err := os.RemoveAll(projectDir); err != nil {
 			t.Fatal(err)
 		}
 
@@ -288,7 +289,7 @@ func TestCreateCmd(t *testing.T) {
 		}
 
 		t.Cleanup(func() {
-			_ = os.Remove(projectPath)
+			_ = os.RemoveAll(projectDir)
 		})
 	})
 

@@ -117,7 +117,7 @@ func (r *ReverseCmd) Query(target string) ([]string, error) {
 	}
 	projectName := r.Celer.GetProjectName()
 	if projectName != "" {
-		projectDir := filepath.Join(dirs.ConfProjectsDir, projectName)
+		projectDir := dirs.GetProjectDir(projectName)
 		if fileio.PathExists(projectDir) {
 			walkPorts(projectDir)
 		}
@@ -193,7 +193,7 @@ func (r *ReverseCmd) Completion(cmd *cobra.Command, args []string, toComplete st
 	}
 	projectName := r.Celer.GetProjectName()
 	if projectName != "" {
-		projectDir := filepath.Join(dirs.ConfProjectsDir, projectName)
+		projectDir := dirs.GetProjectDir(projectName)
 		if fileio.PathExists(projectDir) {
 			walkPorts(projectDir)
 		}

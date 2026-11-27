@@ -75,6 +75,7 @@ func IsModified(repoDir string) (bool, error) {
 // first: a pinned commit is often reachable only from a branch that was never fetched,
 // and a shallow clone carries no history.
 func ChangeBranch(target, repoDir, ref string) error {
+	ref = strings.TrimSpace(ref)
 	if !fileio.PathExists(repoDir) {
 		return errors.ErrDirNotExist
 	}
@@ -104,7 +105,7 @@ func ChangeBranch(target, repoDir, ref string) error {
 	if err != nil {
 		return fmt.Errorf("failed to get current branch of '%s' -> %w", repoDir, err)
 	}
-	title := fmt.Sprintf("[change branch for '%s': '%s' -> '%s']", target, currentBranch, ref)
+	title := fmt.Sprintf("[%s branch: '%s' -> '%s']", target, currentBranch, ref)
 	executor := cmd.NewExecutor(title, "git", "-C", repoDir, "checkout", ref)
 	if output, err := executor.ExecuteOutputLive(); err != nil {
 		return fmt.Errorf("failed to change branch '%s' -> %s -> %w", repoDir, output, err)

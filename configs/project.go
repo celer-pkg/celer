@@ -10,6 +10,7 @@ import (
 	"github.com/celer-pkg/celer/internal/dirs"
 	"github.com/celer-pkg/celer/internal/errors"
 	"github.com/celer-pkg/celer/internal/fileio"
+	"github.com/celer-pkg/celer/internal/logger"
 
 	"github.com/BurntSushi/toml"
 )
@@ -51,22 +52,34 @@ type Project struct {
 	ctx  context.Context // execution context used when deploying the project's ports
 }
 
+// CleanProjectName normalizes a project name and rejects names that are not a
+// single path element so they cannot escape conf/projects.
+func CleanProjectName(name string) (string, error) {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return "", fmt.Errorf("project name is empty")
+	}
+	if name == "." || name == ".." || strings.Contains(name, "..") || strings.ContainsAny(name, `/\`) {
+		return "", fmt.Errorf("invalid project name %q", name)
+	}
+	return name, nil
+}
+
 func (p *Project) Init(ctx context.Context, projectName string) error {
 	p.ctx = ctx
 
-	// Check if project name is empty.
-	projectName = strings.TrimSpace(projectName)
-	if projectName == "" {
-		return fmt.Errorf("project name is empty")
+	projectName, err := CleanProjectName(projectName)
+	if err != nil {
+		return err
 	}
 
 	// Check if project file exists.
-	projectPath := filepath.Join(dirs.ConfProjectsDir, projectName+".toml")
+	projectPath := dirs.GetProjectPath(projectName)
 	if !fileio.PathExists(projectPath) {
 		return fmt.Errorf("%w: %s", errors.ErrProjectNotExist, projectName)
 	}
 
-	// Read conf/projects/<project_name>.toml.
+	// Read the project file.
 	bytes, err := os.ReadFile(projectPath)
 	if err != nil {
 		return err
@@ -94,7 +107,7 @@ func (p *Project) Init(ctx context.Context, projectName string) error {
 	return nil
 }
 
-func (p Project) Write(platformPath string, override bool) error {
+func (p Project) Write(projectPath string, override bool) error {
 	// Mandatory: there must never be a project without a pinned ports repo.
 	p.PortsBaseline = strings.TrimSpace(p.PortsBaseline)
 	if p.PortsBaseline == "" {
@@ -122,18 +135,17 @@ func (p Project) Write(platformPath string, override bool) error {
 		return err
 	}
 
-	// Check if conf/projects/<project_name>.toml exists.
-	if fileio.PathExists(platformPath) && !override {
-		return fmt.Errorf("%s is already exists", platformPath)
+	// Check if the project file already exists.
+	if fileio.PathExists(projectPath) && !override {
+		return fmt.Errorf("the project %q is already exists", logger.WorkspaceRelPath(projectPath))
 	}
 
 	// Make sure the parent directory exists.
-	parentDir := filepath.Dir(platformPath)
-	if err := os.MkdirAll(parentDir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(filepath.Dir(projectPath), os.ModePerm); err != nil {
 		return err
 	}
 
-	return os.WriteFile(platformPath, bytes, os.ModePerm)
+	return os.WriteFile(projectPath, bytes, os.ModePerm)
 }
 
 func (p Project) GetName() string           { return p.Name }

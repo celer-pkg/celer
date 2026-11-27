@@ -297,7 +297,7 @@ func (c *ConfigureCmd) configureMain(flags *pflag.FlagSet) error {
 		if err := c.Celer.SetProject(c.project); err != nil {
 			return logger.PrintError(err, "failed to configure project: %s", c.project)
 		}
-		logger.PrintSuccess("current project: %s", c.project)
+		logger.PrintSuccess("current project: %s", c.Celer.GetProjectName())
 	}
 
 	if flags.Changed("platform") {

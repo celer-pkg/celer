@@ -3,7 +3,6 @@ package cmds
 import (
 	"fmt"
 	"io/fs"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -361,14 +360,14 @@ func (t *TreeCmd) Completion(cmd *cobra.Command, args []string, toComplete strin
 	// Support port completion from project-specific ports.
 	projectName := t.Celer.GetProjectName()
 	if projectName != "" {
-		projectPortsDir := filepath.Join(dirs.ConfProjectsDir, projectName)
+		projectPortsDir := dirs.GetProjectDir(projectName)
 		if fileio.PathExists(projectPortsDir) {
 			filepath.WalkDir(projectPortsDir, func(path string, d fs.DirEntry, err error) error {
 				if err != nil {
 					return err
 				}
 
-				if !d.IsDir() && strings.HasSuffix(d.Name(), ".toml") {
+				if !d.IsDir() && d.Name() == "port.toml" {
 					libName := filepath.Base(filepath.Dir(filepath.Dir(path)))
 					libVersion := filepath.Base(filepath.Dir(path))
 					nameVersion := libName + "@" + libVersion
@@ -384,21 +383,7 @@ func (t *TreeCmd) Completion(cmd *cobra.Command, args []string, toComplete strin
 	}
 
 	// Support project completion.
-	if fileio.PathExists(dirs.ConfProjectsDir) {
-		entities, err := os.ReadDir(dirs.ConfProjectsDir)
-		if err != nil {
-			return suggestions, cobra.ShellCompDirectiveNoFileComp
-		}
-
-		for _, entity := range entities {
-			if !entity.IsDir() && strings.HasSuffix(entity.Name(), ".toml") {
-				fileName := strings.TrimSuffix(entity.Name(), ".toml")
-				if strings.HasPrefix(fileName, toComplete) {
-					suggestions = append(suggestions, fileName)
-				}
-			}
-		}
-	}
+	suggestions = append(suggestions, projectNamesCompletion(toComplete)...)
 
 	// Support flags completion.
 	for _, flag := range []string{"--hide-dev"} {

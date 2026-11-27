@@ -22,7 +22,7 @@ Each project has its unique configuration characteristics. Project configuration
 - Quickly switch between different project build configurations
 - Independently manage optimization strategy and macro definitions for each project
 
-**Project File Location:** All project configuration files are stored in the `conf/projects` directory.
+**Project File Location:** All project configuration files are stored as `conf/projects/<project>/project.toml`.
 
 **No project needed to start:** when `celer.toml` names no project, celer uses a built-in
 one called `default`. It lists no ports and pins no baseline, so `celer install <name@version>`
@@ -36,7 +36,7 @@ dependency list and a pinned ports repo.
 
 ### Complete Example Configuration
 
-Let's look at a complete project configuration file `project_xxx.toml`:
+Let's look at a complete project configuration file `conf/projects/project_xxx/project.toml`:
 
 ```toml
 ports_baseline = "9c1f3a2b8e4d5f60718293a4b5c6d7e8f90a1b2c"
@@ -258,7 +258,7 @@ celer tree project_001
 
 ```
 conf/projects/my_project/
-├── my_project.toml
+├── project.toml
 ├── algorithm_base/          # project-owned port (top-level)
 │   └── 1.0.0/port.toml
 └── ports/                   # imported third-party ports (vendor)
