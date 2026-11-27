@@ -22,11 +22,11 @@ const DefaultProjectName = "default"
 // ================================ Python ================================ //
 
 type Python struct {
-	Version        string   `toml:"version,omitempty"`
-	IndexUrl       string   `toml:"index_url,omitempty"`
-	ExtraIndexUrls []string `toml:"extra_index_urls,omitempty"`
-	TrustedHosts   []string `toml:"trusted_hosts,omitempty"`
-	CondaChannels  []string `toml:"conda_channels,omitempty"`
+	Version        string   `toml:"version,omitempty"`          // Python version to install, e.g. "3.11.5".
+	IndexUrl       string   `toml:"index_url,omitempty"`        // Primary PyPI index URL.
+	ExtraIndexUrls []string `toml:"extra_index_urls,omitempty"` // Extra PyPI indexes to search for packages.
+	TrustedHosts   []string `toml:"trusted_hosts,omitempty"`    // Hosts allowed to serve packages without TLS verification.
+	CondaChannels  []string `toml:"conda_channels,omitempty"`   // Conda channels used to resolve Python packages.
 }
 
 func (p *Python) GetVersion() string          { return p.Version }
@@ -38,18 +38,18 @@ func (p *Python) GetCondaChannels() []string  { return p.CondaChannels }
 // ================================ Project ================================ //
 
 type Project struct {
-	TargetPlatform string   `toml:"target_platform,omitempty"`
-	PortsBaseline  string   `toml:"ports_baseline"`
-	BuildType      string   `toml:"build_type"`
-	Ports          []string `toml:"ports"`
-	Vars           []string `toml:"vars"`
-	Envs           []string `toml:"envs"`
-	Macros         []string `toml:"macros"`
-	Python         *Python  `toml:"python,omitempty"`
+	TargetPlatform string   `toml:"target_platform,omitempty"` // Target platform this project builds for.
+	PortsBaseline  string   `toml:"ports_baseline"`            // Required ports repo revision: can be commit hash or a branch name.
+	BuildType      string   `toml:"build_type"`                // Build type for this project, e.g. Release/Debug/RelWithDebInfo/MinSizeRel.
+	Ports          []string `toml:"ports"`                     // Runtime ports this project depends on, in name@version form.
+	Vars           []string `toml:"vars"`                      // CMake variables passed to every port build, in KEY=VALUE form.
+	Envs           []string `toml:"envs"`                      // Environment variables exported to every port build, in KEY=VALUE form.
+	Macros         []string `toml:"macros"`                    // C/C++ macro definitions, in NAME=VALUE or NAME form.
+	Python         *Python  `toml:"python,omitempty"`          // Optional project-level Python/conda configuration.
 
 	// Internal fields.
-	Name string `toml:"-"`
-	ctx  context.Context
+	Name string          `toml:"-"` // project name, derived from its directory; not serialized
+	ctx  context.Context // execution context used when deploying the project's ports
 }
 
 // CleanProjectName normalizes a project name and rejects names that are not a

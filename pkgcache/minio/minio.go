@@ -82,19 +82,19 @@ func NewClient(minioConfig *pkgcache.Minio, probe bool) (*minio.Client, error) {
 }
 
 type Minio struct {
-	client     *minio.Client
-	bucketName string
+	client       *minio.Client
+	cacheDirNode string
 }
 
 func (m Minio) CreateBucketIfNotExist() error {
-	found, err := m.client.BucketExists(context.Background(), m.bucketName)
+	found, err := m.client.BucketExists(context.Background(), bucketName)
 	if err != nil {
 		return err
 	}
 	if !found {
 		// No object locking: the bucket stays mutable so celer can prune expired artifacts.
 		opts := minio.MakeBucketOptions{ObjectLocking: false}
-		if err := m.client.MakeBucket(context.Background(), m.bucketName, opts); err != nil {
+		if err := m.client.MakeBucket(context.Background(), bucketName, opts); err != nil {
 			return err
 		}
 	}
@@ -104,7 +104,7 @@ func (m Minio) CreateBucketIfNotExist() error {
 
 func (m Minio) GetFileInfo(objectName string) (*minio.ObjectInfo, error) {
 	opts := minio.StatObjectOptions{}
-	info, err := m.client.StatObject(context.Background(), m.bucketName, objectName, opts)
+	info, err := m.client.StatObject(context.Background(), bucketName, objectName, opts)
 	if err != nil {
 		resp := minio.ToErrorResponse(err)
 		if resp.Code == minio.NoSuchBucket || resp.Code == minio.NoSuchKey {
@@ -138,7 +138,7 @@ func (m Minio) RemoveObjectVersion(objectName, versionID string) error {
 	close(objectsCh)
 
 	options := minio.RemoveObjectsOptions{}
-	for removeErr := range m.client.RemoveObjects(context.Background(), m.bucketName, objectsCh, options) {
+	for removeErr := range m.client.RemoveObjects(context.Background(), bucketName, objectsCh, options) {
 		if removeErr.Err != nil {
 			return fmt.Errorf("failed to remove object '%s' version '%s' -> %w", objectName, versionID, removeErr.Err)
 		}
@@ -150,7 +150,7 @@ func (m Minio) RemoveObjectVersion(objectName, versionID string) error {
 func (m Minio) ListObjectsWithVersions(prefix string) ([]minio.ObjectInfo, error) {
 	var objects []minio.ObjectInfo
 	opts := minio.ListObjectsOptions{Prefix: prefix, Recursive: true, WithVersions: true}
-	for object := range m.client.ListObjects(context.Background(), m.bucketName, opts) {
+	for object := range m.client.ListObjects(context.Background(), bucketName, opts) {
 		if object.Err != nil {
 			return nil, object.Err
 		}
@@ -208,7 +208,7 @@ func (m Minio) putObject(filePath, objectName string, hook io.Reader) (*minio.Up
 		},
 		Progress: hook,
 	}
-	uploadInfo, err := m.client.PutObject(context.Background(), m.bucketName, objectName, file, fileStat.Size(), opts)
+	uploadInfo, err := m.client.PutObject(context.Background(), bucketName, objectName, file, fileStat.Size(), opts)
 	if err != nil {
 		return nil, err
 	}
@@ -247,7 +247,7 @@ func (m Minio) uploadSilent(filePath, objectName string) error {
 // progress bar.
 func (m Minio) downloadFile(dstDir, objectName, displayName string) (string, error) {
 	opts := minio.GetObjectOptions{}
-	object, err := m.client.GetObject(context.Background(), m.bucketName, objectName, opts)
+	object, err := m.client.GetObject(context.Background(), bucketName, objectName, opts)
 	if err != nil {
 		return "", fmt.Errorf("failed to get minio object '%s' -> %w", objectName, err)
 	}
@@ -280,7 +280,7 @@ func (m Minio) downloadFile(dstDir, objectName, displayName string) (string, err
 // downloadSilent downloads objectName to a task-owned tmp dir.
 func (m Minio) downloadSilent(dstDir, objectName string) (string, error) {
 	opts := minio.GetObjectOptions{}
-	object, err := m.client.GetObject(context.Background(), m.bucketName, objectName, opts)
+	object, err := m.client.GetObject(context.Background(), bucketName, objectName, opts)
 	if err != nil {
 		return "", fmt.Errorf("failed to get minio object '%s' -> %w", objectName, err)
 	}

@@ -18,7 +18,6 @@ import (
 type ClientCache struct {
 	Minio
 	ctx      context.Context
-	cacheDir string
 	version  string
 	readOnly bool
 }
@@ -29,20 +28,25 @@ func NewClientCache(ctx context.Context, client *minio.Client) *ClientCache {
 		return nil
 	}
 
+	minio := pkgCache.GetMinio()
 	return &ClientCache{
+		Minio: Minio{
+			client:       client,
+			cacheDirNode: minio.GetDir(pkgcache.DirClients, ctx.Version()),
+		},
 		ctx:      ctx,
-		client: client, bucketName: bucketName,
-		cacheDir: pkgCache.GetMinio().GetDir(pkgcache.DirClients, ctx.Version()),
 		version:  ctx.Version(),
 		readOnly: pkgCache.IsReadOnly(),
 	}
 }
 
-func NewClientCacheFrom(ctx context.Context, client *minio.Client, cfg *pkgcache.Minio, readOnly bool) *ClientCache {
+func NewClientCacheFrom(ctx context.Context, client *minio.Client, minio *pkgcache.Minio, readOnly bool) *ClientCache {
 	return &ClientCache{
+		Minio: Minio{
+			client:       client,
+			cacheDirNode: minio.GetDir(pkgcache.DirClients, ctx.Version()),
+		},
 		ctx:      ctx,
-		client: client, bucketName: bucketName,
-		cacheDir: cfg.GetDir(pkgcache.DirClients, ctx.Version()),
 		version:  ctx.Version(),
 		readOnly: readOnly,
 	}
@@ -71,7 +75,7 @@ func (c ClientCache) Store() error {
 
 	// Build object name like: 'celer-x86_64-linux-v0.5.1'.
 	binaryName := pkgcache.ClientName(c.version)
-	objectName := path.Join(c.cacheDir, binaryName)
+	objectName := path.Join(c.cacheDirNode, binaryName)
 
 	// Seeking client binary with its name is enough.
 	if info, err := c.GetFileInfo(objectName); err != nil {
@@ -98,7 +102,7 @@ func (c ClientCache) Restore(version string) (string, error) {
 	// The requested version, never b.version: this runs precisely because the running
 	// binary is another version than the schedule's.
 	binaryName := pkgcache.ClientName(version)
-	objectName := path.Join(c.cacheDir, binaryName)
+	objectName := path.Join(c.cacheDirNode, binaryName)
 	remoteInfo, err := c.GetFileInfo(objectName)
 	if err != nil {
 		return "", err
@@ -132,8 +136,8 @@ func (c ClientCache) List() ([]string, error) {
 	seen := make(map[string]bool)
 	var versions []string
 
-	opts := minio.ListObjectsOptions{Prefix: c.cacheDir + "/", Recursive: true}
-	for object := range c.client.ListObjects(gocontext.Background(), c.bucketName, opts) {
+	opts := minio.ListObjectsOptions{Prefix: c.cacheDirNode + "/", Recursive: true}
+	for object := range c.client.ListObjects(gocontext.Background(), bucketName, opts) {
 		if object.Err != nil {
 			resp := minio.ToErrorResponse(object.Err)
 			if resp.Code == minio.NoSuchBucket {
@@ -161,7 +165,7 @@ func (c ClientCache) Fetch(version, destPath string) error {
 	}
 
 	binaryName := pkgcache.ClientName(version)
-	objectName := path.Join(c.cacheDir, binaryName)
+	objectName := path.Join(c.cacheDirNode, binaryName)
 	remoteInfo, err := c.GetFileInfo(objectName)
 	if err != nil {
 		return err

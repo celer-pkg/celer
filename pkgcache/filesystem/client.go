@@ -15,8 +15,8 @@ import (
 // ClientCache stores the celer client binary of a version on a shared directory, so a node runs
 // the one that exported its schedule instead of whatever its PATH has.
 type ClientCache struct {
+	FileSystem
 	ctx      context.Context
-	cacheDir string
 	readOnly bool
 }
 
@@ -26,17 +26,24 @@ func NewClientCache(ctx context.Context) *ClientCache {
 		return nil
 	}
 
+	fs := pkgCache.GetFS()
 	return &ClientCache{
+		FileSystem: FileSystem{
+			cacheDirRoot: fs.GetDir(pkgcache.DirRoot, ctx.Version()),
+			cacheDirNode: fs.GetDir(pkgcache.DirClients, ctx.Version()),
+		},
 		ctx:      ctx,
-		cacheDir: pkgCache.GetFS().GetDir(pkgcache.DirClients, ctx.Version()),
 		readOnly: pkgCache.IsReadOnly(),
 	}
 }
 
 func NewClientCacheFrom(ctx context.Context, fs *pkgcache.FS, readOnly bool) *ClientCache {
 	return &ClientCache{
+		FileSystem: FileSystem{
+			cacheDirRoot: fs.GetDir(pkgcache.DirRoot, ctx.Version()),
+			cacheDirNode: fs.GetDir(pkgcache.DirClients, ctx.Version()),
+		},
 		ctx:      ctx,
-		cacheDir: fs.GetDir(pkgcache.DirClients, ctx.Version()),
 		readOnly: readOnly,
 	}
 }
@@ -53,13 +60,13 @@ func (c ClientCache) Store() error {
 	}
 
 	// The cache is authoritative: an existing entry is never overwritten.
-	destPath := filepath.Join(c.cacheDir, pkgcache.ClientName(c.ctx.Version()))
+	destPath := filepath.Join(c.cacheDirNode, pkgcache.ClientName(c.ctx.Version()))
 	if fileio.PathExists(destPath) {
 		return nil
 	}
 
-	if err := os.MkdirAll(c.cacheDir, os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create '%s' -> %w", c.cacheDir, err)
+	if err := os.MkdirAll(c.cacheDirNode, os.ModePerm); err != nil {
+		return fmt.Errorf("failed to create '%s' -> %w", c.cacheDirNode, err)
 	}
 	if err := fileio.CopyFile(executable, destPath); err != nil {
 		return fmt.Errorf("failed to store client binary '%s' -> %w", destPath, err)
@@ -81,9 +88,9 @@ func (c ClientCache) Restore(version string) (string, error) {
 	// The requested version, never the running one: this runs precisely because the
 	// running binary is another version than the schedule's.
 	binaryName := pkgcache.ClientName(version)
-	srcPath := filepath.Join(c.cacheDir, binaryName)
+	srcPath := filepath.Join(c.cacheDirNode, binaryName)
 	if !fileio.PathExists(srcPath) {
-		return "", fmt.Errorf("no client binary found with version '%s' in '%s'", version, c.cacheDir)
+		return "", fmt.Errorf("no client binary found with version '%s' in '%s'", version, c.cacheDirNode)
 	}
 
 	// Copy into a task-owned tmp dir and run it from there.
@@ -108,12 +115,12 @@ func (c ClientCache) Restore(version string) (string, error) {
 // List returns the versions of this platform's binaries in the cache, newest first.
 // An empty cache is an empty list, not an error.
 func (c ClientCache) List() ([]string, error) {
-	entries, err := os.ReadDir(c.cacheDir)
+	entries, err := os.ReadDir(c.cacheDirNode)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("failed to read '%s' -> %w", c.cacheDir, err)
+		return nil, fmt.Errorf("failed to read '%s' -> %w", c.cacheDirNode, err)
 	}
 
 	seen := make(map[string]bool, len(entries))
@@ -143,9 +150,9 @@ func (c ClientCache) Fetch(version, destPath string) error {
 		return fmt.Errorf("no client binary version provided to fetch")
 	}
 
-	srcPath := filepath.Join(c.cacheDir, pkgcache.ClientName(version))
+	srcPath := filepath.Join(c.cacheDirNode, pkgcache.ClientName(version))
 	if !fileio.PathExists(srcPath) {
-		return fmt.Errorf("no client binary found with version '%s' in '%s'", version, c.cacheDir)
+		return fmt.Errorf("no client binary found with version '%s' in '%s'", version, c.cacheDirNode)
 	}
 
 	// Copy next to the destination, then rename into place, so a partial copy never

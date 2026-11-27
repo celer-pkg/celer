@@ -83,7 +83,7 @@ celer install eigen@3.4.0
 - Check whether `pkgcache` and one of its backends are configured; if not, stop looking
 - Check whether the current repository has local modifications; if it does, stop looking
 - Read the current git commit hash and generate a cache hash from the current build configuration
-- Search under `pkgcache/artifacts-{Version}` using that hash and the current build configuration
+- Search under `pkgcache/artifacts-{Major.Minor}.x` using that hash and the current build configuration
 - If a matching artifact archive is found, reuse it by simulating the normal post-build install flow
 
 ## Private Library Distribution
@@ -105,7 +105,7 @@ For private or proprietary libraries, you can distribute prebuilt artifacts with
 
 **How it works:**
 1. Celer calculates the cache key from the `checksum` in `port.toml` plus the full build configuration
-2. It searches for a matching artifact in `pkgcache/artifacts-{Version}`
+2. It searches for a matching artifact in `pkgcache/artifacts-{Major.Minor}.x`
 3. If found, it extracts and uses the artifact **without cloning the repository**
 4. If not found, it falls back to building from source if the source is accessible
 
@@ -120,7 +120,7 @@ Celer organizes cached artifacts in a hierarchical layout that is easy to manage
 
 ```
 /home/test/pkgcache/
-    └── artifacts-v0.2.7                            # Versioned artifact cache
+    └── artifacts-v0.2.x                            # Cache shared by v0.2.x patch releases
         └── x86_64-linux-ubuntu-22.04-gcc-11.5.0/   # Platform
             └── project_01/                         # Project
                 └── release/                        # Build type (release/debug)

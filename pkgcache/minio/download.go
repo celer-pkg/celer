@@ -19,7 +19,6 @@ import (
 type DownloadConfig struct {
 	Minio
 	ctx      context.Context
-	cacheDir string
 	readOnly bool
 }
 
@@ -29,27 +28,21 @@ func NewDownloadConfig(ctx context.Context, client *minio.Client) *DownloadConfi
 		return nil
 	}
 
-	minioConfig := pkgCache.GetMinio()
+	minioCfg := pkgCache.GetMinio()
 	return &DownloadConfig{
-		ctx: ctx,
 		Minio: Minio{
-			client:     client,
-			bucketName: bucketName,
+			client:       client,
+			cacheDirNode: minioCfg.GetDir(pkgcache.DirDownloads, ctx.Version()),
 		},
-		cacheDir: minioConfig.GetDir(pkgcache.DirDownloads, ctx.Version()),
+		ctx:      ctx,
 		readOnly: pkgCache.IsReadOnly(),
 	}
 }
 
 // Store saves a downloaded file to the cache dir: downloads/{fileName}.
 func (d DownloadConfig) Store(fileName, sha256, srcPath string) error {
-	// skip when offline.
-	if d.ctx.Offline() {
-		return nil
-	}
-
-	// skip when read-only.
-	if d.readOnly {
+	// skip when offline or read-only.
+	if d.ctx.Offline() || d.readOnly {
 		return nil
 	}
 
@@ -63,7 +56,7 @@ func (d DownloadConfig) Store(fileName, sha256, srcPath string) error {
 	}
 
 	fileToStore := filepath.Join(d.ctx.Downloads(), fileName)
-	objectName := path.Join(d.cacheDir, fileName)
+	objectName := path.Join(d.cacheDirNode, fileName)
 
 	// The cache is authoritative: never auto-overwrite an existing entry.
 	if info, err := d.GetFileInfo(objectName); err != nil {
@@ -95,10 +88,10 @@ func (d DownloadConfig) Restore(fileName, sha256 string) (bool, error) {
 	}
 
 	if sha256 == "" {
-		return false, fmt.Errorf("no sha256 hash provided for %s/%s", d.cacheDir, fileName)
+		return false, fmt.Errorf("no sha256 hash provided for %s/%s", d.cacheDirNode, fileName)
 	}
 
-	objectName := path.Join(d.cacheDir, fileName)
+	objectName := path.Join(d.cacheDirNode, fileName)
 
 	remoteInfo, err := d.GetFileInfo(objectName)
 	if err != nil {
