@@ -114,6 +114,43 @@ func ChangeBranch(target, repoDir, ref string) error {
 	return nil
 }
 
+// ChangeRemoteUrl try to change remote url if not same as expected.
+func ChangeRemoteUrl(repoDir, repoUrl string) error {
+	localUrl, err := GetRemoteUrl(repoDir)
+	if err != nil {
+		return err
+	}
+
+	if localUrl == repoUrl {
+		return nil
+	}
+
+	title := fmt.Sprintf("[change remote url: %s]", repoUrl)
+	executor := cmd.NewExecutor(title, "git", "-C", repoDir, "remote", "set-url", "origin", repoUrl)
+	if err := executor.Execute(); err != nil {
+		return err
+	}
+
+	title = fmt.Sprintf("[sync remote repo: %s]", repoUrl)
+	executor = cmd.NewExecutor(title, "git", "pull")
+	executor.SetWorkDir(repoDir)
+	if err := executor.Execute(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// GetRemoteUrl report local git repo's git url.
+func GetRemoteUrl(repoDir string) (string, error) {
+	if repoDir == "" || !fileio.PathExists(repoDir) {
+		return "", fmt.Errorf("no repoDir found")
+	}
+
+	cmd := cmd.NewExecutor("", "git", "-C", repoDir, "remote", "get-url", "origin")
+	return cmd.ExecuteOutput()
+}
+
 // Clean clean git repo.
 func CleanRepo(target, repoDir string) error {
 	if !fileio.PathExists(repoDir) {

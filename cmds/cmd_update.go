@@ -143,18 +143,19 @@ func (u *UpdateCmd) doUpdate(args []string) error {
 
 func (u *UpdateCmd) UpdateConfRepo() error {
 	repoDir := filepath.Join(dirs.WorkspaceDir, "conf")
-	return git.UpdateRepo("conf repo", "", repoDir, u.Force)
+	return git.UpdateRepo("conf repo", repoDir, u.Celer.Main.ConfUrl, "", u.Force)
 }
 
 func (u *UpdateCmd) UpdatePortsRepo() error {
 	repoDir := filepath.Join(dirs.WorkspaceDir, "ports")
+	portsRepoUrl := u.Celer.PortsRepoUrl()
 
 	// A ports_baseline is either a pinned commit or a branch to follow, and a configured
 	// project always has one - project.Init() rejects an empty value. Without one the
 	// workspace runs on the built-in default project, which pins nothing.
 	baseline := strings.TrimSpace(u.Celer.Project().GetPortsBaseline())
 	if baseline == "" {
-		return git.UpdateRepo("ports repo", "", repoDir, u.Force)
+		return git.UpdateRepo("ports repo", repoDir, portsRepoUrl, "", u.Force)
 	}
 
 	// Uncommitted work should be warned.
@@ -170,7 +171,7 @@ func (u *UpdateCmd) UpdatePortsRepo() error {
 
 	// A commit hash is reset back to, a branch is checked out and pulled to its latest;
 	// UpdateRepo picks the right one from the baseline itself.
-	if err := git.UpdateRepo("ports repo", baseline, repoDir, u.Force); err != nil {
+	if err := git.UpdateRepo("ports repo", repoDir, portsRepoUrl, baseline, u.Force); err != nil {
 		return fmt.Errorf("failed to update ports repo to ports_baseline '%s' -> %w", baseline, err)
 	}
 
@@ -235,7 +236,7 @@ func (u *UpdateCmd) UpdatePortRepo(nameVersion string, visited map[string]bool) 
 	}
 
 	// Update port.
-	if err := git.UpdateRepo(nameVersion, port.Package.Ref, srcDir, u.Force); err != nil {
+	if err := git.UpdateRepo(nameVersion, srcDir, port.Package.Url, port.Package.Ref, u.Force); err != nil {
 		return err
 	}
 
