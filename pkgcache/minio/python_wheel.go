@@ -16,7 +16,6 @@ import (
 type PythonWheelConfig struct {
 	Minio
 	ctx      context.Context
-	cacheDir string
 	readOnly bool
 }
 
@@ -26,21 +25,20 @@ func NewPythonWheelConfig(ctx context.Context, client *minio.Client) *PythonWhee
 		return nil
 	}
 
-	minioConfig := pkgCache.GetMinio()
+	minio := pkgCache.GetMinio()
 	return &PythonWheelConfig{
-		ctx: ctx,
 		Minio: Minio{
-			client:     client,
-			bucketName: bucketName,
+			client:       client,
+			cacheDirNode: minio.GetDir(pkgcache.DirPythonWheels, ctx.Version()),
 		},
-		cacheDir: minioConfig.GetDir(pkgcache.DirPythonWheels, ctx.Version()),
+		ctx:      ctx,
 		readOnly: pkgCache.IsReadOnly(),
 	}
 }
 
 // keyPrefix returns the minio object prefix holding the wheelhouse for cacheKey.
 func (p PythonWheelConfig) keyPrefix(cacheKey string) string {
-	return path.Join(p.cacheDir, cacheKey)
+	return path.Join(p.cacheDirNode, cacheKey)
 }
 
 // Restore lists every distribution object under cacheKey's prefix and downloads
@@ -55,7 +53,7 @@ func (p PythonWheelConfig) Restore(cacheKey, destDir string) (bool, error) {
 
 	// List every object under the prefix and collect the distribution names.
 	var files []string
-	for info := range p.client.ListObjects(context.Background(), p.bucketName, minio.ListObjectsOptions{
+	for info := range p.client.ListObjects(context.Background(), bucketName, minio.ListObjectsOptions{
 		Prefix:    prefix,
 		Recursive: true,
 	}) {
@@ -85,7 +83,7 @@ func (p PythonWheelConfig) Restore(cacheKey, destDir string) (bool, error) {
 	defer os.RemoveAll(localTmpDir)
 
 	for _, file := range files {
-		objectName := path.Join(p.cacheDir, cacheKey, file)
+		objectName := path.Join(p.cacheDirNode, cacheKey, file)
 		tmpFile, err := p.downloadFile(localTmpDir, objectName, file)
 		if err != nil {
 			return false, fmt.Errorf("failed to download python distribution %s -> %w", file, err)

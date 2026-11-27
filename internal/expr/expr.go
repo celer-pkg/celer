@@ -64,11 +64,11 @@ func UpperFirst(text string) string {
 // GetMinorVersion convert a version string to its major.minor part
 // (e.g. "5.11.13" -> "5.11", "1.11" -> "1.11").
 func GetMinorVersion(version string) string {
-	parts := strings.Split(version, ".")
-	if len(parts) >= 2 {
-		return parts[0] + "." + parts[1]
+	parts := strings.SplitN(version, ".", 3)
+	if len(parts) < 2 {
+		return version // Fallback
 	}
-	return version
+	return parts[0] + "." + parts[1]
 }
 
 // FormatProcessor unify processor name.

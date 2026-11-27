@@ -94,7 +94,7 @@ declares, and the file is written instead of running the deployment:
 | `conf_ref` / `ports_ref` | The exact conf and ports repo revisions (the local `HEAD` commits) the schedule was hashed with. Applying a schedule, or building a node from one, moves the workspace's conf and ports to them before reading any port config, so every machine reads the same configs. `celer init` syncs both repos to their branch tips, except in offline mode, so a checkout that was never pulled is not mistaken for the latest one |
 | `target_nodes[]` | The nodes an agent has to build (the key is omitted when there is nothing to build) |
 | `target_nodes[].name_version` | `name@version` |
-| `target_nodes[].build_hash` | pkgcache key: `artifacts-<celer_version>/.../<build_hash>.tar.gz` |
+| `target_nodes[].build_hash` | pkgcache key: `artifacts-<celer_major.minor>.x/.../<build_hash>.tar.gz` |
 | `target_nodes[].checksum` | Source revision resolved at export time (git commit or archive sha-256) |
 | `target_nodes[].dependencies` | Dependencies that must be installed before this node: built earlier, or restored from pkgcache |
 | `cached` | `name@version` of the nodes whose artifact is already in pkgcache: not scheduled, restored by the jobs that need them |

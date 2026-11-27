@@ -85,7 +85,7 @@ celer deploy --apply-dag=dag.json --snapshot=snapshots/2026-02-21
 | `conf_ref` / `ports_ref` | 导出时 conf 与 ports 仓库的本地 `HEAD` commit（真正参与 hash 的那份配置）。apply 与 `install --apply-dag` 会先把两个仓库移到它们，再读取 port 配置，让每台机器读到同一份。`celer init` 会把两个仓库都同步到分支最新（offline 模式除外），避免把没 pull 的旧 checkout 当成最新 |
 | `target_nodes[]` | 需要 agent 去构建的节点（没有需要构建的节点时该键不输出） |
 | `target_nodes[].name_version` | `name@version` |
-| `target_nodes[].build_hash` | pkgcache 键：`artifacts-<celer_version>/.../<build_hash>.tar.gz` |
+| `target_nodes[].build_hash` | pkgcache 键：`artifacts-<celer_major.minor>.x/.../<build_hash>.tar.gz` |
 | `target_nodes[].checksum` | 导出时解析好的源码 revision（git commit 或压缩包 sha256） |
 | `target_nodes[].dependencies` | 必须先装好的依赖：要么前面已构建，要么直接从 pkgcache 恢复 |
 | `local_nodes[]` | 每个 agent 自己编的 dev/host 依赖：不参与调度，只用来钉源码 revision |

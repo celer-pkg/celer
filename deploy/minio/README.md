@@ -106,8 +106,8 @@ mc admin user info <alias> celer-pkgcache
 
 # with the runtime key: upload works, delete is denied
 mc alias set celer-runtime http://minio.example.com:9000 <access-key> <secret-key>
-mc cp ./some.tar.gz celer-runtime/celer-cache/artifacts-v0.2.7/
-mc rm celer-runtime/celer-cache/artifacts-v0.2.7/some.tar.gz   # expected: Access Denied
+mc cp ./some.tar.gz celer-runtime/celer-cache/artifacts-v0.2.x/
+mc rm celer-runtime/celer-cache/artifacts-v0.2.x/some.tar.gz   # expected: Access Denied
 ```
 
 ## Deleting objects (administrator only)
@@ -116,7 +116,7 @@ Nothing in celer deletes cache entries. When an object really must go, an
 administrator removes it manually, e.g. in the MinIO console, or:
 
 ```bash
-mc rm --recursive --force --dangerous <alias>/celer-cache/artifacts-v0.2.7/<platform>/<project>/<build-type>/<name@version>/
+mc rm --recursive --force --dangerous <alias>/celer-cache/artifacts-v0.2.x/<platform>/<project>/<build-type>/<name@version>/
 ```
 
 Because the bucket is versioned, overwriting an entry keeps the previous version
