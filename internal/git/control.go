@@ -36,12 +36,17 @@ func UpdateSubmodules(title, repoDir string) error {
 }
 
 // UpdateRepo update git repo.
-func UpdateRepo(target, repoRef, repoDir string, force bool) error {
+func UpdateRepo(target, repoDir, repoUrl, repoRef string, force bool) error {
 	if !fileio.PathExists(repoDir) {
 		return errors.ErrDirNotExist
 	}
 	if !fileio.PathExists(filepath.Join(repoDir, ".git")) {
 		return errors.ErrNotGitDir
+	}
+
+	// RepoUrl is mandatory for check if url changed.
+	if repoUrl == "" {
+		return fmt.Errorf("repoUrl is not specified when update port.")
 	}
 
 	// Check if repo is modified.
@@ -52,6 +57,19 @@ func UpdateRepo(target, repoRef, repoDir string, force bool) error {
 	if modified {
 		if !force {
 			return fmt.Errorf("repository has local modifications, update is skipped - you can update forcibly with -f/--force")
+		}
+	}
+
+	// Get repo URL.
+	localRepoUrl, err := GetRepoUrl(repoDir)
+	if err != nil {
+		return err
+	}
+
+	// Change remote url if changed.
+	if localRepoUrl != repoUrl {
+		if err := ChangeRemoteUrl(repoDir, repoUrl); err != nil {
+			return nil
 		}
 	}
 
@@ -68,12 +86,6 @@ func UpdateRepo(target, repoRef, repoDir string, force bool) error {
 			return err
 		}
 		repoRef = branch
-	}
-
-	// Get repo URL.
-	repoUrl, err := GetRepoUrl(repoDir)
-	if err != nil {
-		return err
 	}
 
 	// Update to a specific commit hash: fetch then hard-reset.
