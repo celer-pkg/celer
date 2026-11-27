@@ -83,7 +83,7 @@ func (env environmentScript) writeScript() error {
 	if env.haveVenv {
 		buffer.WriteString("# Python virtual environment.\n")
 		fmt.Fprintf(&buffer, "export VIRTUAL_ENV=\"${WORKSPACE_DIR}/%s\"\n", env.venvRel)
-		fmt.Fprintf(&buffer, "export PYTHONUSERBASE=\"${WORKSPACE_DIR}/.venv\"\n")
+		fmt.Fprintf(&buffer, "export PYTHONUSERBASE=\"${VIRTUAL_ENV}\"\n")
 		fmt.Fprintf(&buffer, "export PYTHONPATH=\"${VIRTUAL_ENV}/%s%s${WORKSPACE_DIR}/%s/%s%s${PYTHONPATH}\"\n\n",
 			env.siteRel, sep, env.installedRel, env.siteRel, sep)
 	}
