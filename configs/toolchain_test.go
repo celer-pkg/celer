@@ -6,27 +6,16 @@ import (
 	"testing"
 
 	"github.com/celer-pkg/celer/configs/toolchains"
-	"github.com/celer-pkg/celer/context"
 )
 
-// fakeContext implements the subset of context.Context used by toolchain
-// tests; any other method call panics via the nil embedded interface.
-type fakeContext struct {
-	context.Context
-	build string
-}
-
-func (f fakeContext) BuildType() string           { return f.build }
-func (f fakeContext) ExprVars() *context.ExprVars { return nil }
-
 func TestToolchainEffectiveFlags(t *testing.T) {
-	toolchain := Toolchain{}
-	toolchain.Name = "gcc"
-	toolchain.CFlags = []string{"-O2"}
-	toolchain.CXXFlags = []string{"-O2"}
-	toolchain.LDFlags = []string{"-Wl,--as-needed"}
-	toolchain.CFlagsDebug = []string{"-O0", "-g"}
-	toolchain.CXXFlagsDebug = []string{"-O0", "-g"}
+	toolchain := Toolchain{
+		Name:          "gcc",
+		CFlags:        []string{"-O2"},
+		CXXFlags:      []string{"-O2"},
+		LDFlags:       []string{"-Wl,--as-needed"},
+		CFlagsDebug:   []string{"-O0", "-g"},
+		CXXFlagsDebug: []string{"-O0", "-g"}}
 	toolchain.CXXFlagsDebug = []string{"-O0", "-g"}
 	toolchain.LDFlagsDebug = []string{"-Wl,--export-dynamic"}
 
@@ -65,20 +54,20 @@ func TestToolchainEffectiveFlags(t *testing.T) {
 func TestToolchainGenerate_UsesDebugFlags(t *testing.T) {
 	var buffer strings.Builder
 
-	toolchain := Toolchain{}
-	toolchain.Name = "gcc"
-	toolchain.SystemName = "linux"
-	toolchain.SystemProcessor = "x86_64"
-	toolchain.Path = "/usr/bin"
-	toolchain.CC = "gcc"
-	toolchain.CXX = "g++"
-	toolchain.CFlags = []string{"-O2"}
-	toolchain.CXXFlags = []string{"-O2"}
-	toolchain.LDFlags = []string{"-Wl,--as-needed"}
-	toolchain.CFlagsDebug = []string{"-O0", "-g3"}
-	toolchain.CXXFlagsDebug = []string{"-O0", "-g3", "-fno-rtti"}
-	toolchain.LDFlagsDebug = []string{"-Wl,--export-dynamic"}
-	toolchain.ctx = fakeContext{build: "debug"}
+	toolchain := Toolchain{
+		Name:            "gcc",
+		SystemName:      "linux",
+		SystemProcessor: "x86_64",
+		Path:            "/usr/bin",
+		CC:              "gcc",
+		CXX:             "g++",
+		CFlags:          []string{"-O2"},
+		CXXFlags:        []string{"-O2"},
+		LDFlags:         []string{"-Wl,--as-needed"},
+		CFlagsDebug:     []string{"-O0", "-g3"},
+		CXXFlagsDebug:   []string{"-O0", "-g3", "-fno-rtti"},
+		LDFlagsDebug:    []string{"-Wl,--export-dynamic"},
+		ctx:             fakeContext{buildType: "debug"}}
 
 	// Initialize the toolchain implementation.
 	toolchain.toolchain = toolchains.NewToolchain(
