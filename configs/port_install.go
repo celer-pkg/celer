@@ -484,7 +484,7 @@ func (p *Port) installFromPackage(options InstallOptions) (bool, error) {
 		// pkgcache/devcache/source (all of which clean the dir themselves).
 		suffix := expr.If(p.DevDep || p.HostDep, "[dev]", "")
 		logger.PrintWarning("removing incomplete package dir %s (no meta file found) for %s", p.PackageDir, p.NameVersion()+suffix)
-		if err := os.RemoveAll(p.PackageDir); err != nil {
+		if err := p.Remove(RemoveOptions{Purge: true, BuildCache: true}); err != nil {
 			return false, fmt.Errorf("failed to remove incomplete package dir %s -> %w", p.PackageDir, err)
 		}
 		return false, nil
