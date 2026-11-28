@@ -12,7 +12,7 @@
 - **vars（CMake 变量）** - 构建时需要的全局 CMake 构建变量
 - **envs（环境变量）** - 构建时需要的全局环境变量
 - **macros（宏定义）** - 构建时需要的全局的C/C++ 预处理器宏
-- **python（Python 构建环境）** - 构建期 Python 的版本和 pip 索引源，详见 [Python 版本管理](./article_python_management.md)
+- **python（Python 构建环境）** - 构建期 Python 的版本和 pip 索引源，详见 [Python 版本管理](./base_practice_python_management.md)
 
 **为什么需要项目配置？**
 
@@ -195,7 +195,7 @@ macros = [
 | `conda_channels` | ❌ | 准备 Python 使用的 conda 源（`-c`），覆盖默认的 `conda-forge` |
 
 > **注意**：`[python]` 是 TOML 表，出现后其后的键值都属于该表，请把它放在文件末尾。
-> 版本选择策略、虚拟环境位置和默认回退行为详见 [Python 版本管理](./article_python_management.md)。
+> 版本选择策略、虚拟环境位置和默认回退行为详见 [Python 版本管理](./base_practice_python_management.md)。
 
 ---
 

@@ -234,7 +234,7 @@ The following are fields and their descriptions:
 
 - `include_dirs`: additional header search directories.
 - `lib_dirs`: additional library search directories.
-- Both fields support [expression variables](./article_expvars.md), including `${STAGING_DIR}` and `${DEV_STAGING_DIR}`.
+- Both fields support [expression variables](./base_practice_expvars.md), including `${STAGING_DIR}` and `${DEV_STAGING_DIR}`.
 - Platform-specific directories can be appended with `include_dirs_windows`, `include_dirs_linux`, `include_dirs_darwin`, and the corresponding `lib_dirs_*` fields.
 
 Currently supported build systems and mappings:
@@ -322,4 +322,4 @@ Currently supported build systems and mappings:
   ]
 ```
 
-> Celer provides dynamic variables that can be used in TOML files, such as **${BUILD_DIR}**, which will be replaced with the actual path during compilation. For the complete list, see [Expression Variables](./article_expvars.md).
+> Celer provides dynamic variables that can be used in TOML files, such as **${BUILD_DIR}**, which will be replaced with the actual path during compilation. For the complete list, see [Expression Variables](./base_practice_expvars.md).

@@ -257,7 +257,7 @@ system_processor = "x86_64"
 
 - [快速开始指南](./quick_start.md) - 开始使用 Celer
 - [项目配置](./cmd_create.md) - 在 celer.toml 中选择平台
-- [构建配置](./article_port.md) - 配置构建选项和依赖
+- [构建配置](./base_practice_port.md) - 配置构建选项和依赖
 
 ---
 

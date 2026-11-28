@@ -198,7 +198,7 @@ Python 版本应按以下格式指定：
   build_tools = ["python3:mako@1.3.10", "python3:MarkupSafe@2.1.0"]
 ```
 
-Celer 会用 pip 把每个库安装到项目的虚拟环境中（`mako==1.3.10`）。不带版本的条目（如 `python3:mako`）会被拒绝。`meson` 和 `gyp` 构建系统同样以 Python 包方式安装，因此也必须指定版本（`build_system = "meson@1.11.2"`、`build_system = "gyp@0.19.0"`）。详见 [构建工具](./article_build_tools.md) 和 [Python Wheel 缓存](./article_pkgcache_python_wheels.md)。
+Celer 会用 pip 把每个库安装到项目的虚拟环境中（`mako==1.3.10`）。不带版本的条目（如 `python3:mako`）会被拒绝。`meson` 和 `gyp` 构建系统同样以 Python 包方式安装，因此也必须指定版本（`build_system = "meson@1.11.2"`、`build_system = "gyp@0.19.0"`）。详见 [构建工具](./base_practice_build_tools.md) 和 [Python Wheel 缓存](./base_practice_pkgcache_python_wheels.md)。
 
 ---
 
