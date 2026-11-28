@@ -176,15 +176,17 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 		return fmt.Errorf("failed to init build config -> %w", err)
 	}
 
+	// A pin from `celer install --dag` fixes the source revision of this port for
+	// the whole run: it is the revision that was resolved when the DAG was exported.
+	// Apply it before validation so a pinned download source does not need an
+	// inline checksum in port.toml.
+	if pin, ok := pinnedSourceOf(nameVersion); ok {
+		p.Package.Checksum = pin
+	}
+
 	// Validate port.
 	if err := p.validate(); err != nil {
 		return fmt.Errorf("failed to validate %s -> %w", p.portFile, err)
-	}
-
-	// A pin from `celer install --dag` fixes the source revision of this port for
-	// the whole run: it is the revision that was resolved when the DAG was exported.
-	if pin, ok := pinnedSourceOf(nameVersion); ok {
-		p.Package.Checksum = pin
 	}
 
 	return nil
@@ -477,6 +479,16 @@ func (p Port) validate() error {
 
 	if p.Package.Ref == "" {
 		return fmt.Errorf("version of %s is empty", p.Name)
+	}
+
+	// Download links (everything except git repositories, virtual ports and local
+	// file paths) must carry a checksum, otherwise the archive cannot be verified
+	// or pinned. Local file:/// sources are trusted the same way toolchains are.
+	if p.Package.Url != "_" &&
+		!strings.HasPrefix(p.Package.Url, "file:///") &&
+		!strings.HasSuffix(p.Package.Url, ".git") &&
+		strings.TrimSpace(p.Package.Checksum) == "" {
+		return fmt.Errorf("missing checksum for %s: add a sha-256 checksum to [package] or the matched prebuilt build_config", p.NameVersion())
 	}
 
 	for _, config := range p.BuildConfigs {
