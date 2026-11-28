@@ -21,7 +21,7 @@ celer strip
 
 未配置 `strip` 时命令直接失败，不会退化为仅 copy。
 
-详见 [平台配置](./article_platform.md)。
+详见 [平台配置](./base_practice_platform.md)。
 
 ## 输出内容
 

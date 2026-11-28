@@ -5,10 +5,10 @@ PkgCache stores build artifacts, source repos, and downloaded files. Pick **one*
 - **fs**: a local directory, or an NFS / SMB mount
 - **minio**: S3-compatible object storage
 
-- [Cache Build Artifacts](article_pkgcache_artifacts.md)
-- [Cache Source Repositories](article_pkgcache_repos.md)
-- [Cache Downloaded Files](article_pkgcache_downloads.md)
-- [Cache Python Wheels](article_pkgcache_python_wheels.md)
+- [Cache Build Artifacts](base_practice_pkgcache_artifacts.md)
+- [Cache Source Repositories](base_practice_pkgcache_repos.md)
+- [Cache Downloaded Files](base_practice_pkgcache_downloads.md)
+- [Cache Python Wheels](base_practice_pkgcache_python_wheels.md)
 
 ## fs
 

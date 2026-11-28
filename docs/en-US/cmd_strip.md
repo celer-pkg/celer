@@ -21,7 +21,7 @@ No flags or arguments. Uses the current workspace context (`platform`, `project`
 
 If `strip` is not configured, the command fails; it does not fall back to copy-only.
 
-See [Platform configuration](./article_platform.md).
+See [Platform configuration](./base_practice_platform.md).
 
 ## What Is Produced
 

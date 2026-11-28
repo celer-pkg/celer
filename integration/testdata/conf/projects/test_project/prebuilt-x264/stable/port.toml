@@ -6,15 +6,18 @@
   system_processor = "x86_64"
   build_system = "prebuilt"
   url = "https://github.com/celer-pkg/celer-conf/releases/download/resource/prebuilt-x264@stable@x86_64-linux.tar.gz"
+  checksum = "3fa3c808f37ef9b98078b75bb5bf11cddf4ed5a30d3c5343b615849a1d3c9fb9"
 
 [[build_configs]]
   system_name = "linux"
   system_processor = "aarch64"
   build_system = "prebuilt"
   url = "https://github.com/celer-pkg/celer-conf/releases/download/resource/prebuilt-x264@stable@aarch64-linux.tar.gz"
+  checksum = "6bb2f44ca6ad1ecb17b556c49027b628f40cccbf4800c56c673811b6e5c94440"
 
 [[build_configs]]
   system_name = "windows"
   system_processor = "x86_64"
   build_system = "prebuilt"
   url = "https://github.com/celer-pkg/celer-conf/releases/download/resource/prebuilt-x264@stable@x86_64-windows.tar.gz"
+  checksum = "fffd0a479f75ed1e0df8c44b6b0cf6ad2d56a48ce08dc11b7e748c7530100ccd"

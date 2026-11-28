@@ -22,7 +22,7 @@
   archive = ""                            # 可选字段，仅当 url 不是 git 仓库时有效
   src_dir = "xxx"                         # 可选字段
   build_tool = true|false                 # 可选字段
-  checksum = ""                           # 可选字段，源码 git commit hash 或者 压缩包 sha-256 校验值
+  checksum = ""                           # 下载链接必填（压缩包 sha-256 校验值）；git 仓库可选（commit hash）
   depth = 0                               # 可选字段，git 浅克隆深度，仅对 ref 为 branch/tag 生效
 
 [[build_configs]]
@@ -87,7 +87,7 @@
 | archive | ❌ | 下载压缩包时重命名文件名 | `glog-0.6.0.tar.gz` |
 | src_dir | ❌ | 指定 configure/CMakeLists.txt 所在目录 | `icu4c/source` |
 | build_tool | ❌ | 是否为"构建期工具"端口（如 m4、automake、libtool、autoconf）。设为 `true` 时始终本机编译、安装路径不含平台/项目/构建类型等层级目录，且仅在 Linux/Darwin 上构建 | `true` |
-| checksum | ❌ | 源码的 git commit hash 或者 压缩包的 sha-256 校验值。**配置了 checksum 的端口在 install 时优先从 pkgcache 拉取编译缓存，免去 clone 与编译**；若拉取失败则回退到 clone+编译 | `b6d328e9...` |
+| checksum | ✅（下载链接） | 下载链接必填，值为压缩包的 sha-256；git 仓库可选，值为 commit hash。配置后 install 优先从 pkgcache 还原，未命中则回退到 clone+编译 | `b6d328e9...` |
 | depth | ❌ | git 浅克隆深度，节省带宽。**仅当 ref 为分支或标签时生效**；ref 为 commit hash 时会被忽略（目标 commit 可能在任意分支上，必须拉取所有 ref 才能保证可达） | `1` |
 | ignore_lfs | ❌ | clone 时跳过 Git LFS 下载（设置 `GIT_LFS_SKIP_SMUDGE=1`），LFS 跟踪的文件保持为指针文件，不拉取实际内容 | `true` |
 | build_configs | ✅ | 构建配置数组，描述不同平台的构建方式 | 见下方示例 |
@@ -243,7 +243,7 @@
 
 - `include_dirs`：额外头文件搜索目录。
 - `lib_dirs`：额外库文件搜索目录。
-- 两个字段都支持 `${STAGING_DIR}`、`${DEV_STAGING_DIR}` 等[动态变量](./article_expvars.md)。
+- 两个字段都支持 `${STAGING_DIR}`、`${DEV_STAGING_DIR}` 等[动态变量](./base_practice_expvars.md)。
 - 也可以使用 `include_dirs_windows`、`include_dirs_linux`、`include_dirs_darwin` 和对应的 `lib_dirs_*` 字段追加平台专用目录。
 
 当前明确支持的构建系统及映射方式：
@@ -330,7 +330,7 @@
   ]
 ```
 
-> 注意：Celer 提供了一些动态变量，可在 toml 文件中使用，例如：**${BUILD_DIR}**，在编译过程中会被实际路径替换。完整列表请参考 [动态变量](./article_expvars.md)。
+> 注意：Celer 提供了一些动态变量，可在 toml 文件中使用，例如：**${BUILD_DIR}**，在编译过程中会被实际路径替换。完整列表请参考 [动态变量](./base_practice_expvars.md)。
 
 ### options
 

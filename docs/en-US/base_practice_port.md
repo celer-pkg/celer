@@ -13,7 +13,7 @@ Let's look at an example port.toml file: **ports/glog/0.6.0/port.toml**:
   archive             = ""                    # optional field, only works when url is not a git repo url.
   src_dir             = "xxx"                 # optional field
   build_tool          = true|false            # optional field
-  checksum            = ""                    # optional field, git commit hash of the source, or sha-256 of the archive
+  checksum            = ""                    # required for download urls (sha-256 of the archive); optional for git urls (commit hash)
   depth               = 0                     # optional field, git shallow clone depth; only effective when ref is a branch/tag
 
 [[build_configs]]
@@ -78,7 +78,7 @@ The following are fields and their descriptions:
 | archive | Optional, only works when url is not a git url. Used to rename downloaded archive file. |
 | src_dir | Optional, used to specify where **configure** or **CMakeLists.txt** is located. |
 | build_tool | Optional. Set to `true` for build-time tools (e.g. m4, automake, libtool, autoconf): always built natively, install path has no platform/project/buildType hierarchical directory segments, and only built on Linux/Darwin. |
-| checksum | Optional. Git commit hash of the source, or sha-256 of the archive. **A port with checksum is restored from the artifact pkgcache at install time, skipping clone and build**; falls back to clone+build if the cache miss. |
+| checksum | Download links: required sha-256 of the archive. Git urls: optional commit hash. With a checksum, install restores from pkgcache instead of cloning and building, falling back on a cache miss. |
 | depth | Optional. Git shallow clone depth, saves bandwidth. **Only effective when ref is a branch or tag**; ignored when ref is a commit hash (the target commit may live on any branch, so all refs must be fetched to guarantee reachability). |
 | ignore_lfs | Optional. Skip Git LFS downloads during git clone by setting `GIT_LFS_SKIP_SMUDGE=1`; LFS-tracked files are left as pointer files instead of being fetched. |
 | build_configs | Array, describes how to build the library on different platforms. |
@@ -234,7 +234,7 @@ The following are fields and their descriptions:
 
 - `include_dirs`: additional header search directories.
 - `lib_dirs`: additional library search directories.
-- Both fields support [expression variables](./article_expvars.md), including `${STAGING_DIR}` and `${DEV_STAGING_DIR}`.
+- Both fields support [expression variables](./base_practice_expvars.md), including `${STAGING_DIR}` and `${DEV_STAGING_DIR}`.
 - Platform-specific directories can be appended with `include_dirs_windows`, `include_dirs_linux`, `include_dirs_darwin`, and the corresponding `lib_dirs_*` fields.
 
 Currently supported build systems and mappings:
@@ -322,4 +322,4 @@ Currently supported build systems and mappings:
   ]
 ```
 
-> Celer provides dynamic variables that can be used in TOML files, such as **${BUILD_DIR}**, which will be replaced with the actual path during compilation. For the complete list, see [Expression Variables](./article_expvars.md).
+> Celer provides dynamic variables that can be used in TOML files, such as **${BUILD_DIR}**, which will be replaced with the actual path during compilation. For the complete list, see [Expression Variables](./base_practice_expvars.md).

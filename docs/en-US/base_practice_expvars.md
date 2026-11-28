@@ -78,7 +78,7 @@ A `[[build_configs]]` block may declare its own `KEY=VALUE` variables via the
 `vars` field. They are scoped to that one build_config (no leakage to sibling
 configs, other ports, or global) and referenced via `${KEY}` like any built-in.
 A key must not shadow an existing variable. See
-[Port Configuration — vars](./article_port.md#vars) for details.
+[Port Configuration — vars](./base_practice_port.md#vars) for details.
 
 ## Where Replacement Happens
 

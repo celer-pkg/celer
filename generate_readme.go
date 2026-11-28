@@ -59,8 +59,8 @@ func main() {
 		"](./cmd_",
 		"](./docs/en-US/cmd_")
 	content = strings.ReplaceAll(content,
-		"](./article_",
-		"](./docs/en-US/article_")
+		"](./base_practice_",
+		"](./docs/en-US/base_practice_")
 	content = strings.ReplaceAll(content,
 		"](./why_",
 		"](./docs/en-US/why_")

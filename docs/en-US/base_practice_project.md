@@ -12,7 +12,7 @@ Project configuration defines how Celer manages dependencies and build environme
 - **Vars (CMake Variables)** - Global CMake build variables needed during build
 - **Envs (Environment Variables)** - Global environment variables needed during build
 - **Macros (Macro Definitions)** - Global C/C++ preprocessor macros needed during build
-- **python (Python build environment)** - Python version and pip index sources for the build, see [Python Version Management](./article_python_management.md)
+- **python (Python build environment)** - Python version and pip index sources for the build, see [Python Version Management](./base_practice_python_management.md)
 
 **Why do we need project configuration?**
 
@@ -198,7 +198,7 @@ sources. Python configuration is project-level: it no longer lives in the worksp
 
 > **Note**: `[python]` is a TOML table — every key after it belongs to the table, so keep it at
 > the end of the file. For version selection strategy, venv locations and fallback behavior, see
-> [Python Version Management](./article_python_management.md).
+> [Python Version Management](./base_practice_python_management.md).
 
 ---
 
