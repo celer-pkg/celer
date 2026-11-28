@@ -5,10 +5,10 @@ PkgCache 缓存构建产物、源码仓库和下载文件。后端只能选一�
 - **fs**：本地目录，或 NFS / SMB 挂载
 - **minio**：S3 兼容对象存储
 
-- [缓存构建产物](article_pkgcache_artifacts.md)
-- [缓存源码仓库](article_pkgcache_repos.md)
-- [缓存下载文件](article_pkgcache_downloads.md)
-- [缓存 Python Wheel](article_pkgcache_python_wheels.md)
+- [缓存构建产物](base_practice_pkgcache_artifacts.md)
+- [缓存源码仓库](base_practice_pkgcache_repos.md)
+- [缓存下载文件](base_practice_pkgcache_downloads.md)
+- [缓存 Python Wheel](base_practice_pkgcache_python_wheels.md)
 
 ## fs
 

@@ -243,7 +243,7 @@
 
 - `include_dirs`：额外头文件搜索目录。
 - `lib_dirs`：额外库文件搜索目录。
-- 两个字段都支持 `${STAGING_DIR}`、`${DEV_STAGING_DIR}` 等[动态变量](./article_expvars.md)。
+- 两个字段都支持 `${STAGING_DIR}`、`${DEV_STAGING_DIR}` 等[动态变量](./base_practice_expvars.md)。
 - 也可以使用 `include_dirs_windows`、`include_dirs_linux`、`include_dirs_darwin` 和对应的 `lib_dirs_*` 字段追加平台专用目录。
 
 当前明确支持的构建系统及映射方式：
@@ -330,7 +330,7 @@
   ]
 ```
 
-> 注意：Celer 提供了一些动态变量，可在 toml 文件中使用，例如：**${BUILD_DIR}**，在编译过程中会被实际路径替换。完整列表请参考 [动态变量](./article_expvars.md)。
+> 注意：Celer 提供了一些动态变量，可在 toml 文件中使用，例如：**${BUILD_DIR}**，在编译过程中会被实际路径替换。完整列表请参考 [动态变量](./base_practice_expvars.md)。
 
 ### options
 

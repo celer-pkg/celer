@@ -202,7 +202,7 @@ Build-time Python libraries for a port are declared in `build_tools` with a `pyt
   build_tools = ["python3:mako@1.3.10", "python3:MarkupSafe@2.1.0"]
 ```
 
-Celer installs each library into the project's virtual environment with pip (`mako==1.3.10`). Entries without a version, such as `python3:mako`, are rejected. The `meson` and `gyp` build systems are provisioned the same way and therefore also require a version (`build_system = "meson@1.11.2"`, `build_system = "gyp@0.19.0"`). See [Build Tools](./article_build_tools.md) and [Python Wheel Cache](./article_pkgcache_python_wheels.md) for details.
+Celer installs each library into the project's virtual environment with pip (`mako==1.3.10`). Entries without a version, such as `python3:mako`, are rejected. The `meson` and `gyp` build systems are provisioned the same way and therefore also require a version (`build_system = "meson@1.11.2"`, `build_system = "gyp@0.19.0"`). See [Build Tools](./base_practice_build_tools.md) and [Python Wheel Cache](./base_practice_pkgcache_python_wheels.md) for details.
 
 ---
 
